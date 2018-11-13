@@ -106,7 +106,7 @@ void addPropertiesFromSignature(
 
     if (!walkPrototypeChain) break;
 
-    sig = safeGetProperty(sig, '__proto__');
+    sig = dart.getPrototypeOf(sig);
   }
 }
 
@@ -462,6 +462,7 @@ class DartFormatter {
       IterableSpanFormatter(),
       MapEntryFormatter(),
       StackTraceFormatter(),
+      ErrorAndExceptionFormatter(),
       FunctionFormatter(),
       HeritageClauseFormatter(),
       LibraryModuleFormatter(),
@@ -802,12 +803,51 @@ class IterableSpanFormatter implements Formatter {
   accept(object, config) => object is IterableSpan;
 
   String preview(object) {
-    return '[${object.start}...${object.end-1}]';
+    return '[${object.start}...${object.end - 1}]';
   }
 
   bool hasChildren(object) => true;
 
   List<NameValuePair> children(object) => object.children();
+}
+
+/// Formatter for Dart Errors and Exceptions.
+class ErrorAndExceptionFormatter extends ObjectFormatter {
+  static final RegExp _pattern = RegExp(r'\d+\:\d+');
+
+  accept(object, config) => object is Error || object is Exception;
+
+  bool hasChildren(object) => true;
+
+  String preview(object) {
+    var trace = dart.stackTrace(object);
+    // TODO(vsm): Pull our stack mapping logic here.  We should aim to
+    // provide the first meaningful stack frame.
+    var line = '$trace'.split('\n').firstWhere(
+        (l) =>
+            l.contains(_pattern) &&
+            !l.contains('dart:sdk') &&
+            !l.contains('dart_sdk'),
+        orElse: () => null);
+    return line != null ? '${object} at ${line}' : '${object}';
+  }
+
+  List<NameValuePair> children(object) {
+    var trace = dart.stackTrace(object);
+    var entries = LinkedHashSet<NameValuePair>();
+    entries.add(NameValuePair(name: 'stackTrace', value: trace));
+    addInstanceMembers(object, entries);
+    addMetadataChildren(object, entries);
+    return entries.toList();
+  }
+
+  // Add an ObjectFormatter view underneath.
+  void addInstanceMembers(object, Set<NameValuePair> ret) {
+    ret.add(NameValuePair(
+        name: "[[instance members]]",
+        value: object,
+        config: JsonMLConfig.asObject));
+  }
 }
 
 class StackTraceFormatter implements Formatter {
@@ -927,14 +967,14 @@ registerDevtoolsFormatter() {
   JS('', '#.devtoolsFormatters = [#]', dart.global_, _devtoolsFormatter);
 }
 
-// Expose these methods here to facilitate writing debugger tests.
-// If export worked for private SDK libraries we could just export
-// these methods from dart:_runtime.
-
-getModuleNames() {
-  return dart.getModuleNames();
-}
-
-getModuleLibraries(String name) {
-  return dart.getModuleLibraries(name);
-}
+// These methods are exposed here for debugger tests.
+//
+// TODO(jmesserly): these are not exports because there is existing code that
+// calls into them from JS. Currently `dartdevc` always resolves exports at
+// compile time, so there is no need to make exports available at runtime by
+// copying properties. For that reason we cannot use re-export.
+//
+// If these methods are only for tests, we should move them here, or change the
+// tests to call the methods directly on dart:_runtime.
+List<String> getModuleNames() => dart.getModuleNames();
+getModuleLibraries(String name) => dart.getModuleLibraries(name);

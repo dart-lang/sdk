@@ -11,7 +11,6 @@ class B<S> {
   /*element: B.method:hasThis*/
   method() {
     return
-        /*kernel.hasThis*/
         /*strong.fields=[this],free=[this],hasThis*/
         /*omit.hasThis*/
         () {

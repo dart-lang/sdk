@@ -182,7 +182,7 @@ class NativeArguments {
     if (function.IsClosureFunction()) {
       function_bits |= kClosureFunctionBit;
     }
-    if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
+    if (function.IsGeneric() && FLAG_reify_generic_functions) {
       function_bits |= kGenericFunctionBit;
       argc++;
     }
@@ -215,7 +215,6 @@ class NativeArguments {
   friend class Interpreter;
   friend class Simulator;
 
-#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
   // Allow simulator and interpreter to create NativeArguments in reverse order
   // on the stack.
   NativeArguments(Thread* thread,
@@ -226,7 +225,6 @@ class NativeArguments {
         argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
         argv_(argv),
         retval_(retval) {}
-#endif
 
   // Since this function is passed a RawObject directly, we need to be
   // exceedingly careful when we use it.  If there are any other side

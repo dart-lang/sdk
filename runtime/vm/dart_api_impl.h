@@ -238,11 +238,14 @@ class Api : AllStatic {
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Thread* thread);
 
-  // Performs one-time initialization needed by the API.
-  static void InitOnce();
+  // Performs initialization needed by the API.
+  static void Init();
 
   // Allocates handles for objects in the VM isolate.
   static void InitHandles();
+
+  // Cleanup
+  static void Cleanup();
 
   // Helper function to get the peer value of an external string object.
   static bool StringGetPeerHelper(NativeArguments* args,

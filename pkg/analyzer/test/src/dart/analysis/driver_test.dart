@@ -24,8 +24,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -457,9 +457,9 @@ part of 'lib.dart';
     CompilationUnit partUnit1 = partResult1.unit;
     CompilationUnit partUnit2 = partResult2.unit;
 
-    CompilationUnitElement unitElement = libUnit.element;
-    CompilationUnitElement partElement1 = partUnit1.element;
-    CompilationUnitElement partElement2 = partUnit2.element;
+    CompilationUnitElement unitElement = libUnit.declaredElement;
+    CompilationUnitElement partElement1 = partUnit1.declaredElement;
+    CompilationUnitElement partElement2 = partUnit2.declaredElement;
 
     LibraryElement libraryElement = unitElement.library;
     {
@@ -594,7 +594,7 @@ part 'part.dart';
     // We also request a new result, which must include the change.
     Future<AnalysisResult> future2;
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (path) {
+    driver.test.workToWaitAfterComputingResult = (path) async {
       provider.updateFile(path, 'class B {}');
       driver.changeFile(path);
       future2 = driver.getResult(testFile);
@@ -622,7 +622,7 @@ part 'part.dart';
 
     // Simulate a change that happens during computing the result.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) {
+    driver.test.workToWaitAfterComputingResult = (p) async {
       if (p == path && !asyncWorkExecuted) {
         provider.updateFile(path, 'class B');
         driver.changeFile(path);
@@ -645,7 +645,7 @@ part 'part.dart';
 
     // Simulate a change that happens during computing the result.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) {
+    driver.test.workToWaitAfterComputingResult = (p) async {
       if (p == path && !asyncWorkExecuted) {
         provider.updateFile(path, 'class B {}');
         driver.changeFile(path);
@@ -909,7 +909,7 @@ var A2 = B1;
     // Notify the driver about the change.
     driver.changeFile(testFile);
 
-    // The file was added, so it is scheduled for analysis.
+    // The file was changed, so it is scheduled for analysis.
     expect(driver.test.fileTracker.isFilePending(testFile), isTrue);
 
     // We get a new result.
@@ -1365,7 +1365,7 @@ bbb() {}
     } on ArgumentError {}
   }
 
-  test_getFilesDefiningClassMemberName() async {
+  test_getFilesDefiningClassMemberName_class() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
     var c = _p('/test/bin/c.dart');
@@ -1375,6 +1375,32 @@ bbb() {}
     provider.newFile(b, 'class B { m2() {} }');
     provider.newFile(c, 'class C { m2() {} }');
     provider.newFile(d, 'class D { m3() {} }');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+
+    expect(await driver.getFilesDefiningClassMemberName('m1'),
+        unorderedEquals([a]));
+
+    expect(await driver.getFilesDefiningClassMemberName('m2'),
+        unorderedEquals([b, c]));
+
+    expect(await driver.getFilesDefiningClassMemberName('m3'),
+        unorderedEquals([d]));
+  }
+
+  test_getFilesDefiningClassMemberName_mixin() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    var c = _p('/test/bin/c.dart');
+    var d = _p('/test/bin/d.dart');
+
+    provider.newFile(a, 'mixin A { m1() {} }');
+    provider.newFile(b, 'mixin B { m2() {} }');
+    provider.newFile(c, 'mixin C { m2() {} }');
+    provider.newFile(d, 'mixin D { m3() {} }');
 
     driver.addFile(a);
     driver.addFile(b);
@@ -1625,7 +1651,7 @@ main() {
 
     // The content that was set into the overlay for "b" should be visible
     // through the AnalysisContext that was used to analyze "a".
-    CompilationUnitElement unitA = result.unit.element;
+    CompilationUnitElement unitA = result.unit.declaredElement;
     Source sourceB = unitA.library.imports[0].importedLibrary.source;
     expect(unitA.context.getContents(sourceB).data, 'var v = 2;');
   }
@@ -1744,21 +1770,21 @@ class C {}
 
   test_getResult_invalidUri() async {
     String content = r'''
-import '[invalid uri]';
+import ':[invalid uri]';
 import '[invalid uri]:foo.dart';
 import 'package:aaa/a1.dart';
-import '[invalid uri]';
+import ':[invalid uri]';
 import '[invalid uri]:foo.dart';
 
-export '[invalid uri]';
+export ':[invalid uri]';
 export '[invalid uri]:foo.dart';
 export 'package:aaa/a2.dart';
-export '[invalid uri]';
+export ':[invalid uri]';
 export '[invalid uri]:foo.dart';
 
-part '[invalid uri]';
+part ':[invalid uri]';
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invalid uri]';
 ''';
     addTestFile(content);
 
@@ -1906,7 +1932,7 @@ main() {
 
     AnalysisResult result = await driver.getResult(path);
     expect(result, isNotNull);
-    expect(result.unit.element.types.map((e) => e.name), ['A']);
+    expect(result.unit.declaredElement.types.map((e) => e.name), ['A']);
   }
 
   test_getResult_recursiveFlatten() async {
@@ -2260,7 +2286,7 @@ class C {
 
     var result = await driver.getResult(b);
     var c = _getTopLevelVar(result.unit, 'c');
-    var typeC = c.element.type as InterfaceType;
+    var typeC = c.declaredElement.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
     expect(typeC.element.getField('foo'), isNotNull);
     expect(typeC.element.getField('bar'), isNull);
@@ -2283,6 +2309,44 @@ var b = new B();
     AnalysisResult result = await driver.getResult(a);
     expect(result.errors, isEmpty);
     expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+  }
+
+  test_instantiateToBounds_invalid() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A<T extends B> {}
+class B<T extends A<B>> {}
+''');
+
+    driver.addFile(a);
+    await waitForIdleWithoutExceptions();
+  }
+
+  test_issue34619() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class C {
+  final Set<String> f = new Set<String>();
+
+  @override
+  List<int> foo() {}
+}
+''');
+
+    driver.addFile(a);
+    await waitForIdleWithoutExceptions();
+
+    // Update the file in a
+    provider.updateFile(a, r'''
+class C {
+  final Set<String> f = a + b + c;
+
+  @override
+  List<int> foo() {}
+}
+''');
+    driver.changeFile(a);
+    await waitForIdleWithoutExceptions();
   }
 
   test_knownFiles() async {
@@ -3320,9 +3384,9 @@ part 'part2.dart';
     expect(partResult2.unit, isNotNull);
 
     // The parts uses the same resynthesized library element.
-    var libLibrary = libResult.unit.element.library;
-    var partLibrary1 = partResult1.unit.element.library;
-    var partLibrary2 = partResult2.unit.element.library;
+    var libLibrary = libResult.unit.declaredElement.library;
+    var partLibrary1 = partResult1.unit.declaredElement.library;
+    var partLibrary2 = partResult2.unit.declaredElement.library;
     expect(partLibrary1, same(libLibrary));
     expect(partLibrary2, same(libLibrary));
   }
@@ -3335,7 +3399,7 @@ part 'part2.dart';
     AnalysisResult result1 = await driver.getResult(path);
     expect(driver.test.numOfAnalyzedLibraries, 1);
     var unit1 = result1.unit;
-    var unitElement1 = unit1.element;
+    var unitElement1 = unit1.declaredElement;
     expect(result1.path, path);
     expect(unit1, isNotNull);
     expect(unitElement1, isNotNull);
@@ -3344,7 +3408,7 @@ part 'part2.dart';
     expect(driver.test.numOfAnalyzedLibraries, 1);
     expect(result2.path, path);
     expect(result2.unit, same(unit1));
-    expect(result2.unit.element, same(unitElement1));
+    expect(result2.unit.declaredElement, same(unitElement1));
   }
 
   test_removeFile() async {

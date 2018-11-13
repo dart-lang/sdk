@@ -5,7 +5,6 @@
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
 /*omit.class: A:*/
 class A<T> {
-  /*kernel.element: A.m:needsSignature*/
   /*strong.element: A.m:*/
   /*omit.element: A.m:*/
   void m(T t) {}

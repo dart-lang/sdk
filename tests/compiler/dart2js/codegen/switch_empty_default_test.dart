@@ -4,7 +4,7 @@
 // Test constant folding on numbers.
 
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String SIMPLY_EMPTY = """
 int foo(x) => x;
@@ -36,8 +36,8 @@ void main() {
       default:
         a = 33;
     }
+    print(a);
   }
-  print(a);
 }
 """;
 
@@ -54,8 +54,8 @@ void main() {
       default:
         b = 0;
     }
+    print(a+b);
   }
-  print(a+b);
 }
 """;
 
@@ -70,12 +70,11 @@ void main() {
         b = 0;
         continue K;
       K: case 3:
-        b = 19;
-      default:
+        default:
         b = 5;
     }
+    print(a+b);
   }
-  print(a+b);
 }
 """;
 
@@ -92,8 +91,8 @@ void main() {
       L: default:
         b = 5;
     }
+    print(a+b);
   }
-  print(a+b);
 }
 """;
 
@@ -109,8 +108,8 @@ void main() {
         break;
       L: default:
     }
+    print(a+b);
   }
-  print(a+b);
 }
 """;
 

@@ -46,7 +46,7 @@ class AnalysisSessionImplTest {
     String uri = 'uri';
 
     var source = new _SourceMock(Uri.parse(uri));
-    var unit = new CompilationUnitElementImpl('')
+    var unit = new CompilationUnitElementImpl()
       ..librarySource = source
       ..source = source;
     var library = new LibraryElementImpl(null, null, null, null)
@@ -119,7 +119,7 @@ class AnalysisSessionImplTest {
 
   void _initializeSDK() {
     CompilationUnitElementImpl newUnit(String name) {
-      CompilationUnitElementImpl unit = new CompilationUnitElementImpl(name);
+      CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
       unit.accessors = [];
       unit.enums = [];
       unit.functions = [];

@@ -931,7 +931,7 @@ void Service::SendEvent(const char* stream_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
+  ASSERT(!Isolate::IsVMInternalIsolate(isolate));
 
   if (FLAG_trace_service) {
     OS::PrintErr(
@@ -2249,6 +2249,132 @@ static bool GetReachableSize(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* invoke_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool Invoke(Thread* thread, JSONStream* js) {
+  if (CheckDebuggerDisabled(thread, js)) {
+    return true;
+  }
+
+  const char* receiver_id = js->LookupParam("targetId");
+  if (receiver_id == NULL) {
+    PrintMissingParamError(js, "targetId");
+    return true;
+  }
+  const char* selector_cstr = js->LookupParam("selector");
+  if (selector_cstr == NULL) {
+    PrintMissingParamError(js, "selector");
+    return true;
+  }
+  const char* argument_ids = js->LookupParam("argumentIds");
+  if (argument_ids == NULL) {
+    PrintMissingParamError(js, "argumentIds");
+    return true;
+  }
+
+  Zone* zone = thread->zone();
+  ObjectIdRing::LookupResult lookup_result;
+  Object& receiver = Object::Handle(
+      zone, LookupHeapObject(thread, receiver_id, &lookup_result));
+  if (receiver.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintSentinel(js, kCollectedSentinel);
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "targetId");
+    }
+    return true;
+  }
+
+  const GrowableObjectArray& growable_args =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+
+  bool is_instance = (receiver.IsInstance() || receiver.IsNull()) &&
+                     !ContainsNonInstance(receiver);
+  if (is_instance) {
+    growable_args.Add(receiver);
+  }
+
+  intptr_t n = strlen(argument_ids);
+  if ((n < 2) || (argument_ids[0] != '[') || (argument_ids[n - 1] != ']')) {
+    PrintInvalidParamError(js, "argumentIds");
+    return true;
+  }
+  if (n > 2) {
+    intptr_t start = 1;
+    while (start < n) {
+      intptr_t end = start;
+      while ((argument_ids[end + 1] != ',') && (argument_ids[end + 1] != ']')) {
+        end++;
+      }
+      if (end == start) {
+        // Empty element.
+        PrintInvalidParamError(js, "argumentIds");
+        return true;
+      }
+
+      const char* argument_id =
+          zone->MakeCopyOfStringN(&argument_ids[start], end - start + 1);
+
+      ObjectIdRing::LookupResult lookup_result;
+      Object& argument = Object::Handle(
+          zone, LookupHeapObject(thread, argument_id, &lookup_result));
+      if (argument.raw() == Object::sentinel().raw()) {
+        if (lookup_result == ObjectIdRing::kCollected) {
+          PrintSentinel(js, kCollectedSentinel);
+        } else if (lookup_result == ObjectIdRing::kExpired) {
+          PrintSentinel(js, kExpiredSentinel);
+        } else {
+          PrintInvalidParamError(js, "argumentIds");
+        }
+        return true;
+      }
+      growable_args.Add(argument);
+
+      start = end + 3;
+    }
+  }
+
+  const String& selector = String::Handle(zone, String::New(selector_cstr));
+  const Array& args =
+      Array::Handle(zone, Array::MakeFixedLength(growable_args));
+  const Array& arg_names = Object::empty_array();
+
+  if (receiver.IsLibrary()) {
+    const Library& lib = Library::Cast(receiver);
+    const Object& result =
+        Object::Handle(zone, lib.Invoke(selector, args, arg_names));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if (receiver.IsClass()) {
+    const Class& cls = Class::Cast(receiver);
+    const Object& result =
+        Object::Handle(zone, cls.Invoke(selector, args, arg_names));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if (is_instance) {
+    // We don't use Instance::Cast here because it doesn't allow null.
+    Instance& instance = Instance::Handle(zone);
+    instance ^= receiver.raw();
+
+    const Object& result =
+        Object::Handle(zone, instance.Invoke(selector, args, arg_names));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  js->PrintError(kInvalidParams,
+                 "%s: invalid 'targetId' parameter: "
+                 "Cannot invoke against a VM-internal object",
+                 js->method());
+  return true;
+}
+
 static const MethodParameter* evaluate_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -2256,8 +2382,14 @@ static const MethodParameter* evaluate_params[] = {
 static bool IsAlpha(char c) {
   return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
+static bool IsAlphaOrDollar(char c) {
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '$');
+}
 static bool IsAlphaNum(char c) {
   return (c >= '0' && c <= '9') || IsAlpha(c);
+}
+static bool IsAlphaNumOrDollar(char c) {
+  return (c >= '0' && c <= '9') || IsAlphaOrDollar(c);
 }
 static bool IsWhitespace(char c) {
   return c <= ' ';
@@ -2283,8 +2415,8 @@ static bool ParseScope(const char* scope,
     if (*c == '}') return true;
 
     const char* name = c;
-    if (!IsAlpha(*c)) return false;
-    while (IsAlphaNum(*c)) {
+    if (!IsAlphaOrDollar(*c)) return false;
+    while (IsAlphaNumOrDollar(*c)) {
       c++;
     }
     names->Add(zone->MakeCopyOfStringN(name, c - name));
@@ -2662,7 +2794,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
   }
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    js->PrintError(kExpressionCompilationError, compilation_result.error);
+    js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
     free(compilation_result.error);
     return true;
   }
@@ -3583,7 +3715,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
 
   const char* error = NULL;
   if (!isolate->debugger()->SetResumeAction(step, frame_index, &error)) {
-    js->PrintError(kCannotResume, error);
+    js->PrintError(kCannotResume, "%s", error);
     return true;
   }
   isolate->SetResumeRequest();
@@ -3629,7 +3761,7 @@ static const MethodParameter* enable_profiler_params[] = {
 static bool EnableProfiler(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
-    Profiler::InitOnce();
+    Profiler::Init();
   }
   PrintSuccess(js);
   return true;
@@ -3805,19 +3937,12 @@ static const MethodParameter* collect_all_garbage_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
 
-#if defined(DEBUG)
 static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
-  isolate->heap()->CollectAllGarbage();
+  isolate->heap()->CollectAllGarbage(Heap::kDebugging);
   PrintSuccess(js);
   return true;
 }
-#else
-static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
-  PrintSuccess(js);
-  return true;
-}
-#endif  // defined(DEBUG)
 
 static const MethodParameter* get_heap_map_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
@@ -4729,6 +4854,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_params },
   { "_getVMTimelineFlags", GetVMTimelineFlags,
     get_vm_timeline_flags_params },
+  { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
   { "pause", Pause,
     pause_params },

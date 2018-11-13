@@ -10,12 +10,10 @@
 ///
 
 // TODO(leafp): Consider splitting some of this out.
-part of "runtime.dart";
+part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
-///
-/// The mixin must be non-generic; generic mixins are handled by [genericMixin].
-void mixinMembers(to, from) {
+void applyMixin(to, from) {
   JS('', '#[#] = #', to, _mixin, from);
   var toProto = JS('', '#.prototype', to);
   var fromProto = JS('', '#.prototype', from);
@@ -24,6 +22,11 @@ void mixinMembers(to, from) {
   _mixinSignature(to, from, _fieldSig);
   _mixinSignature(to, from, _getterSig);
   _mixinSignature(to, from, _setterSig);
+  var mixinOnFn = JS('', '#[#]', from, mixinOn);
+  if (mixinOnFn != null) {
+    var proto = JS('', '#(#.__proto__).prototype', mixinOnFn, to);
+    _copyMembers(toProto, proto);
+  }
 }
 
 void _copyMembers(to, from) {
@@ -97,16 +100,18 @@ final _mixin = JS('', 'Symbol("mixin")');
 getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz, _mixin, clazz, _mixin);
 
+final mixinOn = JS('', 'Symbol("mixinOn")');
+
 @JSExportName('implements')
-final _implements = JS('', 'Symbol("implements")');
+final implements_ = JS('', 'Symbol("implements")');
 
 List Function() getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
-    _implements,
+    implements_,
     clazz,
-    _implements);
+    implements_);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
@@ -122,6 +127,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     $throwInternalError('must have at least one generic type argument');
   }
   let resultMap = new Map();
+  $_cacheMaps.push(resultMap);
   function makeGenericType(...args) {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');
@@ -441,7 +447,7 @@ definePrimitiveHashCode(proto) {
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
   JS('', '#.prototype.__proto__ = #.prototype', derived, base);
-  // We use __proto__ to track the superclass hierarchy (see isSubtype).
+  // We use __proto__ to track the superclass hierarchy (see isSubtypeOf).
   JS('', '#.__proto__ = #', derived, base);
 }
 

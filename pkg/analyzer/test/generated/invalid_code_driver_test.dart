@@ -16,19 +16,4 @@ main() {
 class InvalidCodeTest_Driver extends InvalidCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  /**
-   * This fails because we have a method with the empty name, and the default
-   * constructor, which also has the empty name. Then, when we link, we get
-   * a reference to this empty-named method, so we resynthesize a
-   * `MethodHandle` with the corresponding `ElementLocation`. But at the level
-   * of `ElementLocation` we cannot distinguish a reference to a method or
-   * a constructor. So, we return a `ConstructorElement`, and cast to
-   * `MethodElement` fails.
-   */
-  @failingTest
-  @override
-  test_constructorAndMethodNameCollision() async {
-    return super.test_constructorAndMethodNameCollision();
-  }
 }

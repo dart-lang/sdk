@@ -827,12 +827,6 @@ class _DuplicatedFieldInitializerError extends Error {
   toString() => "Error: field '$_name' is already initialized.";
 }
 
-@patch
-class _ConstantExpressionError {
-  @patch
-  _throw(error) => throw error;
-}
-
 // TODO(sra): The rest of this core_patch.dart source should reside in an
 // included part file instead of being inlined. However, part files are not
 // properly supported here.

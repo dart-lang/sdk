@@ -28,7 +28,7 @@ class StandardFileSystem implements FileSystem {
       // TODO(askesc): Empty schemes should have been handled elsewhere.
       return new _IoFileSystemEntity(Uri.base.resolveUri(uri));
     } else if (uri.scheme == 'data') {
-      return new _DataFileSystemEntity(Uri.base.resolveUri(uri));
+      return new DataFileSystemEntity(Uri.base.resolveUri(uri));
     } else {
       throw new FileSystemException(
           uri, 'StandardFileSystem only supports file:* and data:* URIs');
@@ -52,10 +52,10 @@ class _IoFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<bool> exists() async {
-    if (await io.FileSystemEntity.isFile(uri.toFilePath())) {
-      return new io.File.fromUri(uri).exists();
+    if (await io.FileSystemEntity.isDirectory(uri.toFilePath())) {
+      return true;
     } else {
-      return new io.Directory.fromUri(uri).exists();
+      return new io.File.fromUri(uri).exists();
     }
   }
 
@@ -93,18 +93,18 @@ class _IoFileSystemEntity implements FileSystemEntity {
 }
 
 /// Concrete implementation of [FileSystemEntity] for data: URIs.
-class _DataFileSystemEntity implements FileSystemEntity {
+class DataFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  _DataFileSystemEntity(this.uri);
+  DataFileSystemEntity(this.uri);
 
   @override
   int get hashCode => uri.hashCode;
 
   @override
   bool operator ==(Object other) =>
-      other is _DataFileSystemEntity && other.uri == uri;
+      other is DataFileSystemEntity && other.uri == uri;
 
   @override
   Future<bool> exists() async {

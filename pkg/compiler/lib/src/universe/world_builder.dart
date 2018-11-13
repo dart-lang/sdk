@@ -12,13 +12,16 @@ import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
-import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
+import '../js_backend/backend_usage.dart'
+    show BackendUsage, BackendUsageBuilder;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_model/locals.dart';
+import '../js_model/element_map_impl.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../kernel/element_map_impl.dart';
 import '../kernel/kelements.dart';
@@ -112,47 +115,6 @@ abstract class SelectorConstraintsStrategy {
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world);
 }
 
-class OpenWorldStrategy implements SelectorConstraintsStrategy {
-  const OpenWorldStrategy();
-
-  OpenWorldConstraints createSelectorConstraints(Selector selector) {
-    return new OpenWorldConstraints();
-  }
-
-  @override
-  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world) {
-    Selector selector = dynamicUse.selector;
-    return selector.appliesUnnamed(member);
-  }
-}
-
-class OpenWorldConstraints extends UniverseSelectorConstraints {
-  bool isAll = false;
-
-  @override
-  bool applies(MemberEntity element, Selector selector, World world) => isAll;
-
-  @override
-  bool needsNoSuchMethodHandling(Selector selector, World world) => isAll;
-
-  @override
-  bool addReceiverConstraint(Object constraint) {
-    if (isAll) return false;
-    isAll = true;
-    return true;
-  }
-
-  String toString() {
-    if (isAll) {
-      return '<all>';
-    } else {
-      return '<none>';
-    }
-  }
-}
-
-bool useStrongModeWorldStrategy = false;
-
 /// Open world strategy that constrains instance member access to subtypes of
 /// the static type of the receiver.
 ///
@@ -231,7 +193,17 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
 class StrongModeConstraint {
   final ClassEntity cls;
 
-  const StrongModeConstraint(this.cls);
+  factory StrongModeConstraint(CommonElements commonElements,
+      NativeBasicData nativeBasicData, ClassEntity cls) {
+    if (nativeBasicData.isJsInteropClass(cls)) {
+      // We can not tell js-interop classes apart, so we just assume the
+      // receiver could be any js-interop class.
+      cls = commonElements.jsJavaScriptObjectClass;
+    }
+    return new StrongModeConstraint.internal(cls);
+  }
+
+  const StrongModeConstraint.internal(this.cls);
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 

@@ -77,9 +77,6 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  @override
-  bool requiresPreview() => false;
-
   RefactoringStatus _checkInitialConditions() {
     if (!element.isGetter || element.isSynthetic) {
       return new RefactoringStatus.fatal(
@@ -88,7 +85,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     return new RefactoringStatus();
   }
 
-  Future<Null> _updateElementDeclaration(
+  Future<void> _updateElementDeclaration(
       PropertyAccessorElement element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

@@ -678,8 +678,53 @@ class Printer implements NodeVisitor {
   @override
   visitVariableDeclarationList(VariableDeclarationList list) {
     out("var ");
-    visitCommaSeparated(list.declarations, ASSIGNMENT,
-        newInForInit: inForInit, newAtStatementBegin: false);
+    List<Node> nodes = list.declarations;
+    if (inForInit) {
+      visitCommaSeparated(nodes, ASSIGNMENT,
+          newInForInit: inForInit, newAtStatementBegin: false);
+    } else {
+      // Print 'big' declarations on their own line, while keeping adjacent
+      // small and uninitialized declarations on the same line.
+      bool useIndent = nodes.length > 1 && list.indentSplits;
+      if (useIndent) {
+        indentMore();
+      }
+      bool lastWasBig = false;
+      for (int i = 0; i < nodes.length; i++) {
+        Node node = nodes[i];
+        bool thisIsBig = !_isSmallInitialization(node);
+        if (i > 0) {
+          atStatementBegin = false;
+          out(",");
+          if (lastWasBig || thisIsBig) {
+            lineOut();
+            indent();
+          } else {
+            spaceOut();
+          }
+        }
+        visitNestedExpression(node, ASSIGNMENT,
+            newInForInit: inForInit, newAtStatementBegin: false);
+        lastWasBig = thisIsBig;
+      }
+      if (useIndent) {
+        indentLess();
+      }
+    }
+  }
+
+  static bool _isSmallInitialization(Node node) {
+    if (node is VariableInitialization) {
+      Node value = node.value;
+      if (value == null) return true;
+      if (value is This) return true;
+      if (value is LiteralNull) return true;
+      if (value is LiteralNumber) return true;
+      if (value is LiteralString && value.value.length <= 8) return true;
+      if (value is ObjectInitializer && value.properties.isEmpty) return true;
+      if (value is ArrayInitializer && value.elements.isEmpty) return true;
+    }
+    return false;
   }
 
   @override

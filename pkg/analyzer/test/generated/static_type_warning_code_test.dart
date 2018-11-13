@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.static_type_warning_code_test;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -23,80 +21,6 @@ main() {
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  fail_method_lookup_mixin_of_extends() async {
-    // See dartbug.com/25605
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    await assertErrorsInUnverifiedCode('''
-class A { a() => null; }
-class B {}
-abstract class M extends A {}
-class T = B with M; // Warning: B does not extend A
-main() {
-  new T().a(); // Warning: The method 'a' is not defined for the class 'T'
-}
-''', [
-      // TODO(paulberry): when dartbug.com/25614 is fixed, add static warning
-      // code for "B does not extend A".
-      StaticTypeWarningCode.UNDEFINED_METHOD
-    ]);
-  }
-
-  fail_method_lookup_mixin_of_implements() async {
-    // See dartbug.com/25605
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    await assertErrorsInUnverifiedCode('''
-class A { a() => null; }
-class B {}
-abstract class M implements A {}
-class T = B with M; // Warning: Missing concrete implementation of 'A.a'
-main() {
-  new T().a(); // Warning: The method 'a' is not defined for the class 'T'
-}
-''', [
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-      StaticTypeWarningCode.UNDEFINED_METHOD
-    ]);
-  }
-
-  fail_method_lookup_mixin_of_mixin() async {
-    // See dartbug.com/25605
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    await assertErrorsInUnverifiedCode('''
-class A {}
-class B { b() => null; }
-class C {}
-class M extends A with B {}
-class T = C with M;
-main() {
-  new T().b();
-}
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  fail_method_lookup_mixin_of_mixin_application() async {
-    // See dartbug.com/25605
-    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
-    await assertErrorsInUnverifiedCode('''
-class A { a() => null; }
-class B {}
-class C {}
-class M = A with B;
-class T = C with M;
-main() {
-  new T().a();
-}
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-typedef F<T extends A>();
-F<B> fff;
-''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
-  }
-
   fail_undefinedEnumConstant() async {
     // We need a way to set the parseEnum flag in the parser to true.
     await assertErrorsInCode(r'''
@@ -533,42 +457,6 @@ class C {
 ''', [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  test_inconsistentMethodInheritance_paramCount() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int x(int y);
-}
-class C implements A, B {
-}''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  test_inconsistentMethodInheritance_paramType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x(int i);
-}
-abstract class B {
-  x(String s);
-}
-abstract class C implements A, B {}
-''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
-  test_inconsistentMethodInheritance_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  String x();
-}
-abstract class C implements A, B {}
-''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
-  }
-
   test_instanceAccessToStaticMember_method_invocation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -736,6 +624,15 @@ class A {
     A();
   }
 }''', previewDart2 ? [] : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+  }
+
+  test_invocationOfNonFunction_dynamic() async {
+    await assertErrorsInCode(r'''
+main() {
+  dynamic d;
+  d.hashCode();
+}
+''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
   test_invocationOfNonFunction_localGenericFunction() async {
@@ -1182,6 +1079,15 @@ class B extends A {}
 class C extends B {}
 class G<E extends B> {}
 f() { return new G<A>(); }
+''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+typedef F<T extends A>();
+F<B> fff;
 ''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
@@ -1769,81 +1675,6 @@ main() {
 }''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  test_undefinedSuperGetter() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  get g {
-    return super.g;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
-  }
-
-  test_undefinedSuperMethod() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  m() { return super.m(); }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
-  }
-
-  test_undefinedSuperOperator_binaryExpression() async {
-    await assertErrorsInUnverifiedCode(r'''
-class A {}
-class B extends A {
-  operator +(value) {
-    return super + value;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperOperator_indexBoth() async {
-    await assertErrorsInUnverifiedCode(r'''
-class A {}
-class B extends A {
-  operator [](index) {
-    return super[index]++;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperOperator_indexGetter() async {
-    await assertErrorsInUnverifiedCode(r'''
-class A {}
-class B extends A {
-  operator [](index) {
-    return super[index + 1];
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperOperator_indexSetter() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
-class A {}
-class B extends A {
-  operator []=(index, value) {
-    return super[index] = 0;
-  }
-}''',
-        previewDart2
-            ? [
-                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-                StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR
-              ]
-            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
-  }
-
-  test_undefinedSuperSetter() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  f() {
-    super.m = 0;
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
-  }
-
   test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -1894,6 +1725,18 @@ class B extends A {
 }''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
   }
 
+  test_wrongNumberOfTypeArguments_class_tooFew() async {
+    await assertErrorsInCode(r'''
+class A<E, F> {}
+A<A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+  }
+
+  test_wrongNumberOfTypeArguments_class_tooMany() async {
+    await assertErrorsInCode(r'''
+class A<E> {}
+A<A, A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+  }
+
   test_wrongNumberOfTypeArguments_classAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -1902,16 +1745,18 @@ class B<F extends num> = A<F> with M;''',
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  test_wrongNumberOfTypeArguments_tooFew() async {
+  test_wrongNumberOfTypeArguments_dynamic() async {
     await assertErrorsInCode(r'''
-class A<E, F> {}
-A<A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+dynamic<int> v;
+''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  test_wrongNumberOfTypeArguments_tooMany() async {
+  test_wrongNumberOfTypeArguments_typeParameter() async {
     await assertErrorsInCode(r'''
-class A<E> {}
-A<A, A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+class C<T> {
+  T<int> f;
+}
+''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
   test_wrongNumberOfTypeArguments_typeTest_tooFew() async {

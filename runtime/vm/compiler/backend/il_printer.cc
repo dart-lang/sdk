@@ -149,6 +149,10 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
       String::Handle(dst_type.Name()).ToCString(), dst_name.ToCString());
 }
 
+static const char* TypeToUserVisibleName(const AbstractType& type) {
+  return String::Handle(type.UserVisibleName()).ToCString();
+}
+
 void CompileType::PrintTo(BufferFormatter* f) const {
   const char* type_name = "?";
   if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
@@ -156,7 +160,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
   } else if (type_ != NULL && !type_->IsDynamicType()) {
-    type_name = type_->ToCString();
+    type_name = TypeToUserVisibleName(*type_);
   } else if (!is_nullable()) {
     type_name = "!null";
   }
@@ -174,7 +178,7 @@ const char* CompileType::ToCString() const {
 static void PrintTargetsHelper(BufferFormatter* f,
                                const CallTargets& targets,
                                intptr_t num_checks_to_print) {
-  f->Print(" IC[");
+  f->Print(" Targets[");
   f->Print("%" Pd ": ", targets.length());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
@@ -183,8 +187,9 @@ static void PrintTargetsHelper(BufferFormatter* f,
   }
   for (intptr_t i = 0; i < num_checks_to_print; i++) {
     const CidRange& range = targets[i];
-    const intptr_t count = targets.TargetAt(i)->count;
-    target ^= targets.TargetAt(i)->target->raw();
+    const auto target_info = targets.TargetAt(i);
+    const intptr_t count = target_info->count;
+    target ^= target_info->target->raw();
     if (i > 0) {
       f->Print(" | ");
     }
@@ -199,6 +204,10 @@ static void PrintTargetsHelper(BufferFormatter* f,
       f->Print("cid %" Pd "-%" Pd " %s", range.cid_start, range.cid_end,
                String::Handle(cls.Name()).ToCString());
       f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    }
+
+    if (target_info->exactness.IsTracking()) {
+      f->Print(" %s", target_info->exactness.ToCString());
     }
   }
   if (num_checks_to_print < targets.length()) {
@@ -240,6 +249,10 @@ static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
   f->Print(" IC[");
+  if (ic_data.IsTrackingExactness()) {
+    f->Print("(%s) ",
+             AbstractType::Handle(ic_data.StaticReceiverType()).ToCString());
+  }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
@@ -262,6 +275,9 @@ static void PrintICDataHelper(BufferFormatter* f,
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    if (ic_data.IsTrackingExactness()) {
+      f->Print(" %s", ic_data.GetExactnessAt(i).ToCString());
+    }
   }
   if (num_checks_to_print < ic_data.NumberOfChecks()) {
     f->Print("...");
@@ -324,7 +340,7 @@ const char* Instruction::ToCString() const {
 }
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -343,7 +359,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (HasSSATemp() || HasTemp()) f->Print(" <- ");
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -459,7 +475,8 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s',", dst_type().ToCString(), dst_name().ToCString());
+  f->Print(", %s, '%s',", TypeToUserVisibleName(dst_type()),
+           dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -468,8 +485,8 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, %s, '%s',", sub_type().ToCString(), super_type().ToCString(),
-           dst_name().ToCString());
+  f->Print("%s, %s, '%s',", TypeToUserVisibleName(sub_type()),
+           TypeToUserVisibleName(super_type()), dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -488,6 +505,9 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
   }
 }
 
@@ -517,6 +537,9 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (complete()) {
     f->Print(" COMPLETE");
   }
+  if (instance_call()->entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -539,10 +562,10 @@ void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   f->Print("] ");
   if (CanDeoptimize()) {
-    ASSERT(deopt_id() != Thread::kNoDeoptId);
+    ASSERT(deopt_id() != DeoptId::kNone);
     f->Print("else deoptimize ");
   } else {
-    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    ASSERT(deopt_id() == DeoptId::kNone);
     f->Print("else %s ", cid_results()[length - 1] != 0 ? "false" : "true");
   }
 }
@@ -559,6 +582,13 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(", using unchecked entrypoint");
+  }
+  if (function().recognized_kind() != MethodRecognizer::kUnknown) {
+    f->Print(", recognized_kind = %s",
+             MethodRecognizer::KindToCString(function().recognized_kind()));
   }
 }
 
@@ -591,6 +621,7 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", ");
   value()->PrintTo(f);
+  if (!ShouldEmitStoreBarrier()) f->Print(", barrier removed");
 }
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -650,16 +681,8 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %" Pd, offset_in_bytes());
 
   if (field() != nullptr) {
-    f->Print(" {%s}", String::Handle(field()->name()).ToCString());
-    const char* expected = "?";
-    if (field()->guarded_cid() != kIllegalCid) {
-      const Class& cls = Class::Handle(
-          Isolate::Current()->class_table()->At(field()->guarded_cid()));
-      expected = String::Handle(cls.Name()).ToCString();
-    }
-
-    f->Print(" [%s %s]", field()->is_nullable() ? "nullable" : "non-nullable",
-             expected);
+    f->Print(" {%s} %s", String::Handle(field()->name()).ToCString(),
+             field()->GuardedPropertiesAsCString());
   }
 
   if (native_field() != nullptr) {
@@ -688,7 +711,7 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
   function_type_arguments()->PrintTo(f);
-  f->Print(")");
+  f->Print("), instantiator_class(%s)", instantiator_class().ToCString());
 }
 
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -820,14 +843,18 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void CheckConditionInstr::PrintOperandsTo(BufferFormatter* f) const {
+  comparison()->PrintOperandsTo(f);
+}
+
 void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", MethodRecognizer::KindToCString(recognized_kind_));
   Definition::PrintOperandsTo(f);
 }
 
-void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
+    BufferFormatter* f) const {
   const GrowableArray<Definition*>& defns = initial_definitions_;
-  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
   if (defns.length() > 0) {
     f->Print(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
@@ -839,8 +866,13 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(", block_id(),
              try_index(), GetDeoptId());
   } else {
@@ -867,7 +899,7 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  ASSERT(try_index() == CatchClauseNode::kInvalidTryIndex);
+  ASSERT(try_index() == kInvalidTryIndex);
   f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
@@ -889,7 +921,7 @@ void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
-static const char* RepresentationToCString(Representation rep) {
+const char* RepresentationToCString(Representation rep) {
   switch (rep) {
     case kTagged:
       return "tagged";
@@ -984,7 +1016,7 @@ void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd, block_id(), try_index(),
              GetDeoptId());
   } else {
@@ -996,6 +1028,24 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void OsrEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[osr entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void FunctionEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[function entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
            block_id(), try_index(), catch_try_index());
@@ -1004,16 +1054,7 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
   }
 
-  const GrowableArray<Definition*>& defns = initial_definitions_;
-  if (defns.length() > 0) {
-    f->Print(" {");
-    for (intptr_t i = 0; i < defns.length(); ++i) {
-      Definition* def = defns[i];
-      f->Print("\n      ");
-      def->PrintTo(f);
-    }
-    f->Print("\n}");
-  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
 void LoadIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1032,7 +1073,7 @@ void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
 void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   const char* name = "<unknown code>";
   if (code_.IsStubCode()) {
-    name = StubCode::NameOfStub(code_.UncheckedEntryPoint());
+    name = StubCode::NameOfStub(code_.EntryPoint());
   } else {
     const Object& owner = Object::Handle(code_.owner());
     if (owner.IsFunction()) {
@@ -1040,7 +1081,9 @@ void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
                  .ToFullyQualifiedCString();
     }
   }
-  f->Print("%s", name);
+  f->Print("%s(", name);
+  InputAt(0)->PrintTo(f);
+  f->Print(")");
 }
 
 void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1052,7 +1095,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
     f->Print("goto: B%" Pd "", successor()->block_id());
@@ -1060,7 +1103,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("igoto:%" Pd "(", GetDeoptId());
   } else {
     f->Print("igoto:(");

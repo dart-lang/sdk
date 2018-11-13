@@ -5,14 +5,14 @@ import "dart:core" as core;
 typedef Asserter<T extends core::Object = dynamic> = (T) → void;
 typedef AsserterBuilder<S extends core::Object = dynamic, T extends core::Object = dynamic> = (S) → (T) → void;
 class DartType extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::DartType
     : super core::Object::•()
     ;
 }
 abstract class C extends core::Object {
   static field (core::List<(self::DartType) → void>) → (self::DartType) → void assertBOf = null;
   field (core::List<(self::DartType) → void>) → (self::DartType) → void assertAOf = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   static get assertCOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void
@@ -28,7 +28,7 @@ abstract class C extends core::Object {
 }
 abstract class G<T extends core::Object = dynamic> extends core::Object {
   field (core::List<(self::DartType) → void>) → (self::DartType) → void assertAOf = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::G<self::G::T>
     : super core::Object::•()
     ;
   abstract get assertDOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void;

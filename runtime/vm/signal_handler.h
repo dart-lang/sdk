@@ -94,19 +94,26 @@ class SignalHandler : public AllStatic {
                                                              void* context_) {
     // IT (If-Then) instruction makes up to four instructions that follow it
     // conditional.
-    asm volatile("nop; nop; nop; nop" : : : "memory");
+    // Note: clobber all register so that compiler does not attempt to hoist
+    // anything from the next assembly block past this one.
+    asm volatile("nop; nop; nop; nop;"
+                 :
+                 :
+                 : "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9",
+                   "r10", "r11", "r12", "r13", "r14", "memory");
 
     // Tail-call into the actual signal handler.
+    //
     // Note: this code is split into a separate inline assembly block because
     // any code that compiler generates to satisfy register constraints must
     // be generated after four NOPs.
-    register int arg0 asm("r0") = signal;
-    register siginfo_t* arg1 asm("r1") = info;
-    register void* arg2 asm("r2") = context_;
-    asm volatile("bx %3"
-                 :
-                 : "r"(arg0), "r"(arg1), "r"(arg2), "r"(action)
-                 : "memory");
+    //
+    // Note: there is no portable way to specify that we want to have
+    // signal, info and context_ in r0 - r2 respectively. So we just mark them
+    // as clobbered and hope that compiler does not emit any code that uses
+    // these registers to satisfy action constraint (we tested on clang and
+    // the generated code looks like one would expect).
+    asm volatile("bx %0;" : : "r"(action) : "r0", "r1", "r2", "memory");
   }
 #endif  // defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
 };

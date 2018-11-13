@@ -179,10 +179,8 @@ class CodeEmitterTask extends CompilerTask {
           compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
-          closedWorld.dartTypes,
           compiler.deferredLoadTask,
-          backend.outputUnitData,
-          compiler.backendStrategy.closureDataLookup,
+          closedWorld.outputUnitData,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
@@ -203,7 +201,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.allocatorAnalysis,
           inferredData,
           backend.sourceInformationStrategy,
-          compiler.backendStrategy.sorter,
+          closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder);

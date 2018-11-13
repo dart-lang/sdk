@@ -4,8 +4,9 @@
 
 library async_start_test;
 
-import "package:unittest/unittest.dart";
 import "dart:async";
+
+import "package:expect/async_minitest.dart";
 
 main() {
   group("basic", () {
@@ -105,7 +106,7 @@ main() {
     });
 
     test("Cannot yield* non-stream", () {
-      f(s) async* {
+      f(Object s) async* {
         yield* s;
       }
 
@@ -115,8 +116,8 @@ main() {
       });
     });
 
-    test("Cannot yield* non-stream", () {
-      f(s) async* {
+    test("Cannot yield* non-stream 2", () {
+      f(Object s) async* {
         yield* s;
       }
 
@@ -596,7 +597,8 @@ main() {
       f() async* {
         try {
           list.add(0);
-          yield list.add(1);
+          list.add(1);
+          yield null;
           list.add(2);
         } finally {
           exits.complete(3);
@@ -981,7 +983,7 @@ expectList(stream, list) {
 
 const MS = const Duration(milliseconds: 1);
 
-var getErrors = new StreamTransformer.fromHandlers(handleData: (data, sink) {
+StreamTransformer getErrors = new StreamTransformer.fromHandlers(handleData: (data, sink) {
   fail("Unexpected value");
 }, handleError: (e, s, sink) {
   sink.add(e);

@@ -159,11 +159,11 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
         .resolveCompilationUnit(element.source, element.library);
   }
 
-  Future<Null> indexTestUnit(String code) async {
+  Future<void> indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }
 
-  Future<Null> indexUnit(String file, String code) async {
+  Future<void> indexUnit(String file, String code) async {
     addSource(file, code);
   }
 

@@ -25,6 +25,7 @@ void main(List<String> args) {
     bool continuing = false;
     await for (FileSystemEntity entity in dataDir.list()) {
       String name = entity.uri.pathSegments.last;
+      if (!name.endsWith('.dart')) continue;
       if (argResults.rest.isNotEmpty &&
           !argResults.rest.contains(name) &&
           !continuing) {
@@ -37,7 +38,8 @@ void main(List<String> args) {
       await testAnnotatedCode(annotatedCode,
           verbose: argResults['verbose'],
           printJs: argResults['print-js'],
-          writeJs: argResults['write-js']);
+          writeJs: argResults['write-js'],
+          inlineData: name.endsWith('_inlining.dart'));
       if (argResults['continued']) {
         continuing = true;
       }
@@ -48,18 +50,25 @@ void main(List<String> args) {
 const String kernelMarker = 'kernel.';
 
 Future testAnnotatedCode(String code,
-    {bool printJs: false, bool writeJs: false, bool verbose: false}) async {
+    {bool printJs: false,
+    bool writeJs: false,
+    bool verbose: false,
+    bool inlineData: false}) async {
   Test test = processTestCode(code, [kernelMarker]);
   print(test.code);
   print('---from kernel------------------------------------------------------');
   await runTest(test, kernelMarker,
-      printJs: printJs, writeJs: writeJs, verbose: verbose);
+      printJs: printJs,
+      writeJs: writeJs,
+      verbose: verbose,
+      inlineData: inlineData);
 }
 
 Future runTest(Test test, String config,
     {bool printJs: false,
     bool writeJs: false,
     bool verbose: false,
+    bool inlineData: false,
     List<String> options: const <String>[]}) async {
   List<LineException> testAfterExceptions = <LineException>[];
   if (config == kernelMarker) {
@@ -87,7 +96,8 @@ Future runTest(Test test, String config,
       verbose: verbose,
       printJs: printJs,
       writeJs: writeJs,
-      stackTraceLimit: 100);
+      stackTraceLimit: 100,
+      expandDart2jsInliningData: inlineData);
 }
 
 /// Lines allowed before the intended stack trace. Typically from helper

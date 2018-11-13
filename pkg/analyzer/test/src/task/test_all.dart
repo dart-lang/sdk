@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.src.task.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +16,6 @@ import 'model_test.dart' as model_test;
 import 'options_test.dart' as options_test;
 import 'options_work_manager_test.dart' as options_work_manager_test;
 import 'strong/test_all.dart' as strong_mode_test_all;
-import 'strong_mode_driver_test.dart' as strong_mode_driver_test;
 import 'strong_mode_test.dart' as strong_mode_test;
 import 'yaml_test.dart' as yaml_test;
 
@@ -37,7 +34,6 @@ main() {
     options_test.main();
     options_work_manager_test.main();
     strong_mode_test_all.main();
-    strong_mode_driver_test.main();
     strong_mode_test.main();
     yaml_test.main();
   }, name: 'task');

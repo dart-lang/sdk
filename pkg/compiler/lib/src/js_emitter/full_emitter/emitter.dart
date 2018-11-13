@@ -12,9 +12,9 @@ import 'package:js_runtime/shared/embedded_names.dart'
 
 import '../../../compiler_new.dart';
 import '../../common.dart';
+import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
@@ -107,7 +107,7 @@ class Emitter extends js_emitter.EmitterBase {
   CommonElements get commonElements => _closedWorld.commonElements;
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
   CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
-  OutputUnitData get _outputUnitData => compiler.backend.outputUnitData;
+  OutputUnitData get _outputUnitData => _closedWorld.outputUnitData;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -158,7 +158,7 @@ class Emitter extends js_emitter.EmitterBase {
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
         nsmEmitter = new NsmEmitter(_closedWorld),
         _sorter = sorter,
-        containerBuilder = new ContainerBuilder(),
+        containerBuilder = new ContainerBuilder(_closedWorld),
         _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,
@@ -375,10 +375,6 @@ class Emitter extends js_emitter.EmitterBase {
       jsAst.Expression leafTagsAccess) {
     return NativeGenerator.buildNativeInfoHandler(infoAccess, constructorAccess,
         subclassReadGenerator, interceptorsByTagAccess, leafTagsAccess);
-  }
-
-  jsAst.ObjectInitializer generateInterceptedNamesSet() {
-    return interceptorEmitter.generateInterceptedNamesSet();
   }
 
   /// In minified mode we want to keep the name for the most common core types.
@@ -1304,6 +1300,8 @@ class Emitter extends js_emitter.EmitterBase {
       SourceMapBuilder.outputSourceMap(
           mainOutput,
           locationCollector,
+          namer.createMinifiedGlobalNameMap(),
+          namer.createMinifiedInstanceNameMap(),
           '',
           compiler.options.sourceMapUri,
           compiler.options.outputUri,
@@ -1353,8 +1351,11 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programForTesting =
+    Program program =
         programBuilder.buildProgram(storeFunctionTypesInMetadata: true);
+    if (retainDataForTesting) {
+      programForTesting = program;
+    }
 
     outputStaticNonFinalFieldLists =
         programBuilder.collector.outputStaticNonFinalFieldLists;
@@ -1677,8 +1678,8 @@ class Emitter extends js_emitter.EmitterBase {
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(output, locationCollector, partName,
-            mapUri, partUri, compiler.outputProvider);
+        SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+            partName, mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();
       }
@@ -1691,9 +1692,9 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Comment buildGeneratedBy() {
     StringBuffer flavor = new StringBuffer();
     flavor.write('full emitter');
-    if (compiler.options.strongMode) flavor.write(', strong');
+    // TODO(johnniwinther): Remove this flavor.
+    flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
-    if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
     if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
     if (compiler.options.laxRuntimeTypeToString) {
       flavor.write(', lax runtime type');

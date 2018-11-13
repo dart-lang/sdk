@@ -1,16 +1,12 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.resolver.scope;
 
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -49,10 +45,10 @@ class BlockScope extends EnclosedScope {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].element;
+          yield variables[j].declaredElement;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.element;
+        yield statement.functionDeclaration.declaredElement;
       }
     }
   }
@@ -72,28 +68,6 @@ class ClassScope extends EnclosedScope {
       throw new ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
-  }
-
-  @override
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    if (existing is PropertyAccessorElement && duplicate is MethodElement) {
-      if (existing.nameOffset < duplicate.nameOffset) {
-        return new AnalysisError(
-            duplicate.source,
-            duplicate.nameOffset,
-            duplicate.nameLength,
-            CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
-            [existing.displayName]);
-      } else {
-        return new AnalysisError(
-            existing.source,
-            existing.nameOffset,
-            existing.nameLength,
-            CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
-            [existing.displayName]);
-      }
-    }
-    return super.getErrorForDuplicate(existing, duplicate);
   }
 
   /**
@@ -373,13 +347,6 @@ class LabelScope {
  */
 class LibraryImportScope extends Scope {
   /**
-   * The name of the property containing a list of the elements from the SDK
-   * that conflict with the single name imported from non-SDK libraries. The
-   * value of the property is always of type `List<Element>`.
-   */
-  static const String conflictingSdkElements = 'conflictingSdkElements';
-
-  /**
    * The element representing the library in which this scope is enclosed.
    */
   final LibraryElement _definingLibrary;
@@ -539,38 +506,48 @@ class LibraryImportScope extends Scope {
 
   Element _lookupInImportedNamespaces(
       Identifier identifier, Element lookup(Namespace namespace)) {
-    Set<Element> sdkElements = new HashSet<Element>();
-    Set<Element> nonSdkElements = new HashSet<Element>();
+    Element result;
+
+    bool hasPotentialConflict = false;
     for (int i = 0; i < _importedNamespaces.length; i++) {
       Element element = lookup(_importedNamespaces[i]);
       if (element != null) {
-        if (element.library.isInSdk) {
-          sdkElements.add(element);
+        if (result == null || result == element) {
+          result = element;
         } else {
-          nonSdkElements.add(element);
+          hasPotentialConflict = true;
         }
       }
     }
-    int nonSdkCount = nonSdkElements.length;
-    int sdkCount = sdkElements.length;
-    if (nonSdkCount == 0) {
-      if (sdkCount == 0) {
-        return null;
-      } else if (sdkCount == 1) {
-        return sdkElements.first;
+
+    if (hasPotentialConflict) {
+      var sdkElements = new Set<Element>();
+      var nonSdkElements = new Set<Element>();
+      for (int i = 0; i < _importedNamespaces.length; i++) {
+        Element element = lookup(_importedNamespaces[i]);
+        if (element != null) {
+          if (element.library.isInSdk) {
+            sdkElements.add(element);
+          } else {
+            nonSdkElements.add(element);
+          }
+        }
+      }
+      if (sdkElements.length > 1 || nonSdkElements.length > 1) {
+        var conflictingElements = <Element>[]
+          ..addAll(sdkElements)
+          ..addAll(nonSdkElements);
+        return new MultiplyDefinedElementImpl(_definingLibrary.context,
+            conflictingElements.first.name, conflictingElements);
+      }
+      if (nonSdkElements.isNotEmpty) {
+        result = nonSdkElements.first;
+      } else if (sdkElements.isNotEmpty) {
+        result = sdkElements.first;
       }
     }
-    if (nonSdkCount == 1) {
-      if (sdkCount > 0) {
-        identifier.setProperty(
-            conflictingSdkElements, sdkElements.toList(growable: false));
-      }
-      return nonSdkElements.first;
-    }
-    return new MultiplyDefinedElementImpl(
-        _definingLibrary.context,
-        sdkElements.toList(growable: false),
-        nonSdkElements.toList(growable: false));
+
+    return result;
   }
 }
 
@@ -595,28 +572,6 @@ class LibraryScope extends EnclosedScope {
     }
   }
 
-  @override
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    if (existing is PrefixElement) {
-      // TODO(scheglov) consider providing actual 'nameOffset' from the
-      // synthetic accessor
-      int offset = duplicate.nameOffset;
-      if (duplicate is PropertyAccessorElement) {
-        PropertyAccessorElement accessor = duplicate;
-        if (accessor.isSynthetic) {
-          offset = accessor.variable.nameOffset;
-        }
-      }
-      return new AnalysisError(
-          duplicate.source,
-          offset,
-          duplicate.nameLength,
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
-          [existing.displayName]);
-    }
-    return super.getErrorForDuplicate(existing, duplicate);
-  }
-
   /**
    * Add to this scope all of the public top-level names that are defined in the
    * given [compilationUnit].
@@ -633,6 +588,9 @@ class LibraryScope extends EnclosedScope {
     }
     for (FunctionTypeAliasElement element
         in compilationUnit.functionTypeAliases) {
+      define(element);
+    }
+    for (ClassElement element in compilationUnit.mixins) {
       define(element);
     }
     for (ClassElement element in compilationUnit.types) {
@@ -763,7 +721,6 @@ class NamespaceBuilder {
     // true of, for instance, `Object`, because `Object` has a source definition
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
-      DynamicElementImpl.instance.library = library;
       definedNames['dynamic'] = DynamicElementImpl.instance;
     }
 
@@ -810,6 +767,9 @@ class NamespaceBuilder {
     }
     for (FunctionTypeAliasElement element
         in compilationUnit.functionTypeAliases) {
+      _addIfPublic(definedNames, element);
+    }
+    for (ClassElement element in compilationUnit.mixins) {
       _addIfPublic(definedNames, element);
     }
     for (ClassElement element in compilationUnit.types) {
@@ -1046,22 +1006,6 @@ abstract class Scope {
   }
 
   /**
-   * Return the error code to be used when reporting that a name being defined
-   * locally conflicts with another element of the same name in the local scope.
-   * [existing] is the first element to be declared with the conflicting name,
-   * while [duplicate] another element declared with the conflicting name.
-   */
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    // TODO(brianwilkerson) Customize the error message based on the types of
-    // elements that share the same name.
-    // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being
-    // generated.
-    Source source = duplicate.source;
-    return new AnalysisError(source, duplicate.nameOffset, duplicate.nameLength,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION, [existing.displayName]);
-  }
-
-  /**
    * Return the source that contains the given [identifier], or the source
    * associated with this scope if the source containing the identifier could
    * not be determined.
@@ -1070,7 +1014,7 @@ abstract class Scope {
     CompilationUnit unit =
         identifier.getAncestor((node) => node is CompilationUnit);
     if (unit != null) {
-      CompilationUnitElement unitElement = unit.element;
+      CompilationUnitElement unitElement = unit.declaredElement;
       if (unitElement != null) {
         return unitElement.source;
       }

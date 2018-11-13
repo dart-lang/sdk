@@ -579,18 +579,26 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   List<E> operator +(List<E> other);
 
   /**
-   * Returns a new list containing the objects from [start] inclusive to [end]
-   * exclusive.
+   * Returns a new list containing the elements between [start] and [end].
    *
-   *     List<String> colors = ['red', 'green', 'blue', 'orange', 'pink'];
-   *     colors.sublist(1, 3); // ['green', 'blue']
+   * The new list is a `List<E>` containing the elements of this list at
+   * positions greater than or equal to [start] and less than [end] in the same
+   * order as they occur in this list.
    *
-   * If [end] is omitted, the [length] of `this` is used.
+   * ```dart
+   * var colors = ["red", "green", "blue", "orange", "pink"];
+   * print(colors.sublist(1, 3)); // [green, blue]
+   * ```
    *
-   *     colors.sublist(1);  // ['green', 'blue', 'orange', 'pink']
+   * If [end] is omitted, it defaults to the [length] of this list.
    *
-   * An error occurs if [start] is outside the range `0` .. `length` or if
-   * [end] is outside the range `start` .. `length`.
+   * ```dart
+   * print(colors.sublist(1)); // [green, blue, orange, pink]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
    */
   List<E> sublist(int start, [int end]);
 

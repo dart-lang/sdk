@@ -6,11 +6,20 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
+import '../serialization/serialization.dart';
 import 'class_set.dart';
 
 // TODO(johnniwinther): Move more methods from `JClosedWorld` to
 // `ClassHierarchy`.
 abstract class ClassHierarchy {
+  /// Deserializes a [ClassHierarchy] object from [source].
+  factory ClassHierarchy.readFromDataSource(
+          DataSource source, CommonElements commonElements) =
+      ClassHierarchyImpl.readFromDataSource;
+
+  /// Serializes this [ClassHierarchy] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
 
@@ -141,12 +150,54 @@ abstract class ClassHierarchy {
 }
 
 class ClassHierarchyImpl implements ClassHierarchy {
+  /// Tag used for identifying serialized [ClassHierarchy] objects in a debugging
+  /// data stream.
+  static const String tag = 'class-hierarchy';
+
   final CommonElements _commonElements;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
   final Map<ClassEntity, ClassSet> _classSets;
 
   ClassHierarchyImpl(
       this._commonElements, this._classHierarchyNodes, this._classSets);
+
+  factory ClassHierarchyImpl.readFromDataSource(
+      DataSource source, CommonElements commonElements) {
+    source.begin(tag);
+    Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
+        new ClassHierarchyNodesMap();
+    int classCount = source.readInt();
+    for (int i = 0; i < classCount; i++) {
+      ClassHierarchyNode node = new ClassHierarchyNode.readFromDataSource(
+          source, classHierarchyNodes);
+      classHierarchyNodes[node.cls] = node;
+    }
+    Map<ClassEntity, ClassSet> classSets = {};
+    for (int i = 0; i < classCount; i++) {
+      ClassSet classSet =
+          new ClassSet.readFromDataSource(source, classHierarchyNodes);
+      classSets[classSet.cls] = classSet;
+    }
+
+    source.end(tag);
+    return new ClassHierarchyImpl(
+        commonElements, classHierarchyNodes, classSets);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(_classSets.length);
+    ClassHierarchyNode node =
+        getClassHierarchyNode(_commonElements.objectClass);
+    node.forEachSubclass((ClassEntity cls) {
+      getClassHierarchyNode(cls).writeToDataSink(sink);
+    }, ClassHierarchyNode.ALL);
+    ClassSet set = getClassSet(_commonElements.objectClass);
+    set.forEachSubclass((ClassEntity cls) {
+      getClassSet(cls).writeToDataSink(sink);
+    }, ClassHierarchyNode.ALL);
+    sink.end(tag);
+  }
 
   @override
   bool isInstantiated(ClassEntity cls) {
@@ -625,32 +676,112 @@ class ClassHierarchyBuilder {
     return classSet.hasSubtype(classHierarchyNode);
   }
 
+  Map<ClassEntity, _InheritedCache> _inheritedCacheMap = {};
+
   bool isInheritedInSubtypeOf(ClassEntity x, ClassEntity y) {
-    ClassSet classSet = classSets[x];
-    assert(classSet != null,
-        failedAt(x, "No ClassSet for $x (${x.runtimeType}): ${classSets}"));
+    _InheritedCache cache = _inheritedCacheMap[x] ??= new _InheritedCache();
+    return cache.isInheritedInSubtypeOf(this, x, y);
+  }
+}
 
-    if (_isSubtypeOf(x, y)) {
+/// A cache object used for [ClassHierarchyBuilder.isInheritedInSubtypeOf].
+class _InheritedCache {
+  Map<ClassEntity, _InheritingSet> _map;
+
+  /// Returns whether a live class currently known to inherit from [x] and
+  /// implement [y].
+  bool isInheritedInSubtypeOf(
+      ClassHierarchyBuilder builder, ClassEntity x, ClassEntity y) {
+    _InheritingSet set;
+    if (_map == null) {
+      _map = {};
+    } else {
+      set = _map[y];
+    }
+    if (set == null) {
+      set = _map[y] = _computeInheritingSet(builder, x, y);
+    }
+    return set.hasLiveClass(builder);
+  }
+
+  /// Creates an [_InheritingSet] of classes that inherit members of a class [x]
+  /// while implementing class [y].
+  _InheritingSet _computeInheritingSet(
+      ClassHierarchyBuilder builder, ClassEntity x, ClassEntity y) {
+    ClassSet classSet = builder.classSets[x];
+
+    assert(
+        classSet != null,
+        failedAt(
+            x, "No ClassSet for $x (${x.runtimeType}): ${builder.classSets}"));
+
+    Set<ClassEntity> classes = new Set<ClassEntity>();
+
+    if (builder._isSubtypeOf(x, y)) {
       // [x] implements [y] itself, possible through supertypes.
-      return true;
+      classes.add(x);
     }
 
-    /// Returns `true` if any live subclass of [node] implements [y].
-    bool subclassImplements(ClassHierarchyNode node, {bool strict}) {
-      return node.anySubclass((ClassEntity z) => _isSubtypeOf(z, y),
-          ClassHierarchyNode.INSTANTIATED,
-          strict: strict);
+    /// Add subclasses of [node] that implement [y].
+    void subclassImplements(ClassHierarchyNode node, {bool strict}) {
+      node.forEachSubclass((ClassEntity z) {
+        if (builder._isSubtypeOf(z, y)) {
+          classes.add(z);
+        }
+      }, ClassHierarchyNode.ALL, strict: strict);
     }
 
-    if (subclassImplements(classSet.node, strict: true)) {
-      // A subclass of [x] implements [y].
-      return true;
-    }
+    // A subclasses of [x] that implement [y].
+    subclassImplements(classSet.node, strict: true);
 
     for (ClassHierarchyNode mixinApplication
         in classSet.mixinApplicationNodes) {
-      if (subclassImplements(mixinApplication, strict: false)) {
-        // A subclass of [mixinApplication] implements [y].
+      // A subclass of [mixinApplication] implements [y].
+      subclassImplements(mixinApplication, strict: false);
+    }
+
+    return new _InheritingSet(classes);
+  }
+}
+
+/// A set of classes that inherit members of a class 'x' while implementing
+/// class 'y'.
+///
+/// The set is used [ClassHierarchyBuilder.isInheritedInSubtypeOf] to determine
+/// when members of a class is live.
+class _InheritingSet {
+  /// If `true` the set of classes is known to contain a live class. In this
+  /// case [_classes] is `null`. If `false` the set of classes is empty and
+  /// therefore known never to contain live classes. In this case [_classes]
+  /// is `null`. If `null` [_classes] is a non-empty set containing classes
+  /// that are not yet known to be live.
+  bool _result;
+  Set<ClassEntity> _classes;
+
+  _InheritingSet(Set<ClassEntity> classes)
+      : _result = classes.isEmpty ? false : null,
+        _classes = classes.isNotEmpty ? classes : null;
+
+  /// Returns whether the set of classes is currently known to contain a live
+  /// classes.
+  ///
+  /// The result of this method changes during the closed world computation.
+  /// Initially, we haven't seen any live classes so we will return `false` even
+  /// for a non-empty set of classes. As more classes are marked as
+  /// instantiated, during tree-shaking, the result might change to `true` if
+  /// one of the [_classes] has been marked as live.
+  ///
+  /// The result of this method _is_ monotone, though; when we have returned
+  /// `true` (because at least one class is known to be live) we will continue
+  /// to return `true`.
+  bool hasLiveClass(ClassHierarchyBuilder builder) {
+    if (_result != null) return _result;
+    for (ClassEntity cls in _classes) {
+      if (builder.classHierarchyNodes[cls].isInstantiated) {
+        // We now know this set contains a live class and done need to remember
+        // that set of classes anymore.
+        _result = true;
+        _classes = null;
         return true;
       }
     }

@@ -169,6 +169,19 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
  */
 class CompileTimeErrorCode extends ErrorCode {
   /**
+   * Member lookups ignore abstract declarations, which means that there will
+   * be a compile-time error if the targeted member `m` is abstract, as well as
+   * when it does not exist at all.
+   *
+   * Parameters:
+   * 0: the display name for the kind of the found abstract member
+   * 1: the name of the member
+   */
+  static const CompileTimeErrorCode ABSTRACT_SUPER_MEMBER_REFERENCE =
+      const CompileTimeErrorCode('ABSTRACT_SUPER_MEMBER_REFERENCE',
+          "The {0} '{1}' is always abstract in the supertype.");
+
+  /**
    * Enum proposal: It is also a compile-time error to explicitly instantiate an
    * enum via 'new' or 'const' or to access its private fields.
    */
@@ -217,6 +230,10 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try importing the library that declares the class, "
               "correcting the name to match a defined class, or "
               "defining a class with the given name.");
+
+  static const CompileTimeErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
+      const CompileTimeErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS',
+          "An annotation (metadata) can't use type arguments.");
 
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
@@ -344,80 +361,105 @@ class CompileTimeErrorCode extends ErrorCode {
           "The switch case expression type '{0}' can't override the == operator.");
 
   /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name. This restriction holds regardless of whether the
-   * getter is defined explicitly or implicitly, or whether the getter or the
-   * method are inherited or not.
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a constructor named `C.n`, and a static member with
+   * basename `n`.
    *
    * Parameters:
-   * 0: the name of the class defining the conflicting method
-   * 1: the name of the class defining the getter with which the method conflicts
-   * 2: the name of the conflicting method
+   * 0: the name of the constructor
    */
-  static const CompileTimeErrorCode CONFLICTING_GETTER_AND_METHOD =
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD =
       const CompileTimeErrorCode(
-          'CONFLICTING_GETTER_AND_METHOD',
-          "Class '{0}' can't have both getter '{1}.{2}' and method with the "
-          "same name.",
-          correction: "Try converting the method to a getter, or "
-              "renaming the method to a name that doesn't conflit.");
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+          "'{0}' can't be used to name both a constructor and a static field "
+          "in this class.",
+          correction: "Try renaming either the constructor or the field.");
 
   /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name. This restriction holds regardless of whether the
-   * getter is defined explicitly or implicitly, or whether the getter or the
-   * method are inherited or not.
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a constructor named `C.n`, and a static member with
+   * basename `n`.
    *
    * Parameters:
-   * 0: the name of the class defining the conflicting getter
-   * 1: the name of the class defining the method with which the getter conflicts
-   * 2: the name of the conflicting getter
+   * 0: the name of the constructor
    */
-  static const CompileTimeErrorCode CONFLICTING_METHOD_AND_GETTER =
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
       const CompileTimeErrorCode(
-          'CONFLICTING_METHOD_AND_GETTER',
-          "Class '{0}' can't have both method '{1}.{2}' and getter with the "
-          "same name.",
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+          "'{0}' can't be used to name both a constructor and a static method "
+          "in this class.",
+          correction: "Try renaming either the constructor or the method.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a getter or a setter with basename `n`, and has a
+   * method named `n`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the conflicting field
+   * 1: the name of the conflicting field
+   * 2: the name of the class defining the method with which the field conflicts
+   */
+  static const CompileTimeErrorCode CONFLICTING_FIELD_AND_METHOD =
+      const CompileTimeErrorCode(
+          'CONFLICTING_FIELD_AND_METHOD',
+          "Class '{0}' can't define field '{1}' and have method '{2}.{1}' "
+          "with the same name.",
           correction: "Try converting the getter to a method, or "
-              "renaming the getter to a name that doesn't conflit.");
+              "renaming the field to a name that doesn't conflit.");
 
   /**
-   * 7.6 Constructors: A constructor name always begins with the name of its
-   * immediately enclosing class, and may optionally be followed by a dot and an
-   * identifier <i>id</i>. It is a compile-time error if <i>id</i> is the name
-   * of a member declared in the immediately enclosing class.
+   * 10.10 Superinterfaces: It is a compile-time error if a class `C` has two
+   * superinterfaces that are different instantiations of the same generic
+   * class. For example, a class may not have both `List<int>` and `List<num>`
+   * as superinterfaces.
    *
    * Parameters:
-   * 0: the name of the constructor
+   * 0: the name of the class implementing the conflicting interface
+   * 1: the first conflicting type
+   * 1: the second conflicting type
    */
-  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD =
-      const CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD',
-          "'{0}' can't be used to name both a constructor and a field in this "
-          "class.",
-          correction: "Try renaming either the constructor or the field.");
-
-  /**
-   * 7.6 Constructors: A constructor name always begins with the name of its
-   * immediately enclosing class, and may optionally be followed by a dot and an
-   * identifier <i>id</i>. It is a compile-time error if <i>id</i> is the name
-   * of a member declared in the immediately enclosing class.
-   *
-   * Parameters:
-   * 0: the name of the constructor
-   */
-  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD =
-      const CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD',
-          "'{0}' can't be used to name both a constructor and a method in this "
-          "class.",
-          correction: "Try renaming either the constructor or the field.");
-
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       const CompileTimeErrorCode(
           'CONFLICTING_GENERIC_INTERFACES',
           "The class '{0}' cannot implement both '{1}' and '{2}' because the "
           "type arguments are different.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a method named `n`, and has a getter or a setter
+   * with basename `n`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the conflicting method
+   * 1: the name of the conflicting method
+   * 2: the name of the class defining the field with which the method conflicts
+   */
+  static const CompileTimeErrorCode CONFLICTING_METHOD_AND_FIELD =
+      const CompileTimeErrorCode(
+          'CONFLICTING_METHOD_AND_FIELD',
+          "Class '{0}' can't define method '{1}' and have field '{2}.{1}' "
+          "with the same name.",
+          correction: "Try converting the method to a getter, or "
+              "renaming the method to a name that doesn't conflit.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a static member with basename `n`, and has an
+   * instance member with basename `n`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the conflicting member
+   * 1: the name of the conflicting static member
+   * 2: the name of the class defining the field with which the method conflicts
+   */
+  static const CompileTimeErrorCode CONFLICTING_STATIC_AND_INSTANCE =
+      const CompileTimeErrorCode(
+          'CONFLICTING_STATIC_AND_INSTANCE',
+          "Class '{0}' can't define static member '{1}' and have instance "
+          "member '{2}.{1}' with the same name.",
+          correction:
+              "Try renaming the member to a name that doesn't conflit.");
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -449,14 +491,11 @@ class CompileTimeErrorCode extends ErrorCode {
           "this class.",
           correction: "Try renaming either the type variable or the member.");
 
-  static const CompileTimeErrorCode CONFLICTS_WITH_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_CONSTRUCTOR');
-
-  static const CompileTimeErrorCode CONFLICTS_WITH_INHERITED_MEMBER =
-      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_INHERITED_MEMBER');
-
-  static const CompileTimeErrorCode CONFLICTS_WITH_MEMBER =
-      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_MEMBER');
+  static const CompileTimeErrorCode
+      CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION =
+      const CompileTimeErrorCode(
+          'CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION',
+          "Can't extend a mixin application and be 'const'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -780,10 +819,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "The class '{0}' doesn't have a default constant constructor.",
           correction: "Try calling a different contructor.");
 
-  static const CompileTimeErrorCode DECLARED_MEMBER_CONFLICTS_WITH_INHERITED =
-      const CompileTimeErrorCode.fromFasta(
-          'DECLARED_MEMBER_CONFLICTS_WITH_INHERITED');
-
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are
    * specified in the signature of a function type alias.
@@ -869,24 +904,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try removing all but one of the duplicated part directives.");
 
   /**
-   * 7. Classes: It is a compile-time error if a class has an instance member
-   * and a static member with the same name.
-   *
-   * This covers the additional duplicate definition cases where inheritance has
-   * to be considered.
-   *
-   * Parameters:
-   * 0: the name of the class that has conflicting instance/static members
-   * 1: the name of the conflicting member
-   *
-   * See [DUPLICATE_DEFINITION].
-   */
-  static const CompileTimeErrorCode DUPLICATE_DEFINITION_INHERITANCE =
-      const CompileTimeErrorCode('DUPLICATE_DEFINITION_INHERITANCE',
-          "The name '{0}' is already defined in '{1}'.",
-          correction: "Try renaming one of the declarations.");
-
-  /**
    * 12.14.2 Binding Actuals to Formals: It is a compile-time error if
    * <i>q<sub>i</sub> = q<sub>j</sub></i> for any <i>i != j</i> [where
    * <i>q<sub>i</sub></i> is the label for a named argument].
@@ -899,9 +916,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "The argument for the named parameter '{0}' was already specified.",
           correction: "Try removing one of the named arguments, or "
               "correcting one of the names to reference a different named parameter.");
-
-  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_ENUM_NAME =
-      const CompileTimeErrorCode.fromFasta('ENUM_CONSTANT_WITH_ENUM_NAME');
 
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.
@@ -924,15 +938,6 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('EXPORT_OF_NON_LIBRARY',
           "The exported library '{0}' can't have a part-of directive.",
           correction: "Try exporting the library that the part is a part of.");
-
-  /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode EXTENDS_ENUM = const CompileTimeErrorCode(
-      'EXTENDS_ENUM', "Classes can't extend an enum.",
-      correction:
-          "Try specifying a different superclass, or removing the extends clause.");
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
@@ -991,8 +996,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [IMPLEMENTS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
-      const CompileTimeErrorCode('EXTENDS_DEFERRED_CLASS',
-          "This class can't extend the deferred class '{0}'.",
+      const CompileTimeErrorCode(
+          'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
 
@@ -1121,32 +1126,15 @@ class CompileTimeErrorCode extends ErrorCode {
               "`dynamic`.");
 
   /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name.
-   *
-   * Parameters:
-   * 0: the conflicting name of the getter and method
-   */
-  static const CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME =
-      const CompileTimeErrorCode(
-          'GETTER_AND_METHOD_WITH_SAME_NAME',
-          "'{0}' can't be used to name a getter, there is already a method "
-          "with the same name.",
-          correction: "Try renaming either the getter or the method.");
-
-  /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
    * of a class <i>C</i> specifies a malformed type or deferred type as a
    * superinterface.
-   *
-   * Parameters:
-   * 0: the name of the type that is deferred
    *
    * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_DEFERRED_CLASS',
-          "This class can't implement the deferred class '{0}'.",
+          "Classes and mixins can't implement deferred classes.",
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
               "changing the import to not be deferred.");
@@ -1177,30 +1165,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [EXTENDS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_DISALLOWED_CLASS', "Classes can't implement '{0}'.",
+      const CompileTimeErrorCode('IMPLEMENTS_DISALLOWED_CLASS',
+          "Classes and mixins can't implement '{0}'.",
           correction: "Try specifying a different interface, or "
               "remove the class from the list.");
-
-  /**
-   * 7.10 Superinterfaces: It is a compile-time error if the implements clause
-   * of a class includes type dynamic.
-   */
-  static const CompileTimeErrorCode IMPLEMENTS_DYNAMIC =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_DYNAMIC', "Classes can't implement 'dynamic'.",
-          correction:
-              "Try specifying an interface, or remove 'dynamic' from the list.");
-
-  /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode IMPLEMENTS_ENUM =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_ENUM', "Classes can't implement an enum.",
-          correction:
-              "Try specifying an interface, or remove the enum from the list.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
@@ -1211,17 +1179,18 @@ class CompileTimeErrorCode extends ErrorCode {
    * 0: the name of the interface that was not found
    */
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_NON_CLASS', "Classes can only implement other classes.",
+      const CompileTimeErrorCode('IMPLEMENTS_NON_CLASS',
+          "Classes and mixins can only implement classes.",
           correction:
               "Try specifying a class, or remove the name from the list.");
 
   /**
-   * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears
-   * more than once in the implements clause of a class.
+   * 10.10 Superinterfaces: It is a compile-time error if two elements in the
+   * type list of the implements clause of a class `C` specifies the same
+   * type `T`.
    *
    * Parameters:
-   * 0: the name of the class that is implemented more than once
+   * 0: the name of the interface that is implemented more than once
    */
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED =
       const CompileTimeErrorCode(
@@ -1240,9 +1209,6 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('IMPLEMENTS_SUPER_CLASS',
           "'{0}' can't be used in both 'extends' and 'implements' clauses.",
           correction: "Try removing one of the occurances.");
-
-  static const CompileTimeErrorCode IMPLICIT_CALL_OF_NON_METHOD =
-      const CompileTimeErrorCode.fromFasta('IMPLICIT_CALL_OF_NON_METHOD');
 
   /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the
@@ -1293,6 +1259,46 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode INCONSISTENT_CASE_EXPRESSION_TYPES =
       const CompileTimeErrorCode('INCONSISTENT_CASE_EXPRESSION_TYPES',
           "Case expressions must have the same types, '{0}' isn't a '{1}'.");
+
+  /**
+   * If a class declaration does not have a member declaration with a
+   * particular name, but some super-interfaces do have a member with that
+   * name, it's a compile-time error if there is no signature among the
+   * super-interfaces that is a valid override of all the other super-interface
+   * signatures with the same name. That "most specific" signature becomes the
+   * signature of the class's interface.
+   *
+   * Parameters:
+   * 0: the name of the instance member with inconsistent inheritance.
+   * 1: the list of all inherited signatures for this member.
+   */
+  static const CompileTimeErrorCode INCONSISTENT_INHERITANCE =
+      const CompileTimeErrorCode('INCONSISTENT_INHERITANCE',
+          "Superinterfaces don't have a valid override for '{0}': {1}.",
+          correction:
+              "Try adding an explicit override that is consistent with all "
+              "of the inherited members.");
+
+  /**
+   * 11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
+   * class `C` declared in library `L`. `I` inherits all members of
+   * `inherited(I, L)` and `I` overrides `m'` if `m' ∈ overrides(I, L)`. It is
+   * a compile-time error if `m` is a method and `m'` is a getter, or if `m`
+   * is a getter and `m'` is a method.
+   *
+   * Parameters:
+   * 0: the name of the the instance member with inconsistent inheritance.
+   * 1: the name of the superinterface that declares the name as a getter.
+   * 2: the name of the superinterface that declares the name as a method.
+   */
+  static const CompileTimeErrorCode INCONSISTENT_INHERITANCE_GETTER_AND_METHOD =
+      const CompileTimeErrorCode(
+          'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
+          "'{0}' is inherited as a getter (from '{1}') and also a "
+          "method (from '{2}').",
+          correction:
+              "Try adjusting the supertypes of this class to remove the "
+              "inconsistency.");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
@@ -1403,6 +1409,22 @@ class CompileTimeErrorCode extends ErrorCode {
               "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.");
 
   /**
+   * An integer literal with static type `double` and numeric value `i`
+   * evaluates to an instance of the `double` class representing the value `i`.
+   * It is a compile-time error if the value `i` cannot be represented
+   * _precisely_ by the an instace of `double`.
+   */
+  static const CompileTimeErrorCode INTEGER_LITERAL_IMPRECISE_AS_DOUBLE =
+      const CompileTimeErrorCode(
+          'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
+          "The integer literal is being used as a double, but can't be "
+          'represented as a 64 bit double without overflow and/or loss of '
+          'precision: {0}',
+          correction:
+              'Try using the BigInt class, or switch to the closest valid '
+              'double: {1}');
+
+  /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
    * begin with the character @, followed by a constant expression that must be
    * either a reference to a compile-time constant variable, or a call to a
@@ -1498,6 +1520,32 @@ class CompileTimeErrorCode extends ErrorCode {
           'INVALID_FACTORY_NAME_NOT_A_CLASS',
           "The name of a factory constructor must be the same as the name of "
           "the immediately enclosing class.");
+
+  static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
+      const CompileTimeErrorCode('INVALID_INLINE_FUNCTION_TYPE',
+          "Inline function types cannot be used for parameters in a generic function type.",
+          correction:
+              "Try using a generic function type (returnType 'Function(' parameters ')').");
+
+  /**
+   * If a class declaration has a member declaration, the signature of that
+   * member declaration becomes the signature in the interface. It's a
+   * compile-time error if that signature is not a valid override of all
+   * super-interface member signatures with the same name. (Not just the
+   * members of the immediate super-interfaces, but all of them. For
+   * non-covariant parameters, it's sufficient to check just the immediate
+   * super-interfaces).
+   *
+   * Parameters:
+   * 0: the name of the declared member that is not a valid override.
+   * 1: the name of the interface that declares the member.
+   * 2: the type of the declared member in the interface.
+   * 3. the name of the interface with the overridden member.
+   * 4. the type of the overridden member.
+   */
+  static const CompileTimeErrorCode INVALID_OVERRIDE =
+      const CompileTimeErrorCode('INVALID_OVERRIDE',
+          "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').");
 
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level
@@ -1601,9 +1649,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
 
-  static const CompileTimeErrorCode LOAD_LIBRARY_TAKES_NO_ARGUMENTS =
-      const CompileTimeErrorCode.fromFasta('LOAD_LIBRARY_TAKES_NO_ARGUMENTS');
-
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
    * with the same name as <i>C</i>.
@@ -1611,19 +1656,6 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode MEMBER_WITH_CLASS_NAME =
       const CompileTimeErrorCode('MEMBER_WITH_CLASS_NAME',
           "Class members can't have the same name as the enclosing class.");
-
-  /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name.
-   *
-   * Parameters:
-   * 0: the conflicting name of the getter and method
-   */
-  static const CompileTimeErrorCode METHOD_AND_GETTER_WITH_SAME_NAME =
-      const CompileTimeErrorCode(
-          'METHOD_AND_GETTER_WITH_SAME_NAME',
-          "'{0}' can't be used to name a method, there is already a getter "
-          "with the same name.");
 
   /**
    * 12.1 Constants: A constant expression is ... a constant list literal.
@@ -1651,17 +1683,74 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Check your Dart SDK installation for completeness.");
 
   /**
+   * It's a compile-time error to apply a mixin containing super-invocations to
+   * a class that doesn't have a concrete implementation of the super-invoked
+   * members compatible with the super-constraint interface.
+   *
+   * This ensures that if more than one super-constraint interface declares a
+   * member with the same name, at least one of those members is more specific
+   * than the rest, and this is the unique signature that super-invocations
+   * are allowed to invoke.
+   *
+   * Parameters:
+   * 0: the name of the super-invoked member
+   * 1: the display name of the type of the super-invoked member in the mixin
+   * 2: the display name of the type of the concrete member in the class
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE =
+      const CompileTimeErrorCode(
+          'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
+          "The super-invoked member '{0}' has the type '{1}', but the "
+          "concrete member in the class has type '{2}'.");
+
+  /**
+   * It's a compile-time error to apply a mixin to a class that doesn't
+   * implement all the on type requirements of the mixin declaration.
+   *
+   * Parameters:
+   * 0: the display name of the not implemented type
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = const CompileTimeErrorCode(
+          'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+          "The class doesn't implement the required class '{0}'.");
+
+  /**
+   * It's a compile-time error to apply a mixin containing super-invocations to
+   * a class that doesn't have a concrete implementation of the super-invoked
+   * members compatible with the super-constraint interface.
+   *
+   * Parameters:
+   * 0: the display name of the member without a concrete implementation
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER =
+      const CompileTimeErrorCode(
+          'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+          "The class doesn't have a concrete implementation of the "
+          "super-invoked member '{0}'.");
+
+  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *
    * Parameters:
    * 0: the name of the mixin that is invalid
    */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+  static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       const CompileTimeErrorCode(
-          'MIXIN_DECLARES_CONSTRUCTOR',
+          'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
           "The class '{0}' can't be used as a mixin because it declares a "
           "constructor.");
+
+  /**
+   * The <i>mixinMember</i> production allows the same instance or static
+   * members that a class would allow, but no constructors (for now).
+   */
+  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+      const CompileTimeErrorCode(
+          'MIXIN_DECLARES_CONSTRUCTOR', "Mixins can't declare constructors.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if the with clause of a
@@ -1673,22 +1762,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS =
-      const CompileTimeErrorCode('MIXIN_DEFERRED_CLASS',
-          "This class can't mixin the deferred class '{0}'.",
-          correction: "Try changing the import to not be deferred.");
-
-  /**
-   * Not yet in the spec, but consistent with VM behavior.  It is a
-   * compile-time error if all of the constructors of a mixin's base class have
-   * at least one optional parameter (since only constructors that lack
-   * optional parameters can be forwarded to the mixin).  See
-   * https://code.google.com/p/dart/issues/detail?id=15101#c4
-   */
-  static const CompileTimeErrorCode MIXIN_HAS_NO_CONSTRUCTORS =
       const CompileTimeErrorCode(
-          'MIXIN_HAS_NO_CONSTRUCTORS',
-          "This mixin application is invalid because all of the constructors "
-          "in the base class '{0}' have optional parameters.");
+          'MIXIN_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
+          correction: "Try changing the import to not be deferred.");
 
   static const CompileTimeErrorCode
       MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES =
@@ -1726,6 +1802,13 @@ class CompileTimeErrorCode extends ErrorCode {
           "other than Object.");
 
   /**
+   * A mixin declaration introduces a mixin and an interface, but not a class.
+   */
+  static const CompileTimeErrorCode MIXIN_INSTANTIATE =
+      const CompileTimeErrorCode(
+          'MIXIN_INSTANTIATE', "Mixins can't be instantiated.");
+
+  /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or
    * implement Null.
    *
@@ -1754,13 +1837,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.");
 
   /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode MIXIN_OF_ENUM = const CompileTimeErrorCode(
-      'MIXIN_OF_ENUM', "Classes can't mixin an enum.");
-
-  /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not
    * denote a class or mixin available in the immediately enclosing scope.
    */
@@ -1777,6 +1853,22 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_REFERENCES_SUPER',
           "The class '{0}' can't be used as a mixin because it references "
           "'super'.");
+
+  static const CompileTimeErrorCode
+      MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = const CompileTimeErrorCode(
+          'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+          "Deferred classes can't be used as super-class constraints.",
+          correction: "Try changing the import to not be deferred.");
+
+  static const CompileTimeErrorCode
+      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS =
+      const CompileTimeErrorCode(
+          'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+          "'{0}' can't be used as a super-class constraint.");
+
+  static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE =
+      const CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
+          "Only classes and mixins can be used as super-class constraints.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
@@ -2051,14 +2143,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "initializers.",
           correction: "Try changing the import to not be deferred.");
 
-  static const CompileTimeErrorCode NON_SYNC_ABSTRACT_METHOD =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_ABSTRACT_METHOD');
-
-  static const CompileTimeErrorCode NON_SYNC_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_CONSTRUCTOR');
-
   static const CompileTimeErrorCode NON_SYNC_FACTORY =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_FACTORY');
+      const CompileTimeErrorCode('NON_SYNC_FACTORY',
+          "Factory bodies can't use 'async', 'async*', or 'sync*'.");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
@@ -2090,9 +2177,6 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try calling a different constructor in the superclass, or "
               "making the called constructor not be a factory constructor.");
 
-  static const CompileTimeErrorCode NOT_CONSTANT_EXPRESSION =
-      const CompileTimeErrorCode.fromFasta('NOT_CONSTANT_EXPRESSION');
-
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause
    * for class Object.
@@ -2100,6 +2184,19 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS =
       const CompileTimeErrorCode('OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
           "The class 'Object' can't extend any other class.");
+
+  /**
+   * 10.10 Superinterfaces: It is a compile-time error if two elements in the
+   * type list of the implements clause of a class `C` specifies the same
+   * type `T`.
+   *
+   * Parameters:
+   * 0: the name of the interface that is implemented more than once
+   */
+  static const CompileTimeErrorCode ON_REPEATED = const CompileTimeErrorCode(
+      'ON_REPEATED',
+      "'{0}' can only be used in super-class constraints only once.",
+      correction: "Try removing all but one occurance of the class name.");
 
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional
@@ -2228,10 +2325,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode
-      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS =
-      const CompileTimeErrorCode(
-          'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS',
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
           "'{0}' can't extend itself.");
 
   /**
@@ -2247,11 +2342,17 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode
-      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS =
-      const CompileTimeErrorCode(
-          'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS',
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
           "'{0}' can't implement itself.");
+
+  /**
+   * Parameters:
+   * 0: the name of the mixin that constraints itself recursively
+   */
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_ON',
+          "'{0}' can't use itself as a superclass constraint.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -2266,10 +2367,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode
-      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH =
-      const CompileTimeErrorCode(
-          'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH',
+  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
+      const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_WITH',
           "'{0}' can't use itself as a mixin.");
 
   /**
@@ -2382,9 +2481,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "directives.",
           correction: "Try renaming one of the prefixes.");
 
-  static const CompileTimeErrorCode SUPER_AS_EXPRESSION =
-      const CompileTimeErrorCode.fromFasta('SUPER_AS_EXPRESSION');
-
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
@@ -2449,6 +2545,12 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: 'Try making the free variable in the function type part'
               ' of the larger declaration signature');
 
+  static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
+      const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
+          "A for-in loop-variable can't be 'const'.",
+          correction: "Try removing the 'const' modifier from the variable, or "
+              "use a different variable.");
+
   /**
    * It is a compile-time error if a generic function type is used as an actual
    * type argument.
@@ -2461,9 +2563,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the type parameters '<{0}>', or using"
               " 'dynamic' as the type argument here instead of a function.");
 
-  static const CompileTimeErrorCode THIS_ACCESS_FROM_INITIALIZER =
-      const CompileTimeErrorCode.fromFasta('THIS_ACCESS_FROM_INITIALIZER');
-
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
    * another typedef, is a compile time error.
@@ -2475,7 +2574,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "another typedef.");
 
   static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
-      const CompileTimeErrorCode.fromFasta('TYPE_PARAMETER_ON_CONSTRUCTOR');
+      const CompileTimeErrorCode('TYPE_PARAMETER_ON_CONSTRUCTOR',
+          "Constructors can't have type parameters.",
+          correction: "Try removing the type parameters.");
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
@@ -2678,14 +2779,6 @@ class CompileTimeErrorCode extends ErrorCode {
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
-  /**
-   * Initialize a newly created error code to have the given [name]. No message
-   * or correction are necessary because the error code is only used when
-   * translating an error produced by fasta, and both will be taken from the
-   * error being translated.
-   */
-  const CompileTimeErrorCode.fromFasta(String name) : this(name, '');
-
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
 
@@ -2761,41 +2854,6 @@ class StaticTypeWarningCode extends ErrorCode {
           "Functions marked 'sync*' must have a return type assignable to 'Iterable'.",
           correction: "Try fixing the return type of the function, or "
               "removing the modifier 'sync*' from the function body.");
-
-  /**
-   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause
-   * multiple members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the
-   * same name <i>n</i> that would be inherited (because identically named
-   * members existed in several superinterfaces) then at most one member is
-   * inherited.
-   *
-   * If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the
-   * members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> are not identical,
-   * then there must be a member <i>m<sub>x</sub></i> such that <i>T<sub>x</sub>
-   * &lt;: T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for all <i>i, 1 &lt;= i &lt;=
-   * k</i>, or a static type warning occurs. The member that is inherited is
-   * <i>m<sub>x</sub></i>, if it exists; otherwise:
-   * * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional
-   *   parameters of a function <i>f</i>, and let
-   *   <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of required
-   *   parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the
-   *   set of all named parameters of the <i>m<sub>1</sub>, &hellip;,
-   *   m<sub>k</sub></i>. Then let
-   * * <i>h = max(numberOfPositionals(m<sub>i</sub>)),</i>
-   * * <i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <=
-   *   i <= k.</i> If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>,
-   *   with <i>r</i> required parameters of type <b>dynamic</b>, <i>h</i>
-   *   positional parameters of type <b>dynamic</b>, named parameters <i>s</i>
-   *   of type <b>dynamic</b> and return type <b>dynamic</b>.
-   * * Otherwise none of the members <i>m<sub>1</sub>, &hellip;,
-   *   m<sub>k</sub></i> is inherited.
-   */
-  static const StaticTypeWarningCode INCONSISTENT_METHOD_INHERITANCE =
-      const StaticTypeWarningCode('INCONSISTENT_METHOD_INHERITANCE',
-          "Inconsistent declarations of '{0}' are inherited from {1}.",
-          correction:
-              "Try adjusting the supertypes of this class to remove the "
-              "inconsistency.");
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
@@ -2932,17 +2990,6 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode NON_BOOL_OPERAND =
       const StaticTypeWarningCode('NON_BOOL_OPERAND',
           "The operands of the '{0}' operator must be assignable to 'bool'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the variable
-   * 1: the type of the variable
-   */
-  static const StaticTypeWarningCode NON_NULLABLE_FIELD_NOT_INITIALIZED =
-      const StaticTypeWarningCode('NON_NULLABLE_FIELD_NOT_INITIALIZED',
-          "Variable '{0}' of non-nullable type '{1}' must be initialized.",
-          correction: "Try adding an initializer to the declaration, or "
-              "making the variable nullable by adding a '?' after the type name.");
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>,
@@ -3270,6 +3317,20 @@ class StaticTypeWarningCode extends ErrorCode {
    * exactly <i>n</i> type parameters.
    *
    * Parameters:
+   * 0: the name of the class being instantiated
+   * 1: the name of the constructor being invoked
+   */
+  static const StaticTypeWarningCode
+      WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR = const StaticTypeWarningCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+          "The constructor '{0}.{1}' does not have type parameters.",
+          correction: "Try moving type arguments to after the type name.");
+
+  /**
+   * It will be a static type warning if <i>m</i> is not a generic method with
+   * exactly <i>n</i> type parameters.
+   *
+   * Parameters:
    * 0: the name of the method being referenced (<i>G</i>)
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
@@ -3346,7 +3407,7 @@ class StaticTypeWarningCode extends ErrorCode {
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
-  ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
+  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
 
   @override
   ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
@@ -3520,97 +3581,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try making '{1}' abstract, or adding a body to '{0}'.");
 
   /**
-   * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and
-   * <i>N</i> would be introduced into the top level scope of <i>L</i> by an
-   * import from a library whose URI begins with <i>dart:</i> and an import from
-   * a library whose URI does not begin with <i>dart:</i>:
-   * * The import from <i>dart:</i> is implicitly extended by a hide N clause.
-   * * A static warning is issued.
-   *
-   * Parameters:
-   * 0: the ambiguous name
-   * 1: the name of the dart: library in which the element is found
-   * 2: the name of the non-dart: library in which the element is found
-   */
-  static const StaticWarningCode CONFLICTING_DART_IMPORT =
-      const StaticWarningCode('CONFLICTING_DART_IMPORT',
-          "Element '{0}' from SDK library '{1}' is implicitly hidden by '{2}'.",
-          correction: "Try adding an explicit hide combinator.",
-          isStrongModeError: false);
-
-  /**
-   * 7.2 Getters: It is a static warning if a class <i>C</i> declares an
-   * instance getter named <i>v</i> and an accessible static member named
-   * <i>v</i> or <i>v=</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the super class declaring a static member
-   */
-  static const StaticWarningCode
-      CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER',
-          "Superclass '{0}' declares static member with the same name.",
-          correction: "Try renaming either the getter or the static member.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
-   * an instance method named <i>n</i> and has a setter named <i>n=</i>.
-   */
-  static const StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_METHOD_SETTER',
-          "Class '{0}' declares instance method '{1}', "
-          "but also has a setter with the same name from '{2}'.",
-          correction: "Try renaming either the method or the setter.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
-   * an instance method named <i>n</i> and has a setter named <i>n=</i>.
-   */
-  static const StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER2 =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_METHOD_SETTER2',
-          "Class '{0}' declares the setter '{1}', "
-          "but also has an instance method in the same class.",
-          correction: "Try renaming either the method or the setter.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a class <i>C</i> declares an
-   * instance setter named <i>v=</i> and an accessible static member named
-   * <i>v=</i> or <i>v</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the super class declaring a static member
-   */
-  static const StaticWarningCode
-      CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER',
-          "Superclass '{0}' declares a static member with the same name.",
-          correction:
-              "Try renaming either the setter or the inherited member.");
-
-  /**
-   * 7.2 Getters: It is a static warning if a class declares a static getter
-   * named <i>v</i> and also has a non-static setter named <i>v=</i>.
-   */
-  static const StaticWarningCode CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER =
-      const StaticWarningCode('CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER',
-          "Class '{0}' declares non-static setter with the same name.",
-          correction: "Try renaming either the getter or the setter.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a class declares a static setter
-   * named <i>v=</i> and also has a non-static member named <i>v</i>.
-   */
-  static const StaticWarningCode CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER =
-      const StaticWarningCode('CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER',
-          "Class '{0}' declares non-static member with the same name.",
-          correction:
-              "Try renaming either the inherited member or the setter.");
-
-  /**
    * 16.12.2 Const: Given an instance creation expression of the form <i>const
    * q(a<sub>1</sub>, &hellip; a<sub>n</sub>)</i> it is a static warning if
    * <i>q</i> is the constructor of an abstract class but <i>q</i> is not a
@@ -3753,8 +3723,7 @@ class StaticWarningCode extends ErrorCode {
           // TODO(brianwilkerson) Split this error code so that we can suggest
           // initializing fields in constructors (FINAL_FIELD_NOT_INITIALIZED
           // and FINAL_VARIABLE_NOT_INITIALIZED).
-          correction: "Try initializing the variable.",
-          isStrongModeError: false);
+          correction: "Try initializing the variable.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3771,8 +3740,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "The final variable '{0}' must be initialized.",
-          correction: "Try adding an initializer for the field.",
-          isStrongModeError: false);
+          correction: "Try adding an initializer for the field.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3790,8 +3758,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
           "The final variables '{0}' and '{1}' must be initialized.",
-          correction: "Try adding initializers for the fields.",
-          isStrongModeError: false);
+          correction: "Try adding initializers for the fields.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3810,8 +3777,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "The final variables '{0}', '{1}' and '{2}' more must be initialized.",
-          correction: "Try adding initializers for the fields.",
-          isStrongModeError: false);
+          correction: "Try adding initializers for the fields.");
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements
@@ -3835,8 +3801,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAMED',
           "The imported libraries '{0}' and '{1}' can't have the same name '{2}'.",
-          correction: "Try adding a hide clause to one of the imports.",
-          isStrongModeError: false);
+          correction: "Try adding a hide clause to one of the imports.");
 
   /**
    * 14.1 Imports: It is a static warning if the specified URI of a deferred
@@ -3851,162 +3816,6 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('IMPORT_OF_NON_LIBRARY',
           "The imported library '{0}' can't have a part-of directive.",
           correction: "Try importing the library that the part is a part of.");
-
-  /**
-   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause
-   * multiple members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the
-   * same name <i>n</i> that would be inherited (because identically named
-   * members existed in several superinterfaces) then at most one member is
-   * inherited.
-   *
-   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i> are
-   * getters none of the <i>m<sub>i</sub></i> are inherited, and a static
-   * warning is issued.
-   */
-  static const StaticWarningCode
-      INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD =
-      const StaticWarningCode(
-          'INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD',
-          "'{0}' is inherited as a getter and also a method.",
-          correction:
-              "Try adjusting the supertypes of this class to remove the "
-              "inconsistency.");
-
-  /**
-   * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a
-   * getter <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of
-   * <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual return type
-   * 1: the name of the expected return type, not assignable to the actual
-   *    return type
-   * 2: the name of the class where the overridden getter is declared
-   *
-   * See [INVALID_METHOD_OVERRIDE_RETURN_TYPE].
-   */
-  static const StaticWarningCode INVALID_GETTER_OVERRIDE_RETURN_TYPE =
-      const StaticWarningCode(
-          'INVALID_GETTER_OVERRIDE_RETURN_TYPE',
-          "The return type '{0}' isn't assignable to '{1}' as required by the "
-          "getter it is overriding from '{2}'.",
-          correction:
-              "Try changing the return types so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   *    parameter type
-   * 2: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the method it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
-
-  /**
-   * Generic Method DEP: number of type parameters must match.
-   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
-   *
-   * Parameters:
-   * 0: the number of type parameters in the method
-   * 1: the number of type parameters in the overridden method
-   * 2: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
-          "The method has {0} type parameters, but it is overriding a method "
-          "with {1} type parameters from '{2}'.",
-          correction:
-              "Try changing the number of type parameters so that they are the same.");
-
-  /**
-   * Generic Method DEP: bounds of type parameters must be compatible.
-   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
-   *
-   * Parameters:
-   * 0: the type parameter name
-   * 1: the type parameter bound
-   * 2: the overridden type parameter name
-   * 3: the overridden type parameter bound
-   * 4: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
-          "The type parameter '{0}' extends '{1}', but that is stricter than "
-          "'{2}' extends '{3}' in the overridden method from '{4}'.",
-          correction:
-              "Try changing the bounds on the type parameters so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   *    parameter type
-   * 2: the name of the class where the overridden method is declared
-   * See [INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE].
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the method it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   *    parameter type
-   * 2: the name of the class where the overridden method is declared
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the method it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
-   * is not a subtype of the type of <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual return type
-   * 1: the name of the expected return type, not assignable to the actual
-   *    return type
-   * 2: the name of the class where the overridden method is declared
-   *
-   * See [INVALID_GETTER_OVERRIDE_RETURN_TYPE].
-   */
-  static const StaticWarningCode INVALID_METHOD_OVERRIDE_RETURN_TYPE =
-      const StaticWarningCode(
-          'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
-          "The return type '{0}' isn't assignable to '{1}' as required by the "
-          "method it is overriding from '{2}'.",
-          correction:
-              "Try changing the return types so that they are compatible.");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -4166,31 +3975,22 @@ class StaticWarningCode extends ErrorCode {
           "The element type '{0}' can't be assigned to the map value type '{1}'.");
 
   /**
-   * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i>
-   * with argument type <i>T</i> and a getter named <i>v</i> with return type
-   * <i>S</i>, and <i>T</i> may not be assigned to <i>S</i>.
+   * 10.3 Setters: It is a compile-time error if a class has a setter named
+   * `v=` with argument type `T` and a getter named `v` with return type `S`,
+   * and `S` may not be assigned to `T`.
+   *
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the type of the getter
+   * 2: the type of the setter
+   * 3: the name of the setter
    */
   static const StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES =
       const StaticWarningCode(
           'MISMATCHED_GETTER_AND_SETTER_TYPES',
-          "The parameter type for setter '{0}' is '{1}' which isn't assignable "
-          "to its getter (of type '{2}').",
-          correction: "Try changing the types so that they are compatible.",
-          isStrongModeError: false);
-
-  /**
-   * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i>
-   * with argument type <i>T</i> and a getter named <i>v</i> with return type
-   * <i>S</i>, and <i>T</i> may not be assigned to <i>S</i>.
-   */
-  static const StaticWarningCode
-      MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE =
-      const StaticWarningCode(
-          'MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE',
-          "The parameter type for setter '{0}' is '{1}' which isn't assignable "
-          "to its getter (of type '{2}'), from superclass '{3}'.",
-          correction: "Try changing the types so that they are compatible.",
-          isStrongModeError: false);
+          "The return type of getter '{0}' is '{1}' which isn't assignable "
+          "to the type '{2}' of its setter '{3}'.",
+          correction: "Try changing the types so that they are compatible.");
 
   /**
    * 17.9 Switch: It is a static warning if all of the following conditions
@@ -4209,8 +4009,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
-              "adding a default clause.",
-          isStrongModeError: false);
+              "adding a default clause.");
 
   /**
    * 13.12 Return: It is a static warning if a function contains both one or
@@ -4223,8 +4022,7 @@ class StaticWarningCode extends ErrorCode {
       // TODO(brianwilkerson) Split this error code depending on whether the
       // function declares a return type.
       correction: "Try making all the return statements consistent "
-          "(either include a value or not).",
-      isStrongModeError: false);
+          "(either include a value or not).");
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an
@@ -4457,8 +4255,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR =
       const StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR',
           "The return type of the operator []= must be 'void'.",
-          correction: "Try changing the return type to 'void'.",
-          isStrongModeError: false);
+          correction: "Try changing the return type to 'void'.");
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type
@@ -4468,8 +4265,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('NON_VOID_RETURN_FOR_SETTER',
           "The return type of the setter must be 'void' or absent.",
           correction: "Try removing the return type, or "
-              "define a method rather than a setter.",
-          isStrongModeError: false);
+              "define a method rather than a setter.");
 
   /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff:
@@ -4581,7 +4377,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode RETURN_WITHOUT_VALUE = const StaticWarningCode(
       'RETURN_WITHOUT_VALUE', "Missing return value after 'return'.",
-      correction: null, isStrongModeError: false);
+      correction: null);
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -4676,20 +4472,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try using the type 'bool'.");
 
   /**
-   * 12.17 Getter Invocation: It is a static warning if there is no class
-   * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
-   * not declare, implicitly or explicitly, a getter named <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the getter is being looked for
-   */
-  static const StaticWarningCode UNDEFINED_GETTER = const StaticWarningCode(
-      'UNDEFINED_GETTER', "The getter '{0}' isn't defined for the class '{1}'.",
-      correction:
-          "Try defining a getter or field named '{0}', or invoke a different getter.");
-
-  /**
    * 12.30 Identifier Reference: It is as static warning if an identifier
    * expression of the form <i>id</i> occurs inside a top level or static
    * function (be it function, method, getter, or setter) or variable
@@ -4732,76 +4514,6 @@ class StaticWarningCode extends ErrorCode {
               "defining a new parameter with this name.");
 
   /**
-   * 12.18 Assignment: It is as static warning if an assignment of the form
-   * <i>v = e</i> occurs inside a top level or static function (be it function,
-   * method, getter, or setter) or variable initializer and there is no
-   * declaration <i>d</i> with name <i>v=</i> in the lexical scope enclosing the
-   * assignment.
-   *
-   * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in
-   * the enclosing lexical scope of the assignment, or if <i>C</i> does not
-   * declare, implicitly or explicitly, a setter <i>v=</i>.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the setter is being looked for
-   */
-  static const StaticWarningCode UNDEFINED_SETTER = const StaticWarningCode(
-      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the class '{1}'.",
-      correction:
-          "Try defining a setter or field named '{0}', or invoke a different setter.");
-
-  /**
-   * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
-   * declare a static method or getter <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the method
-   * 1: the name of the enclosing type where the method is being looked for
-   */
-  static const StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER =
-      const StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER',
-          "The static method, getter or setter '{0}' isn't defined for the class '{1}'.",
-          correction: "Try correcting the name to an existing member, or "
-              "defining the member in '{1}'.");
-
-  /**
-   * 12.17 Getter Invocation: It is a static warning if there is no class
-   * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
-   * not declare, implicitly or explicitly, a getter named <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the getter is being looked for
-   */
-  static const StaticWarningCode UNDEFINED_SUPER_GETTER =
-      const StaticWarningCode('UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' isn't defined in a superclass of '{1}'.",
-          correction: "Try correcting the name to an existing getter, or "
-              "defining the getter in a superclass of '{1}'.");
-
-  /**
-   * 12.18 Assignment: It is as static warning if an assignment of the form
-   * <i>v = e</i> occurs inside a top level or static function (be it function,
-   * method, getter, or setter) or variable initializer and there is no
-   * declaration <i>d</i> with name <i>v=</i> in the lexical scope enclosing the
-   * assignment.
-   *
-   * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in
-   * the enclosing lexical scope of the assignment, or if <i>C</i> does not
-   * declare, implicitly or explicitly, a setter <i>v=</i>.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the setter is being looked for
-   */
-  static const StaticWarningCode UNDEFINED_SUPER_SETTER =
-      const StaticWarningCode('UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' isn't defined in a superclass of '{1}'.",
-          correction: "Try correcting the name to an existing setter, or "
-              "defining the setter in a superclass of '{1}'.");
-
-  /**
    * It is a static warning to assign void to any non-void type in dart.
    * compile-time error). Report that error specially for a better user
    * experience.
@@ -4817,21 +4529,13 @@ class StaticWarningCode extends ErrorCode {
           ' and variables which, in rare cases, may be void as well.');
 
   /**
-   * A flag indicating whether this warning is an error when running with strong
-   * mode enabled.
-   */
-  final bool isStrongModeError;
-
-  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      {String correction,
-      this.isStrongModeError = true,
-      bool isUnresolvedIdentifier: false})
+      {String correction, bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
@@ -4859,9 +4563,6 @@ class StrongModeCode extends ErrorCode {
 
   static const String _implicitCastCorrection =
       "Try adding an explicit cast to '{1}' or improving the type of '{0}'.";
-
-  static const String _invalidOverrideMessage =
-      "The type of '{0}.{1}' ('{2}') isn't a subtype of '{3}.{1}' ('{4}').";
 
   /**
    * This is appended to the end of an error message about implicit dynamic.
@@ -4978,23 +4679,6 @@ class StrongModeCode extends ErrorCode {
   static const StrongModeCode DYNAMIC_INVOKE = const StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
 
-  static const StrongModeCode INVALID_METHOD_OVERRIDE = const StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_METHOD_OVERRIDE',
-      "Invalid override. $_invalidOverrideMessage");
-
-  static const StrongModeCode INVALID_METHOD_OVERRIDE_FROM_BASE =
-      const StrongModeCode(
-          ErrorType.COMPILE_TIME_ERROR,
-          'INVALID_METHOD_OVERRIDE_FROM_BASE',
-          "Base class introduces an invalid override. $_invalidOverrideMessage");
-
-  static const StrongModeCode INVALID_METHOD_OVERRIDE_FROM_MIXIN =
-      const StrongModeCode(
-          ErrorType.COMPILE_TIME_ERROR,
-          'INVALID_METHOD_OVERRIDE_FROM_MIXIN',
-          "Mixin introduces an invalid override. $_invalidOverrideMessage");
-
   static const StrongModeCode INVALID_FIELD_OVERRIDE = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_FIELD_OVERRIDE',
@@ -5092,14 +4776,6 @@ class StrongModeCode extends ErrorCode {
       const StrongModeCode(ErrorType.HINT, 'TOP_LEVEL_FUNCTION_LITERAL_BLOCK',
           "The type of the function literal can't be inferred because the literal has a block as its body.",
           correction: "Try adding an explicit type to the variable.");
-
-  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_PARAMETER =
-      const StrongModeCode(
-          ErrorType.HINT,
-          'TOP_LEVEL_FUNCTION_LITERAL_PARAMETER',
-          "The type of '{0}' can't be inferred because the parameter '{1}' does not have an explicit type.",
-          correction:
-              "Try adding an explicit type to the parameter '{1}', or add an explicit type for '{0}'.");
 
   static const StrongModeCode TOP_LEVEL_IDENTIFIER_NO_TYPE = const StrongModeCode(
       ErrorType.HINT,

@@ -116,7 +116,7 @@ quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
           expect(uri, isNull);
         });
         test('Non-package URI', () {
-          var testResolver = new CustomUriResolver(uriPath: 'test_uri');
+          var testResolver = new CustomUriResolver(uriPath: _p('/test.dart'));
           String uri = resolvePackageUri(config: '''
 unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 ''', uri: 'custom:custom.dart', customResolver: testResolver);
@@ -159,8 +159,8 @@ unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 async:${_u('/home/somebody/.pub/cache/async-1.1.0/lib/')}
 quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
 ''',
-              source: new FileSource(resourceProvider.getFile(
-                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
+              source: new FileSource(resourceProvider.getFile(_p(
+                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'))));
           expect(uri, isNotNull);
           expect(uri.toString(), equals('package:unittest/unittest.dart'));
         });
@@ -301,8 +301,8 @@ class SourceFactoryTest {
   }
 
   void test_restoreUri() {
-    File file1 = resourceProvider.getFile("/some/file1.dart");
-    File file2 = resourceProvider.getFile("/some/file2.dart");
+    File file1 = resourceProvider.getFile(_p("/some/file1.dart"));
+    File file2 = resourceProvider.getFile(_p("/some/file2.dart"));
     Source source1 = new FileSource(file1);
     Source source2 = new FileSource(file2);
     Uri expected1 = Uri.parse("file:///my_file.dart");

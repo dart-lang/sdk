@@ -9,10 +9,11 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -20,32 +21,17 @@ import '../helpers/program_lookup.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    cacheRtiDataForTesting = true;
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
-    await checkTests(
-      dataDir,
-      const RtiEmissionDataComputer(),
-      args: args,
-      testOmit: true,
-      skipForStrong: [
-        // Dart 1 semantics:
-        'call.dart',
-        'call_typed.dart',
-        'call_typed_generic.dart',
-        'function_subtype_call2.dart',
-        'function_type_argument.dart',
-        'map_literal_checked.dart',
-        // TODO(johnniwinther): Optimize local function type signature need.
-        'subtype_named_args.dart',
-      ],
-    );
+    await checkTests(dataDir, const RtiEmissionDataComputer(),
+        args: args, testOmit: true);
   });
 }
 
 class Tags {
   static const String isChecks = 'checks';
-  static const String instance = 'instance';
+  static const String indirectInstance = 'indirectInstance';
+  static const String directInstance = 'instance';
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
@@ -75,9 +61,12 @@ abstract class ComputeValueMixin {
     }
     ClassUse classUse = checksBuilder.classUseMapForTesting[element];
     if (classUse != null) {
-      if (classUse.instance) {
-        features.add(Tags.instance);
+      if (classUse.directInstance) {
+        features.add(Tags.directInstance);
+      } else if (classUse.instance) {
+        features.add(Tags.indirectInstance);
       }
+
       if (classUse.checkedInstance) {
         features.add(Tags.checkedInstance);
       }
@@ -106,22 +95,17 @@ class RtiEmissionDataComputer extends DataComputer {
   const RtiEmissionDataComputer();
 
   @override
-  void setup() {
-    cacheRtiDataForTesting = true;
-  }
-
-  @override
   bool get computesClassData => true;
 
   @override
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, backendStrategy.closureDataLookup)
+            member, compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -129,8 +113,8 @@ class RtiEmissionDataComputer extends DataComputer {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
         .computeClassValue(cls);
   }
@@ -138,7 +122,7 @@ class RtiEmissionDataComputer extends DataComputer {
 
 class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
   final Compiler compiler;
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final Map<Id, ActualData> actualMap;
 
   RtiClassEmissionIrComputer(this.compiler, this._elementMap, this.actualMap);
@@ -155,8 +139,8 @@ class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
 
 class RtiMemberEmissionIrComputer extends IrDataExtractor
     with ComputeValueMixin {
-  final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final JsToElementMap _elementMap;
+  final ClosureData _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberEmissionIrComputer(

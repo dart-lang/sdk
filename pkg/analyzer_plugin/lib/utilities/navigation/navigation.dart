@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -107,7 +107,8 @@ class NavigationGenerator {
    * specified by the given [request]. If any of the contributors throws an
    * exception, also create a non-fatal 'plugin.error' notification.
    */
-  GeneratorResult generateNavigationResponse(NavigationRequest request) {
+  GeneratorResult<AnalysisGetNavigationResult> generateNavigationResponse(
+      NavigationRequest request) {
     List<Notification> notifications = <Notification>[];
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
     for (NavigationContributor contributor in contributors) {

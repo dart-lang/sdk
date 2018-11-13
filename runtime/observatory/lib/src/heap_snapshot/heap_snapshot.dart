@@ -116,7 +116,7 @@ class HeapSnapshot implements M.HeapSnapshot {
 
   List<Future<S.ServiceObject>> getMostRetained(S.Isolate isolate,
       {int classId, int limit}) {
-    var result = [];
+    List<Future<S.ServiceObject>> result = <Future<S.ServiceObject>>[];
     for (ObjectVertex v
         in graph.getMostRetained(classId: classId, limit: limit)) {
       result.add(

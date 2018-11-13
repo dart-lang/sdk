@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart' show ClosureDataLookup;
 import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
@@ -63,14 +62,11 @@ abstract class GraphBuilder {
 
   CompilerOptions get options => compiler.options;
 
-  CommonElements get commonElements => closedWorld.commonElements;
+  JCommonElements get commonElements => closedWorld.commonElements;
 
   CodeEmitterTask get emitter => backend.emitter;
 
   GlobalTypeInferenceResults get globalInferenceResults;
-
-  ClosureDataLookup get closureDataLookup =>
-      compiler.backendStrategy.closureDataLookup;
 
   NativeData get nativeData => closedWorld.nativeData;
 
@@ -87,8 +83,6 @@ abstract class GraphBuilder {
   ConstantSystem get constantSystem => constants.constantSystem;
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
-
-  FunctionInlineCache get inlineCache => backend.inlineCache;
 
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
@@ -290,14 +284,14 @@ abstract class GraphBuilder {
   /// concrete SSA builder reports an error.
   bool getFlagValue(String flagName) {
     switch (flagName) {
+      case 'IS_FULL_EMITTER':
+        return !options.useStartupEmitter;
+      case 'MINIFIED':
+        return options.enableMinification;
       case 'MUST_RETAIN_METADATA':
         return false;
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
-      case 'IS_FULL_EMITTER':
-        return !options.useStartupEmitter;
-      case 'STRONG_MODE':
-        return options.strongMode;
       default:
         return null;
     }

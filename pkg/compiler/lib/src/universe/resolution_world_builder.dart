@@ -76,9 +76,7 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor,
-      bool byMirrors: false,
-      bool isRedirection: false});
+      {ConstructorEntity constructor, bool isRedirection: false});
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
@@ -392,7 +390,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   bool get isClosed => _closed;
 
-  final KernelToElementMapForImpactImpl _elementMap;
+  final KernelToElementMapImpl _elementMap;
 
   ResolutionWorldBuilderImpl(
       this._options,
@@ -510,25 +508,18 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor,
-      bool byMirrors: false,
-      bool isRedirection: false}) {
+      {ConstructorEntity constructor, bool isRedirection: false}) {
     ClassEntity cls = type.element;
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
     Instantiation kind = Instantiation.UNINSTANTIATED;
     bool isNative = _nativeBasicData.isNativeClass(cls);
-    if (!cls.isAbstract ||
-        // We can't use the closed-world assumption with native abstract
-        // classes; a native abstract class may have non-abstract subclasses
-        // not declared to the program.  Instances of these classes are
-        // indistinguishable from the abstract class.
-        isNative ||
-        // Likewise, if this registration comes from the mirror system,
-        // all bets are off.
-        // TODO(herhut): Track classes required by mirrors seperately.
-        byMirrors) {
-      if (isNative || byMirrors) {
+    // We can't use the closed-world assumption with native abstract
+    // classes; a native abstract class may have non-abstract subclasses
+    // not declared to the program.  Instances of these classes are
+    // indistinguishable from the abstract class.
+    if (!cls.isAbstract || isNative) {
+      if (isNative) {
         kind = Instantiation.ABSTRACTLY_INSTANTIATED;
       } else {
         kind = Instantiation.DIRECTLY_INSTANTIATED;
@@ -537,11 +528,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     info.addInstantiation(constructor, type, kind,
         isRedirection: isRedirection);
     if (kind != Instantiation.UNINSTANTIATED) {
-      if (_options.strongMode) {
-        _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
-            directlyInstantiated: info.isDirectlyInstantiated,
-            abstractlyInstantiated: info.isAbstractlyInstantiated);
-      }
+      _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
       _processInstantiatedClass(cls, classUsed);
     }
 
@@ -862,7 +851,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       memberUsed(usage.entity, useSet);
       return usage;
     });
-    if (!newUsage) {
+    if (!usage.fullyUsed && !newUsage) {
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       if (!usage.hasRead && _hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
@@ -956,8 +945,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
     // that are overridden.
-    _classHierarchyBuilder.registerClass(member.enclosingClass);
-    _classHierarchyBuilder.registerClass(type);
     return _classHierarchyBuilder.isInheritedInSubtypeOf(
         member.enclosingClass, type);
   }
@@ -979,16 +966,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  KClosedWorld closeWorld() {
+  KClosedWorld closeWorld(DiagnosticReporter reporter) {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
 
-    var backendUsage = _backendUsageBuilder.close();
-    backendUsage.helperClassesUsed
-        .forEach(_classHierarchyBuilder.registerClass);
-    _nativeResolutionEnqueuer.liveNativeClasses
-        .forEach(_classHierarchyBuilder.registerClass);
-
+    BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
     assert(
         _classHierarchyBuilder.classHierarchyNodes.length ==
@@ -996,14 +978,18 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "${_classHierarchyBuilder.classHierarchyNodes} vs "
         "${_classHierarchyBuilder.classSets}");
-    return _closedWorldCache = new KClosedWorldImpl(_elementMap,
+
+    AnnotationsData annotationsData = processAnnotations(
+        reporter, _commonElements, _elementEnvironment, _processedMembers);
+
+    KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
-        backendUsage: _backendUsageBuilder.close(),
+        backendUsage: backendUsage,
         noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
@@ -1016,7 +1002,12 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: _classHierarchyBuilder.classHierarchyNodes,
-        classSets: _classHierarchyBuilder.classSets);
+        classSets: _classHierarchyBuilder.classSets,
+        annotationsData: annotationsData);
+    if (retainDataForTesting) {
+      _closedWorldCache = closedWorld;
+    }
+    return closedWorld;
   }
 
   @override

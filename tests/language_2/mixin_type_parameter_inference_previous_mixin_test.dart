@@ -1,7 +1,6 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--supermixin
 
 import "package:expect/expect.dart";
 
@@ -15,7 +14,7 @@ class B {}
 
 abstract class M1 implements A<B> {}
 
-class M2<T> extends A<T> {
+mixin M2<T> on A<T> {
   T f(T x) => x;
   T g(T x) => x;
   Type h() => T;

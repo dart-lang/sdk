@@ -7,6 +7,7 @@ library vm.transformations.type_flow.transformer;
 
 import 'dart:core' hide Type;
 
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -18,9 +19,11 @@ import 'calls.dart';
 import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
+import '../pragma.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
+import '../../metadata/procedure_attributes.dart';
 import '../../metadata/unreachable.dart';
 
 const bool kDumpAllSummaries =
@@ -31,29 +34,28 @@ const bool kDumpClassHierarchy =
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
 Component transformComponent(
-    CoreTypes coreTypes, Component component, List<String> entryPoints) {
-  if ((entryPoints == null) || entryPoints.isEmpty) {
-    throw 'Error: unable to perform global type flow analysis without entry points.';
-  }
-
+    Target target, CoreTypes coreTypes, Component component,
+    [PragmaAnnotationParser matcher]) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final libraryIndex = new LibraryIndex.all(component);
+  final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
 
   if (kDumpAllSummaries) {
     Statistics.reset();
-    new CreateAllSummariesVisitor(types).visitComponent(component);
+    new CreateAllSummariesVisitor(target, types, genericInterfacesInfo)
+        .visitComponent(component);
     Statistics.print("All summaries statistics");
   }
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
 
-  final typeFlowAnalysis = new TypeFlowAnalysis(
-      component, coreTypes, hierarchy, types, libraryIndex,
-      entryPointsJSONFiles: entryPoints);
+  final typeFlowAnalysis = new TypeFlowAnalysis(target, component, coreTypes,
+      hierarchy, genericInterfacesInfo, types, libraryIndex,
+      matcher: matcher);
 
   Procedure main = component.mainMethod;
   final Selector mainSelector = new DirectSelector(main);
@@ -94,7 +96,7 @@ class TFADevirtualization extends Devirtualization {
             _typeFlowAnalysis.environment.hierarchy);
 
   @override
-  DirectCallMetadata getDirectCall(TreeNode node, Member target,
+  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
       {bool setter = false}) {
     final callSite = _typeFlowAnalysis.callSite(node);
     if (callSite != null) {
@@ -113,42 +115,60 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
+  final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
+  final DartType _intType;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
-        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository() {
+        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
+        _procedureAttributesMetadata =
+            new ProcedureAttributesMetadataRepository(),
+        _intType = _typeFlowAnalysis.environment.intType {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
+    component.addMetadataRepository(_procedureAttributesMetadata);
   }
 
-  InferredType _convertType(Type type) {
+  InferredType _convertType(Type type, {bool skipCheck: false}) {
     assertx(type != null);
 
     Class concreteClass;
+    bool isInt = false;
 
     final nullable = type is NullableType;
     if (nullable) {
-      final baseType = (type as NullableType).baseType;
-
-      if (baseType == const EmptyType()) {
-        concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
-      } else {
-        concreteClass =
-            baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
-      }
-    } else {
-      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+      type = (type as NullableType).baseType;
     }
 
-    if ((concreteClass != null) || !nullable) {
-      return new InferredType(concreteClass, nullable);
+    if (nullable && type == const EmptyType()) {
+      concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
+    } else {
+      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+
+      if (concreteClass == null) {
+        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intType);
+      }
+    }
+
+    List<DartType> typeArgs;
+    if (type is ConcreteType && type.typeArgs != null) {
+      typeArgs = type.typeArgs
+          .take(type.numImmediateTypeArgs)
+          .map((t) => t is AnyType ? null : (t as RuntimeType).representedType)
+          .toList();
+    }
+
+    if ((concreteClass != null) || !nullable || isInt) {
+      return new InferredType(concreteClass, nullable, isInt,
+          exactTypeArguments: typeArgs, skipCheck: skipCheck);
     }
 
     return null;
   }
 
-  void _setInferredType(TreeNode node, Type type) {
-    final inferredType = _convertType(type);
+  void _setInferredType(TreeNode node, Type type, {bool skipCheck: false}) {
+    assertx(skipCheck == false || node is VariableDeclaration || node is Field);
+    final inferredType = _convertType(type, skipCheck: skipCheck);
     if (inferredType != null) {
       _inferredTypeMetadata.mapping[node] = inferredType;
     }
@@ -174,12 +194,17 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   void _annotateMember(Member member) {
     if (_typeFlowAnalysis.isMemberUsed(member)) {
       if (member is Field) {
-        _setInferredType(member, _typeFlowAnalysis.fieldType(member));
+        _setInferredType(member, _typeFlowAnalysis.fieldType(member),
+            skipCheck: _typeFlowAnalysis.fieldStaticCallSiteSkipCheck(member));
       } else {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
         assertx(argTypes != null);
 
-        final int firstParamIndex = hasReceiverArg(member) ? 1 : 0;
+        final skipCheckParams = new Set<VariableDeclaration>.from(
+            _typeFlowAnalysis.staticCallSiteSkipCheckParams(member));
+
+        final int firstParamIndex =
+            numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
         final positionalParams = member.function.positionalParameters;
         assertx(argTypes.positionalCount ==
@@ -187,7 +212,8 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
         for (int i = 0; i < positionalParams.length; i++) {
           _setInferredType(
-              positionalParams[i], argTypes.values[firstParamIndex + i]);
+              positionalParams[i], argTypes.values[firstParamIndex + i],
+              skipCheck: skipCheckParams.contains(positionalParams[i]));
         }
 
         // TODO(dartbug.com/32292): make sure parameters are sorted in kernel
@@ -197,10 +223,21 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           final param = findNamedParameter(member.function, names[i]);
           assertx(param != null);
           _setInferredType(param,
-              argTypes.values[firstParamIndex + positionalParams.length + i]);
+              argTypes.values[firstParamIndex + positionalParams.length + i],
+              skipCheck: skipCheckParams.contains(param));
         }
 
         // TODO(alexmarkov): figure out how to pass receiver type.
+      }
+
+      if (member.isInstanceMember &&
+          !(member is Procedure && member.isGetter)) {
+        final attrs = new ProcedureAttributesMetadata(
+            hasDynamicUses: _typeFlowAnalysis.isCalledDynamically(member),
+            hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
+            hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
+            hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member));
+        _procedureAttributesMetadata.mapping[member] = attrs;
       }
     } else if (!member.isAbstract) {
       _setUnreachable(member);
@@ -330,7 +367,7 @@ class TreeShaker {
       }
       _usedClasses.add(c);
       visitIterable(c.supers, typeVisitor);
-      visitList(c.typeParameters, typeVisitor);
+      transformList(c.typeParameters, _pass1, c);
       transformList(c.annotations, _pass1, c);
       // Preserve NSM forwarders. They are overlooked by TFA / tree shaker
       // as they are abstract and don't have a body.
@@ -370,9 +407,9 @@ class TreeShaker {
       }
 
       if (func != null) {
-        visitList(func.typeParameters, typeVisitor);
-        visitList(func.positionalParameters, typeVisitor);
-        visitList(func.namedParameters, typeVisitor);
+        transformList(func.typeParameters, _pass1, func);
+        transformList(func.positionalParameters, _pass1, func);
+        transformList(func.namedParameters, _pass1, func);
         func.returnType.accept(typeVisitor);
       }
 
@@ -383,7 +420,10 @@ class TreeShaker {
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
       transformList(typedef.annotations, _pass1, typedef);
-      visitList(typedef.typeParameters, typeVisitor);
+      transformList(typedef.typeParameters, _pass1, typedef);
+      transformList(typedef.typeParametersOfFunctionType, _pass1, typedef);
+      transformList(typedef.positionalParameters, _pass1, typedef);
+      transformList(typedef.namedParameters, _pass1, typedef);
       typedef.type?.accept(typeVisitor);
     }
   }
@@ -934,6 +974,11 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitStringConstant(StringConstant constant) {}
 
   @override
+  visitSymbolConstant(SymbolConstant constant) {
+    // The Symbol class and it's _name field are always retained.
+  }
+
+  @override
   visitMapConstant(MapConstant node) {
     throw 'The kernel2kernel constants transformation desugars const maps!';
   }
@@ -949,6 +994,7 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitInstanceConstant(InstanceConstant constant) {
     instanceConstants.add(constant);
     shaker.addClassUsedInType(constant.klass);
+    visitList(constant.typeArguments, typeVisitor);
     constant.fieldValues.forEach((Reference fieldRef, Constant value) {
       shaker.addUsedMember(fieldRef.asField);
       analyzeConstant(value);

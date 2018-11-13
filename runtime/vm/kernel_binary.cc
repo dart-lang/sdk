@@ -30,7 +30,7 @@ const char* Reader::TagName(Tag tag) {
 }
 
 const char* kKernelInvalidFilesize =
-    "File size is too small to a valid kernel file";
+    "File size is too small to be a valid kernel file";
 const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
 const char* kKernelInvalidBinaryFormatVersion =
     "Invalid kernel binary format version";
@@ -117,7 +117,8 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   return program;
 }
 
-Program* Program::ReadFromFile(const char* script_uri) {
+Program* Program::ReadFromFile(const char* script_uri,
+                               const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
   if (script_uri == NULL) {
     return NULL;
@@ -147,8 +148,8 @@ Program* Program::ReadFromFile(const char* script_uri) {
 
       kernel_program =
           kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size);
-    } else {
-      THR_Print("tag handler failed: %s\n", Dart_GetError(retval));
+    } else if (error != nullptr) {
+      *error = Dart_GetError(retval);
     }
   }
   return kernel_program;
@@ -158,6 +159,12 @@ Program* Program::ReadFromBuffer(const uint8_t* buffer,
                                  intptr_t buffer_length,
                                  const char** error) {
   kernel::Reader reader(buffer, buffer_length);
+  return kernel::Program::ReadFrom(&reader, error);
+}
+
+Program* Program::ReadFromTypedData(const ExternalTypedData& typed_data,
+                                    const char** error) {
+  kernel::Reader reader(typed_data);
   return kernel::Program::ReadFrom(&reader, error);
 }
 

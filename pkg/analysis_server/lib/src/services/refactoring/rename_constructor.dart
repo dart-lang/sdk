@@ -56,7 +56,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare references
@@ -113,7 +113,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         sourceRange));
   }
 
-  Future<Null> _replaceSynthetic() async {
+  Future<void> _replaceSynthetic() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassElement classElement = element.enclosingElement;

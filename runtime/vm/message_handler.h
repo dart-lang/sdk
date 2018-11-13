@@ -260,7 +260,7 @@ class MessageHandler {
 
 class IdleNotifier : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void Stop();
   static void Cleanup();
   static void Update(MessageHandler* handler, int64_t expirary);

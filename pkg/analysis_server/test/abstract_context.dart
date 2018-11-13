@@ -15,12 +15,13 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
 import 'mock_sdk.dart';
 import 'src/utilities/flutter_util.dart';
@@ -58,12 +59,11 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
 
   AnalysisDriver get driver => _driver;
 
-  bool get previewDart2 => driver.analysisOptions.previewDart2;
-
   void addFlutterPackage() {
     addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
+    configureDriver();
   }
 
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
@@ -93,6 +93,7 @@ class _IsTestGroup {
     packageMap[packageName] = [newFolder('/pubcache/$packageName/lib')];
     File file =
         newFile('/pubcache/$packageName/lib/$filePath', content: content);
+    configureDriver();
     return file.createSource();
   }
 
@@ -103,6 +104,14 @@ class _IsTestGroup {
     driver.changeFile(file.path);
     fileContentOverlay[file.path] = content;
     return source;
+  }
+
+  /**
+   * Re-configure the driver. This is necessary, for example, after defining a
+   * new package that test code will reference.
+   */
+  void configureDriver() {
+    driver.configure();
   }
 
   void configurePreviewDart2() {
@@ -140,7 +149,7 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl());
+        new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

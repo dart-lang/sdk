@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "./public_method_tearoff_lib.dart" as pub;
+
+class Foo extends pub::Bar {
+  synthetic constructor •() → self::Foo
+    : super pub::Bar::•()
+    ;
+}
+static method main() → void {
+  pub::baz(new self::Foo::•());
+}

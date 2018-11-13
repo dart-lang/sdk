@@ -12,12 +12,12 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetPostfixCompletionTest);
-    defineReflectiveTests(GetPostfixCompletionTest_UseCFE);
   });
 }
 
 @reflectiveTest
 class GetPostfixCompletionTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_postfix_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -50,10 +50,4 @@ void foo() { }
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-}
-
-@reflectiveTest
-class GetPostfixCompletionTest_UseCFE extends GetPostfixCompletionTest {
-  @override
-  bool get useCFE => true;
 }

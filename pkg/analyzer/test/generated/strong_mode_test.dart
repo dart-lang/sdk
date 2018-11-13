@@ -28,9 +28,7 @@ main() {
   });
 }
 
-/**
- * Strong mode static analyzer local type inference tests
- */
+/// Strong mode static analyzer local type inference tests
 @reflectiveTest
 class StrongModeLocalInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
@@ -286,13 +284,13 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       return exp;
     }
 
-    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.staticType);
     MethodInvocation invoke = cascade.cascadeSections[0];
     FunctionExpression function = invoke.argumentList.arguments[1];
-    ExecutableElement f0 = function.element;
+    ExecutableElement f0 = function.declaredElement;
     _isListOf(_isInt)(f0.type.returnType);
     expect(f0.type.normalParameterTypes[0], typeProvider.intType);
   }
@@ -437,11 +435,11 @@ class E extends C<int> {
     assertNoErrors(source);
     var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
     var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.element.parameters[0]]);
+    expect(covariantC.toList(), [cAdd.declaredElement.parameters[0]]);
 
     var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
     var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
-    expect(covariantD.toList(), [dAdd.element.parameters[0]]);
+    expect(covariantD.toList(), [dAdd.declaredElement.parameters[0]]);
 
     var covariantE = getClassCovariantParameters(AstFinder.getClass(unit, "E"));
     expect(covariantE.toList(), []);
@@ -467,11 +465,11 @@ class E extends C<int> {
 
     var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
     var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.element.parameters[0]]);
+    expect(covariantC.toList(), [cAdd.declaredElement.parameters[0]]);
 
     var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
     var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
-    expect(covariantD.toList(), [dAdd.element.parameters[0]]);
+    expect(covariantD.toList(), [dAdd.declaredElement.parameters[0]]);
 
     var covariantE = getClassCovariantParameters(AstFinder.getClass(unit, "E"));
     expect(covariantE.toList(), []);
@@ -696,7 +694,7 @@ class E extends D implements C<int> {}
     assertNoErrors(source);
     var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
     var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.element.parameters[0]]);
+    expect(covariantC.toList(), [cAdd.declaredElement.parameters[0]]);
 
     var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
     var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
@@ -706,7 +704,7 @@ class E extends D implements C<int> {}
     var covariantE = getClassCovariantParameters(classE);
     var superCovariantE = getSuperclassCovariantParameters(classE);
     expect(covariantE.toList(), []);
-    expect(superCovariantE.toList(), [dAdd.element.parameters[0]]);
+    expect(superCovariantE.toList(), [dAdd.declaredElement.parameters[0]]);
   }
 
   test_factoryConstructor_propagation() async {
@@ -723,8 +721,8 @@ class E extends D implements C<int> {}
     BlockFunctionBody body = constructor.body;
     ReturnStatement stmt = body.block.statements[0];
     InstanceCreationExpression exp = stmt.expression;
-    ClassElement elementB = AstFinder.getClass(unit, "B").element;
-    ClassElement elementA = AstFinder.getClass(unit, "A").element;
+    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement;
+    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement;
     expect(resolutionMap.typeForTypeName(exp.constructorName.type).element,
         elementB);
     _isInstantiationOf(_hasElement(elementB))(
@@ -1383,7 +1381,7 @@ void test() {
 }
    ''';
     CompilationUnit unit = await resolveSource(code);
-    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     void check(int i) {
@@ -1411,7 +1409,7 @@ void test() {
     assertNoErrors(source);
     verify([source]);
     DartType cType = findLocalVariable(unit, 'c').type;
-    Element elementC = AstFinder.getClass(unit, "C").element;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement;
 
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);
   }
@@ -1598,8 +1596,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder
-        .getTopLevelFunction(unit, '_mergeSort')
+    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
         .body as BlockFunctionBody);
     var stmts = body.block.statements;
@@ -1626,8 +1623,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder
-        .getTopLevelFunction(unit, '_mergeSort')
+    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
         .body as BlockFunctionBody);
     var stmts = body.block.statements;
@@ -1654,8 +1650,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder
-        .getTopLevelFunction(unit, '_mergeSort')
+    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
         .body as BlockFunctionBody);
     var stmts = body.block.statements;
@@ -1683,7 +1678,7 @@ test() {
             as VariableDeclarationStatement)
         .variables
         .variables[0];
-    _isDynamic(h.element.type);
+    _isDynamic(h.declaredElement.type);
     var fCall = h.initializer as MethodInvocation;
     expect(
         fCall.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
@@ -1709,8 +1704,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ]);
     verify([source]);
     var unit = analysisResult.unit;
-    var fold = (AstFinder
-            .getTopLevelFunction(unit, 'test')
+    var fold = (AstFinder.getTopLevelFunction(unit, 'test')
             .functionExpression
             .body as ExpressionFunctionBody)
         .expression as MethodInvocation;
@@ -1861,12 +1855,12 @@ num test(Iterable values) => values.fold(values.first as num, max);
     void hasType(Asserter<DartType> assertion, Expression exp) =>
         assertion(exp.staticType);
 
-    Element elementA = AstFinder.getClass(unit, "A").element;
-    Element elementB = AstFinder.getClass(unit, "B").element;
-    Element elementC = AstFinder.getClass(unit, "C").element;
-    Element elementD = AstFinder.getClass(unit, "D").element;
-    Element elementE = AstFinder.getClass(unit, "E").element;
-    Element elementF = AstFinder.getClass(unit, "F").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement;
+    Element elementD = AstFinder.getClass(unit, "D").declaredElement;
+    Element elementE = AstFinder.getClass(unit, "E").declaredElement;
+    Element elementF = AstFinder.getClass(unit, "F").declaredElement;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -2252,7 +2246,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     _isString(body.expression.staticType);
     MethodInvocation invoke = body.expression;
     FunctionExpression function = invoke.argumentList.arguments[0];
-    ExecutableElement f0 = function.element;
+    ExecutableElement f0 = function.declaredElement;
     FunctionType type = f0.type;
     _isFunction2Of(_isString, _isInt)(type);
   }
@@ -2278,7 +2272,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
 
-    Element elementB = AstFinder.getClass(unit, "B").element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2303,7 +2297,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
 
-    Element elementB = AstFinder.getClass(unit, "B").element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -2331,7 +2325,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
 
-    Element elementB = AstFinder.getClass(unit, "B").element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2357,7 +2351,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
 
-    Element elementB = AstFinder.getClass(unit, "B").element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -2386,7 +2380,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     FunctionType functionType = body.expression.staticType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -2414,7 +2408,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     FunctionType functionType = body.expression.staticType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2443,7 +2437,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     FunctionType functionType = body.expression.staticType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2472,7 +2466,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     FunctionType functionType = body.expression.staticType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2796,20 +2790,130 @@ class B<T2, U2> {
   }
 }
 
-/**
- * Strong mode static analyzer end to end tests
- */
+/// Strong mode static analyzer end to end tests
 @reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String type) {
-    var invocation = findIdentifier(search).parent as MethodInvocation;
-    expect(invocation.staticInvokeType.toString(), type);
-  }
-
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_nestedCaptureBounds() {
+    // https://github.com/dart-lang/sdk/issues/30236
+    return super.test_genericMethod_nestedCaptureBounds();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_tearoff_instantiated() {
+    return super.test_genericMethod_tearoff_instantiated();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_extension_malbounded() {
+    return super.test_instantiateToBounds_class_error_extension_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_instantiation_malbounded() {
+    return super
+        .test_instantiateToBounds_class_error_instantiation_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_generic_function_error_malbounded() {
+    return super.test_instantiateToBounds_generic_function_error_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion() {
+    return super.test_notInstantiatedBound_class_error_recursion();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion_less_direct() {
+    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion_typedef() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_class_error_recursion_typedef();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_argument() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_argument();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_argument2() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_argument2();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_direct() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_direct();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_class_indirect() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_class_indirect();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_functionType() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_functionType();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_typedef_argument() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_typedef_argument();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_typedef_argument2() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_typedef_argument2();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_error_typedef_direct() {
+    // Does not work with the task model
+    return super.test_notInstantiatedBound_error_typedef_direct();
+  }
+}
+
+/// Test cases for [StrongModeStaticTypeAnalyzer2Test]
+abstract class StrongModeStaticTypeAnalyzer2TestCases
+    implements StaticTypeAnalyzer2TestShared {
+  void expectStaticInvokeType(String search, String type) {
+    var invocation = findIdentifier(search).parent as MethodInvocation;
+    expect(invocation.staticInvokeType.toString(), type);
   }
 
   test_dynamicObjectGetter_hashCode() async {
@@ -2820,7 +2924,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'int');
   }
 
   test_dynamicObjectMethod_toString() async {
@@ -2831,7 +2935,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'String', isNull);
+    expectInitializerType('foo', 'String');
   }
 
   test_futureOr_promotion1() async {
@@ -3258,8 +3362,8 @@ void foo() {
   list.map((e) => e);
   list.map((e) => 3);
 }''');
-    expectIdentifierType('map((e) => e);', '<T>((dynamic) → T) → T', isNull);
-    expectIdentifierType('map((e) => 3);', '<T>((dynamic) → T) → T', isNull);
+    expectIdentifierType('map((e) => e);', '<T>((dynamic) → T) → T');
+    expectIdentifierType('map((e) => 3);', '<T>((dynamic) → T) → T');
 
     MethodInvocation m1 = findIdentifier('map((e) => e);').parent;
     expect(m1.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
@@ -3275,7 +3379,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'double', isNull);
+    expectInitializerType('foo', 'double');
   }
 
   test_genericMethod_max_doubleDouble_prefixed() async {
@@ -3286,7 +3390,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'double', isNull);
+    expectInitializerType('foo', 'double');
   }
 
   test_genericMethod_max_doubleInt() async {
@@ -3297,7 +3401,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'num', isNull);
+    expectInitializerType('foo', 'num');
   }
 
   test_genericMethod_max_intDouble() async {
@@ -3308,7 +3412,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'num', isNull);
+    expectInitializerType('foo', 'num');
   }
 
   test_genericMethod_max_intInt() async {
@@ -3319,7 +3423,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'int');
   }
 
   test_genericMethod_nestedBound() async {
@@ -3352,7 +3456,6 @@ class C<T> {
     expectIdentifierType('f;', '<S₀>(S₀) → S');
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/30236
   test_genericMethod_nestedCaptureBounds() async {
     await resolveTestUnit(r'''
 class C<T> {
@@ -3464,7 +3567,7 @@ class D extends C {
   T f<T extends B>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3479,7 +3582,7 @@ class D extends C {
   T f<T extends A>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3492,7 +3595,7 @@ class D extends C {
   String f<S>(S x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3505,7 +3608,7 @@ class D extends C {
   S f<T, S>(T x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
   }
 
@@ -3544,7 +3647,7 @@ C toSpan(dynamic element) {
   }
   return null;
 }''');
-    expectIdentifierType('y = ', 'List<C>', isNull);
+    expectIdentifierType('y = ', 'List<C>');
   }
 
   test_genericMethod_tearoff() async {
@@ -3578,7 +3681,6 @@ void test<S>(T Function<T>(T) pf) {
     expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
-  @failingTest
   test_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
@@ -3621,7 +3723,7 @@ main() {
 ''';
     await resolveTestUnit(code);
 
-    expectInitializerType('foo', 'Future<String>', isNull);
+    expectInitializerType('foo', 'Future<String>');
   }
 
   test_genericMethod_then_prefixed() async {
@@ -3634,7 +3736,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'Future<String>', isNull);
+    expectInitializerType('foo', 'Future<String>');
   }
 
   test_genericMethod_then_propagatedType() async {
@@ -3651,7 +3753,7 @@ void main() {
     // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
-    expectInitializerType('foo', 'Future<String>', isNull);
+    expectInitializerType('foo', 'Future<String>');
   }
 
   test_genericMethod_toplevel_field_staticTearoff() async {
@@ -3719,7 +3821,6 @@ main() {
     expect(p.enclosingElement, same(fType.element));
   }
 
-  @failingTest
   test_instantiateToBounds_class_error_extension_malbounded() async {
     // Test that superclasses are strictly checked for malbounded default
     // types
@@ -3731,7 +3832,6 @@ class D extends C {}
     assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
   }
 
-  @failingTest
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
     // Test that instance creations are strictly checked for malbounded default
     // types
@@ -3860,7 +3960,6 @@ void main() {
     expectIdentifierType('d;', 'D<A<dynamic>>');
   }
 
-  @failingTest
   test_instantiateToBounds_generic_function_error_malbounded() async {
     // Test that generic methods are strictly checked for malbounded default
     // types
@@ -3945,7 +4044,6 @@ class C<E> {
 ''');
   }
 
-  @failingTest
   test_notInstantiatedBound_class_error_recursion() async {
     String code = r'''
 class A<T extends B> {} // points to a
@@ -3960,7 +4058,6 @@ class C<T extends A> {} // points to a cyclical type
     ]);
   }
 
-  @failingTest
   test_notInstantiatedBound_class_error_recursion_less_direct() async {
     String code = r'''
 class A<T extends B<A>> {}
@@ -4325,7 +4422,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'int');
   }
 
   test_ternaryOperator_null_right() async {
@@ -4335,7 +4432,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'int');
   }
 
   Future<Null> _objectMethodOnFunctions_helper2(String code) async {
@@ -4367,8 +4464,8 @@ main() {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.dynamicType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
+    assertPropagatedIterationType(code, unit, typeProvider.dynamicType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
   }
 
   test_foreachInference_reusedVar_disabled() async {
@@ -4381,8 +4478,8 @@ main() {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.dynamicType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
+    assertPropagatedIterationType(code, unit, typeProvider.dynamicType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
   }
 
   test_foreachInference_var() async {
@@ -4394,8 +4491,8 @@ main() {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertPropagatedIterationType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_foreachInference_var_iterable() async {
@@ -4407,8 +4504,8 @@ main() {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertPropagatedIterationType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_foreachInference_var_stream() async {
@@ -4421,8 +4518,8 @@ main() async {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertPropagatedIterationType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
@@ -4454,8 +4551,8 @@ main() {
   v; // marker
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
+    assertAssignedType(code, unit, typeProvider.dynamicType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
   }
 
   test_localVariableInference_constant() async {
@@ -4465,8 +4562,8 @@ main() {
   v; // marker
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_declaredType_disabled() async {
@@ -4476,8 +4573,8 @@ main() {
   v; // marker
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
+    assertAssignedType(code, unit, typeProvider.dynamicType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
   }
 
   test_localVariableInference_noInitializer_disabled() async {
@@ -4488,8 +4585,8 @@ main() {
   v; // marker
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
+    assertAssignedType(code, unit, typeProvider.dynamicType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
@@ -4505,8 +4602,8 @@ main() {
 }
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
@@ -4522,8 +4619,8 @@ main() {
 }
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_field_lexical() async {
@@ -4539,8 +4636,8 @@ main() {
 }
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_field_reversed() async {
@@ -4556,8 +4653,8 @@ main() {
 }
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_list_local() async {
@@ -4568,8 +4665,8 @@ main() {
   v; // marker
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_local() async {
@@ -4580,8 +4677,8 @@ main() {
   v; // marker
 }''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_toplevel_inferred_lexical() async {
@@ -4593,8 +4690,8 @@ main() {
 }
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
@@ -4606,8 +4703,8 @@ main() {
 final x = 3;
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_toplevel_lexical() async {
@@ -4619,8 +4716,8 @@ main() {
 }
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 
   test_localVariableInference_transitive_toplevel_reversed() async {
@@ -4632,7 +4729,7 @@ main() {
 int x = 3;
 ''';
     CompilationUnit unit = await resolveSource(code);
-    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+    assertAssignedType(code, unit, typeProvider.intType);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
   }
 }

@@ -4,18 +4,15 @@
 
 import 'package:meta/dart2js.dart';
 
-/*kernel.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
 /*strong.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
 /*omit.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
 
 /*class: global#Iterable:checkedInstance*/
 
-/*kernel.class: A:checkedTypeArgument,checks=[],typeArgument*/
 /*strong.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
 /*omit.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*kernel.class: B:checks=[],typeArgument*/
 /*strong.class: B:checkedInstance,checks=[],typeArgument*/
 /*omit.class: B:checks=[],typeArgument*/
 class B {}

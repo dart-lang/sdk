@@ -12,24 +12,29 @@ import 'package:analyzer/dart/element/type.dart';
  * implementation.
  */
 class ResolutionMapImpl implements ResolutionMap {
+  @deprecated
   @override
   ExecutableElement bestElementForFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
-      node.bestElement;
+      node.staticElement;
 
+  @deprecated
   @override
-  Element bestElementForIdentifier(Identifier node) => node.bestElement;
+  Element bestElementForIdentifier(Identifier node) => node.staticElement;
 
+  @deprecated
   @override
   MethodElement bestElementForMethodReference(MethodReferenceExpression node) =>
-      node.bestElement;
+      node.staticElement;
 
+  @deprecated
   @override
   ParameterElement bestParameterElementForExpression(Expression node) =>
-      node.bestParameterElement;
+      node.staticParameterElement;
 
+  @deprecated
   @override
-  DartType bestTypeForExpression(Expression node) => node.bestType;
+  DartType bestTypeForExpression(Expression node) => node.staticType;
 
   @override
   ElementAnnotation elementAnnotationForAnnotation(Annotation node) =>
@@ -37,56 +42,61 @@ class ResolutionMapImpl implements ResolutionMap {
 
   @override
   ClassElement elementDeclaredByClassDeclaration(ClassDeclaration node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   CompilationUnitElement elementDeclaredByCompilationUnit(
           CompilationUnit node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   ConstructorElement elementDeclaredByConstructorDeclaration(
           ConstructorDeclaration node) =>
-      node.element;
+      node.declaredElement;
 
   @override
-  Element elementDeclaredByDeclaration(Declaration node) => node.element;
+  Element elementDeclaredByDeclaration(Declaration node) =>
+      node.declaredElement;
 
   @override
   LocalVariableElement elementDeclaredByDeclaredIdentifier(
           DeclaredIdentifier node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   Element elementDeclaredByDirective(Directive node) => node.element;
 
   @override
   ClassElement elementDeclaredByEnumDeclaration(EnumDeclaration node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   ParameterElement elementDeclaredByFormalParameter(FormalParameter node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   ExecutableElement elementDeclaredByFunctionDeclaration(
           FunctionDeclaration node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   ExecutableElement elementDeclaredByFunctionExpression(
           FunctionExpression node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   ExecutableElement elementDeclaredByMethodDeclaration(
           MethodDeclaration node) =>
-      node.element;
+      node.declaredElement;
+
+  @override
+  ClassElement elementDeclaredByMixinDeclaration(MixinDeclaration node) =>
+      node.declaredElement;
 
   @override
   VariableElement elementDeclaredByVariableDeclaration(
           VariableDeclaration node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   Element elementForAnnotation(Annotation node) => node.element;
@@ -100,26 +110,30 @@ class ResolutionMapImpl implements ResolutionMap {
           FormalParameterList node) =>
       node.parameterElements;
 
+  @deprecated
   @override
   ExecutableElement propagatedElementForFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
-      node.propagatedElement;
+      null;
 
+  @deprecated
   @override
-  Element propagatedElementForIdentifier(Identifier node) =>
-      node.propagatedElement;
+  Element propagatedElementForIdentifier(Identifier node) => null;
 
+  @deprecated
   @override
   MethodElement propagatedElementForMethodReference(
           MethodReferenceExpression node) =>
-      node.propagatedElement;
+      null;
 
+  @deprecated
   @override
   ParameterElement propagatedParameterElementForExpression(Expression node) =>
-      node.propagatedParameterElement;
+      null;
 
+  @deprecated
   @override
-  DartType propagatedTypeForExpression(Expression node) => node.propagatedType;
+  DartType propagatedTypeForExpression(Expression node) => null;
 
   @override
   ConstructorElement staticElementForConstructorReference(

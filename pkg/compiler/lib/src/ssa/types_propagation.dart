@@ -336,8 +336,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   // expected by the call.
   // Return true if the argument type check was added.
   bool checkArgument(HInvokeDynamic instruction) {
-    // We want the right error in checked mode.
-    if (options.enableTypeAssertions) return false;
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
 

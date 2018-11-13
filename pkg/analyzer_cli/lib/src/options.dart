@@ -20,6 +20,8 @@ const _binaryName = 'dartanalyzer';
 /// *Visible for testing.*
 ExitHandler exitHandler = exit;
 
+T cast<T>(dynamic value) => value as T;
+
 /// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode: 15}) {
   errorSink.writeln(message);
@@ -107,14 +109,8 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
-  /// Whether to enable the Dart 2.0 Common Front End.
-  final bool useCFE;
-
   /// Whether to enable parsing via the Fasta parser.
   final bool useFastaParser;
-
-  /// Whether to enable the Dart 2.0 Preview.
-  final bool previewDart2;
 
   /// Batch mode (for unit testing)
   final bool batchMode;
@@ -148,61 +144,65 @@ class CommandLineOptions {
   /// Whether implicit dynamic is enabled (mainly for strong mode users)
   final bool implicitDynamic;
 
-  // TODO(devoncarew): Deprecate and remove this flag.
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
+  // TODO(devoncarew): Deprecate and remove this flag.
   /// Emit output in a verbose mode.
   final bool verbose;
 
   /// Use ANSI color codes for output.
   final bool color;
 
+  /// Whether we should analyze the given source for the purposes of training a
+  /// Dart analyzer snapshot.
+  final bool trainSnapshot;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
-      : buildAnalysisOutput = args['build-analysis-output'],
-        buildMode = args['build-mode'],
-        buildModePersistentWorker = args['persistent_worker'],
+      : buildAnalysisOutput = cast(args['build-analysis-output']),
+        buildMode = cast(args['build-mode']),
+        buildModePersistentWorker = cast(args['persistent_worker']),
         buildSummaryInputs =
             (args['build-summary-input'] as List).cast<String>(),
         buildSummaryUnlinkedInputs =
             (args['build-summary-unlinked-input'] as List).cast<String>(),
-        buildSummaryOnly = args['build-summary-only'],
-        buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
-        buildSummaryOutput = args['build-summary-output'],
-        buildSummaryOutputSemantic = args['build-summary-output-semantic'],
-        buildSuppressExitCode = args['build-suppress-exit-code'],
+        buildSummaryOnly = cast(args['build-summary-only']),
+        buildSummaryOnlyUnlinked = cast(args['build-summary-only-unlinked']),
+        buildSummaryOutput = cast(args['build-summary-output']),
+        buildSummaryOutputSemantic =
+            cast(args['build-summary-output-semantic']),
+        buildSuppressExitCode = cast(args['build-suppress-exit-code']),
         contextBuilderOptions = createContextBuilderOptions(args),
-        dartSdkPath = args['dart-sdk'],
-        dartSdkSummaryPath = args['dart-sdk-summary'],
+        dartSdkPath = cast(args['dart-sdk']),
+        dartSdkSummaryPath = cast(args['dart-sdk-summary']),
         declarationCasts = args.wasParsed(declarationCastsFlag)
-            ? args[declarationCastsFlag]
-            : args[implicitCastsFlag],
-        disableCacheFlushing = args['disable-cache-flushing'],
-        disableHints = args['no-hints'],
-        displayVersion = args['version'],
-        ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
-        lints = args[lintsFlag],
-        log = args['log'],
+            ? cast(args[declarationCastsFlag])
+            : cast(args[implicitCastsFlag]),
+        disableCacheFlushing = cast(args['disable-cache-flushing']),
+        disableHints = cast(args['no-hints']),
+        displayVersion = cast(args['version']),
+        ignoreUnrecognizedFlags = cast(args['ignore-unrecognized-flags']),
+        lints = cast(args[lintsFlag]),
+        log = cast(args['log']),
         machineFormat = args['format'] == 'machine',
-        perfReport = args['x-perf-report'],
-        useCFE = args['use-cfe'],
-        useFastaParser = args['use-fasta-parser'],
-        previewDart2 = args['preview-dart-2'],
-        batchMode = args['batch'],
-        showPackageWarnings = args['show-package-warnings'] ||
-            args['package-warnings'] ||
+        perfReport = cast(args['x-perf-report']),
+        useFastaParser = cast(args['use-fasta-parser']),
+        batchMode = cast(args['batch']),
+        showPackageWarnings = cast(args['show-package-warnings']) ||
+            cast(args['package-warnings']) ||
             args['x-package-warnings-prefix'] != null,
-        showPackageWarningsPrefix = args['x-package-warnings-prefix'],
-        showSdkWarnings = args['sdk-warnings'],
+        showPackageWarningsPrefix = cast(args['x-package-warnings-prefix']),
+        showSdkWarnings = cast(args['sdk-warnings']),
         _sourceFiles = args.rest,
-        infosAreFatal = args['fatal-infos'] || args['fatal-hints'],
-        warningsAreFatal = args['fatal-warnings'],
-        lintsAreFatal = args['fatal-lints'],
-        implicitCasts = args[implicitCastsFlag],
-        implicitDynamic = !args['no-implicit-dynamic'],
-        verbose = args['verbose'],
-        color = args['color'];
+        infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
+        warningsAreFatal = cast(args['fatal-warnings']),
+        lintsAreFatal = cast(args['fatal-lints']),
+        implicitCasts = cast(args[implicitCastsFlag]),
+        implicitDynamic = !cast<bool>(args['no-implicit-dynamic']),
+        trainSnapshot = cast(args['train-snapshot']),
+        verbose = cast(args['verbose']),
+        color = cast(args['color']);
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -212,16 +212,17 @@ class CommandLineOptions {
   Map<String, String> get definedVariables =>
       contextBuilderOptions.declaredVariables;
 
-  /// Whether to relax restrictions on mixins (DEP 34).
-  bool get enableSuperMixins =>
-      contextBuilderOptions.defaultOptions.enableSuperMixins;
-
   /// The path to a `.packages` configuration file
   String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
   /// The path to the package root
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
+
+  /// Whether to enable the Dart 2.0 Preview.
+  ///
+  /// This flag is deprecated and hard-coded to `true`.
+  bool get previewDart2 => true;
 
   /// The source files to analyze
   List<String> get sourceFiles => _sourceFiles;
@@ -504,20 +505,20 @@ class CommandLineOptions {
               'of "libraryUri".',
           splitCommas: false,
           hide: hide)
-      ..addFlag('use-cfe',
-          help:
-              'Enable the Dart 2.0 Common Front End implementation (experimental).',
-          defaultsTo: false,
-          hide: hide)
       ..addFlag('use-fasta-parser',
           help: 'Whether to enable parsing via the Fasta parser.',
-          defaultsTo: false,
+          defaultsTo: true,
           hide: hide)
       ..addFlag('preview-dart-2',
           help: 'Enable the Dart 2.0 preview.',
           defaultsTo: true,
           hide: hide,
-          negatable: true);
+          negatable: true)
+      ..addFlag('train-snapshot',
+          help: "Analyze the given source for the purposes of training a "
+              "dartanalyzer snapshot.",
+          hide: hide,
+          negatable: false);
 
     try {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
@@ -541,7 +542,7 @@ class CommandLineOptions {
       }
 
       // Help requests.
-      if (results['help']) {
+      if (cast(results['help'])) {
         _showUsage(parser, analytics, fromHelp: true);
         exitHandler(0);
         return null; // Only reachable in testing.
@@ -550,7 +551,7 @@ class CommandLineOptions {
       // Enable / disable analytics.
       if (telemetry.SHOW_ANALYTICS_UI) {
         if (results.wasParsed('analytics')) {
-          analytics.enabled = results['analytics'];
+          analytics.enabled = cast(results['analytics']);
           outSink.writeln(
               telemetry.createAnalyticsStatusMessage(analytics.enabled));
           exitHandler(0);
@@ -559,14 +560,14 @@ class CommandLineOptions {
       }
 
       // Batch mode and input files.
-      if (results['batch']) {
+      if (cast(results['batch'])) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
           _showUsage(parser, analytics);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
-      } else if (results['persistent_worker']) {
+      } else if (cast(results['persistent_worker'])) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln(
               'No source files expected in the persistent worker mode.');
@@ -574,12 +575,12 @@ class CommandLineOptions {
           exitHandler(15);
           return null; // Only reachable in testing.
         }
-      } else if (results['version']) {
+      } else if (cast(results['version'])) {
         outSink.writeln('$_binaryName version ${_getVersion()}');
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
-        if (results.rest.isEmpty && !results['build-mode']) {
+        if (results.rest.isEmpty && !cast<bool>(results['build-mode'])) {
           _showUsage(parser, analytics, fromHelp: true);
           exitHandler(15);
           return null; // Only reachable in testing.

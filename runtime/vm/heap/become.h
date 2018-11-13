@@ -33,7 +33,7 @@ class ForwardingCorpse {
 
   static ForwardingCorpse* AsForwarder(uword addr, intptr_t size);
 
-  static void InitOnce();
+  static void Init();
 
   // Used to allocate class for forwarding corpses in Object::InitOnce.
   class FakeInstance {

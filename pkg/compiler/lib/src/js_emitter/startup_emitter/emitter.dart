@@ -61,7 +61,10 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programForTesting = programBuilder.buildProgram();
+    Program program = programBuilder.buildProgram();
+    if (retainDataForTesting) {
+      programForTesting = program;
+    }
     return _emitter.emitProgram(program);
   }
 
@@ -171,6 +174,9 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   int generatedSize(OutputUnit unit) {
+    if (_emitter.omittedFragments.any((f) => f.outputUnit == unit)) {
+      return 0;
+    }
     Fragment key = _emitter.outputBuffers.keys
         .firstWhere((Fragment fragment) => fragment.outputUnit == unit);
     return _emitter.outputBuffers[key].length;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service_io.dart';
@@ -67,7 +68,7 @@ var tests = [
     }
 
     isolate.resume();
-  },
+  }
 ];
 
 main(args) {

@@ -11,9 +11,11 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InvalidType,
         TypeParameter,
-        Typedef;
+        Typedef,
+        VariableDeclaration;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart'
+    show FreshTypeParameters, getFreshTypeParameters, substitute;
 
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
@@ -23,7 +25,9 @@ import '../problems.dart' show unhandled;
 import 'kernel_builder.dart'
     show
         FunctionTypeAliasBuilder,
+        KernelFormalParameterBuilder,
         KernelFunctionTypeBuilder,
+        KernelLibraryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -50,13 +54,40 @@ class KernelFunctionTypeAliasBuilder
         super(metadata, name, typeVariables, type, parent, charOffset);
 
   Typedef build(LibraryBuilder libraryBuilder) {
-    return target..type ??= buildThisType(libraryBuilder);
+    target..type ??= buildThisType(libraryBuilder);
+
+    if (type != null) {
+      List<TypeParameter> typeParameters =
+          new List<TypeParameter>(type.typeVariables?.length ?? 0);
+      for (int i = 0; i < typeParameters.length; ++i) {
+        KernelTypeVariableBuilder typeVariable = type.typeVariables[i];
+        typeParameters[i] = typeVariable.parameter;
+      }
+      FreshTypeParameters freshTypeParameters =
+          getFreshTypeParameters(typeParameters);
+      target.typeParametersOfFunctionType
+          .addAll(freshTypeParameters.freshTypeParameters);
+
+      if (type.formals != null) {
+        for (KernelFormalParameterBuilder formal in type.formals) {
+          VariableDeclaration parameter = formal.build(libraryBuilder, 0);
+          parameter.type = freshTypeParameters.substitute(parameter.type);
+          if (formal.isNamed) {
+            target.namedParameters.add(parameter);
+          } else {
+            target.positionalParameters.add(parameter);
+          }
+        }
+      }
+    }
+
+    return target;
   }
 
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (const InvalidType() == thisType) {
-        library.addCompileTimeError(templateCyclicTypedef.withArguments(name),
+        library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
         return const DynamicType();
       }
@@ -90,7 +121,11 @@ class KernelFunctionTypeAliasBuilder
     for (int i = 0; i < target.typeParameters.length; i++) {
       substitution[target.typeParameters[i]] = arguments[i];
     }
-    return substitute(result, substitution);
+    result = substitute(result, substitution);
+    if (library is KernelLibraryBuilder) {
+      library.typedefInstantiations[result] = arguments;
+    }
+    return result;
   }
 
   List<DartType> buildTypeArguments(
@@ -105,6 +140,9 @@ class KernelFunctionTypeAliasBuilder
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
       }
+      if (library is KernelLibraryBuilder) {
+        library.inferredTypes.addAll(result);
+      }
       return result;
     }
 
@@ -112,7 +150,7 @@ class KernelFunctionTypeAliasBuilder
       // That should be caught and reported as a compile-time error earlier.
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(name, typeVariables.length)
+              .withArguments(typeVariables.length)
               .message,
           "buildTypeArguments",
           -1,

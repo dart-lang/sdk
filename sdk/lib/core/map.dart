@@ -82,6 +82,10 @@ abstract class Map<K, V> {
   /**
    * Creates an identity map with the default implementation, [LinkedHashMap].
    *
+   * An identity map uses [identical] for equality and [identityHashCode]
+   * for hash codes of keys instead of the intrinsic [Object.operator==] and
+   * [Object.hashCode] of the keys.
+   *
    * The returned map allows `null` as a key.
    * It iterates in key insertion order.
    */
@@ -171,8 +175,11 @@ abstract class Map<K, V> {
   /**
    * Creates a new map and adds all entries.
    *
-   * Creates a new map like `new Map<K, V>()` and then adds the key
-   * and value of eacy entry in [entries] in iteration order.
+   * Returns a new `Map<K, V>` where all entries of [entries]
+   * have been added in iteration order.
+   *
+   * If multiple [entries] have the same key,
+   * later occurrences overwrite the earlier ones.
    */
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);

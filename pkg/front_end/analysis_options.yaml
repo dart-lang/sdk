@@ -8,10 +8,6 @@ analyzer:
   exclude:
     - testcases/**
   errors:
-    # Omits warnings due to missing `@virtual`
-    # TODO(sigmund): enable once #28601 is fixed
-    strong_mode_invalid_field_override: ignore
-
     # Allow having TODOs in the code
     todo: ignore
 

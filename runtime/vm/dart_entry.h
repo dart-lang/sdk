@@ -45,6 +45,8 @@ class ArgumentsDescriptor : public ValueObject {
   RawString* NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;
   bool MatchesNameAt(intptr_t i, const String& other) const;
+  // Returns array of argument names in the arguments order.
+  RawArray* GetArgumentNames() const;
 
   // Generated code support.
   static intptr_t type_args_len_offset();
@@ -71,7 +73,10 @@ class ArgumentsDescriptor : public ValueObject {
   static RawArray* New(intptr_t type_args_len, intptr_t num_arguments);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
-  static void InitOnce();
+  static void Init();
+
+  // Clear the preallocated fixed length arguments descriptors cache.
+  static void Cleanup();
 
   enum { kCachedDescriptorCount = 32 };
 

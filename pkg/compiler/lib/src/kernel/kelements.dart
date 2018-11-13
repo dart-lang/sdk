@@ -6,9 +6,9 @@
 
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import 'indexed.dart';
 
 const String kElementPrefix = 'k:';
 
@@ -19,18 +19,6 @@ class KLibrary extends IndexedLibrary {
   KLibrary(this.name, this.canonicalUri);
 
   String toString() => '${kElementPrefix}library($name)';
-}
-
-class KImport implements ImportEntity {
-  final bool isDeferred;
-  final String name;
-  final Uri uri;
-  final LibraryEntity enclosingLibrary;
-
-  KImport(this.isDeferred, this.name, this.uri, this.enclosingLibrary);
-
-  String toString() =>
-      '${kElementPrefix}import($name:${isDeferred ? ' deferred' : ''})';
 }
 
 class KClass extends IndexedClass {

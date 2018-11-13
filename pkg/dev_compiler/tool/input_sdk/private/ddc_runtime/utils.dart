@@ -1,7 +1,8 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-part of "runtime.dart";
+
+part of dart._runtime;
 
 /// This library defines a set of general javascript utilities for us
 /// by the Dart runtime.
@@ -36,6 +37,8 @@ final Iterable Function(Object) getOwnPropertyNames =
 final Function(Object) getOwnPropertySymbols =
     JS('', 'Object.getOwnPropertySymbols');
 
+final Function(Object) getPrototypeOf = JS('', 'Object.getPrototypeOf');
+
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwTypeError(String message) {
@@ -65,7 +68,8 @@ safeGetOwnProperty(obj, name) {
 // TODO(jmesserly): reusing descriptor objects has been shown to improve
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
 defineLazyField(to, name, desc) => JS('', '''(() => {
-  let init = $desc.get;
+  const initializer = $desc.get;
+  let init = initializer;
   let value = null;
   $desc.get = function() {
     if (init == null) return value;
@@ -89,6 +93,10 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
       value = x;
     };
   }
+  $_resetFields.push(() => {
+    init = initializer;
+    value = null;
+  });
   return ${defineProperty(to, name, desc)};
 })()''');
 

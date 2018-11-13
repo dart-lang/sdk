@@ -12,7 +12,6 @@ main() {
 /*element: typeLiteral:[exact=TypeImpl]*/
 typeLiteral() => Object;
 
-/*kernel.element: typeLiteralToString:[null|subclass=Object]*/
 /*strong.element: typeLiteralToString:[exact=JSString]*/
 typeLiteralToString() => (Object). /*invoke: [exact=TypeImpl]*/ toString();
 

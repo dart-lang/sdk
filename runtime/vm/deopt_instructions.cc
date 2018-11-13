@@ -335,7 +335,7 @@ void DeoptContext::FillDestFrame() {
   }
 }
 
-intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
+const CatchEntryMoves* DeoptContext::ToCatchEntryMoves(intptr_t num_vars) {
   const Code& code = Code::Handle(code_);
   const TypedData& deopt_info = TypedData::Handle(deopt_info_);
   GrowableArray<DeoptInstr*> deopt_instructions;
@@ -343,8 +343,7 @@ intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
   ASSERT(!deopt_table.IsNull());
   DeoptInfo::Unpack(deopt_table, deopt_info, &deopt_instructions);
 
-  intptr_t* state = new intptr_t[2 * num_vars + 1];
-  state[0] = num_vars;
+  CatchEntryMoves* moves = CatchEntryMoves::Allocate(num_vars);
 
   Function& function = Function::Handle(zone(), code.function());
   intptr_t params =
@@ -357,17 +356,16 @@ intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
     intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
 #else
     const intptr_t len = deopt_instructions.length();
-    intptr_t slot =
-        i < params ? i : i + kParamEndSlotFromFp - kFirstLocalSlotFromFp;
+    intptr_t slot = i < params ? i
+                               : i + kParamEndSlotFromFp -
+                                     runtime_frame_layout.first_local_from_fp;
     DeoptInstr* instr = deopt_instructions[len - 1 - slot];
     intptr_t dest_index = i - params;
 #endif
-    CatchEntryStatePair p = instr->ToCatchEntryStatePair(this, dest_index);
-    state[1 + 2 * i] = p.src;
-    state[2 + 2 * i] = p.dest;
+    moves->At(i) = instr->ToCatchEntryMove(this, dest_index);
   }
 
-  return state;
+  return moves;
 }
 
 static void FillDeferredSlots(DeoptContext* deopt_context,
@@ -507,9 +505,9 @@ class DeoptConstantInstr : public DeoptInstr {
     *reinterpret_cast<RawObject**>(dest_addr) = obj.raw();
   }
 
-  CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
-                                            intptr_t dest_slot) {
-    return CatchEntryStatePair::FromConstant(object_table_index_, dest_slot);
+  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                  intptr_t dest_slot) {
+    return CatchEntryMove::FromConstant(object_table_index_, dest_slot);
   }
 
  private:
@@ -539,10 +537,11 @@ class DeoptWordInstr : public DeoptInstr {
     *dest_addr = source_.Value<intptr_t>(deopt_context);
   }
 
-  CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
-                                            intptr_t dest_slot) {
-    return CatchEntryStatePair::FromMove(source_.StackSlot(deopt_context),
-                                         dest_slot);
+  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                  intptr_t dest_slot) {
+    return CatchEntryMove::FromSlot(CatchEntryMove::SourceKind::kTaggedSlot,
+                                    source_.StackSlot(deopt_context),
+                                    dest_slot);
   }
 
  private:
@@ -598,6 +597,15 @@ class DeoptMintPairInstr : public DeoptIntegerInstrBase {
                                   hi_.Value<int32_t>(deopt_context));
   }
 
+  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                  intptr_t dest_slot) {
+    return CatchEntryMove::FromSlot(
+        CatchEntryMove::SourceKind::kInt64PairSlot,
+        CatchEntryMove::EncodePairSource(lo_.StackSlot(deopt_context),
+                                         hi_.StackSlot(deopt_context)),
+        dest_slot);
+  }
+
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
   class LoRegister : public BitField<intptr_t, intptr_t, 0, kFieldWidth> {};
@@ -610,7 +618,7 @@ class DeoptMintPairInstr : public DeoptIntegerInstrBase {
   DISALLOW_COPY_AND_ASSIGN(DeoptMintPairInstr);
 };
 
-template <DeoptInstr::Kind K, typename T>
+template <DeoptInstr::Kind K, CatchEntryMove::SourceKind slot_kind, typename T>
 class DeoptIntInstr : public DeoptIntegerInstrBase {
  public:
   explicit DeoptIntInstr(intptr_t source_index)
@@ -628,17 +636,35 @@ class DeoptIntInstr : public DeoptIntegerInstrBase {
     return static_cast<int64_t>(source_.Value<T>(deopt_context));
   }
 
+  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                  intptr_t dest_slot) {
+    return CatchEntryMove::FromSlot(slot_kind, source_.StackSlot(deopt_context),
+                                    dest_slot);
+  }
+
  private:
   const CpuRegisterSource source_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptIntInstr);
 };
 
-typedef DeoptIntInstr<DeoptInstr::kUint32, uint32_t> DeoptUint32Instr;
-typedef DeoptIntInstr<DeoptInstr::kInt32, int32_t> DeoptInt32Instr;
-typedef DeoptIntInstr<DeoptInstr::kMint, int64_t> DeoptMintInstr;
+typedef DeoptIntInstr<DeoptInstr::kUint32,
+                      CatchEntryMove::SourceKind::kUint32Slot,
+                      uint32_t>
+    DeoptUint32Instr;
+typedef DeoptIntInstr<DeoptInstr::kInt32,
+                      CatchEntryMove::SourceKind::kInt32Slot,
+                      int32_t>
+    DeoptInt32Instr;
+typedef DeoptIntInstr<DeoptInstr::kMint,
+                      CatchEntryMove::SourceKind::kInt64Slot,
+                      int64_t>
+    DeoptMintInstr;
 
-template <DeoptInstr::Kind K, typename Type, typename RawObjectType>
+template <DeoptInstr::Kind K,
+          CatchEntryMove::SourceKind slot_kind,
+          typename Type,
+          typename RawObjectType>
 class DeoptFpuInstr : public DeoptInstr {
  public:
   explicit DeoptFpuInstr(intptr_t source_index) : source_(source_index) {}
@@ -657,22 +683,39 @@ class DeoptFpuInstr : public DeoptInstr {
         reinterpret_cast<RawObjectType**>(dest_addr));
   }
 
+  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                  intptr_t dest_slot) {
+    return CatchEntryMove::FromSlot(slot_kind, source_.StackSlot(deopt_context),
+                                    dest_slot);
+  }
+
  private:
   const FpuRegisterSource source_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptFpuInstr);
 };
 
-typedef DeoptFpuInstr<DeoptInstr::kDouble, double, RawDouble> DeoptDoubleInstr;
+typedef DeoptFpuInstr<DeoptInstr::kDouble,
+                      CatchEntryMove::SourceKind::kDoubleSlot,
+                      double,
+                      RawDouble>
+    DeoptDoubleInstr;
 
 // Simd128 types.
-typedef DeoptFpuInstr<DeoptInstr::kFloat32x4, simd128_value_t, RawFloat32x4>
+typedef DeoptFpuInstr<DeoptInstr::kFloat32x4,
+                      CatchEntryMove::SourceKind::kFloat32x4Slot,
+                      simd128_value_t,
+                      RawFloat32x4>
     DeoptFloat32x4Instr;
-typedef DeoptFpuInstr<DeoptInstr::kFloat32x4, simd128_value_t, RawFloat32x4>
-    DeoptFloat32x4Instr;
-typedef DeoptFpuInstr<DeoptInstr::kFloat64x2, simd128_value_t, RawFloat64x2>
+typedef DeoptFpuInstr<DeoptInstr::kFloat64x2,
+                      CatchEntryMove::SourceKind::kFloat64x2Slot,
+                      simd128_value_t,
+                      RawFloat64x2>
     DeoptFloat64x2Instr;
-typedef DeoptFpuInstr<DeoptInstr::kInt32x4, simd128_value_t, RawInt32x4>
+typedef DeoptFpuInstr<DeoptInstr::kInt32x4,
+                      CatchEntryMove::SourceKind::kInt32x4Slot,
+                      simd128_value_t,
+                      RawInt32x4>
     DeoptInt32x4Instr;
 
 // Deoptimization instruction creating a PC marker for the code of
@@ -861,7 +904,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
       static_cast<DeoptRetAddressInstr*>(instr);
   // The following assert may trigger when displaying a backtrace
   // from the simulator.
-  ASSERT(Thread::IsDeoptAfter(ret_address_instr->deopt_id()));
+  ASSERT(DeoptId::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -1016,7 +1059,8 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  intptr_t index = -VariableIndexForFrameSlot(source_loc.stack_index());
+  intptr_t index = -compiler_frame_layout.VariableIndexForFrameSlot(
+      source_loc.stack_index());
   return index < 0 ? index + num_args_
                    : index + num_args_ + kDartFrameFixedSize;
 }

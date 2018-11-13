@@ -9,10 +9,9 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -30,23 +29,18 @@ class CallersDataComputer extends DataComputer {
   const CallersDataComputer();
 
   @override
-  void setup() {
-    InferrerEngineImpl.retainDataForTesting = true;
-  }
-
-  @override
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new CallersIrComputer(
             compiler.reporter,
             actualMap,
             elementMap,
             compiler.globalInference.typesInferrerInternal,
-            backendStrategy.closureDataLookup)
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 }
@@ -54,8 +48,8 @@ class CallersDataComputer extends DataComputer {
 /// AST visitor for computing side effects data for a member.
 class CallersIrComputer extends IrDataExtractor {
   final TypeGraphInferrer inferrer;
-  final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final JsToElementMap _elementMap;
+  final ClosureData _closureDataLookup;
 
   CallersIrComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
       this._elementMap, this.inferrer, this._closureDataLookup)

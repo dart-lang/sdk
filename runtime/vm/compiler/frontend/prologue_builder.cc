@@ -6,7 +6,7 @@
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/base_flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/kernel_loader.h"
 #include "vm/longjump.h"
@@ -21,11 +21,19 @@ namespace kernel {
 
 #define Z (zone_)
 
+bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
+    const Function& function) {
+  return !function.HasOptionalParameters() &&
+         !function.IsNonImplicitClosureFunction() && !function.IsGeneric();
+}
+
+bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
+  return !function.HasOptionalParameters() && !function.IsGeneric() &&
+         !function.IsClosureFunction();
+}
+
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
                                                 PrologueInfo* prologue_info) {
-  Isolate* isolate = Isolate::Current();
-  const bool strong = isolate->strong();
-
   // We always have to build the graph, but we only link it sometimes.
   const bool link = !is_inlining_ && !compiling_for_osr_;
 
@@ -33,7 +41,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args =
-      function_.IsGeneric() && isolate->reify_generic_functions();
+      function_.IsGeneric() && FLAG_reify_generic_functions;
   const bool check_arguments = function_.IsClosureFunction();
 
   Fragment prologue = Fragment(entry);
@@ -42,14 +50,15 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
     nsm = BuildThrowNoSuchMethod();
   }
   if (check_arguments) {
-    Fragment f = BuildTypeArgumentsLengthCheck(strong, nsm, expect_type_args);
+    Fragment f = BuildTypeArgumentsLengthCheck(nsm, expect_type_args);
     if (link) prologue += f;
   }
   if (load_optional_arguments) {
-    Fragment f = BuildOptionalParameterHandling(strong, nsm);
+    Fragment f = BuildOptionalParameterHandling(
+        nsm, parsed_function_->expression_temp_var());
     if (link) prologue += f;
   } else if (check_arguments) {
-    Fragment f = BuildFixedParameterLengthChecks(strong, nsm);
+    Fragment f = BuildFixedParameterLengthChecks(nsm);
     if (link) prologue += f;
   }
   if (function_.IsClosureFunction()) {
@@ -77,8 +86,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   }
 }
 
-Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
-                                                        JoinEntryInstr* nsm,
+Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(JoinEntryInstr* nsm,
                                                         bool expect_type_args) {
   Fragment check_type_args;
   JoinEntryInstr* done = BuildJoinEntry();
@@ -120,8 +128,9 @@ Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
   return Fragment(check_type_args.entry, done);
 }
 
-Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
-                                                         JoinEntryInstr* nsm) {
+Fragment PrologueBuilder::BuildOptionalParameterHandling(
+    JoinEntryInstr* nsm,
+    LocalVariable* temp_var) {
   Fragment copy_args_prologue;
   const int num_fixed_params = function_.num_fixed_parameters();
   const int num_opt_pos_params = function_.NumOptionalPositionalParameters();
@@ -174,7 +183,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
   for (; param < num_fixed_params; ++param) {
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
-        kWordSize * (kParamEndSlotFromFp + num_fixed_params - param));
+        kWordSize *
+        (compiler_frame_layout.param_end_from_fp + num_fixed_params - param));
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
     copy_args_prologue += Drop();
@@ -193,7 +203,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
       Fragment good(supplied);
       good += LoadLocal(optional_count_var);
       good += LoadFpRelativeSlot(
-          kWordSize * (kParamEndSlotFromFp + num_fixed_params - param));
+          kWordSize *
+          (compiler_frame_layout.param_end_from_fp + num_fixed_params - param));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
 
@@ -232,13 +243,12 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
         ArgumentsDescriptor::first_named_entry_offset() - Array::data_offset();
 
     // Start by alphabetically sorting the names of the optional parameters.
-    LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
-    int* opt_param_position = new int[num_opt_named_params];
-    SortOptionalNamedParametersInto(opt_param, opt_param_position,
-                                    num_fixed_params, num_params);
+    int* opt_param_position = Z->Alloc<int>(num_opt_named_params);
+    SortOptionalNamedParametersInto(opt_param_position, num_fixed_params,
+                                    num_params);
 
-    LocalVariable* optional_count_vars_processed =
-        parsed_function_->expression_temp_var();
+    ASSERT(temp_var != nullptr);
+    LocalVariable* optional_count_vars_processed = temp_var;
     copy_args_prologue += IntConstant(0);
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, optional_count_vars_processed);
@@ -262,8 +272,10 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
       copy_args_prologue += LoadIndexed(/* index_scale = */ kWordSize);
 
       // first name in sorted list of all names
-      ASSERT(opt_param[i]->name().IsSymbol());
-      copy_args_prologue += Constant(opt_param[i]->name());
+      const String& param_name = String::ZoneHandle(
+          Z, function_.ParameterNameAt(opt_param_position[i]));
+      ASSERT(param_name.IsSymbol());
+      copy_args_prologue += Constant(param_name);
 
       // Compare the two names: Note that the ArgumentDescriptor array always
       // terminates with a "null" name (i.e. kNullCid), which will prevent us
@@ -276,7 +288,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
       Fragment good(supplied);
 
       {
-        // fp[kParamEndSlotFromFp + (count_var - pos)]
+        // fp[compiler_frame_layout.param_end_from_fp + (count_var - pos)]
         good += LoadLocal(count_var);
         {
           // pos = arg_desc[names_offset + arg_desc_name_index + positionOffset]
@@ -289,7 +301,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
           good += LoadIndexed(/* index_scale = */ kWordSize);
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
-        good += LoadFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
+        good += LoadFpRelativeSlot(kWordSize *
+                                   compiler_frame_layout.param_end_from_fp);
 
         // Copy down.
         good += StoreLocalRaw(TokenPosition::kNoSource,
@@ -324,9 +337,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
       copy_args_prologue += Drop();  // tuple_diff
     }
 
-    delete[] opt_param;
-    delete[] opt_param_position;
-
     // If there are more arguments from the caller we haven't processed, go
     // NSM.
     TargetEntryInstr *done, *unknown_named_arg_passed;
@@ -348,8 +358,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
   return copy_args_prologue;
 }
 
-Fragment PrologueBuilder::BuildFixedParameterLengthChecks(bool strong,
-                                                          JoinEntryInstr* nsm) {
+Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
   Fragment check_args;
   JoinEntryInstr* done = BuildJoinEntry();
 
@@ -399,7 +408,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   Fragment store_type_args;
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadField(ArgumentsDescriptor::count_offset());
-  store_type_args += LoadFpRelativeSlot(kWordSize * (1 + kParamEndSlotFromFp));
+  store_type_args += LoadFpRelativeSlot(
+      kWordSize * (1 + compiler_frame_layout.param_end_from_fp));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
 
@@ -417,43 +427,38 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
     // Currently, delayed type arguments can only be introduced through type
     // inference in the FE. So if they are present, we can assume they are
     // correct in number and bound.
-    // clang-format off
-    Fragment use_delayed_type_args = {
-      LoadLocal(closure),
-      LoadField(Closure::delayed_type_arguments_offset()),
-      StoreLocal(TokenPosition::kNoSource, type_args_var),
-      Drop()
-    };
+    Fragment use_delayed_type_args;
+    use_delayed_type_args += LoadLocal(closure);
+    use_delayed_type_args +=
+        LoadField(Closure::delayed_type_arguments_offset());
+    use_delayed_type_args +=
+        StoreLocal(TokenPosition::kNoSource, type_args_var);
+    use_delayed_type_args += Drop();
 
     handling += TestDelayedTypeArgs(
         closure,
-        /*present=*/TestTypeArgsLen(
-            use_delayed_type_args, Goto(nsm), 0),
+        /*present=*/TestTypeArgsLen(use_delayed_type_args, Goto(nsm), 0),
         /*absent=*/Fragment());
-    // clang-format on
   }
 
   return handling;
 }
 
-void PrologueBuilder::SortOptionalNamedParametersInto(LocalVariable** opt_param,
-                                                      int* opt_param_position,
+void PrologueBuilder::SortOptionalNamedParametersInto(int* opt_param_position,
                                                       int num_fixed_params,
                                                       int num_params) {
-  LocalScope* scope = parsed_function_->node_sequence()->scope();
+  String& name = String::Handle(Z);
+  String& name_i = String::Handle(Z);
   for (int pos = num_fixed_params; pos < num_params; pos++) {
-    LocalVariable* parameter = scope->VariableAt(pos);
-    const String& opt_param_name = parameter->name();
+    name = function_.ParameterNameAt(pos);
     int i = pos - num_fixed_params;
     while (--i >= 0) {
-      LocalVariable* param_i = opt_param[i];
-      const intptr_t result = opt_param_name.CompareTo(param_i->name());
+      name_i = function_.ParameterNameAt(opt_param_position[i]);
+      const intptr_t result = name.CompareTo(name_i);
       ASSERT(result != 0);
       if (result > 0) break;
-      opt_param[i + 1] = opt_param[i];
       opt_param_position[i + 1] = opt_param_position[i];
     }
-    opt_param[i + 1] = parameter;
     opt_param_position[i + 1] = pos;
   }
 }

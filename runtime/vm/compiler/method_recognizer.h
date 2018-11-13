@@ -56,6 +56,7 @@ namespace dart {
   V(::, min, MathMin, Dynamic, 0x32ebc57d)                                     \
   V(::, max, MathMax, Dynamic, 0x377e8889)                                     \
   V(::, _doublePow, MathDoublePow, Double, 0x5add0ec1)                         \
+  V(::, _intPow, MathIntPow, Dynamic, 0x11b45569)                              \
   V(Float32x4, Float32x4., Float32x4Constructor, Float32x4, 0x26ea459b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, Float32x4, 0x16eca604)           \
   V(Float32x4, Float32x4.splat, Float32x4Splat, Float32x4, 0x694e83e3)         \
@@ -135,8 +136,6 @@ namespace dart {
     0x5aa9888d)                                                                \
   V(::, _classRangeCheck, ClassRangeCheck, Bool, 0x2ae76b84)                   \
   V(::, _classRangeCheckNegative, ClassRangeCheckNegated, Bool, 0x5acdfb75)    \
-  V(::, _classRangeAssert, ClassRangeAssert, Dynamic, 0x6c77116e)              \
-  V(::, _classIdEqualsAssert, ClassIdEqualsAssert, Dynamic, 0x09e0ae72)        \
 
 
 // List of intrinsics:
@@ -182,6 +181,7 @@ namespace dart {
   V(Object, get:runtimeType, ObjectRuntimeType, Type, 0x00e8ab29)              \
   V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, Bool, 0x4dc50799) \
   V(_StringBase, get:hashCode, String_getHashCode, Smi, 0x78c3d446)            \
+  V(_StringBase, get:_identityHashCode, String_identityHash, Smi, 0x0472b1d8)  \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, Bool, 0x4a8b29c8)             \
   V(_StringBase, _substringMatches, StringBaseSubstringMatches, Bool,          \
     0x46de4f10)                                                                \
@@ -437,8 +437,6 @@ namespace dart {
   V(::, pow, MathPow, 0x79efc5a2)                                              \
   V(::, _classRangeCheck, ClassRangeCheck, 0x2ae76b84)                         \
   V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x5acdfb75)          \
-  V(::, _classRangeAssert, ClassRangeAssert, 0x6c77116e)                       \
-  V(::, _classIdEqualsAssert, ClassIdEqualsAssert, 0x09e0ae72)                 \
   V(::, _toInt, ConvertMaskedInt, 0x713908fd)                                  \
   V(::, _toInt8, ConvertIntToInt8, 0x7484a780)                                 \
   V(::, _toUint8, ConvertIntToUint8, 0x0a15b522)                               \
@@ -558,6 +556,7 @@ class MethodRecognizer : public AllStatic {
   static Kind RecognizeKind(const Function& function);
   static bool AlwaysInline(const Function& function);
   static bool PolymorphicTarget(const Function& function);
+  static intptr_t NumArgsCheckedForStaticCall(const Function& function);
   static intptr_t ResultCid(const Function& function);
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);

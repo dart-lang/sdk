@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class G<A extends int, B extends String> {
   G();
-  factory G.swap() = G<B,A>;  /// 00: static type warning
+  factory G.swap() = G<B,A>;  /// 00: compile-time error
   factory G.retain() = G<A,B>;
 }
 

@@ -51,24 +51,6 @@ class ContextConfigurationTest extends AbstractContextTest {
   YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
-  test_configure_bad_options_contents() {
-    configureContext('''
-analyzer:
-  language:
-    enableSuperMixins true; # misformatted
-''');
-    expect(analysisOptions.enableSuperMixins, false);
-  }
-
-  test_configure_enableSuperMixins() {
-    configureContext('''
-analyzer:
-  language:
-    enableSuperMixins: true
-''');
-    expect(analysisOptions.enableSuperMixins, true);
-  }
-
   test_configure_error_processors() {
     configureContext('''
 analyzer:
@@ -146,23 +128,6 @@ analyzer:
     List<String> names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2']);
   }
-
-  test_configure_strong_mode() {
-    configureContext('''
-analyzer:
-  strong-mode: true
-''');
-    expect(analysisOptions.strongMode, true);
-  }
-
-  test_configure_strong_mode_bad_value() {
-    configureContext('''
-analyzer:
-  language:
-    enableSuperMixins: true;
-''');
-    expect(analysisOptions.enableSuperMixins, false);
-  }
 }
 
 @reflectiveTest
@@ -235,9 +200,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
         removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
         removeCode(StrongModeCode.DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE);
-        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE);
-        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN);
         removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
@@ -253,7 +215,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
         removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
         removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
-        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER);
         removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
@@ -552,35 +513,12 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
-  test_analyzer_language_supported() {
+  test_analyzer_language_bad_format_list() {
     validate('''
 analyzer:
   language:
-    enableSuperMixins: true
-''', []);
-  }
-
-  test_analyzer_language_unsupported_key() {
-    validate('''
-analyzer:
-  language:
-    unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
-  }
-
-  test_analyzer_language_unsupported_value() {
-    validate('''
-analyzer:
-  language:
-    enableSuperMixins: foo
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
-  }
-
-  test_analyzer_language_supports_empty() {
-    validate('''
-analyzer:
-  language:
-''', []);
+    - enableSuperMixins: true
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
   test_analyzer_language_bad_format_scalar() {
@@ -590,12 +528,27 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
-  test_analyzer_language_bad_format_list() {
+  test_analyzer_language_supports_empty() {
     validate('''
 analyzer:
   language:
-    - enableSuperMixins: true
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''', []);
+  }
+
+  test_analyzer_language_unsupported_key() {
+    validate('''
+analyzer:
+  language:
+    unsupported: true
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+  }
+
+  test_analyzer_language_unsupported_value() {
+    validate('''
+analyzer:
+  strong-mode:
+    implicit-dynamic: foo
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_lint_codes_recognized() {
@@ -605,6 +558,21 @@ analyzer:
   errors:
     fantastic_test_rule: ignore
     ''', []);
+  }
+
+  test_analyzer_strong_mode_deprecated() {
+    validate('''
+analyzer:
+  strong-mode: true
+    ''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
+  }
+
+  test_analyzer_strong_mode_deprecated_key() {
+    validate('''
+analyzer:
+  strong-mode:
+    declaration-casts: false
+''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
   }
 
   test_analyzer_strong_mode_error_code_supported() {
@@ -622,21 +590,6 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.SPEC_MODE_REMOVED]);
   }
 
-  test_analyzer_supported_exclude() {
-    validate('''
-analyzer:
-  exclude:
-    - test/_data/p4/lib/lib1.dart
-    ''', []);
-  }
-
-  test_analyzer_strong_mode_deprecated() {
-    validate('''
-analyzer:
-  strong-mode: true
-    ''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
-  }
-
   test_analyzer_strong_mode_unsupported_key() {
     validate('''
 analyzer:
@@ -645,12 +598,12 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
-  test_analyzer_strong_mode_deprecated_key() {
+  test_analyzer_supported_exclude() {
     validate('''
 analyzer:
-  strong-mode:
-    declaration-casts: false
-''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
+  exclude:
+    - test/_data/p4/lib/lib1.dart
+    ''', []);
   }
 
   test_analyzer_supported_strong_mode_supported_bad_value() {

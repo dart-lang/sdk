@@ -95,6 +95,12 @@ void _throwOnBadPort(int port) {
   }
 }
 
+void _throwOnBadTtl(int ttl) {
+  if (ttl == null || ttl < 1 || ttl > 255) {
+    throw new ArgumentError('Invalid ttl $ttl');
+  }
+}
+
 class _InternetAddress implements InternetAddress {
   static const int _addressLoopbackIPv4 = 0;
   static const int _addressLoopbackIPv6 = 1;
@@ -578,14 +584,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<_NativeSocket> bindDatagram(
-      host, int port, bool reuseAddress) async {
+      host, int port, bool reuseAddress, bool reusePort, int ttl) async {
     _throwOnBadPort(port);
+    _throwOnBadTtl(ttl);
 
     final address = await _resolveHost(host);
 
     var socket = new _NativeSocket.datagram(address);
-    var result =
-        socket.nativeCreateBindDatagram(address._in_addr, port, reuseAddress);
+    var result = socket.nativeCreateBindDatagram(
+        address._in_addr, port, reuseAddress, reusePort, ttl);
     if (result is OSError) {
       throw new SocketException("Failed to create datagram socket",
           osError: result, address: address, port: port);
@@ -1130,8 +1137,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool isBindError(int errorNumber) native "SocketBase_IsBindError";
   nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
       bool shared) native "ServerSocket_CreateBindListen";
-  nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress)
-      native "Socket_CreateBindDatagram";
+  nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress,
+      bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
@@ -1775,8 +1782,8 @@ class _Socket extends Stream<List<int>> implements Socket {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true}) {
-    return _RawDatagramSocket.bind(host, port, reuseAddress);
+      {bool reuseAddress: true, bool reusePort: false, int ttl: 1}) {
+    return _RawDatagramSocket.bind(host, port, reuseAddress, reusePort, ttl);
   }
 }
 
@@ -1814,9 +1821,11 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
         }));
   }
 
-  static Future<RawDatagramSocket> bind(host, int port, bool reuseAddress) {
+  static Future<RawDatagramSocket> bind(
+      host, int port, bool reuseAddress, bool reusePort, int ttl) {
     _throwOnBadPort(port);
-    return _NativeSocket.bindDatagram(host, port, reuseAddress)
+    _throwOnBadTtl(ttl);
+    return _NativeSocket.bindDatagram(host, port, reuseAddress, reusePort, ttl)
         .then((socket) => new _RawDatagramSocket(socket));
   }
 
@@ -1905,6 +1914,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   }
 }
 
+@pragma("vm:entry-point")
 Datagram _makeDatagram(
     List<int> data, String address, List<int> in_addr, int port) {
   return new Datagram(data, new _InternetAddress(address, null, in_addr), port);

@@ -39,7 +39,7 @@ void Assert::Fail(const char* format, ...) {
   va_end(arguments);
 
   // Abort right away.
-  NOT_IN_PRODUCT(Dart_DumpNativeStackTrace(NULL));
+  Dart_DumpNativeStackTrace(NULL);
   OS::Abort();
 }
 

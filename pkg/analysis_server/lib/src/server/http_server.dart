@@ -19,24 +19,6 @@ abstract class AbstractGetHandler {
 }
 
 /**
- * An [AbstractGetHandler] that always returns the given error message.
- */
-class ErrorGetHandler extends AbstractGetHandler {
-  final String message;
-
-  ErrorGetHandler(this.message);
-
-  @override
-  void handleGetRequest(HttpRequest request) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.notFound;
-    response.headers.contentType = ContentType.text;
-    response.write(message);
-    response.close();
-  }
-}
-
-/**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
  * server:
  *
@@ -68,7 +50,7 @@ class HttpAnalysisServer {
   /**
    * Last PRINT_BUFFER_LENGTH lines printed.
    */
-  List<String> _printBuffer = <String>[];
+  final List<String> _printBuffer = <String>[];
 
   /**
    * Initialize a newly created HTTP server.
@@ -130,13 +112,15 @@ class HttpAnalysisServer {
   /**
    * Handle a GET request received by the HTTP server.
    */
-  Future<Null> _handleGetRequest(HttpRequest request) async {
+  Future<void> _handleGetRequest(HttpRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (getHandler == null) {
       getHandler = new DiagnosticsSite(socketServer, _printBuffer);
     }
-    await getHandler.handleGetRequest(request);
+    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.
+    await (getHandler.handleGetRequest(request) as dynamic);
   }
 
   /**

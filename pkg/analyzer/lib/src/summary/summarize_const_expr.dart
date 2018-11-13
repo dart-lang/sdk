@@ -4,13 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
-/**
- * Serialize the given constructor initializer [node].
- */
+/// Serialize the given constructor initializer [node].
 UnlinkedConstructorInitializerBuilder serializeConstructorInitializer(
     ConstructorInitializer node,
     UnlinkedExprBuilder serializeConstExpr(Expression expr)) {
@@ -61,72 +58,48 @@ UnlinkedConstructorInitializerBuilder serializeConstructorInitializer(
   throw new StateError('Unexpected initializer type ${node.runtimeType}');
 }
 
-/**
- * Instances of this class keep track of intermediate state during
- * serialization of a single constant [Expression].
- */
+/// Instances of this class keep track of intermediate state during
+/// serialization of a single constant [Expression].
 abstract class AbstractConstExprSerializer {
-  /**
-   * Whether an expression that should be a constant is being serialized.
-   *
-   * For constants we need to store more than we need just for type inference,
-   * because we need to be able to restore these AST to evaluate actual values
-   * of constants. So, we need to store constructor arguments, elements for
-   * list and map literals even if these literals are typed.
-   */
+  /// Whether an expression that should be a constant is being serialized.
+  ///
+  /// For constants we need to store more than we need just for type inference,
+  /// because we need to be able to restore these AST to evaluate actual values
+  /// of constants. So, we need to store constructor arguments, elements for
+  /// list and map literals even if these literals are typed.
   final bool forConst;
 
-  /**
-   * See [UnlinkedExprBuilder.isValidConst].
-   */
+  /// See [UnlinkedExprBuilder.isValidConst].
   bool isValidConst = true;
 
-  /**
-   * See [UnlinkedExprBuilder.name].
-   */
+  /// See [UnlinkedExprBuilder.name].
   String name = null;
 
-  /**
-   * See [UnlinkedExprBuilder.operations].
-   */
+  /// See [UnlinkedExprBuilder.operations].
   final List<UnlinkedExprOperation> operations = <UnlinkedExprOperation>[];
 
-  /**
-   * See [UnlinkedExprBuilder.assignmentOperators].
-   */
+  /// See [UnlinkedExprBuilder.assignmentOperators].
   final List<UnlinkedExprAssignOperator> assignmentOperators =
       <UnlinkedExprAssignOperator>[];
 
-  /**
-   * See [UnlinkedExprBuilder.ints].
-   */
+  /// See [UnlinkedExprBuilder.ints].
   final List<int> ints = <int>[];
 
-  /**
-   * See [UnlinkedExprBuilder.doubles].
-   */
+  /// See [UnlinkedExprBuilder.doubles].
   final List<double> doubles = <double>[];
 
-  /**
-   * See [UnlinkedExprBuilder.strings].
-   */
+  /// See [UnlinkedExprBuilder.strings].
   final List<String> strings = <String>[];
 
-  /**
-   * See [UnlinkedExprBuilder.references].
-   */
+  /// See [UnlinkedExprBuilder.references].
   final List<EntityRefBuilder> references = <EntityRefBuilder>[];
 
   AbstractConstExprSerializer(this.forConst);
 
-  /**
-   * Return `true` if the given [name] is a parameter reference.
-   */
+  /// Return `true` if the given [name] is a parameter reference.
   bool isParameterName(String name);
 
-  /**
-   * Serialize the given [expr] expression into this serializer state.
-   */
+  /// Serialize the given [expr] expression into this serializer state.
   void serialize(Expression expr) {
     try {
       if (expr is NamedExpression) {
@@ -146,48 +119,34 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  /**
-   * Serialize the given [annotation] into this serializer state.
-   */
+  /// Serialize the given [annotation] into this serializer state.
   void serializeAnnotation(Annotation annotation);
 
-  /**
-   * Return [EntityRefBuilder] that corresponds to the constructor having name
-   * [name] in the class identified by [typeName].  It is expected that [type]
-   * corresponds to the given [typeName] and [typeArguments].  The parameter
-   * [type] might be `null` if the type is not resolved.
-   */
-  EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
+  /// Return [EntityRefBuilder] that corresponds to the constructor having name
+  /// [name] in the class identified by [typeName].
+  EntityRefBuilder serializeConstructorRef(Identifier typeName,
       TypeArgumentList typeArguments, SimpleIdentifier name);
 
-  /**
-   * Return a pair of ints showing how the given [functionExpression] is nested
-   * within the constant currently being serialized.  The first int indicates
-   * how many levels of function nesting must be popped in order to reach the
-   * parent of the [functionExpression].  The second int is the index of the
-   * [functionExpression] within its parent element.
-   *
-   * If the constant being summarized is in a context where local function
-   * references are not allowed, return `null`.
-   */
+  /// Return a pair of ints showing how the given [functionExpression] is nested
+  /// within the constant currently being serialized.  The first int indicates
+  /// how many levels of function nesting must be popped in order to reach the
+  /// parent of the [functionExpression].  The second int is the index of the
+  /// [functionExpression] within its parent element.
+  ///
+  /// If the constant being summarized is in a context where local function
+  /// references are not allowed, return `null`.
   List<int> serializeFunctionExpression(FunctionExpression functionExpression);
 
-  /**
-   * Return [EntityRefBuilder] that corresponds to the [type], which is defined
-   * using generic function type syntax. These may appear as the type arguments
-   * of a const list, etc.
-   */
+  /// Return [EntityRefBuilder] that corresponds to the [type], which is defined
+  /// using generic function type syntax. These may appear as the type arguments
+  /// of a const list, etc.
   EntityRefBuilder serializeGenericFunctionType(GenericFunctionType type);
 
-  /**
-   * Return [EntityRefBuilder] that corresponds to the given [identifier].
-   */
+  /// Return [EntityRefBuilder] that corresponds to the given [identifier].
   EntityRefBuilder serializeIdentifier(Identifier identifier);
 
-  /**
-   * Return [EntityRefBuilder] that corresponds to the given [expr], which
-   * must be a sequence of identifiers.
-   */
+  /// Return [EntityRefBuilder] that corresponds to the given [expr], which
+  /// must be a sequence of identifiers.
   EntityRefBuilder serializeIdentifierSequence(Expression expr);
 
   void serializeInstanceCreation(EntityRefBuilder constructor,
@@ -197,12 +156,10 @@ abstract class AbstractConstExprSerializer {
     operations.add(UnlinkedExprOperation.invokeConstructor);
   }
 
-  /**
-   * Return [EntityRefBuilder] that corresponds to the given [type].
-   */
+  /// Return [EntityRefBuilder] that corresponds to the given [type].
   EntityRefBuilder serializeType(TypeAnnotation type) {
     if (type is TypeName) {
-      return serializeTypeName(type?.type, type?.name, type?.typeArguments);
+      return serializeTypeName(type?.name, type?.typeArguments);
     }
     if (type is GenericFunctionType) {
       return serializeGenericFunctionType(type);
@@ -211,19 +168,13 @@ abstract class AbstractConstExprSerializer {
         'Cannot serialize an instance of ${type.runtimeType}');
   }
 
-  /**
-   * Return [EntityRefBuilder] that corresponds to the [type] with the given
-   * [name] and [arguments].  It is expected that [type] corresponds to the
-   * given [name] and [arguments].  The parameter [type] might be `null` if the
-   * type is not resolved.
-   */
+  /// Return [EntityRefBuilder] that corresponds to the type with the given
+  /// [name] and [arguments].
   EntityRefBuilder serializeTypeName(
-      DartType type, Identifier name, TypeArgumentList arguments);
+      Identifier name, TypeArgumentList arguments);
 
-  /**
-   * Return the [UnlinkedExprBuilder] that corresponds to the state of this
-   * serializer.
-   */
+  /// Return the [UnlinkedExprBuilder] that corresponds to the state of this
+  /// serializer.
   UnlinkedExprBuilder toBuilder() {
     return new UnlinkedExprBuilder(
         isValidConst: isValidConst,
@@ -235,9 +186,7 @@ abstract class AbstractConstExprSerializer {
         references: references);
   }
 
-  /**
-   * Return `true` if the given [expr] is a sequence of identifiers.
-   */
+  /// Return `true` if the given [expr] is a sequence of identifiers.
   bool _isIdentifierSequence(Expression expr) {
     while (expr != null) {
       if (expr is SimpleIdentifier) {
@@ -263,9 +212,7 @@ abstract class AbstractConstExprSerializer {
     return false;
   }
 
-  /**
-   * Push the operation for the given assignable [expr].
-   */
+  /// Push the operation for the given assignable [expr].
   void _pushAssignable(Expression expr) {
     if (_isIdentifierSequence(expr)) {
       EntityRefBuilder ref = serializeIdentifierSequence(expr);
@@ -316,9 +263,7 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  /**
-   * Serialize the given [expr] expression into this serializer state.
-   */
+  /// Serialize the given [expr] expression into this serializer state.
   void _serialize(Expression expr) {
     if (expr is IntegerLiteral) {
       int value = expr.value ?? 0;
@@ -364,8 +309,8 @@ abstract class AbstractConstExprSerializer {
       }
       TypeName typeName = expr.constructorName.type;
       serializeInstanceCreation(
-          serializeConstructorRef(typeName.type, typeName.name,
-              typeName.typeArguments, expr.constructorName.name),
+          serializeConstructorRef(
+              typeName.name, typeName.typeArguments, expr.constructorName.name),
           expr.argumentList,
           typeName.typeArguments != null);
     } else if (expr is ListLiteral) {
@@ -411,8 +356,11 @@ abstract class AbstractConstExprSerializer {
       }
     } else if (expr is FunctionExpressionInvocation) {
       isValidConst = false;
-      // TODO(scheglov) implement
-      operations.add(UnlinkedExprOperation.pushNull);
+      _serialize(expr.function);
+      _serializeArguments(expr.argumentList, expr.typeArguments != null);
+      strings.add('call');
+      _serializeTypeArguments(expr.typeArguments);
+      operations.add(UnlinkedExprOperation.invokeMethod);
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);

@@ -23,12 +23,13 @@ class DeclarationsTest extends AbstractSearchDomainTest {
   SearchGetElementDeclarationsResult declarationsResult;
 
   ElementDeclaration assertHas(String name, ElementKind kind,
-      {String className}) {
+      {String className, String mixinName}) {
     return declarationsResult.declarations.singleWhere((ElementDeclaration d) =>
         declarationsResult.files[d.fileIndex] == testFile &&
         d.name == name &&
         d.kind == kind &&
-        d.className == className);
+        d.className == className &&
+        d.mixinName == mixinName);
   }
 
   void assertNo(String name) {
@@ -95,6 +96,24 @@ class D {}
     // No limit.
     await _getDeclarations(pattern: r'^[A-D]$');
     expect(declarationsResult.declarations, hasLength(4));
+  }
+
+  test_mixin() async {
+    addTestFile(r'''
+mixin M {
+  int f;
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    await _getDeclarations();
+
+    assertHas('M', ElementKind.MIXIN);
+    assertHas('f', ElementKind.FIELD, mixinName: 'M');
+    assertHas('g', ElementKind.GETTER, mixinName: 'M');
+    assertHas('s', ElementKind.SETTER, mixinName: 'M');
+    assertHas('m', ElementKind.METHOD, mixinName: 'M');
   }
 
   test_multipleFiles() async {
@@ -185,7 +204,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     assertHas('tf2', ElementKind.FUNCTION_TYPE_ALIAS);
   }
 
-  Future<Null> _getDeclarations(
+  Future<void> _getDeclarations(
       {String file, String pattern, int maxResults}) async {
     Request request = new SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)

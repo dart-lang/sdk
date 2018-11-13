@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.summarize_ast_strong_test;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'summarize_ast_test.dart';
+import 'summary_common.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,20 +13,9 @@ main() {
   });
 }
 
-/**
- * Override of [LinkedSummarizeAstTest] which uses strong mode.
- */
 @reflectiveTest
-class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
-  @override
-  bool get strongMode => true;
-
-  @override
-  @failingTest
-  test_bottom_reference_shared() {
-    super.test_bottom_reference_shared();
-  }
-
+class LinkedSummarizeAstStrongTest extends SummaryBlackBoxTestStrategyTwoPhase
+    with SummaryTestCases {
   @override
   @failingTest
   test_closure_executable_with_imported_return_type() {
@@ -44,30 +32,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   @failingTest
   test_closure_executable_with_unimported_return_type() {
     super.test_closure_executable_with_unimported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_implicit_dependencies_follow_other_dependencies() {
-    super.test_implicit_dependencies_follow_other_dependencies();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_function_typed_param_of_typedef() {
-    super.test_inferred_type_refers_to_function_typed_param_of_typedef();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param() {
-    super.test_inferred_type_refers_to_nested_function_typed_param();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param_named() {
-    super.test_inferred_type_refers_to_nested_function_typed_param_named();
   }
 
   @override

@@ -13,17 +13,19 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/util/relativize.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show
+        CompilerOptions,
+        computePlatformBinariesLocation,
+        kernelForProgram,
+        relativizeUri;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 
 main(List<String> args) async {
   ArgResults flags = _argParser.parse(args);
   var options = new CompilerOptions()
-    ..target = new Dart2jsTarget("dart2js", new TargetFlags())
+    ..target = new Dart2jsTarget("dart2js", new TargetFlags(legacyMode: true))
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..setExitCodeOnProblem = true
     ..linkedDependencies = [

@@ -42,9 +42,8 @@ class ClassEmitter extends CodeEmitterHelper {
       superName = namer.className(superclass);
     }
 
-    if (cls.isMixinApplication) {
-      MixinApplication mixinApplication = cls;
-      jsAst.Name mixinName = mixinApplication.mixinClass.name;
+    if (cls.mixinClass != null) {
+      jsAst.Name mixinName = cls.mixinClass.name;
       superName = new CompoundName([superName, Namer.literalPlus, mixinName]);
       emitter.needsMixinSupport = true;
     }
@@ -93,7 +92,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForClass(classElement);
+        closedWorld.outputUnitData.outputUnitForClass(classElement);
     emitter.assemblePrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
@@ -226,7 +225,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitInstanceMembers(Class cls, ClassBuilder builder) {
     ClassEntity classElement = cls.element;
 
-    if (cls.onlyForRti || cls.isMixinApplication) return;
+    if (cls.onlyForRti || cls.isSimpleMixinApplication) return;
 
     // TODO(herhut): This is a no-op. Should it be removed?
     for (Field field in cls.fields) {
@@ -320,7 +319,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForMember(member);
+        closedWorld.outputUnitData.outputUnitForMember(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
@@ -335,7 +334,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForMember(member);
+        closedWorld.outputUnitData.outputUnitForMember(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));

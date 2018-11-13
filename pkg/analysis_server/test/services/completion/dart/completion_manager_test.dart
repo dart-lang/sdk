@@ -41,7 +41,7 @@ class A {}
     addSource('/libB.dart', '''
 library libB;
 import "/libA.dart" as foo;
-part '${convertPathForImport(testFile)}';
+part '${convertAbsolutePathToUri(testFile)}';
 ''');
     addTestSource('part of libB; main() {^}');
 
@@ -52,8 +52,8 @@ part '${convertPathForImport(testFile)}';
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl
-        .from(baseRequest, resultDescriptor: RESOLVED_UNIT1)
+    DartCompletionRequestImpl.from(baseRequest,
+            resultDescriptor: RESOLVED_UNIT1)
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });

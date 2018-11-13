@@ -9,16 +9,15 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/ir/util.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:compiler/src/constants/values.dart';
 
 import 'package:kernel/ast.dart' as ir;
-
-const List<String> skipForKernel = const <String>[];
 
 ///  Add in options to pass to the compiler like
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
@@ -34,7 +33,6 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
-        skipForKernel: skipForKernel,
         options: compilerOptions,
         args: args,
         testOmit: true, setUpFunction: () {
@@ -63,7 +61,7 @@ String outputUnitString(OutputUnit unit) {
 
     if (importPrefixes.containsKey(import.name)) {
       var existing = importPrefixes[import.name];
-      var current = import.enclosingLibrary.canonicalUri;
+      var current = import.enclosingLibraryUri;
       Expect.equals(
           existing,
           current,
@@ -73,7 +71,7 @@ String outputUnitString(OutputUnit unit) {
           '    We require using unique prefixes on these tests to make '
           'the expectations more readable.');
     }
-    importPrefixes[import.name] = import.enclosingLibrary.canonicalUri;
+    importPrefixes[import.name] = import.enclosingLibraryUri;
   }
   return 'OutputUnit(${unit.name}, {$sb})';
 }
@@ -91,11 +89,11 @@ class OutputUnitDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backend.outputUnitData, backendStrategy.closureDataLookup)
+            closedWorld.outputUnitData, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -106,11 +104,11 @@ class OutputUnitDataComputer extends DataComputer {
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    OutputUnitData data = compiler.backend.outputUnitData;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    OutputUnitData data = closedWorld.outputUnitData;
     String value = outputUnitString(data.outputUnitForClass(cls));
 
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
 
     _registerValue(
@@ -124,9 +122,9 @@ class OutputUnitDataComputer extends DataComputer {
 }
 
 class OutputUnitIrComputer extends IrDataExtractor {
-  final KernelToElementMapForBuilding _elementMap;
+  final JsToElementMap _elementMap;
   final OutputUnitData _data;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
 
   OutputUnitIrComputer(
       DiagnosticReporter reporter,

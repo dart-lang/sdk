@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -65,6 +66,33 @@ class ExitCodeSetter extends EventListener {
       exitCode = 1;
     }
   }
+}
+
+class TimedProgressPrinter extends EventListener {
+  static const interval = Duration(minutes: 5);
+  int _numTests = 0;
+  int _numCompleted = 0;
+  bool _allKnown = false;
+  Timer _timer;
+
+  TimedProgressPrinter() {
+    _timer = Timer.periodic(interval, callback);
+  }
+
+  void callback(Timer timer) {
+    if (_allKnown) {
+      print('$_numCompleted out of $_numTests completed');
+    }
+    print("Tests running for ${(interval * timer.tick).inMinutes} minutes");
+  }
+
+  void testAdded() => _numTests++;
+
+  void done(TestCase test) => _numCompleted++;
+
+  void allTestsKnown() => _allKnown = true;
+
+  void allDone() => _timer.cancel();
 }
 
 class IgnoredTestMonitor extends EventListener {
@@ -795,5 +823,79 @@ class ResultLogWriter extends EventListener {
       file.writeAsStringSync(
           jsonEncode({'configurations': configurations, 'results': results}));
     }
+  }
+}
+
+/// Writes a results.json file with a line for each test.
+/// Each line is a json map with the test name and result and expected result.
+/// Also writes a run.json file with a json map containing the configuration
+/// and the start time and duration of the run.
+class ResultWriter extends EventListener {
+  final TestConfiguration _configuration;
+  final List<Map> _results = [];
+  final String _outputDirectory;
+  final Stopwatch _startStopwatch;
+  final DateTime _startTime;
+
+  ResultWriter(this._configuration, this._startTime, this._startStopwatch)
+      : _outputDirectory = _configuration.outputDirectory;
+
+  void allTestsKnown() {
+    // Write an empty result log file, that will be overwritten if any tests
+    // are actually run, when the allDone event handler is invoked.
+    writeResultsFile([]);
+  }
+
+  void done(TestCase test) {
+    if (_configuration != test.configuration) {
+      throw new Exception("Two configurations in the same run. "
+          "Cannot output results for multiple configurations.");
+    }
+    final name = test.displayName;
+    final index = name.indexOf('/');
+    final suite = name.substring(0, index);
+    final testName = name.substring(index + 1);
+    Duration time =
+        test.commandOutputs.values.fold(Duration.zero, (d, o) => d + o.time);
+
+    var record = {
+      "name": name,
+      "configuration": _configuration.configuration.name,
+      "suite": suite,
+      "test_name": testName,
+      "time_ms": time.inMilliseconds,
+      "result": test.realResult.toString(),
+      "expected": test.realExpected.toString(),
+      "matches": test.realResult.canBeOutcomeOf(test.realExpected)
+    };
+    _results.add(record);
+  }
+
+  void allDone() {
+    writeResultsFile(_results);
+    writeRunFile();
+  }
+
+  void writeResultsFile(List<Map> results) {
+    if (_outputDirectory == null) return;
+    final path =
+        Uri.directory(_outputDirectory).resolve(TestUtils.resultsFileName);
+    String jsonLine(Map x) => jsonEncode(x) + '\n';
+    File.fromUri(path).writeAsStringSync(results.map(jsonLine).join());
+  }
+
+  void writeRunFile() {
+    _startStopwatch.stop();
+    if (_outputDirectory == null) return;
+    var suites = _configuration.selectors.keys.toList();
+    var run = {
+      "start_time": _startTime.millisecondsSinceEpoch ~/ 1000,
+      "duration": _startStopwatch.elapsed.inSeconds,
+      "configuration": _configuration.configuration.name,
+      "suites": suites
+    };
+    final path = Uri.directory(_outputDirectory)
+        .resolve(TestUtils.resultsInstanceFileName);
+    File.fromUri(path).writeAsStringSync(jsonEncode(run) + '\n');
   }
 }

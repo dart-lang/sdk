@@ -66,8 +66,8 @@ bool HostCPUFeatures::initialized_ = false;
 #endif
 
 #if !defined(USING_SIMULATOR)
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 #if defined(DEBUG)
   initialized_ = true;
@@ -87,8 +87,8 @@ void HostCPUFeatures::Cleanup() {
 
 #else  // !defined(USING_SIMULATOR)
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 #if defined(DEBUG)
   initialized_ = true;

@@ -8,7 +8,7 @@ library simple_function_subtype_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST = r"""
 typedef Args0();

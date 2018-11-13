@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*kernel.class: Class:*/
 /*strong.class: Class:explicit=[Class<int>],needsArgs*/
 /*omit.class: Class:*/
 class Class<T> {}
@@ -12,7 +11,7 @@ main() async {
   // implementation the closure, with type
   // `dynamic Function(dynamic, Class<int>)`, is not a potential subtype and
   // therefore doesn't need its signature.
-  /*kernel.*/
+
   /*strong.needsSignature*/
   /*omit.*/
   local(object, Class<int> stacktrace) => null;

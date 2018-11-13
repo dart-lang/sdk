@@ -13,21 +13,93 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NoTypeInfoTest);
+    defineReflectiveTests(PrefixedTypeInfoTest);
+    defineReflectiveTests(SimpleTypeInfoTest);
+    defineReflectiveTests(SimpleTypeWith1ArgumentTest);
     defineReflectiveTests(TypeInfoTest);
+    defineReflectiveTests(VoidTypeInfoTest);
+
+    defineReflectiveTests(NoTypeParamOrArgTest);
+    defineReflectiveTests(SimpleTypeParamOrArgTest);
     defineReflectiveTests(TypeParamOrArgInfoTest);
   });
 }
 
 @reflectiveTest
-class TypeInfoTest {
-  void test_noType() {
+class NoTypeInfoTest {
+  void test_basic() {
     final Token start = scanString('before ;').tokens;
 
     expect(noType.couldBeExpression, isFalse);
     expect(noType.skipType(start), start);
   }
 
-  void test_noType_ensureTypeNotVoid() {
+  void test_compute() {
+    expectInfo(noType, '');
+    expectInfo(noType, ';');
+    expectInfo(noType, '( foo');
+    expectInfo(noType, '< foo');
+    expectInfo(noType, '= foo');
+    expectInfo(noType, '* foo');
+    expectInfo(noType, 'do foo');
+    expectInfo(noType, 'get foo');
+    expectInfo(noType, 'set foo');
+    expectInfo(noType, 'operator *');
+
+    expectInfo(noType, 'C', required: false);
+    expectInfo(noType, 'C;', required: false);
+    expectInfo(noType, 'C(', required: false);
+    expectInfo(noType, 'C<', required: false);
+    expectInfo(noType, 'C.', required: false);
+    expectInfo(noType, 'C=', required: false);
+    expectInfo(noType, 'C*', required: false);
+    expectInfo(noType, 'C do', required: false);
+
+    expectInfo(noType, 'C.a', required: false);
+    expectInfo(noType, 'C.a;', required: false);
+    expectInfo(noType, 'C.a(', required: false);
+    expectInfo(noType, 'C.a<', required: false);
+    expectInfo(noType, 'C.a=', required: false);
+    expectInfo(noType, 'C.a*', required: false);
+    expectInfo(noType, 'C.a do', required: false);
+
+    expectInfo(noType, 'C<T>', required: false);
+    expectInfo(noType, 'C<T>;', required: false);
+    expectInfo(noType, 'C<T>(', required: false);
+    expectInfo(noType, 'C<T> do', required: false);
+    expectInfo(noType, 'C<void>', required: false);
+
+    expectInfo(noType, 'C<T>= foo', required: false);
+    expectInfo(noType, 'C<T>= get', required: false);
+    expectInfo(noType, 'C<T>= set', required: false);
+    expectInfo(noType, 'C<T>= operator', required: false);
+    expectInfo(noType, 'C<T>= Function', required: false);
+
+    expectInfo(noType, 'C<T>> foo', required: false);
+    expectInfo(noType, 'C<T>> get', required: false);
+    expectInfo(noType, 'C<T>> set', required: false);
+    expectInfo(noType, 'C<T>> operator', required: false);
+    expectInfo(noType, 'C<T>> Function', required: false);
+
+    expectInfo(noType, 'C<T>>= foo', required: false);
+    expectInfo(noType, 'C<T>>= get', required: false);
+    expectInfo(noType, 'C<T>>= set', required: false);
+    expectInfo(noType, 'C<T>>= operator', required: false);
+    expectInfo(noType, 'C<T>>= Function', required: false);
+
+    expectInfo(noType, 'C<S,T>', required: false);
+    expectInfo(noType, 'C<S<T>>', required: false);
+    expectInfo(noType, 'C.a<T>', required: false);
+    expectInfo(noType, 'C<S,T>=', required: false);
+    expectInfo(noType, 'C<S<T>>=', required: false);
+    expectInfo(noType, 'C.a<T>=', required: false);
+
+    expectInfo(noType, 'Function(int x)', required: false);
+    expectInfo(noType, 'Function<T>(int x)', required: false);
+  }
+
+  void test_ensureTypeNotVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -36,12 +108,12 @@ class TypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier  typeReference',
       'handleNoTypeArguments ;',
-      'handleType  ;',
+      'handleType ',
     ]);
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
   }
 
-  void test_noType_ensureTypeOrVoid() {
+  void test_ensureTypeOrVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -50,12 +122,12 @@ class TypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier  typeReference',
       'handleNoTypeArguments ;',
-      'handleType  ;',
+      'handleType ',
     ]);
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
   }
 
-  void test_noType_parseType() {
+  void test_parseType() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -64,7 +136,7 @@ class TypeInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_noType_parseTypeNotVoid() {
+  void test_parseTypeNotVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -72,15 +144,41 @@ class TypeInfoTest {
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
+}
 
-  void test_voidType() {
+@reflectiveTest
+class VoidTypeInfoTest {
+  void test_basic() {
     final Token start = scanString('before void ;').tokens;
 
     expect(voidType.skipType(start), start.next);
     expect(voidType.couldBeExpression, isFalse);
   }
 
-  void test_voidType_ensureTypeNotVoid() {
+  void test_compute() {
+    expectInfo(voidType, 'void');
+    expectInfo(voidType, 'void;');
+    expectInfo(voidType, 'void(');
+    expectInfo(voidType, 'void<');
+    expectInfo(voidType, 'void=');
+    expectInfo(voidType, 'void*');
+    expectInfo(voidType, 'void<T>');
+    expectInfo(voidType, 'void do');
+    expectInfo(voidType, 'void foo');
+    expectInfo(voidType, 'void get');
+    expectInfo(voidType, 'void set');
+    expectInfo(voidType, 'void operator');
+    expectInfo(voidType, 'void Function');
+
+    expectInfo(voidType, 'void Function()', required: false);
+    expectInfo(voidType, 'void Function<T>()', required: false);
+    expectInfo(voidType, 'void Function(int)', required: false);
+    expectInfo(voidType, 'void Function<T>(int)', required: false);
+    expectInfo(voidType, 'void Function(int x)', required: false);
+    expectInfo(voidType, 'void Function<T>(int x)', required: false);
+  }
+
+  void test_ensureTypeNotVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -88,12 +186,12 @@ class TypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
-      'handleType void ;',
+      'handleType void',
     ]);
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
   }
 
-  void test_voidType_ensureTypeOrVoid() {
+  void test_ensureTypeOrVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -102,7 +200,7 @@ class TypeInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_voidType_parseType() {
+  void test_parseType() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -111,7 +209,7 @@ class TypeInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_voidType_parseTypeNotVoid() {
+  void test_parseTypeNotVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -119,9 +217,28 @@ class TypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
-      'handleType void ;',
+      'handleType void',
     ]);
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+  }
+}
+
+@reflectiveTest
+class PrefixedTypeInfoTest {
+  void test_compute() {
+    expectInfo(prefixedType, 'C.a', required: true);
+    expectInfo(prefixedType, 'C.a;', required: true);
+    expectInfo(prefixedType, 'C.a(', required: true);
+    expectInfo(prefixedType, 'C.a<', required: true);
+    expectInfo(prefixedType, 'C.a=', required: true);
+    expectInfo(prefixedType, 'C.a*', required: true);
+    expectInfo(prefixedType, 'C.a do', required: true);
+
+    expectInfo(prefixedType, 'C.a foo');
+    expectInfo(prefixedType, 'C.a get');
+    expectInfo(prefixedType, 'C.a set');
+    expectInfo(prefixedType, 'C.a operator');
+    expectInfo(prefixedType, 'C.a Function');
   }
 
   void test_prefixedTypeInfo() {
@@ -139,7 +256,7 @@ class TypeInfoTest {
         'handleIdentifier a typeReferenceContinuation',
         'handleQualified .',
         'handleNoTypeArguments ;',
-        'handleType C ;',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -156,6 +273,35 @@ class TypeInfoTest {
     listener = new TypeInfoListener();
     assertResult(prefixedType.parseType(start, new Parser(listener)));
   }
+}
+
+@reflectiveTest
+class SimpleTypeInfoTest {
+  void test_compute() {
+    expectInfo(simpleType, 'C', required: true);
+    expectInfo(simpleType, 'C;', required: true);
+    expectInfo(simpleType, 'C(', required: true);
+    expectInfo(simpleType, 'C<', required: true);
+    expectComplexInfo('C.',
+        required: true, expectedErrors: [error(codeExpectedType, 2, 0)]);
+    expectInfo(simpleType, 'C=', required: true);
+    expectInfo(simpleType, 'C*', required: true);
+    expectInfo(simpleType, 'C do', required: true);
+
+    expectInfo(simpleType, 'C foo');
+    expectInfo(simpleType, 'C get');
+    expectInfo(simpleType, 'C set');
+    expectInfo(simpleType, 'C operator');
+    expectInfo(simpleType, 'C this');
+    expectInfo(simpleType, 'C Function');
+
+    expectInfo(simpleType, 'C Function()', required: false);
+    expectInfo(simpleType, 'C Function<T>()', required: false);
+    expectInfo(simpleType, 'C Function(int)', required: false);
+    expectInfo(simpleType, 'C Function<T>(int)', required: false);
+    expectInfo(simpleType, 'C Function(int x)', required: false);
+    expectInfo(simpleType, 'C Function<T>(int x)', required: false);
+  }
 
   void test_simpleTypeInfo() {
     final Token start = scanString('before C ;').tokens;
@@ -170,7 +316,7 @@ class TypeInfoTest {
       expect(listener.calls, [
         'handleIdentifier C typeReference',
         'handleNoTypeArguments ;',
-        'handleType C ;',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -187,8 +333,50 @@ class TypeInfoTest {
     listener = new TypeInfoListener();
     assertResult(simpleType.parseType(start, new Parser(listener)));
   }
+}
 
-  void test_simpleTypeArgumentsInfo() {
+@reflectiveTest
+class SimpleTypeWith1ArgumentTest {
+  void test_compute_gt() {
+    expectInfo(simpleTypeWith1Argument, 'C<T>', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T>;', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T>(', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T> do', required: true);
+
+    expectInfo(simpleTypeWith1Argument, 'C<T> foo');
+    expectInfo(simpleTypeWith1Argument, 'C<T> get');
+    expectInfo(simpleTypeWith1Argument, 'C<T> set');
+    expectInfo(simpleTypeWith1Argument, 'C<T> operator');
+    expectInfo(simpleTypeWith1Argument, 'C<T> Function');
+  }
+
+  void test_compute_gt_eq() {
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>=', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>=;', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>=(', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>= do', required: true);
+
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>= foo', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>= get', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>= set', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>= operator', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtEq, 'C<T>= Function', required: true);
+  }
+
+  void test_compute_gt_gt() {
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>>', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>>;', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>>(', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>> do', required: true);
+
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>> foo', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>> get', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>> set', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>> operator', required: true);
+    expectInfo(simpleTypeWith1ArgumentGtGt, 'C<T>> Function', required: true);
+  }
+
+  void test_gt() {
     final Token start = scanString('before C<T> ;').tokens;
     final Token expectedEnd = start.next.next.next.next;
     expect(expectedEnd.lexeme, '>');
@@ -204,9 +392,9 @@ class TypeInfoTest {
         'beginTypeArguments <',
         'handleIdentifier T typeReference',
         'handleNoTypeArguments >',
-        'handleType T >',
+        'handleType T',
         'endTypeArguments 1 < >',
-        'handleType C ;',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -228,18 +416,101 @@ class TypeInfoTest {
         simpleTypeWith1Argument.parseType(start, new Parser(listener)));
   }
 
-  void test_computeType_basic() {
-    expectInfo(noType, '');
-    expectInfo(noType, ';');
-    expectInfo(noType, '( foo');
-    expectInfo(noType, '< foo');
-    expectInfo(noType, '= foo');
-    expectInfo(noType, '* foo');
-    expectInfo(noType, 'do foo');
-    expectInfo(noType, 'get foo');
-    expectInfo(noType, 'set foo');
-    expectInfo(noType, 'operator *');
+  void test_gt_eq() {
+    final Token start = scanString('before C<T>= ;').tokens;
+    final Token t = start.next.next.next;
+    final Token semicolon = t.next.next;
+    expect(semicolon.lexeme, ';');
 
+    Token skip = simpleTypeWith1ArgumentGtEq.skipType(start);
+    expect(skip.lexeme, '>');
+    expect(skip.next.lexeme, '=');
+    expect(skip.next.next, semicolon);
+    expect(simpleTypeWith1ArgumentGtEq.couldBeExpression, isFalse);
+
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd.lexeme, '>');
+      expect(actualEnd.next.lexeme, '=');
+      expect(actualEnd.next.next, semicolon);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier T typeReference',
+        'handleNoTypeArguments >',
+        'handleType T',
+        'endTypeArguments 1 < >',
+        'handleType C',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtEq.ensureTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtEq.ensureTypeOrVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtEq.parseTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1ArgumentGtEq.parseType(start, new Parser(listener)));
+  }
+
+  void test_gt_gt() {
+    final Token start = scanString('before C<T>> ;').tokens;
+    final Token semicolon = start.next.next.next.next.next;
+    expect(semicolon.lexeme, ';');
+
+    Token skip = simpleTypeWith1ArgumentGtGt.skipType(start);
+    expect(skip.lexeme, '>');
+    expect(skip.next.lexeme, '>');
+    expect(skip.next.next, semicolon);
+    expect(simpleTypeWith1ArgumentGtGt.couldBeExpression, isFalse);
+
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd.lexeme, '>');
+      expect(actualEnd.next.lexeme, '>');
+      expect(actualEnd.next.next, semicolon);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier T typeReference',
+        'handleNoTypeArguments >',
+        'handleType T',
+        'endTypeArguments 1 < >',
+        'handleType C',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtGt.ensureTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtGt.ensureTypeOrVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtGt.parseTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1ArgumentGtGt.parseType(start, new Parser(listener)));
+  }
+}
+
+@reflectiveTest
+class TypeInfoTest {
+  void test_computeType_basic() {
     expectInfo(noType, '.', required: false);
     expectComplexInfo('.', required: true, expectedErrors: [
       error(codeExpectedType, 0, 1),
@@ -277,7 +548,7 @@ class TypeInfoTest {
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function m',
+      'endFunctionType Function',
     ]);
     expectComplexInfo('Function<T>() m', expectedAfter: 'm', expectedCalls: [
       'beginTypeVariables <',
@@ -293,7 +564,7 @@ class TypeInfoTest {
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function m',
+      'endFunctionType Function',
     ]);
     expectComplexInfo('Function(int) m', expectedAfter: 'm', expectedCalls: [
       'handleNoTypeVariables (',
@@ -305,13 +576,13 @@ class TypeInfoTest {
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
-      'handleType int )',
+      'handleType int',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory '
           'MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function m',
+      'endFunctionType Function',
     ]);
     expectComplexInfo('Function<T>(int) m', expectedAfter: 'm', expectedCalls: [
       'beginTypeVariables <',
@@ -331,17 +602,14 @@ class TypeInfoTest {
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
-      'handleType int )',
+      'handleType int',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory'
           ' MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function m',
+      'endFunctionType Function',
     ]);
-
-    expectInfo(noType, 'Function(int x)', required: false);
-    expectInfo(noType, 'Function<T>(int x)', required: false);
 
     expectComplexInfo('Function(int x)', required: true);
     expectComplexInfo('Function<T>(int x)', required: true);
@@ -355,42 +623,7 @@ class TypeInfoTest {
         expectedAfter: 'm');
   }
 
-  void test_computeType_identifier() {
-    expectInfo(noType, 'C', required: false);
-    expectInfo(noType, 'C;', required: false);
-    expectInfo(noType, 'C(', required: false);
-    expectInfo(noType, 'C<', required: false);
-    expectInfo(noType, 'C.', required: false);
-    expectInfo(noType, 'C=', required: false);
-    expectInfo(noType, 'C*', required: false);
-    expectInfo(noType, 'C do', required: false);
-
-    expectInfo(simpleType, 'C', required: true);
-    expectInfo(simpleType, 'C;', required: true);
-    expectInfo(simpleType, 'C(', required: true);
-    expectInfo(simpleType, 'C<', required: true);
-    expectComplexInfo('C.',
-        required: true, expectedErrors: [error(codeExpectedType, 2, 0)]);
-    expectInfo(simpleType, 'C=', required: true);
-    expectInfo(simpleType, 'C*', required: true);
-    expectInfo(simpleType, 'C do', required: true);
-
-    expectInfo(simpleType, 'C foo');
-    expectInfo(simpleType, 'C get');
-    expectInfo(simpleType, 'C set');
-    expectInfo(simpleType, 'C operator');
-    expectInfo(simpleType, 'C this');
-    expectInfo(simpleType, 'C Function');
-  }
-
   void test_computeType_identifierComplex() {
-    expectInfo(simpleType, 'C Function()', required: false);
-    expectInfo(simpleType, 'C Function<T>()', required: false);
-    expectInfo(simpleType, 'C Function(int)', required: false);
-    expectInfo(simpleType, 'C Function<T>(int)', required: false);
-    expectInfo(simpleType, 'C Function(int x)', required: false);
-    expectInfo(simpleType, 'C Function<T>(int x)', required: false);
-
     expectComplexInfo('C Function()', required: true);
     expectComplexInfo('C Function<T>()', required: true);
     expectComplexInfo('C Function(int)', required: true);
@@ -408,55 +641,35 @@ class TypeInfoTest {
           'beginFunctionType C',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments Function',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
+          'endFunctionType Function',
         ]);
   }
 
   void test_computeType_identifierTypeArg() {
-    expectInfo(noType, 'C<T>', required: false);
-    expectInfo(noType, 'C<T>;', required: false);
-    expectInfo(noType, 'C<T>(', required: false);
-    expectInfo(noType, 'C<T> do', required: false);
-    expectInfo(noType, 'C<void>', required: false);
-
-    expectInfo(simpleTypeWith1Argument, 'C<T>', required: true);
-    expectInfo(simpleTypeWith1Argument, 'C<T>;', required: true);
-    expectInfo(simpleTypeWith1Argument, 'C<T>(', required: true);
-    expectInfo(simpleTypeWith1Argument, 'C<T> do', required: true);
     expectComplexInfo('C<void>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleVoidKeyword void',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ]);
-
-    expectInfo(simpleTypeWith1Argument, 'C<T> foo');
-    expectInfo(simpleTypeWith1Argument, 'C<T> get');
-    expectInfo(simpleTypeWith1Argument, 'C<T> set');
-    expectInfo(simpleTypeWith1Argument, 'C<T> operator');
-    expectInfo(simpleTypeWith1Argument, 'C<T> Function');
   }
 
   void test_computeType_identifierTypeArgComplex() {
-    expectInfo(noType, 'C<S,T>', required: false);
-    expectInfo(noType, 'C<S<T>>', required: false);
-    expectInfo(noType, 'C.a<T>', required: false);
-
     expectComplexInfo('C<S,T>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >',
-      'handleType C ',
+      'handleType C',
     ]);
     expectComplexInfo('C<S<T>>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
@@ -465,23 +678,23 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ]);
     expectComplexInfo('C<S,T> f', expectedAfter: 'f', expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >',
-      'handleType C f',
+      'handleType C',
     ]);
     expectComplexInfo('C<S<T>> f', expectedAfter: 'f', expectedCalls: [
       'handleIdentifier C typeReference',
@@ -490,11 +703,11 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >',
-      'handleType C f',
+      'handleType C',
     ]);
   }
 
@@ -508,12 +721,12 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'handleNoTypeArguments >',
-          'handleType T >',
+          'handleType T',
           'endTypeArguments 1 < >',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
+          'endFunctionType Function',
         ]);
     expectComplexInfo('C<T> Function<T>(int x) Function<T>(int x)',
         required: false, expectedAfter: 'Function');
@@ -534,12 +747,12 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments double' /* was , */,
-          'handleType int double' /* was , */,
+          'handleType int' /* was , */,
           'handleIdentifier double typeReference',
           'handleNoTypeArguments >',
-          'handleType double >',
+          'handleType double',
           'endTypeArguments 2 < >',
-          'handleType G g',
+          'handleType G',
         ],
         expectedErrors: [
           error(codeExpectedButGot, 6, 6)
@@ -551,9 +764,9 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier  typeReference',
       'handleNoTypeArguments >',
-      'handleType  >',
+      'handleType ',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ], expectedErrors: [
       error(codeExpectedType, 2, 1)
     ]);
@@ -565,9 +778,9 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier  typeReference',
           'handleNoTypeArguments >',
-          'handleType  >',
+          'handleType ',
           'endTypeArguments 1 < >',
-          'handleType C f',
+          'handleType C',
         ],
         expectedErrors: [
           error(codeExpectedType, 2, 1)
@@ -580,7 +793,7 @@ class TypeInfoTest {
 
   void test_computeType_nested() {
     expectNestedInfo(simpleType, '<T>');
-    expectNestedInfo(simpleTypeWith1Argument, '<T<S>>');
+    expectNestedInfo(simpleTypeWith1ArgumentGtGt, '<T<S>>');
     expectNestedComplexInfo('<T<S,R>>');
     expectNestedComplexInfo('<T<S Function()>>');
     expectNestedComplexInfo('<T<S Function()>>');
@@ -593,30 +806,6 @@ class TypeInfoTest {
     expectNestedInfo(simpleType, '<T,>');
     expectNestedInfo(noType, '<,T<S>>');
     expectNestedInfo(simpleTypeWith1Argument, '<T<S>,>');
-  }
-
-  void test_computeType_prefixed() {
-    expectInfo(noType, 'C.a', required: false);
-    expectInfo(noType, 'C.a;', required: false);
-    expectInfo(noType, 'C.a(', required: false);
-    expectInfo(noType, 'C.a<', required: false);
-    expectInfo(noType, 'C.a=', required: false);
-    expectInfo(noType, 'C.a*', required: false);
-    expectInfo(noType, 'C.a do', required: false);
-
-    expectInfo(prefixedType, 'C.a', required: true);
-    expectInfo(prefixedType, 'C.a;', required: true);
-    expectInfo(prefixedType, 'C.a(', required: true);
-    expectInfo(prefixedType, 'C.a<', required: true);
-    expectInfo(prefixedType, 'C.a=', required: true);
-    expectInfo(prefixedType, 'C.a*', required: true);
-    expectInfo(prefixedType, 'C.a do', required: true);
-
-    expectInfo(prefixedType, 'C.a foo');
-    expectInfo(prefixedType, 'C.a get');
-    expectInfo(prefixedType, 'C.a set');
-    expectInfo(prefixedType, 'C.a operator');
-    expectInfo(prefixedType, 'C.a Function');
   }
 
   void test_computeType_prefixedComplex() {
@@ -643,10 +832,10 @@ class TypeInfoTest {
           'handleIdentifier a typeReferenceContinuation',
           'handleQualified .',
           'handleNoTypeArguments Function',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
+          'endFunctionType Function',
         ]);
     expectComplexInfo('C.a Function<T>(int x) Function<T>(int x)',
         required: false, expectedAfter: 'Function');
@@ -662,9 +851,9 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ]);
 
     expectComplexInfo('C.a<T> f', expectedAfter: 'f', expectedCalls: [
@@ -674,9 +863,9 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType C f',
+      'handleType C',
     ]);
   }
 
@@ -710,52 +899,39 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'handleNoTypeArguments >',
-          'handleType T >',
+          'handleType T',
           'endTypeArguments 1 < >',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
-          'handleType int x',
+          'handleType int',
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null x FormalParameterKind.mandatory '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function Function',
+          'endFunctionType Function',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
-          'handleType int x',
+          'handleType int',
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null x FormalParameterKind.mandatory '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
+          'endFunctionType Function',
         ]);
   }
 
   void test_computeType_void() {
-    expectInfo(voidType, 'void');
-    expectInfo(voidType, 'void;');
-    expectInfo(voidType, 'void(');
-    expectInfo(voidType, 'void<');
-    expectInfo(voidType, 'void=');
-    expectInfo(voidType, 'void*');
-    expectInfo(voidType, 'void<T>');
-    expectInfo(voidType, 'void do');
-    expectInfo(voidType, 'void foo');
-    expectInfo(voidType, 'void get');
-    expectInfo(voidType, 'void set');
-    expectInfo(voidType, 'void operator');
-    expectInfo(voidType, 'void Function');
     expectComplexInfo('void Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
@@ -764,26 +940,19 @@ class TypeInfoTest {
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
+          'endFunctionType Function',
         ]);
   }
 
   void test_computeType_voidComplex() {
-    expectInfo(voidType, 'void Function()', required: false);
     expectComplexInfo('void Function()', required: true, expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType void',
       'handleVoidKeyword void',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function ',
+      'endFunctionType Function',
     ]);
-
-    expectInfo(voidType, 'void Function<T>()', required: false);
-    expectInfo(voidType, 'void Function(int)', required: false);
-    expectInfo(voidType, 'void Function<T>(int)', required: false);
-    expectInfo(voidType, 'void Function(int x)', required: false);
-    expectInfo(voidType, 'void Function<T>(int x)', required: false);
 
     expectComplexInfo('void Function<T>()', required: true);
     expectComplexInfo('void Function(int)', required: true);
@@ -799,71 +968,167 @@ class TypeInfoTest {
 }
 
 @reflectiveTest
-class TypeParamOrArgInfoTest {
-  void test_noTypeParamOrArg() {
-    final Token start = scanString('before after').tokens;
+class NoTypeParamOrArgTest {
+  void test_basic() {
+    expect(noTypeParamOrArg.isSimpleTypeArgument, isFalse);
 
+    final Token start = scanString('before after').tokens;
     expect(noTypeParamOrArg.skip(start), start);
+    validateTokens(start);
   }
 
-  void test_noTypeParamOrArg_parseArguments() {
+  void test_compute() {
+    expectTypeParamOrArg(noTypeParamOrArg, '');
+    expectTypeParamOrArg(noTypeParamOrArg, 'a');
+    expectTypeParamOrArg(noTypeParamOrArg, 'a b');
+    expectTypeParamOrArg(noTypeParamOrArg, '<');
+    expectTypeParamOrArg(noTypeParamOrArg, '< b');
+    expectTypeParamOrArg(noTypeParamOrArg, '< 3 >');
+    expectTypeParamOrArg(noTypeParamOrArg, '< (');
+    expectTypeParamOrArg(noTypeParamOrArg, '< (', inDeclaration: true);
+  }
+
+  void test_parseArguments() {
     final Token start = scanString('before after').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
     expect(noTypeParamOrArg.parseArguments(start, new Parser(listener)), start);
+    validateTokens(start);
     expect(listener.calls, ['handleNoTypeArguments after']);
     expect(listener.errors, isNull);
   }
 
-  void test_noTypeParamOrArg_parseVariables() {
+  void test_parseVariables() {
     final Token start = scanString('before after').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
     expect(noTypeParamOrArg.parseVariables(start, new Parser(listener)), start);
+    validateTokens(start);
     expect(listener.calls, ['handleNoTypeVariables after']);
     expect(listener.errors, isNull);
   }
+}
 
-  void test_simple_skip() {
+@reflectiveTest
+class SimpleTypeParamOrArgTest {
+  void test_basic_gt() {
+    expect(simpleTypeArgument1.isSimpleTypeArgument, isTrue);
+    expect(simpleTypeArgument1.typeInfo, simpleTypeWith1Argument);
+
     final Token start = scanString('before <T> after').tokens;
     final Token gt = start.next.next.next;
     expect(gt.lexeme, '>');
 
-    expect(simpleTypeArgument1.skip(start), gt);
+    Token skip = simpleTypeArgument1.skip(start);
+    validateTokens(start);
+    expect(skip, gt);
   }
 
-  void test_simple_skip2() {
-    final Token start = scanString('before <S<T>> after').tokens.next.next;
+  void test_basic_gt_eq() {
+    expect(simpleTypeArgument1GtEq.isSimpleTypeArgument, isTrue);
+    expect(simpleTypeArgument1GtEq.typeInfo, simpleTypeWith1ArgumentGtEq);
+
+    final Token start = scanString('before <T>= after').tokens;
     Token t = start.next.next;
-    expect(t.next.lexeme, '>>');
+    expect(t.next.lexeme, '>=');
 
-    expect(simpleTypeArgument1.skip(start), t);
+    Token skip = simpleTypeArgument1GtEq.skip(start);
+    validateTokens(start);
+    expect(skip.lexeme, '>');
+    expect(skip.next.lexeme, '=');
+    expect(skip.next.next, t.next.next);
   }
 
-  void test_simple_parseArguments() {
-    final Token start = scanString('before <T> after').tokens;
-    final Token gt = start.next.next.next;
-    expect(gt.lexeme, '>');
+  void test_basic_gt_gt() {
+    expect(simpleTypeArgument1GtGt.isSimpleTypeArgument, isTrue);
+    expect(simpleTypeArgument1GtGt.typeInfo, simpleTypeWith1ArgumentGtGt);
+
+    final Token start = scanString('before <S<T>> after').tokens.next.next;
+    var gtgt = start.next.next.next;
+    expect(gtgt.lexeme, '>>');
+    Token after = gtgt.next;
+    expect(after.lexeme, 'after');
+
+    Token skip = simpleTypeArgument1GtGt.skip(start);
+    validateTokens(start);
+    expect(skip.lexeme, '>');
+    expect(skip.next.lexeme, '>');
+    expect(skip.next.next, after);
+  }
+
+  void test_compute_gt() {
+    expectTypeParamOrArg(simpleTypeArgument1, '<T>');
+  }
+
+  void test_compute_gt_eq() {
+    expectTypeParamOrArg(simpleTypeArgument1GtEq, '<T>=');
+  }
+
+  void test_compute_gt_gt() {
+    String source = '<C<T>>';
+    Token start = scan(source).next.next;
+    expect(start.lexeme, 'C');
+    Token gtgt = start.next.next.next;
+    expect(gtgt.lexeme, '>>');
+
+    expect(computeTypeParamOrArg(start, false), simpleTypeArgument1GtGt);
+    validateTokens(start);
+  }
+
+  void testParseArguments(TypeParamOrArgInfo typeArg, String source,
+      [String next]) {
+    final Token start = scanString('before $source after').tokens;
+    final Token after = start.next.next.next.next;
+    expect(after.lexeme, 'after');
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(simpleTypeArgument1.parseArguments(start, new Parser(listener)), gt);
+    var token = typeArg.parseArguments(start, new Parser(listener));
+    validateTokens(start);
+    expect(token.lexeme, '>');
+    token = token.next;
+    if (next != null) {
+      expect(token.lexeme, next);
+      token = token.next;
+    }
+    expect(token, after);
     expect(listener.calls, [
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >'
     ]);
     expect(listener.errors, isNull);
   }
 
-  void test_simple_parseVariables() {
-    final Token start = scanString('before <T> after').tokens;
-    final Token gt = start.next.next.next;
-    expect(gt.lexeme, '>');
+  void test_parseArguments_gt() {
+    testParseArguments(simpleTypeArgument1, '<T>');
+  }
+
+  void test_parseArguments_gt_eq() {
+    testParseArguments(simpleTypeArgument1GtEq, '<T>=', '=');
+  }
+
+  void test_parseArguments_gt_gt() {
+    testParseArguments(simpleTypeArgument1GtGt, '<T>>', '>');
+  }
+
+  void testParseVariables(TypeParamOrArgInfo typeParam, String source,
+      [String next]) {
+    final Token start = scanString('before $source after').tokens;
+    final Token after = start.next.next.next.next;
+    expect(after.lexeme, 'after');
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(simpleTypeArgument1.parseVariables(start, new Parser(listener)), gt);
+    Token token = typeParam.parseVariables(start, new Parser(listener));
+    validateTokens(start);
+    expect(token.lexeme, '>');
+    token = token.next;
+    if (next != null) {
+      expect(token.lexeme, next);
+      token = token.next;
+    }
+    expect(token, after);
     expect(listener.calls, [
       'beginTypeVariables <',
       'beginMetadataStar T',
@@ -878,39 +1143,50 @@ class TypeParamOrArgInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_computeTypeParamOrArg_basic() {
-    expectTypeParamOrArg(noTypeParamOrArg, '');
-    expectTypeParamOrArg(noTypeParamOrArg, 'a');
-    expectTypeParamOrArg(noTypeParamOrArg, 'a b');
-    expectTypeParamOrArg(noTypeParamOrArg, '<');
-    expectTypeParamOrArg(noTypeParamOrArg, '< b');
-    expectTypeParamOrArg(noTypeParamOrArg, '< 3 >');
+  void test_parseVariables_gt() {
+    testParseVariables(simpleTypeArgument1, '<T>');
   }
 
-  void test_computeTypeParamOrArg_simple() {
-    expectTypeParamOrArg(simpleTypeArgument1, '<T>');
+  void test_parseVariables_gt_eq() {
+    testParseVariables(simpleTypeArgument1GtEq, '<T>=', '=');
   }
 
-  void test_computeTypeParamOrArg_simple_nested() {
-    String source = '<C<T>>';
-    Token start = scan(source).next.next;
-    expect(start.lexeme, 'C');
-    Token gtgt = start.next.next.next;
-    expect(gtgt.lexeme, '>>');
-
-    TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, false, gtgt);
-    expect(typeVarInfo, simpleTypeArgument1, reason: source);
+  void test_parseVariables_gt_gt() {
+    testParseVariables(simpleTypeArgument1GtGt, '<T>>', '>');
   }
+}
 
+@reflectiveTest
+class TypeParamOrArgInfoTest {
   void test_computeTypeArg_complex() {
     expectComplexTypeArg('<S,T>', expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
+      'endTypeArguments 2 < >'
+    ]);
+    expectComplexTypeArg('<S,T>=', expectedAfter: '=', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >=',
+      'handleType T',
+      'endTypeArguments 2 < >'
+    ]);
+    expectComplexTypeArg('<S,T>>=', expectedAfter: '>=', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >>=',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<S Function()>', expectedCalls: [
@@ -919,10 +1195,10 @@ class TypeParamOrArgInfoTest {
       'beginFunctionType S',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments Function',
-      'handleType S Function',
+      'handleType S',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >',
+      'endFunctionType Function',
       'endTypeArguments 1 < >'
     ]);
     expectComplexTypeArg('<void Function()>', expectedCalls: [
@@ -932,7 +1208,7 @@ class TypeParamOrArgInfoTest {
       'handleVoidKeyword void',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >',
+      'endFunctionType Function',
       'endTypeArguments 1 < >'
     ]);
     expectComplexTypeArg('<S<T>>', expectedCalls: [
@@ -941,9 +1217,20 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeArg('<S<T>>=', expectedAfter: '=', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >>=',
+      'handleType T',
+      'endTypeArguments 1 < >',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
     expectComplexTypeArg('<S<Function()>>', expectedCalls: [
@@ -955,11 +1242,27 @@ class TypeParamOrArgInfoTest {
       'handleNoType <',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >',
+      'endFunctionType Function',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
+    expectComplexTypeArg('<S<Function()>>=',
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType Function',
+          'handleNoType <',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
     expectComplexTypeArg('<S<void Function()>>', expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -969,30 +1272,30 @@ class TypeParamOrArgInfoTest {
       'handleVoidKeyword void', // was 'handleNoType <'
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >',
+      'endFunctionType Function',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
   }
 
   void test_computeTypeArg_complex_recovery() {
     expectComplexTypeArg('<S extends T>', expectedErrors: [
-      error(codeUnexpectedToken, 3, 7)
+      error(codeExpectedAfterButGot, 1, 1)
     ], expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments extends',
-      'handleType S extends',
+      'handleType S',
       'endTypeArguments 1 < >',
     ]);
     expectComplexTypeArg('<S extends List<T>>', expectedErrors: [
-      error(codeUnexpectedToken, 3, 7)
+      error(codeExpectedAfterButGot, 1, 1)
     ], expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments extends',
-      'handleType S extends',
+      'handleType S',
       'endTypeArguments 1 < >',
     ]);
     expectComplexTypeArg('<@A S,T>', expectedErrors: [
@@ -1001,10 +1304,10 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<@A() S,T>', expectedErrors: [
@@ -1013,10 +1316,10 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<@A() @B S,T>', expectedErrors: [
@@ -1026,19 +1329,33 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<S T>',
         inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 3, 1)]);
     expectComplexTypeArg('<S',
-        inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 2, 0)]);
+        inDeclaration: true,
+        expectedErrors: [error(codeExpectedAfterButGot, 1, 1)]);
     expectComplexTypeArg('<@Foo S', inDeclaration: true, expectedErrors: [
       error(codeUnexpectedToken, 1, 1),
-      error(codeExpectedButGot, 7, 0)
+      error(codeExpectedAfterButGot, 6, 1)
+    ]);
+    expectComplexTypeArg('<S<T', inDeclaration: true, expectedErrors: [
+      error(codeExpectedAfterButGot, 3, 1)
+    ], expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments ',
+      'handleType T',
+      'endTypeArguments 1 < >',
+      'handleType S',
+      'endTypeArguments 1 < >'
     ]);
   }
 
@@ -1069,21 +1386,8 @@ class TypeParamOrArgInfoTest {
       'handleTypeVariablesDefined T 1',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeVariable > 0 extends',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<S super T>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined T 1',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeVariable > 0 super',
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<S extends List<T>>', expectedCalls: [
@@ -1097,9 +1401,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType List >',
+      'handleType List',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
@@ -1119,7 +1423,7 @@ class TypeParamOrArgInfoTest {
       'handleVoidKeyword void',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >',
+      'endFunctionType Function',
       'endTypeVariable > 1 extends',
       'handleNoType R',
       'endTypeVariable , 0 null',
@@ -1200,9 +1504,27 @@ class TypeParamOrArgInfoTest {
     ]);
   }
 
+  void test_computeTypeParam_complex_extends_void() {
+    expectComplexTypeParam('<T extends void>', expectedErrors: [
+      error(codeInvalidVoid, 11, 4),
+    ], expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleTypeVariablesDefined void 1',
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments >',
+      'handleType void',
+      'endTypeVariable > 0 extends',
+      'endTypeVariables < >'
+    ]);
+  }
+
   void test_computeTypeParam_complex_recovery() {
     expectComplexTypeParam('<S Function()>', expectedErrors: [
-      error(codeUnexpectedToken, 3, 8),
+      error(codeExpectedAfterButGot, 1, 1),
     ], expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',
@@ -1216,7 +1538,6 @@ class TypeParamOrArgInfoTest {
     ]);
     expectComplexTypeParam('<void Function()>', expectedErrors: [
       error(codeExpectedIdentifier, 1, 4),
-      error(codeUnexpectedToken, 1, 4),
     ], expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar void',
@@ -1229,7 +1550,7 @@ class TypeParamOrArgInfoTest {
       'endTypeVariables < >',
     ]);
     expectComplexTypeParam('<S<T>>', expectedErrors: [
-      error(codeUnexpectedToken, 2, 1),
+      error(codeExpectedAfterButGot, 1, 1),
     ], expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',
@@ -1245,10 +1566,36 @@ class TypeParamOrArgInfoTest {
       error(codeExpectedButGot, 3, 1),
     ]);
     expectComplexTypeParam('<S', inDeclaration: true, expectedErrors: [
-      error(codeExpectedButGot, 2, 0),
+      error(codeExpectedAfterButGot, 1, 1),
     ]);
     expectComplexTypeParam('<@Foo S',
-        inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 7, 0)]);
+        inDeclaration: true,
+        expectedErrors: [error(codeExpectedAfterButGot, 6, 1)]);
+    expectComplexTypeParam('<@Foo }',
+        inDeclaration: true,
+        expectedAfter: '}',
+        expectedErrors: [error(codeExpectedIdentifier, 6, 1)]);
+    expectComplexTypeParam('<S extends List<T fieldName;',
+        inDeclaration: true,
+        expectedErrors: [error(codeExpectedAfterButGot, 16, 1)],
+        expectedAfter: 'fieldName',
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined > 1',
+          'handleIdentifier List typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments fieldName',
+          'handleType T',
+          'endTypeArguments 1 < >',
+          'handleType List',
+          'endTypeVariable fieldName 0 extends',
+          'endTypeVariables < >',
+        ]);
   }
 
   void test_computeTypeParam_31846() {
@@ -1263,9 +1610,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType Comparable >',
+      'handleType Comparable',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
@@ -1286,9 +1633,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >',
-      'handleType Comparable ,',
+      'handleType Comparable',
       'endTypeVariable , 0 extends',
       'endTypeVariables < >'
     ]);
@@ -1308,12 +1655,12 @@ class TypeParamOrArgInfoTest {
       'beginFormalParameter T MemberKind.GeneralizedFunctionType',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments )',
-      'handleType T )',
+      'handleType T',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >',
+      'endFunctionType Function',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >'
     ]);
@@ -1323,21 +1670,54 @@ class TypeParamOrArgInfoTest {
       'endMetadataStar 0',
       'handleIdentifier T typeVariableDeclaration',
       'beginTypeVariable T',
-      'handleTypeVariablesDefined >> 1',
+      'handleTypeVariablesDefined > 1',
       'handleIdentifier List typeReference',
       'beginTypeArguments <',
       'handleIdentifier List typeReference',
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType List >',
+      'handleType List',
       'endTypeArguments 1 < >',
-      'handleType List >',
+      'handleType List',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >'
     ]);
+  }
+
+  void test_computeTypeParam_34850() {
+    expectComplexTypeParam('<S<T>> A', expectedAfter: 'A', expectedErrors: [
+      error(codeExpectedAfterButGot, 1, 1),
+    ], expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar S',
+      'endMetadataStar 0',
+      'handleIdentifier S typeVariableDeclaration',
+      'beginTypeVariable S',
+      'handleTypeVariablesDefined S 1',
+      'handleNoType S',
+      'endTypeVariable < 0 null',
+      'endTypeVariables < >',
+    ]);
+    expectComplexTypeParam('<S();> A',
+        inDeclaration: true,
+        expectedAfter: 'A',
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1),
+        ],
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined S 1',
+          'handleNoType S',
+          'endTypeVariable ( 0 null',
+          'endTypeVariables < >',
+        ]);
   }
 }
 
@@ -1370,14 +1750,7 @@ void expectComplexInfo(String source,
 void expectNestedInfo(expectedInfo, String source) {
   expect(source.startsWith('<'), isTrue);
   Token start = scan(source).next;
-  Token innerEndGroup = start;
-  while (!innerEndGroup.next.isEof) {
-    innerEndGroup = innerEndGroup.next;
-  }
-  if (!optional('>>', innerEndGroup)) {
-    innerEndGroup = null;
-  }
-  compute(expectedInfo, source, start, true, innerEndGroup: innerEndGroup);
+  compute(expectedInfo, source, start, true);
 }
 
 void expectNestedComplexInfo(String source) {
@@ -1385,10 +1758,9 @@ void expectNestedComplexInfo(String source) {
 }
 
 TypeInfo compute(expectedInfo, String source, Token start, bool required,
-    {bool inDeclaration = false, Token innerEndGroup}) {
+    {bool inDeclaration = false}) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  TypeInfo typeInfo =
-      computeType(start, required, inDeclaration, innerEndGroup);
+  TypeInfo typeInfo = computeType(start, required, inDeclaration);
   expect(typeInfo, expectedInfo, reason: source);
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'computeType should not modify the token stream');
@@ -1439,6 +1811,7 @@ void expectComplexTypeArg(String source,
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
+  validateTokens(start);
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'TypeParamOrArgInfo.skipType'
           ' should not modify the token stream');
@@ -1446,6 +1819,7 @@ void expectComplexTypeArg(String source,
   TypeInfoListener listener = new TypeInfoListener();
   Parser parser = new Parser(listener);
   Token actualEnd = typeVarInfo.parseArguments(start, parser);
+  validateTokens(start);
   expectEnd(expectedAfter, actualEnd);
 
   if (expectedCalls != null) {
@@ -1469,13 +1843,16 @@ void expectComplexTypeParam(String source,
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
+  validateTokens(start);
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'TypeParamOrArgInfo.skipType'
           ' should not modify the token stream');
 
-  TypeInfoListener listener = new TypeInfoListener(metadataAllowed: true);
+  TypeInfoListener listener =
+      new TypeInfoListener(firstToken: start, metadataAllowed: true);
   Parser parser = new Parser(listener);
   Token actualEnd = typeVarInfo.parseVariables(start, parser);
+  validateTokens(start);
   expectEnd(expectedAfter, actualEnd);
 
   if (expectedCalls != null) {
@@ -1497,6 +1874,7 @@ TypeParamOrArgInfo computeVar(
     expectedInfo, String source, Token start, bool inDeclaration) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, inDeclaration);
+  validateTokens(start);
   expect(typeVarInfo, expectedInfo, reason: source);
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'computeTypeParamOrArg should not modify the token stream');
@@ -1506,7 +1884,9 @@ TypeParamOrArgInfo computeVar(
 void expectEnd(String tokenAfter, Token end) {
   if (tokenAfter == null) {
     expect(end.isEof, isFalse);
-    expect(end.next.isEof, isTrue);
+    if (!end.next.isEof) {
+      fail('Expected EOF after $end but found ${end.next}');
+    }
   } else {
     expect(end.next.lexeme, tokenAfter);
   }
@@ -1532,12 +1912,35 @@ int countGtGtAndNullEnd(Token token) {
   return count;
 }
 
+void validateTokens(Token token) {
+  int count = 0;
+  if (token.isEof && !token.next.isEof) {
+    token = token.next;
+  }
+  while (!token.isEof) {
+    Token next = token.next;
+    expect(token.charOffset, lessThanOrEqualTo(next.charOffset));
+    expect(next.previous, token, reason: next.type.toString());
+    if (next is SyntheticToken) {
+      expect(next.beforeSynthetic, token);
+    }
+    expect(count, lessThanOrEqualTo(10000));
+    token = next;
+    ++count;
+  }
+}
+
 class TypeInfoListener implements Listener {
   final bool metadataAllowed;
   List<String> calls = <String>[];
   List<ExpectedError> errors;
+  Token firstToken;
 
-  TypeInfoListener({this.metadataAllowed: false});
+  TypeInfoListener({this.firstToken, this.metadataAllowed: false}) {
+    if (firstToken != null && firstToken.isEof) {
+      firstToken = firstToken.next;
+    }
+  }
 
   @override
   void beginArguments(Token token) {
@@ -1616,8 +2019,8 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token endToken) {
-    calls.add('endFunctionType $functionToken $endToken');
+  void endFunctionType(Token functionToken) {
+    calls.add('endFunctionType $functionToken');
   }
 
   @override
@@ -1637,16 +2040,22 @@ class TypeInfoListener implements Listener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     calls.add('endTypeArguments $count $beginToken $endToken');
+    assertTokenInStream(beginToken);
+    assertTokenInStream(endToken);
   }
 
   @override
   void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     calls.add('endTypeVariable $token $index $extendsOrSuper');
+    assertTokenInStream(token);
+    assertTokenInStream(extendsOrSuper);
   }
 
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
     calls.add('endTypeVariables $beginToken $endToken');
+    assertTokenInStream(beginToken);
+    assertTokenInStream(endToken);
   }
 
   @override
@@ -1702,8 +2111,8 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
-    calls.add('handleType $beginToken $endToken');
+  void handleType(Token beginToken) {
+    calls.add('handleType $beginToken');
   }
 
   @override
@@ -1718,6 +2127,25 @@ class TypeInfoListener implements Listener {
 
   noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
+  }
+
+  assertTokenInStream(Token match) {
+    if (firstToken != null && match != null && !match.isEof) {
+      Token token = firstToken;
+      while (!token.isEof) {
+        if (identical(token, match)) {
+          return;
+        }
+        token = token.next;
+      }
+      final msg = new StringBuffer();
+      msg.writeln('Expected $match in token stream, but found');
+      while (!token.isEof) {
+        msg.write(' $token');
+        token = token.next;
+      }
+      fail(msg.toString());
+    }
   }
 }
 

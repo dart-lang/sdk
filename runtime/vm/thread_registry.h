@@ -31,7 +31,11 @@ class ThreadRegistry {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
-  void PrepareForGC();
+
+  void ReleaseStoreBuffers();
+  void AcquireMarkingStacks();
+  void ReleaseMarkingStacks();
+
   Thread* mutator_thread() const { return mutator_thread_; }
 
 #ifndef PRODUCT

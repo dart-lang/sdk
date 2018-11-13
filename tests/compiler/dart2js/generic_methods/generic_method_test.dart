@@ -174,12 +174,12 @@ noSuchMethod: Class2.method6<int>
 
 main(List<String> args) {
   asyncTest(() async {
-    Compiler compiler = await runWithD8(memorySourceFiles: {
+    D8Result result = await runWithD8(memorySourceFiles: {
       'main.dart': SOURCE
     }, options: [
-      Flags.strongMode,
       Flags.disableRtiOptimization,
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
+    Compiler compiler = result.compilationResult.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

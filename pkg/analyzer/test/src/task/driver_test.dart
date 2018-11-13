@@ -177,7 +177,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
         new ResultDescriptor<String>('result', null);
     context
         .getCacheEntry(target)
-        .setValue(result, '', TargetedResult.EMPTY_LIST);
+        .setValue(result, '', const <TargetedResult>[]);
 
     expect(analysisDriver.createWorkOrderForResult(target, result), isNull);
   }
@@ -484,7 +484,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
     if (complete) {
       context
           .getCacheEntry(target)
-          .setValue(result, '', TargetedResult.EMPTY_LIST);
+          .setValue(result, '', const <TargetedResult>[]);
     } else {
       context.getCacheEntry(target).setState(result, CacheState.INVALID);
     }

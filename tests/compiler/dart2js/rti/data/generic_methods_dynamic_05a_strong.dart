@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-/*kernel.class: A:deps=[C.bar],explicit=[A<B>],needsArgs*/
 /*omit.class: A:deps=[C.bar],explicit=[A<B>],needsArgs*/
 /*strong.class: A:deps=[C.bar],direct,explicit=[A.T,A<B>,A<bar.T>],needsArgs*/
 class A<T> {
@@ -15,13 +14,11 @@ class A<T> {
   A(this.field);
 }
 
-/*kernel.class: B:explicit=[A<B>]*/
 /*omit.class: B:explicit=[A<B>]*/
 /*strong.class: B:explicit=[A<B>],implicit=[B]*/
 class B {}
 
 class C {
-  /*kernel.element: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   /*omit.element: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   /*strong.element: C.bar:explicit=[A<bar.T>],implicit=[bar.T],indirect,needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   A<T> bar<T>(A<T> t) => new A<T>(t.field);

@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -32,6 +31,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -209,9 +209,9 @@ void main() {
 
   test_locate_CompilationUnit() async {
     CompilationUnit cu = await _resolveContents("// only comment");
-    expect(cu.element, isNotNull);
+    expect(cu.declaredElement, isNotNull);
     Element element = ElementLocator.locate(cu);
-    expect(element, same(cu.element));
+    expect(element, same(cu.declaredElement));
   }
 
   test_locate_ConstructorDeclaration() async {
@@ -578,8 +578,8 @@ class EnumMemberBuilderTest extends EngineTestCase {
     String firstName = "ONE";
     String secondName = "TWO";
     String thirdName = "THREE";
-    EnumDeclaration enumDeclaration = AstTestFactory
-        .enumDeclaration2("E", [firstName, secondName, thirdName]);
+    EnumDeclaration enumDeclaration = AstTestFactory.enumDeclaration2(
+        "E", [firstName, secondName, thirdName]);
 
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
@@ -611,8 +611,8 @@ class EnumMemberBuilderTest extends EngineTestCase {
     String firstName = "ONE";
     EnumDeclaration enumDeclaration =
         AstTestFactory.enumDeclaration2("E", [firstName]);
-    enumDeclaration.constants[0].documentationComment = AstTestFactory
-        .documentationComment(
+    enumDeclaration.constants[0].documentationComment =
+        AstTestFactory.documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
 
     ClassElement enumElement = _buildElement(enumDeclaration);
@@ -663,7 +663,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
   }
 
   ElementBuilder _makeBuilder(ElementHolder holder) =>
-      new ElementBuilder(holder, new CompilationUnitElementImpl('test.dart'));
+      new ElementBuilder(holder, new CompilationUnitElementImpl());
 }
 
 @reflectiveTest
@@ -694,9 +694,7 @@ class ErrorReporterTest extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     ErrorReporter reporter = new ErrorReporter(listener, element.source);
     reporter.reportErrorForElement(
-        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-        element,
-        ['A']);
+        StaticWarningCode.CAST_TO_NON_TYPE, element, ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
@@ -710,9 +708,7 @@ class ErrorReporterTest extends EngineTestCase {
         new NonExistingSource(
             '/test.dart', path.toUri('/test.dart'), UriKind.FILE_URI));
     reporter.reportErrorForElement(
-        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-        element,
-        ['A']);
+        StaticWarningCode.CAST_TO_NON_TYPE, element, ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
@@ -2057,8 +2053,7 @@ class UriKindTest {
   }
 }
 
-class _SimpleDartSdkTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+class _SimpleDartSdkTest extends Object with ResourceProviderMixin {
   String coreCorePath;
   String coreIntPath;
   DartSdk sdk;

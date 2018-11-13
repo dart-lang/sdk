@@ -10,8 +10,8 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/ssa/builder_kernel.dart' as kernel;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
@@ -29,11 +29,6 @@ main(List<String> args) {
 class InliningDataComputer extends DataComputer {
   const InliningDataComputer();
 
-  @override
-  void setup() {
-    JavaScriptBackend.cacheCodegenImpactForTesting = true;
-  }
-
   /// Compute type inference data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.
@@ -41,11 +36,11 @@ class InliningDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backend, backendStrategy.closureDataLookup)
+            compiler.backend, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 }
@@ -53,8 +48,8 @@ class InliningDataComputer extends DataComputer {
 /// AST visitor for computing inference data for a member.
 class InliningIrComputer extends IrDataExtractor {
   final JavaScriptBackend backend;
-  final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final JsToElementMap _elementMap;
+  final ClosureData _closureDataLookup;
 
   InliningIrComputer(
       DiagnosticReporter reporter,
@@ -93,15 +88,27 @@ class InliningIrComputer extends IrDataExtractor {
         }
       });
       StringBuffer sb = new StringBuffer();
-      String tooDifficultReason = getTooDifficultReason(member);
+      String tooDifficultReason1 = getTooDifficultReasonForbidLoops(member);
+      String tooDifficultReason2 = getTooDifficultReasonAllowLoops(member);
       inlinedIn.sort();
-      if (tooDifficultReason != null) {
-        sb.write(tooDifficultReason);
-        if (inlinedIn.isNotEmpty) {
-          sb.write(',[${inlinedIn.join(',')}]');
-        }
-      } else {
-        sb.write('[${inlinedIn.join(',')}]');
+      String sep = '';
+      if (tooDifficultReason1 != null) {
+        sb.write(sep);
+        sb.write(tooDifficultReason1);
+        sep = ',';
+      }
+      if (tooDifficultReason2 != null &&
+          tooDifficultReason2 != tooDifficultReason1) {
+        sb.write(sep);
+        sb.write('(allowLoops)');
+        sb.write(tooDifficultReason2);
+        sep = ',';
+      }
+      if (inlinedIn.isNotEmpty || sep == '') {
+        sb.write(sep);
+        sb.write('[');
+        sb.write(inlinedIn.join(','));
+        sb.write(']');
       }
       return sb.toString();
     }
@@ -113,10 +120,16 @@ class InliningIrComputer extends IrDataExtractor {
         .getConstructorBody(_elementMap.getMemberDefinition(constructor).node);
   }
 
-  String getTooDifficultReason(MemberEntity member) {
+  String getTooDifficultReasonForbidLoops(MemberEntity member) {
     if (member is! FunctionEntity) return null;
     return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
         enableUserAssertions: true);
+  }
+
+  String getTooDifficultReasonAllowLoops(MemberEntity member) {
+    if (member is! FunctionEntity) return null;
+    return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
+        allowLoops: true, enableUserAssertions: true);
   }
 
   @override

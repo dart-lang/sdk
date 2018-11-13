@@ -79,7 +79,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return Connect(fd, addr);
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
@@ -97,6 +100,15 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     VOID_NO_RETRY_EXPECTED(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
   }
+
+  if (reusePort) {
+    int optval = 1;
+    VOID_NO_RETRY_EXPECTED(
+        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)));
+  }
+
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)));
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {

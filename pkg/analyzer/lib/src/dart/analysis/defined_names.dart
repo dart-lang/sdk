@@ -33,6 +33,9 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
       if (member is ClassDeclaration) {
         member.members.forEach(appendClassMemberName);
       }
+      if (member is MixinDeclaration) {
+        member.members.forEach(appendClassMemberName);
+      }
     } else if (member is TopLevelVariableDeclaration) {
       for (VariableDeclaration variable in member.variables.variables) {
         appendName(names.topLevelNames, variable.name);

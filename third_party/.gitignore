@@ -6,10 +6,11 @@
 !pkg
 !pkg_tested
 !/tcmalloc
-!drt_resources
 !d8
 !7zip.tar.gz.sha1
 !firefox_jsshell
 !gsutil.tar.gz.sha1
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1
+!update.sh
+!/googletest

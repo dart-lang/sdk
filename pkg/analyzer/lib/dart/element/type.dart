@@ -34,6 +34,7 @@ abstract class DartType {
   /**
    * An empty list of types.
    */
+  @deprecated
   static const List<DartType> EMPTY_LIST = const <DartType>[];
 
   /**
@@ -351,6 +352,7 @@ abstract class InterfaceType implements ParameterizedType {
   /**
    * An empty list of types.
    */
+  @deprecated
   static const List<InterfaceType> EMPTY_LIST = const <InterfaceType>[];
 
   /**
@@ -397,6 +399,13 @@ abstract class InterfaceType implements ParameterizedType {
    * replaced.
    */
   InterfaceType get superclass;
+
+  /**
+   * Return a list containing all of the super-class constraints that this
+   * mixin declaration declares. The list will be empty if this class does not
+   * represent a mixin declaration.
+   */
+  List<InterfaceType> get superclassConstraints;
 
   /**
    * Return the element representing the getter with the given [name] that is
@@ -717,6 +726,7 @@ abstract class TypeParameterType implements DartType {
   /**
    * An empty list of type parameter types.
    */
+  @deprecated
   static const List<TypeParameterType> EMPTY_LIST = const <TypeParameterType>[];
 
   /**

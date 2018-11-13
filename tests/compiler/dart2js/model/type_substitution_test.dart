@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
-import '../type_test_helper.dart';
+import '../helpers/type_test_helper.dart';
 
 DartType getType(ElementEnvironment elementEnvironment, String name) {
   ClassEntity cls =

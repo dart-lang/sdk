@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// TODO(ahe): Copied from closure_conversion branch of kernel, remove this file
-// when closure_conversion is merged with master.
-
 library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
@@ -26,24 +23,21 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 
 import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
 
-import 'package:kernel/target/targets.dart' show Target;
-
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step, TestDescription;
+    show ChainContext, Result, StdioProcess, Step;
 
-import 'package:front_end/src/api_prototype/front_end.dart';
+import '../../api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
+import '../../base/processed_options.dart' show ProcessedOptions;
 
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
-import '../compiler_context.dart';
+import '../compiler_context.dart' show CompilerContext;
 
 import '../kernel/verifier.dart' show verifyComponent;
+
+import '../messages.dart' show LocatedMessage;
 
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
@@ -73,17 +67,26 @@ class Verify extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(
       Component component, ChainContext context) async {
-    var options = new ProcessedOptions(new CompilerOptions());
+    StringBuffer messages = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
+            }
+            messages.writeAll(message.plainTextFormatted, "\n");
+          });
     return await CompilerContext.runWithOptions(options, (_) async {
-      var errors = verifyComponent(component,
+      List<LocatedMessage> verificationErrors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);
-      if (errors.isEmpty) {
+      assert(verificationErrors.isEmpty || messages.isNotEmpty);
+      if (messages.isEmpty) {
         return pass(component);
       } else {
-        return new Result<Component>(
-            null, context.expectationSet["VerificationError"], errors, null);
+        return new Result<Component>(null,
+            context.expectationSet["VerificationError"], "$messages", null);
       }
-    });
+    }, errorOnMissingInput: false);
   }
 }
 
@@ -123,17 +126,26 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
 
   String get name => "match expectations";
 
-  Future<Result<Component>> run(Component component, _) async {
+  Future<Result<Component>> run(Component component, dynamic context) async {
+    StringBuffer messages = context.componentToDiagnostics[component];
     Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
+    if (messages.isNotEmpty) {
+      buffer.write("// Formatted problems:\n//");
+      for (String line in "${messages}".split("\n")) {
+        buffer.write("\n// $line".trimRight());
+      }
+      buffer.write("\n\n");
+      messages.clear();
+    }
     for (Field field in library.fields) {
       if (field.name.name != "#errors") continue;
       ListLiteral list = field.initializer;
-      buffer.write("// Errors:");
+      buffer.write("// Unhandled errors:");
       for (StringLiteral string in list.expressions) {
         buffer.write("\n//");
         for (String line in string.value.split("\n")) {
@@ -225,50 +237,6 @@ class Copy extends Step<Component, Component, ChainContext> {
     new BinaryBuilder(bytes).readComponent(component);
     return pass(component);
   }
-}
-
-/// A `package:testing` step that runs the `package:front_end` compiler to
-/// generate a kernel component for an individual file.
-///
-/// Most options are hard-coded, but if necessary they could be moved to the
-/// [CompileContext] object in the future.
-class Compile extends Step<TestDescription, Component, CompileContext> {
-  const Compile();
-
-  String get name => "fasta compilation";
-
-  Future<Result<Component>> run(
-      TestDescription description, CompileContext context) async {
-    Result<Component> result;
-    reportError(CompilationMessage error) {
-      result ??= fail(null, error.message);
-    }
-
-    Uri sdk = Uri.base.resolve("sdk/");
-    var options = new CompilerOptions()
-      ..sdkRoot = sdk
-      ..compileSdk = true
-      ..packagesFileUri = Uri.base.resolve('.packages')
-      ..strongMode = context.strongMode
-      ..onError = reportError;
-    if (context.target != null) {
-      options.target = context.target;
-      // Do not link platform.dill, but recompile the platform libraries. This
-      // ensures that if target defines extra libraries that those get included
-      // too.
-    } else {
-      options.linkedDependencies = [
-        computePlatformBinariesLocation().resolve("vm_platform.dill"),
-      ];
-    }
-    Component p = await kernelForProgram(description.uri, options);
-    return result ??= pass(p);
-  }
-}
-
-abstract class CompileContext implements ChainContext {
-  bool get strongMode;
-  Target get target;
 }
 
 class BytesCollector implements Sink<List<int>> {

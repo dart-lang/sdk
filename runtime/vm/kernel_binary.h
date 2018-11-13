@@ -17,7 +17,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 9;
+static const uint32_t kBinaryFormatVersion = 12;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -104,7 +104,6 @@ static const uint32_t kBinaryFormatVersion = 9;
   V(AsyncForInStatement, 80)                                                   \
   V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
-  V(VectorType, 88)                                                            \
   V(BottomType, 89)                                                            \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
@@ -117,11 +116,6 @@ static const uint32_t kBinaryFormatVersion = 9;
   V(NullReference, 99)                                                         \
   V(ClassReference, 100)                                                       \
   V(MemberReference, 101)                                                      \
-  V(VectorCreation, 102)                                                       \
-  V(VectorGet, 103)                                                            \
-  V(VectorSet, 104)                                                            \
-  V(VectorCopy, 105)                                                           \
-  V(ClosureCreation, 106)                                                      \
   V(ConstantExpression, 107)                                                   \
   V(SpecializedVariableGet, 128)                                               \
   V(SpecializedVariableSet, 136)                                               \
@@ -144,12 +138,13 @@ enum ConstantTag {
   kIntConstant = 2,
   kDoubleConstant = 3,
   kStringConstant = 4,
-  kMapConstant = 5,
-  kListConstant = 6,
-  kInstanceConstant = 7,
-  kPartialInstantiationConstant = 8,
-  kTearOffConstant = 9,
-  kTypeLiteralConstant = 10,
+  kSymbolConstant = 5,
+  kMapConstant = 6,
+  kListConstant = 7,
+  kInstanceConstant = 8,
+  kPartialInstantiationConstant = 9,
+  kTearOffConstant = 10,
+  kTypeLiteralConstant = 11,
 };
 
 static const int SpecializedIntLiteralBias = 3;

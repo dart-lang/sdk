@@ -63,7 +63,6 @@ class FlutterAnalyzeBenchmark extends Benchmark {
   @override
   Future<BenchMarkResult> run({
     bool quick: false,
-    bool useCFE: false,
     bool verbose: false,
   }) async {
     if (!quick) {

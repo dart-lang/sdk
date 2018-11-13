@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show CommonElements, KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js_backend/native_data.dart';
@@ -18,7 +18,7 @@ abstract class NativeMemberResolver {
 abstract class NativeMemberResolverBase implements NativeMemberResolver {
   static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
 
-  ElementEnvironment get elementEnvironment;
+  KElementEnvironment get elementEnvironment;
   CommonElements get commonElements;
   NativeBasicData get nativeBasicData;
   NativeDataBuilder get nativeDataBuilder;
@@ -150,7 +150,7 @@ abstract class NativeClassFinder {
 }
 
 class BaseNativeClassFinder implements NativeClassFinder {
-  final ElementEnvironment _elementEnvironment;
+  final KElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
 
   Map<String, ClassEntity> _tagOwner = new Map<String, ClassEntity>();

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,7 +38,7 @@ abstract class DartChangeBuilder implements ChangeBuilder {
    * import prefix for every newly imported library.
    */
   @override
-  Future<Null> addFileEdit(
+  Future<void> addFileEdit(
       String path, void buildFileEdit(DartFileEditBuilder builder),
       {ImportPrefixGenerator importPrefixGenerator});
 }
@@ -190,12 +190,30 @@ abstract class DartEditBuilder implements EditBuilder {
       String typeGroupName});
 
   /**
-   * Append a placeholder for an override of the specified inherited [member].
-   * If provided, write a string value suitable for display (e.g., in a
-   * completion popup) in the given [displayTextBuffer].
+   * Write the code for a declaration of a mixin with the given [name]. If a
+   * list of [interfaces] is provided, then the mixin will implement those
+   * interfaces. If a [membersWriter] is provided, then it will be invoked to
+   * allow members to be generated. If a [nameGroupName] is provided, then the
+   * name of the class will be included in the linked edit group with that name.
    */
-  void writeOverrideOfInheritedMember(ExecutableElement member,
-      {StringBuffer displayTextBuffer});
+  void writeMixinDeclaration(String name,
+      {Iterable<DartType> interfaces,
+      void membersWriter(),
+      String nameGroupName,
+      Iterable<DartType> superclassConstraints});
+
+  /**
+   * Append a placeholder for an override of the specified inherited
+   * [signature]. If provided, write a string value suitable for display
+   * (e.g., in a completion popup) in the given [displayTextBuffer].
+   * If [invokeSuper] is `true`, then the corresponding `super.name()` will be
+   * added in the body.
+   */
+  void writeOverride(
+    FunctionType signature, {
+    StringBuffer displayTextBuffer,
+    bool invokeSuper: true,
+  });
 
   /**
    * Write the code for a single parameter with the given [name].
@@ -288,6 +306,13 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
       {ExecutableElement methodBeingCopied});
+
+  /**
+   * Write the code for a comma-separated list of [types], optionally prefixed
+   * by a [prefix]. If the list of [types] is `null` or does not contain any
+   * types, then nothing will be written.
+   */
+  void writeTypes(Iterable<DartType> types, {String prefix});
 }
 
 /**

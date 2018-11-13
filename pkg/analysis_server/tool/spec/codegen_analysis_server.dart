@@ -6,7 +6,6 @@
  * Code generation for the file "AnalysisServer.java".
  */
 import 'package:analyzer/src/codegen/tools.dart';
-import 'package:front_end/src/codegen/tools.dart';
 
 import 'api.dart';
 import 'codegen_java.dart';
@@ -113,7 +112,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
     String methodName = '${request.domainName}_${request.method}';
     publicMethod(methodName, () {
       docComment(toHtmlVisitor.collectHtml(() {
-        toHtmlVisitor.write('{@code ${request.longMethod }}');
+        toHtmlVisitor.write('{@code ${request.longMethod}}');
         toHtmlVisitor.translateHtml(request.html);
         toHtmlVisitor.javadocParams(request.params);
         if (request.deprecated) {

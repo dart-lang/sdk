@@ -554,6 +554,7 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
 bool isKernel() {
   for (String argument in Platform.executableArguments) {
     if (argument.startsWith("--no-preview_dart_2")) return false;
+    if (argument.startsWith("--no-preview-dart-2")) return false;
   }
   return true;
 }

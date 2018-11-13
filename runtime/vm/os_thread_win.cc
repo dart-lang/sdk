@@ -604,7 +604,7 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
 // This function is executed on the thread that is exiting. It is invoked
 // by |OnDartThreadExit| (see below for notes on TLS destructors on Windows).
 void ThreadLocalData::RunDestructors() {
-  // If an OS thread is created but ThreadLocalData::InitOnce has not yet been
+  // If an OS thread is created but ThreadLocalData::Init has not yet been
   // called, this method still runs. If this happens, there's nothing to clean
   // up here. See issue 33826.
   if (thread_locals_ == NULL) {
@@ -624,12 +624,12 @@ void ThreadLocalData::RunDestructors() {
 Mutex* ThreadLocalData::mutex_ = NULL;
 MallocGrowableArray<ThreadLocalEntry>* ThreadLocalData::thread_locals_ = NULL;
 
-void ThreadLocalData::InitOnce() {
+void ThreadLocalData::Init() {
   mutex_ = new Mutex();
   thread_locals_ = new MallocGrowableArray<ThreadLocalEntry>();
 }
 
-void ThreadLocalData::Shutdown() {
+void ThreadLocalData::Cleanup() {
   if (mutex_ != NULL) {
     delete mutex_;
     mutex_ = NULL;

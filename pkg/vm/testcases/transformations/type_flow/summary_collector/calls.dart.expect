@@ -22,7 +22,7 @@ RESULT: _T {}?
 %y = _Parameter #1 [_T (dart.core::int)+?]
 RESULT: _T {}?
 ------------ #lib::B::bar4 ------------
-
+%this = _Parameter #0 [_T (#lib::B)+]
 RESULT: _T {}?
 ------------ #lib::C:: ------------
 %this = _Parameter #0 [_T (#lib::C)+]
@@ -39,8 +39,9 @@ t6 = _Call [#lib::A::foo1] (%aa, _T (#lib::B))
 t7* = _Call get [#lib::A::foo2] (%aa)
 t8 = _Narrow (t7 to _T (dart.core::int)+?)
 t9 = _Call set [#lib::A::foo3] (%aa, t8)
-t10* = _Call get [#lib::A::foo2] (%aa)
-t11 = _Call dynamic [call] (t10, %a2, %a3, _T ANY?)
+t10* = _Call get [#lib::A::foo1] (%aa)
+t11* = _Call get [#lib::A::foo2] (%aa)
+t12 = _Call dynamic [call] (t11, %a2, %a3, t10)
 a4 = _Join [dart.core::Object] (%a4, _T ANY?)
 RESULT: a4
 ------------ #lib::C::dynamicCalls ------------
@@ -71,8 +72,9 @@ t5 = _Call direct [#lib::B::bar1] (%this, %a1)
 t6* = _Call direct get [#lib::B::bar4] (%this)
 t7 = _Call direct set [#lib::B::bar3] (%this, t6)
 t8* = _Call direct get [#lib::B::bar2] (%this)
-t9* = _Call dynamic [call] (t8, %a2, %a3, _T ANY?)
-a4 = _Join [dart.core::Object] (%a4, t9)
+t9* = _Call direct get [#lib::B::bar1] (%this)
+t10* = _Call dynamic [call] (t8, %a2, %a3, t9)
+a4 = _Join [dart.core::Object] (%a4, t10)
 RESULT: a4
 ------------ #lib::main ------------
 

@@ -4,16 +4,30 @@
 
 import 'package:kernel/ast.dart' show Arguments, Expression, FunctionType;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
-abstract class InferenceHelper {
-  Expression wrapInCompileTimeError(Expression expression, Message message);
+import '../kernel/kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
 
-  Expression buildCompileTimeError(Message message, int charOffset, int length,
-      {List<LocatedMessage> context});
+abstract class InferenceHelper {
+  CoreTypes get coreTypes;
+
+  Uri get uri;
+
+  SyntheticExpressionJudgment buildProblem(
+      Message message, int charOffset, int length,
+      {List<LocatedMessage> context, bool suppressMessage});
 
   LocatedMessage checkArgumentsForType(
       FunctionType function, Arguments arguments, int offset);
 
-  void addProblem(Message message, int charOffset, int length);
+  void addProblem(Message message, int charOffset, int length,
+      {List<LocatedMessage> context, bool wasHandled});
+
+  Expression wrapInProblem(Expression expression, Message message, int length,
+      {List<LocatedMessage> context});
+
+  String constructorNameForDiagnostics(String name,
+      {String className, bool isSuper});
 }

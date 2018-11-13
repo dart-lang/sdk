@@ -13,7 +13,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
-    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
 }
 
@@ -71,10 +70,4 @@ main() {
       });
     });
   }
-}
-
-@reflectiveTest
-class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
-  @override
-  bool get useCFE => true;
 }

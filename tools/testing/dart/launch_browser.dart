@@ -34,7 +34,9 @@ void main(List<String> arguments) {
   }
 
   var runtime = Runtime.find(name);
-  var configuration = new Configuration(runtime: runtime);
+  var configuration = new TestConfiguration(
+      configuration: new Configuration(
+          "dummy configuration", null, null, null, runtime, null));
   var executable = configuration.browserLocation;
   var browser = new Browser.byRuntime(runtime, executable);
   browser.start(arguments[1]);

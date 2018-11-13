@@ -35,9 +35,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
@@ -47,8 +47,8 @@ import 'package:path/path.dart';
  */
 main() async {
   String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent
-      .generateAll(pkgPath, <GeneratedContent>[target, htmlTarget]);
+  await GeneratedContent.generateAll(
+      pkgPath, <GeneratedContent>[target, htmlTarget]);
 }
 
 final GeneratedFile htmlTarget = new GeneratedFile(
@@ -210,19 +210,20 @@ $data
     listOfResultDescriptorType =
         typeProvider.listType.instantiate([resultDescriptorType]);
     CompilationUnit enginePluginUnit = await getUnit(enginePluginPath);
-    enginePluginClass = enginePluginUnit.element.getType('EnginePlugin');
+    enginePluginClass =
+        enginePluginUnit.declaredElement.getType('EnginePlugin');
     extensionPointIdType =
-        enginePluginUnit.element.getType('ExtensionPointId').type;
+        enginePluginUnit.declaredElement.getType('ExtensionPointId').type;
     CompilationUnit dartDartUnit = await getUnit(dartDartPath);
     CompilationUnit taskUnit = await getUnit(taskPath);
-    taskUnitElement = taskUnit.element;
+    taskUnitElement = taskUnit.declaredElement;
     Set<String> results = new Set<String>();
     Set<String> resultLists = new Set<String>();
     for (CompilationUnitMember dartUnitMember in dartDartUnit.declarations) {
       if (dartUnitMember is ClassDeclaration) {
         ClassDeclaration clazz = dartUnitMember;
         if (!clazz.isAbstract &&
-            clazz.element.type.isSubtypeOf(analysisTaskType)) {
+            clazz.declaredElement.type.isSubtypeOf(analysisTaskType)) {
           String task = clazz.name.name;
 
           MethodDeclaration buildInputsAst;

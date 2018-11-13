@@ -4,16 +4,16 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int bar;
-  const constructor •(core::int bar) → void
+  const constructor •(core::int bar) → self::A
     ;
 }
 class B extends core::Object {
   final field self::A baz;
-  const constructor •(self::A baz) → void
+  const constructor •(self::A baz) → self::B
     ;
 }
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   method fun() → dynamic
     ;

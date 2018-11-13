@@ -27,7 +27,9 @@ class Address : public ValueObject {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false) : buffer_(), comments_() {}
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
+      : buffer_(), object_pool_wrapper_(object_pool_wrapper), comments_() {}
 
   ~Assembler() {}
 
@@ -48,10 +50,10 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
 
   RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
+    return object_pool_wrapper_->MakeObjectPool();
   }
 
   void FinalizeInstructions(const MemoryRegion& region) {
@@ -124,7 +126,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
+  ObjectPoolWrapper* object_pool_wrapper_;
 
   class CodeComment : public ZoneAllocated {
    public:

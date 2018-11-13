@@ -5,10 +5,12 @@
 library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart'
+    show CommonElements, KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../serialization/serialization.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
@@ -16,6 +18,15 @@ import 'namer.dart';
 import 'native_data.dart';
 
 abstract class InterceptorData {
+  /// Deserializes a [InterceptorData] object from [source].
+  factory InterceptorData.readFromDataSource(
+      DataSource source,
+      NativeData nativeData,
+      CommonElements commonElements) = InterceptorDataImpl.readFromDataSource;
+
+  /// Serializes this [InterceptorData] to [sink].
+  void writeToDataSink(DataSink sink);
+
   /// Returns `true` if [cls] is an intercepted class.
   bool isInterceptedClass(ClassEntity element);
 
@@ -48,6 +59,10 @@ abstract class InterceptorDataBuilder {
 }
 
 class InterceptorDataImpl implements InterceptorData {
+  /// Tag used for identifying serialized [InterceptorData] objects in a
+  /// debugging data stream.
+  static const String tag = 'interceptor-data';
+
   final NativeBasicData _nativeData;
   final CommonElements _commonElements;
 
@@ -87,6 +102,40 @@ class InterceptorDataImpl implements InterceptorData {
       this.interceptedMembers,
       this.interceptedClasses,
       this.classesMixedIntoInterceptedClasses);
+
+  factory InterceptorDataImpl.readFromDataSource(
+      DataSource source, NativeData nativeData, CommonElements commonElements) {
+    source.begin(tag);
+    int interceptedMembersCount = source.readInt();
+    Map<String, Set<MemberEntity>> interceptedMembers = {};
+    for (int i = 0; i < interceptedMembersCount; i++) {
+      String name = source.readString();
+      Set<MemberEntity> members = source.readMembers().toSet();
+      interceptedMembers[name] = members;
+    }
+    Set<ClassEntity> interceptedClasses = source.readClasses().toSet();
+    Set<ClassEntity> classesMixedIntoInterceptedClasses =
+        source.readClasses().toSet();
+    source.end(tag);
+    return new InterceptorDataImpl(
+        nativeData,
+        commonElements,
+        interceptedMembers,
+        interceptedClasses,
+        classesMixedIntoInterceptedClasses);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(interceptedMembers.length);
+    interceptedMembers.forEach((String name, Set<MemberEntity> members) {
+      sink.writeString(name);
+      sink.writeMembers(members);
+    });
+    sink.writeClasses(interceptedClasses);
+    sink.writeClasses(classesMixedIntoInterceptedClasses);
+    sink.end(tag);
+  }
 
   bool isInterceptedMethod(MemberEntity element) {
     if (!element.isInstanceMember) return false;
@@ -219,8 +268,8 @@ class InterceptorDataImpl implements InterceptorData {
 
 class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final NativeBasicData _nativeData;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
+  final KElementEnvironment _elementEnvironment;
+  final KCommonElements _commonElements;
 
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to

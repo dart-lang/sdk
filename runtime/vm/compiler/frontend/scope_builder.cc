@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
+#include "vm/kernel.h"               // For IsFieldInitializer.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -16,12 +17,6 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-bool IsFieldInitializer(const Function& function, Zone* zone) {
-  return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
-         String::Handle(zone, function.name())
-             .StartsWith(Symbols::InitPrefix());
-}
-
 // Returns true if the given method can skip type checks for all arguments
 // that are not covariant or generic covariant in its implementation.
 bool MethodCanSkipTypeChecksForNonCovariantArguments(
@@ -31,12 +26,14 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // argument values match declarated parameter types for all non-covariant
   // and non-generic-covariant parameters. The same applies to type parameters
   // bounds for type parameters of generic functions.
+  //
   // In JIT mode we dynamically generate trampolines (dynamic invocation
   // forwarders) that perform type checks when arriving to a method from a
   // dynamic call-site.
-  // In AOT mode we don't dynamically generate such trampolines but
-  // instead rely on a static analysis to discover which methods can
-  // be invoked dynamically.
+  //
+  // In AOT mode we don't dynamically generate such trampolines but instead rely
+  // on a static analysis to discover which methods can be invoked dynamically,
+  // and generate the necessary trampolines during precompilation.
   if (method.name() == Symbols::Call().raw()) {
     // Currently we consider all call methods to be invoked dynamically and
     // don't mangle their names.
@@ -44,7 +41,7 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
     // entry point for closures.
     return false;
   }
-  return !FLAG_precompiled_mode || !attrs.has_dynamic_invocations;
+  return true;
 }
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
@@ -116,7 +113,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if (I->reify_generic_functions() &&
+  if (FLAG_reify_generic_functions &&
       (function.IsGeneric() || function.HasGenericParent())) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -381,8 +378,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-  if (needs_expr_temp_ || function.is_no_such_method_forwarder()) {
+  if (needs_expr_temp_) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
+  }
+  if (parsed_function_->function().MayHaveUncheckedEntryPoint(I)) {
+    scope_->AddVariable(parsed_function_->EnsureEntryPointsTemp());
   }
   parsed_function_->AllocateVariables();
 
@@ -549,6 +549,13 @@ void ScopeBuilder::VisitFunctionNode() {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncCompleter(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
+    }
+    {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::ControllerStream(), true);
       if (temp != NULL) {
         scope_->CaptureVariable(temp);
       }
@@ -1284,8 +1291,6 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
     }
   }
 
-  helper_.SkipListOfStrings();  // read positional parameter names.
-
   if (!simple) {
     helper_.SkipCanonicalNameReference();  // read typedef reference.
   }
@@ -1477,8 +1482,7 @@ LocalVariable* ScopeBuilder::MakeVariable(
     const InferredTypeMetadata* param_type_md /* = NULL */) {
   CompileType* param_type = NULL;
   if ((param_type_md != NULL) && !param_type_md->IsTrivial()) {
-    param_type = new (Z) CompileType(CompileType::CreateNullable(
-        param_type_md->nullable, param_type_md->cid));
+    param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
   }
   return new (Z)
       LocalVariable(declaration_pos, token_pos, name, type, param_type);

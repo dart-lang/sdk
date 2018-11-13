@@ -2,7 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' show TypeParameter;
+import 'package:kernel/ast.dart'
+    show
+        BottomType,
+        DartType,
+        DartTypeVisitor,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        InvalidType,
+        NamedType,
+        TypeParameter,
+        TypeParameterType,
+        TypedefType,
+        VoidType;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
@@ -371,13 +384,25 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(dependencies);
         }
-      } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object> &&
-          declaration.typeVariables != null) {
-        List<Object> dependencies =
-            findInboundReferences(declaration.typeVariables);
-        if (dependencies.length != 0) {
-          typesAndDependencies.add(type);
-          typesAndDependencies.add(dependencies);
+      } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object>) {
+        if (declaration.typeVariables != null) {
+          List<Object> dependencies =
+              findInboundReferences(declaration.typeVariables);
+          if (dependencies.length != 0) {
+            typesAndDependencies.add(type);
+            typesAndDependencies.add(dependencies);
+          }
+        }
+        if (declaration.type is FunctionTypeBuilder) {
+          FunctionTypeBuilder type = declaration.type;
+          if (type.typeVariables != null) {
+            List<Object> dependencies =
+                findInboundReferences(type.typeVariables);
+            if (dependencies.length != 0) {
+              typesAndDependencies.add(type);
+              typesAndDependencies.add(dependencies);
+            }
+          }
         }
       }
     } else {
@@ -495,14 +520,32 @@ List<List<Object>> findRawTypePathsToDeclaration(
             }
           }
         } else if (declaration
-                is FunctionTypeAliasBuilder<TypeBuilder, Object> &&
-            declaration.typeVariables != null) {
-          for (TypeVariableBuilder<TypeBuilder, Object> variable
-              in declaration.typeVariables) {
-            if (variable.bound != null) {
-              for (List<Object> dependencyPath in findRawTypePathsToDeclaration(
-                  variable.bound, end, visited)) {
-                paths.add(<Object>[start, variable]..addAll(dependencyPath));
+            is FunctionTypeAliasBuilder<TypeBuilder, Object>) {
+          if (declaration.typeVariables != null) {
+            for (TypeVariableBuilder<TypeBuilder, Object> variable
+                in declaration.typeVariables) {
+              if (variable.bound != null) {
+                for (List<Object> dependencyPath
+                    in findRawTypePathsToDeclaration(
+                        variable.bound, end, visited)) {
+                  paths.add(<Object>[start, variable]..addAll(dependencyPath));
+                }
+              }
+            }
+          }
+          if (declaration.type is FunctionTypeBuilder) {
+            FunctionTypeBuilder type = declaration.type;
+            if (type.typeVariables != null) {
+              for (TypeVariableBuilder<TypeBuilder, Object> variable
+                  in type.typeVariables) {
+                if (variable.bound != null) {
+                  for (List<Object> dependencyPath
+                      in findRawTypePathsToDeclaration(
+                          variable.bound, end, visited)) {
+                    paths
+                        .add(<Object>[start, variable]..addAll(dependencyPath));
+                  }
+                }
               }
             }
           }
@@ -562,14 +605,29 @@ List<List<Object>> findRawTypeCycles(
         }
       }
     }
-  } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object> &&
-      declaration.typeVariables != null) {
-    for (TypeVariableBuilder<TypeBuilder, Object> variable
-        in declaration.typeVariables) {
-      if (variable.bound != null) {
-        for (List<Object> dependencyPath
-            in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-          cycles.add(<Object>[variable]..addAll(dependencyPath));
+  } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object>) {
+    if (declaration.typeVariables != null) {
+      for (TypeVariableBuilder<TypeBuilder, Object> variable
+          in declaration.typeVariables) {
+        if (variable.bound != null) {
+          for (List<Object> dependencyPath
+              in findRawTypePathsToDeclaration(variable.bound, declaration)) {
+            cycles.add(<Object>[variable]..addAll(dependencyPath));
+          }
+        }
+      }
+    }
+    if (declaration.type is FunctionTypeBuilder) {
+      FunctionTypeBuilder type = declaration.type;
+      if (type.typeVariables != null) {
+        for (TypeVariableBuilder<TypeBuilder, Object> variable
+            in type.typeVariables) {
+          if (variable.bound != null) {
+            for (List<Object> dependencyPath
+                in findRawTypePathsToDeclaration(variable.bound, declaration)) {
+              cycles.add(<Object>[variable]..addAll(dependencyPath));
+            }
+          }
         }
       }
     }
@@ -620,16 +678,6 @@ List<Object> convertRawTypeCyclesIntoIssues(
   return issues;
 }
 
-/// Finds issues by cycles of raw generic types containing [declaration].
-///
-/// Returns flattened list of triplets according to the format specified by
-/// [convertRawTypeCyclesIntoIssues].
-List<Object> getRawTypeCycleIssues(
-    TypeDeclarationBuilder<TypeBuilder, Object> declaration) {
-  return convertRawTypeCyclesIntoIssues(
-      declaration, findRawTypeCycles(declaration));
-}
-
 /// Finds non-simplicity issues for the given set of [variables].
 ///
 /// The issues are those caused by raw types with inbound references in the
@@ -656,7 +704,8 @@ List<Object> getNonSimplicityIssuesForTypeVariables(
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
 List<Object> getNonSimplicityIssuesForDeclaration(
-    TypeDeclarationBuilder<TypeBuilder, Object> declaration) {
+    TypeDeclarationBuilder<TypeBuilder, Object> declaration,
+    {bool performErrorRecovery: true}) {
   var issues = <Object>[];
   if (declaration is ClassBuilder<TypeBuilder, Object> &&
       declaration.typeVariables != null) {
@@ -690,8 +739,26 @@ List<Object> getNonSimplicityIssuesForDeclaration(
       }
     }
   }
-  issues.addAll(convertRawTypeCyclesIntoIssues(declaration, cyclesToReport));
+  List<Object> rawTypeCyclesAsIssues =
+      convertRawTypeCyclesIntoIssues(declaration, cyclesToReport);
+  issues.addAll(rawTypeCyclesAsIssues);
+
+  if (performErrorRecovery) {
+    breakCycles(cyclesToReport);
+  }
+
   return issues;
+}
+
+/// Break raw generic type [cycles] as error recovery.
+///
+/// The [cycles] are expected to be in the format specified for the return value
+/// of [findRawTypeCycles].
+void breakCycles(List<List<Object>> cycles) {
+  for (List<Object> cycle in cycles) {
+    TypeVariableBuilder<TypeBuilder, Object> variable = cycle[0];
+    variable.bound = null;
+  }
 }
 
 void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
@@ -717,5 +784,57 @@ void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
     for (TypeBuilder argument in type.arguments) {
       findGenericFunctionTypes(argument, result: result);
     }
+  }
+}
+
+/// Returns true if [type] contains any type variables whatsoever. This should
+/// only be used for working around transitional issues.
+// TODO(ahe): Remove this method.
+bool hasAnyTypeVariables(DartType type) {
+  return type.accept(const TypeVariableSearch());
+}
+
+/// Don't use this directly, use [hasAnyTypeVariables] instead. But don't use
+/// that either.
+// TODO(ahe): Remove this class.
+class TypeVariableSearch implements DartTypeVisitor<bool> {
+  const TypeVariableSearch();
+
+  bool defaultDartType(DartType node) => throw "unsupported";
+
+  bool anyTypeVariables(List<DartType> types) {
+    for (DartType type in types) {
+      if (type.accept(this)) return true;
+    }
+    return false;
+  }
+
+  bool visitInvalidType(InvalidType node) => false;
+
+  bool visitDynamicType(DynamicType node) => false;
+
+  bool visitVoidType(VoidType node) => false;
+
+  bool visitBottomType(BottomType node) => false;
+
+  bool visitInterfaceType(InterfaceType node) {
+    return anyTypeVariables(node.typeArguments);
+  }
+
+  bool visitFunctionType(FunctionType node) {
+    if (anyTypeVariables(node.positionalParameters)) return true;
+    for (TypeParameter variable in node.typeParameters) {
+      if (variable.bound.accept(this)) return true;
+    }
+    for (NamedType type in node.namedParameters) {
+      if (type.type.accept(this)) return true;
+    }
+    return false;
+  }
+
+  bool visitTypeParameterType(TypeParameterType node) => true;
+
+  bool visitTypedefType(TypedefType node) {
+    return anyTypeVariables(node.typeArguments);
   }
 }

@@ -18,8 +18,8 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -142,13 +142,14 @@ class TestDriver implements AnalysisDriver {
         resourceProvider,
         sourceFactory,
         new AnalysisOptionsImpl(),
+        new Uint32List(0),
         new Uint32List(0));
     currentSession = new AnalysisSessionImpl(this);
   }
 
   Stream<AnalysisResult> get results => _resultController.stream;
 
-  Future<Null> computeResult(String uri) {
+  Future<void> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
     AnalysisResult result = new AnalysisResult(this, null, file.path, null,
         true, null, null, false, null, null, null, null);
@@ -165,7 +166,7 @@ class TestPluginManager implements PluginManager {
   List<ContextRoot> removedContextRoots = <ContextRoot>[];
 
   @override
-  Future<Null> addPluginToContextRoot(
+  Future<void> addPluginToContextRoot(
       ContextRoot contextRoot, String path) async {
     addedContextRoots.add(contextRoot);
     return null;

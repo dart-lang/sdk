@@ -62,7 +62,7 @@ void BlockScheduler::AssignEdgeWeights() const {
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
     Compiler::AbortBackgroundCompilation(
-        Thread::kNoDeoptId, "BlockScheduler: ICData array cleared");
+        DeoptId::kNone, "BlockScheduler: ICData array cleared");
   }
   if (ic_data_array.IsNull()) {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
@@ -71,10 +71,15 @@ void BlockScheduler::AssignEdgeWeights() const {
   Array& edge_counters = Array::Handle();
   edge_counters ^= ic_data_array.At(0);
 
-  intptr_t entry_count = GetEdgeCount(
-      edge_counters,
-      flow_graph()->graph_entry()->normal_entry()->preorder_number());
-  flow_graph()->graph_entry()->set_entry_count(entry_count);
+  auto graph_entry = flow_graph()->graph_entry();
+  BlockEntryInstr* entry = graph_entry->normal_entry();
+  if (entry == nullptr) {
+    entry = graph_entry->osr_entry();
+    ASSERT(entry != nullptr);
+  }
+  const intptr_t entry_count =
+      GetEdgeCount(edge_counters, entry->preorder_number());
+  graph_entry->set_entry_count(entry_count);
 
   for (BlockIterator it = flow_graph()->reverse_postorder_iterator();
        !it.Done(); it.Advance()) {

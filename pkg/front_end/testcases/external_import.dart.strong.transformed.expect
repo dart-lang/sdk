@@ -1,6 +1,6 @@
-@dart._internal::ExternalName::•("org-dartlang-testcase:///here")
-@dart._internal::ExternalName::•("org-dartlang-testcase:///there")
-@dart._internal::ExternalName::•("file:///usr/local/somewhere")
+@dart._internal::ExternalName::•("dart-ext:here")
+@dart._internal::ExternalName::•("dart-ext:foo/../there")
+@dart._internal::ExternalName::•("dart-ext:/usr/local/somewhere")
 library;
 import self as self;
 import "dart:_internal" as _in;

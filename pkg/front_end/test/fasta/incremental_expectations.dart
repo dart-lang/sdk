@@ -32,7 +32,7 @@ class IncrementalExpectation {
       data = <String>[data];
     }
     if (data is List) {
-      return new IncrementalExpectation(data);
+      return new IncrementalExpectation(data.cast<String>());
     }
     return new IncrementalExpectation(extractMessages(data),
         commitChangesShouldFail: extractCommitChangesShouldFail(data),

@@ -18,8 +18,6 @@ instance_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
 instance_method2_negative_test: Skip # Negative, not syntax.
 instance_method_negative_test: Skip # Negative, not syntax.
 interface2_negative_test: Skip # Negative, not syntax.
-interface_injection1_negative_test: Fail # Negative, uses interface injection.
-interface_injection2_negative_test: Fail # Negative, uses interface injection.
 interface_static_method_negative_test: Skip # Negative, not syntax.
 interface_static_non_final_fields_negative_test: Skip # Negative, not syntax.
 is_not_class1_negative_test: Fail # Negative, uses `a is "A"`.
@@ -63,4 +61,4 @@ test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
 vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.
-void_type_function_types_test: Skip # Not yet supported.
+void/void_type_function_types_test: Skip # Not yet supported.

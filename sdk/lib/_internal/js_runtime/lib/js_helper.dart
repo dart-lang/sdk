@@ -30,6 +30,7 @@ import 'dart:async' show Completer, DeferredLoadException, Future;
 import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
+        getInterceptor,
         JS,
         JS_BUILTIN,
         JS_CONST,
@@ -49,7 +50,10 @@ import 'dart:_internal'
 import 'dart:_native_typed_data';
 
 import 'dart:_js_names'
-    show extractKeys, mangledNames, unmangleAllIdentifiersIfPreservedAnyways;
+    show
+        extractKeys,
+        unmangleGlobalNameIfPreservedAnyways,
+        unmangleAllIdentifiersIfPreservedAnyways;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -105,6 +109,15 @@ bool isDartVoidTypeRti(Object type) {
 @ForceInline()
 String rawRtiToJsConstructorName(Object rti) {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti);
+}
+
+/// Given a raw constructor name, return the unminified name, if available,
+/// otherwise tag the name with `minified:`.
+String unminifyOrTag(String rawClassName) {
+  String preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
+  if (preserved is String) return preserved;
+  if (JS_GET_FLAG('MINIFIED')) return 'minified:${rawClassName}';
+  return rawClassName;
 }
 
 /// Returns the rti from the given [constructorName].
@@ -312,30 +325,16 @@ class JSInvocationMirror implements Invocation {
   var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
-  final List<Type> _typeArguments;
   final List _arguments;
   final List _namedArgumentNames;
   final int _typeArgumentCount;
-  /** Map from argument name to index in _arguments. */
-  Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName, this._internalName, this._kind,
       this._arguments, this._namedArgumentNames, this._typeArgumentCount);
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
-    String name = _memberName;
-    String unmangledName = mangledNames[name];
-    if (unmangledName != null) {
-      name = unmangledName.split(':')[0];
-    } else {
-      if (mangledNames[_internalName] == null) {
-        print("Warning: '$name' is used reflectively but not in MirrorsUsed. "
-            "This will break minified code.");
-      }
-    }
-    _memberName = new _symbol_dev.Symbol.unvalidated(name);
-    return _memberName;
+    return _memberName = new _symbol_dev.Symbol.unvalidated(_memberName);
   }
 
   bool get isMethod => _kind == METHOD;
@@ -377,171 +376,6 @@ class JSInvocationMirror implements Invocation {
           _arguments[namedArgumentsStartIndex + i];
     }
     return new ConstantMapView<Symbol, dynamic>(map);
-  }
-
-  _getCachedInvocation(Object object) {
-    var interceptor = getInterceptor(object);
-    var receiver = object;
-    var name = _internalName;
-    var arguments = _arguments;
-    var interceptedNames = JS_EMBEDDED_GLOBAL('', INTERCEPTED_NAMES);
-    bool isIntercepted = JS('bool',
-        'Object.prototype.hasOwnProperty.call(#, #)', interceptedNames, name);
-    if (isIntercepted) {
-      receiver = interceptor;
-      if (JS('bool', '# === #', object, interceptor)) {
-        interceptor = null;
-      }
-    } else {
-      interceptor = null;
-    }
-    bool isCatchAll = false;
-    var method = JS('var', '#[#]', receiver, name);
-    if (JS('bool', 'typeof # != "function"', method)) {
-      String baseName = _symbol_dev.Symbol.getName(memberName);
-      method = JS('', '#[# + "*"]', receiver, baseName);
-      if (method == null) {
-        interceptor = getInterceptor(object);
-        method = JS('', '#[# + "*"]', interceptor, baseName);
-        if (method != null) {
-          isIntercepted = true;
-          receiver = interceptor;
-        } else {
-          interceptor = null;
-        }
-      }
-      isCatchAll = true;
-    }
-    if (JS('bool', 'typeof # == "function"', method)) {
-      if (isCatchAll) {
-        return new CachedCatchAllInvocation(
-            name, method, isIntercepted, interceptor);
-      } else {
-        return new CachedInvocation(name, method, isIntercepted, interceptor);
-      }
-    } else {
-      // In this case, receiver doesn't implement name.  So we should
-      // invoke noSuchMethod instead (which will often throw a
-      // NoSuchMethodError).
-      return new CachedNoSuchMethodInvocation(interceptor);
-    }
-  }
-
-  /// This method is called by [InstanceMirror.delegate].
-  static invokeFromMirror(JSInvocationMirror invocation, Object victim) {
-    var cached = invocation._getCachedInvocation(victim);
-    if (cached.isNoSuchMethod) {
-      return cached.invokeOn(victim, invocation);
-    } else {
-      return cached.invokeOn(victim, invocation._arguments);
-    }
-  }
-
-  static getCachedInvocation(JSInvocationMirror invocation, Object victim) {
-    return invocation._getCachedInvocation(victim);
-  }
-}
-
-class CachedInvocation {
-  // The mangled name of this invocation.
-  String mangledName;
-
-  /// The JS function to call.
-  var jsFunction;
-
-  /// True if this is an intercepted call.
-  bool isIntercepted;
-
-  /// Non-null interceptor if this is an intercepted call through an
-  /// [Interceptor].
-  Interceptor cachedInterceptor;
-
-  CachedInvocation(this.mangledName, this.jsFunction, this.isIntercepted,
-      this.cachedInterceptor);
-
-  bool get isNoSuchMethod => false;
-  bool get isGetterStub => JS('bool', '!!#.\$getterStub', jsFunction);
-
-  /// Applies [jsFunction] to [victim] with [arguments].
-  /// Users of this class must take care to check the arguments first.
-  invokeOn(Object victim, List arguments) {
-    var receiver = victim;
-    if (!isIntercepted) {
-      if (arguments is! JSArray) arguments = new List.from(arguments);
-    } else {
-      arguments = [victim]..addAll(arguments);
-      if (cachedInterceptor != null) receiver = cachedInterceptor;
-    }
-    return JS('var', '#.apply(#, #)', jsFunction, receiver, arguments);
-  }
-}
-
-class CachedCatchAllInvocation extends CachedInvocation {
-  final ReflectionInfo info;
-
-  CachedCatchAllInvocation(String name, jsFunction, bool isIntercepted,
-      Interceptor cachedInterceptor)
-      : info = new ReflectionInfo(jsFunction),
-        super(name, jsFunction, isIntercepted, cachedInterceptor);
-
-  bool get isGetterStub => false;
-
-  invokeOn(Object victim, List arguments) {
-    var receiver = victim;
-    int providedArgumentCount;
-    int fullParameterCount =
-        info.requiredParameterCount + info.optionalParameterCount;
-    if (!isIntercepted) {
-      if (arguments is JSArray) {
-        providedArgumentCount = arguments.length;
-        // If we need to add extra arguments before calling, we have
-        // to copy the arguments array.
-        if (providedArgumentCount < fullParameterCount) {
-          arguments = new List.from(arguments);
-        }
-      } else {
-        arguments = new List.from(arguments);
-        providedArgumentCount = arguments.length;
-      }
-    } else {
-      arguments = [victim]..addAll(arguments);
-      if (cachedInterceptor != null) receiver = cachedInterceptor;
-      providedArgumentCount = arguments.length - 1;
-    }
-    if (info.areOptionalParametersNamed &&
-        (providedArgumentCount > info.requiredParameterCount)) {
-      throw new UnimplementedNoSuchMethodError(
-          "Invocation of unstubbed method '${info.reflectionName}'"
-          " with ${arguments.length} arguments.");
-    } else if (providedArgumentCount < info.requiredParameterCount) {
-      throw new UnimplementedNoSuchMethodError(
-          "Invocation of unstubbed method '${info.reflectionName}'"
-          " with $providedArgumentCount arguments (too few).");
-    } else if (providedArgumentCount > fullParameterCount) {
-      throw new UnimplementedNoSuchMethodError(
-          "Invocation of unstubbed method '${info.reflectionName}'"
-          " with $providedArgumentCount arguments (too many).");
-    }
-    for (int i = providedArgumentCount; i < fullParameterCount; i++) {
-      arguments.add(getMetadata(info.defaultValue(i)));
-    }
-    return JS('var', '#.apply(#, #)', jsFunction, receiver, arguments);
-  }
-}
-
-class CachedNoSuchMethodInvocation {
-  /// Non-null interceptor if this is an intercepted call through an
-  /// [Interceptor].
-  var interceptor;
-
-  CachedNoSuchMethodInvocation(this.interceptor);
-
-  bool get isNoSuchMethod => true;
-  bool get isGetterStub => false;
-
-  invokeOn(Object victim, Invocation invocation) {
-    var receiver = (interceptor == null) ? victim : interceptor;
-    return receiver.noSuchMethod(invocation);
   }
 }
 
@@ -834,10 +668,12 @@ class Primitives {
   /// In minified mode, uses the unminified names if available.
   @NoInline()
   static String objectTypeName(Object object) {
-    return formatType(_objectRawTypeName(object), getRuntimeTypeInfo(object));
+    String className = _objectClassName(object);
+    String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
+    return '${className}${arguments}';
   }
 
-  static String _objectRawTypeName(Object object) {
+  static String _objectClassName(Object object) {
     var interceptor = getInterceptor(object);
     // The interceptor is either an object (self-intercepting plain Dart class),
     // the prototype of the constructor for an Interceptor class (like
@@ -872,6 +708,7 @@ class Primitives {
       // Try the [constructorNameFallback]. This gets the constructor name for
       // any browser (used by [getNativeInterceptor]).
       String dispatchName = constructorNameFallback(object);
+      name ??= dispatchName;
       if (dispatchName == 'Object') {
         // Try to decompile the constructor by turning it into a string and get
         // the name out of that. If the decompiled name is a string containing
@@ -886,10 +723,8 @@ class Primitives {
             name = decompiledName;
           }
         }
-        if (name == null) name = dispatchName;
-      } else {
-        name = dispatchName;
       }
+      return JS('String', '#', name);
     }
 
     // Type inference does not understand that [name] is now always a non-null
@@ -901,7 +736,7 @@ class Primitives {
     if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
       name = name.substring(1);
     }
-    return name;
+    return unminifyOrTag(name);
   }
 
   /// In minified mode, uses the unminified names if available.
@@ -2172,8 +2007,8 @@ class NullError extends Error implements NoSuchMethodError {
       : _method = match == null ? null : JS('', '#.method', match);
 
   String toString() {
-    if (_method == null) return 'NullError: $_message';
-    return "NullError: method not found: '$_method' on null";
+    if (_method == null) return 'NoSuchMethodError: $_message';
+    return "NoSuchMethodError: method not found: '$_method' on null";
   }
 }
 
@@ -2525,7 +2360,7 @@ abstract class Closure implements Function {
     int applyTrampolineIndex,
     var reflectionInfo,
     bool isStatic,
-    jsArguments,
+    bool isIntercepted,
     String propertyName,
   ) {
     JS_EFFECT(() {
@@ -2588,10 +2423,14 @@ abstract class Closure implements Function {
             new BoundClosure(null, null, null, null));
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
+
+    // The constructor functions have names to prevent the JavaScript
+    // implementation from inventing a name that might have special meaning
+    // (e.g. clashing with minified 'Object' or 'Interceptor').
     var constructor = isStatic
-        ? JS('', 'function(){this.\$initialize()}')
+        ? JS('', 'function static_tear_off(){this.\$initialize()}')
         : isCsp
-            ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
+            ? JS('', 'function tear_off(a,b,c,d) {this.\$initialize(a,b,c,d)}')
             : JS(
                 '',
                 'new Function("a,b,c,d" + #,'
@@ -2607,12 +2446,7 @@ abstract class Closure implements Function {
 
     // Create a closure and "monkey" patch it with call stubs.
     var trampoline = function;
-    var isIntercepted = false;
     if (!isStatic) {
-      if (JS('bool', '#.length == 1', jsArguments)) {
-        // Intercepted call.
-        isIntercepted = true;
-      }
       trampoline = forwardCallTo(receiver, function, isIntercepted);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
@@ -2954,16 +2788,14 @@ abstract class Closure implements Function {
 
 /// Called from implicit method getter (aka tear-off).
 closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
-    isStatic, jsArguments, name) {
+    isStatic, isIntercepted, name) {
   return Closure.fromTearOff(
       receiver,
-      JSArray.markFixedList(functions),
+      JS('JSArray', '#', functions),
       applyTrampolineIndex,
-      reflectionInfo is List
-          ? JSArray.markFixedList(reflectionInfo)
-          : reflectionInfo,
+      reflectionInfo,
       JS('bool', '!!#', isStatic),
-      jsArguments,
+      JS('bool', '!!#', isIntercepted),
       JS('String', '#', name));
 }
 
@@ -2975,7 +2807,7 @@ class StaticClosure extends TearOffClosure {
     String name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
     if (name == null) return 'Closure of unknown static method';
-    return "Closure '$name'";
+    return "Closure '${unminifyOrTag(name)}'";
   }
 }
 
@@ -3026,6 +2858,8 @@ class BoundClosure extends TearOffClosure {
 
   toString() {
     var receiver = _receiver == null ? _self : _receiver;
+    // TODO(sra): When minified, mark [_name] with a tag,
+    // e.g. 'minified-property:' so that it can be unminified.
     return "Closure '$_name' of "
         "${Primitives.objectToHumanReadableString(receiver)}";
   }
@@ -3566,13 +3400,13 @@ intTypeCast(value) {
 
 void propertyTypeError(value, property) {
   String name = isCheckPropertyToJsConstructorName(property);
-  throw new TypeErrorImplementation(value, name);
+  throw new TypeErrorImplementation(value, unminifyOrTag(name));
 }
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
-  String expectedType = property.substring(3, property.length);
-  throw new CastErrorImplementation(value, expectedType);
+  String name = isCheckPropertyToJsConstructorName(property);
+  throw new CastErrorImplementation(value, unminifyOrTag(name));
 }
 
 /**
@@ -3696,12 +3530,12 @@ stringSuperNativeTypeCast(value, property) {
 listTypeCheck(value) {
   if (value == null) return value;
   if (value is List) return value;
-  throw new TypeErrorImplementation(value, 'List');
+  throw new TypeErrorImplementation(value, 'List<dynamic>');
 }
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(value, 'List');
+  throw new CastErrorImplementation(value, 'List<dynamic>');
 }
 
 listSuperTypeCheck(value, property) {
@@ -3869,7 +3703,6 @@ class FallThroughErrorImplementation extends FallThroughError {
 bool assertTest(condition) {
   // Do bool success check first, it is common and faster than 'is Function'.
   if (true == condition) return false;
-  if (condition is Function) condition = condition();
   if (condition is bool) return !condition;
   throw new TypeErrorImplementation(condition, 'bool');
 }

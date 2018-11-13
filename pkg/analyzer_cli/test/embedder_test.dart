@@ -60,7 +60,7 @@ main() {
 }
 
 /// Wrap a function call to dump stdout and stderr in case of an exception.
-Function wrap(Function f) {
+dynamic Function() wrap(dynamic Function() f) {
   return () async {
     try {
       await f();

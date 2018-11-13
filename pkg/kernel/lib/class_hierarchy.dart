@@ -23,10 +23,8 @@ abstract class ClassHierarchy {
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
-      if (!cls.isAnonymousMixin) {
-        // See https://github.com/dart-lang/sdk/issues/32091
-        throw "$cls can't implement both $a and $b";
-      }
+      // See https://github.com/dart-lang/sdk/issues/32091
+      throw "$cls can't implement both $a and $b";
     };
     return new ClosedWorldClassHierarchy._internal(
         onAmbiguousSupertypes, mixinInferrer)
@@ -43,6 +41,11 @@ abstract class ClassHierarchy {
 
   /// True if the component contains another class that is a subtype of given one.
   bool hasProperSubtypes(Class class_);
+
+  // Returns the instantition of each generic supertype implemented by this
+  // class (e.g. getClassAsInstanceOf applied to all superclasses and
+  // interfaces).
+  List<Supertype> genericSupertypesOf(Class class_);
 
   /// Returns the least upper bound of two interface types, as defined by Dart
   /// 1.0.
@@ -173,7 +176,7 @@ abstract class ClassHierarchy {
       callback(Member declaredMember, Member interfaceMember, bool isSetter));
 
   /// This method is invoked by the client after a change: removal, addition,
-  /// or modification of classes.
+  /// or modification of classes (via libraries).
   ///
   /// For modified classes specify a class as both removed and added: Some of
   /// the information that this hierarchy might have cached, is not valid
@@ -181,8 +184,8 @@ abstract class ClassHierarchy {
   ///
   /// Note, that it is the clients responsibility to mark all subclasses as
   /// changed too.
-  ClassHierarchy applyTreeChanges(
-      Iterable<Class> removedClasses, Iterable<Class> addedClasses,
+  ClassHierarchy applyTreeChanges(Iterable<Library> removedLibraries,
+      Iterable<Library> ensureKnownLibraries,
       {Component reissueAmbiguousSupertypesFor});
 
   /// This method is invoked by the client after a member change on classes:
@@ -433,6 +436,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// The insert order is important.
   final Map<Class, _ClassInfo> _infoFor =
       new LinkedHashMap<Class, _ClassInfo>();
+  final Set<Library> knownLibraries = new Set<Library>();
 
   /// Recorded errors for classes we have already calculated the class hierarchy
   /// for, but will have to be reissued when re-using the calculation.
@@ -617,8 +621,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
-    return Substitution
-        .fromInterfaceType(type)
+    return Substitution.fromInterfaceType(type)
         .substituteType(castedType.asInterfaceType);
   }
 
@@ -662,26 +665,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var superclass = supertype.classNode;
       var superGetters = getInterfaceMembers(superclass);
       var superSetters = getInterfaceMembers(superclass, setters: true);
-      _reportOverrides(info.implementedGettersAndCalls, superGetters, callback);
-      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback,
-          onlyAbstract: true);
-      _reportOverrides(info.implementedSetters, superSetters, callback,
-          isSetter: true);
+      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback);
       _reportOverrides(info.declaredSetters, superSetters, callback,
-          isSetter: true, onlyAbstract: true);
-    }
-    if (!class_.isAbstract) {
-      // If a non-abstract class declares an abstract method M whose
-      // implementation M' is inherited from the superclass, then the inherited
-      // method M' overrides the declared method M.
-      // This flies in the face of conventional override logic, but is necessary
-      // because an instance of the class will contain the method M' which can
-      // be invoked through the interface of M.
-      // Note that [_reportOverrides] does not report self-overrides, so in
-      // most cases these calls will just scan both lists and report nothing.
-      _reportOverrides(info.implementedGettersAndCalls,
-          info.declaredGettersAndCalls, callback);
-      _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
           isSetter: true);
     }
   }
@@ -690,15 +675,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       List<Member> declaredList,
       List<Member> inheritedList,
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool isSetter: false,
-      bool onlyAbstract: false}) {
+      {bool isSetter: false}) {
     int i = 0, j = 0;
     while (i < declaredList.length && j < inheritedList.length) {
       Member declared = declaredList[i];
-      if (onlyAbstract && !declared.isAbstract) {
-        ++i;
-        continue;
-      }
       Member inherited = inheritedList[j];
       int comparison = ClassHierarchy.compareMembers(declared, inherited);
       if (comparison < 0) {
@@ -725,24 +705,37 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  ClassHierarchy applyTreeChanges(
-      Iterable<Class> removedClasses, Iterable<Class> addedClasses,
+  List<Supertype> genericSupertypesOf(Class class_) {
+    final supertypes = _infoFor[class_].genericSuperTypes;
+    if (supertypes == null) return const <Supertype>[];
+    // Multiple supertypes can arise from ambiguous supertypes. The first
+    // supertype is the real one; the others are purely informational.
+    return supertypes.values.map((v) => v.first).toList();
+  }
+
+  @override
+  ClassHierarchy applyTreeChanges(Iterable<Library> removedLibraries,
+      Iterable<Library> ensureKnownLibraries,
       {Component reissueAmbiguousSupertypesFor}) {
     // Remove all references to the removed classes.
-    for (Class class_ in removedClasses) {
-      _ClassInfo info = _infoFor[class_];
-      if (class_.supertype != null) {
-        _infoFor[class_.supertype.classNode]?.directExtenders?.remove(info);
-      }
-      if (class_.mixedInType != null) {
-        _infoFor[class_.mixedInType.classNode]?.directMixers?.remove(info);
-      }
-      for (var supertype in class_.implementedTypes) {
-        _infoFor[supertype.classNode]?.directImplementers?.remove(info);
-      }
+    for (Library lib in removedLibraries) {
+      if (!knownLibraries.contains(lib)) continue;
+      for (Class class_ in lib.classes) {
+        _ClassInfo info = _infoFor[class_];
+        if (class_.supertype != null) {
+          _infoFor[class_.supertype.classNode]?.directExtenders?.remove(info);
+        }
+        if (class_.mixedInType != null) {
+          _infoFor[class_.mixedInType.classNode]?.directMixers?.remove(info);
+        }
+        for (var supertype in class_.implementedTypes) {
+          _infoFor[supertype.classNode]?.directImplementers?.remove(info);
+        }
 
-      _infoFor.remove(class_);
-      _recordedAmbiguousSupertypes.remove(class_);
+        _infoFor.remove(class_);
+        _recordedAmbiguousSupertypes.remove(class_);
+      }
+      knownLibraries.remove(lib);
     }
 
     // If we have a cached computation of subtypes, invalidate it and stop
@@ -768,9 +761,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // Add the new classes.
     List<Class> addedClassesSorted = new List<Class>();
     int expectedStartIndex = _topSortIndex;
-    for (Class class_ in addedClasses) {
-      _topologicalSortVisit(class_, new Set<Class>(),
-          orderedList: addedClassesSorted);
+    for (Library lib in ensureKnownLibraries) {
+      if (knownLibraries.contains(lib)) continue;
+      for (Class class_ in lib.classes) {
+        _topologicalSortVisit(class_, new Set<Class>(),
+            orderedList: addedClassesSorted);
+      }
+      knownLibraries.add(lib);
     }
     _initializeTopologicallySortedClasses(
         addedClassesSorted, expectedStartIndex);
@@ -845,6 +842,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       for (var classNode in library.classes) {
         _topologicalSortVisit(classNode, new Set<Class>());
       }
+      knownLibraries.add(library);
     }
 
     _initializeTopologicallySortedClasses(_infoFor.keys, 0);
@@ -1355,7 +1353,7 @@ class _ClassInfo {
   /// Maps generic supertype classes to the instantiation implemented by this
   /// class.
   ///
-  /// E.g. `List` maps to `List<String>` for a class that directly of indirectly
+  /// E.g. `List` maps to `List<String>` for a class that directly or indirectly
   /// implements `List<String>`.
   Map<Class, List<Supertype>> genericSuperTypes;
 

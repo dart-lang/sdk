@@ -32,7 +32,6 @@ main() {
 class AnalysisServerTest extends Object with ResourceProviderMixin {
   MockServerChannel channel;
   AnalysisServer server;
-  MockPackageMapProvider packageMapProvider;
 
   /**
    * Test that having multiple analysis contexts analyze the same file doesn't
@@ -93,11 +92,9 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
     channel = new MockServerChannel();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
-    packageMapProvider = new MockPackageMapProvider();
     server = new AnalysisServer(
         channel,
         resourceProvider,
-        packageMapProvider,
         new AnalysisServerOptions(),
         new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);

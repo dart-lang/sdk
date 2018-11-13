@@ -39,8 +39,7 @@ class Zone;
   V(Embedder, false)                                                           \
   V(GC, false)                                                                 \
   V(Isolate, false)                                                            \
-  V(VM, false)                                                                 \
-  V(Zone, false)
+  V(VM, false)
 
 // A stream of timeline events. A stream has a name and can be enabled or
 // disabled (globally and per isolate).
@@ -77,10 +76,10 @@ class TimelineStream {
 class Timeline : public AllStatic {
  public:
   // Initialize timeline system. Not thread safe.
-  static void InitOnce();
+  static void Init();
 
-  // Shutdown timeline system. Not thread safe.
-  static void Shutdown();
+  // Cleanup timeline system. Not thread safe.
+  static void Cleanup();
 
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder();
@@ -315,10 +314,10 @@ class TimelineEvent {
   void PrintJSON(JSONStream* stream) const;
 
   ThreadId thread() const { return thread_; }
+
   void set_thread(ThreadId tid) { thread_ = tid; }
 
   Dart_Port isolate_id() const { return isolate_id_; }
-  void set_isolate_id(Dart_Port id) { isolate_id_ = id; }
 
   const char* label() const { return label_; }
 

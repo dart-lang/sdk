@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String source = '''
 abstract class I<T> {
@@ -99,13 +98,15 @@ main() {
   new F3();
   new G3();
   new H3();
+  dynamic d;
+  d.method();
 }
 ''';
 
 main() {
   asyncTest(() async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': source}, options: [Flags.strongMode]);
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': source});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

@@ -17,9 +17,6 @@ const List<String> strongSuites = const <String>[
 const List<String> nonStrongSuites = const <String>[
   'dart2js_native',
   'dart2js_extra',
-  'language',
-  'corelib',
-  'html',
 ];
 
 main(List<String> args) {

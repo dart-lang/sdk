@@ -6,7 +6,9 @@ library js_backend.namer;
 
 import 'dart:collection' show HashMap;
 
-import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
+
 import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
@@ -521,16 +523,57 @@ class Namer {
   final Map<String, jsAst.Name> internalGlobals =
       new HashMap<String, jsAst.Name>();
 
+  Map<String, String> createMinifiedGlobalNameMap() {
+    var map = <String, String>{};
+    userGlobals.forEach((entity, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = entity.name;
+    });
+    internalGlobals.forEach((name, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = name;
+    });
+    return map;
+  }
+
   /// Used disambiguated names in the instance namespace, issued by
   /// [_disambiguateMember], [_disambiguateInternalMember],
   /// [_disambiguateOperator], and [reservePublicMemberName].
   final NamingScope instanceScope = new NamingScope();
   final Map<String, jsAst.Name> userInstanceMembers =
       new HashMap<String, jsAst.Name>();
+  final Map<String, String> userInstanceMembersOriginalName =
+      new HashMap<String, String>();
   final Map<MemberEntity, jsAst.Name> internalInstanceMembers =
       new HashMap<MemberEntity, jsAst.Name>();
   final Map<String, jsAst.Name> userInstanceOperators =
       new HashMap<String, jsAst.Name>();
+
+  Map<String, String> createMinifiedInstanceNameMap() {
+    var map = <String, String>{};
+    internalInstanceMembers.forEach((entity, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = entity.name;
+    });
+    userInstanceMembers.forEach((name, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      var originalName = userInstanceMembersOriginalName[name];
+      map[jsName.name] = originalName ?? name;
+    });
+
+    // TODO(sigmund): reverse the operator names back to the original Dart
+    // names.
+    userInstanceOperators.forEach((name, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = name;
+    });
+    return map;
+  }
 
   /// Used to disambiguate names for constants in [constantName].
   final NamingScope constantScope = new NamingScope();
@@ -969,7 +1012,7 @@ class Namer {
     // apply. So we can directly grab a name.
     if (element is JSEntity) {
       return _disambiguateInternalMember(
-          element, () => (element as JSEntity).declaredEntity.name);
+          element, () => (element as JSEntity).declaredName);
     }
 
     // If the name of the field might clash with another field,
@@ -1161,6 +1204,7 @@ class Namer {
       newName = getFreshName(instanceScope, proposedName,
           sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
+      userInstanceMembersOriginalName[key] = '$originalName';
     }
     return _newReference(newName);
   }
@@ -1183,6 +1227,8 @@ class Namer {
       String name = proposeName();
       newName = getFreshName(instanceScope, name, sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
+      // TODO(sigmund): consider plumbing the original name instead.
+      userInstanceMembersOriginalName[key] = name;
     }
     return _newReference(newName);
   }
@@ -1203,6 +1249,7 @@ class Namer {
     assert(!userInstanceMembers.containsKey(key));
     assert(!instanceScope.isUsed(disambiguatedName));
     userInstanceMembers[key] = new StringBackedName(disambiguatedName);
+    userInstanceMembersOriginalName[key] = originalName;
     instanceScope.registerUse(disambiguatedName);
   }
 
@@ -1436,20 +1483,38 @@ class Namer {
     return names.join();
   }
 
-  /// Property name used for `getInterceptor` or one of its specializations.
-  jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    FunctionEntity getInterceptor = _commonElements.getInterceptorMethod;
-    if (classes.contains(_commonElements.jsInterceptorClass)) {
-      // If the base Interceptor class is in the set of intercepted classes, we
-      // need to go through the generic getInterceptorMethod, since any subclass
-      // of the base Interceptor could match.
-      // The unspecialized getInterceptor method can also be accessed through
-      // its element, so we treat this as a user-space global instead of an
-      // internal global.
-      return _disambiguateGlobalMember(getInterceptor);
+  String _getSuffixForInterceptedClasses(Iterable<ClassEntity> classes) {
+    if (classes.isEmpty) {
+      // TODO(johnniwinther,sra): If [classes] is empty it should either have
+      // its own suffix (like here), or always be equated with the set of
+      // classes that contain `Interceptor`. For the latter to work we need to
+      // update `OneShotInterceptorData.registerSpecializedGetInterceptor`,
+      // since it currently would otherwise potentially overwrite the all
+      // intercepted classes case with the empty case.
+      return 'z';
+    } else if (classes.contains(_commonElements.jsInterceptorClass)) {
+      // If the base Interceptor class is in the set of intercepted classes,
+      // this is the most general specialization which uses the generic
+      // getInterceptor method.
+      // TODO(sra): Find a way to get the simple name when Object is not in the
+      // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
+      return '';
+    } else {
+      return suffixForGetInterceptor(classes);
     }
-    String suffix = suffixForGetInterceptor(classes);
-    return _disambiguateInternalGlobal("${getInterceptor.name}\$$suffix");
+  }
+
+  /// Property name used for a specialization of `getInterceptor`.
+  ///
+  /// js_runtime contains a top-level `getInterceptor` method. The
+  /// specializations have the same name, but with a suffix to avoid name
+  /// collisions.
+  jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
+    // If the base Interceptor class is in the set of intercepted classes, we
+    // need to go through the generic getInterceptor method (any subclass of the
+    // base Interceptor could match), which is encoded as an empty suffix.
+    String suffix = _getSuffixForInterceptedClasses(classes);
+    return _disambiguateInternalGlobal('getInterceptor\$$suffix');
   }
 
   /// Property name used for the one-shot interceptor method for the given
@@ -1461,18 +1526,9 @@ class Namer {
     // other global names.
     jsAst.Name root = invocationName(selector);
 
-    if (classes.contains(_commonElements.jsInterceptorClass)) {
-      // If the base Interceptor class is in the set of intercepted classes,
-      // this is the most general specialization which uses the generic
-      // getInterceptor method.
-      // TODO(sra): Find a way to get the simple name when Object is not in the
-      // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
-      return new CompoundName([root, _literalDollar]);
-    } else {
-      String suffix = suffixForGetInterceptor(classes);
-      return new CompoundName(
-          [root, _literalDollar, new StringBackedName(suffix)]);
-    }
+    String suffix = _getSuffixForInterceptedClasses(classes);
+    return new CompoundName(
+        [root, _literalDollar, new StringBackedName(suffix)]);
   }
 
   /// Returns the runtime name for [element].
@@ -1529,8 +1585,9 @@ class Namer {
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
+      String className = member.enclosingClass.name.replaceAll('&', '_');
       String invocationName = operatorNameToIdentifier(member.name);
-      return "super\$${member.enclosingClass.name}\$$invocationName";
+      return "super\$${className}\$$invocationName";
     });
   }
 

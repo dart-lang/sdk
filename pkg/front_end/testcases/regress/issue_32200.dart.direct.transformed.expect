@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field self::Foo self = null;
-  synthetic constructor •() → void
+  field invalid-type self = null;
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
 }

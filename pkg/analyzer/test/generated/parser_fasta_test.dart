@@ -7,12 +7,19 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/scanner.dart'
+    show ScannerResult, scanString;
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,54 +48,14 @@ typedef analyzer.Token ParseFunction(analyzer.Token token);
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
-    with ClassMemberParserTestMixin {
-  @override
-  void test_parseClassMember_method_generic_comment_noReturnType() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseClassMember_method_generic_comment_parameterType() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseClassMember_method_generic_comment_returnType() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseClassMember_method_generic_comment_returnType_bound() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseClassMember_method_generic_comment_returnType_complex() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseClassMember_method_generic_comment_void() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseClassMember_method_static_generic_comment_returnType() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-}
+    with ClassMemberParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].
  */
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
-    with ComplexParserTestMixin {
-  @override
-  void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-}
+    with ComplexParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [ErrorParserTest].
@@ -125,15 +92,29 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     }
   }
 
-  @override
-  void test_method_invalidTypeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
+  void test_invalidOperatorAfterSuper_constructorInitializer2() {
+    parseCompilationUnit('class C { C() : super?.namedConstructor(); }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 21, 2)
+        ]);
   }
 
-  @override
-  void test_method_invalidTypeParameterExtendsComment() {
-    // Fasta no longer supports type comment based syntax
-    // super.test_method_invalidTypeParameterExtendsComment();
+  void test_partialNamedConstructor() {
+    parseCompilationUnit('class C { C. }', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
+    ]);
+  }
+
+  void test_staticOperatorNamedMethod() {
+    // operator can be used as a method name
+    parseCompilationUnit('class C { static operator(x) => x; }');
+  }
+
+  void test_yieldAsLabel() {
+    // yield can be used as a label
+    parseCompilationUnit('main() { yield: break yield; }');
   }
 }
 
@@ -143,113 +124,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
-  @override
-  void
-      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void
-      test_parseAssignableExpression_identifier_args_dot_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseCascadeSection_ia_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseCascadeSection_ii_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseCascadeSection_pa_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseCascadeSection_paa_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseCascadeSection_paapaa_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseConstExpression_listLiteral_typed_genericComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseConstExpression_mapLiteral_typed_genericComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseExpression_superMethodInvocation_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void
-      test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseFunctionExpression_typeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void
-      test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void
-      test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseInstanceCreationExpression_type_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void
-      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void
-      test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super() {
@@ -284,24 +158,9 @@ class FastaParserTestCase extends Object
   @override
   bool allowNativeClause = false;
 
-  /**
-   * Whether generic method comments should be enabled for the test.
-   */
-  bool get enableGenericMethodComments => false;
-  void set enableGenericMethodComments(bool enable) {}
-
   @override
   set enableLazyAssignmentOperators(bool value) {
     // Lazy assignment operators are always enabled
-  }
-
-  @override
-  set enableNnbd(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): non-null-by-default syntax is not supported by
-      // Fasta.
-      throw new UnimplementedError();
-    }
   }
 
   set enableOptionalNewAndConst(bool enable) {
@@ -351,11 +210,9 @@ class FastaParserTestCase extends Object
   @override
   void createParser(String content, {int expectedEndOffset}) {
     var scanner = new StringScanner(content, includeComments: true);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
         allowNativeClause: allowNativeClause,
-        enableGenericMethodComments: enableGenericMethodComments,
         expectedEndOffset: expectedEndOffset);
   }
 
@@ -374,6 +231,11 @@ class FastaParserTestCase extends Object
   @override
   Expression parseAdditiveExpression(String code) {
     return _parseExpression(code);
+  }
+
+  Expression parseArgument(String source) {
+    createParser(source);
+    return _parserProxy.parseArgument();
   }
 
   @override
@@ -420,6 +282,22 @@ class FastaParserTestCase extends Object
     return cascadeExpression.cascadeSections.first;
   }
 
+  CommentReference parseCommentReference(
+      String referenceSource, int sourceOffset) {
+    String padding = ' '.padLeft(sourceOffset - 4, 'a');
+    String source = '/**$padding[$referenceSource] */ class C { }';
+    CompilationUnit unit = parseCompilationUnit(source);
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    List<CommentReference> references = comment.references;
+    if (references.isEmpty) {
+      return null;
+    } else {
+      expect(references, hasLength(1));
+      return references[0];
+    }
+  }
+
   @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
@@ -442,16 +320,38 @@ class FastaParserTestCase extends Object
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener) {
-    // Scan tokens
     var source = new StringSource(content, 'parser_test_StringSource.dart');
-    var scanner = new Scanner.fasta(source, listener);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
-    _fastaTokens = scanner.tokenize();
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
+    // Scan tokens
+    ScannerResult result = scanString(content, includeComments: true);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+    _fastaTokens = token;
 
     // Run parser
-    analyzer.Parser parser =
-        new analyzer.Parser(source, listener, useFasta: true);
-    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    ErrorReporter errorReporter = new ErrorReporter(listener, source);
+    fasta.Parser parser = new fasta.Parser(null);
+    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
+    parser.listener = astBuilder;
+    astBuilder.parser = parser;
+    astBuilder.allowNativeClause = allowNativeClause;
+    parser.parseUnit(_fastaTokens);
+    CompilationUnitImpl unit = astBuilder.pop();
+    unit.localDeclarations = astBuilder.localDeclarations;
+
     expect(unit, isNotNull);
     return unit;
   }
@@ -744,22 +644,7 @@ class FastaParserTestCase extends Object
  */
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
-    with FormalParameterParserTestMixin {
-  @override
-  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-}
+    with FormalParameterParserTestMixin {}
 
 /**
  * Proxy implementation of the analyzer parser, implemented in terms of the
@@ -783,26 +668,20 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token firstToken,
-      {bool allowNativeClause: false,
-      bool enableGenericMethodComments: false,
-      int expectedEndOffset}) {
+      {bool allowNativeClause: false, int expectedEndOffset}) {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
     return new ParserProxy._(firstToken, errorReporter, null, errorListener,
         allowNativeClause: allowNativeClause,
-        enableGenericMethodComments: enableGenericMethodComments,
         expectedEndOffset: expectedEndOffset);
   }
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener,
-      {bool allowNativeClause: false,
-      bool enableGenericMethodComments: false,
-      this.expectedEndOffset})
+      {bool allowNativeClause: false, this.expectedEndOffset})
       : super(firstToken, errorReporter, fileUri,
-            allowNativeClause: allowNativeClause,
-            enableGenericMethodComments: enableGenericMethodComments) {
+            allowNativeClause: allowNativeClause) {
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }
@@ -821,11 +700,32 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   ClassMember parseClassMember(String className) {
-    return _run('ClassBody', () => super.parseClassMember(className));
+    return _run('ClassOrMixinBody', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {
     return _run('Import', () => super.parseCombinators());
+  }
+
+  @override
+  List<CommentReference> parseCommentReferences(
+      List<DocumentationCommentToken> tokens) {
+    for (int index = 0; index < tokens.length - 1; ++index) {
+      analyzer.Token next = tokens[index].next;
+      if (next == null) {
+        tokens[index].setNext(tokens[index + 1]);
+      } else {
+        expect(next, tokens[index + 1]);
+      }
+    }
+    expect(tokens[tokens.length - 1].next, isNull);
+    List<CommentReference> references =
+        astBuilder.parseCommentReferences(tokens.first);
+    if (astBuilder.stack.isNotEmpty) {
+      throw 'Expected empty stack, but found:'
+          '\n  ${astBuilder.stack.values.join('\n  ')}';
+    }
+    return references;
   }
 
   @override
@@ -951,6 +851,21 @@ class ParserProxy extends analyzer.ParserAdapter {
 @reflectiveTest
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
+  void test_invalidTypeParameters_super() {
+    parseCompilationUnit('class C<X super Y> {}', errors: [
+      // TODO(danrubel): Improve recovery.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+      expectedError(ParserErrorCode.MISSING_CLASS_BODY, 10, 5),
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 10, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 5),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 5),
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 16, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
+    ]);
+  }
+
   @override
   void test_equalityExpression_precedence_relational_right() {
     parseExpression("== is", codes: [
@@ -980,7 +895,32 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
-    with SimpleParserTestMixin {}
+    with SimpleParserTestMixin {
+  test_parseArgument() {
+    Expression result = parseArgument('3');
+    expect(result, const TypeMatcher<IntegerLiteral>());
+    IntegerLiteral literal = result;
+    expect(literal.value, 3);
+  }
+
+  test_parseArgument_named() {
+    Expression result = parseArgument('foo: "a"');
+    expect(result, const TypeMatcher<NamedExpression>());
+    NamedExpression expression = result;
+    StringLiteral literal = expression.expression;
+    expect(literal.stringValue, 'a');
+  }
+
+  @failingTest
+  @override
+  void test_parseCommentReferences_skipLink_direct_multiLine() =>
+      super.test_parseCommentReferences_skipLink_direct_multiLine();
+
+  @failingTest
+  @override
+  void test_parseCommentReferences_skipLink_reference_multiLine() =>
+      super.test_parseCommentReferences_skipLink_reference_multiLine();
+}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].
@@ -988,40 +928,53 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
-  @override
-  void test_parseFunctionDeclarationStatement_typeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
+  void test_invalid_typeArg_34850() {
+    var unit = parseCompilationUnit('foo Future<List<int>> bar() {}', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 4),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 4, 6),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 22, 3),
+    ]);
+    // Validate that recovery has properly updated the token stream.
+    analyzer.Token token = unit.beginToken;
+    while (!token.isEof) {
+      expect(token.type, isNot(TokenType.GT_GT));
+      analyzer.Token next = token.next;
+      expect(next.previous, token);
+      token = next;
+    }
   }
 
-  @override
-  void
-      test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
-    // Ignored: Fasta does not support the generic comment syntax.
+  void test_partial_typeArg1_34850() {
+    var unit = parseCompilationUnit('<bar<', errors: [
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 3),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 5, 0),
+    ]);
+    // Validate that recovery has properly updated the token stream.
+    analyzer.Token token = unit.beginToken;
+    while (!token.isEof) {
+      expect(token.type, isNot(TokenType.GT_GT));
+      analyzer.Token next = token.next;
+      expect(next.previous, token);
+      token = next;
+    }
   }
 
-  @override
-  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
-    // Ignored: Fasta does not support the generic comment syntax.
+  void test_partial_typeArg2_34850() {
+    var unit = parseCompilationUnit('foo <bar<', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 3),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 0, 3),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 9, 0),
+    ]);
+    // Validate that recovery has properly updated the token stream.
+    analyzer.Token token = unit.beginToken;
+    while (!token.isEof) {
+      expect(token.type, isNot(TokenType.GT_GT));
+      analyzer.Token next = token.next;
+      expect(next.previous, token);
+      token = next;
+    }
   }
 }
 
@@ -1081,5 +1034,189 @@ class A native 'something' {
   void test_parseClassDeclaration_native_not_allowed() {
     allowNativeClause = false;
     test_parseClassDeclaration_native();
+  }
+
+  void test_parseMixinDeclaration_empty() {
+    createParser('mixin A {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_implements() {
+    createParser('mixin A implements B {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    ImplementsClause implementsClause = declaration.implementsClause;
+    expect(implementsClause.implementsKeyword, isNotNull);
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    expect(interfaces, hasLength(1));
+    expect(interfaces[0].name.name, 'B');
+    expect(interfaces[0].typeArguments, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_implements2() {
+    createParser('mixin A implements B<T>, C {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    ImplementsClause implementsClause = declaration.implementsClause;
+    expect(implementsClause.implementsKeyword, isNotNull);
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    expect(interfaces, hasLength(2));
+    expect(interfaces[0].name.name, 'B');
+    expect(interfaces[0].typeArguments.arguments, hasLength(1));
+    expect(interfaces[1].name.name, 'C');
+    expect(interfaces[1].typeArguments, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_metadata() {
+    createParser('@Z mixin A {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    NodeList<Annotation> metadata = declaration.metadata;
+    expect(metadata, hasLength(1));
+    expect(metadata[0].name.name, 'Z');
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_on() {
+    createParser('mixin A on B {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    OnClause onClause = declaration.onClause;
+    expect(onClause.onKeyword, isNotNull);
+    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    expect(constraints, hasLength(1));
+    expect(constraints[0].name.name, 'B');
+    expect(constraints[0].typeArguments, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_on2() {
+    createParser('mixin A on B, C<T> {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    OnClause onClause = declaration.onClause;
+    expect(onClause.onKeyword, isNotNull);
+    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    expect(constraints, hasLength(2));
+    expect(constraints[0].name.name, 'B');
+    expect(constraints[0].typeArguments, isNull);
+    expect(constraints[1].name.name, 'C');
+    expect(constraints[1].typeArguments.arguments, hasLength(1));
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_onAndImplements() {
+    createParser('mixin A on B implements C {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    OnClause onClause = declaration.onClause;
+    expect(onClause.onKeyword, isNotNull);
+    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    expect(constraints, hasLength(1));
+    expect(constraints[0].name.name, 'B');
+    expect(constraints[0].typeArguments, isNull);
+    ImplementsClause implementsClause = declaration.implementsClause;
+    expect(implementsClause.implementsKeyword, isNotNull);
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    expect(interfaces, hasLength(1));
+    expect(interfaces[0].name.name, 'C');
+    expect(interfaces[0].typeArguments, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_simple() {
+    createParser('''
+mixin A {
+  int f;
+  int get g => f;
+  set s(int v) {f = v;}
+  int add(int v) => f = f + v;
+}''');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(4));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_withDocumentationComment() {
+    createParser('/// Doc\nmixin M {}');
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expectCommentText(declaration.documentationComment, '/// Doc');
   }
 }

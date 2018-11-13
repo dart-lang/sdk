@@ -7,7 +7,6 @@
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
-#include "vm/ast_printer.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/jit/compiler.h"
@@ -109,7 +108,9 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   if (lazy_deopt_with_result_) {
     ASSERT(reason() == ICData::kDeoptAtCall);
     builder->AddCopy(
-        NULL, Location::StackSlot(FrameSlotForVariableIndex(-stack_height)),
+        NULL,
+        Location::StackSlot(
+            compiler_frame_layout.FrameSlotForVariableIndex(-stack_height)),
         slot_ix++);
   }
 
@@ -127,7 +128,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              Thread::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
     builder->AddPcMarker(previous->function(), slot_ix++);
@@ -177,7 +178,7 @@ void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     // Return/ReturnTOS instruction drops incoming arguments so
     // we have to drop outgoing arguments from the innermost environment.
@@ -282,8 +283,8 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
-  __ Move(0, -(1 + kParamEndSlotFromFp));
+void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
+  __ Move(0, -(1 + compiler_frame_layout.param_end_from_fp));
   ASSERT(offset % kWordSize == 0);
   if (Utils::IsInt(8, offset / kWordSize)) {
     __ LoadField(0, 0, offset / kWordSize);
@@ -294,9 +295,9 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ Return(0);
 }
 
-void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
-  __ Move(0, -(2 + kParamEndSlotFromFp));
-  __ Move(1, -(1 + kParamEndSlotFromFp));
+void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
+  __ Move(0, -(2 + compiler_frame_layout.param_end_from_fp));
+  __ Move(1, -(1 + compiler_frame_layout.param_end_from_fp));
   ASSERT(offset % kWordSize == 0);
   if (Utils::IsInt(8, offset / kWordSize)) {
     __ StoreField(0, offset / kWordSize, 1);
@@ -329,8 +330,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (parsed_function().has_arg_desc_var()) {
       // TODO(kustermann): If dbc simulator put the args_desc_ into the
       // _special_regs, we could replace these 3 with the MoveSpecial bytecode.
-      const intptr_t slot_index =
-          FrameSlotForVariable(parsed_function().arg_desc_var());
+      const intptr_t slot_index = compiler_frame_layout.FrameSlotForVariable(
+          parsed_function().arg_desc_var());
       __ LoadArgDescriptor();
       __ StoreLocal(LocalVarIndex(0, slot_index));
       __ Drop(1);
@@ -370,7 +371,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     // Only allow access to the arguments (which have in the non-inverted stack
     // positive indices).
     ASSERT(source.base_reg() == FPREG);
-    ASSERT(source.stack_index() > kParamEndSlotFromFp);
+    ASSERT(source.stack_index() > compiler_frame_layout.param_end_from_fp);
     __ Move(destination.reg(), -source.stack_index());
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,6 +87,21 @@ class OpType {
   bool inStaticMethodBody = false;
 
   /**
+   * Indicates whether the completion location is in the body of a method.
+   */
+  bool inMethodBody = false;
+
+  /**
+   * Indicates whether the completion location is in the body of a function.
+   */
+  bool inFunctionBody = false;
+
+  /**
+   * Indicates whether the completion location is in the body of a constructor.
+   */
+  bool inConstructorBody = false;
+
+  /**
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
@@ -116,17 +131,25 @@ class OpType {
 
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
-    var mthDecl =
-        target.containingNode.getAncestor((p) => p is MethodDeclaration);
+    var methodDeclaration =
+        target.containingNode.getAncestor((node) => node is MethodDeclaration);
+    optype.inMethodBody = methodDeclaration != null;
     optype.inStaticMethodBody =
-        mthDecl is MethodDeclaration && mthDecl.isStatic;
+        methodDeclaration is MethodDeclaration && methodDeclaration.isStatic;
+
+    var functionDeclaration = target.containingNode
+        .getAncestor((node) => node is FunctionDeclaration);
+    optype.inFunctionBody = functionDeclaration != null;
+
+    var constructorDeclaration = target.containingNode
+        .getAncestor((node) => node is ConstructorDeclaration);
+    optype.inConstructorBody = constructorDeclaration != null;
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
       // Careful: in angular plugin, `target.unit` may be null!
-      CompilationUnitElement unitElement = target.unit?.element;
-      if (unitElement != null &&
-          unitElement.context.analysisOptions.previewDart2) {
+      CompilationUnitElement unitElement = target.unit?.declaredElement;
+      if (unitElement != null) {
         optype.includeConstructorSuggestions = true;
       }
     }
@@ -198,7 +221,7 @@ class OpType {
         _requiredType = parent.expression?.staticType;
       }
     } else if (node is VariableDeclaration && node.initializer == entity) {
-      _requiredType = node.element?.type;
+      _requiredType = node.declaredElement?.type;
     } else if (entity is Expression && entity.staticParameterElement != null) {
       _requiredType = entity.staticParameterElement.type;
     }
@@ -279,9 +302,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       Element constructor;
       SimpleIdentifier name = parent.constructorName?.name;
       if (name != null) {
-        constructor = name.bestElement;
+        constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName?.type?.name?.bestElement;
+        var classElem = parent.constructorName?.type?.name?.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -295,7 +318,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     } else if (parent is InvocationExpression) {
       Expression function = parent.function;
       if (function is SimpleIdentifier) {
-        var elem = function.bestElement;
+        var elem = function.staticElement;
         if (elem is FunctionTypedElement) {
           parameters = elem.parameters;
         } else if (elem == null) {
@@ -319,7 +342,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           index = node.arguments.length - 1;
         }
       } else {
-        index = node.arguments.indexOf(entity);
+        index = node.arguments.indexOf(entity as Expression);
       }
       if (0 <= index && index < parameters.length) {
         ParameterElement param = parameters[index];
@@ -465,7 +488,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.name)) {
       TypeName type = node.type;
       if (type != null) {
-        SimpleIdentifier prefix = type.name;
+        Identifier prefix = type.name;
         if (prefix != null) {
           optype.includeConstructorSuggestions = true;
           optype.isPrefixed = true;
@@ -541,6 +564,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitExtendsClause(ExtendsClause node) {
     if (identical(entity, node.superclass)) {
       optype.includeTypeNameSuggestions = true;
+      optype.typeNameSuggestionsFilter = _nonMixinClasses;
+    }
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    if (offset <= node.semicolon.offset) {
+      optype.includeVarNameSuggestions = true;
     }
   }
 
@@ -777,9 +808,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           List<ParameterElement> parameters = element.parameters;
           ParameterElement parameterElement = parameters.firstWhere((e) {
             if (e is DefaultFieldFormalParameterElementImpl) {
-              return e.field?.name == node.name.label.name;
+              return e.field?.name == node.name.label?.name;
             }
-            return e.isNamed && e.name == node.name.label.name;
+            return e.isNamed && e.name == node.name.label?.name;
           }, orElse: () => null);
           // Suggest tear-offs.
           if (parameterElement?.type is FunctionType) {
@@ -801,6 +832,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
@@ -826,6 +862,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         (node.identifier != null &&
             node.identifier.isSynthetic &&
             identical(entity, node.findPrevious(node.identifier.beginToken)))) {
+      if (node.prefix.isSynthetic) {
+        // If the access has no target (empty string)
+        // then don't suggest anything
+        return;
+      }
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -848,12 +889,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    bool isThis = node.target is ThisExpression;
     if (node.realTarget is SimpleIdentifier && node.realTarget.isSynthetic) {
       // If the access has no target (empty string)
       // then don't suggest anything
       return;
     }
+    bool isThis = node.target is ThisExpression;
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
@@ -1019,5 +1060,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       }
     }
     return false;
+  }
+
+  /**
+   * A filter used to disable everything except classes (such as functions and
+   * mixins).
+   */
+  int _nonMixinClasses(DartType type, int relevance) {
+    if (type is InterfaceType) {
+      if (type.element.isMixin) {
+        return null;
+      }
+      return relevance;
+    }
+    return null;
   }
 }

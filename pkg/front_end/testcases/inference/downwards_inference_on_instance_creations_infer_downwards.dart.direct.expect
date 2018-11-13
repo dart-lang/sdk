@@ -5,47 +5,47 @@ import "dart:core" as core;
 class A<S extends core::Object = dynamic, T extends core::Object = dynamic> extends core::Object {
   field self::A::S x;
   field self::A::T y;
-  constructor •(self::A::S x, self::A::T y) → void
+  constructor •(self::A::S x, self::A::T y) → self::A<self::A::S, self::A::T>
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;
-  constructor named(self::A::S x, self::A::T y) → void
+  constructor named(self::A::S x, self::A::T y) → self::A<self::A::S, self::A::T>
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;
 }
 class B<S extends core::Object = dynamic, T extends core::Object = dynamic> extends self::A<self::B::T, self::B::S> {
-  constructor •(self::B::S y, self::B::T x) → void
+  constructor •(self::B::S y, self::B::T x) → self::B<self::B::S, self::B::T>
     : super self::A::•(x, y)
     ;
-  constructor named(self::B::S y, self::B::T x) → void
+  constructor named(self::B::S y, self::B::T x) → self::B<self::B::S, self::B::T>
     : super self::A::named(x, y)
     ;
 }
 class C<S extends core::Object = dynamic> extends self::B<self::C::S, self::C::S> {
-  constructor •(self::C::S a) → void
+  constructor •(self::C::S a) → self::C<self::C::S>
     : super self::B::•(a, a)
     ;
-  constructor named(self::C::S a) → void
+  constructor named(self::C::S a) → self::C<self::C::S>
     : super self::B::named(a, a)
     ;
 }
 class D<S extends core::Object = dynamic, T extends core::Object = dynamic> extends self::B<self::D::T, core::int> {
-  constructor •(self::D::T a) → void
+  constructor •(self::D::T a) → self::D<self::D::S, self::D::T>
     : super self::B::•(a, 3)
     ;
-  constructor named(self::D::T a) → void
+  constructor named(self::D::T a) → self::D<self::D::S, self::D::T>
     : super self::B::named(a, 3)
     ;
 }
 class E<S extends core::Object = dynamic, T extends core::Object = dynamic> extends self::A<self::C<self::E::S>, self::E::T> {
-  constructor •(self::E::T a) → void
+  constructor •(self::E::T a) → self::E<self::E::S, self::E::T>
     : super self::A::•(null, a)
     ;
 }
 class F<S extends core::Object = dynamic, T extends core::Object = dynamic> extends self::A<self::F::S, self::F::T> {
-  constructor •(self::F::S x, self::F::T y, {core::List<self::F::S> a = null, core::List<self::F::T> b = null}) → void
+  constructor •(self::F::S x, self::F::T y, {core::List<self::F::S> a = null, core::List<self::F::T> b = null}) → self::F<self::F::S, self::F::T>
     : super self::A::•(x, y)
     ;
-  constructor named(self::F::S x, self::F::T y, [self::F::S a = null, self::F::T b = null]) → void
+  constructor named(self::F::S x, self::F::T y, [self::F::S a = null, self::F::T b = null]) → self::F<self::F::S, self::F::T>
     : super self::A::•(a, b)
     ;
 }

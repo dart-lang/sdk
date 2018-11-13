@@ -29,7 +29,7 @@ class SearchEngineImpl implements SearchEngine {
     Set<String> visitedIds = new Set<String>();
     Set<String> members = new Set<String>();
 
-    Future<Null> addMembers(ClassElement type, SubtypeResult subtype) async {
+    Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
       if (subtype != null && !visitedIds.add(subtype.id)) {
@@ -62,7 +62,7 @@ class SearchEngineImpl implements SearchEngine {
     await null;
     Set<ClassElement> allSubtypes = new Set<ClassElement>();
 
-    Future<Null> addSubtypes(ClassElement type) async {
+    Future<void> addSubtypes(ClassElement type) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
       List<SearchResult> directResults = await _searchDirectSubtypes(type);

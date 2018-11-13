@@ -13,7 +13,8 @@ import 'package:kernel/ast.dart'
         Supertype,
         TypeParameter;
 
-import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
+import '../fasta_codes.dart'
+    show LocatedMessage, messageSupertypeIsFunction, noLength;
 
 import '../problems.dart' show unsupported;
 
@@ -40,7 +41,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
-    List<String> positionalParameterNames = <String>[];
     List<NamedType> namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
@@ -48,7 +48,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
-          positionalParameterNames.add(formal.name ?? '');
           if (formal.isRequired) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
@@ -69,13 +68,12 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     return new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount,
-        positionalParameterNames: positionalParameterNames);
+        requiredParameterCount: requiredParameterCount);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    library.addCompileTimeError(
+    library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
@@ -86,8 +84,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   @override
-  buildInvalidType(int charOffset, Uri fileUri) {
-    return unsupported("buildInvalidType", charOffset, fileUri);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
+    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {

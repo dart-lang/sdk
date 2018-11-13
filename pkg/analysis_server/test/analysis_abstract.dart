@@ -50,7 +50,6 @@ int findIdentifierLength(String search) {
 class AbstractAnalysisTest extends Object with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
-  MockPackageMapProvider packageMapProvider;
   TestPluginManager pluginManager;
   AnalysisServer server;
   RequestHandler handler;
@@ -116,12 +115,10 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     //
     // Create server
     //
-    AnalysisServerOptions options = new AnalysisServerOptions()
-      ..previewDart2 = true;
+    AnalysisServerOptions options = new AnalysisServerOptions();
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
-        packageMapProvider,
         options,
         new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
@@ -200,7 +197,6 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     projectPath = resourceProvider.convertPath('/project');
     testFolder = resourceProvider.convertPath('/project/bin');
     testFile = resourceProvider.convertPath('/project/bin/test.dart');
-    packageMapProvider = new MockPackageMapProvider();
     pluginManager = new TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
@@ -231,8 +227,9 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
    * Completes with a successful [Response] for the given [request].
    * Otherwise fails.
    */
-  Future<Response> waitResponse(Request request) async {
-    return serverChannel.sendRequest(request);
+  Future<Response> waitResponse(Request request,
+      {bool throwOnError = true}) async {
+    return serverChannel.sendRequest(request, throwOnError: throwOnError);
   }
 }
 
@@ -278,7 +275,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<Null> addPluginToContextRoot(
+  Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     fail('Unexpected invocation of addPluginToContextRoot');
   }
@@ -318,7 +315,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<Null> restartPlugins() async {
+  Future<void> restartPlugins() async {
     // Nothing to restart.
     return null;
   }
@@ -342,7 +339,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<List<Null>> stopAll() async {
+  Future<List<void>> stopAll() async {
     fail('Unexpected invocation of stopAll');
   }
 }

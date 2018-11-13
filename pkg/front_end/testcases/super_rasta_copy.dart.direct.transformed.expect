@@ -1,3 +1,15 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:14:9: Error: Final field 'f' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final f;
+//         ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:33:9: Error: Final field 'd' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final d;
+//         ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -8,7 +20,7 @@ class A extends core::Object {
   field dynamic c = null;
   field dynamic d = null;
   final field dynamic f = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   get e() → dynamic
@@ -32,7 +44,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
   get b() → dynamic
@@ -41,7 +53,7 @@ class B extends self::A {
   set i(dynamic x) → dynamic {}
 }
 class C extends self::B {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
   method test() → dynamic {

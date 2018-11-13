@@ -10,7 +10,14 @@ import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js/js.dart' as js;
 
-MemberEntity lookupMember(ElementEnvironment elementEnvironment, String name) {
+ClassEntity lookupClass(JElementEnvironment elementEnvironment, String name) {
+  ClassEntity cls =
+      elementEnvironment.lookupClass(elementEnvironment.mainLibrary, name);
+  Expect.isNotNull(cls, "No class '$name' found in the main library.");
+  return cls;
+}
+
+MemberEntity lookupMember(JElementEnvironment elementEnvironment, String name) {
   MemberEntity member;
   int dotIndex = name.indexOf('.');
   if (dotIndex != -1) {

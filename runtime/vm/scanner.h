@@ -79,7 +79,7 @@ class Scanner : ValueObject {
     return current_token_.position;
   }
 
-  static void InitOnce();
+  static void Init();
 
   // Return true if str is an identifier.
   bool IsIdent(const String& str);

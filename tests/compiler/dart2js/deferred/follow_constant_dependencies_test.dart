@@ -8,16 +8,17 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
   runTest() async {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
+    var closedWorld = compiler.backendClosedWorldForTesting;
     var outputUnitForConstant =
-        compiler.backend.outputUnitData.outputUnitForConstant;
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
+        closedWorld.outputUnitData.outputUnitForConstant;
+    var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     List<ConstantValue> allConstants = [];
 
     addConstantWithDependendencies(ConstantValue c) {

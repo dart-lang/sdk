@@ -181,14 +181,10 @@ class _ConstantEvaluator extends ConstantEvaluator {
 
   _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
       {bool enableAsserts})
-      : unavailableConstant = InstanceConstant(
-            types.coreTypes.index
-                .getClass('dart:core', '_ConstantExpressionError')
-                .reference,
-            [],
-            {}),
-        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes, true,
-            enableAsserts, const _ErrorReporter()) {
+      : unavailableConstant = InstanceConstant(null, [], {}),
+        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
+            enableAsserts,
+            errorReporter: const _ErrorReporter()) {
     env = EvaluationEnvironment();
   }
 
@@ -299,16 +295,9 @@ class _ConstantsBackend implements ConstantsBackend {
             .firstWhere((f) => f.name.name == '_name');
 
   @override
-  buildConstantForNative(
-          nativeName, typeArguments, positionalArguments, namedArguments) =>
-      throw StateError('unreachable'); // DDC does not use VM native syntax
-
-  @override
-  buildSymbolConstant(StringConstant value) {
-    return InstanceConstant(
-        coreTypes.internalSymbolClass.reference,
-        const <DartType>[],
-        <Reference, Constant>{symbolNameField.reference: value});
+  buildConstantForNative(nativeName, typeArguments, positionalArguments,
+      namedArguments, context, node, errorReporter, abortEvaluation) {
+    throw StateError('unreachable'); // DDC does not use VM native syntax
   }
 
   @override

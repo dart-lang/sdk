@@ -746,6 +746,397 @@ void f() {}
     await assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  test_convertClassToMixin_abstract() async {
+    await resolveTestUnit('''
+abstract class A {}
+''');
+    await assertHasAssistAt('A', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_extends_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B extends A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_extends_super() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B extends A {
+  b() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+mixin B on A {
+  b() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extends_superSuper() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B extends A {}
+class C extends B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B extends A {}
+mixin C on B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsImplements_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C extends A implements B {}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+mixin C implements A, B {}
+''');
+  }
+
+  test_convertClassToMixin_extendsImplements_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {}
+class C extends A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {}
+mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C extends A with B {}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+mixin C implements A, B {}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_both() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on A, B {
+  c() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on A implements B {
+  c() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWith_super_with() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C extends A with B {
+  c() {
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('C', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+mixin C on B implements A {
+  c() {
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+class D extends A with B implements C {}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+class B {}
+class C {}
+mixin D implements A, B, C {}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_both() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on A, B implements C {
+  d() {
+    super.a();
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_extends() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on A implements B, C {
+  d() {
+    super.a();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_extendsWithImplements_super_with() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+class D extends A with B implements C {
+  d() {
+    super.b();
+  }
+}
+''');
+    await assertHasAssistAt('D', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+class B {
+  b() {}
+}
+class C {}
+mixin D on B implements A, C {
+  d() {
+    super.b();
+  }
+}
+''');
+  }
+
+  test_convertClassToMixin_implements() async {
+    await resolveTestUnit('''
+class A {}
+class B implements A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_noClauses_invalidSelection() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertNoAssistAt(
+      '{}',
+      DartAssistKind.CONVERT_CLASS_TO_MIXIN,
+    );
+  }
+
+  test_convertClassToMixin_noClauses_selectKeyword() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertHasAssistAt('class', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_noClauses_selectName() async {
+    await resolveTestUnit('''
+class A {}
+''');
+    await assertHasAssistAt('A', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+mixin A {}
+''');
+  }
+
+  test_convertClassToMixin_with_noSuper() async {
+    await resolveTestUnit('''
+class A {}
+class B with A {}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {}
+mixin B implements A {}
+''');
+  }
+
+  test_convertClassToMixin_with_super() async {
+    await resolveTestUnit('''
+class A {
+  a() {}
+}
+class B with A {
+  b() {
+    super.a();
+  }
+}
+''');
+    await assertHasAssistAt('B', DartAssistKind.CONVERT_CLASS_TO_MIXIN, '''
+class A {
+  a() {}
+}
+mixin B on A {
+  b() {
+    super.a();
+  }
+}
+''');
+  }
+
   test_convertDocumentationIntoBlock_BAD_alreadyBlock() async {
     await resolveTestUnit('''
 /**
@@ -1012,6 +1403,21 @@ Future<String> f() async => '';
 ''');
   }
 
+  test_convertToAsyncBody_OK_getter_expression_noSpace() async {
+    await resolveTestUnit('''
+class C {
+  int get g=>0;
+}
+''');
+    await assertHasAssistAt('get g', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {
+  Future<int> get g async =>0;
+}
+''');
+  }
+
   test_convertToAsyncBody_OK_method() async {
     await resolveTestUnit('''
 class C {
@@ -1024,6 +1430,21 @@ import 'dart:async';
 
 class C {
   Future<int> m() async { return 0; }
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method_abstract() async {
+    await resolveTestUnit('''
+abstract class C {
+  int m();
+}
+''');
+    await assertHasAssistAt('m()', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+abstract class C {
+  Future<int> m();
 }
 ''');
   }
@@ -2081,6 +2502,38 @@ class A {
   get foo => 42;
 }
 ''');
+  }
+
+  test_convertToIntLiteral() async {
+    await resolveTestUnit('''
+const double myDouble = 42.0;
+''');
+    await assertHasAssistAt('42.0', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_e() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e1;
+''');
+    await assertHasAssistAt('4.2e1', DartAssistKind.CONVERT_TO_INT_LITERAL, '''
+const double myDouble = 42;
+''');
+  }
+
+  test_convertToIntLiteral_eBig() async {
+    await resolveTestUnit('''
+const double myDouble = 4.2e99999;
+''');
+    await assertNoAssistAt('4.2e99999', DartAssistKind.CONVERT_TO_INT_LITERAL);
+  }
+
+  test_convertToIntLiteral_notDouble() async {
+    await resolveTestUnit('''
+const double myDouble = 42;
+''');
+    await assertNoAssistAt('42', DartAssistKind.CONVERT_TO_INT_LITERAL);
   }
 
   test_convertToIsNot_BAD_is_alreadyIsNot() async {
@@ -4211,6 +4664,44 @@ main() {
 ''');
   }
 
+  test_flutterWrapContainer_BAD_onContainer() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  return /*caret*/new Container();
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER);
+  }
+
+  test_flutterWrapContainer_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Text('a');
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/Container(child: new Text('a'));
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Center(child: new Text('a'));
+}
+''');
+    }
+  }
+
   test_flutterWrapPadding_BAD_onPadding() async {
     addFlutterPackage();
     await resolveTestUnit('''
@@ -4553,6 +5044,60 @@ class FakeFlutter {\r
 }\r
 ''');
     }
+  }
+
+  test_flutterWrapWidget_OK_prefixedIdentifier_identifier() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return foo./*caret*/bar;
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return widget(child: foo./*caret*/bar);
+}
+''');
+  }
+
+  test_flutterWrapWidget_OK_prefixedIdentifier_prefix() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return /*caret*/foo.bar;
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+
+abstract class Foo extends Widget {
+  Widget bar;
+}
+
+main(Foo foo) {
+  return /*caret*/widget(child: foo.bar);
+}
+''');
   }
 
   test_flutterWrapWidget_OK_singleLine1() async {

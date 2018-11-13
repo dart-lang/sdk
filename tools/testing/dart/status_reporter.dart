@@ -14,6 +14,12 @@ final _combinations = {
       'compiler': 'dart2analyzer'
     },
     {
+      'runtimes': ['none'],
+      'modes': ['release'],
+      'archs': ['x64'],
+      'compiler': 'compare_analyzer_cfe'
+    },
+    {
       'runtimes': ['vm'],
       'modes': ['debug', 'release'],
       'archs': ['ia32', 'x64', 'simarm'],

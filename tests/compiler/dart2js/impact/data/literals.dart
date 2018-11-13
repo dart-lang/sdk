@@ -98,50 +98,56 @@ testSymbol() => #main;
 /*element: testConstSymbol:static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSString,inst:Symbol]*/
 testConstSymbol() => const Symbol('main');
 
-/*kernel.element: complexSymbolField1:
- dynamic=[==,length],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32]
-*/
 /*strong.element: complexSymbolField1:
- dynamic=[==,length],
+ dynamic=[String.length,int.==],
  type=[inst:JSBool,inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32,param:bool]
 */
 const complexSymbolField1 = "true".length == 4;
 
-/*kernel.element: complexSymbolField2:dynamic=[toString(0)],static=[S],type=[inst:JSBool,inst:JSNull,inst:JSString]*/
 /*strong.element: complexSymbolField2:dynamic=[toString(0)],static=[S],type=[inst:JSBool,inst:JSNull,inst:JSString,param:String]*/
 const complexSymbolField2 = "true" "false" "${true}${null}";
 
-/*kernel.element: complexSymbolField3:
-dynamic=[+,unary-],
-static=[
- GenericClass.generative(0),
- String.fromEnvironment(1),
- Symbol.,assertIsSubtype,
- bool.fromEnvironment(1,defaultValue),
- identical(2),
- int.fromEnvironment(1,defaultValue),
- override,
- testComplexConstSymbol,
- throwTypeError],
-type=[
- check:int,
- inst:ConstantMap<dynamic,dynamic>,
- inst:ConstantProtoMap<dynamic,dynamic>,
- inst:ConstantStringMap<dynamic,dynamic>,
- inst:GeneralConstantMap<dynamic,dynamic>,
- inst:JSBool,
- inst:JSDouble,
- inst:JSInt,
- inst:JSNumber,
- inst:JSPositiveInt,
- inst:JSString,
- inst:JSUInt31,
- inst:JSUInt32,
- inst:List<int>,
- inst:Symbol]
+/*strong.element: complexSymbolField3:
+  dynamic=[int.+,int.unary-],
+  static=[
+   GenericClass.generative(0),
+   String.fromEnvironment(1),
+   Symbol.,
+   assertIsSubtype,
+   bool.fromEnvironment(1,defaultValue),
+   checkSubtype,
+   getRuntimeTypeArgument,
+   getRuntimeTypeArgumentIntercepted,
+   getRuntimeTypeInfo,
+   getTypeArgumentByIndex,
+   identical(2),
+   int.fromEnvironment(1,defaultValue),
+   override,
+   setRuntimeTypeInfo,
+   testComplexConstSymbol,
+   throwTypeError],
+  type=[
+   inst:ConstantMap<dynamic,dynamic>,
+   inst:ConstantProtoMap<dynamic,dynamic>,
+   inst:ConstantStringMap<dynamic,dynamic>,
+   inst:GeneralConstantMap<dynamic,dynamic>,
+   inst:JSArray<dynamic>,
+   inst:JSBool,
+   inst:JSDouble,
+   inst:JSExtendableArray<dynamic>,
+   inst:JSFixedArray<dynamic>,
+   inst:JSInt,
+   inst:JSMutableArray<dynamic>,
+   inst:JSNumber,
+   inst:JSPositiveInt,
+   inst:JSString,
+   inst:JSUInt31,
+   inst:JSUInt32,
+   inst:JSUnmodifiableArray<dynamic>,
+   inst:List<int>,
+   inst:Symbol,
+   param:Map<Object,Object>]
 */
-/*strong.element: complexSymbolField3:dynamic=[+,unary-],static=[GenericClass.generative(0),String.fromEnvironment(1),Symbol.,assertIsSubtype,bool.fromEnvironment(1,defaultValue),checkSubtype,getRuntimeTypeArgument,getRuntimeTypeArgumentIntercepted,getRuntimeTypeInfo,getTypeArgumentByIndex,identical(2),int.fromEnvironment(1,defaultValue),override,setRuntimeTypeInfo,testComplexConstSymbol,throwTypeError],type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSArray<dynamic>,inst:JSBool,inst:JSDouble,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSInt,inst:JSMutableArray<dynamic>,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32,inst:JSUnmodifiableArray<dynamic>,inst:List<int>,inst:Symbol,param:Map<Object,Object>]*/
 const complexSymbolField3 = const {
   0: const bool.fromEnvironment('a', defaultValue: true),
   false: const int.fromEnvironment('b', defaultValue: 42),
@@ -153,16 +159,14 @@ const complexSymbolField3 = const {
   override: const GenericClass<int, String>.generative(),
 };
 
-/*kernel.element: complexSymbolField:static=[complexSymbolField1,complexSymbolField2,complexSymbolField3]*/
 /*strong.element: complexSymbolField:static=[complexSymbolField1,complexSymbolField2,complexSymbolField3],type=[inst:JSBool,param:Object]*/
 const complexSymbolField =
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 
-/*kernel.element: testComplexConstSymbol:static=[Symbol.,Symbol.(1),Symbol.validated,complexSymbolField],type=[inst:Symbol]*/
 /*strong.element: testComplexConstSymbol:static=[Symbol.,Symbol.(1),Symbol.validated,complexSymbolField],type=[impl:String,inst:JSBool,inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*element: testIfNullConstSymbol:dynamic=[==],static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSNull,inst:JSString,inst:Symbol]*/
+/*element: testIfNullConstSymbol:dynamic=[Null.==],static=[Symbol.,Symbol.(1),Symbol.validated],type=[inst:JSNull,inst:JSString,inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
 /*element: testTypeLiteral:static=[createRuntimeType],type=[inst:Type,inst:TypeImpl,lit:Object]*/
@@ -177,14 +181,12 @@ testEmptyListLiteral() => [];
 /*element: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
 testEmptyListLiteralDynamic() => <dynamic>[];
 
-/*kernel.element: testEmptyListLiteralTyped:type=[check:String,inst:List<String>]*/
 /*strong.element: testEmptyListLiteralTyped:type=[inst:List<String>]*/
 testEmptyListLiteralTyped() => <String>[];
 
 /*element: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
-/*kernel.element: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<dynamic>]*/
 /*strong.element: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
 testNonEmptyListLiteral() => [true];
 
@@ -194,7 +196,6 @@ testEmptyMapLiteral() => {};
 /*element: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 
-/*kernel.element: testEmptyMapLiteralTyped:type=[check:String,check:int,inst:Map<String,int>]*/
 /*strong.element: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
@@ -206,7 +207,6 @@ type=[
  inst:GeneralConstantMap<dynamic,dynamic>]*/
 testEmptyMapLiteralConstant() => const {};
 
-/*kernel.element: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<dynamic,dynamic>]*/
 /*strong.element: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
 testNonEmptyMapLiteral() => {null: true};
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -391,7 +391,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
       if (requiredFields != null && requiredFields.containsKey(key)) {
         // Already checked this field
       } else if (optionalFields != null && optionalFields.containsKey(key)) {
-        _checkField(key, value, optionalFields[key], mismatches);
+        _checkField(key as String, value, optionalFields[key], mismatches);
       } else {
         mismatches.add((Description mismatchDescription) => mismatchDescription
             .add('has unexpected field ')
@@ -572,7 +572,8 @@ class Server {
         // params.
         outOfTestExpect(messageAsMap, contains('event'));
         outOfTestExpect(messageAsMap['event'], isString);
-        notificationProcessor(messageAsMap['event'], messageAsMap['params']);
+        notificationProcessor(
+            messageAsMap['event'] as String, messageAsMap['params']);
         // Check that the message is well-formed.  We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.
@@ -751,7 +752,7 @@ class _ListOf extends Matcher {
    */
   final Matcher iterableMatcher;
 
-  _ListOf(elementMatcher)
+  _ListOf(Matcher elementMatcher)
       : elementMatcher = elementMatcher,
         iterableMatcher = everyElement(elementMatcher);
 
@@ -951,7 +952,5 @@ abstract class _RecursiveMatcher extends Matcher {
    * Create a [MismatchDescriber] describing a mismatch with a simple string.
    */
   MismatchDescriber simpleDescription(String description) =>
-      (Description mismatchDescription) {
-        mismatchDescription.add(description);
-      };
+      (Description mismatchDescription) => mismatchDescription.add(description);
 }

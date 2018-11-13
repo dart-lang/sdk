@@ -27,8 +27,8 @@ typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
 
 class FieldVisitor {
   final CompilerOptions _options;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
+  final JCommonElements _commonElements;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final NativeData _nativeData;
   final Namer _namer;
@@ -100,7 +100,7 @@ class FieldVisitor {
         js.Name accessorName = _namer.fieldAccessorName(field);
         js.Name fieldName = _namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (_options.enableTypeAssertions &&
+        if (_options.parameterCheckPolicy.isEmitted &&
             needsSetter &&
             !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;

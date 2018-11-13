@@ -38,7 +38,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
       library libAB;
-      part "${convertPathForImport('/partAB.dart')}";
+      part "${convertAbsolutePathToUri('/partAB.dart')}";
       class A { }
       class B { }''');
     addSource('/partAB.dart', '''
@@ -50,8 +50,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class C { }
       class D { }''');
     addTestSource('''
-      import "${convertPathForImport("/testAB.dart")}" hide ^;
-      import "${convertPathForImport("/testCD.dart")}";
+      import "${convertAbsolutePathToUri("/testAB.dart")}" hide ^;
+      import "${convertAbsolutePathToUri("/testCD.dart")}";
       class X {}''');
 
     await computeSuggestions();
@@ -78,7 +78,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
       library libAB;
-      part "${convertPathForImport('/partAB.dart')}";
+      part "${convertAbsolutePathToUri('/partAB.dart')}";
       class A { }
       class B { }
       class _AB''');
@@ -93,8 +93,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class C { }
       class D { }''');
     addTestSource('''
-      import "${convertPathForImport("/testAB.dart")}" show ^;
-      import "${convertPathForImport("/testCD.dart")}";
+      import "${convertAbsolutePathToUri("/testAB.dart")}" show ^;
+      import "${convertAbsolutePathToUri("/testCD.dart")}";
       class X {}''');
 
     await computeSuggestions();
@@ -158,7 +158,7 @@ export 'testB.dart';
 class B {}
 ''');
     addTestSource('''
-import "${convertPathForImport("/testB.dart")}" show ^;
+import "${convertAbsolutePathToUri("/testB.dart")}" show ^;
 ''');
     await computeSuggestions();
     assertSuggestClass('A',

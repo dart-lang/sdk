@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetGeneralSubscriptionsTest);
-    defineReflectiveTests(SetGeneralSubscriptionsTest_UseCFE);
   });
 }
 
@@ -39,17 +38,5 @@ class Foo {
         lastAnalyzedFiles
             .any((String file) => file.endsWith(join('core', 'core.dart'))),
         true);
-  }
-}
-
-@reflectiveTest
-class SetGeneralSubscriptionsTest_UseCFE extends SetGeneralSubscriptionsTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_options() {
-    fail('Test fails with CFE');
   }
 }

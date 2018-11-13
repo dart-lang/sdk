@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,7 +55,7 @@ abstract class OccurrencesMixin implements ServerPlugin {
   Future<OccurrencesRequest> getOccurrencesRequest(String path);
 
   @override
-  Future<Null> sendOccurrencesNotification(String path) async {
+  Future<void> sendOccurrencesNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
@@ -63,7 +63,7 @@ abstract class OccurrencesMixin implements ServerPlugin {
       OccurrencesGenerator generator =
           new OccurrencesGenerator(getOccurrencesContributors(path));
       GeneratorResult generatorResult =
-          await generator.generateOccurrencesNotification(request);
+          generator.generateOccurrencesNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

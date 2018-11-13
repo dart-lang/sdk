@@ -6,7 +6,7 @@
 #define RUNTIME_VM_COMPILER_ASSEMBLER_DISASSEMBLER_KBC_H_
 
 #include "vm/globals.h"
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/assembler/disassembler.h"
 
@@ -84,6 +84,6 @@ class KernelBytecodeDisassembler : public AllStatic {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_DISASSEMBLER_KBC_H_

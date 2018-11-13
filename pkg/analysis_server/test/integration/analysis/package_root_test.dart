@@ -15,14 +15,13 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
-    defineReflectiveTests(SetAnalysisRootsTest_UseCFE);
   });
 }
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
-  test_package_root() async {
+  xtest_package_root() async {
+    // TODO(devoncarew): This test fails intermittently on the bots; #33879.
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');
     String packagesPath = sourcePath('packages');
@@ -86,10 +85,4 @@ f() {}
 
     expect(found, isTrue);
   }
-}
-
-@reflectiveTest
-class SetAnalysisRootsTest_UseCFE extends SetAnalysisRootsTest {
-  @override
-  bool get useCFE => true;
 }

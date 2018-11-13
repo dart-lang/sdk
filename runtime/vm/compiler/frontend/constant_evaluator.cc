@@ -146,7 +146,7 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       default:
         H.ReportError(
             script_, TokenPosition::kNoSource,
-            "Not a constant expression: unexpected kernel tag %s (%" Pd ")",
+            "Not a constant expression: unexpected kernel tag %s (%d)",
             Reader::TagName(tag), tag);
     }
 
@@ -213,6 +213,23 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
   return Instance::ZoneHandle(Z, result_.raw());
 }
 
+Instance& ConstantEvaluator::EvaluateStaticInvocation(intptr_t offset,
+                                                      bool reset_position) {
+  if (!GetCachedConstant(offset, &result_)) {
+    ASSERT(IsAllowedToEvaluate());
+    intptr_t original_offset = helper_->ReaderOffset();
+    helper_->SetOffset(offset);
+    helper_->ReadTag();  // skip tag.
+    EvaluateStaticInvocation();
+
+    CacheConstantValue(offset, result_);
+    if (reset_position) helper_->SetOffset(original_offset);
+  }
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  return Instance::ZoneHandle(Z, result_.raw());
+}
+
 RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -224,6 +241,20 @@ RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
     thread->clear_sticky_error();
     return error.raw();
   }
+}
+
+RawObject* ConstantEvaluator::EvaluateAnnotations() {
+  intptr_t list_length = helper_->ReadListLength();  // read list length.
+  const Array& metadata_values =
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
+  Instance& value = Instance::Handle(Z);
+  for (intptr_t i = 0; i < list_length; ++i) {
+    // this will (potentially) read the expression, but reset the position.
+    value = EvaluateExpression(helper_->ReaderOffset());
+    helper_->SkipExpression();  // read (actual) initializer.
+    metadata_values.SetAt(i, value);
+  }
+  return metadata_values.raw();
 }
 
 bool ConstantEvaluator::IsBuildingFlowGraph() const {
@@ -816,7 +847,7 @@ const Object& ConstantEvaluator::RunFunction(TokenPosition position,
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (I->strong() && FLAG_precompiled_mode) {
+  if (FLAG_strong && FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -898,7 +929,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (I->strong() && FLAG_precompiled_mode) {
+  if (FLAG_strong && FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -993,9 +1024,6 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   // is running, and thus change the value of 'compile_time_constants';
   // do not assert that 'compile_time_constants' has not changed.
   constants.Release();
-  if (FLAG_compiler_stats && is_present) {
-    ++H.thread()->compiler_stats()->num_const_cache_hits;
-  }
   return is_present;
 }
 
@@ -1036,24 +1064,38 @@ ConstantHelper::ConstantHelper(Zone* zone,
       const_evaluator_(helper, type_translator, active_class, nullptr),
       translation_helper_(helper->translation_helper_),
       skip_vmservice_library_(skip_vmservice_library),
+      symbol_class_(Class::Handle(zone)),
+      symbol_name_field_(Field::Handle(zone)),
       temp_type_(AbstractType::Handle(zone)),
       temp_type_arguments_(TypeArguments::Handle(zone)),
       temp_type_arguments2_(TypeArguments::Handle(zone)),
       temp_type_arguments3_(TypeArguments::Handle(zone)),
       temp_object_(Object::Handle(zone)),
+      temp_string_(String::Handle(zone)),
       temp_array_(Array::Handle(zone)),
       temp_instance_(Instance::Handle(zone)),
       temp_field_(Field::Handle(zone)),
       temp_class_(Class::Handle(zone)),
+      temp_library_(Library::Handle(zone)),
       temp_function_(Function::Handle(zone)),
       temp_closure_(Closure::Handle(zone)),
       temp_context_(Context::Handle(zone)),
-      temp_integer_(Integer::Handle(zone)) {}
+      temp_integer_(Integer::Handle(zone)) {
+  temp_library_ = Library::InternalLibrary();
+  ASSERT(!temp_library_.IsNull());
+
+  symbol_class_ = temp_library_.LookupClass(Symbols::Symbol());
+  ASSERT(!symbol_class_.IsNull());
+
+  symbol_name_field_ =
+      symbol_class_.LookupInstanceFieldAllowPrivate(Symbols::_name());
+  ASSERT(!symbol_name_field_.IsNull());
+}
 
 const Array& ConstantHelper::ReadConstantTable() {
   const intptr_t number_of_constants = helper_.ReadUInt();
   if (number_of_constants == 0) {
-    return Array::Handle(Z, Array::null());
+    return Array::empty_array();
   }
 
   const Library& corelib = Library::Handle(Z, Library::CoreLibrary());
@@ -1095,6 +1137,21 @@ const Array& ConstantHelper::ReadConstantTable() {
       case kStringConstant: {
         temp_instance_ =
             H.Canonicalize(H.DartString(helper_.ReadStringReference()));
+        break;
+      }
+      case kSymbolConstant: {
+        Tag initializer_tag = helper_.ReadTag();
+        if (initializer_tag == kSomething) {
+          const NameIndex index = helper_.ReadCanonicalNameReference();
+          temp_library_ = H.LookupLibraryByKernelLibrary(index);
+        } else {
+          temp_library_ = Library::null();
+        }
+        const String& symbol =
+            H.DartIdentifier(temp_library_, helper_.ReadStringReference());
+        temp_instance_ = Instance::New(symbol_class_, Heap::kOld);
+        temp_instance_.SetField(symbol_name_field_, symbol);
+        temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }
       case kListConstant: {

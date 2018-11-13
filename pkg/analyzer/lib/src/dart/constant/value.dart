@@ -1,12 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /**
  * The implementation of the class [DartObject].
  */
-library analyzer.src.dart.constant.value;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/constant/value.dart';
@@ -167,6 +165,7 @@ class DartObjectImpl implements DartObject {
   /**
    * An empty list of objects.
    */
+  @deprecated
   static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
 
   @override
@@ -374,21 +373,19 @@ class DartObjectImpl implements DartObject {
    */
   DartObjectImpl equalEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    if (type != rightOperand.type) {
-      String typeName = type.name;
-      if (!(typeName == "bool" ||
-          typeName == "double" ||
-          typeName == "int" ||
-          typeName == "num" ||
-          typeName == "String" ||
-          typeName == "Null" ||
-          type.isDynamic)) {
-        throw new EvaluationException(
-            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-      }
+    if (isNull || rightOperand.isNull) {
+      return new DartObjectImpl(
+          typeProvider.boolType,
+          isNull && rightOperand.isNull
+              ? BoolState.TRUE_STATE
+              : BoolState.FALSE_STATE);
     }
-    return new DartObjectImpl(
-        typeProvider.boolType, _state.equalEqual(rightOperand._state));
+    if (isBoolNumStringOrNull) {
+      return new DartObjectImpl(
+          typeProvider.boolType, _state.equalEqual(rightOperand._state));
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
   @override
@@ -573,18 +570,7 @@ class DartObjectImpl implements DartObject {
    */
   DartObjectImpl notEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    if (type != rightOperand.type) {
-      String typeName = type.name;
-      if (typeName != "bool" &&
-          typeName != "double" &&
-          typeName != "int" &&
-          typeName != "num" &&
-          typeName != "String") {
-        return new DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
-      }
-    }
-    return new DartObjectImpl(typeProvider.boolType,
-        _state.equalEqual(rightOperand._state).logicalNot());
+    return equalEqual(typeProvider, rightOperand).logicalNot(typeProvider);
   }
 
   /**
@@ -2255,10 +2241,10 @@ class IntState extends NumState {
       int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
-      } else if (rightValue == 0) {
-        return new DoubleState(value.toDouble() % rightValue.toDouble());
       }
-      return new IntState(value.remainder(rightValue));
+      if (rightValue != 0) {
+        return new IntState(value % rightValue);
+      }
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
@@ -2285,7 +2271,9 @@ class IntState extends NumState {
       } else if (rightValue.bitLength > 31) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value << rightValue);
+      if (rightValue >= 0) {
+        return new IntState(value << rightValue);
+      }
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
@@ -2306,7 +2294,9 @@ class IntState extends NumState {
       } else if (rightValue.bitLength > 31) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value >> rightValue);
+      if (rightValue >= 0) {
+        return new IntState(value >> rightValue);
+      }
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }

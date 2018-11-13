@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapUriTest);
-    defineReflectiveTests(MapUriTest_UseCFE);
   });
 }
 
@@ -38,10 +37,4 @@ class MapUriTest extends AbstractAnalysisServerIntegrationTest {
       expect(result.uri, 'package:foo/main.dart');
     }
   }
-}
-
-@reflectiveTest
-class MapUriTest_UseCFE extends MapUriTest {
-  @override
-  bool get useCFE => true;
 }

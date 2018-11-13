@@ -26,7 +26,7 @@ Element findElementByNameOffset(Element root, int nameOffset) {
  * Uses [processor] to visit all of the children of [element].
  * If [processor] returns `true`, then children of a child are visited too.
  */
-void visitChildren(Element element, ElementProcessor processor) {
+void visitChildren(Element element, BoolElementProcessor processor) {
   element.visitChildren(new _ElementVisitorAdapter(processor));
 }
 
@@ -34,7 +34,7 @@ void visitChildren(Element element, ElementProcessor processor) {
  * Uses [processor] to visit all of the top-level elements of [library].
  */
 void visitLibraryTopLevelElements(
-    LibraryElement library, ElementProcessor processor) {
+    LibraryElement library, VoidElementProcessor processor) {
   library.visitChildren(new _TopLevelElementsVisitor(processor));
 }
 
@@ -42,7 +42,12 @@ void visitLibraryTopLevelElements(
  * An [Element] processor function type.
  * If `true` is returned, children of [element] will be visited.
  */
-typedef bool ElementProcessor(Element element);
+typedef bool BoolElementProcessor(Element element);
+
+/**
+ * An [Element] processor function type.
+ */
+typedef void VoidElementProcessor(Element element);
 
 /**
  * A visitor that finds the deep-most [Element] that contains the [nameOffset].
@@ -66,7 +71,7 @@ class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor {
  * A [GeneralizingElementVisitor] adapter for [ElementProcessor].
  */
 class _ElementVisitorAdapter extends GeneralizingElementVisitor {
-  final ElementProcessor processor;
+  final BoolElementProcessor processor;
 
   _ElementVisitorAdapter(this.processor);
 
@@ -83,7 +88,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
  * A [GeneralizingElementVisitor] for visiting top-level elements.
  */
 class _TopLevelElementsVisitor extends GeneralizingElementVisitor {
-  final ElementProcessor processor;
+  final VoidElementProcessor processor;
 
   _TopLevelElementsVisitor(this.processor);
 

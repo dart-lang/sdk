@@ -13,6 +13,7 @@
 #include "vm/heap/scavenger.h"
 #include "vm/heap/spaces.h"
 #include "vm/heap/weak_table.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -51,6 +52,7 @@ class Heap {
     kNewSpace,   // New space is full.
     kPromotion,  // Old space limit crossed after a scavenge.
     kOldSpace,   // Old space limit crossed.
+    kFinalize,   // Concurrent marking finished.
     kFull,       // Heap::CollectAllGarbage
     kExternal,   // Dart_NewWeakPersistentHandle
     kIdle,       // Dart_NotifyIdle
@@ -114,13 +116,28 @@ class Heap {
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
 
+  // Collect a single generation.
   void CollectGarbage(Space space);
   void CollectGarbage(GCType type, GCReason reason);
+
+  // Collect both generations by performing a scavenge followed by a
+  // mark-sweep. This function may not collect all unreachable objects. Because
+  // mark-sweep treats new space as roots, a cycle between unreachable old and
+  // new objects will not be collected until the new objects are promoted.
+  // Verification based on heap iteration should instead use CollectAllGarbage.
+  void CollectMostGarbage(GCReason reason = kFull);
+
+  // Collect both generations by performing an evacuation followed by a
+  // mark-sweep. This function will collect all unreachable objects.
   void CollectAllGarbage(GCReason reason = kFull);
+
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
   }
 
+  void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void CheckFinishConcurrentMarking(Thread* thread);
+  void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be
@@ -413,6 +430,26 @@ class WritableVMIsolateScope : StackResource {
  public:
   explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
+};
+
+// This scope forces heap growth, forces use of the bump allocator, and
+// takes the page lock. It is useful e.g. at program startup when allocating
+// many objects into old gen (like libraries, classes, and functions).
+class BumpAllocateScope : StackResource {
+ public:
+  explicit BumpAllocateScope(Thread* thread);
+  ~BumpAllocateScope();
+
+ private:
+  // This is needed to avoid a GC while we hold the page lock, which would
+  // trigger a deadlock.
+  NoHeapGrowthControlScope no_growth_control_;
+
+  // A reload will try to allocate into new gen, which could trigger a
+  // scavenge and deadlock.
+  NoReloadScope no_reload_scope_;
+
+  DISALLOW_COPY_AND_ASSIGN(BumpAllocateScope);
 };
 
 }  // namespace dart

@@ -15,8 +15,7 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'package:vm/bytecode/gen_bytecode.dart'
-    show generateBytecode, isKernelBytecodeEnabledForPlatform;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -25,9 +24,6 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_inputError;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
@@ -67,7 +63,7 @@ compileEntryPoint(List<String> arguments) async {
 
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
-      print("\n\n=== Iteration ${i+1} of $iterations");
+      print("\n\n=== Iteration ${i + 1} of $iterations");
     }
     var stopwatch = new Stopwatch()..start();
     await compile(arguments);
@@ -141,14 +137,16 @@ class BatchCompiler {
 
   Future<bool> batchCompileArguments(List<String> arguments) async {
     return runProtectedFromAbort<bool>(
-        () => withGlobalOptions("compile", arguments, true,
+        () => withGlobalOptions<bool>("compile", arguments, true,
             (CompilerContext c, _) => batchCompileImpl(c)),
         false);
   }
 
   Future<bool> batchCompile(CompilerOptions options, Uri input, Uri output) {
     return CompilerContext.runWithOptions(
-        new ProcessedOptions(options, <Uri>[input], output), batchCompileImpl);
+        new ProcessedOptions(
+            options: options, inputs: <Uri>[input], output: output),
+        batchCompileImpl);
   }
 
   Future<bool> batchCompileImpl(CompilerContext c) async {
@@ -228,7 +226,7 @@ class CompileTask {
   }
 
   KernelTarget createKernelTarget(
-      DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
+      DillTarget dillTarget, UriTranslator uriTranslator) {
     return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator,
         uriToSource: c.uriToSource);
   }
@@ -237,19 +235,12 @@ class CompileTask {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
-    KernelTarget kernelTarget =
-        createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
+    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
     Uri platform = c.options.sdkSummary;
     if (platform != null) {
       _appendDillForUri(dillTarget, platform);
     }
-    Uri uri = c.options.inputs.first;
-    String path = uriTranslator.translate(uri)?.path ?? uri.path;
-    if (path.endsWith(".dart")) {
-      kernelTarget.read(uri);
-    } else {
-      deprecated_inputError(uri, -1, "Unexpected input: $uri");
-    }
+    kernelTarget.setEntryPoints(c.options.inputs);
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
@@ -328,8 +319,8 @@ Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
-  if (isKernelBytecodeEnabledForPlatform) {
-    generateBytecode(result.component, strongMode: c.options.strongMode);
+  if (c.options.bytecode) {
+    generateBytecode(result.component);
   }
 
   await writeComponentToFile(result.component, fullOutput,
@@ -356,7 +347,7 @@ Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
   // mode), this is only an approximation, albeit accurate.  Once Fasta is
   // self-hosting, this isn't an approximation. Regardless, strong mode
   // shouldn't affect which files are read.
-  Target hostTarget = getTarget("vm", new TargetFlags(strongMode: true));
+  Target hostTarget = getTarget("vm", new TargetFlags());
   return getDependencies(Platform.script,
       platform: hostPlatform, target: hostTarget);
 }

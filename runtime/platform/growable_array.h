@@ -148,6 +148,12 @@ class BaseGrowableArray : public B {
     capacity_ = 0;
   }
 
+  T* begin() { return &data_[0]; }
+  const T* begin() const { return &data_[0]; }
+
+  T* end() { return &data_[length_]; }
+  const T* end() const { return &data_[length_]; }
+
  private:
   intptr_t length_;
   intptr_t capacity_;

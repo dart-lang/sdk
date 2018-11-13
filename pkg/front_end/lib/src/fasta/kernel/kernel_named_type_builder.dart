@@ -6,10 +6,12 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show LocatedMessage;
 
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
+
+import '../severity.dart' show Severity;
 
 import 'kernel_builder.dart'
     show
@@ -20,7 +22,8 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        flattenName;
 
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
@@ -28,11 +31,13 @@ class KernelNamedTypeBuilder
   KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri,
-      [Message message]) {
+  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message,
+      {List<LocatedMessage> context}) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
-    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri, message);
+    return new KernelInvalidTypeBuilder(
+        flattenName(name, message.charOffset, message.uri), message,
+        context: context);
   }
 
   Supertype handleInvalidSupertype(
@@ -40,8 +45,11 @@ class KernelNamedTypeBuilder
     var template = declaration.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
-    library.addCompileTimeError(
-        template.withArguments("$name"), charOffset, noLength, fileUri);
+    library.addProblem(
+        template.withArguments(flattenName(name, charOffset, fileUri)),
+        charOffset,
+        noLength,
+        fileUri);
     return null;
   }
 
@@ -55,11 +63,12 @@ class KernelNamedTypeBuilder
     if (declaration is KernelClassBuilder) {
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
-      library.addCompileTimeError(
+      library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
-          declaration.message.uri);
+          declaration.message.uri,
+          severity: Severity.error);
       return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);
@@ -72,11 +81,12 @@ class KernelNamedTypeBuilder
     if (declaration is KernelClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
-      library.addCompileTimeError(
+      library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
-          declaration.message.uri);
+          declaration.message.uri,
+          severity: Severity.error);
       return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);

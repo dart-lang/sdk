@@ -6,7 +6,7 @@ main.dart.patch: |
   <<<< []
   class A<S> {
   ==== []
-  class A<S extends S> {
+  class A<S extends num> {
   >>>>
     S field;
   }

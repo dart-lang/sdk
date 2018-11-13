@@ -23,6 +23,6 @@ confuse(x) => x;
 main() {
   dynamic c = new C();
   dynamic a = 12;
-  if (confuse(true)) a = {};
+  if (confuse(true)) a = <String, ItemListFilter>{};
   c.f = a;
 }

@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 
-/*kernel.class: A:*/
 /*omit.class: A:*/
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {

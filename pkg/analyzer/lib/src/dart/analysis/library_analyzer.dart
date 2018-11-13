@@ -8,52 +8,42 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
-import 'package:analyzer/src/fasta/error_converter.dart';
-import 'package:analyzer/src/fasta/resolution_applier.dart';
-import 'package:analyzer/src/fasta/resolution_storer.dart' as kernel;
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/dependency_walker.dart';
-import 'package:kernel/kernel.dart' as kernel;
-import 'package:kernel/type_algebra.dart' as kernel;
 
 /**
  * Analyzer of a single library.
  */
 class LibraryAnalyzer {
-  final PerformanceLog _logger;
-  final AnalysisOptions _analysisOptions;
+  final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
-
-  final bool _enableKernelDriver;
-  final bool _useCFE;
-  final FrontEndCompiler _frontEndCompiler;
+  final InheritanceManager2 _inheritance;
 
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
@@ -61,6 +51,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   LibraryElement _libraryElement;
+  LibraryScope _libraryScope;
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -70,24 +61,18 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
-  final List<ConstantEvaluationTarget> _constants = [];
+  final Set<ConstantEvaluationTarget> _constants = new Set();
 
   LibraryAnalyzer(
-      this._logger,
       this._analysisOptions,
       this._declaredVariables,
       this._sourceFactory,
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
-      this._library,
-      {bool enableKernelDriver: false,
-      bool useCFE: false,
-      FrontEndCompiler frontEndCompiler})
-      : _typeProvider = _context.typeProvider,
-        _enableKernelDriver = enableKernelDriver,
-        _useCFE = useCFE,
-        _frontEndCompiler = frontEndCompiler;
+      this._library)
+      : _inheritance = new InheritanceManager2(_context.typeSystem),
+        _typeProvider = _context.typeProvider;
 
   /**
    * Compute analysis results for all units of the library.
@@ -96,23 +81,19 @@ class LibraryAnalyzer {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
-      if (_useCFE) {
-        return await _analyze2();
-      } else {
-        return _analyze();
-      }
+      return analyzeSync();
     });
   }
 
-  Map<FileState, UnitAnalysisResult> _analyze() {
+  /**
+   * Compute analysis results for all units of the library.
+   */
+  Map<FileState, UnitAnalysisResult> analyzeSync() {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
-    units[_library] = _parse(_library);
-    for (FileState part in _library.partedFiles) {
-      units[part] = _parse(part);
+    for (FileState file in _library.libraryFiles) {
+      units[file] = _parse(file);
     }
 
     // Resolve URIs in directives to corresponding sources.
@@ -123,6 +104,7 @@ class LibraryAnalyzer {
     try {
       _libraryElement = _resynthesizer
           .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+      _libraryScope = new LibraryScope(_libraryElement);
 
       _resolveDirectives(units);
 
@@ -131,6 +113,7 @@ class LibraryAnalyzer {
         _computePendingMissingRequiredParameters(file, unit);
       });
 
+      units.values.forEach(_findConstants);
       _computeConstants();
 
       PerformanceStatistics.errors.makeCurrentWhile(() {
@@ -181,94 +164,12 @@ class LibraryAnalyzer {
     return results;
   }
 
-  Future<Map<FileState, UnitAnalysisResult>> _analyze2() async {
-    return await _logger.runAsync('Analyze', () async {
-      Map<FileState, CompilationUnit> units = {};
-
-      // Parse all files.
-      _logger.run('Parse units', () {
-        units[_library] = _parse(_library);
-        for (FileState part in _library.partedFiles) {
-          units[part] = _parse(part);
-        }
-      });
-
-      // Resolve URIs in directives to corresponding sources.
-      units.forEach((file, unit) {
-        _resolveUriBasedDirectives(file, unit);
-      });
-
-      try {
-        _libraryElement = _resynthesizer
-            .getElement(new ElementLocationImpl.con3([_library.uriStr]));
-
-        _resolveDirectives(units);
-
-        var libraryResult = await _logger.runAsync('Compile library', () {
-          return _frontEndCompiler.compile(_library.uri);
-        });
-
-        _logger.run('Apply resolution', () {
-          units.forEach((file, unit) {
-            var resolutions = libraryResult.files[file.fileUri].resolutions;
-            var resolutionProvider = new _ResolutionProvider(resolutions);
-
-            _resolveFile2(file, unit, resolutionProvider);
-            _computePendingMissingRequiredParameters(file, unit);
-
-            // Invalid part URIs can result in an element with a null source
-            if (unit.element.source != null) {
-              var reporter = new FastaErrorReporter(_getErrorReporter(file));
-              var fileResult = libraryResult.files[file.fileUri];
-              fileResult?.errors?.forEach(reporter.reportCompilationMessage);
-            }
-          });
-        });
-
-        _computeConstants();
-
-        if (_analysisOptions.hint) {
-          PerformanceStatistics.hints.makeCurrentWhile(() {
-            units.forEach((file, unit) {
-              {
-                var visitor =
-                    new GatherUsedLocalElementsVisitor(_libraryElement);
-                unit.accept(visitor);
-                _usedLocalElementsList.add(visitor.usedElements);
-              }
-              {
-                var visitor =
-                    new GatherUsedImportedElementsVisitor(_libraryElement);
-                unit.accept(visitor);
-                _usedImportedElementsList.add(visitor.usedElements);
-              }
-            });
-            units.forEach((file, unit) {
-              _computeHints(file, unit);
-            });
-          });
-        }
-
-        if (_analysisOptions.lint) {
-          PerformanceStatistics.lints.makeCurrentWhile(() {
-            units.forEach((file, unit) {
-              _computeLints(file, unit);
-            });
-          });
-        }
-      } finally {
-        _context.dispose();
-      }
-
-      // Return full results.
-      Map<FileState, UnitAnalysisResult> results = {};
-      units.forEach((file, unit) {
-        List<AnalysisError> errors = _getErrorListener(file).errors;
-        errors = _filterIgnoredErrors(file, errors);
-        results[file] = new UnitAnalysisResult(file, unit, errors);
-      });
-      return results;
-    });
+  void _computeConstantErrors(
+      ErrorReporter errorReporter, CompilationUnit unit) {
+    ConstantVerifier constantVerifier = new ConstantVerifier(
+        errorReporter, _libraryElement, _typeProvider, _declaredVariables,
+        forAnalysisDriver: true);
+    unit.accept(constantVerifier);
   }
 
   /**
@@ -277,7 +178,7 @@ class LibraryAnalyzer {
   void _computeConstants() {
     ConstantEvaluationEngine evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, _declaredVariables,
-        typeSystem: _context.typeSystem);
+        forAnalysisDriver: true, typeSystem: _context.typeSystem);
 
     List<_ConstantNode> nodes = [];
     Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
@@ -317,15 +218,15 @@ class LibraryAnalyzer {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
 
-    InheritanceManager inheritanceManager = new InheritanceManager(
-        _libraryElement,
-        includeAbstractFromSuperclasses: true);
-
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, inheritanceManager,
+        errorReporter, _typeProvider, _libraryElement,
         typeSystem: _context.typeSystem));
 
-    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+    unit.accept(new OverrideVerifier(
+      _inheritance,
+      _libraryElement,
+      errorReporter,
+    ));
 
     new ToDoFinder(errorReporter).findIn(unit);
 
@@ -403,18 +304,13 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    if (_analysisOptions.strongMode) {
-      AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
-      CodeChecker checker = new CodeChecker(
-          _typeProvider,
-          new StrongTypeSystemImpl(_typeProvider,
-              implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts,
-              nonnullableTypes: options.nonnullableTypes),
-          errorListener,
-          options);
-      checker.visitCompilationUnit(unit);
-    }
+    CodeChecker checker = new CodeChecker(
+      _typeProvider,
+      _context.typeSystem,
+      errorListener,
+      _analysisOptions,
+    );
+    checker.visitCompilationUnit(unit);
 
     ErrorReporter errorReporter = _getErrorReporter(file);
 
@@ -426,30 +322,21 @@ class LibraryAnalyzer {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
-    unit.accept(constantVerifier);
+    _computeConstantErrors(errorReporter, unit);
+
+    //
+    // Compute inheritance and override errors.
+    //
+    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
+        _context.typeSystem, _inheritance, errorReporter);
+    inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        _libraryElement,
-        _typeProvider,
-        new InheritanceManager(_libraryElement),
-        _analysisOptions.enableSuperMixins);
+        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
     unit.accept(errorVerifier);
-  }
-
-  /// Create a new [ResolutionApplier] for the given front-end [resolution].
-  /// The [context] element is used to associate synthetic elements and access
-  /// type parameters from the enclosing scopes.
-  ResolutionApplier _createResolutionApplier(ElementImpl context,
-      CollectedResolution resolution, Map<int, AstNode> localDeclarations) {
-    return new _ResolutionApplierContext(_resynthesizer, _typeProvider,
-            _libraryElement, resolution, context, localDeclarations)
-        .applier;
   }
 
   /**
@@ -476,6 +363,17 @@ class LibraryAnalyzer {
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+  }
+
+  /// Find constants to compute.
+  void _findConstants(CompilationUnit unit) {
+    ConstantFinder constantFinder = new ConstantFinder();
+    unit.accept(constantFinder);
+    _constants.addAll(constantFinder.constantsToCompute);
+
+    var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
+    unit.accept(dependenciesFinder);
+    _constants.addAll(dependenciesFinder.dependencies);
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>
@@ -524,8 +422,7 @@ class LibraryAnalyzer {
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit _parse(FileState file) {
-    AnalysisErrorListener errorListener =
-        _useCFE ? AnalysisErrorListener.NULL_LISTENER : _getErrorListener(file);
+    AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = file.content;
     CompilationUnit unit = file.parse(errorListener);
 
@@ -541,21 +438,10 @@ class LibraryAnalyzer {
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
-      if (_enableKernelDriver) {
-        return node.keyword.offset == element.nameOffset;
-      } else {
-        return node.offset == element.nameOffset;
-      }
+      return node.offset == element.nameOffset;
     }
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
-
-    void reportErrorReportedByFrontEnd(
-        ErrorCode errorCode, AstNode node, List<Object> arguments) {
-      if (!_enableKernelDriver) {
-        libraryErrorReporter.reportErrorForNode(errorCode, node, arguments);
-      }
-    }
 
     LibraryIdentifier libraryNameNode = null;
     var seenPartSources = new Set<Source>();
@@ -612,7 +498,7 @@ class LibraryAnalyzer {
         // Validate that the part source is unique in the library.
         //
         if (!seenPartSources.add(partSource)) {
-          reportErrorReportedByFrontEnd(
+          libraryErrorReporter.reportErrorForNode(
               CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
         }
 
@@ -624,16 +510,18 @@ class LibraryAnalyzer {
           _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
               partSource, partUnit, directivesToResolve);
           if (nameOrSource == null) {
-            reportErrorReportedByFrontEnd(CompileTimeErrorCode.PART_OF_NON_PART,
-                partUri, [partUri.toSource()]);
+            libraryErrorReporter.reportErrorForNode(
+                CompileTimeErrorCode.PART_OF_NON_PART,
+                partUri,
+                [partUri.toSource()]);
           } else {
             String name = nameOrSource.name;
             if (name != null) {
               if (libraryNameNode == null) {
-                reportErrorReportedByFrontEnd(
+                libraryErrorReporter.reportErrorForNode(
                     ResolverErrorCode.PART_OF_UNNAMED_LIBRARY, partUri, [name]);
               } else if (libraryNameNode.name != name) {
-                reportErrorReportedByFrontEnd(
+                libraryErrorReporter.reportErrorForNode(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [libraryNameNode.name, name]);
@@ -641,7 +529,7 @@ class LibraryAnalyzer {
             } else {
               Source source = nameOrSource.source;
               if (source != _library.source) {
-                reportErrorReportedByFrontEnd(
+                libraryErrorReporter.reportErrorForNode(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [_library.uriStr, source.uri]);
@@ -673,7 +561,7 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
 
     // TODO(scheglov) Hack: set types for top-level variables
     // Otherwise TypeResolverVisitor will set declared types, and because we
@@ -686,13 +574,11 @@ class LibraryAnalyzer {
       }
     }
 
-    new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
-        .resolve(unit, unitElement);
+    new DeclarationResolver().resolve(unit, unitElement);
 
-    if (_libraryElement.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-          source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
-    }
+    unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
+        source, _typeProvider, errorListener,
+        nameScope: _libraryScope));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
@@ -703,163 +589,19 @@ class LibraryAnalyzer {
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener));
 
-    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: libraryScope));
+        nameScope: _libraryScope));
 
-    unit.accept(new PartialResolverVisitor(_libraryElement, source,
-        _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+    unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
+        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        _libraryElement, source, _typeProvider, errorListener));
-
-    //
-    // Find constants to compute.
-    //
-    {
-      ConstantFinder constantFinder = new ConstantFinder();
-      unit.accept(constantFinder);
-      _constants.addAll(constantFinder.constantsToCompute);
-    }
-
-    //
-    // Find constant dependencies to compute.
-    //
-    {
-      var finder = new ConstantExpressionsDependenciesFinder();
-      unit.accept(finder);
-      _constants.addAll(finder.dependencies);
-    }
-  }
-
-  void _resolveFile2(FileState file, CompilationUnitImpl unit,
-      _ResolutionProvider resolutions) {
-    CompilationUnitElement unitElement = unit.element;
-    new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
-        .resolve(unit, unitElement);
-
-    // TODO(paulberry): need to find a better way to do this.
-    // See dartbug.com/33506.
-//    if (_libraryElement.context.analysisOptions.previewDart2) {
-//      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-//          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
-//    }
-
-    for (var directive in unit.directives) {
-      if (directive.metadata.isNotEmpty) {
-        var resolution = resolutions.next();
-        var applier =
-            _createResolutionApplier(null, resolution, unit.localDeclarations);
-        applier.applyToAnnotations(directive);
-      }
-    }
-    for (var declaration in unit.declarations) {
-      if (declaration is ClassDeclaration) {
-        if (declaration.metadata.isNotEmpty) {
-          var resolution = resolutions.next();
-          var applier = _createResolutionApplier(
-              null, resolution, unit.localDeclarations);
-          applier.applyToAnnotations(declaration);
-        }
-        for (var member in declaration.members) {
-          if (member is ConstructorDeclaration) {
-            var context = member.element as ConstructorElementImpl;
-            ConstructorName redirectName = member.redirectedConstructor;
-            if (redirectName != null) {
-              var redirectedConstructor = context.redirectedConstructor;
-              redirectName.staticElement = redirectedConstructor;
-              // TODO(scheglov) Support for import prefix?
-              DeclarationResolver.applyConstructorElement(
-                  _libraryElement,
-                  null,
-                  redirectedConstructor,
-                  redirectedConstructor.returnType,
-                  redirectName);
-              // TODO(scheglov) Add support for type parameterized redirects.
-            } else {
-              var resolution = resolutions.next();
-              var applier = _createResolutionApplier(
-                  context, resolution, unit.localDeclarations);
-              member.initializers.accept(applier);
-              member.parameters.accept(applier);
-              member.body.accept(applier);
-              applier.applyToAnnotations(member);
-            }
-          } else if (member is FieldDeclaration) {
-            List<VariableDeclaration> fields = member.fields.variables;
-            var context = fields[0].element.initializer as ElementImpl;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(
-                context, resolution, unit.localDeclarations);
-            for (var field in fields.reversed) {
-              field.initializer?.accept(applier);
-            }
-            applier.applyToAnnotations(member);
-          } else if (member is MethodDeclaration) {
-            ExecutableElementImpl context = member.element;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(
-                context, resolution, unit.localDeclarations);
-            member.parameters?.accept(applier);
-            member.body.accept(applier);
-            applier.applyToAnnotations(member);
-          } else {
-            throw new StateError('(${declaration.runtimeType}) $declaration');
-          }
-        }
-      } else if (declaration is ClassTypeAlias) {
-        // No bodies to resolve.
-      } else if (declaration is EnumDeclaration) {
-        // No bodies to resolve.
-      } else if (declaration is FunctionDeclaration) {
-        var context = declaration.element as ExecutableElementImpl;
-        var resolution = resolutions.next();
-        var applier = _createResolutionApplier(
-            context, resolution, unit.localDeclarations);
-        declaration.functionExpression.parameters?.accept(applier);
-        declaration.functionExpression.body.accept(applier);
-        applier.applyToAnnotations(declaration);
-      } else if (declaration is FunctionTypeAlias) {
-        // No bodies to resolve.
-      } else if (declaration is GenericTypeAlias) {
-        // No bodies to resolve.
-      } else if (declaration is TopLevelVariableDeclaration) {
-        List<VariableDeclaration> variables = declaration.variables.variables;
-        var context = variables[0].element.initializer as ElementImpl;
-        var resolution = resolutions.next();
-        var applier = _createResolutionApplier(
-            context, resolution, unit.localDeclarations);
-        for (var variable in variables.reversed) {
-          variable.initializer?.accept(applier);
-        }
-        applier.applyToAnnotations(declaration);
-      } else {
-        throw new StateError('(${declaration.runtimeType}) $declaration');
-      }
-    }
-
-    //
-    // Find constants to compute.
-    //
-    {
-      ConstantFinder constantFinder = new ConstantFinder();
-      unit.accept(constantFinder);
-      _constants.addAll(constantFinder.constantsToCompute);
-    }
-
-    //
-    // Find constant dependencies to compute.
-    //
-    {
-      var finder = new ConstantExpressionsDependenciesFinder();
-      unit.accept(finder);
-      _constants.addAll(finder.dependencies);
-    }
+        _inheritance, _libraryElement, source, _typeProvider, errorListener));
   }
 
   /**
@@ -1039,205 +781,6 @@ class _ConstantWalker extends DependencyWalker<_ConstantNode> {
 class _NameOrSource {
   final String name;
   final Source source;
+
   _NameOrSource(this.name, this.source);
-}
-
-/// Concrete implementation of [TypeContext].
-class _ResolutionApplierContext implements TypeContext {
-  final KernelResynthesizer resynthesizer;
-  final TypeProvider typeProvider;
-  final LibraryElement libraryElement;
-  final CollectedResolution resolution;
-  final Map<int, AstNode> localDeclarations;
-
-  @override
-  ClassElement enclosingClassElement;
-
-  List<ElementImpl> contextStack = [];
-  ElementImpl context;
-
-  ResolutionApplier applier;
-
-  _ResolutionApplierContext(
-      this.resynthesizer,
-      this.typeProvider,
-      this.libraryElement,
-      this.resolution,
-      this.context,
-      this.localDeclarations) {
-    for (Element element = context;
-        element != null;
-        element = element.enclosingElement) {
-      if (element is ClassElement) {
-        enclosingClassElement = element;
-        break;
-      }
-    }
-
-    // Convert referenced nodes into elements.
-    Map<int, kernel.ResolutionData<DartType, Element, Element, PrefixElement>>
-        convertedData = {};
-    for (var location in resolution.kernelData.keys) {
-      var data = resolution.kernelData[location];
-      convertedData[location] = new kernel.ResolutionData(
-          argumentTypes: data.argumentTypes == null
-              ? null
-              : data.argumentTypes.map(translateType).toList(),
-          combiner: _translateReference(data.combiner),
-          declaration: _translateDeclaration(data.declaration),
-          inferredType: translateType(data.inferredType),
-          invokeType: translateType(data.invokeType),
-          isExplicitCall: data.isExplicitCall,
-          isImplicitCall: data.isImplicitCall,
-          isPrefixReference: data.isPrefixReference,
-          isTypeReference: data.isTypeReference,
-          isWriteReference: data.isWriteReference,
-          literalType: translateType(data.literalType),
-          loadLibrary: _translateReference(data.loadLibrary),
-          prefixInfo: _translatePrefixInfo(data.prefixInfo),
-          reference: _translateReference(data.reference,
-              isWriteReference: data.isWriteReference,
-              isTypeReference: data.isTypeReference,
-              inferredType: data.inferredType),
-          writeContext: translateType(data.writeContext));
-    }
-
-    applier = new ResolutionApplier(libraryElement, this, convertedData);
-  }
-
-  @override
-  DartType get stringType => typeProvider.stringType;
-
-  @override
-  DartType get typeType => typeProvider.typeType;
-
-  @override
-  void encloseVariable(ElementImpl element) {
-    context.encloseElement(element);
-  }
-
-  @override
-  void enterLocalFunction(FunctionElementImpl element) {
-    context.encloseElement(element);
-
-    // The function is the new resolution context.
-    contextStack.add(context);
-    context = element;
-  }
-
-  @override
-  void exitLocalFunction(FunctionElementImpl element) {
-    assert(identical(context, element));
-    context = contextStack.removeLast();
-  }
-
-  @override
-  DartType translateType(kernel.DartType kernelType) {
-    if (kernelType == null) {
-      return null;
-    } else if (kernelType is kernel.TypeArgumentsDartType) {
-      // TODO(paulberry): get rid of this case
-      List<kernel.DartType> kernelTypes = kernelType.types;
-      var types = new List<DartType>(kernelTypes.length);
-      for (var i = 0; i < kernelTypes.length; i++) {
-        types[i] = translateType(kernelTypes[i]);
-      }
-      return new TypeArgumentsDartType(types);
-    } else {
-      return resynthesizer.getType(context, kernelType,
-          getLocalTypeParameter: _getLocalTypeParameter);
-    }
-  }
-
-  TypeParameterElement _getLocalTypeParameter(
-      kernel.TypeParameter typeParameter) {
-    var declarationOffset = resolution.typeVariableDeclarations[typeParameter];
-    if (declarationOffset != null) {
-      TypeParameter typeParameter = localDeclarations[declarationOffset];
-      return typeParameter.element;
-    } else {
-      return null;
-    }
-  }
-
-  Element _translateDeclaration(int declarationOffset) {
-    if (declarationOffset == null) return null;
-    var declaration = localDeclarations[declarationOffset];
-    Element element;
-    if (declaration is VariableDeclaration) {
-      element = declaration.element;
-    } else if (declaration is FormalParameter) {
-      element = declaration.element;
-    } else if (declaration is DeclaredSimpleIdentifier) {
-      element = declaration.staticElement;
-    } else if (declaration is FunctionDeclaration) {
-      element = declaration.element;
-    } else if (declaration is TypeParameter) {
-      element = declaration.element;
-    } else {
-      throw new UnimplementedError('${declaration.runtimeType}');
-    }
-    assert(element != null);
-    return element;
-  }
-
-  PrefixElement _translatePrefixInfo(int importIndex) {
-    if (importIndex == null) return null;
-    return libraryElement.imports[importIndex].prefix;
-  }
-
-  Element _translateReference(kernel.Node referencedNode,
-      {bool isWriteReference = false,
-      bool isTypeReference = false,
-      kernel.DartType inferredType}) {
-    if (referencedNode == null) {
-      if (isTypeReference && inferredType is kernel.DynamicType) {
-        return typeProvider.dynamicType.element;
-      }
-      return null;
-    }
-    Element element;
-    if (referencedNode is kernel.NamedNode) {
-      element = resynthesizer
-          .getElementFromCanonicalName(referencedNode.canonicalName);
-    } else if (referencedNode is kernel.FunctionType) {
-      element = resynthesizer
-          .getElementFromCanonicalName(referencedNode.typedef.canonicalName);
-      assert(element != null);
-    } else if (referencedNode is kernel.InterfaceType) {
-      element = resynthesizer
-          .getElementFromCanonicalName(referencedNode.classNode.canonicalName);
-      assert(element != null);
-    } else if (referencedNode is kernel.TypeParameterType) {
-      element = resynthesizer.getTypeParameter(
-          context, referencedNode.parameter,
-          getLocalTypeParameter: _getLocalTypeParameter);
-      assert(element != null);
-    } else if (referencedNode is kernel.DynamicType) {
-      element = DynamicElementImpl.instance;
-    } else if (referencedNode is kernel.TypeParameter) {
-      element = resynthesizer.getTypeParameter(context, referencedNode,
-          getLocalTypeParameter: _getLocalTypeParameter);
-    } else if (referencedNode is kernel.InvalidType) {
-      element = DynamicElementImpl.instance;
-    } else {
-      throw new UnimplementedError(
-          'TODO(paulberry): ${referencedNode.runtimeType}');
-    }
-    if (element is PropertyInducingElement) {
-      return isWriteReference ? element.setter : element.getter;
-    } else {
-      return element;
-    }
-  }
-}
-
-/// [Iterator] like object that provides [CollectedResolution]s.
-class _ResolutionProvider {
-  final List<CollectedResolution> resolutions;
-  int index = 0;
-
-  _ResolutionProvider(this.resolutions);
-
-  CollectedResolution next() => resolutions[index++];
 }

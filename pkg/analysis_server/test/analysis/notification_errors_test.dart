@@ -197,7 +197,7 @@ main() {
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
-    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 }

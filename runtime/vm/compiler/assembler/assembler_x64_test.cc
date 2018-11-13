@@ -637,6 +637,38 @@ ASSEMBLER_TEST_RUN(Testb2, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Testb3, assembler) {
+  Label zero;
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(0x10));
+  __ testb(Address(RSP, 0), RDX);
+  __ j(ZERO, &zero);
+  __ movq(RAX, Immediate(1));
+  __ popq(RCX);
+  __ ret();
+  __ Bind(&zero);
+  __ movq(RAX, Immediate(0));
+  __ popq(RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Testb3, test) {
+  typedef int (*TestbCode)(int);
+  EXPECT_EQ(1, reinterpret_cast<TestbCode>(test->entry())(0x11));
+  EXPECT_EQ(0, reinterpret_cast<TestbCode>(test->entry())(0x101));
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "push rdi\n"
+      "movl rdx,0x10\n"
+      "testb rdx,[rsp]\n"
+      "jz 0x................\n"
+      "movl rax,1\n"
+      "pop rcx\n"
+      "ret\n"
+      "movl rax,0\n"
+      "pop rcx\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movq(RAX, Immediate(0));
   __ pushq(RAX);
@@ -3903,7 +3935,7 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
+      "movq pp,[r12+0x1f]\n"
       "movl rax,0x........\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -3940,7 +3972,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
+      "movq pp,[r12+0x1f]\n"
       "movl rax,-0x........\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -3975,7 +4007,7 @@ ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
+      "movq pp,[r12+0x1f]\n"
       "movl rax,0x........\n"
       "movd xmm0,rax\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -4820,7 +4852,7 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
+      "movq pp,[r12+0x1f]\n"
       "movq rax,[pp+0xf]\n"
       "cmpq rax,[pp+0xf]\n"
       "jnz 0x................\n"
@@ -5258,7 +5290,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
       "push thr\n"
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
+      "movq pp,[r12+0x1f]\n"
       "movq r11,[thr+0x...]\n"
       "andpd xmm0,[r11]\n"
       "pop thr\n"

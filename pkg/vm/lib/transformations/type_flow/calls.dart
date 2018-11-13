@@ -118,9 +118,7 @@ class InterfaceSelector extends Selector {
   final Member member;
 
   InterfaceSelector(this.member, {CallKind callKind = CallKind.Method})
-      : super(callKind) {
-    assertx(memberAgreesToCallKind(member));
-  }
+      : super(callKind);
 
   @override
   int get hashCode => (super.hashCode ^ member.hashCode + 31) & kHashMask;
@@ -131,6 +129,21 @@ class InterfaceSelector extends Selector {
 
   @override
   String toString() => '${_callKindPrefix}[$member]';
+}
+
+/// Virtual call (using 'this' as a receiver).
+class VirtualSelector extends InterfaceSelector {
+  VirtualSelector(Member member, {CallKind callKind = CallKind.Method})
+      : super(member, callKind: callKind);
+
+  @override
+  int get hashCode => (super.hashCode + 37) & kHashMask;
+
+  @override
+  bool operator ==(other) => other is VirtualSelector && super == (other);
+
+  @override
+  String toString() => 'virtual ${_callKindPrefix}[$member]';
 }
 
 /// Dynamic call.

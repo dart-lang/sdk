@@ -7,7 +7,6 @@ library dart2js.constants.expressions.evaluate_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -20,9 +19,8 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 class TestData {
   final String name;
@@ -33,10 +31,7 @@ class TestData {
   /// Tested constants.
   final List<ConstantData> constants;
 
-  final bool strongModeOnly;
-
-  const TestData(this.name, this.declarations, this.constants,
-      {this.strongModeOnly: false});
+  const TestData(this.name, this.declarations, this.constants);
 }
 
 class ConstantData {
@@ -48,17 +43,12 @@ class ConstantData {
   /// a [ConstantResult].
   final expectedResults;
 
-  /// Expected results for Dart 2 if different from [expectedResults].
-  final strongModeResults;
-
   /// A [MessageKind] or a list of [MessageKind]s containing the error messages
   /// expected as the result of evaluating the constant under the empty
   /// environment.
   final expectedErrors;
 
-  const ConstantData(this.code, this.expectedResults,
-      {this.expectedErrors, strongModeResults})
-      : this.strongModeResults = strongModeResults ?? expectedResults;
+  const ConstantData(this.code, this.expectedResults, {this.expectedErrors});
 }
 
 class EvaluationError {
@@ -164,21 +154,18 @@ const List<TestData> DATA = const [
     const ConstantData('identical', 'FunctionConstant(identical)'),
     const ConstantData('true ? 0 : 1', 'IntConstant(0)'),
     const ConstantData('proxy', 'ConstructedConstant(_Proxy())'),
+    const ConstantData('const [] == null', 'BoolConstant(false)'),
+    const ConstantData('proxy == null', 'BoolConstant(false)'),
     const ConstantData('Object', 'TypeConstant(Object)'),
     const ConstantData('null ?? 0', 'IntConstant(0)'),
     const ConstantData(
-        'const [0, 1]', 'ListConstant([IntConstant(0), IntConstant(1)])',
-        strongModeResults:
-            'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
+        'const [0, 1]', 'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     const ConstantData('const <int>[0, 1]',
         'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     const ConstantData(
         'const {0: 1, 2: 3}',
-        'MapConstant({IntConstant(0): IntConstant(1), '
-        'IntConstant(2): IntConstant(3)})',
-        strongModeResults:
-            'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-            'IntConstant(2): IntConstant(3)})'),
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
+        'IntConstant(2): IntConstant(3)})'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}',
         'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
@@ -267,11 +254,11 @@ class D extends C {
         'field3=IntConstant(99)))'),
   ]),
   const TestData('redirect', '''
-class A<T> implements B {
+class A<T> implements B<Null> {
   final field1;
   const A({this.field1:42});
 }
-class B<S> implements C {
+class B<S> implements C<Null> {
   const factory B({field1}) = A<B<S>>;
   const factory B.named() = A<S>;
 }
@@ -414,10 +401,6 @@ class B extends A {
         expectedErrors: MessageKind.INVALID_CONSTANT_ADD_TYPES),
     const ConstantData('boolean + false', 'NonConstant',
         expectedErrors: MessageKind.INVALID_CONSTANT_ADD_TYPES),
-    const ConstantData('const [] == null', 'NonConstant',
-        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE),
-    const ConstantData('proxy == null', 'NonConstant',
-        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE),
     const ConstantData('0 * ""', 'NonConstant',
         expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
     const ConstantData('0 * string', 'NonConstant',
@@ -545,7 +528,7 @@ class B extends A {
     }
     class D extends C {
       final b;
-      const D(c) : super(c + 1), b = c + 2;
+      const D(c) : b = c + 2, super(c + 1);
     }
   ''', const [
     const ConstantData(r'const A()', 'ConstructedConstant(A())'),
@@ -553,9 +536,7 @@ class B extends A {
     const ConstantData(r'const D(0)',
         'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
   ]),
-  const TestData(
-      'instantiations',
-      '''
+  const TestData('instantiations', '''
 T identity<T>(T t) => t;
 class C<T> {
   final T defaultValue;
@@ -563,21 +544,30 @@ class C<T> {
 
   const C(this.defaultValue, this.identityFunction);
 }
-  ''',
-      const <ConstantData>[
-        const ConstantData('identity', 'FunctionConstant(identity)'),
-        const ConstantData(
-            'const C<int>(0, identity)',
-            'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
-            'identityFunction=InstantiationConstant([int],'
-            'FunctionConstant(identity))))'),
-        const ConstantData(
-            'const C<double>(0.5, identity)',
-            'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
-            'identityFunction=InstantiationConstant([double],'
-            'FunctionConstant(identity))))'),
-      ],
-      strongModeOnly: true)
+  ''', const <ConstantData>[
+    const ConstantData('identity', 'FunctionConstant(identity)'),
+    const ConstantData(
+        'const C<int>(0, identity)',
+        'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
+        'identityFunction=InstantiationConstant([int],'
+        'FunctionConstant(identity))))'),
+    const ConstantData(
+        'const C<double>(0.5, identity)',
+        'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
+        'identityFunction=InstantiationConstant([double],'
+        'FunctionConstant(identity))))'),
+  ]),
+  const TestData('generic class', '''
+class C<T> {
+  const C.generative();
+  const C.redirect() : this.generative();
+}
+  ''', const <ConstantData>[
+    const ConstantData(
+        'const C<int>.generative()', 'ConstructedConstant(C<int>())'),
+    const ConstantData(
+        'const C<int>.redirect()', 'ConstructedConstant(C<int>())'),
+  ])
 ];
 
 main(List<String> args) {
@@ -610,24 +600,21 @@ Future testData(TestData data) async {
   print(source);
 
   Future runTest(
-      List<String> options,
       EvaluationEnvironment getEnvironment(
-          Compiler compiler, FieldEntity field),
-      {bool strongMode: false}) async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': source}, options: options);
+          Compiler compiler, FieldEntity field)) async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': source});
     Compiler compiler = result.compiler;
-    ElementEnvironment elementEnvironment =
+    KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     LibraryEntity library = elementEnvironment.mainLibrary;
     constants.forEach((String name, ConstantData data) {
       FieldEntity field = elementEnvironment.lookupLibraryMember(library, name);
       compiler.reporter.withCurrentElement(field, () {
         ConstantExpression constant =
-            elementEnvironment.getFieldConstant(field);
+            elementEnvironment.getFieldConstantForTesting(field);
 
-        var expectedResults =
-            strongMode ? data.strongModeResults : data.expectedResults;
+        var expectedResults = data.expectedResults;
         if (expectedResults is String) {
           expectedResults = <Map<String, String>, String>{
             const <String, String>{}: expectedResults
@@ -675,33 +662,18 @@ Future testData(TestData data) async {
     });
   }
 
-  const skipKernelList = const [];
-
   const skipStrongList = const [
     // TODO(johnniwinther): Investigate why different errors are reported in
     // strong mode.
     'errors',
   ];
 
-  if (!skipKernelList.contains(data.name) && !data.strongModeOnly) {
-    print(
-        '--test kernel-------------------------------------------------------');
-    await runTest([Flags.noPreviewDart2],
-        (Compiler compiler, FieldEntity field) {
+  if (!skipStrongList.contains(data.name)) {
+    await runTest((Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMap elementMap = frontendStrategy.elementMap;
+      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,
           constantRequired: field.isConst);
     });
-  }
-  if (!skipStrongList.contains(data.name)) {
-    print(
-        '--test kernel (strong mode)-----------------------------------------');
-    await runTest([Flags.strongMode], (Compiler compiler, FieldEntity field) {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMap elementMap = frontendStrategy.elementMap;
-      return new KernelEvaluationEnvironment(elementMap, null, field,
-          constantRequired: field.isConst);
-    }, strongMode: true);
   }
 }

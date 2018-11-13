@@ -5,7 +5,7 @@
 /*element: Class1a.:static=[Object.(0)]*/
 class Class1a<T> {
   /*element: Class1a.==:
-   dynamic=[==,runtimeType],
+   dynamic=[Class1a.runtimeType,Object.runtimeType,Type.==],
    runtimeType=[equals:Class1a<Class1a.T>/dynamic]
   */
   bool operator ==(other) {
@@ -16,7 +16,7 @@ class Class1a<T> {
 /*element: Class1b.:static=[Class1a.(0)]*/
 class Class1b<T> extends Class1a<T> {
   /*element: Class1b.==:
-   dynamic=[==,runtimeType],
+   dynamic=[Class1b.runtimeType,Object.runtimeType,Type.==],
    runtimeType=[equals:dynamic/Class1b<Class1b.T>]
   */
   bool operator ==(other) {
@@ -27,7 +27,7 @@ class Class1b<T> extends Class1a<T> {
 /*element: Class1c.:static=[Object.(0)]*/
 class Class1c<T> implements Class1a<T> {
   /*element: Class1c.==:
-   dynamic=[==,runtimeType],
+   dynamic=[Class1c.runtimeType,Object.==,Object.runtimeType,Type.==],
    runtimeType=[equals:Class1c<Class1c.T>/dynamic],
    type=[inst:JSNull]
   */
@@ -39,7 +39,7 @@ class Class1c<T> implements Class1a<T> {
 /*element: Class1d.:static=[Object.(0)]*/
 class Class1d<T> implements Class1a<T> {
   /*element: Class1d.==:
-   dynamic=[==,runtimeType],
+   dynamic=[Class1d.runtimeType,Object.==,Object.runtimeType,Type.==],
    runtimeType=[equals:dynamic/Class1d<Class1d.T>],
    type=[inst:JSNull]
   */
@@ -61,7 +61,7 @@ class Class3 {
 class Class4 {}
 
 /*element: toString1:
- dynamic=[runtimeType,toString(0)],
+ dynamic=[Class2.runtimeType,toString(0)],
  runtimeType=[string:Class2<int>],
  static=[
   S,
@@ -84,7 +84,7 @@ class Class4 {}
 toString1(Class2<int> c) => '${c.runtimeType}';
 
 /*element: toString2:
- dynamic=[==,runtimeType,toString(0)],
+ dynamic=[Class2.==,Class2.runtimeType,toString(0)],
  runtimeType=[string:Class2<int>],
  static=[
   S,
@@ -108,7 +108,7 @@ toString1(Class2<int> c) => '${c.runtimeType}';
 toString2(Class2<int> c) => '${c?.runtimeType}';
 
 /*element: toString3:
- dynamic=[runtimeType,toString(0)],
+ dynamic=[Class2.runtimeType,Type.toString(0)],
  runtimeType=[string:Class2<int>],
  static=[
   checkSubtype,
@@ -129,7 +129,7 @@ toString2(Class2<int> c) => '${c?.runtimeType}';
 toString3(Class2<int> c) => c.runtimeType.toString();
 
 /*element: toString4:
- dynamic=[==,runtimeType,toString(0)],
+ dynamic=[Class2.runtimeType,Type.==,Type.toString(0)],
  runtimeType=[string:Class2<int>],
  static=[
   checkSubtype,
@@ -151,7 +151,7 @@ toString3(Class2<int> c) => c.runtimeType.toString();
 toString4(Class2<int> c) => c.runtimeType?.toString();
 
 /*element: toString5:
- dynamic=[==,runtimeType,toString(0)],
+ dynamic=[Class2.==,Class2.runtimeType,Type.==,Type.toString(0)],
  runtimeType=[string:Class2<int>],
  static=[
   checkSubtype,
@@ -173,7 +173,7 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
 toString5(Class2<int> c) => c?.runtimeType?.toString();
 
 /*element: toString6:
- dynamic=[==,runtimeType,toString(0)],
+ dynamic=[Class2.==,Class2.runtimeType,Type.toString(0)],
  runtimeType=[string:Class2<int>],
  static=[
   checkSubtype,
@@ -195,7 +195,7 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
 toString6(Class2<int> c) => c?.runtimeType.toString();
 
 /*element: unknown:
- dynamic=[runtimeType],
+ dynamic=[Class2.runtimeType],
  runtimeType=[unknown:Class2<int>],
  static=[
   checkSubtype,
@@ -216,7 +216,7 @@ toString6(Class2<int> c) => c?.runtimeType.toString();
 unknown(Class2<int> c) => c.runtimeType;
 
 /*element: equals1:
- dynamic=[==,runtimeType],
+ dynamic=[Class1a.==,Class1a.runtimeType,Class1d.==,Class1d.runtimeType,Type.==],
  runtimeType=[equals:Class1a<int>/Class1d<int>],
  static=[
   checkSubtype,
@@ -239,147 +239,147 @@ unknown(Class2<int> c) => c.runtimeType;
 equals1(Class1a<int> a, Class1d<int> b) => a?.runtimeType == b?.runtimeType;
 
 /*element: almostEquals1:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.runtimeType,Type.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals1(Class3 a) => a.runtimeType == null;
 
 /*element: almostEquals2:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.==,Class3.runtimeType,Type.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals2(Class3 a) => a?.runtimeType == null;
 
 /*element: almostEquals3:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.runtimeType,Null.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals3(Class3 a) => null == a.runtimeType;
 
 /*element: almostEquals4:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.==,Class3.runtimeType,Null.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals4(Class3 a) => null == a?.runtimeType;
 
 /*element: almostEquals5:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.field,Class3.runtimeType,Type.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,param:Class3]
 */
 almostEquals5(Class3 a) => a.runtimeType == a.field;
 
 /*element: almostEquals6:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.==,Class3.field,Class3.runtimeType,Type.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals6(Class3 a) => a?.runtimeType == a.field;
 
 /*element: almostEquals7:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.==,Class3.field,Class3.runtimeType,Type.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals7(Class3 a) => a.runtimeType == a?.field;
 
 /*element: almostEquals8:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.==,Class3.field,Class3.runtimeType,Type.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals8(Class3 a) => a?.runtimeType == a?.field;
 
 /*element: almostEquals9:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.field,Class3.runtimeType,Object.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,param:Class3]
 */
 almostEquals9(Class3 a) => a.field == a.runtimeType;
 
 /*element: almostEquals10:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.==,Class3.field,Class3.runtimeType,Object.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals10(Class3 a) => a?.field == a.runtimeType;
 
 /*element: almostEquals11:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.==,Class3.field,Class3.runtimeType,Object.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals11(Class3 a) => a.field == a?.runtimeType;
 
 /*element: almostEquals12:
- dynamic=[==,field,runtimeType],
+ dynamic=[Class3.==,Class3.field,Class3.runtimeType,Object.==],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostEquals12(Class3 a) => a?.field == a?.runtimeType;
 
 /*element: almostToString1:
- dynamic=[runtimeType,toString],
+ dynamic=[Class3.runtimeType,Type.toString],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,param:Class3]
 */
 almostToString1(Class3 a) => a.runtimeType.toString;
 
 /*element: almostToString2:
- dynamic=[==,runtimeType,toString],
+ dynamic=[Class3.==,Class3.runtimeType,Type.==,Type.toString],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostToString2(Class3 a) => a?.runtimeType?.toString;
 
 /*element: almostToString3:
- dynamic=[noSuchMethod(1),runtimeType],
+ dynamic=[Class3.runtimeType,Type.noSuchMethod(1)],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostToString3(Class3 a) => a.runtimeType.noSuchMethod(null);
 
 /*element: almostToString4:
- dynamic=[==,noSuchMethod(1),runtimeType],
+ dynamic=[Class3.==,Class3.runtimeType,Type.noSuchMethod(1)],
  runtimeType=[unknown:Class3],
  type=[inst:JSBool,inst:JSNull,param:Class3]
 */
 almostToString4(Class3 a) => a?.runtimeType.noSuchMethod(null);
 
 /*element: notEquals1:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.runtimeType,Class4.runtimeType,Type.==],
  runtimeType=[equals:Class3/Class4],
  type=[inst:JSBool,param:Class3,param:Class4]
 */
 notEquals1(Class3 a, Class4 b) => a.runtimeType != b.runtimeType;
 
 /*element: notEquals2:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.==,Class3.runtimeType,Class4.runtimeType,Type.==],
  runtimeType=[equals:Class3/Class4],
  type=[inst:JSBool,inst:JSNull,param:Class3,param:Class4]
 */
 notEquals2(Class3 a, Class4 b) => a?.runtimeType != b.runtimeType;
 
 /*element: notEquals3:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.runtimeType,Class4.==,Class4.runtimeType,Type.==],
  runtimeType=[equals:Class3/Class4],
  type=[inst:JSBool,inst:JSNull,param:Class3,param:Class4]
 */
 notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 
 /*element: notEquals4:
- dynamic=[==,runtimeType],
+ dynamic=[Class3.==,Class3.runtimeType,Class4.==,Class4.runtimeType,Type.==],
  runtimeType=[equals:Class3/Class4],
  type=[inst:JSBool,inst:JSNull,param:Class3,param:Class4]
 */
 notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
 
 /*element: main:
- dynamic=[==],
+ dynamic=[Class1a.==],
  static=[
   Class1a.(0),
   Class1b.(0),

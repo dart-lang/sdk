@@ -31,41 +31,19 @@ class DartUnitOutlineComputer {
     List<Outline> unitContents = <Outline>[];
     for (CompilationUnitMember unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        ClassDeclaration classDeclaration = unitMember;
-        List<Outline> classContents = <Outline>[];
-        for (ClassMember classMember in classDeclaration.members) {
-          if (classMember is ConstructorDeclaration) {
-            ConstructorDeclaration constructorDeclaration = classMember;
-            classContents.add(_newConstructorOutline(constructorDeclaration));
-          }
-          if (classMember is FieldDeclaration) {
-            FieldDeclaration fieldDeclaration = classMember;
-            VariableDeclarationList fields = fieldDeclaration.fields;
-            if (fields != null) {
-              TypeAnnotation fieldType = fields.type;
-              String fieldTypeName = _safeToSource(fieldType);
-              for (VariableDeclaration field in fields.variables) {
-                classContents.add(_newVariableOutline(fieldTypeName,
-                    ElementKind.FIELD, field, fieldDeclaration.isStatic));
-              }
-            }
-          }
-          if (classMember is MethodDeclaration) {
-            MethodDeclaration methodDeclaration = classMember;
-            classContents.add(_newMethodOutline(methodDeclaration));
-          }
-        }
-        unitContents.add(_newClassOutline(classDeclaration, classContents));
-      }
-      if (unitMember is EnumDeclaration) {
+        unitContents.add(_newClassOutline(
+            unitMember, _outlinesForMembers(unitMember.members)));
+      } else if (unitMember is MixinDeclaration) {
+        unitContents.add(_newMixinOutline(
+            unitMember, _outlinesForMembers(unitMember.members)));
+      } else if (unitMember is EnumDeclaration) {
         EnumDeclaration enumDeclaration = unitMember;
         List<Outline> constantOutlines = <Outline>[];
         for (EnumConstantDeclaration constant in enumDeclaration.constants) {
           constantOutlines.add(_newEnumConstant(constant));
         }
         unitContents.add(_newEnumOutline(enumDeclaration, constantOutlines));
-      }
-      if (unitMember is TopLevelVariableDeclaration) {
+      } else if (unitMember is TopLevelVariableDeclaration) {
         TopLevelVariableDeclaration fieldDeclaration = unitMember;
         VariableDeclarationList fields = fieldDeclaration.variables;
         if (fields != null) {
@@ -76,16 +54,13 @@ class DartUnitOutlineComputer {
                 fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
           }
         }
-      }
-      if (unitMember is FunctionDeclaration) {
+      } else if (unitMember is FunctionDeclaration) {
         FunctionDeclaration functionDeclaration = unitMember;
         unitContents.add(_newFunctionOutline(functionDeclaration, true));
-      }
-      if (unitMember is ClassTypeAlias) {
+      } else if (unitMember is ClassTypeAlias) {
         ClassTypeAlias alias = unitMember;
         unitContents.add(_newClassTypeAlias(alias));
-      }
-      if (unitMember is FunctionTypeAlias) {
+      } else if (unitMember is FunctionTypeAlias) {
         FunctionTypeAlias alias = unitMember;
         unitContents.add(_newFunctionTypeAliasOutline(alias));
       }
@@ -280,6 +255,21 @@ class DartUnitOutlineComputer {
     return _nodeOutline(method, element, contents);
   }
 
+  Outline _newMixinOutline(MixinDeclaration node, List<Outline> mixinContents) {
+    node.firstTokenAfterCommentAndMetadata;
+    SimpleIdentifier nameNode = node.name;
+    String name = nameNode.name;
+    Element element = new Element(
+        ElementKind.MIXIN,
+        name,
+        Element.makeFlags(
+            isPrivate: Identifier.isPrivateName(name),
+            isDeprecated: _isDeprecated(node)),
+        location: _getLocationNode(nameNode),
+        typeParameters: _getTypeParametersStr(node.typeParameters));
+    return _nodeOutline(node, element, mixinContents);
+  }
+
   Outline _newUnitOutline(List<Outline> unitContents) {
     Element element = new Element(
         ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
@@ -332,6 +322,33 @@ class DartUnitOutlineComputer {
         children: nullIfEmpty(children));
   }
 
+  List<Outline> _outlinesForMembers(List<ClassMember> members) {
+    List<Outline> memberOutlines = <Outline>[];
+    for (ClassMember classMember in members) {
+      if (classMember is ConstructorDeclaration) {
+        ConstructorDeclaration constructorDeclaration = classMember;
+        memberOutlines.add(_newConstructorOutline(constructorDeclaration));
+      }
+      if (classMember is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = classMember;
+        VariableDeclarationList fields = fieldDeclaration.fields;
+        if (fields != null) {
+          TypeAnnotation fieldType = fields.type;
+          String fieldTypeName = _safeToSource(fieldType);
+          for (VariableDeclaration field in fields.variables) {
+            memberOutlines.add(_newVariableOutline(fieldTypeName,
+                ElementKind.FIELD, field, fieldDeclaration.isStatic));
+          }
+        }
+      }
+      if (classMember is MethodDeclaration) {
+        MethodDeclaration methodDeclaration = classMember;
+        memberOutlines.add(_newMethodOutline(methodDeclaration));
+      }
+    }
+    return memberOutlines;
+  }
+
   static String _getTypeParametersStr(TypeParameterList parameters) {
     if (parameters == null) {
       return null;
@@ -343,7 +360,7 @@ class DartUnitOutlineComputer {
    * Returns `true` if the given [element] is not `null` and deprecated.
    */
   static bool _isDeprecated(Declaration declaration) {
-    engine.Element element = declaration.element;
+    engine.Element element = declaration.declaredElement;
     return element != null && element.hasDeprecated;
   }
 
@@ -414,7 +431,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier nameNode = node.methodName;
 
-    engine.Element nameElement = nameNode.bestElement;
+    engine.Element nameElement = nameNode.staticElement;
     if (nameElement is! engine.ExecutableElement) {
       return;
     }

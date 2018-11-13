@@ -122,6 +122,7 @@ abstract class Pubspec {
   PSEntry get author;
   PSNodeList get authors;
   PSDependencyList get dependencies;
+  PSDependencyList get dependencyOverrides;
   PSEntry get description;
   PSDependencyList get devDependencies;
   PSEntry get documentation;
@@ -136,6 +137,8 @@ abstract class PubspecVisitor<T> {
   T visitPackageAuthors(PSNodeList authors) => null;
   T visitPackageDependencies(PSDependencyList dependencies) => null;
   T visitPackageDependency(PSDependency dependency) => null;
+  T visitPackageDependencyOverrides(PSDependencyList dependencies) => null;
+  T visitPackageDependencyOverride(PSDependency dependency) => null;
   T visitPackageDescription(PSEntry description) => null;
   T visitPackageDevDependencies(PSDependencyList dependencies) => null;
   T visitPackageDevDependency(PSDependency dependency) => null;
@@ -318,6 +321,8 @@ class _Pubspec implements Pubspec {
   PSDependencyList dependencies;
   @override
   PSDependencyList devDependencies;
+  @override
+  PSDependencyList dependencyOverrides;
 
   _Pubspec(String src, {Uri sourceUrl}) {
     try {
@@ -352,11 +357,15 @@ class _Pubspec implements Pubspec {
     }
     if (dependencies != null) {
       visitor.visitPackageDependencies(dependencies);
-      dependencies.forEach((d) => visitor.visitPackageDependency(d));
+      dependencies.forEach(visitor.visitPackageDependency);
     }
     if (devDependencies != null) {
       visitor.visitPackageDevDependencies(devDependencies);
-      devDependencies.forEach((d) => visitor.visitPackageDevDependency(d));
+      devDependencies.forEach(visitor.visitPackageDevDependency);
+    }
+    if (dependencyOverrides != null) {
+      visitor.visitPackageDependencyOverrides(dependencyOverrides);
+      dependencyOverrides.forEach(visitor.visitPackageDependencyOverride);
     }
   }
 
@@ -371,6 +380,7 @@ class _Pubspec implements Pubspec {
     sb.writelin(homepage);
     sb.writelin(dependencies);
     sb.writelin(devDependencies);
+    sb.writelin(dependencyOverrides);
     return sb.toString();
   }
 
@@ -409,6 +419,9 @@ class _Pubspec implements Pubspec {
           break;
         case 'dev_dependencies':
           devDependencies = _processDependencies(key, v);
+          break;
+        case 'dependency_overrides':
+          dependencyOverrides = _processDependencies(key, v);
           break;
         case 'version':
           version = _processScalar(key, v);

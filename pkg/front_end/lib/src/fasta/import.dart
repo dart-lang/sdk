@@ -39,7 +39,7 @@ class Import {
 
   // The LibraryBuilder for the imported library ('imported') may be null when
   // this field is set.
-  final Uri nativeImportUri;
+  final String nativeImportPath;
 
   Import(
       this.importer,
@@ -51,14 +51,14 @@ class Import {
       this.charOffset,
       this.prefixCharOffset,
       int importIndex,
-      {this.nativeImportUri})
+      {this.nativeImportPath})
       : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
             combinators, deferred, charOffset, prefixCharOffset, importIndex);
 
   Uri get fileUri => importer.fileUri;
 
   void finalizeImports(LibraryBuilder importer) {
-    if (nativeImportUri != null) return;
+    if (nativeImportPath != null) return;
     void Function(String, Declaration) add;
     if (prefixBuilder == null) {
       add = (String name, Declaration member) {

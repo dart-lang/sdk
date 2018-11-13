@@ -11,7 +11,7 @@ class H {
 
 class F {
   @H()
-  final int f;
+  int f;
 }
 
 @C()

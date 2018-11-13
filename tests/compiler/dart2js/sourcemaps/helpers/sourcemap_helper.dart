@@ -19,8 +19,8 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../../memory_compiler.dart';
-import '../../output_collector.dart';
+import '../../helpers/memory_compiler.dart';
+import '../../helpers/output_collector.dart';
 
 class SourceFileSink implements OutputSink {
   final String filename;
@@ -143,6 +143,17 @@ class RecordingSourceMapper implements SourceMapper {
   void register(js.Node node, int codeOffset, SourceLocation sourceLocation) {
     nodeToSourceLocationsMap.register(node, codeOffset, sourceLocation);
     sourceMapper.register(node, codeOffset, sourceLocation);
+  }
+
+  @override
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+    sourceMapper.registerPush(codeOffset, sourceLocation, inlinedMethodName);
+  }
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {
+    sourceMapper.registerPop(codeOffset, isEmpty: isEmpty);
   }
 }
 
@@ -446,6 +457,13 @@ class _LocationRecorder implements SourceMapper, LocationMap {
         .putIfAbsent(codeOffset, () => [])
         .add(sourceLocation);
   }
+
+  @override
+  void registerPush(int codeOffset, SourceLocation sourceLocation,
+      String inlinedMethodName) {}
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {}
 
   Iterable<js.Node> get nodes => _nodeMap.keys;
 

@@ -85,6 +85,8 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
 
   Dart_Handle index = Dart_GetNativeArgument(args, 0);
   Dart_Handle name = Dart_GetNativeArgument(args, 1);
+
+  TransitionNativeToVM transition(thread);
   const Smi& frame_index_smi = Smi::CheckedHandle(Api::UnwrapHandle(index));
   const char* expected_name =
       String::CheckedHandle(Api::UnwrapHandle(name)).ToCString();

@@ -13,7 +13,7 @@ import '../compiler_new.dart';
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart';
+import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
@@ -22,10 +22,7 @@ import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
-    show
-        GlobalTypeInferenceElementResult,
-        GlobalTypeInferenceMemberResult,
-        GlobalTypeInferenceResults;
+    show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -36,7 +33,7 @@ class ElementInfoCollector {
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
 
-  ElementEnvironment get environment => closedWorld.elementEnvironment;
+  JElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
 
   final AllInfo result = new AllInfo();
@@ -112,7 +109,7 @@ class ElementInfoCollector {
   GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
       _globalInferenceResults.resultOfMember(e);
 
-  GlobalTypeInferenceElementResult _resultOfParameter(Local e) =>
+  AbstractValue _resultOfParameter(Local e) =>
       _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
@@ -210,7 +207,7 @@ class ElementInfoCollector {
           size += closureInfo.size;
         }
       }
-    }, ensureResolved: false);
+    });
 
     classInfo.size = size;
 
@@ -280,7 +277,7 @@ class ElementInfoCollector {
     List<ParameterInfo> parameters = <ParameterInfo>[];
     List<String> inferredParameterTypes = <String>[];
     codegenWorldBuilder.forEachParameterAsLocal(function, (parameter) {
-      inferredParameterTypes.add('${_resultOfParameter(parameter).type}');
+      inferredParameterTypes.add('${_resultOfParameter(parameter)}');
     });
     int parameterIndex = 0;
     codegenWorldBuilder.forEachParameter(function, (type, name, _) {
@@ -292,9 +289,8 @@ class ElementInfoCollector {
     String returnType = '${functionType.returnType}';
 
     String inferredReturnType = '${_resultOfMember(function).returnType}';
-    String sideEffects = '${compiler
-        .globalInference.resultsForTesting.inferredData
-        .getSideEffectsOfElement(function)}';
+    String sideEffects =
+        '${_globalInferenceResults.inferredData.getSideEffectsOfElement(function)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[function];
     if (inlinedCount == null) inlinedCount = 0;
@@ -365,17 +361,17 @@ class ElementInfoCollector {
 
   OutputUnitInfo _unitInfoForMember(MemberEntity entity) {
     return _infoFromOutputUnit(
-        compiler.backend.outputUnitData.outputUnitForMember(entity));
+        closedWorld.outputUnitData.outputUnitForMember(entity));
   }
 
   OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
     return _infoFromOutputUnit(
-        compiler.backend.outputUnitData.outputUnitForClass(entity));
+        closedWorld.outputUnitData.outputUnitForClass(entity));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
     OutputUnit outputUnit =
-        compiler.backend.outputUnitData.outputUnitForConstant(constant);
+        closedWorld.outputUnitData.outputUnitForConstant(constant);
     if (outputUnit == null) {
       assert(constant is InterceptorConstantValue);
       return null;

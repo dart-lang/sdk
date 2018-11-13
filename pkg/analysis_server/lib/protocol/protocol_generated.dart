@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -1899,6 +1899,270 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, sources.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getSignature params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetSignatureParams implements RequestParams {
+  String _file;
+
+  int _offset;
+
+  /**
+   * The file in which signature information is being requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file in which signature information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The location for which signature information is being requested.
+   */
+  int get offset => _offset;
+
+  /**
+   * The location for which signature information is being requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  AnalysisGetSignatureParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
+
+  factory AnalysisGetSignatureParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new AnalysisGetSignatureParams(file, offset);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getSignature params", json);
+    }
+  }
+
+  factory AnalysisGetSignatureParams.fromRequest(Request request) {
+    return new AnalysisGetSignatureParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getSignature", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetSignatureParams) {
+      return file == other.file && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getSignature result
+ *
+ * {
+ *   "name": String
+ *   "parameters": List<ParameterInfo>
+ *   "dartdoc": optional String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetSignatureResult implements ResponseResult {
+  String _name;
+
+  List<ParameterInfo> _parameters;
+
+  String _dartdoc;
+
+  /**
+   * The name of the function being invoked at the given offset.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the function being invoked at the given offset.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * A list of information about each of the parameters of the function being
+   * invoked.
+   */
+  List<ParameterInfo> get parameters => _parameters;
+
+  /**
+   * A list of information about each of the parameters of the function being
+   * invoked.
+   */
+  void set parameters(List<ParameterInfo> value) {
+    assert(value != null);
+    this._parameters = value;
+  }
+
+  /**
+   * The dartdoc associated with the function being invoked. Other than the
+   * removal of the comment delimiters, including leading asterisks in the case
+   * of a block comment, the dartdoc is unprocessed markdown. This data is
+   * omitted if there is no referenced element, or if the element has no
+   * dartdoc.
+   */
+  String get dartdoc => _dartdoc;
+
+  /**
+   * The dartdoc associated with the function being invoked. Other than the
+   * removal of the comment delimiters, including leading asterisks in the case
+   * of a block comment, the dartdoc is unprocessed markdown. This data is
+   * omitted if there is no referenced element, or if the element has no
+   * dartdoc.
+   */
+  void set dartdoc(String value) {
+    this._dartdoc = value;
+  }
+
+  AnalysisGetSignatureResult(String name, List<ParameterInfo> parameters,
+      {String dartdoc}) {
+    this.name = name;
+    this.parameters = parameters;
+    this.dartdoc = dartdoc;
+  }
+
+  factory AnalysisGetSignatureResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      List<ParameterInfo> parameters;
+      if (json.containsKey("parameters")) {
+        parameters = jsonDecoder.decodeList(
+            jsonPath + ".parameters",
+            json["parameters"],
+            (String jsonPath, Object json) =>
+                new ParameterInfo.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "parameters");
+      }
+      String dartdoc;
+      if (json.containsKey("dartdoc")) {
+        dartdoc =
+            jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
+      }
+      return new AnalysisGetSignatureResult(name, parameters, dartdoc: dartdoc);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getSignature result", json);
+    }
+  }
+
+  factory AnalysisGetSignatureResult.fromResponse(Response response) {
+    return new AnalysisGetSignatureResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["parameters"] =
+        parameters.map((ParameterInfo value) => value.toJson()).toList();
+    if (dartdoc != null) {
+      result["dartdoc"] = dartdoc;
+    }
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetSignatureResult) {
+      return name == other.name &&
+          listEqual(parameters, other.parameters,
+              (ParameterInfo a, ParameterInfo b) => a == b) &&
+          dartdoc == other.dartdoc;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -5668,6 +5932,105 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 }
 
 /**
+ * DartFixSuggestion
+ *
+ * {
+ *   "description": String
+ *   "location": optional Location
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DartFixSuggestion implements HasToJson {
+  String _description;
+
+  Location _location;
+
+  /**
+   * A human readable description of the suggested change.
+   */
+  String get description => _description;
+
+  /**
+   * A human readable description of the suggested change.
+   */
+  void set description(String value) {
+    assert(value != null);
+    this._description = value;
+  }
+
+  /**
+   * The location of the suggested change.
+   */
+  Location get location => _location;
+
+  /**
+   * The location of the suggested change.
+   */
+  void set location(Location value) {
+    this._location = value;
+  }
+
+  DartFixSuggestion(String description, {Location location}) {
+    this.description = description;
+    this.location = location;
+  }
+
+  factory DartFixSuggestion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String description;
+      if (json.containsKey("description")) {
+        description = jsonDecoder.decodeString(
+            jsonPath + ".description", json["description"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "description");
+      }
+      Location location;
+      if (json.containsKey("location")) {
+        location = new Location.fromJson(
+            jsonDecoder, jsonPath + ".location", json["location"]);
+      }
+      return new DartFixSuggestion(description, location: location);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "DartFixSuggestion", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["description"] = description;
+    if (location != null) {
+      result["location"] = location.toJson();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is DartFixSuggestion) {
+      return description == other.description && location == other.location;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, description.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * diagnostic.getDiagnostics params
  *
  * Clients may not extend, implement or mix-in this class.
@@ -5897,6 +6260,297 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, port.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.dartfix params
+ *
+ * {
+ *   "included": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditDartfixParams implements RequestParams {
+  List<String> _included;
+
+  /**
+   * A list of the files and directories for which edits should be suggested.
+   *
+   * If a request is made with a path that is invalid, e.g. is not absolute and
+   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * FILE_NOT_ANALYZED will be generated.
+   */
+  List<String> get included => _included;
+
+  /**
+   * A list of the files and directories for which edits should be suggested.
+   *
+   * If a request is made with a path that is invalid, e.g. is not absolute and
+   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * FILE_NOT_ANALYZED will be generated.
+   */
+  void set included(List<String> value) {
+    assert(value != null);
+    this._included = value;
+  }
+
+  EditDartfixParams(List<String> included) {
+    this.included = included;
+  }
+
+  factory EditDartfixParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> included;
+      if (json.containsKey("included")) {
+        included = jsonDecoder.decodeList(
+            jsonPath + ".included", json["included"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "included");
+      }
+      return new EditDartfixParams(included);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.dartfix params", json);
+    }
+  }
+
+  factory EditDartfixParams.fromRequest(Request request) {
+    return new EditDartfixParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["included"] = included;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.dartfix", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditDartfixParams) {
+      return listEqual(
+          included, other.included, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.dartfix result
+ *
+ * {
+ *   "suggestions": List<DartFixSuggestion>
+ *   "otherSuggestions": List<DartFixSuggestion>
+ *   "hasErrors": bool
+ *   "edits": List<SourceFileEdit>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditDartfixResult implements ResponseResult {
+  List<DartFixSuggestion> _suggestions;
+
+  List<DartFixSuggestion> _otherSuggestions;
+
+  bool _hasErrors;
+
+  List<SourceFileEdit> _edits;
+
+  /**
+   * A list of recommended changes that can be automatically made by applying
+   * the 'edits' included in this response.
+   */
+  List<DartFixSuggestion> get suggestions => _suggestions;
+
+  /**
+   * A list of recommended changes that can be automatically made by applying
+   * the 'edits' included in this response.
+   */
+  void set suggestions(List<DartFixSuggestion> value) {
+    assert(value != null);
+    this._suggestions = value;
+  }
+
+  /**
+   * A list of recommended changes that could not be automatically made.
+   */
+  List<DartFixSuggestion> get otherSuggestions => _otherSuggestions;
+
+  /**
+   * A list of recommended changes that could not be automatically made.
+   */
+  void set otherSuggestions(List<DartFixSuggestion> value) {
+    assert(value != null);
+    this._otherSuggestions = value;
+  }
+
+  /**
+   * True if the analyzed source contains errors that might impact the
+   * correctness of the recommended changes that can be automatically applied.
+   */
+  bool get hasErrors => _hasErrors;
+
+  /**
+   * True if the analyzed source contains errors that might impact the
+   * correctness of the recommended changes that can be automatically applied.
+   */
+  void set hasErrors(bool value) {
+    assert(value != null);
+    this._hasErrors = value;
+  }
+
+  /**
+   * A list of source edits to apply the recommended changes.
+   */
+  List<SourceFileEdit> get edits => _edits;
+
+  /**
+   * A list of source edits to apply the recommended changes.
+   */
+  void set edits(List<SourceFileEdit> value) {
+    assert(value != null);
+    this._edits = value;
+  }
+
+  EditDartfixResult(
+      List<DartFixSuggestion> suggestions,
+      List<DartFixSuggestion> otherSuggestions,
+      bool hasErrors,
+      List<SourceFileEdit> edits) {
+    this.suggestions = suggestions;
+    this.otherSuggestions = otherSuggestions;
+    this.hasErrors = hasErrors;
+    this.edits = edits;
+  }
+
+  factory EditDartfixResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<DartFixSuggestion> suggestions;
+      if (json.containsKey("suggestions")) {
+        suggestions = jsonDecoder.decodeList(
+            jsonPath + ".suggestions",
+            json["suggestions"],
+            (String jsonPath, Object json) =>
+                new DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "suggestions");
+      }
+      List<DartFixSuggestion> otherSuggestions;
+      if (json.containsKey("otherSuggestions")) {
+        otherSuggestions = jsonDecoder.decodeList(
+            jsonPath + ".otherSuggestions",
+            json["otherSuggestions"],
+            (String jsonPath, Object json) =>
+                new DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "otherSuggestions");
+      }
+      bool hasErrors;
+      if (json.containsKey("hasErrors")) {
+        hasErrors =
+            jsonDecoder.decodeBool(jsonPath + ".hasErrors", json["hasErrors"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "hasErrors");
+      }
+      List<SourceFileEdit> edits;
+      if (json.containsKey("edits")) {
+        edits = jsonDecoder.decodeList(
+            jsonPath + ".edits",
+            json["edits"],
+            (String jsonPath, Object json) =>
+                new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "edits");
+      }
+      return new EditDartfixResult(
+          suggestions, otherSuggestions, hasErrors, edits);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
+    }
+  }
+
+  factory EditDartfixResult.fromResponse(Response response) {
+    return new EditDartfixResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["suggestions"] =
+        suggestions.map((DartFixSuggestion value) => value.toJson()).toList();
+    result["otherSuggestions"] = otherSuggestions
+        .map((DartFixSuggestion value) => value.toJson())
+        .toList();
+    result["hasErrors"] = hasErrors;
+    result["edits"] =
+        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditDartfixResult) {
+      return listEqual(suggestions, other.suggestions,
+              (DartFixSuggestion a, DartFixSuggestion b) => a == b) &&
+          listEqual(otherSuggestions, other.otherSuggestions,
+              (DartFixSuggestion a, DartFixSuggestion b) => a == b) &&
+          hasErrors == other.hasErrors &&
+          listEqual(edits, other.edits,
+              (SourceFileEdit a, SourceFileEdit b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, otherSuggestions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -7942,7 +8596,7 @@ class EditImportElementsParams implements RequestParams {
  * edit.importElements result
  *
  * {
- *   "edit": SourceFileEdit
+ *   "edit": optional SourceFileEdit
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -7955,7 +8609,8 @@ class EditImportElementsResult implements ResponseResult {
    * accessible. The file to be edited will be the defining compilation unit of
    * the library containing the file specified in the request, which can be
    * different than the file specified in the request if the specified file is
-   * a part file.
+   * a part file. This field will be omitted if there are no edits that need to
+   * be applied.
    */
   SourceFileEdit get edit => _edit;
 
@@ -7964,14 +8619,14 @@ class EditImportElementsResult implements ResponseResult {
    * accessible. The file to be edited will be the defining compilation unit of
    * the library containing the file specified in the request, which can be
    * different than the file specified in the request if the specified file is
-   * a part file.
+   * a part file. This field will be omitted if there are no edits that need to
+   * be applied.
    */
   void set edit(SourceFileEdit value) {
-    assert(value != null);
     this._edit = value;
   }
 
-  EditImportElementsResult(SourceFileEdit edit) {
+  EditImportElementsResult({SourceFileEdit edit}) {
     this.edit = edit;
   }
 
@@ -7985,10 +8640,8 @@ class EditImportElementsResult implements ResponseResult {
       if (json.containsKey("edit")) {
         edit = new SourceFileEdit.fromJson(
             jsonDecoder, jsonPath + ".edit", json["edit"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "edit");
       }
-      return new EditImportElementsResult(edit);
+      return new EditImportElementsResult(edit: edit);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements result", json);
     }
@@ -8004,7 +8657,9 @@ class EditImportElementsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["edit"] = edit.toJson();
+    if (edit != null) {
+      result["edit"] = edit.toJson();
+    }
     return result;
   }
 
@@ -8736,6 +9391,7 @@ class EditSortMembersResult implements ResponseResult {
  *   "codeOffset": int
  *   "codeLength": int
  *   "className": optional String
+ *   "mixinName": optional String
  *   "parameters": optional String
  * }
  *
@@ -8759,6 +9415,8 @@ class ElementDeclaration implements HasToJson {
   int _codeLength;
 
   String _className;
+
+  String _mixinName;
 
   String _parameters;
 
@@ -8881,6 +9539,20 @@ class ElementDeclaration implements HasToJson {
   }
 
   /**
+   * The name of the mixin enclosing this declaration. If the declaration is
+   * not a mixin member, this field will be absent.
+   */
+  String get mixinName => _mixinName;
+
+  /**
+   * The name of the mixin enclosing this declaration. If the declaration is
+   * not a mixin member, this field will be absent.
+   */
+  void set mixinName(String value) {
+    this._mixinName = value;
+  }
+
+  /**
    * The parameter list for the element. If the element is not a method or
    * function this field will not be defined. If the element doesn't have
    * parameters (e.g. getter), this field will not be defined. If the element
@@ -8904,7 +9576,7 @@ class ElementDeclaration implements HasToJson {
 
   ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
       int line, int column, int codeOffset, int codeLength,
-      {String className, String parameters}) {
+      {String className, String mixinName, String parameters}) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
@@ -8914,6 +9586,7 @@ class ElementDeclaration implements HasToJson {
     this.codeOffset = codeOffset;
     this.codeLength = codeLength;
     this.className = className;
+    this.mixinName = mixinName;
     this.parameters = parameters;
   }
 
@@ -8980,6 +9653,11 @@ class ElementDeclaration implements HasToJson {
         className = jsonDecoder.decodeString(
             jsonPath + ".className", json["className"]);
       }
+      String mixinName;
+      if (json.containsKey("mixinName")) {
+        mixinName = jsonDecoder.decodeString(
+            jsonPath + ".mixinName", json["mixinName"]);
+      }
       String parameters;
       if (json.containsKey("parameters")) {
         parameters = jsonDecoder.decodeString(
@@ -8987,7 +9665,7 @@ class ElementDeclaration implements HasToJson {
       }
       return new ElementDeclaration(
           name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
-          className: className, parameters: parameters);
+          className: className, mixinName: mixinName, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
     }
@@ -9006,6 +9684,9 @@ class ElementDeclaration implements HasToJson {
     result["codeLength"] = codeLength;
     if (className != null) {
       result["className"] = className;
+    }
+    if (mixinName != null) {
+      result["mixinName"] = mixinName;
     }
     if (parameters != null) {
       result["parameters"] = parameters;
@@ -9028,6 +9709,7 @@ class ElementDeclaration implements HasToJson {
           codeOffset == other.codeOffset &&
           codeLength == other.codeLength &&
           className == other.className &&
+          mixinName == other.mixinName &&
           parameters == other.parameters;
     }
     return false;
@@ -9045,6 +9727,7 @@ class ElementDeclaration implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, mixinName.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -15309,6 +15992,9 @@ class RequestError implements HasToJson {
  *   GET_KYTHE_ENTRIES_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
+ *   GET_SIGNATURE_INVALID_FILE
+ *   GET_SIGNATURE_INVALID_OFFSET
+ *   GET_SIGNATURE_UNKNOWN_FUNCTION
  *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
@@ -15322,9 +16008,7 @@ class RequestError implements HasToJson {
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
- *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
- *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  *
@@ -15399,6 +16083,27 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE =
       const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
+
+  /**
+   * An "analysis.getSignature" request specified a FilePath which does not
+   * match a file currently subject to analysis.
+   */
+  static const RequestErrorCode GET_SIGNATURE_INVALID_FILE =
+      const RequestErrorCode._("GET_SIGNATURE_INVALID_FILE");
+
+  /**
+   * An "analysis.getSignature" request specified an offset which is not a
+   * valid location within for the contents of the file specified FilePath.
+   */
+  static const RequestErrorCode GET_SIGNATURE_INVALID_OFFSET =
+      const RequestErrorCode._("GET_SIGNATURE_INVALID_OFFSET");
+
+  /**
+   * An "analysis.getSignature" request specified an offset that could not be
+   * matched to a function call.
+   */
+  static const RequestErrorCode GET_SIGNATURE_UNKNOWN_FUNCTION =
+      const RequestErrorCode._("GET_SIGNATURE_UNKNOWN_FUNCTION");
 
   /**
    * An "edit.importElements" request specified a FilePath that does not match
@@ -15493,28 +16198,11 @@ class RequestErrorCode implements Enum {
       const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
-   * An "analysis.setPriorityFiles" request includes one or more files that are
-   * not being analyzed.
-   *
-   * This is a legacy error; it will be removed before the API reaches version
-   * 1.0.
-   */
-  static const RequestErrorCode UNANALYZED_PRIORITY_FILES =
-      const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
-
-  /**
    * A request was received which the analysis server does not recognize, or
    * cannot handle in its current configuration.
    */
   static const RequestErrorCode UNKNOWN_REQUEST =
       const RequestErrorCode._("UNKNOWN_REQUEST");
-
-  /**
-   * The analysis server was requested to perform an action on a source that
-   * does not exist.
-   */
-  static const RequestErrorCode UNKNOWN_SOURCE =
-      const RequestErrorCode._("UNKNOWN_SOURCE");
 
   /**
    * The analysis server was requested to perform an action which is not
@@ -15540,6 +16228,9 @@ class RequestErrorCode implements Enum {
     GET_KYTHE_ENTRIES_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
     GET_REACHABLE_SOURCES_INVALID_FILE,
+    GET_SIGNATURE_INVALID_FILE,
+    GET_SIGNATURE_INVALID_OFFSET,
+    GET_SIGNATURE_UNKNOWN_FUNCTION,
     IMPORT_ELEMENTS_INVALID_FILE,
     INVALID_ANALYSIS_ROOT,
     INVALID_EXECUTION_CONTEXT,
@@ -15553,9 +16244,7 @@ class RequestErrorCode implements Enum {
     SERVER_ERROR,
     SORT_MEMBERS_INVALID_FILE,
     SORT_MEMBERS_PARSE_ERRORS,
-    UNANALYZED_PRIORITY_FILES,
     UNKNOWN_REQUEST,
-    UNKNOWN_SOURCE,
     UNSUPPORTED_FEATURE
   ];
 
@@ -15586,6 +16275,12 @@ class RequestErrorCode implements Enum {
         return GET_NAVIGATION_INVALID_FILE;
       case "GET_REACHABLE_SOURCES_INVALID_FILE":
         return GET_REACHABLE_SOURCES_INVALID_FILE;
+      case "GET_SIGNATURE_INVALID_FILE":
+        return GET_SIGNATURE_INVALID_FILE;
+      case "GET_SIGNATURE_INVALID_OFFSET":
+        return GET_SIGNATURE_INVALID_OFFSET;
+      case "GET_SIGNATURE_UNKNOWN_FUNCTION":
+        return GET_SIGNATURE_UNKNOWN_FUNCTION;
       case "IMPORT_ELEMENTS_INVALID_FILE":
         return IMPORT_ELEMENTS_INVALID_FILE;
       case "INVALID_ANALYSIS_ROOT":
@@ -15612,12 +16307,8 @@ class RequestErrorCode implements Enum {
         return SORT_MEMBERS_INVALID_FILE;
       case "SORT_MEMBERS_PARSE_ERRORS":
         return SORT_MEMBERS_PARSE_ERRORS;
-      case "UNANALYZED_PRIORITY_FILES":
-        return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
-      case "UNKNOWN_SOURCE":
-        return UNKNOWN_SOURCE;
       case "UNSUPPORTED_FEATURE":
         return UNSUPPORTED_FEATURE;
     }
@@ -18578,12 +19269,16 @@ class ServerStatusParams implements HasToJson {
   /**
    * The current status of pub execution, indicating whether we are currently
    * running pub.
+   *
+   * Note: this status type is deprecated, and is no longer sent by the server.
    */
   PubStatus get pub => _pub;
 
   /**
    * The current status of pub execution, indicating whether we are currently
    * running pub.
+   *
+   * Note: this status type is deprecated, and is no longer sent by the server.
    */
   void set pub(PubStatus value) {
     this._pub = value;

@@ -152,7 +152,7 @@ class WebServer {
   /**
    * Handle a POST [request] received by the HTTP server.
    */
-  Future<Null> _handlePostRequest(HttpRequest request) async {
+  Future<void> _handlePostRequest(HttpRequest request) async {
     _returnUnknownRequest(request);
   }
 
@@ -181,8 +181,8 @@ class WebServer {
     response.statusCode = HttpStatus.notFound;
     response.headers.contentType =
         new ContentType("text", "html", charset: "utf-8");
-    response.write('<html><head></head><body><h3>Page not found: "${request.uri
-            .path}".</h3></body></html>');
+    response.write(
+        '<html><head></head><body><h3>Page not found: "${request.uri.path}".</h3></body></html>');
     response.close();
   }
 

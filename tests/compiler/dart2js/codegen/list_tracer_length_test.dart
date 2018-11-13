@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST1 = r"""
 var a = [42];

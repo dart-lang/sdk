@@ -85,7 +85,7 @@ class ContextCacheEntry {
   /// The actual calculation to get the [AnalysisOptionsImpl], with no caching.
   /// This should not be used except behind the getter which caches this result
   /// automatically.
-  AnalysisOptions _getAnalysisOptions() {
+  AnalysisOptionsImpl _getAnalysisOptions() {
     AnalysisOptionsImpl contextOptions = builder.getAnalysisOptions(
         requestedSourceDirectory,
         verbosePrint: clOptions.verbose ? verbosePrint : null);
@@ -97,9 +97,6 @@ class ContextCacheEntry {
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
     contextOptions.previewDart2 = clOptions.previewDart2;
     contextOptions.useFastaParser = clOptions.useFastaParser;
-    if (clOptions.useCFE) {
-      contextOptions.useFastaParser = true;
-    }
     return contextOptions;
   }
 

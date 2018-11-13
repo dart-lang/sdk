@@ -188,6 +188,20 @@ const _Protected protected = const _Protected();
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
 
+/// Annotation marking a class or mixin as not allowed as a super-type.
+///
+/// Classes in the same package as the marked class or mixin may extend,
+/// implement or mix-in the annotated class or mixin.
+///
+/// Given a class or mixin `C`, which is annotated with this, and a class or
+/// mixin `D`, which extends, implements, or mixes in `C`, then tools, such as
+/// the analyzer, may emit warnings if:
+///
+/// * `C` and `D` are declared in different packages, or
+/// * `C` and `D` are declared in the same package, and `D` is not also
+///   annotated with this.
+const _Sealed sealed = const _Sealed();
+
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 const _Virtual virtual = const _Virtual();
 
@@ -282,6 +296,10 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+class _Sealed {
+  const _Sealed();
 }
 
 class _Virtual {

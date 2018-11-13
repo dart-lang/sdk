@@ -14,15 +14,13 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -33,8 +31,14 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart' show Component;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:kernel/text/ast_to_text.dart' show componentToString;
+
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import "package:vm/target/vm.dart" show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
@@ -55,8 +59,8 @@ class Context extends ChainContext {
   ];
 
   @override
-  void cleanUp(TestDescription description, Result result) {
-    cleanupHelper?.outDir?.deleteSync(recursive: true);
+  Future<void> cleanUp(TestDescription description, Result result) async {
+    await cleanupHelper?.outDir?.delete(recursive: true);
   }
 
   TestData cleanupHelper;
@@ -130,10 +134,11 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
     }
     String source = sourceFiles[filename];
     if (filename == ".packages") {
-      source = substituteVariables(source, outDir.uri);
       packagesUri = uri;
     }
-    new File.fromUri(uri).writeAsStringSync(source);
+    File file = new File.fromUri(uri);
+    await file.parent.create(recursive: true);
+    await file.writeAsString(source);
   }
   for (String invalidateFilename in invalidateFilenames) {
     if (invalidateFilename.startsWith('package:')) {
@@ -174,7 +179,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
 }
 
 Future<Null> newWorldTest(bool strong, List worlds) async {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
   final Uri initializeFrom = base.resolve("initializeFrom.dill");
@@ -220,7 +225,6 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       String data = sourceFiles[filename] ?? "";
       Uri uri = base.resolve(filename);
       if (filename == ".packages") {
-        data = substituteVariables(data, base);
         packagesUri = uri;
       }
       fs.entityForUri(uri).writeAsStringSync(data);
@@ -240,14 +244,13 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     bool gotWarning = false;
     final List<String> formattedWarnings = <String>[];
 
-    options.onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error) {
+    options.onDiagnostic = (DiagnosticMessage message) {
+      if (message.severity == Severity.error) {
         gotError = true;
-        formattedErrors.add(problem.formatted);
-      } else if (severity == Severity.warning) {
+        formattedErrors.addAll(message.plainTextFormatted);
+      } else if (message.severity == Severity.warning) {
         gotWarning = true;
-        formattedWarnings.add(problem.formatted);
+        formattedWarnings.addAll(message.plainTextFormatted);
       }
     };
 
@@ -273,6 +276,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
     newestWholeComponent = serializeComponent(component);
+    print("*****\n\ncomponent:\n${componentToString(component)}\n\n\n");
     if (component.libraries.length != world["expectedLibraryCount"]) {
       throw "Expected ${world["expectedLibraryCount"]} libraries, "
           "got ${component.libraries.length}";
@@ -293,9 +297,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
             world["invalidate"].length, filteredInvalidated?.length ?? 0);
         List expectedInvalidatedUri = world["expectedInvalidatedUri"];
         if (expectedInvalidatedUri != null) {
-          Expect.setEquals(
-              expectedInvalidatedUri
-                  .map((s) => Uri.parse(substituteVariables(s, base))),
+          Expect.setEquals(expectedInvalidatedUri.map((s) => base.resolve(s)),
               filteredInvalidated);
         }
       } else {
@@ -313,6 +315,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
       List<int> thisWholeComponent = serializeComponent(component2);
+      print("*****\n\ncomponent2:\n${componentToString(component2)}\n\n\n");
       checkIsEqual(newestWholeComponent, thisWholeComponent);
     }
   }
@@ -350,17 +353,19 @@ void checkIsEqual(List<int> a, List<int> b) {
 }
 
 CompilerOptions getOptions(bool strong) {
-  final Uri sdkRoot = computePlatformBinariesLocation();
+  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..target = new VmTarget(new TargetFlags(legacyMode: !strong))
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (FormattedMessage problem, Severity severity,
-        List<FormattedMessage> context) {
-      if (severity == Severity.error || severity == Severity.warning) {
-        Expect.fail("Unexpected error: ${problem.formatted}");
+    ..onDiagnostic = (DiagnosticMessage message) {
+      if (message.severity == Severity.error ||
+          message.severity == Severity.warning) {
+        Expect.fail(
+            "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
     }
-    ..strongMode = strong;
+    ..legacyMode = !strong;
   if (strong) {
     options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   } else {
@@ -445,10 +450,6 @@ Future<bool> initializedCompile(
   return result;
 }
 
-String substituteVariables(String source, Uri base) {
-  return source.replaceAll(r"${outDirUri}", "${base}");
-}
-
 class TestIncrementalCompiler extends IncrementalCompiler {
   Set<Uri> invalidatedImportUrisForTesting;
   final Uri entryPoint;
@@ -474,7 +475,9 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   TestIncrementalCompiler(CompilerOptions options, this.entryPoint,
       [Uri initializeFrom])
-      : super(new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+      : super(
+            new CompilerContext(
+                new ProcessedOptions(options: options, inputs: [entryPoint])),
             initializeFrom);
 
   @override

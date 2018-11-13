@@ -22,19 +22,17 @@ import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
 import 'expectation_set.dart';
-import 'html_test.dart' as html_test;
 import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
 import 'repository.dart';
-import 'runtime_updater.dart';
 import 'summary_report.dart';
 import 'test_configurations.dart';
 import 'test_runner.dart';
 import 'utils.dart';
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
-RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
+RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration\(\)");
 // Require at least one non-space character before '//[/#]'
 RegExp multiTestRegExp = new RegExp(r"\S *"
     r"//[#/] \w+:(.*)");
@@ -119,7 +117,7 @@ class FutureGroup {
  * and a status file containing the expected results when these tests are run.
  */
 abstract class TestSuite {
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final String suiteName;
   final List<String> statusFilePaths;
   // This function is set by subclasses before enqueueing starts.
@@ -130,6 +128,10 @@ abstract class TestSuite {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
     };
+    if (configuration.copyCoreDumps && Platform.isWindows) {
+      _environmentOverrides['DART_CRASHPAD_HANDLER'] =
+          new Path(buildDir + '/crashpad_handler.exe').toNativePath();
+    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -299,6 +301,10 @@ abstract class TestSuite {
     if (!pattern.hasMatch(displayName)) {
       return;
     }
+    if (configuration.testList != null &&
+        !configuration.testList.contains(displayName)) {
+      return;
+    }
 
     if (configuration.hotReload || configuration.hotReloadRollback) {
       // Handle reload special cases.
@@ -437,7 +443,7 @@ class VMTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
 
-  VMTestSuite(Configuration configuration)
+  VMTestSuite(TestConfiguration configuration)
       : dartDir = Repository.dir.toNativePath(),
         super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
     // For running the tests we use the given '$runnerName' binary
@@ -478,10 +484,8 @@ class VMTestSuite extends TestSuite {
   void _addTest(ExpectationSet testExpectations, String testName) {
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
-      args.add('--use-dart-frontend');
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
-      args.add('--strong');
     }
 
     args.add(testName);
@@ -534,23 +538,6 @@ class TestInformation {
   }
 }
 
-class HtmlTestInformation extends TestInformation {
-  List<String> expectedMessages;
-  List<String> scripts;
-
-  HtmlTestInformation(Path filePath, this.expectedMessages, this.scripts)
-      : super(
-            filePath,
-            filePath,
-            {'isMultitest': false, 'isMultiHtmlTest': false},
-            false,
-            false,
-            false,
-            false,
-            false,
-            false) {}
-}
-
 /**
  * A standard [TestSuite] implementation that searches for tests in a
  * directory, and creates [TestCase]s that compile and/or run them.
@@ -560,18 +547,16 @@ class StandardTestSuite extends TestSuite {
   ExpectationSet testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
-  Predicate<String> isTestFilePredicate;
   final bool listRecursively;
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
+  Set<String> _testListPossibleFilenames;
 
   static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
-  static final Uri legacyCo19SuiteLocation =
-      Repository.uri.resolve("tests/co19/");
 
-  StandardTestSuite(Configuration configuration, String suiteName,
+  StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
-      {this.isTestFilePredicate, bool recursive: false})
+      {bool recursive: false})
       : dartDir = Repository.dir,
         listRecursively = recursive,
         suiteDir = Repository.dir.join(suiteDirectory),
@@ -585,6 +570,22 @@ class StandardTestSuite extends TestSuite {
             .resolveUri(new Uri.directory(buildDir))
             .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
+    }
+    if (configuration.testList != null) {
+      _testListPossibleFilenames = Set<String>();
+      for (String s in configuration.testList) {
+        if (s.startsWith("$suiteName/")) {
+          s = s.substring(s.indexOf('/') + 1);
+          _testListPossibleFilenames
+              .add(suiteDir.append('$s.dart').toNativePath());
+          // If the test is a multitest, the filename doesn't include the label.
+          if (s.lastIndexOf('/') != -1) {
+            s = s.substring(0, s.lastIndexOf('/'));
+            _testListPossibleFilenames
+                .add(suiteDir.append('$s.dart').toNativePath());
+          }
+        }
+      }
     }
   }
 
@@ -616,7 +617,7 @@ class StandardTestSuite extends TestSuite {
    * in test.dart, this will all be set up for you.
    */
   factory StandardTestSuite.forDirectory(
-      Configuration configuration, Path directory) {
+      TestConfiguration configuration, Path directory) {
     var name = directory.filename;
     var status_paths = [
       '$directory/$name.status',
@@ -633,33 +634,20 @@ class StandardTestSuite extends TestSuite {
     ];
 
     return new StandardTestSuite(configuration, name, directory, status_paths,
-        isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
 
   List<Uri> get dart2JsBootstrapDependencies => _dart2JsBootstrapDependencies;
 
-  /**
-   * The default implementation assumes a file is a test if
-   * it ends in "Test.dart".
-   */
-  bool isTestFile(String filename) {
-    // Use the specified predicate, if provided.
-    if (isTestFilePredicate != null) return isTestFilePredicate(filename);
-    return filename.endsWith("Test.dart");
-  }
-
-  bool isHtmlTestFile(String filename) => filename.endsWith('_htmltest.html');
+  /// The default implementation assumes a file is a test if
+  /// it ends in "_test.dart".
+  bool isTestFile(String filename) => filename.endsWith("_test.dart");
 
   List<String> additionalOptions(Path filePath) => [];
 
   Future forEachTest(
       Function onTest, Map<String, List<TestInformation>> testCache,
       [VoidFunction onDone]) async {
-    if (configuration.runtime == Runtime.drt && !configuration.listTests) {
-      await updateContentShell(configuration.drtPath);
-    }
-
     doTest = onTest;
     testExpectations = readExpectations();
 
@@ -717,6 +705,10 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueFile(String filename, FutureGroup group) {
+    // This is an optimization to avoid scanning and generating extra tests.
+    // The definitive check against configuration.testList is performed in
+    // TestSuite.enqueueNewTestCase().
+    if (_testListPossibleFilenames?.contains(filename) == false) return;
     bool match = false;
     for (var regex in configuration.selectors.values) {
       String pattern = regex.pattern;
@@ -735,17 +727,6 @@ class StandardTestSuite extends TestSuite {
     }
     if (!match) return;
 
-    if (isHtmlTestFile(filename)) {
-      var info = html_test.getInformation(filename);
-      if (info == null) {
-        DebugLogger
-            .error("HtmlTest $filename does not contain required annotations");
-        return;
-      }
-      cachedTests.add(info);
-      enqueueTestCaseFromTestInformation(info);
-      return;
-    }
     if (!isTestFile(filename)) return;
     Path filePath = new Path(filename);
 
@@ -769,11 +750,6 @@ class StandardTestSuite extends TestSuite {
         multitestName: info.optionsFromFile['isMultitest'] as bool
             ? info.multitestKey
             : "");
-    if (info is HtmlTestInformation) {
-      _enqueueHtmlTest(info, testName);
-      return;
-    }
-
     var optionsFromFile = info.optionsFromFile;
 
     // If this test is inside a package, we will check if there is a
@@ -1067,7 +1043,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     // Construct the command(s) that compile all the inputs needed by the
-    // browser test. For running Dart in DRT, this will be noop commands.
+    // browser test.
     var commands = <Command>[];
 
     void addCompileCommand(String fileName, String toPath) {
@@ -1127,109 +1103,12 @@ class StandardTestSuite extends TestSuite {
     var htmlPathSubtest = _createUrlPathFromFile(new Path(htmlPath));
     var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
 
-    if (configuration.runtime == Runtime.drt) {
-      var dartFlags = <String>[];
-      var contentShellOptions = ['--no-timeout', '--run-layout-test'];
-
-      // Disable the GPU under Linux and Dartium. If the GPU is enabled,
-      // Chrome may send a termination signal to a test.  The test will be
-      // terminated if a machine (bot) doesn't have a GPU or if a test is
-      // still running after a certain period of time.
-      if (configuration.system == System.linux &&
-          configuration.runtime == Runtime.drt) {
-        contentShellOptions.add('--disable-gpu');
-        // TODO(terry): Roll 50 need this in conjection with disable-gpu.
-        contentShellOptions.add('--disable-gpu-early-init');
-      }
-
-      commands.add(Command.contentShell(contentShellFilename, fullHtmlPath,
-          contentShellOptions, dartFlags, environmentOverrides));
-    } else {
-      commands.add(Command.browserTest(fullHtmlPath, configuration,
-          retry: !isNegative(info)));
-    }
+    commands.add(Command.browserTest(fullHtmlPath, configuration,
+        retry: !isNegative(info)));
 
     var fullName = testName;
     if (subtestName != null) fullName += "/$subtestName";
     enqueueNewTestCase(fullName, commands, expectations, info);
-  }
-
-  void _enqueueHtmlTest(HtmlTestInformation info, String testName) {
-    var compiler = configuration.compiler;
-    var runtime = configuration.runtime;
-
-    if (compiler == Compiler.dartdevc || compiler == Compiler.dartdevk) {
-      // TODO(rnystrom): Support this for dartdevc (#29919).
-      print("Ignoring $testName on ${compiler.name} since HTML tests are not "
-          "implemented for that compiler yet.");
-      return;
-    }
-
-    // HTML tests work only with the browser controller.
-    if (!runtime.isBrowser || runtime == Runtime.drt) return;
-
-    var compileToJS = compiler == Compiler.dart2js;
-
-    var filePath = info.filePath;
-    var tempDir = createOutputDirectory(filePath);
-    var tempUri = new Uri.file('$tempDir/');
-    var contents = html_test.getContents(info, compileToJS);
-    var commands = <Command>[];
-
-    void fail(String message) {
-      var msg = "$message: ${info.filePath}";
-      DebugLogger.warning(msg);
-      contents = html_test.makeFailingHtmlFile(msg);
-    }
-
-    if (info.scripts.length > 0) {
-      var testUri = new Uri.file(filePath.toNativePath());
-      for (var scriptPath in info.scripts) {
-        if (!scriptPath.endsWith('.dart') && !scriptPath.endsWith('.js')) {
-          fail('HTML test scripts must be dart or javascript: $scriptPath');
-          break;
-        }
-
-        var uri = Uri.parse(scriptPath);
-        if (uri.isAbsolute) {
-          fail('HTML test scripts must have relative paths: $scriptPath');
-          break;
-        }
-
-        if (uri.pathSegments.length > 1) {
-          fail('HTML test scripts must be in test directory: $scriptPath');
-          break;
-        }
-
-        var script = testUri.resolveUri(uri);
-        var copiedScript = tempUri.resolveUri(uri);
-        if (compiler == Compiler.none || scriptPath.endsWith('.js')) {
-          new File.fromUri(copiedScript)
-              .writeAsStringSync(new File.fromUri(script).readAsStringSync());
-        } else {
-          var destination = copiedScript.toFilePath();
-          if (compileToJS) {
-            destination = destination.replaceFirst(dartExtension, '.js');
-          }
-
-          assert(compiler == Compiler.dart2js);
-
-          commands.add(_dart2jsCompileCommand(
-              script.toFilePath(), destination, tempDir, info.optionsFromFile));
-        }
-      }
-    }
-
-    var htmlFile = tempUri.resolve(filePath.filename);
-    new File.fromUri(htmlFile).writeAsStringSync(contents);
-
-    var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
-    var fullHtmlPath = _uriForBrowserTest(htmlPath);
-    commands.add(Command.browserHtmlTest(
-        fullHtmlPath, configuration, info.expectedMessages,
-        retry: !isNegative(info)));
-    enqueueNewTestCase(
-        testName, commands, testExpectations.expectations(testName), info);
   }
 
   /// Creates a [Command] to compile a single .dart file using dart2js.
@@ -1269,17 +1148,6 @@ class StandardTestSuite extends TestSuite {
         alwaysCompile: !useSdk);
   }
 
-  String get contentShellFilename {
-    if (configuration.drtPath != null) return configuration.drtPath;
-
-    if (Platform.operatingSystem == 'macos') {
-      final path = dartDir.append(
-          '/client/tests/drt/Content Shell.app/Contents/MacOS/Content Shell');
-      return path.toNativePath();
-    }
-    return dartDir.append('client/tests/drt/content_shell').toNativePath();
-  }
-
   List<String> commonArgumentsFromFile(
       Path filePath, Map<String, dynamic> optionsFromFile) {
     var args = configuration.standardOptions.toList();
@@ -1314,6 +1182,10 @@ class StandardTestSuite extends TestSuite {
     assert(!isMultitest || dartOptions == null);
     args.add(filePath.toNativePath());
     if (dartOptions != null) {
+      // TODO(ahe): Because we add [dartOptions] here,
+      // [CompilerConfiguration.computeCompilerArguments] has to discard them
+      // later. Perhaps it would be simpler to pass [dartOptions] to
+      // [CompilerConfiguration.computeRuntimeArguments].
       args.addAll(dartOptions);
     }
 
@@ -1369,40 +1241,16 @@ class StandardTestSuite extends TestSuite {
    *
    *     // OtherScripts=file1.dart file2.dart
    *
-   *   - You can indicate whether a test is treated as a web-only test by
-   *   using an explicit import to a part of the dart:html library:
+   *   - Most tests are not web tests, but can (and will be) wrapped within
+   *   an HTML file and another script file to test them also on browser
+   *   environments (e.g. language and corelib tests are run this way).
+   *   We deduce that if a file with the same name as the test, but ending in
+   *   .html instead of .dart exists, the test was intended to be a web test
+   *   and no wrapping is necessary.
    *
-   *     import 'dart:html';
-   *     import 'dart:web_audio';
-   *     import 'dart:indexed_db';
-   *     import 'dart:svg';
-   *     import 'dart:web_sql';
-   *
-   *   Most tests are not web tests, but can (and will be) wrapped within
-   *   another script file to test them also on browser environments (e.g.
-   *   language and corelib tests are run this way). We deduce that if this
-   *   import is specified, the test was intended to be a web test and no
-   *   wrapping is necessary.
-   *
-   *   - You can convert DRT web-tests into layout-web-tests by specifying a
-   *   test expectation file. An expectation file is located in the same
-   *   location as the test, it has the same file name, except for the extension
-   *   (which can be either .txt or .png).
-   *
-   *   When there are no expectation files, 'test.dart' assumes tests fail if
-   *   the process return a non-zero exit code (in the case of web tests, we
+   *   - 'test.dart' assumes tests fail if
+   *   the process returns a non-zero exit code (in the case of web tests, we
    *   check for PASS/FAIL indications in the test output).
-   *
-   *   When there is an expectation file, tests are run differently: the test
-   *   code is run to the end of the event loop and 'test.dart' takes a snapshot
-   *   of what is rendered in the page at that moment. This snapshot is
-   *   represented either in text form, if the expectation ends in .txt, or as
-   *   an image, if the expectation ends in .png. 'test.dart' will compare the
-   *   snapshot to the expectation file. When tests fail, 'test.dart' saves the
-   *   new snapshot into a file so it can be visualized or copied over.
-   *   Expectations can be recorded for the first time by creating an empty file
-   *   with the right name (touch test_name_test.png), running the test, and
-   *   executing the copy command printed by the test script.
    *
    * This method is static as the map is cached and shared amongst
    * configurations, so it may not use [configuration].
@@ -1410,8 +1258,7 @@ class StandardTestSuite extends TestSuite {
   Map<String, dynamic> readOptionsFromFile(Uri uri) {
     if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if ("$uri".startsWith("$co19SuiteLocation") ||
-        "$uri".startsWith("$legacyCo19SuiteLocation")) {
+    } else if ("$uri".startsWith("$co19SuiteLocation")) {
       return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
@@ -1608,18 +1455,13 @@ class StandardTestSuite extends TestSuite {
     const compilers = const [
       Compiler.none,
       Compiler.dartk,
+      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.precompiler,
       Compiler.appJit
     ];
 
-    const runtimes = const [
-      Runtime.none,
-      Runtime.dartPrecompiled,
-      Runtime.vm,
-      Runtime.drt,
-      Runtime.contentShellOnAndroid
-    ];
+    const runtimes = const [Runtime.none, Runtime.dartPrecompiled, Runtime.vm];
 
     var needsVmOptions = compilers.contains(configuration.compiler) &&
         runtimes.contains(configuration.runtime);
@@ -1672,13 +1514,12 @@ class StandardTestSuite extends TestSuite {
   }
 }
 
-/// Used for testing packages in on off settings, i.e., we pass in the actual
+/// Used for testing packages in one-off settings, i.e., we pass in the actual
 /// directory that we want to test.
 class PKGTestSuite extends StandardTestSuite {
-  PKGTestSuite(Configuration configuration, Path directoryPath)
+  PKGTestSuite(TestConfiguration configuration, Path directoryPath)
       : super(configuration, directoryPath.filename, directoryPath,
             ["$directoryPath/.status"],
-            isTestFilePredicate: (f) => f.endsWith('_test.dart'),
             recursive: true);
 
   void _enqueueBrowserTest(Path packageRoot, packages, TestInformation info,
@@ -1701,16 +1542,16 @@ class PKGTestSuite extends StandardTestSuite {
 }
 
 class AnalyzeLibraryTestSuite extends StandardTestSuite {
-  static Path _libraryPath(Configuration configuration) =>
+  static Path _libraryPath(TestConfiguration configuration) =>
       new Path(configuration.useSdk
           ? '${configuration.buildDirectory}/dart-sdk'
           : 'sdk');
 
   bool get listRecursively => true;
 
-  AnalyzeLibraryTestSuite(Configuration configuration)
+  AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
-            ['tests/lib/analyzer/analyze_library.status']);
+            ['tests/lib_2/analyzer/analyze_library.status']);
 
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
       const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];

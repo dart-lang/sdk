@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -229,7 +229,7 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
  * string describing the part of the JSON object being decoded, and [value] is
  * the part to decode.
  */
-typedef E JsonDecoderCallback<E>(String jsonPath, Object value);
+typedef E JsonDecoderCallback<E>(String jsonPath, dynamic value);
 
 /**
  * Instances of the class [HasToJson] implement [toJson] method that returns

@@ -48,7 +48,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
-#include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/uri.h"
 #include "vm/version.h"
@@ -478,9 +477,10 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
   return scope;
 }
 
-void Api::InitOnce() {
-  ASSERT(api_native_key_ == kUnsetThreadLocalKey);
-  api_native_key_ = OSThread::CreateThreadLocal();
+void Api::Init() {
+  if (api_native_key_ == kUnsetThreadLocalKey) {
+    api_native_key_ = OSThread::CreateThreadLocal();
+  }
   ASSERT(api_native_key_ != kUnsetThreadLocalKey);
 }
 
@@ -509,6 +509,13 @@ void Api::InitHandles() {
 
   ASSERT(empty_string_handle_ == NULL);
   empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().raw());
+}
+
+void Api::Cleanup() {
+  true_handle_ = NULL;
+  false_handle_ = NULL;
+  null_handle_ = NULL;
+  empty_string_handle_ = NULL;
 }
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
@@ -994,21 +1001,17 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::InitOnce(
-      params->vm_snapshot_data, params->vm_snapshot_instructions,
-      params->create, params->shutdown, params->cleanup, params->thread_exit,
-      params->file_open, params->file_read, params->file_write,
-      params->file_close, params->entropy_source, params->get_service_assets,
-      params->start_kernel_isolate);
+  return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
+                    params->create, params->shutdown, params->cleanup,
+                    params->thread_exit, params->file_open, params->file_read,
+                    params->file_write, params->file_close,
+                    params->entropy_source, params->get_service_assets,
+                    params->start_kernel_isolate);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
   CHECK_NO_ISOLATE(Isolate::Current());
-  const char* err_msg = Dart::Cleanup();
-  if (err_msg != NULL) {
-    return strdup(err_msg);
-  }
-  return NULL;
+  return Dart::Cleanup();
 }
 
 DART_EXPORT char* Dart_SetVMFlags(int argc, const char** argv) {
@@ -1018,6 +1021,37 @@ DART_EXPORT char* Dart_SetVMFlags(int argc, const char** argv) {
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
   return Flags::IsSet(flag_name);
 }
+
+#if !defined(PRODUCT)
+#define VM_METRIC_API(type, variable, name, unit)                              \
+  DART_EXPORT int64_t Dart_VM##variable##Metric() {                            \
+    return vm_metric_##variable##_.value();                                    \
+  }
+VM_METRIC_LIST(VM_METRIC_API);
+#undef VM_METRIC_API
+
+#define ISOLATE_METRIC_API(type, variable, name, unit)                         \
+  DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
+    if (isolate == NULL) {                                                     \
+      FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
+    }                                                                          \
+    Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
+    return iso->Get##variable##Metric()->value();                              \
+  }
+ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
+#undef ISOLATE_METRIC_API
+#else  // !defined(PRODUCT)
+#define VM_METRIC_API(type, variable, name, unit)                              \
+  DART_EXPORT int64_t Dart_VM##variable##Metric() { return -1; }
+VM_METRIC_LIST(VM_METRIC_API);
+#undef VM_METRIC_API
+
+#define ISOLATE_METRIC_API(type, variable, name, unit)                         \
+  DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
+    return -1;                                                                 \
+  }
+ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
+#endif  // !defined(PRODUCT)
 
 // --- Isolates ---
 
@@ -1155,13 +1189,6 @@ Dart_CreateIsolateFromKernel(const char* script_uri,
                              void* callback_data,
                              char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-  // Setup default flags in case none were passed.
-  Dart_IsolateFlags api_flags;
-  if (flags == NULL) {
-    Isolate::FlagsInitialize(&api_flags);
-    flags = &api_flags;
-  }
-  flags->use_dart_frontend = true;
   return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, kernel_buffer,
                        kernel_buffer_size, flags, callback_data, error);
 }
@@ -1191,7 +1218,6 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     // Dart_EnterIsolate/Dart_CreateIsolate.
     T->ExitSafepoint();
     T->set_execution_state(Thread::kThreadInVM);
-    ServiceIsolate::SendIsolateShutdownMessage();
   }
   Dart::ShutdownIsolate();
 }
@@ -1480,90 +1506,12 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle
-Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
-                          intptr_t* script_snapshot_size) {
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  CHECK_NULL(script_snapshot_buffer);
-  CHECK_NULL(script_snapshot_size);
-  if (I->strong()) {
-    return Api::NewError("Script snapshots are not supported in Dart 2");
-  }
-  // Finalize all classes if needed.
-  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
-  Library& lib = Library::Handle(Z, I->object_store()->root_library());
-
-#if defined(DEBUG)
-  I->heap()->CollectAllGarbage();
-  {
-    HeapIterationScope iteration(T);
-    CheckFunctionTypesVisitor check_canonical(T);
-    iteration.IterateObjects(&check_canonical);
-  }
-#endif  // #if defined(DEBUG)
-
-  ScriptSnapshotWriter writer(ApiReallocate);
-  writer.WriteScriptSnapshot(lib);
-  *script_snapshot_buffer = writer.buffer();
-  *script_snapshot_size = writer.BytesWritten();
-  return Api::Success();
-}
-
-DART_EXPORT bool Dart_IsSnapshot(const uint8_t* buffer, intptr_t buffer_size) {
-  if (buffer_size < Snapshot::kHeaderSize) {
-    return false;
-  }
-  return Snapshot::SetupFromBuffer(buffer) != NULL;
-}
-
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
   if (buffer_size < 4) {
     return false;
   }
   return (buffer[0] == 0x90) && (buffer[1] == 0xab) && (buffer[2] == 0xcd) &&
          (buffer[3] == 0xef);
-}
-
-DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
-  if (snapshot_buffer == NULL) {
-    return false;
-  }
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
-  if (snapshot == NULL) {
-    return false;
-  }
-  const intptr_t snapshot_size = snapshot->length();
-  const char* expected_version = Version::SnapshotString();
-  ASSERT(expected_version != NULL);
-  const intptr_t version_len = strlen(expected_version);
-  if (snapshot_size < version_len) {
-    return false;
-  }
-
-  const char* version = reinterpret_cast<const char*>(snapshot->content());
-  ASSERT(version != NULL);
-  if (strncmp(version, expected_version, version_len)) {
-    return false;
-  }
-  const char* features = version + version_len;
-  ASSERT(features != NULL);
-  intptr_t pending_len = snapshot_size - version_len;
-  intptr_t buffer_len = Utils::StrNLen(features, pending_len);
-  // if buffer_len is less than pending_len it means we have a null terminated
-  // string and we can safely execute 'strstr' on it.
-  if ((buffer_len < pending_len)) {
-    if (strstr(features, "no-strong")) {
-      return false;
-    } else if (strstr(features, "strong")) {
-      return true;
-    }
-  }
-  return false;
 }
 
 DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
@@ -2313,20 +2261,6 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
   }
   *value = obj.value();
   return Api::Success();
-}
-
-DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
-                                        Dart_Handle function_name) {
-  DARTSCOPE(Thread::Current());
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  const String& name = Api::UnwrapStringHandle(Z, function_name);
-  if (name.IsNull()) {
-    RETURN_TYPE_ERROR(Z, function_name, String);
-  }
-  return Api::NewHandle(T, lib.GetFunctionClosure(name));
 }
 
 DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
@@ -4149,7 +4083,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   API_TIMELINE_DURATION(T);
   CHECK_CALLBACK_STATE(T);
 
-  const String& function_name = Api::UnwrapStringHandle(Z, name);
+  String& function_name =
+      String::Handle(Z, Api::UnwrapStringHandle(Z, name).raw());
   if (function_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
@@ -4164,7 +4099,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
   Dart_Handle result;
   Array& args = Array::Handle(Z);
-  const intptr_t kTypeArgsLen = 0;
+  // This API does not provide a way to pass named parameters.
+  const Array& arg_names = Object::empty_array();
+  const bool respect_reflectable = false;
   if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
@@ -4173,70 +4110,33 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
 
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-    const Function& function =
-        Function::Handle(Z, Resolver::ResolveStaticAllowPrivate(
-                                cls, function_name, kTypeArgsLen,
-                                number_of_arguments, Object::empty_array()));
-    if (function.IsNull()) {
-      const String& cls_name = String::Handle(Z, cls.Name());
-      return Api::NewError("%s: did not find static method '%s.%s'.",
-                           CURRENT_FUNC, cls_name.ToCString(),
-                           function_name.ToCString());
+    if (Library::IsPrivate(function_name)) {
+      const Library& lib = Library::Handle(Z, cls.library());
+      function_name = lib.PrivateName(function_name);
     }
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& cls_name = String::Handle(Z, cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         function_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
+
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
-    if (!::Dart_IsError(result)) {
-      result = Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+    if (::Dart_IsError(result)) {
+      return result;
     }
-    return result;
+    return Api::NewHandle(
+        T, cls.Invoke(function_name, args, arg_names, respect_reflectable));
   } else if (obj.IsNull() || obj.IsInstance()) {
     // Since we have allocated an object it would mean that the type of the
     // receiver is already resolved and finalized, hence it is not necessary
     // to check here.
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.raw();
-    ArgumentsDescriptor args_desc(Array::Handle(
-        Z, ArgumentsDescriptor::New(kTypeArgsLen, number_of_arguments + 1)));
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveDynamic(instance, function_name, args_desc));
-    if (function.IsNull()) {
-      // Setup args and check for malformed arguments in the arguments list.
-      result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
-      if (!::Dart_IsError(result)) {
-        args.SetAt(0, instance);
-        const Array& args_descriptor = Array::Handle(
-            Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-        result = Api::NewHandle(
-            T, DartEntry::InvokeNoSuchMethod(instance, function_name, args,
-                                             args_descriptor));
-      }
-      return result;
-    }
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const Class& cls = Class::Handle(Z, instance.clazz());
-      ASSERT(!cls.IsNull());
-      const String& cls_name = String::Handle(Z, cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         function_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
+
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
-    if (!::Dart_IsError(result)) {
-      args.SetAt(0, instance);
-      result = Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+    if (::Dart_IsError(result)) {
+      return result;
     }
-    return result;
+    args.SetAt(0, instance);
+    return Api::NewHandle(T, instance.Invoke(function_name, args, arg_names,
+                                             respect_reflectable));
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
     const Library& lib = Library::Cast(obj);
@@ -4247,37 +4147,18 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            CURRENT_FUNC);
     }
 
-    const Function& function =
-        Function::Handle(Z, lib.LookupFunctionAllowPrivate(function_name));
-    if (function.IsNull()) {
-      return Api::NewError("%s: did not find top-level function '%s'.",
-                           CURRENT_FUNC, function_name.ToCString());
+    if (Library::IsPrivate(function_name)) {
+      function_name = lib.PrivateName(function_name);
     }
 
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& lib_name = String::Handle(Z, lib.url());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", lib_name.ToCString(),
-                         function_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
-
-    // LookupFunctionAllowPrivate does not check argument arity, so we
-    // do it here.
-    String& error_message = String::Handle(Z);
-    if (!function.AreValidArgumentCounts(kTypeArgsLen, number_of_arguments, 0,
-                                         &error_message)) {
-      return Api::NewError("%s: wrong argument count for function '%s': %s.",
-                           CURRENT_FUNC, function_name.ToCString(),
-                           error_message.ToCString());
-    }
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
-    if (!::Dart_IsError(result)) {
-      result = Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+    if (::Dart_IsError(result)) {
+      return result;
     }
-    return result;
+
+    return Api::NewHandle(
+        T, lib.Invoke(function_name, args, arg_names, respect_reflectable));
   } else {
     return Api::NewError(
         "%s expects argument 'target' to be an object, type, or library.",
@@ -4321,96 +4202,39 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
   API_TIMELINE_DURATION(T);
   CHECK_CALLBACK_STATE(T);
 
-  const String& field_name = Api::UnwrapStringHandle(Z, name);
+  String& field_name =
+      String::Handle(Z, Api::UnwrapStringHandle(Z, name).raw());
   if (field_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
-
-  Field& field = Field::Handle(Z);
-  Function& getter = Function::Handle(Z);
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(container));
-  if (obj.IsNull()) {
-    return Api::NewError("%s expects argument 'container' to be non-null.",
-                         CURRENT_FUNC);
-  } else if (obj.IsType()) {
+  const bool throw_nsm_if_absent = true;
+  const bool respect_reflectable = false;
+
+  if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
           "%s expects argument 'container' to be a fully resolved type.",
           CURRENT_FUNC);
     }
-    // To access a static field we may need to use the Field or the
-    // getter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-
-    field = cls.LookupStaticFieldAllowPrivate(field_name);
-    if (field.IsNull() || field.IsUninitialized()) {
-      const String& getter_name =
-          String::Handle(Z, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
+    if (Library::IsPrivate(field_name)) {
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& cls_name = String::Handle(cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         field_name.ToCString());
+    return Api::NewHandle(T, cls.InvokeGetter(field_name, throw_nsm_if_absent,
+                                              respect_reflectable));
+  } else if (obj.IsNull() || obj.IsInstance()) {
+    Instance& instance = Instance::Handle(Z);
+    instance ^= obj.raw();
+    if (Library::IsPrivate(field_name)) {
+      const Class& cls = Class::Handle(Z, instance.clazz());
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-#endif  // !defined(PRODUCT)
-
-    if (!getter.IsNull()) {
-      // Invoke the getter and return the result.
-      return Api::NewHandle(
-          T, DartEntry::InvokeFunction(getter, Object::empty_array()));
-    } else if (!field.IsNull()) {
-      return Api::NewHandle(T, field.StaticValue());
-    } else {
-      return Api::NewError("%s: did not find static field '%s'.", CURRENT_FUNC,
-                           field_name.ToCString());
-    }
-
-  } else if (obj.IsInstance()) {
-    // Every instance field has a getter Function.  Try to find the
-    // getter in any superclass and use that function to access the
-    // field.
-    const Instance& instance = Instance::Cast(obj);
-    Class& cls = Class::Handle(Z, instance.clazz());
-    String& getter_name = String::Handle(Z, Field::GetterName(field_name));
-    while (!cls.IsNull()) {
-      getter = cls.LookupDynamicFunctionAllowPrivate(getter_name);
-      if (!getter.IsNull()) {
-        break;
-      }
-      cls = cls.SuperClass();
-    }
-
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& cls_name = String::Handle(cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         field_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
-
-    // Invoke the getter and return the result.
-    const int kTypeArgsLen = 0;
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-    args.SetAt(0, instance);
-    if (getter.IsNull()) {
-      const Array& args_descriptor = Array::Handle(
-          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-      return Api::NewHandle(
-          T, DartEntry::InvokeNoSuchMethod(instance, getter_name, args,
-                                           args_descriptor));
-    }
-    return Api::NewHandle(T, DartEntry::InvokeFunction(getter, args));
-
+    return Api::NewHandle(
+        T, instance.InvokeGetter(field_name, respect_reflectable));
   } else if (obj.IsLibrary()) {
-    // To access a top-level we may need to use the Field or the
-    // getter Function.  The getter function may either be in the
-    // library or in the field's owner class, depending.
     const Library& lib = Library::Cast(obj);
     // Check that the library is loaded.
     if (!lib.Loaded()) {
@@ -4418,40 +4242,11 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
           "%s expects library argument 'container' to be loaded.",
           CURRENT_FUNC);
     }
-    field = lib.LookupFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      // No field found and no ambiguity error.  Check for a getter in the lib.
-      const String& getter_name =
-          String::Handle(Z, Field::GetterName(field_name));
-      getter = lib.LookupFunctionAllowPrivate(getter_name);
-    } else if (!field.IsNull() && field.IsUninitialized()) {
-      // A field was found.  Check for a getter in the field's owner class.
-      const Class& cls = Class::Handle(Z, field.Owner());
-      const String& getter_name =
-          String::Handle(Z, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
+    if (Library::IsPrivate(field_name)) {
+      field_name = lib.PrivateName(field_name);
     }
-
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& lib_name = String::Handle(lib.url());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", lib_name.ToCString(),
-                         field_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
-
-    if (!getter.IsNull()) {
-      // Invoke the getter and return the result.
-      return Api::NewHandle(
-          T, DartEntry::InvokeFunction(getter, Object::empty_array()));
-    }
-    if (!field.IsNull()) {
-      return Api::NewHandle(T, field.StaticValue());
-    }
-    return Api::NewError("%s: did not find top-level variable '%s'.",
-                         CURRENT_FUNC, field_name.ToCString());
-
+    return Api::NewHandle(T, lib.InvokeGetter(field_name, throw_nsm_if_absent,
+                                              respect_reflectable));
   } else if (obj.IsError()) {
     return container;
   } else {
@@ -4468,7 +4263,8 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   API_TIMELINE_DURATION(T);
   CHECK_CALLBACK_STATE(T);
 
-  const String& field_name = Api::UnwrapStringHandle(Z, name);
+  String& field_name =
+      String::Handle(Z, Api::UnwrapStringHandle(Z, name).raw());
   if (field_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
@@ -4481,13 +4277,10 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   Instance& value_instance = Instance::Handle(Z);
   value_instance ^= value_obj.raw();
 
-  Field& field = Field::Handle(Z);
-  Function& setter = Function::Handle(Z);
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(container));
-  if (obj.IsNull()) {
-    return Api::NewError("%s expects argument 'container' to be non-null.",
-                         CURRENT_FUNC);
-  } else if (obj.IsType()) {
+  const bool respect_reflectable = false;
+
+  if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
           "%s expects argument 'container' to be a fully resolved type.",
@@ -4497,73 +4290,22 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // To access a static field we may need to use the Field or the
     // setter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-
-    field = cls.LookupStaticFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      String& setter_name = String::Handle(Z, Field::SetterName(field_name));
-      setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
+    if (Library::IsPrivate(field_name)) {
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-
-    if (!setter.IsNull()) {
-      // Invoke the setter and return the result.
-      const int kNumArgs = 1;
-      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-      args.SetAt(0, value_instance);
-      const Object& result =
-          Object::Handle(Z, DartEntry::InvokeFunction(setter, args));
-      if (result.IsError()) {
-        return Api::NewHandle(T, result.raw());
-      } else {
-        return Api::Success();
-      }
-    } else if (!field.IsNull()) {
-      if (field.is_final()) {
-        return Api::NewError("%s: cannot set final field '%s'.", CURRENT_FUNC,
-                             field_name.ToCString());
-      } else {
-        field.SetStaticValue(value_instance);
-        return Api::Success();
-      }
-    } else {
-      return Api::NewError("%s: did not find static field '%s'.", CURRENT_FUNC,
-                           field_name.ToCString());
+    return Api::NewHandle(
+        T, cls.InvokeSetter(field_name, value_instance, respect_reflectable));
+  } else if (obj.IsNull() || obj.IsInstance()) {
+    Instance& instance = Instance::Handle(Z);
+    instance ^= obj.raw();
+    if (Library::IsPrivate(field_name)) {
+      const Class& cls = Class::Handle(Z, instance.clazz());
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-
-  } else if (obj.IsInstance()) {
-    // Every instance field has a setter Function.  Try to find the
-    // setter in any superclass and use that function to access the
-    // field.
-    const Instance& instance = Instance::Cast(obj);
-    Class& cls = Class::Handle(Z, instance.clazz());
-    String& setter_name = String::Handle(Z, Field::SetterName(field_name));
-    while (!cls.IsNull()) {
-      field = cls.LookupInstanceFieldAllowPrivate(field_name);
-      if (!field.IsNull() && field.is_final()) {
-        return Api::NewError("%s: cannot set final field '%s'.", CURRENT_FUNC,
-                             field_name.ToCString());
-      }
-      setter = cls.LookupDynamicFunctionAllowPrivate(setter_name);
-      if (!setter.IsNull()) {
-        break;
-      }
-      cls = cls.SuperClass();
-    }
-
-    // Invoke the setter and return the result.
-    const int kTypeArgsLen = 0;
-    const int kNumArgs = 2;
-    const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-    args.SetAt(0, instance);
-    args.SetAt(1, value_instance);
-    if (setter.IsNull()) {
-      const Array& args_descriptor = Array::Handle(
-          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-      return Api::NewHandle(
-          T, DartEntry::InvokeNoSuchMethod(instance, setter_name, args,
-                                           args_descriptor));
-    }
-    return Api::NewHandle(T, DartEntry::InvokeFunction(setter, args));
-
+    return Api::NewHandle(T, instance.InvokeSetter(field_name, value_instance,
+                                                   respect_reflectable));
   } else if (obj.IsLibrary()) {
     // To access a top-level we may need to use the Field or the
     // setter Function.  The setter function may either be in the
@@ -4575,36 +4317,12 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
           "%s expects library argument 'container' to be loaded.",
           CURRENT_FUNC);
     }
-    field = lib.LookupFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      const String& setter_name =
-          String::Handle(Z, Field::SetterName(field_name));
-      setter ^= lib.LookupFunctionAllowPrivate(setter_name);
-    }
 
-    if (!setter.IsNull()) {
-      // Invoke the setter and return the result.
-      const int kNumArgs = 1;
-      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-      args.SetAt(0, value_instance);
-      const Object& result =
-          Object::Handle(Z, DartEntry::InvokeFunction(setter, args));
-      if (result.IsError()) {
-        return Api::NewHandle(T, result.raw());
-      }
-      return Api::Success();
+    if (Library::IsPrivate(field_name)) {
+      field_name = lib.PrivateName(field_name);
     }
-    if (!field.IsNull()) {
-      if (field.is_final()) {
-        return Api::NewError("%s: cannot set final top-level variable '%s'.",
-                             CURRENT_FUNC, field_name.ToCString());
-      }
-      field.SetStaticValue(value_instance);
-      return Api::Success();
-    }
-    return Api::NewError("%s: did not find top-level variable '%s'.",
-                         CURRENT_FUNC, field_name.ToCString());
-
+    return Api::NewHandle(
+        T, lib.InvokeSetter(field_name, value_instance, respect_reflectable));
   } else if (obj.IsError()) {
     return container;
   }
@@ -5239,129 +4957,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-  if (::Dart_IsNull(resolved_url)) {
-    resolved_url = url;
-  }
-  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
-  if (resolved_url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, resolved_url, String);
-  }
-  Library& library = Library::Handle(Z, I->object_store()->root_library());
-  if (!library.IsNull()) {
-    const String& library_url = String::Handle(Z, library.url());
-    return Api::NewError("%s: A script has already been loaded from '%s'.",
-                         CURRENT_FUNC, library_url.ToCString());
-  }
-  if (line_offset < 0) {
-    return Api::NewError("%s: argument 'line_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  if (column_offset < 0) {
-    return Api::NewError("%s: argument 'column_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  Dart_Handle result;
-  if (I->use_dart_frontend()) {
-    return Api::NewError("%s: Should not be called with using Dart frontend",
-                         CURRENT_FUNC);
-  }
-
-  const String& source_str = Api::UnwrapStringHandle(Z, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, source, String);
-  }
-
-  NoHeapGrowthControlScope no_growth_control;
-
-  library = Library::New(url_str);
-  library.set_debuggable(true);
-  library.Register(T);
-  I->object_store()->set_root_library(library);
-
-  const Script& script =
-      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
-                                    RawScript::kScriptTag));
-  script.SetLocationOffset(line_offset, column_offset);
-  CompileSource(T, library, script, &result);
-  return result;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
-DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
-                                                    intptr_t buffer_len) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  StackZone zone(T);
-  if (buffer == NULL) {
-    RETURN_NULL_ERROR(buffer);
-  }
-  if (I->strong()) {
-    return Api::NewError("Script snapshots are not supported in Dart 2");
-  }
-  NoHeapGrowthControlScope no_growth_control;
-
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
-  if (snapshot == NULL) {
-    return Api::NewError(
-        "%s expects parameter 'buffer' to be a script type"
-        " snapshot with a valid length.",
-        CURRENT_FUNC);
-  }
-  if (snapshot->kind() != Snapshot::kScript) {
-    return Api::NewError(
-        "%s expects parameter 'buffer' to be a script type"
-        " snapshot.",
-        CURRENT_FUNC);
-  }
-  if (snapshot->length() != buffer_len) {
-    return Api::NewError("%s: 'buffer_len' of %" Pd " is not equal to %" Pd
-                         " which is the expected length in the snapshot.",
-                         CURRENT_FUNC, buffer_len, snapshot->length());
-  }
-  Library& library = Library::Handle(Z, I->object_store()->root_library());
-  if (!library.IsNull()) {
-    const String& library_url = String::Handle(Z, library.url());
-    return Api::NewError("%s: A script has already been loaded from '%s'.",
-                         CURRENT_FUNC, library_url.ToCString());
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  ASSERT(snapshot->kind() == Snapshot::kScript);
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "ScriptSnapshotReader"));
-
-  ScriptSnapshotReader reader(snapshot->content(), snapshot->length(), T);
-  const Object& tmp = Object::Handle(Z, reader.ReadScriptSnapshot());
-  if (tmp.IsError()) {
-    return Api::NewHandle(T, tmp.raw());
-  }
-#if !defined(PRODUCT)
-  if (tds2.enabled()) {
-    tds2.SetNumArguments(2);
-    tds2.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-    tds2.FormatArgument(1, "heapSize", "%" Pd64,
-                        I->heap()->UsedInWords(Heap::kOld) * kWordSize);
-  }
-#endif  // !defined(PRODUCT)
-  library ^= tmp.raw();
-  library.set_debuggable(true);
-  I->object_store()->set_root_library(library);
-  return Api::NewHandle(T, library.raw());
+  return Api::NewError("%s: Should not be called in Dart 2", CURRENT_FUNC);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5383,6 +4979,11 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   }
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
+
+  // The kernel loader is about to allocate a bunch of new libraries, classes,
+  // and functions into old space. Force growth, and use of the bump allocator
+  // instead of freelists.
+  BumpAllocateScope bump_allocate_scope(T);
 
   const char* error = nullptr;
   kernel::Program* program =
@@ -5428,6 +5029,14 @@ DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library) {
   RETURN_TYPE_ERROR(Z, library, Library);
 }
 
+static void CheckIsEntryPoint(const Class& klass) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // This is not a completely thorough check that the class is an entry-point,
+  // but it catches most missing annotations.
+  RELEASE_ASSERT(klass.has_pragma());
+#endif
+}
+
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                                       Dart_Handle class_name) {
   DARTSCOPE(Thread::Current());
@@ -5446,6 +5055,7 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
     return Api::NewError("Class '%s' not found in library '%s'.",
                          cls_name.ToCString(), lib_name.ToCString());
   }
+  CheckIsEntryPoint(cls);
   return Api::NewHandle(T, cls.RareType());
 }
 
@@ -5474,6 +5084,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
     return Api::NewError("Type '%s' not found in library '%s'.",
                          name_str.ToCString(), lib_name.ToCString());
   }
+  CheckIsEntryPoint(cls);
   if (cls.NumTypeArguments() == 0) {
     if (number_of_type_arguments != 0) {
       return Api::NewError(
@@ -5528,6 +5139,21 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
     RETURN_TYPE_ERROR(Z, library, Library);
   }
   const String& url = String::Handle(Z, lib.url());
+  ASSERT(!url.IsNull());
+  return Api::NewHandle(T, url.raw());
+}
+
+DART_EXPORT Dart_Handle Dart_LibraryResolvedUrl(Dart_Handle library) {
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  const Class& toplevel = Class::Handle(lib.toplevel_class());
+  ASSERT(!toplevel.IsNull());
+  const Script& script = Script::Handle(toplevel.script());
+  ASSERT(!script.IsNull());
+  const String& url = String::Handle(script.resolved_url());
   ASSERT(!url.IsNull());
   return Api::NewHandle(T, url.raw());
 }
@@ -5602,73 +5228,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-  Dart_Handle result;
-  if (I->use_dart_frontend()) {
-    return Api::NewError("%s: Should not be called with using Dart frontend",
-                         CURRENT_FUNC);
-  }
-  if (::Dart_IsNull(resolved_url)) {
-    resolved_url = url;
-  }
-  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
-  if (resolved_url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, resolved_url, String);
-  }
-  const String& source_str = Api::UnwrapStringHandle(Z, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, source, String);
-  }
-  if (line_offset < 0) {
-    return Api::NewError("%s: argument 'line_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  if (column_offset < 0) {
-    return Api::NewError("%s: argument 'column_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  NoHeapGrowthControlScope no_growth_control;
-
-  Library& library = Library::Handle(Z, Library::LookupLibrary(T, url_str));
-  if (library.IsNull()) {
-    library = Library::New(url_str);
-    library.Register(T);
-  } else if (library.LoadInProgress() || library.Loaded() ||
-             library.LoadFailed()) {
-    // The source for this library has either been loaded or is in the
-    // process of loading.  Return an error.
-    return Api::NewError("%s: library '%s' has already been loaded.",
-                         CURRENT_FUNC, url_str.ToCString());
-  }
-  const Script& script =
-      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
-                                    RawScript::kLibraryTag));
-  script.SetLocationOffset(line_offset, column_offset);
-  CompileSource(T, library, script, &result);
-  // Propagate the error out right now.
-  if (::Dart_IsError(result)) {
-    return result;
-  }
-
-  // If this is the dart:_builtin library, register it with the VM.
-  if (url_str.Equals("dart:_builtin")) {
-    I->object_store()->set_builtin_library(library);
-    Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-    if (::Dart_IsError(state)) {
-      return state;
-    }
-  }
-  return result;
+  return Api::NewError("%s: Should not be called in Dart 2", CURRENT_FUNC);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5684,6 +5244,11 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
 
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
+
+  // The kernel loader is about to allocate a bunch of new libraries, classes,
+  // and functions into old space. Force growth, and use of the bump allocator
+  // instead of freelists.
+  BumpAllocateScope bump_allocate_scope(T);
 
   const char* error = nullptr;
   kernel::Program* program =
@@ -6147,10 +5712,10 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
   return;
 }
 
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
-  return Api::Success();
+  return NULL;
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
@@ -6160,9 +5725,9 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_mod_callback) {
-  return Api::Success();
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_mod_callback) {
+  return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
@@ -6219,42 +5784,42 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
   }
 }
 
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
   if (!FLAG_support_service) {
-    return Api::Success();
+    return NULL;
   }
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one listen callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "permits only one listen callback to be registered, please "
+          "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_listen_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'listen_callback' to be present in the callback set.",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "expects 'listen_callback' to be present in the callback set.");
     }
   }
   if (cancel_callback != NULL) {
     if (Service::stream_cancel_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one cancel callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "permits only one cancel callback to be registered, please "
+          "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_cancel_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'cancel_callback' to be present in the callback set.",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetServiceStreamCallbacks "
+          "expects 'cancel_callback' to be present in the callback set.");
     }
   }
   Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
-  return Api::Success();
+  return NULL;
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
@@ -6280,29 +5845,29 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback) {
   if (!FLAG_support_service) {
-    return Api::Success();
+    return NULL;
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateReloadContext::file_modified_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetFileModifiedCallback permits only one callback to be"
+          " registered, please remove the existing callback and then add"
+          " this callback");
     }
   } else {
     if (IsolateReloadContext::file_modified_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'file_modified_callback' to be set before it is cleared.",
-          CURRENT_FUNC);
+      return strdup(
+          "Dart_SetFileModifiedCallback expects 'file_modified_callback' to"
+          " be set before it is cleared.");
     }
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return Api::Success();
+  return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
@@ -6584,8 +6149,7 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[]) {
+DART_EXPORT Dart_Handle Dart_Precompile() {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6604,7 +6168,7 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[]) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
+  const Error& error = Error::Handle(Precompiler::CompileAll());
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.raw());
   }
@@ -6814,7 +6378,8 @@ DART_EXPORT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size) {
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 const uint8_t* reused_instructions) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
 #elif defined(DART_PRECOMPILED_RUNTIME)
@@ -6838,6 +6403,9 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   }
   BackgroundCompiler::Stop(I);
 
+  if (reused_instructions) {
+    DropCodeWithoutReusableInstructions(reused_instructions);
+  }
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
 
@@ -6845,7 +6413,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                             "WriteAppJITSnapshot"));
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
                                        ApiReallocate, 2 * MB /* initial_size */,
-                                       NULL, NULL);
+                                       NULL, NULL, reused_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, NULL,
                             isolate_snapshot_data_buffer, ApiReallocate, NULL,
                             &isolate_image_writer);
@@ -6854,6 +6422,10 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
+
+  if (reused_instructions) {
+    *isolate_snapshot_instructions_buffer = NULL;
+  }
 
   return Api::Success();
 #endif

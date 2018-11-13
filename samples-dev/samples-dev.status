@@ -23,11 +23,5 @@ swarm/test/swarm_ui_lib/touch/touch_test: Fail # This may be related to issue 15
 swarm/test/swarm_test: Fail # TODO(kasperl): Please triage.
 swarm/test/swarm_ui_lib/layout/layout_test: Fail # TODO(kasperl): Please triage.
 
-[ $compiler == dart2js && $runtime == drt ]
-swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
-
-[ $compiler == dart2js && $runtime == drt && $system == windows ]
-swarm/test/swarm_test: Fail # Issue 4517
-
 [ $compiler == dart2js && $runtime == ff ]
 swarm/test/swarm_test: Fail # Issue 5633

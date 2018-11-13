@@ -6,13 +6,13 @@
 // condition involves control flow.
 
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST = '''
 var a = [1];
 
 main() {
-  int count = int.parse('42') == 42 ? 42 : null;
+  dynamic count = int.parse('42') == 42 ? 42 : null;
   for (int i = 0; i < count && i < a[0]; i++) {
     print(i);
   }

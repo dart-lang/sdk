@@ -252,7 +252,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'get = 42');
   }
 
-  test_BUILT_IN_hide() async {
+  Future<void> test_BUILT_IN_hide() async {
     addTestFile('''
 import 'foo.dart' hide Foo;
 main() {
@@ -275,7 +275,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'implements = 42');
   }
 
-  test_BUILT_IN_import() async {
+  Future<void> test_BUILT_IN_import() async {
     addTestFile('''
 import "foo.dart";
 main() {
@@ -297,7 +297,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'library = 42');
   }
 
-  test_BUILT_IN_native() async {
+  Future<void> test_BUILT_IN_native() async {
     addTestFile('''
 class A native "A_native" {}
 class B {
@@ -312,7 +312,16 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'native = 42');
   }
 
-  test_BUILT_IN_on() async {
+  test_BUILT_IN_on_inMixin() async {
+    addTestFile('''
+mixin M on N {}
+class N {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'on N');
+  }
+
+  test_BUILT_IN_on_inTry() async {
     addTestFile('''
 main() {
   try {
@@ -379,7 +388,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'set = 42');
   }
 
-  test_BUILT_IN_show() async {
+  Future<void> test_BUILT_IN_show() async {
     addTestFile('''
 import 'foo.dart' show Foo;
 main() {
@@ -536,7 +545,7 @@ main() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
-  test_DIRECTIVE() async {
+  Future<void> test_DIRECTIVE() async {
     addTestFile('''
 library lib;
 import 'dart:math';
@@ -772,6 +781,14 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  test_KEYWORD_mixin() async {
+    addTestFile('''
+mixin M {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin');
+  }
+
   test_KEYWORD_void() async {
     addTestFile('''
 void main() {
@@ -912,7 +929,7 @@ main(A a) {
     assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
   }
 
-  test_TOP_LEVEL_VARIABLE() async {
+  Future<void> test_TOP_LEVEL_VARIABLE() async {
     addTestFile('''
 const VVV = 0;
 @VVV // annotation
@@ -929,7 +946,7 @@ main() {
     assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 1');
   }
 
-  test_TYPE_NAME_DYNAMIC() async {
+  Future<void> test_TYPE_NAME_DYNAMIC() async {
     addTestFile('''
 dynamic main() {
   dynamic = 42;

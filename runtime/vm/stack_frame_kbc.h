@@ -46,16 +46,13 @@ static const int kKBCSavedCallerPcSlotFromFp = -2;
 static const int kKBCCallerSpSlotFromFp = -kKBCDartFrameFixedSize - 1;
 static const int kKBCPcMarkerSlotFromFp = -3;
 static const int kKBCFunctionSlotFromFp = -4;
+static const int kKBCParamEndSlotFromFp = 4;
 
-// Note: These constants don't match actual KBC behavior. This is done because
-// setting kKBCFirstLocalSlotFromFp to 0 breaks assumptions spread across the
-// code.
-// Instead for the purposes of local variable allocation we pretend that KBC
-// behaves as other architectures (stack growing downwards) and later fix
-// these indices during code generation in the backend.
-static const int kKBCParamEndSlotFromFp = 4;  // One slot past last parameter.
-static const int kKBCFirstLocalSlotFromFp = -1;
+// Entry and exit frame layout.
+static const int kKBCEntrySavedSlots = 3;
 static const int kKBCExitLinkSlotFromEntryFp = 0;
+static const int kKBCSavedArgDescSlotFromEntryFp = 1;
+static const int kKBCSavedPpSlotFromEntryFp = 2;
 
 // Value for stack limit that is used to cause an interrupt.
 // Note that on KBC stack is growing upwards so interrupt limit is 0 unlike

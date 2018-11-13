@@ -1,10 +1,10 @@
 # Typing of members of dynamic
 
-Author: eernst@.
+**Author**: eernst@.
 
-Version: 0.1 (2018-03-13)
+**Version**: 0.2 (2018-09-04)
 
-Status: Under discussion.
+**Status**: Under implementation.
 
 **This document** is a Dart 2 feature specification of the static typing
 of instance members of a receiver whose static type is `dynamic`.
@@ -123,19 +123,36 @@ and story.
 In this section, `Object` denotes the built-in class `Object`, and
 `dynamic` denotes the built-in type `dynamic`.
 
-Let `e` be an expression of the form `d.g` where the static type of `d` is
-`dynamic` and `g` is a getter declared in `Object`; if the return type of
-`Object.g` is `T` then the static type of `e` is `T`.
+Let `e` be an expression of the form `d.m`, which is not followed by an
+argument part, where the static type of `d` is `dynamic`, and `m` is a
+getter declared in `Object`; if the return type of `Object.m` is `T` then
+the static type of `e` is `T`.
 
 *For instance, `d.hashCode` has type `int` and `d.runtimeType` has type
 `Type`.*
 
-Let `e` be an expression of the form `d.m` where the static type of `d` is
-`dynamic` and `m` is a method declared in `Object` whose method signature
-has type `F` (*which is a function type*). The static type of `e` is then
-`F`.
+Let `e` be an expression of the form `d.m`, which is not followed by an
+argument part, where the static type of `d` is `dynamic`, and `m` is a
+method declared in `Object` whose method signature has type `F` (*which is
+a function type*). The static type of `e` is then `F`.
 
 *For instance, `d.toString` has type `String Function()`.*
+
+Let `e` be an expression of the form `d.m(arguments)` or
+`d.m<typeArguments>(arguments)` where the static type of `d` is `dynamic`,
+`m` is a getter declared in `Object` with return type `F`, `arguments` is
+an actual argument list, and `typeArguments` is a list of actual type
+arguments, if present. Static analysis will then process `e` as a function
+expression invocation where a function of static type `F` is applied to the
+given argument part.
+
+*So `d.runtimeType(42)` is a compile-time error, because it is checked as a
+function expression invocation where an entity of static type `Type` is
+invoked. Note that it could actually succeed: An overriding implementation
+of `runtimeType` could return an instance whose dynamic type is a subtype
+of `Type` that has a `call` method. We decided to make it an error because
+it is likely to be a mistake, especially in cases like `d.hashCode()` where
+a developer might have forgotten that `hashCode` is a getter.*
 
 Let `e` be an expression of the form `d.m(arguments)` where the static type
 of `d` is `dynamic`, `arguments` is an actual argument list, and `m` is a
@@ -152,36 +169,41 @@ known declaration are not errors, they just get return type `dynamic`.*
 
 Let `e` be an expression of the form `d.m<typeArguments>(arguments)` where
 the static type of `d` is `dynamic`, `typeArguments` is a list of actual
-type arguments, `arguments` is an actual argument list, and `m` is a
-method declared in `Object` whose method signature has type `F`. The
-static type of `e` is then `dynamic`.
+type arguments, `arguments` is an actual argument list. It is a
+compile-time error if `m` is a non-generic method declared in `Object`.
 
-*We do not need to address the case `d.m(arguments)` where `m` is a getter
-declared in `Object` whose return type is a function type or a supertype
-thereof, because no such getters exist, but such a case would be covered in
-a generalization to support `dynamic(T)` for all `T`. Similarly, such a
-generalization would need to handle the case where the method is generic
-and no type arguments are passed, and the case where the method is
-generic and a wrong number of type arguments is passed, etc. Such a
-generalization is expected to be possible without invalidating the rules
-given in this document.*
+*No generic methods are declared in `Object`. Hence, we do not specify that
+there must be the statically required number of actual type arguments, and
+they must satisfy the bounds. That would otherwise be the consistent
+approach, because the invocation is guaranteed to fail when any of those
+requirements are violated, but generalizations of this mechanism would need
+to include such rules.*
 
 For an instance method invocation `e` (including invocations of getters,
 setters, and operators) where the receiver has static type `dynamic` and
 `e` does not match any of the above cases, the static type of `e` is
 `dynamic`.
 
-*Note that it is not possible for an instance method invocation with a
-receiver of type `dynamic` to be a compile-time error (except, of course,
-that some expressions like `x[1, 2]` are syntax errors even though they
-could also be considered "invocations", and except that subexpressions are
-checked separately, and any given actual argument could be a compile-time
-error). In general, any argument list shape could be handled via
+When a `cascadeSection` performs a getter or method invocation that
+corresponds to one of the cases above, the corresponding static analysis
+and compile-time errors apply.
+
+*For instance, `d..foobar(16)..hashCode()` is an error.*
+
+*Note that only very few forms of instance method invocation with a
+receiver of type `dynamic` can be a compile-time error. Of course,
+some expressions like `x[1, 2]` are syntax errors even though they
+could also be considered "invocations", and subexpressions are checked
+separately so any given actual argument could be a compile-time 
+error. But almost any given argument list shape could be handled via
 `noSuchMethod`, and an argument of any type could be accepted because any
 formal parameter in an overriding declaration could have its type
 annotation contravariantly changed to `Object`. So it is a natural
 consequence of the principle mentioned in 'Motivation' that a `dynamic`
-receiver admits all instance method invocations.*
+receiver admits almost all instance method invocations. The few cases where
+an instance method invocation with a receiver of type `dynamic` is an error
+are either guaranteed to fail at run time, or they are very likely to be
+developer mistakes.*
 
 
 ## Dynamic Semantics
@@ -198,5 +220,9 @@ document.*
 
 ## Revisions
 
+- 0.2 (2018-09-04) Adjustment to make `d.hashCode()` and similar
+  expressions an error, cf.
+  [this github issue](https://github.com/dart-lang/sdk/issues/34320).
+
 - 0.1 (2018-03-13) Initial version, based on discussions in
-[this github issue](https://github.com/dart-lang/sdk/issues/32414).
+  [this github issue](https://github.com/dart-lang/sdk/issues/32414).

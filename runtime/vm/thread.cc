@@ -4,7 +4,6 @@
 
 #include "vm/thread.h"
 
-#include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -32,10 +31,12 @@ DECLARE_FLAG(bool, trace_service_verbose);
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
-  if (compiler_stats_ != NULL) {
-    delete compiler_stats_;
-    compiler_stats_ = NULL;
-  }
+  ASSERT(store_buffer_block_ == NULL);
+  ASSERT(marking_stack_block_ == NULL);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -60,16 +61,18 @@ Thread::Thread(Isolate* isolate)
     : BaseThread(false),
       stack_limit_(0),
       stack_overflow_flags_(0),
+      write_barrier_mask_(RawObject::kGenerationalBarrierMask),
       isolate_(NULL),
       heap_(NULL),
       top_(0),
       end_(0),
       top_exit_frame_info_(0),
       store_buffer_block_(NULL),
+      marking_stack_block_(NULL),
       vm_tag_(0),
-      task_kind_(kUnknownTask),
       async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
+      task_kind_(kUnknownTask),
       dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
@@ -92,21 +95,22 @@ Thread::Thread(Isolate* isolate)
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
       stack_overflow_count_(0),
-      cha_(NULL),
+      bump_allocate_(false),
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
-      deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       resume_pc_(0),
       sticky_error_(Error::null()),
-      compiler_stats_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
       execution_state_(kThreadInNative),
 #if defined(USING_SAFE_STACK)
       saved_safestack_limit_(0),
+#endif
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      interpreter_(nullptr),
 #endif
       next_(NULL) {
 #if !defined(PRODUCT)
@@ -117,6 +121,13 @@ Thread::Thread(Isolate* isolate)
   member_name = default_init_value;
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
+    write_barrier_wrappers_entry_points_[i] = 0;
+  }
+#endif
 
 #define DEFAULT_INIT(name) name##_entry_point_ = 0;
   RUNTIME_ENTRY_LIST(DEFAULT_INIT)
@@ -132,12 +143,6 @@ Thread::Thread(Isolate* isolate)
     InitVMConstants();
   }
 
-  if (FLAG_support_compiler_stats) {
-    compiler_stats_ = new CompilerStats(isolate);
-    if (FLAG_compiler_benchmark) {
-      compiler_stats_->EnableBenchmark();
-    }
-  }
   // This thread should not yet own any zones. If it does, we need to make sure
   // we've accounted for any memory it has already allocated.
   if (zone_ == NULL) {
@@ -204,6 +209,15 @@ void Thread::InitVMConstants() {
   member_name = (init_expr);
   CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
+    write_barrier_wrappers_entry_points_[i] =
+        StubCode::WriteBarrierWrappers_entry()->EntryPoint() +
+        i * kStoreBufferWrapperSize;
+  }
+#endif
 
 #define INIT_VALUE(name)                                                       \
   ASSERT(name##_entry_point_ == 0);                                            \
@@ -318,6 +332,10 @@ bool Thread::EnterIsolate(Isolate* isolate) {
     ASSERT(thread->store_buffer_block_ == NULL);
     thread->task_kind_ = kMutatorTask;
     thread->StoreBufferAcquire();
+    if (isolate->marking_stack() != NULL) {
+      // Concurrent mark in progress. Enable barrier for this thread.
+      thread->MarkingStackAcquire();
+    }
     return true;
   }
   return false;
@@ -333,6 +351,9 @@ void Thread::ExitIsolate() {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
+  if (thread->is_marking()) {
+    thread->MarkingStackRelease();
+  }
   thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
     thread->set_vm_tag(VMTag::kIdleTagId);
@@ -356,6 +377,10 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
     // before Scavenge.
     thread->store_buffer_block_ =
         thread->isolate()->store_buffer()->PopEmptyBlock();
+    if (isolate->marking_stack() != NULL) {
+      // Concurrent mark in progress. Enable barrier for this thread.
+      thread->MarkingStackAcquire();
+    }
     // This thread should not be the main mutator.
     thread->task_kind_ = kind;
     ASSERT(!thread->IsMutatorThread());
@@ -372,6 +397,9 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->task_kind_ = kUnknownTask;
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
+  if (thread->is_marking()) {
+    thread->MarkingStackRelease();
+  }
   thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
@@ -379,7 +407,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   isolate->UnscheduleThread(thread, kIsNotMutatorThread, bypass_safepoint);
 }
 
-void Thread::PrepareForGC() {
+void Thread::ReleaseStoreBuffer() {
   ASSERT(IsAtSafepoint());
   // Prevent scheduling another GC by ignoring the threshold.
   ASSERT(store_buffer_block_ != NULL);
@@ -452,25 +480,6 @@ bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
   return false;
 }
 
-void Thread::SetHighWatermark(intptr_t value) {
-  zone_high_watermark_ = value;
-
-#if !defined(PRODUCT)
-  if ((isolate()->name() != NULL)) {
-    TimelineEvent* event = Timeline::GetZoneStream()->StartEvent();
-    if (event != NULL) {
-      event->Counter(strdup(isolate()->name()));
-      event->set_owns_label(true);
-      // Prevent Catapult from showing "isolateId" as another series.
-      event->set_isolate_id(ILLEGAL_PORT);
-      event->SetNumArguments(1);
-      event->FormatArgument(0, "zoneHighWatermark", "%" Pd, value);
-      event->Complete();
-    }
-  }
-#endif
-}
-
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
   defer_oob_messages_count_++;
@@ -530,6 +539,7 @@ RawError* Thread::HandleInterrupts() {
       }
       heap()->CollectGarbage(Heap::kNew);
     }
+    heap()->CheckFinishConcurrentMarking(this);
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =
@@ -588,6 +598,31 @@ void Thread::StoreBufferAcquire() {
   store_buffer_block_ = isolate()->store_buffer()->PopNonFullBlock();
 }
 
+void Thread::MarkingStackBlockProcess() {
+  MarkingStackRelease();
+  MarkingStackAcquire();
+}
+
+void Thread::MarkingStackAddObject(RawObject* obj) {
+  marking_stack_block_->Push(obj);
+  if (marking_stack_block_->IsFull()) {
+    MarkingStackBlockProcess();
+  }
+}
+
+void Thread::MarkingStackRelease() {
+  MarkingStackBlock* block = marking_stack_block_;
+  marking_stack_block_ = NULL;
+  write_barrier_mask_ = RawObject::kGenerationalBarrierMask;
+  isolate()->marking_stack()->PushBlock(block);
+}
+
+void Thread::MarkingStackAcquire() {
+  marking_stack_block_ = isolate()->marking_stack()->PopEmptyBlock();
+  write_barrier_mask_ =
+      RawObject::kGenerationalBarrierMask | RawObject::kIncrementalBarrierMask;
+}
+
 bool Thread::IsMutatorThread() const {
   return ((isolate_ != NULL) && (isolate_->mutator_thread() == this));
 }
@@ -640,6 +675,12 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (interpreter() != NULL) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif
+
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
   while (scope != NULL) {
@@ -647,26 +688,32 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     scope = scope->previous();
   }
 
-  // The MarkTask, which calls this method, can run on a different thread.  We
-  // therefore assume the mutator is at a safepoint and we can iterate it's
-  // stack.
-  // TODO(vm-team): It would be beneficial to be able to ask the mutator thread
-  // whether it is in fact blocked at the moment (at a "safepoint") so we can
-  // safely iterate it's stack.
-  //
-  // Unfortunately we cannot use `this->IsAtSafepoint()` here because that will
-  // return `false` even though the mutator thread is waiting for mark tasks
-  // (which iterate it's stack) to finish.
-  const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
-      StackFrameIterator::kAllowCrossThreadIteration;
+  // Only the mutator thread can run Dart code.
+  if (IsMutatorThread()) {
+    // The MarkTask, which calls this method, can run on a different thread.  We
+    // therefore assume the mutator is at a safepoint and we can iterate it's
+    // stack.
+    // TODO(vm-team): It would be beneficial to be able to ask the mutator
+    // thread whether it is in fact blocked at the moment (at a "safepoint") so
+    // we can safely iterate it's stack.
+    //
+    // Unfortunately we cannot use `this->IsAtSafepoint()` here because that
+    // will return `false` even though the mutator thread is waiting for mark
+    // tasks (which iterate it's stack) to finish.
+    const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+        StackFrameIterator::kAllowCrossThreadIteration;
 
-  // Iterate over all the stack frames and visit objects on the stack.
-  StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
-                                     this, cross_thread_policy);
-  StackFrame* frame = frames_iterator.NextFrame();
-  while (frame != NULL) {
-    frame->VisitObjectPointers(visitor);
-    frame = frames_iterator.NextFrame();
+    // Iterate over all the stack frames and visit objects on the stack.
+    StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
+                                       this, cross_thread_policy);
+    StackFrame* frame = frames_iterator.NextFrame();
+    while (frame != NULL) {
+      frame->VisitObjectPointers(visitor);
+      frame = frames_iterator.NextFrame();
+    }
+  } else {
+    // We are not on the mutator thread.
+    RELEASE_ASSERT(top_exit_frame_info() == 0);
   }
 }
 

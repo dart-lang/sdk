@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 main() {
   runTests() async {
@@ -14,7 +14,8 @@ main() {
 
     String code2 =
         await compileAll(r'''main() { return "foo ${new Object()}"; }''');
-    Expect.isFalse(code2.contains(r'$add'));
+    Expect.isFalse(code2.contains(r'$add("foo ",'));
+    Expect.isTrue(code2.contains(r'"foo " + '));
   }
 
   asyncTest(() async {

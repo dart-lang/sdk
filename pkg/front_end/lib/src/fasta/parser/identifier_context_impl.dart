@@ -43,10 +43,10 @@ class CatchParameterIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext.classOrNamedMixinDeclaration].
-class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
-  const ClassOrNamedMixinIdentifierContext()
-      : super('classOrNamedMixinDeclaration',
+/// See [IdentifierContext.classOrMixinDeclaration].
+class ClassOrMixinIdentifierContext extends IdentifierContext {
+  const ClassOrMixinIdentifierContext()
+      : super('classOrMixinDeclaration',
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   @override
@@ -293,7 +293,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
         identifier, fasta.templateExpectedIdentifier);
     if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
-        if (!isOneOfOrEof(identifier, const ['as', 'is'])) {
+        if (isContinuation || !isOneOfOrEof(identifier, const ['as', 'is'])) {
           return identifier;
         }
       } else if (!identifier.isOperator &&
@@ -709,7 +709,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(identifier, this,
           message: fasta.messageMissingOperatorKeyword,
           messageOnToken: identifier);
-    } else if (isOneOfOrEof(identifier, const ['.', '(', '{', '=>']) ||
+    } else if (isOneOfOrEof(identifier, const ['.', '(', '{', '=>', '}']) ||
         looksLikeStartOfNextClassMember(identifier)) {
       return parser.insertSyntheticIdentifier(token, this);
     } else if (!identifier.isKeywordOrIdentifier) {
@@ -875,6 +875,8 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
           parser.reportRecoverableErrorWithToken(
               next, fasta.templateBuiltInIdentifierAsType);
         }
+      } else if (optional('var', next)) {
+        parser.reportRecoverableError(next, fasta.messageVarAsTypeName);
       } else {
         parser.reportRecoverableErrorWithToken(
             next, fasta.templateExpectedType);
@@ -944,7 +946,7 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
 }
 
 bool looksLikeStartOfNextClassMember(Token token) =>
-    token.isModifier || isOneOfOrEof(token, const ['get', 'set', 'void']);
+    token.isModifier || isOneOfOrEof(token, const ['@', 'get', 'set', 'void']);
 
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||

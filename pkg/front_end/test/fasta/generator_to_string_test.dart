@@ -59,7 +59,6 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPrefixUseGenerator,
@@ -101,7 +100,8 @@ main() {
         new KernelTarget(
                 null,
                 false,
-                new DillTarget(null, null, new NoneTarget(new TargetFlags())),
+                new DillTarget(null, null,
+                    new NoneTarget(new TargetFlags(legacyMode: true))),
                 null)
             .loader,
         null,
@@ -128,7 +128,7 @@ main() {
     KernelBodyBuilder helper = new KernelBodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false);
+    Generator generator = new ThisAccessGenerator(helper, token, false, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -203,7 +203,7 @@ main() {
         new KernelLoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false));
+        new ThisAccessGenerator(helper, token, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, getter, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
@@ -222,15 +222,11 @@ main() {
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",
         new KernelReadOnlyAccessGenerator(helper, token, expression, "foo"));
-    check("LargeIntAccessGenerator(offset: 4, lexeme: myToken)",
-        new KernelLargeIntAccessGenerator(helper, token));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
-    check(
-        "TypeUseGenerator(offset: 4, expression: T,"
-        " plainNameForRead: foo, value: null)",
+    check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
         new KernelTypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new KernelUnresolvedNameGenerator(helper, token, name));

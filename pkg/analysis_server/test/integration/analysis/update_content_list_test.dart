@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    defineReflectiveTests(UpdateContentTest_UseCFE);
   });
 }
 
@@ -49,18 +48,5 @@ main() {
       // inserted in all the correct places.
       expect(currentAnalysisErrors[pathname], isEmpty);
     });
-  }
-}
-
-@reflectiveTest
-class UpdateContentTest_UseCFE extends UpdateContentTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_updateContent_list() {
-    // TODO(devoncarew): at character offset 2550: Bad state: Data already stored for offset -1.
-    return super.test_updateContent_list();
   }
 }

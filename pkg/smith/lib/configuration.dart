@@ -201,6 +201,18 @@ class Configuration {
       return value as String;
     }
 
+    List<String> stringListOption(String option) {
+      if (!optionsCopy.containsKey(option)) return null;
+
+      var value = optionsCopy.remove(option);
+      if (value == null) throw FormatException('Option "$option" was null.');
+      if (value is! List) {
+        throw FormatException('Option "$option" had value "$value", which is '
+            'not a List.');
+      }
+      return new List<String>.from(value as List);
+    }
+
     // Extract options from the name and map.
     var architecture =
         enumOption("architecture", Architecture.names, Architecture.find);
@@ -236,15 +248,16 @@ class Configuration {
     var configuration = Configuration(
         name, architecture, compiler, mode, runtime, system,
         builderTag: stringOption("builder-tag"),
-        vmOptions: stringOption("vm-options"),
+        vmOptions: stringListOption("vm-options"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
         isCsp: boolOption("csp"),
         isHostChecked: boolOption("host-checked"),
         isMinified: boolOption("minified"),
-        isStrong: boolOption("strong"),
         previewDart2: boolOption("preview-dart-2"),
+        useAnalyzerCfe: boolOption("use-cfe"),
+        useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
         useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
         useDart2JSOldFrontEnd: boolOption("dart2js-old-frontend"),
@@ -273,12 +286,11 @@ class Configuration {
 
   final System system;
 
-  // TODO(rnystrom): Is this still needed?
   final String builderTag;
 
-  final String vmOptions;
+  final List<String> vmOptions;
 
-  final int timeout;
+  int timeout;
 
   final bool enableAsserts;
 
@@ -293,10 +305,11 @@ class Configuration {
   final bool isMinified;
 
   // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
-  final bool isStrong;
-
-  // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
   final bool previewDart2;
+
+  // TODO(whesse): Remove these when only fasta front end is in analyzer.
+  final bool useAnalyzerCfe;
+  final bool useAnalyzerFastaParser;
 
   // TODO(rnystrom): What is this?
   final bool useBlobs;
@@ -315,15 +328,16 @@ class Configuration {
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
       {String builderTag,
-      String vmOptions,
+      List<String> vmOptions,
       int timeout,
       bool enableAsserts,
       bool isChecked,
       bool isCsp,
       bool isHostChecked,
       bool isMinified,
-      bool isStrong,
       bool previewDart2,
+      bool useAnalyzerCfe,
+      bool useAnalyzerFastaParser,
       bool useBlobs,
       bool useDart2JSWithKernel,
       bool useDart2JSOldFrontEnd,
@@ -332,15 +346,16 @@ class Configuration {
       bool useHotReloadRollback,
       bool useSdk})
       : builderTag = builderTag ?? "",
-        vmOptions = vmOptions ?? "",
-        timeout = timeout ?? 0,
+        vmOptions = vmOptions ?? <String>[],
+        timeout = timeout,
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
         isCsp = isCsp ?? false,
         isHostChecked = isHostChecked ?? false,
         isMinified = isMinified ?? false,
-        isStrong = isStrong ?? false,
         previewDart2 = previewDart2 ?? true,
+        useAnalyzerCfe = useAnalyzerCfe ?? false,
+        useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
         useDart2JSWithKernel = useDart2JSWithKernel ?? false,
         useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,
@@ -358,15 +373,16 @@ class Configuration {
       runtime == other.runtime &&
       system == other.system &&
       builderTag == other.builderTag &&
-      vmOptions == other.vmOptions &&
+      vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&
       isCsp == other.isCsp &&
       isHostChecked == other.isHostChecked &&
       isMinified == other.isMinified &&
-      isStrong == other.isStrong &&
       previewDart2 == other.previewDart2 &&
+      useAnalyzerCfe == other.useAnalyzerCfe &&
+      useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
       useDart2JSWithKernel == other.useDart2JSWithKernel &&
       useDart2JSOldFrontEnd == other.useDart2JSOldFrontEnd &&
@@ -386,22 +402,23 @@ class Configuration {
       runtime.hashCode ^
       system.hashCode ^
       builderTag.hashCode ^
-      vmOptions.hashCode ^
+      vmOptions.join(" & ").hashCode ^
       timeout.hashCode ^
       (enableAsserts ? 1 : 0) ^
       (isChecked ? 2 : 0) ^
       (isCsp ? 4 : 0) ^
       (isHostChecked ? 8 : 0) ^
       (isMinified ? 16 : 0) ^
-      (isStrong ? 32 : 0) ^
-      (previewDart2 ? 64 : 0) ^
-      (useBlobs ? 128 : 0) ^
-      (useDart2JSWithKernel ? 256 : 0) ^
-      (useDart2JSOldFrontEnd ? 512 : 0) ^
-      (useFastStartup ? 1024 : 0) ^
-      (useHotReload ? 2048 : 0) ^
-      (useHotReloadRollback ? 4096 : 0) ^
-      (useSdk ? 8192 : 0);
+      (previewDart2 ? 32 : 0) ^
+      (useAnalyzerCfe ? 64 : 0) ^
+      (useAnalyzerFastaParser ? 128 : 0) ^
+      (useBlobs ? 256 : 0) ^
+      (useDart2JSWithKernel ? 512 : 0) ^
+      (useDart2JSOldFrontEnd ? 1024 : 0) ^
+      (useFastStartup ? 2048 : 0) ^
+      (useHotReload ? 4096 : 0) ^
+      (useHotReloadRollback ? 8192 : 0) ^
+      (useSdk ? 16384 : 0);
 
   String toString() {
     var buffer = new StringBuffer();
@@ -416,15 +433,16 @@ class Configuration {
     fields.add("system: $system");
 
     if (builderTag != "") fields.add("builder-tag: $builderTag");
-    if (vmOptions != "") fields.add("vm-options: $vmOptions");
+    if (vmOptions != "") fields.add("vm-options: [${vmOptions.join(", ")}]");
     if (timeout != 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");
     if (isCsp) fields.add("csp");
     if (isHostChecked) fields.add("host-checked");
     if (isMinified) fields.add("minified");
-    if (isStrong) fields.add("strong");
     if (previewDart2) fields.add("preview-dart-2");
+    if (useAnalyzerCfe) fields.add("use-cfe");
+    if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useBlobs) fields.add("use-blobs");
     if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
     if (useDart2JSOldFrontEnd) fields.add("dart2js-old-frontend");
@@ -435,6 +453,87 @@ class Configuration {
 
     buffer.write(fields.join(", "));
     buffer.write(")");
+    return buffer.toString();
+  }
+
+  String visualCompare(Configuration other) {
+    var buffer = new StringBuffer();
+    buffer.writeln(name);
+    buffer.writeln(other.name);
+
+    var fields = <String>[];
+    fields.add("architecture: $architecture ${other.architecture}");
+    fields.add("compiler: $compiler ${other.compiler}");
+    fields.add("mode: $mode ${other.mode}");
+    fields.add("runtime: $runtime ${other.runtime}");
+    fields.add("system: $system ${other.system}");
+
+    if (builderTag != "" || other.builderTag != "") {
+      var tag = builderTag == "" ? "(none)" : builderTag;
+      var otherTag = other.builderTag == "" ? "(none)" : other.builderTag;
+      fields.add("builder-tag: $tag $otherTag");
+    }
+    if (vmOptions != "" || other.vmOptions != "") {
+      var tag = "[${vmOptions.join(", ")}]";
+      var otherTag = "[${other.vmOptions.join(", ")}]";
+      fields.add("vm-options: $tag $otherTag");
+    }
+    fields.add("timeout: $timeout ${other.timeout}");
+    if (enableAsserts || other.enableAsserts) {
+      fields.add("enable-asserts $enableAsserts ${other.enableAsserts}");
+    }
+    if (isChecked || other.isChecked) {
+      fields.add("checked $isChecked ${other.isChecked}");
+    }
+    if (isCsp || other.isCsp) {
+      fields.add("csp $isCsp ${other.isCsp}");
+    }
+    if (isHostChecked || other.isHostChecked) {
+      fields.add("isHostChecked $isHostChecked ${other.isHostChecked}");
+    }
+    if (isMinified || other.isMinified) {
+      fields.add("isMinified $isMinified ${other.isMinified}");
+    }
+    if (previewDart2 || other.previewDart2) {
+      fields.add("previewDart2 $previewDart2 ${other.previewDart2}");
+    }
+    if (useAnalyzerCfe || other.useAnalyzerCfe) {
+      fields.add("useAnalyzerCfe $useAnalyzerCfe ${other.useAnalyzerCfe}");
+    }
+    if (useAnalyzerFastaParser || other.useAnalyzerFastaParser) {
+      fields.add("useAnalyzerFastaParser "
+          "$useAnalyzerFastaParser ${other.useAnalyzerFastaParser}");
+    }
+    if (useBlobs || other.useBlobs) {
+      fields.add("useBlobs $useBlobs ${other.useBlobs}");
+    }
+    if (useDart2JSWithKernel || other.useDart2JSWithKernel) {
+      fields.add("useDart2JSWithKernel "
+          "$useDart2JSWithKernel ${other.useDart2JSWithKernel}");
+    }
+    if (useDart2JSOldFrontEnd || other.useDart2JSOldFrontEnd) {
+      fields.add("useDart2JSOldFrontEnd "
+          "$useDart2JSOldFrontEnd ${other.useDart2JSOldFrontEnd}");
+    }
+    if (useFastStartup || other.useFastStartup) {
+      fields.add("useFastStartup $useFastStartup ${other.useFastStartup}");
+    }
+    if (useHotReload || other.useHotReload) {
+      fields.add("useHotReload $useHotReload ${other.useHotReload}");
+    }
+    if (isHostChecked) {
+      fields.add("host-checked $isHostChecked ${other.isHostChecked}");
+    }
+    if (useHotReloadRollback || other.useHotReloadRollback) {
+      fields.add("useHotReloadRollback"
+          " $useHotReloadRollback ${other.useHotReloadRollback}");
+    }
+    if (useSdk || other.useSdk) {
+      fields.add("useSdk $useSdk ${other.useSdk}");
+    }
+
+    buffer.write(fields.join("\n   "));
+    buffer.write("\n");
     return buffer.toString();
   }
 }
@@ -485,12 +584,14 @@ class Compiler extends NamedEnum {
   static const precompiler = const Compiler._('precompiler');
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
+  static const compareAnalyzerCfe = const Compiler._('compare_analyzer_cfe');
   static const dartdevc = const Compiler._('dartdevc');
   static const dartdevk = const Compiler._('dartdevk');
   static const appJit = const Compiler._('app_jit');
   static const appJitk = const Compiler._('app_jitk');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
+  static const dartkb = const Compiler._('dartkb');
   static const specParser = const Compiler._('spec_parser');
   static const fasta = const Compiler._('fasta');
 
@@ -501,12 +602,14 @@ class Compiler extends NamedEnum {
     precompiler,
     dart2js,
     dart2analyzer,
+    compareAnalyzerCfe,
     dartdevc,
     dartdevk,
     appJit,
     appJitk,
     dartk,
     dartkp,
+    dartkb,
     specParser,
     fasta,
   ], key: (compiler) => (compiler as Compiler).name);
@@ -538,6 +641,7 @@ class Compiler extends NamedEnum {
           Runtime.ie9,
           Runtime.ie10,
           Runtime.ie11,
+          Runtime.edge,
           Runtime.chromeOnAndroid,
         ];
 
@@ -551,10 +655,12 @@ class Compiler extends NamedEnum {
         ];
 
       case Compiler.dart2analyzer:
+      case Compiler.compareAnalyzerCfe:
         return const [Runtime.none];
       case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
+      case Compiler.dartkb:
         return const [Runtime.vm, Runtime.selfCheck];
       case Compiler.precompiler:
       case Compiler.dartkp:
@@ -580,10 +686,12 @@ class Compiler extends NamedEnum {
       case Compiler.dartdevk:
         return Runtime.chrome;
       case Compiler.dart2analyzer:
+      case Compiler.compareAnalyzerCfe:
         return Runtime.none;
       case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
+      case Compiler.dartkb:
         return Runtime.vm;
       case Compiler.precompiler:
       case Compiler.dartkp:
@@ -601,6 +709,7 @@ class Compiler extends NamedEnum {
   Mode get defaultMode {
     switch (this) {
       case Compiler.dart2analyzer:
+      case Compiler.compareAnalyzerCfe:
       case Compiler.dart2js:
       case Compiler.dartdevc:
       case Compiler.dartdevk:
@@ -648,6 +757,7 @@ class Runtime extends NamedEnum {
   static const ie9 = const Runtime._('ie9');
   static const ie10 = const Runtime._('ie10');
   static const ie11 = const Runtime._('ie11');
+  static const edge = const Runtime._('edge');
   static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
   static const selfCheck = const Runtime._('self_check');
   static const none = const Runtime._('none');
@@ -666,6 +776,7 @@ class Runtime extends NamedEnum {
     ie9,
     ie10,
     ie11,
+    edge,
     chromeOnAndroid,
     selfCheck,
     none
@@ -684,6 +795,7 @@ class Runtime extends NamedEnum {
         ie9,
         ie10,
         ie11,
+        edge,
         safari,
         chrome,
         firefox,
@@ -719,6 +831,7 @@ class Runtime extends NamedEnum {
       case ie9:
       case ie10:
       case ie11:
+      case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
 

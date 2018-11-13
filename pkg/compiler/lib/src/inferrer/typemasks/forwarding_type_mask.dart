@@ -123,9 +123,9 @@ abstract class ForwardingTypeMask implements TypeMask {
   int get hashCode => throw "Subclass should implement hashCode getter";
 }
 
-abstract class AllocationTypeMask<T> extends ForwardingTypeMask {
-  // The [Node] where this type mask was created.
-  T get allocationNode;
+abstract class AllocationTypeMask extends ForwardingTypeMask {
+  // The [ir.TreeNode] where this type mask was created.
+  ir.TreeNode get allocationNode;
 
   // The [Entity] where this type mask was created.
   MemberEntity get allocationElement;

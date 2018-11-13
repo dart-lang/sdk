@@ -670,7 +670,8 @@ Monitor* IdleNotifier::monitor_ = NULL;
 bool IdleNotifier::task_running_ = false;
 IdleNotifier::Timer* IdleNotifier::queue_ = NULL;
 
-void IdleNotifier::InitOnce() {
+void IdleNotifier::Init() {
+  ASSERT(monitor_ == NULL);
   monitor_ = new Monitor();
 }
 
@@ -697,6 +698,7 @@ void IdleNotifier::Stop() {
 void IdleNotifier::Cleanup() {
   ASSERT(queue_ == NULL);
   ASSERT(!task_running_);
+  ASSERT(monitor_ != NULL);
   delete monitor_;
   monitor_ = NULL;
 }

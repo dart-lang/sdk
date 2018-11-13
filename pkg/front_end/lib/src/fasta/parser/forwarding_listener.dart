@@ -61,8 +61,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassBody(Token token) {
-    listener?.beginClassBody(token);
+  void beginClassOrMixinBody(Token token) {
+    listener?.beginClassOrMixinBody(token);
   }
 
   @override
@@ -285,14 +285,14 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
-    listener?.beginMethod(
-        externalToken, staticToken, covariantToken, varFinalOrConst, name);
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    listener?.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
   }
 
   @override
-  void beginMixinApplication(Token token) {
-    listener?.beginMixinApplication(token);
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(mixinKeyword, name);
   }
 
   @override
@@ -479,8 +479,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    listener?.endClassBody(memberCount, beginToken, endToken);
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    listener?.endClassOrMixinBody(memberCount, beginToken, endToken);
   }
 
   @override
@@ -630,8 +630,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token endToken) {
-    listener?.endFunctionType(functionToken, endToken);
+  void endFunctionType(Token functionToken) {
+    listener?.endFunctionType(functionToken);
   }
 
   @override
@@ -722,8 +722,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMixinApplication(Token withKeyword) {
-    listener?.endMixinApplication(withKeyword);
+  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+    listener?.endMixinDeclaration(mixinKeyword, endToken);
   }
 
   @override
@@ -918,8 +918,30 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
-    listener?.handleClassImplements(implementsKeyword, interfacesCount);
+  void handleClassNoWithClause() {
+    listener?.handleClassNoWithClause();
+  }
+
+  @override
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
+    listener?.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    listener?.handleClassWithClause(withKeyword);
+  }
+
+  @override
+  void handleCommentReference(
+      Token newKeyword, Token prefix, Token period, Token token) {
+    listener?.handleCommentReference(newKeyword, prefix, period, token);
+  }
+
+  @override
+  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
+    listener?.handleCommentReferenceText(referenceSource, referenceOffset);
   }
 
   @override
@@ -1045,6 +1067,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    listener?.handleInvalidTypeArguments(token);
+  }
+
+  @override
   void handleInvalidTypeReference(Token token) {
     listener?.handleInvalidTypeReference(token);
   }
@@ -1101,8 +1128,23 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleMixinHeader(Token mixinKeyword) {
+    listener?.handleMixinHeader(mixinKeyword);
+  }
+
+  @override
+  void handleMixinOn(Token onKeyword, int typeCount) {
+    listener?.handleMixinOn(onKeyword, typeCount);
+  }
+
+  @override
   void handleNamedArgument(Token colon) {
     listener?.handleNamedArgument(colon);
+  }
+
+  @override
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    listener?.handleNamedMixinApplicationWithClause(withKeyword);
   }
 
   @override
@@ -1128,6 +1170,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNoArguments(Token token) {
     listener?.handleNoArguments(token);
+  }
+
+  @override
+  void handleNoCommentReference() {
+    listener?.handleNoCommentReference();
   }
 
   @override
@@ -1221,6 +1268,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    listener?.handleRecoverMixinHeader();
+  }
+
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     if (forwardErrors) {
@@ -1280,8 +1332,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
-    listener?.handleType(beginToken, endToken);
+  void handleType(Token beginToken) {
+    listener?.handleType(beginToken);
   }
 
   @override

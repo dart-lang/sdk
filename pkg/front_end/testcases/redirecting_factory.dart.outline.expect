@@ -15,11 +15,11 @@ abstract class Foo<T extends core::Object = dynamic> extends core::Object implem
 }
 class Bar<Sb extends core::Object = dynamic, Tb extends core::Object = dynamic> extends core::Object implements self::Foo<self::Bar::Tb> {
   field core::int x;
-  constructor •(core::int x) → void
+  constructor •(core::int x) → self::Bar<self::Bar::Sb, self::Bar::Tb>
     ;
 }
 class Builder<X extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Builder<self::Builder::X>
     ;
   method method() → dynamic
     ;
@@ -35,19 +35,19 @@ class SimpleCaseImpl<Ai extends core::Object = dynamic, Bi extends core::Object 
     let dynamic #redirecting_factory = self::SimpleCaseImpl2::• in let self::SimpleCaseImpl::•::Ai #typeArg0 = null in let self::SimpleCaseImpl::•::Bi #typeArg1 = null in invalid-expression;
 }
 class SimpleCaseImpl2<Ai2 extends core::Object = dynamic, Bi2 extends core::Object = dynamic> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::SimpleCaseImpl2<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2>
     ;
 }
 class Base<M extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Base<self::Base::M>
     ;
 }
 class Mixin<M extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Mixin<self::Mixin::M>
     ;
 }
 class Mix<M extends core::Object = dynamic> = self::Base<self::Mix::M> with self::Mixin<self::Mix::M> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Mix<self::Mix::M>
     : super self::Base::•()
     ;
 }

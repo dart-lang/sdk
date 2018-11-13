@@ -6,6 +6,7 @@ library analyzer_cli.src.build_mode;
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
@@ -34,9 +35,9 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/byte_store/cache.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 
 /**
  * Persistent Bazel worker.
@@ -61,6 +62,15 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
     AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
         inputStream: stdinStream, outputStream: stdoutStream);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
+  }
+
+  factory AnalyzerWorkerLoop.sendPort(
+      ResourceProvider resourceProvider, SendPort sendPort,
+      {String dartSdkPath}) {
+    AsyncWorkerConnection connection =
+        new SendPortAsyncWorkerConnection(sendPort);
     return new AnalyzerWorkerLoop(resourceProvider, connection,
         dartSdkPath: dartSdkPath);
   }
@@ -144,7 +154,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
-      return throw new StateError('Exit called: $exitCode');
+      throw new StateError('Exit called: $exitCode');
     };
     await super.run();
   }
@@ -321,12 +331,8 @@ class BuildMode extends Object with HasContextMixin {
       UnlinkedUnit getUnit(String absoluteUri) =>
           summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
 
-      Map<String, LinkedLibraryBuilder> linkResult = link(
-          libraryUris,
-          getDependency,
-          getUnit,
-          analysisDriver.declaredVariables.get,
-          options.strongMode);
+      Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
+          getDependency, getUnit, analysisDriver.declaredVariables.get);
       linkResult.forEach(assembler.addLinkedLibrary);
     });
   }
@@ -393,20 +399,18 @@ class BuildMode extends Object with HasContextMixin {
     logger.run('Add SDK bundle', () {
       PackageBundle sdkBundle;
       if (options.dartSdkSummaryPath != null) {
-        SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
-            options.dartSdkSummaryPath, options.strongMode);
+        SummaryBasedDartSdk summarySdk =
+            new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
         sdk = summarySdk;
         sdkBundle = summarySdk.bundle;
       } else {
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
-            resourceProvider,
-            resourceProvider.getFolder(options.dartSdkPath),
-            options.strongMode);
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+            resourceProvider.getFolder(options.dartSdkPath), true);
         dartSdk.analysisOptions =
             createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
-        sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
+        sdkBundle = dartSdk.getSummarySdkBundle();
       }
 
       // Include SDK bundle to avoid parsing SDK sources.
@@ -431,7 +435,7 @@ class BuildMode extends Object with HasContextMixin {
         new FileContentOverlay(),
         null,
         sourceFactory,
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         externalSummaries: summaryDataStore);
     analysisDriver.declaredVariables =
         new DeclaredVariables.fromMap(options.definedVariables);
@@ -456,6 +460,8 @@ class BuildMode extends Object with HasContextMixin {
       }
       Uri uri = Uri.parse(sourceFile.substring(0, pipeIndex));
       String path = sourceFile.substring(pipeIndex + 1);
+      path = resourceProvider.pathContext.absolute(path);
+      path = resourceProvider.pathContext.normalize(path);
       uriToFileMap[uri] = resourceProvider.getFile(path);
     }
     return uriToFileMap;
@@ -562,8 +568,7 @@ class ExplicitSourceResolver extends UriResolver {
     File file = uriToFileMap[uri];
     actualUri ??= uri;
     if (file == null) {
-      return new NonExistingSource(
-          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+      return null;
     } else {
       return new FileSource(file, actualUri);
     }

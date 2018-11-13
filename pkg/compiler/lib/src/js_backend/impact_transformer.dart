@@ -25,7 +25,6 @@ import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
-import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
 import 'namer.dart';
@@ -155,15 +154,16 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
-        case TypeUseKind.MIRROR_INSTANTIATION:
         case TypeUseKind.NATIVE_INSTANTIATION:
           break;
         case TypeUseKind.IS_CHECK:
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.AS_CAST:
-          onIsCheck(type, transformed);
-          hasAsCast = true;
+          if (!_options.omitAsCasts) {
+            onIsCheck(type, transformed);
+            hasAsCast = true;
+          }
           break;
         case TypeUseKind.IMPLICIT_CAST:
           if (_options.implicitDowncastCheckPolicy.isEmitted) {
@@ -172,11 +172,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.PARAMETER_CHECK:
           if (_options.parameterCheckPolicy.isEmitted) {
-            onIsCheck(type, transformed);
-          }
-          break;
-        case TypeUseKind.CHECKED_MODE_CHECK:
-          if (_options.assignmentCheckPolicy.isEmitted) {
             onIsCheck(type, transformed);
           }
           break;
@@ -258,7 +253,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           if (type.containsTypeVariables ||
               // TODO(johnniwinther): Can we avoid the need for signatures in
               // Dart 2?
-              _options.strongMode) {
+              true) {
             registerImpact(_impacts.computeSignature);
           }
           break;
@@ -322,23 +317,13 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
-    bool inCheckedMode = _options.enableTypeAssertions;
-    if (inCheckedMode) {
-      registerImpact(_impacts.checkedModeTypeCheck);
-    }
     if (type.isMalformed) {
       registerImpact(_impacts.malformedTypeCheck);
     }
     if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
       registerImpact(_impacts.genericTypeCheck);
-      if (inCheckedMode) {
-        registerImpact(_impacts.genericCheckedModeTypeCheck);
-      }
       if (type.isTypeVariable) {
         registerImpact(_impacts.typeVariableTypeCheck);
-        if (inCheckedMode) {
-          registerImpact(_impacts.typeVariableCheckedModeTypeCheck);
-        }
       }
     }
     if (type is FunctionType) {
@@ -358,7 +343,6 @@ class CodegenImpactTransformer {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
-  final CheckedModeHelpers _checkedModeHelpers;
   final NativeData _nativeData;
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
@@ -372,7 +356,6 @@ class CodegenImpactTransformer {
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
-      this._checkedModeHelpers,
       this._nativeData,
       this._backendUsage,
       this._rtiNeed,
@@ -387,28 +370,6 @@ class CodegenImpactTransformer {
     type = type.unaliased;
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
-    bool inCheckedMode = _options.enableTypeAssertions;
-    // [registerIsCheck] is also called for checked mode checks, so we
-    // need to register checked mode helpers.
-    if (inCheckedMode) {
-      // All helpers are added to resolution queue in enqueueHelpers. These
-      // calls to [enqueue] with the resolution enqueuer serve as assertions
-      // that the helper was in fact added.
-      // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper = _checkedModeHelpers
-          .getCheckedModeHelper(type, _commonElements, typeCast: false);
-      if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(_commonElements);
-        transformed.registerStaticUse(staticUse);
-      }
-      // We also need the native variant of the check (for DOM types).
-      helper = _checkedModeHelpers
-          .getNativeCheckedModeHelper(type, _commonElements, typeCast: false);
-      if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(_commonElements);
-        transformed.registerStaticUse(staticUse);
-      }
-    }
     if (!type.treatAsRaw || type.containsTypeVariables) {
       _impacts.genericIsCheck.registerImpact(transformed, _elementEnvironment);
     }

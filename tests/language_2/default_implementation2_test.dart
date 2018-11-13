@@ -4,13 +4,15 @@
 // Dart test to verify incompatible constructor types
 
 abstract class Point {
-  factory Point(x, y) = PointImplementation;
+  factory Point(int x, int y) = PointImplementation; //# 01: ok
+  factory Point(x, y) = PointImplementation; //# 02: compile-time error
 }
 
 class PointImplementation implements Point {
-   PointImplementation(int x, int y) {} //# static type warning
+   PointImplementation(int x, int y) {}
 }
 
 main() {
-  new Point(1, 2);
+  new Point(1, 2); //# 01: continued
+  new Point(1, 2); //# 02: continued
 }

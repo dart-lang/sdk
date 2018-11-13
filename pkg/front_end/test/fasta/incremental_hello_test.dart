@@ -10,8 +10,12 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart' show Component;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:vm/target/vm.dart' show VmTarget;
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -21,36 +25,33 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-
-void problemHandler(FormattedMessage message, Severity severity,
-    List<FormattedMessage> context) {
-  throw "Unexpected message: ${message.formatted}";
+void diagnosticMessageHandler(DiagnosticMessage message) {
+  throw "Unexpected message: ${message.plainTextFormatted.join('\n')}";
 }
 
 test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
-    ..strongMode = false
-    ..onProblem = problemHandler;
+    ..target = new VmTarget(new TargetFlags(legacyMode: true))
+    ..legacyMode = true
+    ..onDiagnostic = diagnosticMessageHandler;
 
   if (sdkFromSource) {
     optionBuilder.librariesSpecificationUri =
         Uri.base.resolve("sdk/lib/libraries.json");
   } else {
     optionBuilder.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform.dill");
+        computePlatformBinariesLocation(forceBuildDir: true)
+            .resolve("vm_platform.dill");
   }
 
   final Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
 
   final ProcessedOptions options =
-      new ProcessedOptions(optionBuilder, [helloDart]);
+      new ProcessedOptions(options: optionBuilder, inputs: [helloDart]);
 
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));

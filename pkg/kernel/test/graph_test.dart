@@ -23,6 +23,16 @@ void test(String expected, Map<String, List<String>> graph) {
   Expect.stringEquals(expected, "$result");
 }
 
+void checkGraph(Map<String, List<String>> graph, String startingNodeName,
+    List<List<String>> expectedEvaluations, List<bool> expectedSccFlags) {
+  List<List<String>> result = computeStrongComponents(new TestGraph(graph));
+  List<List<String>> expectedReversed = <List<String>>[];
+  for (List<String> list in expectedEvaluations) {
+    expectedReversed.add(list.reversed.toList());
+  }
+  Expect.stringEquals(expectedReversed.join(", "), result.join(", "));
+}
+
 main() {
   test("[[B, A], [C], [D]]", {
     "A": ["B"],
@@ -67,4 +77,126 @@ main() {
     "C": ["A"],
     "D": ["B", "C"],
   });
+
+  // Test a complex graph.
+  checkGraph(
+      {
+        'a': ['b', 'c'],
+        'b': ['c', 'd'],
+        'c': [],
+        'd': ['c', 'e'],
+        'e': ['b', 'f'],
+        'f': ['c', 'd']
+      },
+      'a',
+      [
+        ['c'],
+        ['b', 'd', 'e', 'f'],
+        ['a']
+      ],
+      [false, true, false]);
+
+  // Test a diamond-shaped graph.
+  checkGraph(
+      {
+        'a': ['b', 'c'],
+        'b': ['d'],
+        'c': ['d'],
+        'd': []
+      },
+      'a',
+      [
+        ['d'],
+        ['b'],
+        ['c'],
+        ['a']
+      ],
+      [false, false, false, false]);
+
+  // Test a graph with a single node.
+  checkGraph(
+      {'a': []},
+      'a',
+      [
+        ['a']
+      ],
+      [false]);
+
+  // Test a graph with a single node and a trivial cycle.
+  checkGraph(
+      {
+        'a': ['a']
+      },
+      'a',
+      [
+        ['a']
+      ],
+      [true]);
+
+  // Test a graph with three nodes with circular dependencies.
+  checkGraph(
+      {
+        'a': ['b'],
+        'b': ['c'],
+        'c': ['a'],
+      },
+      'a',
+      [
+        ['a', 'b', 'c']
+      ],
+      [true]);
+  // Test a graph A->B->C->D, where D points back to B and then C.
+  checkGraph(
+      {
+        'a': ['b'],
+        'b': ['c'],
+        'c': ['d'],
+        'd': ['b', 'c']
+      },
+      'a',
+      [
+        ['b', 'c', 'd'],
+        ['a']
+      ],
+      [true, false]);
+
+  // Test a graph A->B->C->D, where D points back to C and then B.
+  checkGraph(
+      {
+        'a': ['b'],
+        'b': ['c'],
+        'c': ['d'],
+        'd': ['c', 'b']
+      },
+      'a',
+      [
+        ['b', 'c', 'd'],
+        ['a']
+      ],
+      [true, false]);
+
+  // Test a graph with two nodes with circular dependencies.
+  checkGraph(
+      {
+        'a': ['b'],
+        'b': ['a']
+      },
+      'a',
+      [
+        ['a', 'b']
+      ],
+      [true]);
+
+  // Test a graph with two nodes and a single dependency.
+  checkGraph(
+      {
+        'a': ['b'],
+        'b': []
+      },
+      'a',
+      [
+        ['b'],
+        ['a']
+      ],
+      [false, false]);
 }

@@ -4,6 +4,8 @@
 
 library fasta.type_builder;
 
+import '../fasta_codes.dart' show LocatedMessage;
+
 import 'builder.dart'
     show LibraryBuilder, Scope, TypeDeclarationBuilder, TypeVariableBuilder;
 
@@ -40,7 +42,7 @@ abstract class TypeBuilder {
 
   build(LibraryBuilder library);
 
-  buildInvalidType(int charOffset, Uri fileUri);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context});
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 }

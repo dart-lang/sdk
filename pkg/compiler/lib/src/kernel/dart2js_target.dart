@@ -19,9 +19,9 @@ class Dart2jsTarget extends Target {
 
   Dart2jsTarget(this.name, this.flags);
 
-  bool get strongMode => flags.strongMode;
+  bool get legacyMode => flags.legacyMode;
 
-  bool get enableNoSuchMethodForwarders => flags.strongMode;
+  bool get enableNoSuchMethodForwarders => !flags.legacyMode;
 
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
@@ -45,12 +45,8 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
-  void performModularTransformationsOnLibraries(
+  void performModularTransformationsOnLibraries(ir.Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<ir.Library> libraries,
-      {void logger(String msg)}) {}
-
-  @override
-  void performGlobalTransformations(CoreTypes coreTypes, ir.Component component,
       {void logger(String msg)}) {}
 
   @override

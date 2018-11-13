@@ -13,6 +13,7 @@ main() {
 class MethodTest extends PartialCodeTest {
   buildAll() {
     const allExceptEof = const [
+      'annotation',
       'field',
       'fieldConst',
       'fieldFinal',

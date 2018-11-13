@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int m;
-  constructor •() → void
+  constructor •() → self::A
     : self::A::m = 1, super core::Object::•()
     ;
-  constructor foo() → void
+  constructor foo() → self::A
     : self::A::m = 2, super core::Object::•()
     ;
   method foo(core::int a, core::int b) → core::int

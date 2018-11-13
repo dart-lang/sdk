@@ -89,6 +89,8 @@ abstract class SharedJSTypeRep<DartType> {
 
   bool isNumber(DartType type) => typeFor(type) is JSNumber;
 
+  bool isBoolean(DartType type) => typeFor(type) is JSBoolean;
+
   /// Is this type known to be represented as Object or Null in JS.
   bool isObjectOrNull(DartType t) {
     var rep = typeFor(t);

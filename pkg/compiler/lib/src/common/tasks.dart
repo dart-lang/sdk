@@ -156,7 +156,7 @@ abstract class CompilerTask {
   /// Note: we assume that this method is used only by the compiler input
   /// provider, but it could be used by other tasks as long as the input
   /// provider will not be called by those tasks.
-  measureIo(Future action()) {
+  Future<T> measureIo<T>(Future<T> action()) {
     if (_isDisabled) return action();
 
     if (measurer.currentAsyncTask == null) {
@@ -174,7 +174,7 @@ abstract class CompilerTask {
 
   /// Measure the time spent in [action] (if in verbose mode) and accumulate it
   /// under a subtask with the given name.
-  measureSubtask(String name, action()) {
+  T measureSubtask<T>(String name, T action()) {
     if (_isDisabled) return action();
 
     // Use a nested CompilerTask for the measurement to ensure nested [measure]

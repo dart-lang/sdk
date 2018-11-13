@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object = dynamic> = (T) → void;
 class B<T extends core::Object = dynamic, U extends (self::B::T) → void = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B<self::B::T, self::B::U>
     ;
   operator +(dynamic other) → self::B<self::B::T, (self::B::T) → void>
     ;
@@ -12,7 +12,7 @@ class B<T extends core::Object = dynamic, U extends (self::B::T) → void = dyna
 class C extends core::Object {
   field self::B<core::num, (core::num) → void> x;
   static field self::B<core::num, (core::num) → void> y;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   operator [](core::int i) → self::B<core::num, (core::num) → void>
     ;

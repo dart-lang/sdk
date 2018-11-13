@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetPriorityFilesTest);
-    defineReflectiveTests(SetPriorityFilesTest_UseCFE);
   });
 }
 
@@ -27,17 +26,5 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
 
     ServerStatusParams status = await analysisFinished;
     expect(status.analysis.isAnalyzing, false);
-  }
-}
-
-@reflectiveTest
-class SetPriorityFilesTest_UseCFE extends SetPriorityFilesTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_options() {
-    fail('Test fails with CFE');
   }
 }

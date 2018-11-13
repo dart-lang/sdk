@@ -4,7 +4,7 @@
 
 class A<T> {
   method1(T t) => null; //# 01: ok
-  method2(T t) => null; //# 02: ok
+  method2(T t) => null; //# 02: compile-time error
   method4(T t) => null; //# 04: compile-time error
   method5(T t) => null; //# 05: ok
   method7(T t) => null; //# 07: compile-time error

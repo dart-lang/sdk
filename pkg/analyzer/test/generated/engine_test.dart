@@ -40,7 +40,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.disableCacheFlushing = true;
     modifiedOptions.enabledPluginNames = ['somePackage'];
     modifiedOptions.enableLazyAssignmentOperators = true;
-    modifiedOptions.enableSuperMixins = true;
     modifiedOptions.enableTiming = true;
     modifiedOptions.errorProcessors = [null];
     modifiedOptions.excludePatterns = ['a'];
@@ -63,7 +62,6 @@ class AnalysisOptionsImplTest {
     expect(modifiedOptions.enabledPluginNames, isEmpty);
     expect(modifiedOptions.enableLazyAssignmentOperators,
         defaultOptions.enableLazyAssignmentOperators);
-    expect(modifiedOptions.enableSuperMixins, defaultOptions.enableSuperMixins);
     expect(modifiedOptions.enableTiming, defaultOptions.enableTiming);
     expect(modifiedOptions.errorProcessors, defaultOptions.errorProcessors);
     expect(modifiedOptions.excludePatterns, defaultOptions.excludePatterns);
@@ -192,7 +190,7 @@ class SourcesChangedEventTest {
 
   static void assertEvent(SourcesChangedEvent event,
       {bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_LIST,
+      List<Source> changedSources: const <Source>[],
       bool wereSourcesRemoved: false}) {
     expect(event.wereSourcesAdded, wereSourcesAdded);
     expect(event.changedSources, changedSources);
@@ -205,7 +203,7 @@ class SourcesChangedListener {
 
   void assertEvent(
       {bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_LIST,
+      List<Source> changedSources: const <Source>[],
       bool wereSourcesRemovedOrDeleted: false}) {
     if (actualEvents.isEmpty) {
       fail('Expected event but found none');

@@ -21,7 +21,10 @@ import 'package:collection/collection.dart';
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
   var finder = new _ContainingElementFinder(offset);
   unitElement.accept(finder);
-  return finder.containingElement;
+  Element element = finder.containingElement;
+  assert(element != null,
+      'No containing element in ${unitElement.source.fullName} at $offset');
+  return element;
 }
 
 /**
@@ -37,6 +40,7 @@ class Declaration {
   final int codeOffset;
   final int codeLength;
   final String className;
+  final String mixinName;
   final String parameters;
 
   Declaration(
@@ -49,6 +53,7 @@ class Declaration {
       this.codeOffset,
       this.codeLength,
       this.className,
+      this.mixinName,
       this.parameters);
 }
 
@@ -66,6 +71,7 @@ enum DeclarationKind {
   FUNCTION_TYPE_ALIAS,
   GETTER,
   METHOD,
+  MIXIN,
   SETTER,
   VARIABLE
 }
@@ -79,7 +85,7 @@ class Search {
   Search(this._driver);
 
   /**
-   * Returns class members with the given [name].
+   * Returns class or mixin members with the given [name].
    */
   Future<List<Element>> classMembers(String name) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -92,15 +98,18 @@ class Search {
       }
     }
 
+    void addElements(ClassElement element) {
+      element.accessors.forEach(addElement);
+      element.fields.forEach(addElement);
+      element.methods.forEach(addElement);
+    }
+
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
       UnitElementResult unitResult = await _driver.getUnitElement(file);
       if (unitResult != null) {
-        for (ClassElement clazz in unitResult.element.types) {
-          clazz.accessors.forEach(addElement);
-          clazz.fields.forEach(addElement);
-          clazz.methods.forEach(addElement);
-        }
+        unitResult.element.types.forEach(addElements);
+        unitResult.element.mixins.forEach(addElements);
       }
     }
     return elements;
@@ -158,7 +167,7 @@ class Search {
 
         void addDeclaration(String name, DeclarationKind kind, int offset,
             int codeOffset, int codeLength,
-            {String className, String parameters}) {
+            {String className, String mixinName, String parameters}) {
           if (maxResults != null && declarations.length >= maxResults) {
             throw const _MaxNumberOfDeclarationsError();
           }
@@ -186,6 +195,7 @@ class Search {
               codeOffset,
               codeLength,
               className,
+              mixinName,
               parameters));
         }
 
@@ -205,22 +215,17 @@ class Search {
           return getParametersString(executable.parameters);
         }
 
-        for (var class_ in unlinkedUnit.classes) {
-          String className = class_.name;
-          addDeclaration(
-              className,
-              class_.isMixinApplication
-                  ? DeclarationKind.CLASS_TYPE_ALIAS
-                  : DeclarationKind.CLASS,
-              class_.nameOffset,
-              class_.codeRange.offset,
-              class_.codeRange.length);
+        void addUnlinkedClass(UnlinkedClass class_, DeclarationKind kind,
+            {String className, String mixinName}) {
+          addDeclaration(class_.name, kind, class_.nameOffset,
+              class_.codeRange.offset, class_.codeRange.length);
+
           parameterComposer.outerTypeParameters = class_.typeParameters;
 
           for (var field in class_.fields) {
             addDeclaration(field.name, DeclarationKind.FIELD, field.nameOffset,
                 field.codeRange.offset, field.codeRange.length,
-                className: className);
+                className: className, mixinName: mixinName);
           }
 
           for (var executable in class_.executables) {
@@ -232,11 +237,23 @@ class Search {
                 executable.codeRange.offset,
                 executable.codeRange.length,
                 className: className,
+                mixinName: mixinName,
                 parameters: getExecutableParameters(executable));
             parameterComposer.innerTypeParameters = const [];
           }
 
           parameterComposer.outerTypeParameters = const [];
+        }
+
+        for (var class_ in unlinkedUnit.classes) {
+          var kind = class_.isMixinApplication
+              ? DeclarationKind.CLASS_TYPE_ALIAS
+              : DeclarationKind.CLASS;
+          addUnlinkedClass(class_, kind, className: class_.name);
+        }
+
+        for (var mixin in unlinkedUnit.mixins) {
+          addUnlinkedClass(mixin, DeclarationKind.MIXIN, mixinName: mixin.name);
         }
 
         for (var enum_ in unlinkedUnit.enums) {
@@ -361,17 +378,11 @@ class Search {
    */
   Future<List<SubtypeResult>> subtypes(
       {ClassElement type, SubtypeResult subtype}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String name;
     String id;
     if (type != null) {
       name = type.name;
-      id = type.librarySource.uri.toString() +
-          ';' +
-          type.source.uri.toString() +
-          ';' +
-          name;
+      id = '${type.librarySource.uri};${type.source.uri};$name';
     } else {
       name = subtype.name;
       id = subtype.id;
@@ -379,22 +390,17 @@ class Search {
 
     await _driver.discoverAvailableFiles();
 
-    List<SubtypeResult> results = [];
-    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
-    for (FileState file in knownFiles) {
-      if (file.subtypedNames.contains(name)) {
+    final List<SubtypeResult> results = [];
+
+    // Note, this is a defensive copy.
+    var files = _driver.fsState.getFilesSubtypingName(name)?.toList();
+
+    if (files != null) {
+      for (FileState file in files) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
         if (index != null) {
-          for (AnalysisDriverSubtype subtype in index.subtypes) {
-            if (subtype.supertypes.contains(id)) {
-              FileState library = file.library ?? file;
-              results.add(new SubtypeResult(
-                  library.uriStr,
-                  library.uriStr + ';' + file.uriStr + ';' + subtype.name,
-                  subtype.name,
-                  subtype.members));
-            }
-          }
+          var request = new _IndexRequest(index);
+          request.addSubtypes(id, results, file);
         }
       }
     }
@@ -425,6 +431,7 @@ class Search {
         unitElement.enums.forEach(addElement);
         unitElement.functions.forEach(addElement);
         unitElement.functionTypeAliases.forEach(addElement);
+        unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
         unitElement.types.forEach(addElement);
       }
@@ -491,8 +498,7 @@ class Search {
       String libraryPath = element.library.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         FileState library = _driver.fsState.getFileForPath(libraryPath);
-        List<FileState> candidates = [library]..addAll(library.partedFiles);
-        for (FileState file in candidates) {
+        for (FileState file in library.libraryFiles) {
           if (file.path == path || file.referencedNames.contains(name)) {
             files.add(file.path);
           }
@@ -674,7 +680,7 @@ class Search {
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
           results.add(new SearchResult._(
-              unit.element,
+              unit.declaredElement,
               SearchResultKind.REFERENCE,
               directive.libraryName.offset,
               directive.libraryName.length,
@@ -716,7 +722,7 @@ class Search {
 
     // Find the matches.
     _LocalReferencesVisitor visitor =
-        new _LocalReferencesVisitor(element, unit.element);
+        new _LocalReferencesVisitor(element, unit.declaredElement);
     enclosingNode.accept(visitor);
     return visitor.results;
   }
@@ -824,7 +830,8 @@ class SearchResult {
   final bool isQualified;
 
   SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
-      this.isResolved, this.isQualified);
+      this.isResolved, this.isQualified)
+      : assert(enclosingElement != null);
 
   @override
   String toString() {
@@ -968,6 +975,32 @@ class _IndexRequest {
   final AnalysisDriverUnitIndex index;
 
   _IndexRequest(this.index);
+
+  void addSubtypes(
+      String superIdString, List<SubtypeResult> results, FileState file) {
+    var superId = getStringId(superIdString);
+    if (superId == -1) {
+      return;
+    }
+
+    var superIndex = _findFirstOccurrence(index.supertypes, superId);
+    if (superIndex == -1) {
+      return;
+    }
+
+    var library = file.library ?? file;
+    for (; index.supertypes[superIndex] == superId; superIndex++) {
+      var subtype = index.subtypes[superIndex];
+      var name = index.strings[subtype.name];
+      var subId = '${library.uriStr};${file.uriStr};$name';
+      results.add(new SubtypeResult(
+        library.uriStr,
+        subId,
+        name,
+        subtype.members.map((m) => index.strings[m]).toList(),
+      ));
+    }
+  }
 
   /**
    * Return the [element]'s identifier in the [index] or `-1` if the

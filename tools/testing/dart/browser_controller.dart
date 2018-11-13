@@ -160,8 +160,7 @@ abstract class Browser {
    */
   Future<bool> startBrowserProcess(String command, List<String> arguments,
       {Map<String, String> environment}) {
-    return Process
-        .start(command, arguments, environment: environment)
+    return Process.start(command, arguments, environment: environment)
         .then((startedProcess) {
       _logEvent("Started browser using $command ${arguments.join(' ')}");
       process = startedProcess;
@@ -228,8 +227,8 @@ abstract class Browser {
 
         if (!stdoutIsDone || !stderrIsDone) {
           watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
-            DebugLogger
-                .warning("$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
+            DebugLogger.warning(
+                "$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
             watchdogTimer = null;
             stdoutSubscription.cancel();
             stderrSubscription.cancel();
@@ -566,71 +565,6 @@ class IE extends Browser {
   String toString() => "IE";
 }
 
-class AndroidBrowserConfig {
-  final String name;
-  final String package;
-  final String activity;
-  final String action;
-  AndroidBrowserConfig(this.name, this.package, this.activity, this.action);
-}
-
-final contentShellOnAndroidConfig = new AndroidBrowserConfig(
-    'ContentShellOnAndroid',
-    'org.chromium.content_shell_apk',
-    '.ContentShellActivity',
-    'android.intent.action.VIEW');
-
-class AndroidBrowser extends Browser {
-  final bool checkedMode;
-  AdbDevice _adbDevice;
-  AndroidBrowserConfig _config;
-
-  AndroidBrowser(
-      this._adbDevice, this._config, this.checkedMode, String apkPath) {
-    _binary = apkPath;
-  }
-
-  Future<bool> start(String url) {
-    var intent =
-        new Intent(_config.action, _config.package, _config.activity, url);
-    return _adbDevice.waitForBootCompleted().then((_) {
-      return _adbDevice.forceStop(_config.package);
-    }).then((_) {
-      return _adbDevice.killAll();
-    }).then((_) {
-      return _adbDevice.adbRoot();
-    }).then((_) {
-      return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
-    }).then((_) {
-      if (checkedMode) {
-        return _adbDevice.setProp("DART_FLAGS", "--checked");
-      } else {
-        return _adbDevice.setProp("DART_FLAGS", "");
-      }
-    }).then((_) {
-      return _adbDevice.installApk(new Path(_binary));
-    }).then((_) {
-      return _adbDevice.startActivity(intent).then((_) => true);
-    });
-  }
-
-  Future<bool> close() {
-    if (_adbDevice != null) {
-      return _adbDevice.forceStop(_config.package).then((_) {
-        return _adbDevice.killAll().then((_) => true);
-      });
-    }
-    return new Future.value(true);
-  }
-
-  void logBrowserInfoToTestBrowserOutput() {
-    _testBrowserOutput.stdout
-        .write('Android device id: ${_adbDevice.deviceId}\n');
-  }
-
-  String toString() => _config.name;
-}
-
 class AndroidChrome extends Browser {
   static const String viewAction = 'android.intent.action.VIEW';
   static const String mainAction = 'android.intent.action.MAIN';
@@ -802,25 +736,7 @@ class BrowserTest {
     id = _idCounter++;
   }
 
-  String toJSON() => jsonEncode({'url': url, 'id': id, 'isHtmlTest': false});
-}
-
-/**
- * Describes a test with a custom HTML page to be run in the browser.
- */
-class HtmlTest extends BrowserTest {
-  List<String> expectedMessages;
-
-  HtmlTest(String url, BrowserDoneCallback doneCallback, int timeout,
-      this.expectedMessages)
-      : super(url, doneCallback, timeout) {}
-
-  String toJSON() => jsonEncode({
-        'url': url,
-        'id': id,
-        'isHtmlTest': true,
-        'expectedMessages': expectedMessages
-      });
+  String toJSON() => jsonEncode({'url': url, 'id': id});
 }
 
 /* Describes the output of running the test in a browser */
@@ -855,7 +771,7 @@ class BrowserTestRunner {
   /// If the queue was recently empty, don't start another browser.
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final BrowserTestingServer testingServer;
 
   final String localIp;
@@ -907,7 +823,7 @@ class BrowserTestRunner {
   }
 
   BrowserTestRunner(
-      Configuration configuration, String localIp, this.maxNumBrowsers)
+      TestConfiguration configuration, String localIp, this.maxNumBrowsers)
       : configuration = configuration,
         localIp = localIp,
         testingServer = new BrowserTestingServer(configuration, localIp,
@@ -1183,8 +1099,8 @@ class BrowserTestRunner {
   }
 
   void handleNextTestTimeout(BrowserStatus status) {
-    DebugLogger
-        .warning("Browser timed out before getting next test. Restarting");
+    DebugLogger.warning(
+        "Browser timed out before getting next test. Restarting");
     if (status.timeout) return;
     numBrowserGetTestTimeouts++;
     if (numBrowserGetTestTimeouts >= MAX_NEXT_TEST_TIMEOUTS) {
@@ -1249,7 +1165,7 @@ class BrowserTestRunner {
 }
 
 class BrowserTestingServer {
-  final Configuration configuration;
+  final TestConfiguration configuration;
 
   /// Interface of the testing server:
   ///
@@ -1287,8 +1203,7 @@ class BrowserTestingServer {
   BrowserTestingServer(this.configuration, this.localIp, this.requiresFocus);
 
   Future start() {
-    return HttpServer
-        .bind(localIp, configuration.testDriverErrorPort)
+    return HttpServer.bind(localIp, configuration.testDriverErrorPort)
         .then(setupErrorServer)
         .then(setupDispatchingServer);
   }
@@ -1364,13 +1279,12 @@ class BrowserTestingServer {
       } else {
         textResponse = new Future<String>.value("");
       }
-      request.response.done.catchError((error) {
+      request.response.done.catchError((error) async {
         if (!underTermination) {
-          return textResponse.then((String text) {
-            print("URI ${request.uri}");
-            print("textResponse $textResponse");
-            throw "Error returning content to browser: $error";
-          });
+          String text = await textResponse;
+          print("URI ${request.uri}");
+          print("text $text");
+          throw "Error returning content to browser: $error";
         }
       });
       textResponse.then((String text) async {
@@ -1492,9 +1406,6 @@ body div {
       var use_iframe = ${configuration.runtime.requiresIFrame};
       var start = new Date();
 
-      // Object that holds the state of an HTML test
-      var html_test;
-
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
           if (this.status == 200) {
@@ -1507,20 +1418,6 @@ body div {
               var nextTask = JSON.parse(this.responseText);
               var url = nextTask.url;
               next_id = nextTask.id;
-              if (nextTask.isHtmlTest) {
-                html_test = {
-                  expected_messages: nextTask.expectedMessages,
-                  found_message_count: 0,
-                  double_received_messages: [],
-                  unexpected_messages: [],
-                  found_messages: {}
-                };
-                for (var i = 0; i < html_test.expected_messages.length; ++i) {
-                  html_test.found_messages[html_test.expected_messages[i]] = 0;
-                }
-              } else {
-                html_test = null;
-              }
               run(url);
             }
           } else {
@@ -1565,37 +1462,12 @@ body div {
         return true;
       }
 
-      function setChildHandlers(e) {
-        embedded_iframe.contentWindow.addEventListener('message',
-                                                       childMessageHandler,
-                                                       false);
-        embedded_iframe.contentWindow.onerror = childError;
-        reportMessage("First message from html test", true, false);
-        html_test.handlers_installed = true;
-        sendRepeatingStatusUpdate();
-      }
-
-      function checkChildHandlersInstalled() {
-        if (!html_test.handlers_installed) {
-          reportMessage("First message from html test", true, false);
-          reportMessage(
-              'FAIL: Html test did not call ' +
-              'window.parent.dispatchEvent(new Event("detect_errors")) ' +
-              'as its first action', false, false);
-        }
-      }
-
       function run(url) {
         number_of_tests++;
         number_div.innerHTML = number_of_tests;
         executing_div.innerHTML = url;
         if (use_iframe) {
-          if (html_test) {
-            window.addEventListener('detect_errors', setChildHandlers, false);
-            embedded_iframe.onload = checkChildHandlersInstalled;
-          } else {
-            embedded_iframe.onload = null;
-          }
+          embedded_iframe.onload = null;
           embedded_iframe_div.removeChild(embedded_iframe);
           embedded_iframe = document.createElement('iframe');
           embedded_iframe.id = "embedded_iframe";
@@ -1727,13 +1599,6 @@ body div {
         var dom =
             embedded_iframe.contentWindow.document.documentElement.innerHTML;
         var message = 'Status:\\n';
-        if (html_test != null) {
-          message +=
-            '  Messages received multiple times:\\n' +
-            '    ' + html_test.double_received_messages + '\\n' +
-            '  Unexpected messages:\\n' +
-            '    ' + html_test.unexpected_messages + '\\n';
-        }
         message += '  DOM:\\n' +
                    '    ' + dom;
         reportMessage(message, false, true);
@@ -1744,35 +1609,8 @@ body div {
         setTimeout(sendRepeatingStatusUpdate, STATUS_UPDATE_INTERVAL);
       }
 
-      // HTML tests post messages to their own window, handled by this handler.
-      // This handler is installed on the child window when it sends the
-      // 'detect_errors' event.  Every HTML test must send 'detect_errors' to
-      // its parent window as its first action, so all errors will be caught.
-      function childMessageHandler(e) {
-        var msg = e.data;
-        if (typeof msg != 'string') return;
-        if (msg in html_test.found_messages) {
-          html_test.found_messages[msg]++;
-          if (html_test.found_messages[msg] == 1) {
-            html_test.found_message_count++;
-          } else {
-            html_test.double_received_messages.push(msg);
-            sendStatusUpdate();
-          }
-        } else {
-          html_test.unexpected_messages.push(msg);
-          sendStatusUpdate();
-        }
-        if (html_test.found_message_count ==
-            html_test.expected_messages.length) {
-          reportMessage('Test done: PASS', false, false);
-        }
-      }
-
-      if (!html_test) {
-        window.addEventListener('message', messageHandler, false);
-        waitForDone = false;
-      }
+      window.addEventListener('message', messageHandler, false);
+      waitForDone = false;
       getNextTask();
     }
   </script>

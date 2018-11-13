@@ -32,41 +32,29 @@ void main(List<String> args) {
   try {
     args = <String>[
       '--aot',
-      '--strong-mode',
-      '--sync-async',
       '--platform=$buildDir/vm_platform_strong.dill',
       '-o',
       scriptPathDill,
-      '--entry-points',
-      '$buildDir/gen/runtime/bin/precompiler_entry_points.json',
-      '--entry-points',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-      '--entry-points',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json',
       scriptPath,
     ];
     runSync("pkg/vm/tool/gen_kernel${Platform.isWindows ? '.bat' : ''}", args);
 
     args = <String>[
-      "--strong",
       "--deterministic",
-      "--use-blobs",
-      "--snapshot-kind=app-aot",
-      "--snapshot=$snapshot1Path",
+      "--snapshot-kind=app-aot-blobs",
+      "--blobs_container_filename=$snapshot1Path",
       scriptPathDill,
     ];
-    runSync("$buildDir/dart_bootstrap", args);
+    runSync("$buildDir/gen_snapshot", args);
 
     args = <String>[
-      "--strong",
       "--deterministic",
-      "--use-blobs",
-      "--snapshot-kind=app-aot",
-      "--snapshot=$snapshot2Path",
+      "--snapshot-kind=app-aot-blobs",
+      "--blobs_container_filename=$snapshot2Path",
       "--shared-blobs=$snapshot1Path",
       scriptPathDill,
     ];
-    runSync("$buildDir/dart_bootstrap", args);
+    runSync("$buildDir/gen_snapshot", args);
 
     var sizeWithoutSharing = new File(snapshot1Path).statSync().size;
     var deltaWhenSharing = new File(snapshot2Path).statSync().size;
@@ -77,7 +65,6 @@ void main(List<String> args) {
     }
 
     args = <String>[
-      "--strong",
       "--shared-blobs=$snapshot1Path",
       snapshot2Path,
       "--child",

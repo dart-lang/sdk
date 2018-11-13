@@ -16,7 +16,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportElementsIntegrationTest);
-    defineReflectiveTests(AnalysisGetImportElementsIntegrationTest_UseCFE);
   });
 }
 
@@ -75,13 +74,11 @@ class AnalysisGetImportElementsIntegrationTest
    * Check that an edit.importElements request with the given list of [elements]
    * produces no edits.
    */
-  Future<Null> checkNoEdits(List<ImportedElements> elements) async {
+  Future<void> checkNoEdits(List<ImportedElements> elements) async {
     EditImportElementsResult result =
         await sendEditImportElements(pathname, <ImportedElements>[]);
 
-    SourceFileEdit edit = result.edit;
-    expect(edit, isNotNull);
-    expect(edit.edits, hasLength(0));
+    expect(result.edit, isNull);
   }
 
   Future setUp() async {
@@ -137,11 +134,4 @@ class C {}
       new SourceEdit(0, 0, "import 'dart:math';\n\n")
     ], expectedFile: libName);
   }
-}
-
-@reflectiveTest
-class AnalysisGetImportElementsIntegrationTest_UseCFE
-    extends AnalysisGetImportElementsIntegrationTest {
-  @override
-  bool get useCFE => true;
 }

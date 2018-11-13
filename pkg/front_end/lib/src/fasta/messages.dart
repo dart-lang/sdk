@@ -34,8 +34,9 @@ Location getLocationFromNode(TreeNode node) {
       parent = parent.parent;
     }
     if (parent is Library) {
-      Component component =
-          new Component(uriToSource: CompilerContext.current.uriToSource);
+      Component component = CompilerContext.current.options.target
+          .configureComponent(
+              new Component(uriToSource: CompilerContext.current.uriToSource));
       component.libraries.add(parent);
       parent.parent = component;
       Location result = node.location;

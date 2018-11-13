@@ -50,6 +50,20 @@ class InstructionPattern : public AllStatic {
                                       Register* reg,
                                       intptr_t* index);
 
+  // Decodes a load sequence ending at 'end' (the last instruction of the
+  // load sequence is the instruction before the one at end).  Returns the
+  // address of the first instruction in the sequence.  Returns the registers
+  // being loaded and the index in the pool being read from in the output
+  // parameters 'reg1', 'reg2' and 'index' respectively.
+  // IMPORANT: When generating code loading values from pool on ARM64 use
+  // LoadDoubleWordFromPool macro instruction instead of emitting direct load.
+  // The macro instruction takes care of pool offsets that can't be
+  // encoded as immediates.
+  static uword DecodeLoadDoubleWordFromPool(uword end,
+                                            Register* reg1,
+                                            Register* reg2,
+                                            intptr_t* index);
+
   // Encodes a load sequence ending at 'end'. Encodes a fixed length two
   // instruction load from the pool pointer in PP using the destination
   // register reg as a temporary for the base address.

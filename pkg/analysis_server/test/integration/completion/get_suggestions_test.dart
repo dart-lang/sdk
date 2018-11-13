@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
-    defineReflectiveTests(GetSuggestionsTest_UseCFE);
   });
 }
 
@@ -115,10 +114,4 @@ main() {
       expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
     });
   }
-}
-
-@reflectiveTest
-class GetSuggestionsTest_UseCFE extends GetSuggestionsTest {
-  @override
-  bool get useCFE => true;
 }

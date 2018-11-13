@@ -41,13 +41,11 @@ void main(List<String> argv) {
 
   var INTERNAL_PATH = '_internal/js_runtime/lib/';
 
-  // Copy libraries.dart, libraries.json and version
+  // Copy libraries.dart and version
   var librariesDart = path.join(patchDir, 'libraries.dart');
   var libContents = File(librariesDart).readAsStringSync();
   // TODO(jmesserly): can we remove this?
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
-  _writeSync(path.join(sdkOut, 'libraries.json'),
-      File(path.join(patchDir, 'libraries.json')).readAsStringSync());
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),

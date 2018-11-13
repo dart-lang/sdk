@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method f() → dynamic {
   core::List<core::int> o;
-  o.{core::Iterable::forEach}((core::int i) → void {
+  o.{core::Iterable::forEach}((core::int i) → core::int {
     return i.{core::num::+}(1);
   });
 }

@@ -159,12 +159,6 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
-   * Whether to run integration tests with the --use-cfe flag.
-   */
-  // TODO(devoncarew): Remove this when --use-cfe goes away.
-  bool get useCFE => false;
-
-  /**
    * Print out any messages exchanged with the server.  If some messages have
    * already been exchanged with the server, they are printed out immediately.
    */
@@ -265,12 +259,9 @@ abstract class AbstractAnalysisServerIntegrationTest
   Future startServer({
     int diagnosticPort,
     int servicesPort,
-    bool cfe: false,
   }) {
     return server.start(
-        diagnosticPort: diagnosticPort,
-        servicesPort: servicesPort,
-        useCFE: cfe || useCFE);
+        diagnosticPort: diagnosticPort, servicesPort: servicesPort);
   }
 
   /**
@@ -571,14 +562,24 @@ class Server {
    */
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process.stdout
-        .transform((new Utf8Codec()).decoder)
+        .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
-      if (trimmedLine.startsWith('Observatory listening on ')) {
+
+      // Guard against lines like:
+      //   {"event":"server.connected","params":{...}}Observatory listening on ...
+      final String observatoryMessage = 'Observatory listening on ';
+      if (trimmedLine.contains(observatoryMessage)) {
+        trimmedLine = trimmedLine
+            .substring(0, trimmedLine.indexOf(observatoryMessage))
+            .trim();
+      }
+      if (trimmedLine.isEmpty) {
         return;
       }
+
       _recordStdio('<== $trimmedLine');
       var message;
       try {
@@ -667,7 +668,6 @@ class Server {
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
-    bool useCFE: false,
     bool useAnalysisHighlight2: false,
   }) async {
     if (_process != null) {
@@ -734,9 +734,6 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
-    }
-    if (useCFE) {
-      arguments.add('--use-cfe');
     }
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
@@ -1013,5 +1010,6 @@ abstract class _RecursiveMatcher extends Matcher {
   MismatchDescriber simpleDescription(String description) =>
       (Description mismatchDescription) {
         mismatchDescription.add(description);
+        return mismatchDescription;
       };
 }

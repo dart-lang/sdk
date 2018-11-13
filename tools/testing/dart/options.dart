@@ -4,27 +4,22 @@
 
 import 'dart:io';
 
+import 'package:smith/smith.dart';
+
 import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
-import 'runtime_updater.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = const [
   'samples',
   'standalone',
   'standalone_2',
-  'corelib',
   'corelib_2',
-  'co19',
-  'language',
   'language_2',
-  'isolate',
   'vm',
-  'html',
   'benchmark_smoke',
   'utils',
-  'lib',
   'lib_2',
   'analyze_library',
   'service',
@@ -95,9 +90,11 @@ none:          Do not compile the Dart code.
 precompiler:   Compile into AOT snapshot before running the test.
 dart2js:       Compile to JavaScript using dart2js.
 dart2analyzer: Perform static analysis on Dart code using the analyzer.
+compareAnalyzerCfe: Compare analyzer and common front end representations.
 app_jit:       Compile the Dart code into an app snapshot.
 app_jitk:      Compile the Dart code into Kernel and then into an app snapshot.
 dartk:         Compile the Dart code into Kernel before running test.
+dartkb:        Compile the Dart code into Kernel with bytecode before running test.
 dartkp:        Compile the Dart code into Kernel and then Kernel into AOT
                snapshot before running the test.
 spec_parser:   Parse Dart code using the specification parser.''',
@@ -111,18 +108,13 @@ flutter:          Run Dart code on the Flutter engine.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
 d8:               Run JavaScript from the command line using v8.
 jsshell:          Run JavaScript from the command line using Firefox js-shell.
-drt:              Run Dart or JavaScript in the headless version of Chrome,
-                  Content shell.
 
-ContentShellOnAndroid: Run Dart or JavaScript in content shell on Android.
-
-ff:
+firefox:
 chrome:
 safari:
 ie9:
 ie10:
 ie11:
-opera:
 chromeOnAndroid:  Run JavaScript in the specified browser.
 
 self_check:       Pass each test or its compiled output to every file under
@@ -222,6 +214,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         'shard', 'The index of this instance when running in sharded mode.',
         defaultsTo: 1, hide: true),
     new _Option.bool('help', 'Print list of options.', abbr: 'h'),
+    new _Option.int('repeat', 'How many times each test is run', defaultsTo: 1),
     new _Option.bool('verbose', 'Verbose output.', abbr: 'v'),
     new _Option.bool('verify-ir', 'Verify kernel IR.', hide: true),
     new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
@@ -236,7 +229,6 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('time', 'Print timing information after running tests.'),
     new _Option('dart', 'Path to dart executable.', hide: true),
     new _Option('flutter', 'Path to flutter executable.', hide: true),
-    new _Option('drt', 'Path to content shell executable.', hide: true),
     new _Option('firefox', 'Path to firefox browser executable.', hide: true),
     new _Option('chrome', 'Path to chrome browser executable.', hide: true),
     new _Option('safari', 'Path to safari browser executable.', hide: true),
@@ -263,6 +255,11 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool(
         'write_result_log',
         'Write test results to a "${TestUtils.resultLogFileName}" json file '
+        'located at the debug_output_directory.',
+        hide: true),
+    new _Option.bool(
+        'write_results',
+        'Write results to a "${TestUtils.resultsFileName}" json file '
         'located at the debug_output_directory.',
         hide: true),
     new _Option.bool(
@@ -293,6 +290,7 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
+    new _Option('test_list', 'File containing a list of tests to be executed'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -343,6 +341,7 @@ compiler.''',
     'exclude_suite',
     'firefox',
     'local_ip',
+    'output_directory',
     'progress',
     'report',
     'safari',
@@ -354,7 +353,8 @@ compiler.''',
     'verbose',
     'write_debug_log',
     'write_test_outcome_log',
-    'write_result_log'
+    'write_result_log',
+    'write_results',
   ].toSet();
 
   /// Parses a list of strings as test options.
@@ -363,11 +363,15 @@ compiler.''',
   /// Configurations are maps mapping from option keys to values. When
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
-  List<Configuration> parse(List<String> arguments) {
+  List<TestConfiguration> parse(List<String> arguments) {
     // Help supersedes all other arguments.
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+      return null;
+    }
+    // Dart1 mode has been deprecated.
+    if (arguments.contains("--no-preview-dart-2")) {
       return null;
     }
 
@@ -476,9 +480,10 @@ compiler.''',
       }
     }
 
-    if (configuration['no_preview_dart_2'] == true &&
-        configuration['preview_dart_2'] == true) {
-      _fail('"--no-preview-dart-2" and "--preview-dart-2" specified,');
+    // Fetch list of tests to run, if option is present.
+    if (configuration['test_list'] is String) {
+      configuration['test_list_contents'] =
+          File(configuration['test_list'] as String).readAsLinesSync();
     }
 
     return _createConfigurations(configuration);
@@ -517,7 +522,7 @@ compiler.''',
     return arguments;
   }
 
-  List<Configuration> _createConfigurations(
+  List<TestConfiguration> _createConfigurations(
       Map<String, dynamic> configuration) {
     var selectors = _expandSelectors(configuration);
 
@@ -556,9 +561,9 @@ compiler.''',
 
   /// Recursively expands a configuration with multiple values per key into a
   /// list of configurations with exactly one value per key.
-  List<Configuration> _expandConfigurations(
+  List<TestConfiguration> _expandConfigurations(
       Map<String, dynamic> data, Map<String, RegExp> selectors) {
-    var result = <Configuration>[];
+    var result = <TestConfiguration>[];
 
     // Handles a string option containing a space-separated list of words.
     listOption(String name) {
@@ -603,7 +608,7 @@ compiler.''',
     if (runtimes.isEmpty) {
       if (compilers.isEmpty) {
         runtimes = [Runtime.vm];
-        compilers = [Compiler.none];
+        compilers = [Compiler.dartk];
       } else {
         // Pick a runtime for each compiler.
         runtimes.addAll(compilers.map((compiler) => compiler.defaultRuntime));
@@ -616,11 +621,6 @@ compiler.''',
     // Expand runtimes.
     for (var runtime in runtimes) {
       // Start installing the runtime if needed.
-      if (runtime == Runtime.drt &&
-          !(data["list"] as bool) &&
-          !(data["list_status_files"] as bool)) {
-        updateContentShell(data["drt"] as String);
-      }
 
       // Expand architectures.
       var architectures = data["arch"] as String;
@@ -638,46 +638,54 @@ compiler.''',
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
-
-            var configuration = new Configuration(
-                architecture: architecture,
-                compiler: compiler,
-                mode: mode,
+            var system = System.find(data["system"] as String);
+            var namedConfiguration =
+                getNamedConfiguration(data["named_configuration"] as String);
+            var innerConfiguration = namedConfiguration ??
+                new Configuration("custom configuration", architecture,
+                    compiler, mode, runtime, system,
+                    timeout: data["timeout"] as int,
+                    enableAsserts: data["enable_asserts"] as bool,
+                    useAnalyzerCfe: data["use_cfe"] as bool,
+                    useAnalyzerFastaParser:
+                        data["analyzer_use_fasta_parser"] as bool,
+                    useBlobs: data["use_blobs"] as bool,
+                    useSdk: data["use_sdk"] as bool,
+                    useFastStartup: data["fast_startup"] as bool,
+                    useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                    useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
+                    useHotReload: data["hot_reload"] as bool,
+                    useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                    isChecked: data["checked"] as bool,
+                    isHostChecked: data["host_checked"] as bool,
+                    isCsp: data["csp"] as bool,
+                    isMinified: data["minified"] as bool,
+                    vmOptions: vmOptions,
+                    builderTag: data["builder_tag"] as String,
+                    previewDart2: true);
+            var configuration = new TestConfiguration(
+                configuration: innerConfiguration,
                 progress: Progress.find(data["progress"] as String),
-                runtime: runtime,
-                system: System.find(data["system"] as String),
                 selectors: selectors,
+                testList: data["test_list_contents"] as List<String>,
                 appendLogs: data["append_logs"] as bool,
+                repeat: data["repeat"] as int,
                 batch: !(data["noBatch"] as bool),
                 batchDart2JS: data["dart2js_batch"] as bool,
                 copyCoreDumps: data["copy_coredumps"] as bool,
-                hotReload: data["hot_reload"] as bool,
-                hotReloadRollback: data["hot_reload_rollback"] as bool,
-                isChecked: data["checked"] as bool,
-                isHostChecked: data["host_checked"] as bool,
-                isCsp: data["csp"] as bool,
-                isMinified: data["minified"] as bool,
                 isVerbose: data["verbose"] as bool,
                 listTests: data["list"] as bool,
                 listStatusFiles: data["list_status_files"] as bool,
-                noPreviewDart2: data["no_preview_dart_2"] as bool,
                 printTiming: data["time"] as bool,
                 printReport: data["report"] as bool,
                 reportInJson: data["report_in_json"] as bool,
                 resetBrowser: data["reset_browser_configuration"] as bool,
                 skipCompilation: data["skip_compilation"] as bool,
-                useAnalyzerCfe: data["use_cfe"] as bool,
-                useAnalyzerFastaParser:
-                    data["analyzer_use_fasta_parser"] as bool,
-                useBlobs: data["use_blobs"] as bool,
-                useSdk: data["use_sdk"] as bool,
-                useFastStartup: data["fast_startup"] as bool,
-                useEnableAsserts: data["enable_asserts"] as bool,
-                useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                useDart2JSOldFrontend: data["dart2js_old_frontend"] as bool,
+                useKernelBytecode: compiler == Compiler.dartkb,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,
+                writeResults: data["write_results"] as bool,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
@@ -686,7 +694,6 @@ compiler.''',
                 dartPrecompiledPath: data["dart_precompiled"] as String,
                 flutterPath: data["flutter"] as String,
                 taskCount: data["tasks"] as int,
-                timeout: data["timeout"] as int,
                 shardCount: data["shards"] as int,
                 shard: data["shard"] as int,
                 stepName: data["step_name"] as String,
@@ -696,11 +703,9 @@ compiler.''',
                 testDriverErrorPort: data["test_driver_error_port"] as int,
                 localIP: data["local_ip"] as String,
                 dart2jsOptions: dart2jsOptions,
-                vmOptions: vmOptions,
                 packages: data["packages"] as String,
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,
-                builderTag: data["builder_tag"] as String,
                 outputDirectory: data["output_directory"] as String,
                 reproducingArguments: _reproducingCommand(data),
                 fastTestsOnly: data["fast_tests"] as bool,
@@ -714,6 +719,10 @@ compiler.''',
       }
     }
 
+    if (result.length > 1 && data["named_configuration"] != null) {
+      _fail("Named configuration cannot be used with multiple values for "
+          "arch, compiler, mode, or runtime");
+    }
     return result;
   }
 
@@ -726,8 +735,13 @@ compiler.''',
 
     if (selectors == null) {
       if (configuration['suite_dir'] != null) {
-        var suitePath = new Path(configuration['suite_dir'] as String);
+        var suitePath = Path(configuration['suite_dir'] as String);
         selectors = [suitePath.filename];
+      } else if (configuration['test_list_contents'] != null) {
+        selectors = (configuration['test_list_contents'] as List<String>)
+            .map((t) => t.split('/').first)
+            .toSet()
+            .toList();
       } else {
         selectors = _defaultTestSelectors.toList();
       }
@@ -757,9 +771,8 @@ compiler.''',
         pattern = ".?";
       }
       if (selectorMap.containsKey(suite)) {
-        print("Error: '$suite/$pattern'.  Only one test selection"
+        _fail("Error: '$suite/$pattern'.  Only one test selection"
             " pattern is allowed to start with '$suite/'");
-        exit(1);
       }
       selectorMap[suite] = new RegExp(pattern);
     }
@@ -855,4 +868,11 @@ Options:''');
 
     return null;
   }
+}
+
+Configuration getNamedConfiguration(String template) {
+  if (template == null) return null;
+  TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
+  return testMatrix.configurations
+      .singleWhere((c) => c.name == template, orElse: () => null);
 }

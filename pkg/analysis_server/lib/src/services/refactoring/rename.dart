@@ -15,6 +15,46 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
+ * Helper for renaming one or more [Element]s.
+ */
+class RenameProcessor {
+  final SearchEngine searchEngine;
+  final SourceChange change;
+  final String newName;
+
+  RenameProcessor(this.searchEngine, this.change, this.newName);
+
+  /**
+   * Add the edit that updates the [element] declaration.
+   */
+  void addDeclarationEdit(Element element) {
+    if (element != null) {
+      SourceEdit edit =
+          newSourceEdit_range(range.elementName(element), newName);
+      doSourceChange_addElementEdit(change, element, edit);
+    }
+  }
+
+  /**
+   * Add edits that update [matches].
+   */
+  void addReferenceEdits(List<SearchMatch> matches) {
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference in references) {
+      reference.addEdit(change, newName);
+    }
+  }
+
+  /**
+   * Update the [element] declaration and reference to it.
+   */
+  Future<void> renameElement(Element element) {
+    addDeclarationEdit(element);
+    return searchEngine.searchReferences(element).then(addReferenceEdits);
+  }
+}
+
+/**
  * An abstract implementation of [RenameRefactoring].
  */
 abstract class RenameRefactoringImpl extends RefactoringImpl
@@ -35,27 +75,6 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
         oldName = _getDisplayName(element);
 
   Element get element => _element;
-
-  /**
-   * Adds a [SourceEdit] to update [element] name to [change].
-   */
-  void addDeclarationEdit(Element element) {
-    if (element != null) {
-      SourceEdit edit =
-          newSourceEdit_range(range.elementName(element), newName);
-      doSourceChange_addElementEdit(change, element, edit);
-    }
-  }
-
-  /**
-   * Adds [SourceEdit]s to update [matches] to [change].
-   */
-  void addReferenceEdits(List<SearchMatch> matches) {
-    List<SourceReference> references = getSourceReferences(matches);
-    for (SourceReference reference in references) {
-      reference.addEdit(change, newName);
-    }
-  }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
@@ -100,12 +119,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /**
    * Adds individual edits to [change].
    */
-  Future fillChange();
-
-  @override
-  bool requiresPreview() {
-    return false;
-  }
+  Future<void> fillChange();
 
   static String _getDisplayName(Element element) {
     if (element is ImportElement) {

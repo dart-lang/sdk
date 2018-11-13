@@ -46,6 +46,9 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, write_protect_vm_isolate);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+DECLARE_FLAG(bool, code_comments);
+#endif
 
 // Linux CodeObservers.
 
@@ -84,7 +87,8 @@ class PerfCodeObserver : public CodeObserver {
                       uword base,
                       uword prologue_offset,
                       uword size,
-                      bool optimized) {
+                      bool optimized,
+                      const CodeComments* comments) {
     Dart_FileWriteCallback file_write = Dart::file_write_callback();
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;
@@ -119,10 +123,8 @@ class PerfCodeObserver : public CodeObserver {
 //     JITDUMP binary format.
 class JitDumpCodeObserver : public CodeObserver {
  public:
-  JitDumpCodeObserver()
-      : out_file_(nullptr), mapped_(nullptr), mapped_size_(0), code_id_(0) {
-    const intptr_t pid = getpid();
-    char* const filename = OS::SCreate(nullptr, "/tmp/jit-%" Pd ".dump", pid);
+  JitDumpCodeObserver() : pid_(getpid()) {
+    char* const filename = OS::SCreate(nullptr, "/tmp/jit-%" Pd ".dump", pid_);
     const int fd = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0666);
     free(filename);
 
@@ -162,6 +164,11 @@ class JitDumpCodeObserver : public CodeObserver {
     FLAG_write_protect_code = false;
     FLAG_write_protect_vm_isolate = false;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Enable code comments.
+    FLAG_code_comments = true;
+#endif
+
     // Write JITDUMP header.
     WriteHeader();
   }
@@ -186,10 +193,15 @@ class JitDumpCodeObserver : public CodeObserver {
                       uword base,
                       uword prologue_offset,
                       uword size,
-                      bool optimized) {
+                      bool optimized,
+                      const CodeComments* comments) {
+    MutexLocker ml(CodeObservers::mutex());
+
     const char* marker = optimized ? "*" : "";
     char* buffer = OS::SCreate(Thread::Current()->zone(), "%s%s", marker, name);
     const size_t name_length = strlen(buffer);
+
+    WriteDebugInfo(base, comments);
 
     CodeLoadEvent ev;
     ev.event = BaseEvent::kLoad;
@@ -200,15 +212,11 @@ class JitDumpCodeObserver : public CodeObserver {
     ev.vma = base;
     ev.code_address = base;
     ev.code_size = size;
+    ev.code_id = code_id_++;
 
-    {
-      MutexLocker ml(CodeObservers::mutex());
-      ev.code_id = code_id_++;
-
-      WriteFully(&ev, sizeof(ev));
-      WriteFully(buffer, name_length + 1);
-      WriteFully(reinterpret_cast<void*>(base), size);
-    }
+    WriteFully(&ev, sizeof(ev));
+    WriteFully(buffer, name_length + 1);
+    WriteFully(reinterpret_cast<void*>(base), size);
   }
 
  private:
@@ -246,6 +254,19 @@ class JitDumpCodeObserver : public CodeObserver {
     uint64_t code_id;
   };
 
+  struct DebugInfoEvent : BaseEvent {
+    uint64_t address;
+    uint64_t entry_count;
+    // DebugInfoEntry entries[entry_count_];
+  };
+
+  struct DebugInfoEntry {
+    uint64_t address;
+    int32_t line_number;
+    int32_t column;
+    // Followed by nul-terminated name.
+  };
+
   // ELF machine architectures
   // From linux/include/uapi/linux/elf-em.h
   static const uint32_t EM_386 = 3;
@@ -268,6 +289,74 @@ class JitDumpCodeObserver : public CodeObserver {
 #endif
   }
 
+#if ARCH_IS_64_BIT
+  static const int kElfHeaderSize = 0x40;
+#else
+  static const int kElfHeaderSize = 0x34;
+#endif
+
+  void WriteDebugInfo(uword base, const CodeComments* comments) {
+    if (comments == nullptr || comments->Length() == 0) {
+      return;
+    }
+
+    // Open the comments file for the given code object.
+    // Note: for some reason we can't emit all comments into a single file
+    // the mapping between PCs and lines goes out of sync (might be
+    // perf-annotate bug).
+    char* comments_file_name =
+        OS::SCreate(nullptr, "/tmp/jit-%" Pd "-%" Pd ".cmts", pid_, code_id_);
+    const intptr_t filename_length = strlen(comments_file_name);
+    FILE* comments_file = fopen(comments_file_name, "w");
+    setvbuf(comments_file, nullptr, _IOFBF, 2 * MB);
+
+    // Count the number of DebugInfoEntry we are going to emit: one
+    // per PC.
+    intptr_t entry_count = 0;
+    for (uint64_t i = 0, len = comments->Length(); i < len;) {
+      const intptr_t pc_offset = comments->PCOffsetAt(i);
+      while (i < len && comments->PCOffsetAt(i) == pc_offset) {
+        i++;
+      }
+      entry_count++;
+    }
+
+    DebugInfoEvent info;
+    info.event = BaseEvent::kDebugInfo;
+    info.time_stamp = OS::GetCurrentMonotonicTicks();
+    info.address = base;
+    info.entry_count = entry_count;
+    info.size = sizeof(info) +
+                entry_count * (sizeof(DebugInfoEntry) + filename_length + 1);
+    const int32_t padding = Utils::RoundUp(info.size, 8) - info.size;
+    info.size += padding;
+
+    // Write out DebugInfoEvent record followed by entry_count DebugInfoEntry
+    // records.
+    WriteFully(&info, sizeof(info));
+    intptr_t line_number = 0;  // Line number within comments_file.
+    for (intptr_t i = 0, len = comments->Length(); i < len;) {
+      const intptr_t pc_offset = comments->PCOffsetAt(i);
+      while (i < len && comments->PCOffsetAt(i) == pc_offset) {
+        line_number += WriteLn(comments_file, comments->CommentAt(i));
+        i++;
+      }
+      DebugInfoEntry entry;
+      entry.address = base + pc_offset + kElfHeaderSize;
+      entry.line_number = line_number;
+      entry.column = 0;
+      WriteFully(&entry, sizeof(entry));
+      WriteFully(comments_file_name, filename_length + 1);
+    }
+
+    // Write out the padding.
+    const char padding_bytes[8] = {0};
+    WriteFully(padding_bytes, padding);
+
+    fclose(comments_file);
+    free(comments_file_name);
+  }
+
   void WriteHeader() {
     Header header;
     header.elf_mach_target = GetElfMachineArchitecture();
@@ -276,8 +365,20 @@ class JitDumpCodeObserver : public CodeObserver {
     WriteFully(&header, sizeof(header));
   }
 
-  void WriteFully(void* buffer, size_t size) {
-    const char* ptr = static_cast<char*>(buffer);
+  // Returns number of new-lines written.
+  intptr_t WriteLn(FILE* f, const char* comment) {
+    fputs(comment, f);
+    fputc('\n', f);
+
+    intptr_t line_count = 1;
+    while ((comment = strstr(comment, "\n")) != nullptr) {
+      line_count++;
+    }
+    return line_count;
+  }
+
+  void WriteFully(const void* buffer, size_t size) {
+    const char* ptr = static_cast<const char*>(buffer);
     while (size > 0) {
       const size_t written = fwrite(ptr, 1, size, out_file_);
       if (written == 0) {
@@ -289,11 +390,13 @@ class JitDumpCodeObserver : public CodeObserver {
     }
   }
 
-  FILE* out_file_;
-  void* mapped_;
-  long mapped_size_;  // NOLINT(runtime/int)
+  const intptr_t pid_;
 
-  intptr_t code_id_;
+  FILE* out_file_ = nullptr;
+  void* mapped_ = nullptr;
+  long mapped_size_ = 0;  // NOLINT(runtime/int)
+
+  intptr_t code_id_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(JitDumpCodeObserver);
 };
@@ -552,16 +655,9 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
-}
+void OS::Init() {}
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
 
 void OS::Abort() {
   abort();

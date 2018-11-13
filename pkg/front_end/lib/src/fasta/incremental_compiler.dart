@@ -59,12 +59,11 @@ import 'fasta_codes.dart'
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
-import 'kernel/kernel_incremental_target.dart'
-    show KernelIncrementalTarget, KernelIncrementalTargetErroneousComponent;
-
 import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
 import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+
+import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -86,13 +85,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
+  Component componentToInitializeFrom;
   bool initializedFromDill = false;
   bool hasToCheckPackageUris = false;
 
-  KernelIncrementalTarget userCode;
+  KernelTarget userCode;
+
+  IncrementalCompiler.fromComponent(
+      this.context, Component this.componentToInitializeFrom)
+      : ticker = context.options.ticker,
+        initializeFromDillUri = null;
 
   IncrementalCompiler(this.context, [this.initializeFromDillUri])
-      : ticker = context.options.ticker;
+      : ticker = context.options.ticker,
+        componentToInitializeFrom = null;
 
   @override
   Future<Component> computeDelta(
@@ -142,6 +148,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   null);
             }
           }
+        } else if (componentToInitializeFrom != null) {
+          initializeFromComponent(summaryBytes, uriTranslator, c, data);
         }
         appendLibraries(data, bytesLength);
 
@@ -171,8 +179,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-      if (data.includeUserLoadedLibraries || fullComponent) {
+      if ((data.includeUserLoadedLibraries &&
+              componentToInitializeFrom ==
+                  null) // when loading state from component no need to invalidate anything
+          ||
+          fullComponent) {
         invalidatedUris.add(entryPoint);
+      }
+      if (componentToInitializeFrom != null) {
+        // Once compiler was initialized from component, no need to skip logic
+        // above that adds entryPoint to invalidatedUris for successive
+        // [computeDelta] calls.
+        componentToInitializeFrom = null;
       }
 
       ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
@@ -188,16 +206,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
         dillLoadedData.loader.builders.remove(uri);
+        dillLoadedDataUriToSource.remove(uri);
         userBuilders?.remove(uri);
       }
 
       if (hierarchy != null) {
-        List<Class> removedClasses = new List<Class>();
+        List<Library> removedLibraries = new List<Library>();
         for (LibraryBuilder builder in notReusedLibraries) {
           Library lib = builder.target;
-          removedClasses.addAll(lib.classes);
+          removedLibraries.add(lib);
         }
-        hierarchy.applyTreeChanges(removedClasses, const []);
+        hierarchy.applyTreeChanges(removedLibraries, const []);
       }
 
       if (userCode != null) {
@@ -207,8 +226,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       reusedLibraries.addAll(platformBuilders);
 
-      KernelIncrementalTarget userCodeOld = userCode;
-      userCode = new KernelIncrementalTarget(
+      KernelTarget userCodeOld = userCode;
+      userCode = new KernelTarget(
           new HybridFileSystem(
               new MemoryFileSystem(
                   new Uri(scheme: "org-dartlang-debug", path: "/")),
@@ -221,33 +240,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
+        if (entryPoint == library.uri) {
+          userCode.loader.first = library;
+        }
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
           userCode.loader.coreLibrary = library;
         }
       }
 
-      Component componentWithDill;
-      try {
-        userCode.read(entryPoint);
-        await userCode.buildOutlines();
+      userCode.setEntryPoints(<Uri>[entryPoint]);
+      await userCode.buildOutlines();
 
-        // This is not the full component. It is the component including all
-        // libraries loaded from .dill files.
-        componentWithDill =
-            await userCode.buildComponent(verify: c.options.verify);
-      } on KernelIncrementalTargetErroneousComponent {
-        List<Library> librariesWithSdk = userCode.component.libraries;
-        List<Library> compiledLibraries = <Library>[];
-        for (Library lib in librariesWithSdk) {
-          if (lib.importUri.scheme == "dart") continue;
-          compiledLibraries.add(lib);
-          break;
-        }
-        userCode.loader.builders.clear();
-        userCode = userCodeOld;
-        return new Component(
-            libraries: compiledLibraries, uriToSource: <Uri, Source>{});
-      }
+      // This is not the full component. It is the component including all
+      // libraries loaded from .dill files.
+      Component componentWithDill =
+          await userCode.buildComponent(verify: c.options.verify);
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
         hasToCheckPackageUris = false;
@@ -280,8 +287,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode = userCodeOld;
       }
 
+      Map<Uri, Source> optionalUriToSource = context.options.embedSourceText
+          ? uriToSource
+          : uriToSource.map((uri, source) => MapEntry<Uri, Source>(
+              uri, new Source(source.lineStarts, const <int>[])));
       // This is the incremental component.
-      return new Component(libraries: outputLibraries, uriToSource: uriToSource)
+      return context.options.target.configureComponent(new Component(
+          libraries: outputLibraries, uriToSource: optionalUriToSource))
         ..mainMethod = mainMethod;
     });
   }
@@ -327,16 +339,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    List<Class> removedClasses = new List<Class>();
+    List<Library> removedLibraries = new List<Library>();
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
       LibraryBuilder builder = userCode.loader.builders.remove(uri);
       if (builder != null) {
         Library lib = builder.target;
-        removedClasses.addAll(lib.classes);
+        removedLibraries.add(lib);
+        dillLoadedData.loader.builders.remove(uri);
+        dillLoadedDataUriToSource.remove(uri);
+        userBuilders?.remove(uri);
       }
     }
-    hierarchy?.applyTreeChanges(removedClasses, const []);
+    hierarchy?.applyTreeChanges(removedLibraries, const []);
 
     return result;
   }
@@ -348,7 +363,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
-      data.component = new Component();
+      data.component = c.options.target.configureComponent(new Component());
       new BinaryBuilder(summaryBytes, disableLazyReading: false)
           .readComponent(data.component);
       ticker.logMs("Deserialized ${c.options.sdkSummary}");
@@ -406,6 +421,43 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return bytesLength;
   }
 
+  // This procedure will set up compiler from [componentToInitializeFrom].
+  void initializeFromComponent(
+      List<int> summaryBytes,
+      UriTranslator uriTranslator,
+      CompilerContext c,
+      IncrementalCompilerData data) {
+    ticker.logMs("Read initializeFromComponent");
+
+    // [libraries] and [uriToSource] from [componentToInitializeFrom] take
+    // precedence over what was already read into [data.component]. Assumption
+    // is that [data.component] is initialized with standard prebuilt various
+    // platform libraries.
+    List<Library> combinedLibs = <Library>[];
+    Set<Uri> readLibs =
+        componentToInitializeFrom.libraries.map((lib) => lib.fileUri).toSet();
+    combinedLibs.addAll(componentToInitializeFrom.libraries);
+    for (Library lib in data.component.libraries) {
+      if (!readLibs.contains(lib.fileUri)) {
+        combinedLibs.add(lib);
+      }
+    }
+    Map<Uri, Source> combinedMaps = new Map<Uri, Source>();
+    combinedMaps.addAll(componentToInitializeFrom.uriToSource);
+    Set<Uri> uris = combinedMaps.keys.toSet();
+    for (MapEntry<Uri, Source> entry in data.component.uriToSource.entries) {
+      if (!uris.contains(entry.key)) {
+        combinedMaps[entry.key] = entry.value;
+      }
+    }
+
+    data.component =
+        new Component(libraries: combinedLibs, uriToSource: combinedMaps)
+          ..mainMethod = componentToInitializeFrom.mainMethod;
+    data.userLoadedUriMain = data.component.mainMethod;
+    data.includeUserLoadedLibraries = true;
+  }
+
   void appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
       dillLoadedData.loader
@@ -426,7 +478,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(dillLoadedData != null && userCode != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder library = userCode.loader.read(libraryUri, -1);
+      LibraryBuilder library =
+          userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
 
       Class kernelClass;
       if (className != null) {
@@ -536,8 +589,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = <Uri>[];
 
     bool isInvalidated(Uri importUri, Uri fileUri) {
-      if (invalidatedUris.contains(importUri) ||
-          (importUri != fileUri && invalidatedUris.contains(fileUri))) {
+      if (invalidatedUris.contains(importUri)) return true;
+      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
       if (hasToCheckPackageUris &&
@@ -545,6 +598,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           uriTranslator.translate(importUri, false) != fileUri) {
         return true;
       }
+      if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
     }
 

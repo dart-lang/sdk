@@ -29,11 +29,31 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   /// The source location associated with the end of the JS node.
   SourceLocation get endPosition => null;
 
-  /// All source locations associated with this source information.
+  /// A list containing start, inner, and end positions.
   List<SourceLocation> get sourceLocations;
+
+  /// A list of inlining context locations.
+  List<FrameContext> get inliningContext => null;
 
   /// Return a short textual representation of the source location.
   String get shortText;
+}
+
+/// Context information about inlined calls.
+///
+/// This is associated with SourceInformation objects to be able to emit
+/// precise data about inlining that can then be used by defobuscation tools
+/// when reconstructing a source stack from a production stack trace.
+class FrameContext {
+  /// Location of the call that was inlined.
+  final SourceInformation callInformation;
+
+  /// Name of the method that was inlined.
+  final String inlinedMethodName;
+
+  FrameContext(this.callInformation, this.inlinedMethodName);
+
+  String toString() => "(FrameContext: $callInformation, $inlinedMethodName)";
 }
 
 /// Strategy for creating, processing and applying [SourceInformation].
@@ -57,8 +77,11 @@ class SourceInformationStrategy {
 class SourceInformationBuilder {
   const SourceInformationBuilder();
 
-  /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder forContext(covariant MemberEntity member) => this;
+  /// Create a [SourceInformationBuilder] for [member] with additional inlining
+  /// [context].
+  SourceInformationBuilder forContext(
+          covariant MemberEntity member, SourceInformation context) =>
+      this;
 
   /// Generate [SourceInformation] for the declaration of the [member].
   SourceInformation buildDeclaration(covariant MemberEntity member) => null;
@@ -85,13 +108,13 @@ class SourceInformationBuilder {
   /// Generate [SourceInformation] for the loop [node].
   SourceInformation buildLoop(ir.Node node) => null;
 
-  /// Generate [SourceInformation] for a read access like `a.b` where in
-  /// [receiver] points to the left-most part of the access, `a` in the example,
-  /// and [property] points to the 'name' of accessed property, `b` in the
-  /// example.
+  /// Generate [SourceInformation] for a read access like `a.b`.
   SourceInformation buildGet(ir.Node node) => null;
 
-  /// Generate [SourceInformation] for the read access in [node].
+  /// Generate [SourceInformation] for a write access like `a.b = 3`.
+  SourceInformation buildSet(ir.Node node) => null;
+
+  /// Generate [SourceInformation] for a call in [node].
   SourceInformation buildCall(ir.Node receiver, ir.Node call) => null;
 
   /// Generate [SourceInformation] for the if statement in [node].
@@ -102,6 +125,9 @@ class SourceInformationBuilder {
 
   /// Generate [SourceInformation] for the throw in [node].
   SourceInformation buildThrow(ir.Node node) => null;
+
+  /// Generate [SourceInformation] for the assert in [node].
+  SourceInformation buildAssert(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the assignment in [node].
   SourceInformation buildAssignment(ir.Node node) => null;
@@ -234,6 +260,9 @@ abstract class AbstractSourceLocation extends SourceLocation {
 
   AbstractSourceLocation.fromLocation(this._location) : _sourceFile = null;
 
+  AbstractSourceLocation.fromOther(AbstractSourceLocation location)
+      : this.fromLocation(location._location);
+
   /// The absolute URI of the source file of this source location.
   Uri get sourceUri => _sourceFile.uri;
 
@@ -337,4 +366,30 @@ class NoSourceLocationMarker extends SourceLocation {
   String get shortName => '<no-location>';
 
   String toString() => '<no-location>';
+}
+
+/// Information tracked about inlined frames.
+///
+/// Dart2js adds an extension to source-map files to track where calls are
+/// inlined. This information is used to improve the precision of tools that
+/// deobfuscate production stack traces.
+class FrameEntry {
+  /// For push operations, the location of the inlining call, otherwise null.
+  final SourceLocation pushLocation;
+
+  /// For push operations, the inlined method name, otherwise null.
+  final String inlinedMethodName;
+
+  /// Whether a pop is the last pop that makes the inlining stack empty.
+  final bool isEmptyPop;
+
+  FrameEntry.push(this.pushLocation, this.inlinedMethodName)
+      : isEmptyPop = false;
+
+  FrameEntry.pop(this.isEmptyPop)
+      : pushLocation = null,
+        inlinedMethodName = null;
+
+  bool get isPush => pushLocation != null;
+  bool get isPop => pushLocation == null;
 }

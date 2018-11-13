@@ -86,10 +86,7 @@ bool SocketBase::IsBindError(intptr_t error_number) {
 
 intptr_t SocketBase::Available(intptr_t fd) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
-  ASSERT(handle->fd() >= 0);
-  intptr_t available = FDUtils::AvailableBytes(handle->fd());
-  LOG_INFO("SocketBase::Available(%ld) = %ld\n", handle->fd(), available);
-  return available;
+  return handle->AvailableBytes();
 }
 
 intptr_t SocketBase::Read(intptr_t fd,

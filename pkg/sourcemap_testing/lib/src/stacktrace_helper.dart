@@ -4,10 +4,13 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert' show jsonDecode;
 
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_maps/src/utils.dart';
+import 'package:source_span/source_span.dart';
+import 'package:dart2js_tools/src/dart2js_mapping.dart';
 
 import 'annotated_code_helper.dart';
 
@@ -105,7 +108,8 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     bool useJsMethodNamesOnAbsence: false,
     String Function(String name) jsNameConverter: identityConverter,
     Directory forcedTmpDir: null,
-    int stackTraceLimit: 10}) async {
+    int stackTraceLimit: 10,
+    expandDart2jsInliningData: false}) async {
   Expect.isTrue(test.expectationMap.keys.contains(config),
       "No expectations found for '$config' in ${test.expectationMap.keys}");
 
@@ -122,13 +126,14 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
       sourceMapFile.existsSync(), "Source map not generated for $input");
   String sourceMapText = sourceMapFile.readAsStringSync();
   SingleMapping sourceMap = parse(sourceMapText);
+  String jsOutput = new File(output).readAsStringSync();
 
   if (printJs) {
     print('JavaScript output:');
-    print(new File(output).readAsStringSync());
+    print(jsOutput);
   }
   if (writeJs) {
-    new File('out.js').writeAsStringSync(new File(output).readAsStringSync());
+    new File('out.js').writeAsStringSync(jsOutput);
     new File('out.js.map').writeAsStringSync(sourceMapText);
   }
   print("Running d8 $output");
@@ -161,18 +166,58 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     if (targetEntry == null || targetEntry.sourceUrlId == null) {
       dartStackTrace.add(line);
     } else {
+      String fileName;
+      if (targetEntry.sourceUrlId != null) {
+        fileName = sourceMap.urls[targetEntry.sourceUrlId];
+      }
+      int targetLine = targetEntry.sourceLine + 1;
+      int targetColumn = targetEntry.sourceColumn + 1;
+
+      if (expandDart2jsInliningData) {
+        SourceFile file = new SourceFile.fromString(jsOutput);
+        int offset = file.getOffset(line.lineNo - 1, line.columnNo - 1);
+        Map<int, List<FrameEntry>> frames =
+            _loadInlinedFrameData(sourceMap, sourceMapText);
+        List<int> indices = frames.keys.toList()..sort();
+        int key = binarySearch(indices, (i) => i > offset) - 1;
+        int depth = 0;
+        outer:
+        while (key >= 0) {
+          for (var frame in frames[indices[key]].reversed) {
+            if (frame.isEmpty) break outer;
+            if (frame.isPush) {
+              if (depth <= 0) {
+                dartStackTrace.add(new StackTraceLine(
+                    frame.inlinedMethodName + "(inlined)",
+                    fileName,
+                    targetLine,
+                    targetColumn,
+                    isMapped: true));
+                fileName = frame.callUri;
+                targetLine = frame.callLine + 1;
+                targetColumn = frame.callColumn + 1;
+              } else {
+                depth--;
+              }
+            }
+            if (frame.isPop) {
+              depth++;
+            }
+          }
+          key--;
+        }
+        targetEntry = findEnclosingFunction(jsOutput, file, offset, sourceMap);
+      }
+
       String methodName;
       if (targetEntry.sourceNameId != null) {
         methodName = sourceMap.names[targetEntry.sourceNameId];
       } else if (useJsMethodNamesOnAbsence) {
         methodName = jsNameConverter(line.methodName);
       }
-      String fileName;
-      if (targetEntry.sourceUrlId != null) {
-        fileName = sourceMap.urls[targetEntry.sourceUrlId];
-      }
-      dartStackTrace.add(new StackTraceLine(methodName, fileName,
-          targetEntry.sourceLine + 1, targetEntry.sourceColumn + 1,
+
+      dartStackTrace.add(new StackTraceLine(
+          methodName, fileName, targetLine, targetColumn,
           isMapped: true));
     }
   }
@@ -344,8 +389,10 @@ TargetLineEntry _findLine(SingleMapping sourceMap, StackTraceLine stLine) {
   String filename = stLine.fileName
       .substring(stLine.fileName.lastIndexOf(new RegExp("[\\\/]")) + 1);
   if (sourceMap.targetUrl != filename) return null;
+  return _findLineInternal(sourceMap, stLine.lineNo - 1);
+}
 
-  int line = stLine.lineNo - 1;
+TargetLineEntry _findLineInternal(SingleMapping sourceMap, int line) {
   int index = binarySearch(sourceMap.lines, (e) => e.line > line);
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
@@ -383,4 +430,23 @@ class LineException {
   final String fileName;
 
   const LineException(this.methodName, this.fileName);
+}
+
+/// Search backwards in [sources] for a function declaration that includes the
+/// [start] offset.
+TargetEntry findEnclosingFunction(
+    String sources, SourceFile file, int start, SingleMapping mapping) {
+  if (sources == null) return null;
+  int index = sources.lastIndexOf(': function(', start);
+  if (index < 0) return null;
+  index += 2;
+  var line = file.getLine(index);
+  var lineEntry = _findLineInternal(mapping, line);
+  return _findColumn(line, file.getColumn(index), lineEntry);
+}
+
+Map<int, List<FrameEntry>> _loadInlinedFrameData(
+    SingleMapping mapping, String sourceMapText) {
+  var json = jsonDecode(sourceMapText);
+  return Dart2jsMapping(mapping, json).frames;
 }

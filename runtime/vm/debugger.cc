@@ -57,6 +57,8 @@ DEFINE_FLAG(bool,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
+DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 #ifndef PRODUCT
@@ -250,25 +252,23 @@ ActivationFrame::ActivationFrame(uword pc,
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
-      deopt_id_(Thread::kNoDeoptId),
+      deopt_id_(DeoptId::kNone),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kind),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      is_interpreted_(FLAG_enable_interpreter &&
+                      function_.Bytecode() == code_.raw()),
+#else
+      is_interpreted_(false),
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
-  // TODO(regis): If debugging of interpreted code is required, recognize an
-  // interpreted activation frame and respect alternate frame layout.
-  // For now, punt.
-#if defined(DART_USE_INTERPRETER)
-  if (function_.Bytecode() == code_.raw()) {
-    UNIMPLEMENTED();
-  }
-#endif
 }
 
 ActivationFrame::ActivationFrame(Kind kind)
@@ -288,6 +288,7 @@ ActivationFrame::ActivationFrame(Kind kind)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kind),
+      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
@@ -310,28 +311,41 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kAsyncActivation),
+      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // TODO(regis): Revise debugger functionality when running a mix of
+  // interpreted and compiled code.
+  if (!FLAG_enable_interpreter || !function_.HasBytecode()) {
+    function_.EnsureHasCompiledUnoptimizedCode();
+  }
+  if (FLAG_enable_interpreter && function_.HasBytecode()) {
+    is_interpreted_ = true;
+    code_ = function_.Bytecode();
+  } else {
+    code_ = function_.unoptimized_code();
+  }
+#else
   function_.EnsureHasCompiledUnoptimizedCode();
   code_ = function_.unoptimized_code();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
   ASSERT(!ctx_.IsNull());
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return ((isolate_ != Dart::vm_isolate()) &&
-          !ServiceIsolate::IsServiceIsolateDescendant(isolate_) &&
+  return (!Isolate::IsVMInternalIsolate(isolate_) &&
           ((event_handler_ != NULL) || Service::isolate_stream.enabled()));
 }
 
 bool Debugger::NeedsDebugEvents() {
-  ASSERT(isolate_ != Dart::vm_isolate() &&
-         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
   return (FLAG_warn_on_pause_with_no_debugger || (event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
@@ -653,6 +667,11 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
+    if (is_interpreted()) {
+      // TODO(regis): Kernel bytecode does not yet provide var descriptors.
+      var_descriptors_ = Object::empty_var_descriptors().raw();
+      return;
+    }
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
     if (unoptimized_code.IsNull()) {
       Thread* thread = Thread::Current();
@@ -702,7 +721,7 @@ intptr_t ActivationFrame::ContextLevel() {
 
     GetVarDescriptors();
     intptr_t deopt_id = DeoptId();
-    if (deopt_id == Thread::kNoDeoptId) {
+    if (deopt_id == DeoptId::kNone) {
       PrintDescriptorsError("Missing deopt id");
     }
     intptr_t var_desc_len = var_descriptors_.Length();
@@ -844,7 +863,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   handlers = code().exception_handlers();
   ASSERT(!handlers.IsNull());
   intptr_t num_handlers_checked = 0;
-  while (try_index != CatchClauseNode::kInvalidTryIndex) {
+  while (try_index != kInvalidTryIndex) {
     // Detect circles in the exception handler data.
     num_handlers_checked++;
     ASSERT(num_handlers_checked <= handlers.num_entries());
@@ -917,7 +936,28 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
           :
           // source script tokens array has first element duplicated
           await_jump_var;
-  ASSERT(await_to_token_map_index < await_to_token_map.Length());
+
+  if (script.kind() == RawScript::kKernelTag) {
+    // yield_positions returns all yield positions for the script (in sorted
+    // order).
+    // We thus need to offset the function start to get the actual index.
+    if (!function_.token_pos().IsReal()) {
+      return;
+    }
+    const intptr_t function_start = function_.token_pos().value();
+    for (intptr_t i = 0;
+         i < await_to_token_map.Length() &&
+         Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
+             function_start;
+         i++) {
+      await_to_token_map_index++;
+    }
+  }
+
+  if (await_to_token_map_index >= await_to_token_map.Length()) {
+    return;
+  }
+
   const Object& token_pos =
       Object::Handle(await_to_token_map.At(await_to_token_map_index));
   if (token_pos.IsNull()) {
@@ -931,7 +971,7 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
     if (iter.TokenPos() == token_pos_) {
       // Match the lowest try index at this token position.
       // TODO(johnmccutchan): Is this heuristic precise enough?
-      if (iter.TryIndex() != CatchClauseNode::kInvalidTryIndex) {
+      if (iter.TryIndex() != kInvalidTryIndex) {
         if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
           try_index_ = iter.TryIndex();
         }
@@ -1112,8 +1152,8 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
 
-    return GetVariableValue(
-        LocalVarAddress(fp(), FrameSlotForVariableIndex(-index)));
+    return GetVariableValue(LocalVarAddress(
+        fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
     return GetVariableValue(ParamAddress(fp(), reverse_index));
@@ -1126,7 +1166,8 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
-  const intptr_t slot_index = FrameSlotForVariableIndex(variable_index.value());
+  const intptr_t slot_index =
+      runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
@@ -1714,8 +1755,7 @@ Debugger::~Debugger() {
 void Debugger::Shutdown() {
   // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
   // them. Then, assert here that isolate_ is not one of those isolates.
-  if ((isolate_ == Dart::vm_isolate()) ||
-      ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  if (Isolate::IsVMInternalIsolate(isolate_)) {
     return;
   }
   while (breakpoint_locations_ != NULL) {
@@ -1831,6 +1871,9 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
   BackgroundCompiler::Stop(isolate_);
+  if (FLAG_trace_deoptimization) {
+    THR_Print("Deopt for debugger\n");
+  }
   DeoptimizeFunctionsOnStack();
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
@@ -2069,6 +2112,16 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   return stack_trace;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool CheckAndSkipAsync(int skip_sync_async_frames_count,
+                              const String& function_name) {
+  return (skip_sync_async_frames_count == 2 &&
+          function_name.Equals(Symbols::_ClosureCall())) ||
+         (skip_sync_async_frames_count == 1 &&
+          function_name.Equals(Symbols::_AsyncAwaitCompleterStart()));
+}
+#endif
+
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Causal async stacks are not supported in the AOT runtime.
@@ -2099,7 +2152,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   bool stack_has_async_function = false;
 
   // Number of frames we are trying to skip that form "sync async" entry.
-  int skipSyncAsyncFramesCount = -1;
+  int skip_sync_async_frames_count = -1;
   String& function_name = String::Handle(zone);
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
@@ -2108,35 +2161,30 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
       OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (skipSyncAsyncFramesCount >= 0) {
-      if (!frame->IsDartFrame()) {
-        break;
-      }
-      // Assume that the code we are looking for is not inlined.
-      code = frame->LookupDartCode();
-      function = code.function();
-      function_name ^= function.QualifiedScrubbedName();
-      if (skipSyncAsyncFramesCount == 2) {
-        if (!function_name.Equals(Symbols::_ClosureCall())) {
-          break;
-        }
-      } else if (skipSyncAsyncFramesCount == 1) {
-        if (!function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
-          break;
-        }
-      }
-
-      skipSyncAsyncFramesCount--;
-    }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       if (code.is_optimized()) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
         bool found_async_awaiter = false;
+        bool abort_attempt_to_navigate_through_sync_async = false;
         for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
              it.Advance()) {
           inlined_code = it.code();
           function = it.function();
+
+          if (skip_sync_async_frames_count > 0) {
+            function_name ^= function.QualifiedScrubbedName();
+            if (CheckAndSkipAsync(skip_sync_async_frames_count,
+                                  function_name)) {
+              skip_sync_async_frames_count--;
+            } else {
+              // Unexpected function in sync async call
+              skip_sync_async_frames_count = -1;
+              abort_attempt_to_navigate_through_sync_async = true;
+              break;
+            }
+          }
+
           if (FLAG_trace_debugger_stacktrace) {
             ASSERT(!function.IsNull());
             OS::PrintErr(
@@ -2155,7 +2203,20 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
-            break;
+            if (FLAG_sync_async) {
+              // async function might have been called synchronously, in which
+              // case we need to keep going down the stack.
+              // To determine how we are called we peek few more frames further
+              // expecting to see Closure_call followed by
+              // AsyncAwaitCompleter_start.
+              // If we are able to see those functions we continue going down
+              // thestack, if we are not, we break out of the loop as we are
+              // not interested in exploring rest of the stack - there is only
+              // dart-internal code left.
+              skip_sync_async_frames_count = 2;
+            } else {
+              break;
+            }
           } else {
             stack_trace->AddActivation(
                 CollectDartFrame(isolate, it.pc(), frame, inlined_code,
@@ -2163,11 +2224,23 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           }
         }
         // Break out of outer loop.
-        if (found_async_awaiter) {
+        if (found_async_awaiter ||
+            abort_attempt_to_navigate_through_sync_async) {
           break;
         }
       } else {
         function = code.function();
+
+        if (skip_sync_async_frames_count > 0) {
+          function_name ^= function.QualifiedScrubbedName();
+          if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
+            skip_sync_async_frames_count--;
+          } else {
+            // Unexpected function in sync async call.
+            break;
+          }
+        }
+
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
           ActivationFrame* activation = CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0,
@@ -2179,12 +2252,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
           if (FLAG_sync_async) {
-            // async function might have been called synchronously, in which
-            // case we need to keep going down the stack.
-            // To determine how we are called we peek few more frames further
-            // expecting to see Closure_call followed by
-            // AsyncAwaitCompleter_start.
-            skipSyncAsyncFramesCount = 2;
+            // see comment regarding skipping sync-async frames above.
+            skip_sync_async_frames_count = 2;
           } else {
             break;
           }
@@ -2413,21 +2482,6 @@ void Debugger::PauseException(const Instance& exc) {
   ClearCachedStackTraces();
 }
 
-static TokenPosition LastTokenOnLine(Zone* zone,
-                                     const TokenStream& tokens,
-                                     TokenPosition pos) {
-  TokenStream::Iterator iter(zone, tokens, pos,
-                             TokenStream::Iterator::kAllTokens);
-  ASSERT(iter.IsValid());
-  TokenPosition last_pos = pos;
-  while ((iter.CurrentTokenKind() != Token::kNEWLINE) &&
-         (iter.CurrentTokenKind() != Token::kEOS)) {
-    last_pos = iter.CurrentPosition();
-    iter.Advance();
-  }
-  return last_pos;
-}
-
 // Returns the best fit token position for a breakpoint.
 //
 // Takes a range of tokens [requested_token_pos, last_token_pos] and
@@ -2566,8 +2620,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
         end_of_line_pos = begin_pos;
       }
     } else {
-      const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-      end_of_line_pos = LastTokenOnLine(zone, tokens, begin_pos);
+      UNREACHABLE();
+      end_of_line_pos = TokenPosition::kNoSource;
     }
 
     uword lowest_pc_offset = kUwordMax;
@@ -2833,17 +2887,9 @@ bool Debugger::FindBestFit(const Script& script,
 
         bool has_func_literal_initializer = false;
 #ifndef DART_PRECOMPILED_RUNTIME
-        if (isolate_->use_dart_frontend()) {
-          has_func_literal_initializer =
-              kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
-        } else {
+        has_func_literal_initializer =
+            kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
 #endif  // !DART_PRECOMPILED_RUNTIME
-          has_func_literal_initializer =
-              Parser::FieldHasFunctionLiteralInitializer(field, &start, &end);
-#ifndef DART_PRECOMPILED_RUNTIME
-        }
-#endif  // !DART_PRECOMPILED_RUNTIME
-
         if (has_func_literal_initializer) {
           if ((start <= token_pos && token_pos <= end) ||
               (token_pos <= start && start <= last_token_pos)) {
@@ -3803,13 +3849,7 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
       }
       return false;
     }
-    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
-    TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
-    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
-        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
-         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
-      return true;
-    }
+    UNREACHABLE();
   }
   return false;
 }

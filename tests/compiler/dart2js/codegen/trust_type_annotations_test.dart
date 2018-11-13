@@ -7,7 +7,7 @@ import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String TEST = """
 class A {
@@ -35,11 +35,11 @@ class A {
 }
 
 main () {
-  var a = new A("42");
+  var a = new A("42" as dynamic);
   print(a.aField);
   print(a.foo("42"));
   print(a.foo(42));
-  print(a.faa("42"));
+  print(a.faa("42" as dynamic));
   print(a.faa(42));
   print(a.baz("42"));
   print(a.baz(42));
@@ -51,12 +51,12 @@ main () {
 
 void main() {
   runTest() async {
-    var options = [Flags.noPreviewDart2, Flags.trustTypeAnnotations];
+    var options = [Flags.omitImplicitChecks];
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
     var compiler = result.compiler;
-    var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    var closedWorld = typesInferrer.closedWorld;
+    var results = compiler.globalInference.resultsForTesting;
+    var closedWorld = results.closedWorld;
     var elementEnvironment = closedWorld.elementEnvironment;
 
     ClassEntity classA =
@@ -64,14 +64,14 @@ void main() {
 
     checkReturn(String name, TypeMask type) {
       MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
-      var mask = typesInferrer.getReturnTypeOfMember(element);
+      var mask = results.resultOfMember(element).returnType;
       Expect.isTrue(type.containsMask(mask, closedWorld));
     }
 
     checkType(String name, type) {
       MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
-      Expect.isTrue(type.containsMask(
-          typesInferrer.getTypeOfMember(element), closedWorld));
+      Expect.isTrue(
+          type.containsMask(results.resultOfMember(element).type, closedWorld));
     }
 
     var intMask =

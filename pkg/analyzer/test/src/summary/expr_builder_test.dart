@@ -11,9 +11,8 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../abstract_single_unit.dart';
-import 'resynthesize_ast_test.dart';
 import 'resynthesize_common.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,100 +21,13 @@ main() {
 }
 
 @reflectiveTest
-class ExprBuilderTest extends AbstractSingleUnitTest
-    with AstSerializeTestMixin {
-  @override
-  bool get allowMissingFiles => false;
+class ExprBuilderTest extends ResynthesizeTestStrategyTwoPhase
+    with ExprBuilderTestCases, ExprBuilderTestHelpers {}
 
-  Expression buildConstructorInitializer(String sourceText,
-      {String className: 'C',
-      String initializerName: 'x',
-      bool requireValidConst: false}) {
-    var resynthesizer = encodeSource(sourceText);
-    var library = resynthesizer.getLibraryElement(testSource.uri.toString());
-    var c = library.getType(className);
-    var constructor = c.unnamedConstructor as ConstructorElementImpl;
-    var serializedExecutable = constructor.serializedExecutable;
-    var x = serializedExecutable.constantInitializers
-        .singleWhere((i) => i.name == initializerName);
-    return buildExpression(resynthesizer, constructor, x.expression,
-        serializedExecutable.localFunctions,
-        requireValidConst: requireValidConst);
-  }
-
-  Expression buildExpression(
-      TestSummaryResynthesizer resynthesizer,
-      ElementImpl context,
-      UnlinkedExpr unlinkedExpr,
-      List<UnlinkedExecutable> localFunctions,
-      {bool requireValidConst: false}) {
-    var library = resynthesizer.getLibraryElement(testSource.uri.toString());
-    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
-    var unitResynthesizerContext =
-        unit.resynthesizerContext as SummaryResynthesizerContext;
-    var unitResynthesizer = unitResynthesizerContext.unitResynthesizer;
-    var exprBuilder = new ExprBuilder(unitResynthesizer, context, unlinkedExpr,
-        requireValidConst: requireValidConst, localFunctions: localFunctions);
-    return exprBuilder.build();
-  }
-
-  Expression buildTopLevelVariable(String sourceText,
-      {String variableName: 'x', bool requireValidConst: false}) {
-    var resynthesizer = encodeSource(sourceText);
-    var library = resynthesizer.getLibraryElement(testSource.uri.toString());
-    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
-    TopLevelVariableElementImpl x =
-        unit.topLevelVariables.singleWhere((e) => e.name == variableName);
-    return buildExpression(
-        resynthesizer,
-        x,
-        x.unlinkedVariableForTesting.initializer.bodyExpr,
-        x.unlinkedVariableForTesting.initializer.localFunctions,
-        requireValidConst: requireValidConst);
-  }
-
-  void checkCompoundAssignment(String exprText) {
-    checkSimpleExpression(exprText, extraDeclarations: 'var y;');
-  }
-
-  void checkConstructorInitializer(String sourceText, String expectedText,
-      {String className: 'C',
-      String initializerName: 'x',
-      bool requireValidConst: false}) {
-    Expression expr = buildConstructorInitializer(sourceText,
-        className: className,
-        initializerName: initializerName,
-        requireValidConst: requireValidConst);
-    expect(expr.toString(), expectedText);
-  }
-
-  void checkInvalidConst(String expressionText) {
-    checkTopLevelVariable('var x = $expressionText;', 'null',
-        requireValidConst: true);
-  }
-
-  Expression checkSimpleExpression(String expressionText,
-      {String expectedText,
-      String extraDeclarations: '',
-      bool requireValidConst: false}) {
-    return checkTopLevelVariable('var x = $expressionText;\n$extraDeclarations',
-        expectedText ?? expressionText,
-        requireValidConst: requireValidConst);
-  }
-
-  Expression checkTopLevelVariable(String sourceText, String expectedText,
-      {String variableName: 'x', bool requireValidConst: false}) {
-    Expression expr = buildTopLevelVariable(sourceText,
-        variableName: variableName, requireValidConst: requireValidConst);
-    expect(expr.toString(), expectedText);
-    return expr;
-  }
-
-  TestSummaryResynthesizer encodeSource(String text) {
-    var source = addTestSource(text);
-    return encodeLibrary(source);
-  }
-
+/// Mixin containing test cases exercising the [ExprBuilder].  Intended to be
+/// applied to a class implementing [ResynthesizeTestStrategy], along with the
+/// mixin [ExprBuilderTestHelpers].
+abstract class ExprBuilderTestCases implements ExprBuilderTestHelpers {
   void test_add() {
     checkSimpleExpression('0 + 1');
   }
@@ -446,23 +358,21 @@ class C {
     checkSimpleExpression('({x}) => 0');
   }
 
-  void xtest_pushLocalFunctionReference_nested() {
-    // TODO(devoncarew): This test fails when run in strong mode.
-    // Failed assertion: line 5116 pos 16:
-    //   'Linker._initializerTypeInferenceCycle == null': is not true.
+  @failingTest
+  void test_pushLocalFunctionReference_nested() {
     prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
     var expr =
         checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
-    var outerFunctionElement = expr.element;
+    var outerFunctionElement = expr.declaredElement;
     var xElement = outerFunctionElement.parameters[0];
     var x = expr.parameters.parameters[0];
-    expect(x.element, same(xElement));
+    expect(x.declaredElement, same(xElement));
     var outerBody = expr.body as ExpressionFunctionBody;
     var outerBodyExpr = outerBody.expression as FunctionExpression;
-    var innerFunctionElement = outerBodyExpr.element;
+    var innerFunctionElement = outerBodyExpr.declaredElement;
     var yElement = innerFunctionElement.parameters[0];
     var y = outerBodyExpr.parameters.parameters[0];
-    expect(y.element, same(yElement));
+    expect(y.declaredElement, same(yElement));
     var innerBody = outerBodyExpr.body as ExpressionFunctionBody;
     var innerBodyExpr = innerBody.expression as BinaryExpression;
     var xRef = innerBodyExpr.leftOperand as SimpleIdentifier;
@@ -471,17 +381,17 @@ class C {
     expect(yRef.staticElement, same(yElement));
   }
 
-  void xtest_pushLocalFunctionReference_paramReference() {
-    // TODO(devoncarew): This test fails when run in strong mode.
+  @failingTest
+  void test_pushLocalFunctionReference_paramReference() {
     prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
     var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
-    var localFunctionElement = expr.element;
+    var localFunctionElement = expr.declaredElement;
     var xElement = localFunctionElement.parameters[0];
     var yElement = localFunctionElement.parameters[1];
     var x = expr.parameters.parameters[0];
     var y = expr.parameters.parameters[1];
-    expect(x.element, same(xElement));
-    expect(y.element, same(yElement));
+    expect(x.declaredElement, same(xElement));
+    expect(y.declaredElement, same(yElement));
     var body = expr.body as ExpressionFunctionBody;
     var bodyExpr = body.expression as BinaryExpression;
     var xRef = bodyExpr.leftOperand as SimpleIdentifier;
@@ -497,7 +407,7 @@ class C {
   void test_pushLocalFunctionReference_requiredParam_typed() {
     var expr = checkSimpleExpression('(int x) => 0', expectedText: '(x) => 0')
         as FunctionExpression;
-    var functionElement = expr.element;
+    var functionElement = expr.declaredElement;
     var xElement = functionElement.parameters[0] as ParameterElementImpl;
     expect(xElement.type.toString(), 'int');
   }
@@ -565,5 +475,98 @@ class B {
 
   void test_typeCheck_negated() {
     checkSimpleExpression('0 is! num', expectedText: '!(0 is num)');
+  }
+}
+
+/// Mixin containing helper methods for testing the [ExprBuilder].  Intended to
+/// be applied to a class implementing [ResynthesizeTestStrategy].
+abstract class ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
+  Expression buildConstructorInitializer(String sourceText,
+      {String className: 'C',
+      String initializerName: 'x',
+      bool requireValidConst: false}) {
+    var resynthesizer = encodeSource(sourceText);
+    var library = resynthesizer.getLibraryElement(testSource.uri.toString());
+    var c = library.getType(className);
+    var constructor = c.unnamedConstructor as ConstructorElementImpl;
+    var serializedExecutable = constructor.serializedExecutable;
+    var x = serializedExecutable.constantInitializers
+        .singleWhere((i) => i.name == initializerName);
+    return buildExpression(resynthesizer, constructor, x.expression,
+        serializedExecutable.localFunctions,
+        requireValidConst: requireValidConst);
+  }
+
+  Expression buildExpression(
+      TestSummaryResynthesizer resynthesizer,
+      ElementImpl context,
+      UnlinkedExpr unlinkedExpr,
+      List<UnlinkedExecutable> localFunctions,
+      {bool requireValidConst: false}) {
+    var library = resynthesizer.getLibraryElement(testSource.uri.toString());
+    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
+    var unitResynthesizerContext =
+        unit.resynthesizerContext as SummaryResynthesizerContext;
+    var unitResynthesizer = unitResynthesizerContext.unitResynthesizer;
+    var exprBuilder = new ExprBuilder(unitResynthesizer, context, unlinkedExpr,
+        requireValidConst: requireValidConst, localFunctions: localFunctions);
+    return exprBuilder.build();
+  }
+
+  Expression buildTopLevelVariable(String sourceText,
+      {String variableName: 'x', bool requireValidConst: false}) {
+    var resynthesizer = encodeSource(sourceText);
+    var library = resynthesizer.getLibraryElement(testSource.uri.toString());
+    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
+    TopLevelVariableElementImpl x =
+        unit.topLevelVariables.singleWhere((e) => e.name == variableName);
+    return buildExpression(
+        resynthesizer,
+        x,
+        x.unlinkedVariableForTesting.initializer.bodyExpr,
+        x.unlinkedVariableForTesting.initializer.localFunctions,
+        requireValidConst: requireValidConst);
+  }
+
+  void checkCompoundAssignment(String exprText) {
+    checkSimpleExpression(exprText, extraDeclarations: 'var y;');
+  }
+
+  void checkConstructorInitializer(String sourceText, String expectedText,
+      {String className: 'C',
+      String initializerName: 'x',
+      bool requireValidConst: false}) {
+    Expression expr = buildConstructorInitializer(sourceText,
+        className: className,
+        initializerName: initializerName,
+        requireValidConst: requireValidConst);
+    expect(expr.toString(), expectedText);
+  }
+
+  void checkInvalidConst(String expressionText) {
+    checkTopLevelVariable('var x = $expressionText;', 'null',
+        requireValidConst: true);
+  }
+
+  Expression checkSimpleExpression(String expressionText,
+      {String expectedText,
+      String extraDeclarations: '',
+      bool requireValidConst: false}) {
+    return checkTopLevelVariable('var x = $expressionText;\n$extraDeclarations',
+        expectedText ?? expressionText,
+        requireValidConst: requireValidConst);
+  }
+
+  Expression checkTopLevelVariable(String sourceText, String expectedText,
+      {String variableName: 'x', bool requireValidConst: false}) {
+    Expression expr = buildTopLevelVariable(sourceText,
+        variableName: variableName, requireValidConst: requireValidConst);
+    expect(expr.toString(), expectedText);
+    return expr;
+  }
+
+  TestSummaryResynthesizer encodeSource(String text) {
+    var source = addTestSource(text);
+    return encodeLibrary(source);
   }
 }

@@ -10,21 +10,26 @@ import "dart:io" show File;
 
 import "dart:typed_data" show Uint8List;
 
+import "package:kernel/target/targets.dart" show TargetFlags;
+
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import "package:vm/target/vm.dart" show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/severity.dart'
     show Severity, severityEnumValues;
@@ -85,10 +90,10 @@ class MessageTestSuite extends ChainContext {
       List<Example> examples = <Example>[];
       String externalTest;
       bool frontendInternal = false;
-      String analyzerCode;
-      String dart2jsCode;
+      List<String> analyzerCodes;
       Severity severity;
       YamlNode badSeverity;
+      YamlNode unnecessarySeverity;
 
       for (String key in message.keys) {
         YamlNode node = message.nodes[key];
@@ -102,6 +107,8 @@ class MessageTestSuite extends ChainContext {
             severity = severityEnumValues[value];
             if (severity == null) {
               badSeverity = node;
+            } else if (severity == Severity.error) {
+              unnecessarySeverity = node;
             }
             break;
 
@@ -110,11 +117,9 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "analyzerCode":
-            analyzerCode = value;
-            break;
-
-          case "dart2jsCode":
-            dart2jsCode = value;
+            analyzerCodes = value is String
+                ? <String>[value]
+                : new List<String>.from(value);
             break;
 
           case "bytes":
@@ -181,6 +186,10 @@ class MessageTestSuite extends ChainContext {
             externalTest = node.value;
             break;
 
+          case "index":
+            // index is validated during generation
+            break;
+
           default:
             unknownKeys.add(key);
         }
@@ -193,7 +202,7 @@ class MessageTestSuite extends ChainContext {
         if (problem != null) {
           String filename = relativize(uri);
           location ??= message.span.start;
-          int line = location.line;
+          int line = location.line + 1;
           int column = location.column;
           problem = "$filename:$line:$column: error:\n$problem";
         }
@@ -219,6 +228,14 @@ class MessageTestSuite extends ChainContext {
               ? "Unknown severity: '${badSeverity.value}'."
               : null,
           location: badSeverity?.span?.start);
+
+      yield createDescription(
+          "unnecessarySeverity",
+          null,
+          unnecessarySeverity != null
+              ? "The 'ERROR' severity is the default and not necessary."
+              : null,
+          location: unnecessarySeverity?.span?.start);
 
       bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
           severity != Severity.internalProblem &&
@@ -249,45 +266,34 @@ class MessageTestSuite extends ChainContext {
           null,
           exampleAndAnalyzerCodeRequired &&
                   !frontendInternal &&
-                  analyzerCode == null
+                  analyzerCodes == null
               ? "No analyzer code for $name."
                   "\nTry running"
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
                   " on an example to find the code."
                   " The code is printed just before the file name."
               : null);
-
-      yield createDescription(
-          "dart2jsCode",
-          null,
-          exampleAndAnalyzerCodeRequired &&
-                  !frontendInternal &&
-                  analyzerCode != null &&
-                  dart2jsCode == null
-              ? "No dart2js code for $name."
-                  " Try using *ignored* or *fatal*"
-              : null);
     }
   }
 
-  String formatProblems(String message, Example example, List<List> problems) {
+  String formatProblems(
+      String message, Example example, List<DiagnosticMessage> messages) {
     var span = example.node.span;
     StringBuffer buffer = new StringBuffer();
     buffer
       ..write(relativize(span.sourceUrl))
       ..write(":")
-      ..write(span.start.line)
+      ..write(span.start.line + 1)
       ..write(":")
       ..write(span.start.column)
       ..write(": error: ")
       ..write(message);
     buffer.write("\n${span.text}");
-    for (List problem in problems) {
-      FormattedMessage message = problem[0];
-      String formatted = message.formatted;
-      buffer.write("\nCode: ${message.code.name}");
+    for (DiagnosticMessage message in messages) {
+      buffer.write("\nCode: ${getMessageCodeObject(message).name}");
       buffer.write("\n  > ");
-      buffer.write(formatted.replaceAll("\n", "\n  > "));
+      buffer.write(
+          message.plainTextFormatted.join("\n").replaceAll("\n", "\n  > "));
     }
 
     return "$buffer";
@@ -318,7 +324,7 @@ class BytesExample extends Example {
   final Uint8List bytes;
 
   BytesExample(String name, String code, this.node)
-      : bytes = new Uint8List.fromList(node.value),
+      : bytes = new Uint8List.fromList(node.cast<int>()),
         super(name, code);
 }
 
@@ -395,7 +401,7 @@ class ScriptExample extends Example {
     if (script is! String && script is! Map) {
       throw suite.formatProblems(
           "A script must be either a String or a Map in $code:",
-          this, <List>[]);
+          this, <DiagnosticMessage>[]);
     }
   }
 
@@ -449,50 +455,46 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
     print("Compiling $main");
-    List<List> problems = <List>[];
+    List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
         new CompilerOptions()
-          ..sdkSummary = computePlatformBinariesLocation()
+          ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
+          ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..onProblem = (FormattedMessage problem, Severity severity,
-              List<FormattedMessage> context) {
-            problems.add([problem, severity]);
-          }
-          ..strongMode = true,
+          ..onDiagnostic = messages.add,
         main,
         output);
 
-    List<List> unexpectedProblems = <List>[];
-    for (List problem in problems) {
-      FormattedMessage message = problem[0];
-      if (message.code.name != example.expectedCode) {
-        unexpectedProblems.add(problem);
+    List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
+    for (DiagnosticMessage message in messages) {
+      if (getMessageCodeObject(message).name != example.expectedCode) {
+        unexpectedMessages.add(message);
       }
     }
-    if (unexpectedProblems.isEmpty) {
-      switch (problems.length) {
+    if (unexpectedMessages.isEmpty) {
+      switch (messages.length) {
         case 0:
           return fail(
               null,
-              suite.formatProblems("No problem reported in ${example.name}:",
-                  example, problems));
+              suite.formatProblems("No message reported in ${example.name}:",
+                  example, messages));
         case 1:
           return pass(null);
         default:
           return fail(
               null,
               suite.formatProblems(
-                  "Problem reported multiple times in ${example.name}:",
+                  "Message reported multiple times in ${example.name}:",
                   example,
-                  problems));
+                  messages));
       }
     }
     return fail(
         null,
-        suite.formatProblems("Too many problems reported in ${example.name}:",
-            example, problems));
+        suite.formatProblems("Too many messages reported in ${example.name}:",
+            example, messages));
   }
 }
 

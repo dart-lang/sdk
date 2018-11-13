@@ -20,7 +20,6 @@ class WhileStatementTest extends PartialCodeTest {
           'while',
           [
             ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN
@@ -71,27 +70,32 @@ class WhileStatementTest extends PartialCodeTest {
         new TestDescriptor(
           'keyword',
           'while',
-          [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN
-          ],
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           "while (_s_)",
           failing: ['break', 'continue'],
         ),
         new TestDescriptor(
           'leftParen',
           'while (',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.MISSING_IDENTIFIER, ScannerErrorCode.EXPECTED_TOKEN],
           "while (_s_)",
-          allFailing: true,
+          failing: [
+            'assert',
+            'block',
+            'break',
+            'continue',
+            'labeled',
+            'localFunctionNonVoid',
+            'localFunctionVoid',
+            'return'
+          ],
         ),
         new TestDescriptor(
           'condition',
           'while (a',
-          [ParserErrorCode.EXPECTED_TOKEN],
+          [ScannerErrorCode.EXPECTED_TOKEN],
           "while (a)",
-          allFailing: true,
+          failing: ['break', 'continue'],
         ),
       ],
       PartialCodeTest.statementSuffixes,

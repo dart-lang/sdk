@@ -14,7 +14,6 @@ main() {
   testJsInteropClass();
 }
 
-/*kernel.element: testJsInteropMethod:type=[check:int]*/
 /*strong.element: testJsInteropMethod:*/
 @JS()
 external int testJsInteropMethod();
@@ -24,23 +23,6 @@ class JsInteropClass {
   /*element: JsInteropClass.:static=[JavaScriptObject.(0)]*/
   external JsInteropClass();
 
-  /*kernel.element: JsInteropClass.method:
-   type=[
-    check:double,
-    native:ApplicationCacheErrorEvent,
-    native:DomError,
-    native:DomException,
-    native:ErrorEvent,
-    native:GenericClass<dynamic>,
-    native:JsInteropClass,
-    native:MediaError,
-    native:NavigatorUserMediaError,
-    native:OverconstrainedError,
-    native:PositionError,
-    native:SensorErrorEvent,
-    native:SpeechRecognitionError,
-    native:SqlError]
-  */
   /*strong.element: JsInteropClass.method:
    type=[
     native:ApplicationCacheErrorEvent,
@@ -61,7 +43,10 @@ class JsInteropClass {
   external double method();
 }
 
-/*element: testJsInteropClass:dynamic=[method(0)],static=[JsInteropClass.(0)]*/
+/*strong.element: testJsInteropClass:
+ dynamic=[JavaScriptObject.method(0)],
+ static=[JsInteropClass.(0)]
+*/
 testJsInteropClass() => new JsInteropClass().method();
 
 typedef void Callback<T>(T value);
@@ -69,12 +54,6 @@ typedef void Callback<T>(T value);
 /*element: GenericClass.:static=[JavaScriptObject.(0)]*/
 @JS()
 class GenericClass<T> {
-  /*kernel.element: GenericClass.method:
-   type=[
-    check:GenericClass<dynamic>,
-    check:void Function(GenericClass.T),
-    inst:JSNull]
-  */
   /*strong.element: GenericClass.method:
    static=[
     checkSubtype,
@@ -96,5 +75,8 @@ class GenericClass<T> {
   external GenericClass method([Callback<T> callback]);
 }
 
-/*element: testOptionalGenericFunctionTypeArgument:dynamic=[method(0)],static=[GenericClass.(0)]*/
+/*strong.element: testOptionalGenericFunctionTypeArgument:
+ dynamic=[JavaScriptObject.method(0)],
+ static=[GenericClass.(0)]
+*/
 testOptionalGenericFunctionTypeArgument() => new GenericClass().method();

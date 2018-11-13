@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class NullEquality extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::NullEquality
     : super core::Object::•()
     ;
   @core::override
@@ -11,7 +11,7 @@ class NullEquality extends core::Object {
     return null;
 }
 class SubNullEquality extends self::NullEquality {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::SubNullEquality
     : super self::NullEquality::•()
     ;
   method test() → void {

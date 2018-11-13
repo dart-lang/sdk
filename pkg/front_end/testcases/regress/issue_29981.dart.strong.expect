@@ -1,6 +1,12 @@
-// Errors:
+// Formatted problems:
 //
-// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: 'C' expects 1 type arguments.
+// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
+//   C<String, String> field;
+//   ^
+
+// Unhandled errors:
+//
+// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
 //   C<String, String> field;
 //   ^
 
@@ -10,7 +16,7 @@ import "dart:core" as core;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   field invalid-type field = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
 }

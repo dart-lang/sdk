@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.20.4</version>
+  <version>1.21.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -332,12 +332,17 @@
           analyzed.
         </p>
       </field>
-      <field name="pub" optional="true">
+      <field name="pub" optional="true" deprecated="true">
         <ref>PubStatus</ref>
         <p>
           The current status of pub execution, indicating whether we are
           currently running pub.
         </p>
+
+        <p>
+          Note: this status type is deprecated, and is no longer sent by
+          the server.
+      </p>
       </field>
     </params>
   </notification>
@@ -600,7 +605,7 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getReachableSources" deprecated="true">
     <p>
       Return the transitive closure of reachable sources for a given file.
     </p>
@@ -643,6 +648,67 @@
           To check if a specific URI is reachable from a given file, clients can
           check
           for its presence in the resulting key set.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getSignature" experimental="true">
+    <p>
+      Return the signature information associated with the given
+      location in the given file. If the signature information
+      for the given file has not yet been computed, or the most
+      recently computed signature information for the given file
+      is out of date, then the response for this request will be
+      delayed until it has been computed.
+
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_SIGNATURE_INVALID_FILE</tt> will be generated.
+
+      If the location given is not inside the argument list for a
+      function (including method and constructor) invocation, then
+      an error of type <tt>GET_SIGNATURE_INVALID_OFFSET</tt> will
+      be generated. If the location is inside an argument list but
+      the function is not defined or cannot be determined (such as
+      a method invocation where the target has type 'dynamic')
+      then an error of type <tt>GET_SIGNATURE_UNKNOWN_FUNCTION</tt>
+      will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which signature information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The location for which signature information is being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="name">
+        <ref>String</ref>
+        <p>The name of the function being invoked at the given offset.</p>
+      </field>
+      <field name="parameters">
+        <list>
+          <ref>ParameterInfo</ref>
+        </list>
+        <p>A list of information about each of the parameters of the function being invoked.</p>
+      </field>
+      <field name="dartdoc" optional="true">
+        <ref>String</ref>
+        <p>
+          The dartdoc associated with the function being invoked. Other
+          than the removal of the comment delimiters, including leading
+          asterisks in the case of a block comment, the dartdoc is
+          unprocessed markdown. This data is omitted if there is no
+          referenced element, or if the element has no dartdoc.
         </p>
       </field>
     </result>
@@ -1867,6 +1933,65 @@
       </field>
     </result>
   </request>
+  <request method="dartfix" experimental="true">
+    <p>
+      Analyze the specified sources for recommended changes
+      and return a set of suggested edits for those sources.
+      These edits may include changes to sources outside the set
+      of specified sources if a change in a specified source requires it.
+    </p>
+    <params>
+      <field name="included">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the files and directories for which edits should be suggested.
+        </p>
+        <p>
+          If a request is made with a path that is invalid, e.g. is not absolute and normalized,
+          an error of type <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not currently subject to analysis
+          (e.g. because it is not associated with any analysis root specified to analysis.setAnalysisRoots),
+          an error of type <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="suggestions">
+        <list>
+          <ref>DartFixSuggestion</ref>
+        </list>
+        <p>
+          A list of recommended changes that can be automatically made
+          by applying the 'edits' included in this response.
+        </p>
+      </field>
+      <field name="otherSuggestions">
+        <list>
+          <ref>DartFixSuggestion</ref>
+        </list>
+        <p>
+          A list of recommended changes that could not be automatically made.
+        </p>
+      </field>
+      <field name="hasErrors">
+        <ref>bool</ref>
+        <p>
+          True if the analyzed source contains errors that might impact the correctness
+          of the recommended changes that can be automatically applied.
+        </p>
+      </field>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          A list of source edits to apply the recommended changes.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getFixes">
     <p>
       Return the set of fixes that are available for the errors at
@@ -2180,14 +2305,13 @@
       </field>
     </params>
     <result>
-      <field name="edit">
+      <field name="edit" optional="true">
         <ref>SourceFileEdit</ref>
         <p>
-          The edits to be applied in order to make the specified elements
-          accessible. The file to be edited will be the defining compilation
-          unit of the library containing the file specified in the request,
-          which can be different than the file specified in the request if the
-          specified file is a part file.
+          The edits to be applied in order to make the specified elements accessible. The file to be edited will be the
+          defining compilation unit of the library containing the file specified in the request, which can be different
+          than the file specified in the request if the specified file is a part file. This field will be omitted if
+          there are no edits that need to be applied.
         </p>
       </field>
     </result>
@@ -3130,6 +3254,13 @@
           is not a class member, this field will be absent.
         </p>
       </field>
+      <field name="mixinName" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the mixin enclosing this declaration. If the declaration
+          is not a mixin member, this field will be absent.
+        </p>
+      </field>
       <field name="parameters" optional="true">
         <ref>String</ref>
         <p>
@@ -3183,9 +3314,9 @@
   <type name="RuntimeCompletionExpression">
     <p>
       An expression for which we want to know its runtime type.
-      In expressions like `a.b.c.where((e) => e.^)` we want to know the
-      runtime type of `a.b.c` to enforce it statically at the time when we
-      compute completion suggestions, and get better type for `e`.
+      In expressions like 'a.b.c.where((e) => e.^)' we want to know the
+      runtime type of 'a.b.c' to enforce it statically at the time when we
+      compute completion suggestions, and get better type for 'e'.
     </p>
     <object>
       <field name="offset">
@@ -3954,6 +4085,29 @@
         </p>
       </value>
       <value>
+        <code>GET_SIGNATURE_INVALID_FILE</code>
+        <p>
+          An "analysis.getSignature" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_SIGNATURE_INVALID_OFFSET</code>
+        <p>
+          An "analysis.getSignature" request specified an offset
+          which is not a valid location within for the contents of
+          the file specified FilePath.
+        </p>
+      </value>
+      <value>
+        <code>GET_SIGNATURE_UNKNOWN_FUNCTION</code>
+        <p>
+          An "analysis.getSignature" request specified an offset
+          that could not be matched to a function call.
+        </p>
+      </value>
+      <value>
         <code>IMPORT_ELEMENTS_INVALID_FILE</code>
         <p>
           An "edit.importElements" request specified a FilePath that does not
@@ -4050,31 +4204,11 @@
         </p>
       </value>
       <value>
-        <code>UNANALYZED_PRIORITY_FILES</code>
-        <p>
-          An "analysis.setPriorityFiles" request includes one or
-          more files that are not being analyzed.
-        </p>
-        <p>
-          This is a legacy error; it will be removed before the
-          API reaches version 1.0.
-        </p>
-        <!-- TODO(paulberry): remove this error and the code that
-                 generates it. -->
-      </value>
-      <value>
         <code>UNKNOWN_REQUEST</code>
         <p>
           A request was received which the analysis server does
           not recognize, or cannot handle in its current
           configuration.
-        </p>
-      </value>
-      <value>
-        <code>UNKNOWN_SOURCE</code>
-        <p>
-          The analysis server was requested to perform an action
-          on a source that does not exist.
         </p>
       </value>
       <value>
@@ -4098,6 +4232,25 @@
       An identifier used to associate search results with a search
       request.
     </p>
+  </type>
+  <type name="DartFixSuggestion" experimental="true">
+    <p>
+      A suggestion from an edit.dartfix request.
+    </p>
+    <object>
+      <field name="description">
+        <ref>String</ref>
+        <p>
+          A human readable description of the suggested change.
+        </p>
+      </field>
+      <field name="location" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the suggested change.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="SearchResult">
     <p>

@@ -116,6 +116,8 @@ class CastError extends Error {}
  * Error thrown when attempting to throw [:null:].
  */
 class NullThrownError extends Error {
+  @pragma("vm:entry-point")
+  NullThrownError();
   String toString() => "Throw of null.";
 }
 
@@ -139,6 +141,7 @@ class ArgumentError extends Error {
    * If the `message` is not a [String], it is assumed to be a value instead
    * of a message.
    */
+  @pragma("vm:entry-point")
   ArgumentError([this.message])
       : invalidValue = null,
         _hasValue = false,
@@ -157,6 +160,7 @@ class ArgumentError extends Error {
    * names differ from the interface, it might be more useful to use the
    * interface method's argument name (or just rename arguments to match).
    */
+  @pragma("vm:entry-point")
   ArgumentError.value(value, [this.name, this.message])
       : invalidValue = value,
         _hasValue = true;
@@ -168,6 +172,13 @@ class ArgumentError extends Error {
       : _hasValue = false,
         message = "Must not be null",
         invalidValue = null;
+
+  /**
+   * Throws if [argument] is `null`.
+   */
+  static void checkNotNull(Object argument, [String name]) {
+    if (argument == null) throw ArgumentError.notNull(name);
+  }
 
   // Helper functions for toString overridden in subclasses.
   String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";
@@ -202,6 +213,7 @@ class RangeError extends ArgumentError {
   /**
    * Create a new [RangeError] with the given [message].
    */
+  @pragma("vm:entry-point")
   RangeError(var message)
       : start = null,
         end = null,
@@ -234,6 +246,7 @@ class RangeError extends ArgumentError {
    * invalid value, and the [message] can override the default error
    * description.
    */
+  @pragma("vm:entry-point")
   RangeError.range(num invalidValue, int minValue, int maxValue,
       [String name, String message])
       : start = minValue,
@@ -411,6 +424,7 @@ class IndexError extends ArgumentError implements RangeError {
  */
 class FallThroughError extends Error {
   FallThroughError();
+  @pragma("vm:entry-point")
   external FallThroughError._create(String url, int line);
 
   external String toString();
@@ -479,8 +493,10 @@ class NoSuchMethodError extends Error {
  * This [Error] is thrown when an instance cannot implement one of the methods
  * in its signature.
  */
+@pragma("vm:entry-point")
 class UnsupportedError extends Error {
   final String message;
+  @pragma("vm:entry-point")
   UnsupportedError(this.message);
   String toString() => "Unsupported operation: $message";
 }
@@ -538,6 +554,7 @@ class ConcurrentModificationError extends Error {
 }
 
 class OutOfMemoryError implements Error {
+  @pragma("vm:entry-point")
   const OutOfMemoryError();
   String toString() => "Out of Memory";
 
@@ -545,6 +562,7 @@ class OutOfMemoryError implements Error {
 }
 
 class StackOverflowError implements Error {
+  @pragma("vm:entry-point")
   const StackOverflowError();
   String toString() => "Stack Overflow";
 
@@ -560,18 +578,11 @@ class StackOverflowError implements Error {
  */
 class CyclicInitializationError extends Error {
   final String variableName;
+  @pragma("vm:entry-point")
   CyclicInitializationError([this.variableName]);
   String toString() => variableName == null
       ? "Reading static variable during its initialization"
       : "Reading static variable '$variableName' during its initialization";
-}
-
-/// Used by Fasta to throw a compile-time error in a way that is compatible
-/// with compile-time constant evaluation.
-class _ConstantExpressionError {
-  const _ConstantExpressionError();
-
-  external _throw(error);
 }
 
 /// Used by Fasta to wrap constant expressions so an illegal constant expression

@@ -248,6 +248,7 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   return NULL;
 }
 
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
 static void WriteSnapshotFile(const char* filename,
                               const uint8_t* buffer,
                               const intptr_t size) {
@@ -263,20 +264,21 @@ static void WriteSnapshotFile(const char* filename,
   }
   file->Release();
 }
+#endif
 
 static bool WriteInt64(File* file, int64_t size) {
   return file->WriteFully(&size, sizeof(size));
 }
 
-static void WriteAppSnapshot(const char* filename,
-                             uint8_t* vm_data_buffer,
-                             intptr_t vm_data_size,
-                             uint8_t* vm_instructions_buffer,
-                             intptr_t vm_instructions_size,
-                             uint8_t* isolate_data_buffer,
-                             intptr_t isolate_data_size,
-                             uint8_t* isolate_instructions_buffer,
-                             intptr_t isolate_instructions_size) {
+void Snapshot::WriteAppSnapshot(const char* filename,
+                                uint8_t* vm_data_buffer,
+                                intptr_t vm_data_size,
+                                uint8_t* vm_instructions_buffer,
+                                intptr_t vm_instructions_size,
+                                uint8_t* isolate_data_buffer,
+                                intptr_t isolate_data_size,
+                                uint8_t* isolate_instructions_buffer,
+                                intptr_t isolate_instructions_size) {
   File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
@@ -334,35 +336,29 @@ static void WriteAppSnapshot(const char* filename,
 
 void Snapshot::GenerateKernel(const char* snapshot_filename,
                               const char* script_name,
-                              bool strong,
                               const char* package_config) {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
-  Dart_KernelCompilationResult result =
-      dfe.CompileScript(script_name, strong, false, package_config);
-  if (result.status != Dart_KernelCompilationStatus_Ok) {
-    ErrorExit(kErrorExitCode, "%s\n", result.error);
+  uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
+  dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
+  if (kernel_buffer != NULL) {
+    WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
+  } else {
+    Dart_KernelCompilationResult result =
+        dfe.CompileScript(script_name, false, package_config);
+    if (result.status != Dart_KernelCompilationStatus_Ok) {
+      ErrorExit(kErrorExitCode, "%s\n", result.error);
+    }
+    WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
   }
-  WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
 #else
   UNREACHABLE();
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
 }
 
-void Snapshot::GenerateScript(const char* snapshot_filename) {
-  // First create a snapshot.
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
-  Dart_Handle result = Dart_CreateScriptSnapshot(&buffer, &size);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-
-  WriteSnapshotFile(snapshot_filename, buffer, size);
-}
-
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #if defined(TARGET_ARCH_IA32)
-  // Snapshots with code are not supported on IA32 or DBC.
+  // Snapshots with code are not supported on IA32.
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
 
@@ -381,7 +377,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   intptr_t isolate_instructions_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshotAsBlobs(
       &isolate_data_buffer, &isolate_data_size, &isolate_instructions_buffer,
-      &isolate_instructions_size);
+      &isolate_instructions_size, NULL);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

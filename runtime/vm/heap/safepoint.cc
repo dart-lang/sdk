@@ -81,20 +81,22 @@ void SafepointHandler::SafepointThreads(Thread* T) {
     Thread* current = isolate()->thread_registry()->active_list();
     while (current != NULL) {
       MonitorLocker tl(current->thread_lock());
-      if (current != T) {
-        uint32_t state = current->SetSafepointRequested(true);
-        if (!Thread::IsAtSafepoint(state)) {
-          // Thread is not already at a safepoint so try to
-          // get it to a safepoint and wait for it to check in.
-          if (current->IsMutatorThread()) {
-            ASSERT(T->isolate() != NULL);
-            current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
+      if (!current->BypassSafepoints()) {
+        if (current == T) {
+          current->SetAtSafepoint(true);
+        } else {
+          uint32_t state = current->SetSafepointRequested(true);
+          if (!Thread::IsAtSafepoint(state)) {
+            // Thread is not already at a safepoint so try to
+            // get it to a safepoint and wait for it to check in.
+            if (current->IsMutatorThread()) {
+              ASSERT(T->isolate() != NULL);
+              current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
+            }
+            MonitorLocker sl(safepoint_lock_);
+            ++number_threads_not_at_safepoint_;
           }
-          MonitorLocker sl(safepoint_lock_);
-          ++number_threads_not_at_safepoint_;
         }
-      } else {
-        current->SetAtSafepoint(true);
       }
       current = current->next();
     }
@@ -133,13 +135,15 @@ void SafepointHandler::ResumeThreads(Thread* T) {
   Thread* current = isolate()->thread_registry()->active_list();
   while (current != NULL) {
     MonitorLocker tl(current->thread_lock());
-    if (current != T) {
-      uint32_t state = current->SetSafepointRequested(false);
-      if (Thread::IsBlockedForSafepoint(state)) {
-        tl.Notify();
+    if (!current->BypassSafepoints()) {
+      if (current == T) {
+        current->SetAtSafepoint(false);
+      } else {
+        uint32_t state = current->SetSafepointRequested(false);
+        if (Thread::IsBlockedForSafepoint(state)) {
+          tl.Notify();
+        }
       }
-    } else {
-      current->SetAtSafepoint(false);
     }
     current = current->next();
   }
@@ -173,6 +177,7 @@ void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
 }
 
 void SafepointHandler::BlockForSafepoint(Thread* T) {
+  ASSERT(!T->BypassSafepoints());
   MonitorLocker tl(T->thread_lock());
   if (T->IsSafepointRequested()) {
     T->SetAtSafepoint(true);

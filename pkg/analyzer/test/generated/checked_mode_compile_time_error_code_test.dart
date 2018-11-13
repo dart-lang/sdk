@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.generated.checked_mode_compile_time_error_code_test;
 
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -419,10 +417,13 @@ const int y = 1;
 var v = const C<String>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-      StaticTypeWarningCode.INVALID_ASSIGNMENT
-    ]);
+    assertErrors(
+      source,
+      [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT
+      ],
+    );
     verify([source]);
   }
 
@@ -451,7 +452,10 @@ const int y = 1;
 var v = const C<int>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertErrors(
+      source,
+      [StaticTypeWarningCode.INVALID_ASSIGNMENT],
+    );
     verify([source]);
   }
 
@@ -644,7 +648,7 @@ class C {
 class D extends C {
   const D(d) : super(d);
 }
-const f = const D(0);
+const f = const D('0.0');
 ''');
     await computeAnalysisResult(source);
     assertErrors(

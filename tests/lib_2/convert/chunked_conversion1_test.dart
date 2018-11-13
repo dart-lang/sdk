@@ -163,7 +163,7 @@ main() {
   specialBCounter = 0;
   hasExecuted = false;
 
-  // Test identity converter indidivually.
+  // Test identity converter individually.
   var identityConverter = new IdentityConverter();
   hasExecuted = false;
   sink = new ChunkedConversionSink.withCallback((value) {

@@ -34,18 +34,23 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   Stdin._(Stream<List<int>> stream, this._fd) : super(stream);
 
   /**
-   * Synchronously read a line from stdin. This call will block until a full
-   * line is available.
+   * Read a line from stdin.
    *
-   * The argument [encoding] can be used to changed how the input should be
-   * decoded. Default is [systemEncoding].
+   * Blocks until a full line is available.
    *
-   * If [retainNewlines] is `false`, the returned String will not contain the
-   * final newline. If `true`, the returned String will contain the line
+   * Lines my be terminated by either `<CR><LF>` or `<LF>`. On Windows in cases
+   * where the [stdioType] of stdin is [StdioType.termimal] the terminator may
+   * also be a single `<CR>`.
+   *
+   * Input bytes are converted to a string by [encoding].
+   * If [encoding] is omitted, it defaults to [systemEncoding].
+   *
+   * If [retainNewlines] is `false`, the returned String will not include the
+   * final line terminator. If `true`, the returned String will include the line
    * terminator. Default is `false`.
    *
    * If end-of-file is reached after any bytes have been read from stdin,
-   * that data is returned.
+   * that data is returned without a line terminator.
    * Returns `null` if no bytes preceded the end of input.
    */
   String readLineSync(
@@ -198,6 +203,10 @@ class Stdin extends _StdStream implements Stream<List<int>> {
  *
  * This class can also be used to check whether `stdout` or `stderr` is
  * connected to a terminal and query some terminal properties.
+ *
+ * The [addError] API is inherited from  [StreamSink] and calling it will result
+ * in an unhandled asynchronous error unless there is an error handler on
+ * [done].
  */
 class Stdout extends _StdSink implements IOSink {
   final int _fd;
@@ -387,7 +396,7 @@ int _stdinFD = 0;
 int _stdoutFD = 1;
 int _stderrFD = 2;
 
-// This is an embedder entrypoint.
+@pragma('vm:entry-point')
 void _setStdioFDs(int stdin, int stdout, int stderr) {
   _stdinFD = stdin;
   _stdoutFD = stdout;
@@ -403,6 +412,10 @@ Stdin get stdin {
 }
 
 /// The standard output stream of data written by this program.
+///
+/// The `addError` API is inherited from  `StreamSink` and calling it will
+/// result in an unhandled asynchronous error unless there is an error handler
+/// on `done`.
 Stdout get stdout {
   if (_stdout == null) {
     _stdout = _StdIOUtils._getStdioOutputStream(_stdoutFD);
@@ -411,6 +424,10 @@ Stdout get stdout {
 }
 
 /// The standard output stream of errors written by this program.
+///
+/// The `addError` API is inherited from  `StreamSink` and calling it will
+/// result in an unhandled asynchronous error unless there is an error handler
+/// on `done`.
 Stdout get stderr {
   if (_stderr == null) {
     _stderr = _StdIOUtils._getStdioOutputStream(_stderrFD);

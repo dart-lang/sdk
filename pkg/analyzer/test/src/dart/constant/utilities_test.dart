@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.src.dart.constant.utilities_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -57,8 +54,8 @@ class ConstantFinderTest {
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst = AstTestFactory
-        .annotation(AstTestFactory.identifier3('x'))
+    _node = elementAnnotation.annotationAst =
+        AstTestFactory.annotation(AstTestFactory.identifier3('x'))
           ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
@@ -121,7 +118,7 @@ class ConstantFinderTest {
   void test_visitVariableDeclaration_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         hasConstConstructor: true);
-    expect(_findConstants(), contains(field.element));
+    expect(_findConstants(), contains(field.declaredElement));
   }
 
   void test_visitVariableDeclaration_final_outsideClass() {
@@ -142,28 +139,28 @@ class ConstantFinderTest {
   void test_visitVariableDeclaration_static_const_inClass() {
     VariableDeclaration field =
         _setupFieldDeclaration('C', 'f', Keyword.CONST, isStatic: true);
-    expect(_findConstants(), contains(field.element));
+    expect(_findConstants(), contains(field.declaredElement));
   }
 
   void
       test_visitVariableDeclaration_static_const_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.CONST,
         isStatic: true, hasConstConstructor: true);
-    expect(_findConstants(), contains(field.element));
+    expect(_findConstants(), contains(field.declaredElement));
   }
 
   void
       test_visitVariableDeclaration_static_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         isStatic: true, hasConstConstructor: true);
-    expect(_findConstants(), isNot(contains(field.element)));
+    expect(_findConstants(), isNot(contains(field.declaredElement)));
   }
 
   void
       test_visitVariableDeclaration_uninitialized_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         isInitialized: false, hasConstConstructor: true);
-    expect(_findConstants(), isNot(contains(field.element)));
+    expect(_findConstants(), isNot(contains(field.declaredElement)));
   }
 
   void test_visitVariableDeclaration_uninitialized_static_const_inClass() {
@@ -252,7 +249,7 @@ class ConstantFinderTest {
       constructorDeclaration.element = constructorElement;
       classElement.constructors = <ConstructorElement>[constructorElement];
     } else {
-      classElement.constructors = ConstructorElement.EMPTY_LIST;
+      classElement.constructors = const <ConstructorElement>[];
     }
     return variableDeclaration;
   }
@@ -275,14 +272,8 @@ class ConstantFinderTest {
 
 @reflectiveTest
 class ReferenceFinderTest {
-  DirectedGraph<ConstantEvaluationTarget> _referenceGraph;
-  VariableElement _head;
   Element _tail;
-
-  void setUp() {
-    _referenceGraph = new DirectedGraph<ConstantEvaluationTarget>();
-    _head = ElementFactory.topLevelVariableElement2("v1");
-  }
+  List<ConstantEvaluationTarget> _dependencies = [];
 
   void test_visitSimpleIdentifier_const() {
     _visitNode(_makeTailVariable("v2", true));
@@ -307,20 +298,14 @@ class ReferenceFinderTest {
   }
 
   void _assertNoArcs() {
-    Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
-    expect(tails, hasLength(0));
+    expect(_dependencies, isEmpty);
   }
 
   void _assertOneArc(Element tail) {
-    Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
-    expect(tails, hasLength(1));
-    expect(tails.first, same(tail));
+    expect(_dependencies, hasLength(1));
+    expect(_dependencies[0], same(tail));
   }
 
-  ReferenceFinder _createReferenceFinder(ConstantEvaluationTarget source) =>
-      new ReferenceFinder((ConstantEvaluationTarget dependency) {
-        _referenceGraph.addEdge(source, dependency);
-      });
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
     List<ConstructorInitializer> initializers =
@@ -356,7 +341,10 @@ class ReferenceFinderTest {
   }
 
   void _visitNode(AstNode node) {
-    node.accept(_createReferenceFinder(_head));
+    var referenceFinder = new ReferenceFinder((dependency) {
+      _dependencies.add(dependency);
+    });
+    node.accept(referenceFinder);
   }
 }
 

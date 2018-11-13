@@ -12,6 +12,7 @@ Uri _unsupportedUriBase() {
 
 // _uriBaseClosure can be overwritten by the embedder to supply a different
 // value for Uri.base.
+@pragma("vm:entry-point")
 _UriBaseClosure _uriBaseClosure = _unsupportedUriBase;
 
 @patch

@@ -6,7 +6,7 @@ library fasta.tool.command_line;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exit, exitCode;
+import 'dart:io' show exit, stderr;
 
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
@@ -26,9 +26,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
@@ -62,6 +59,7 @@ class CommandLineProblem {
 class ParsedArguments {
   final Map<String, dynamic> options = <String, dynamic>{};
   final List<String> arguments = <String>[];
+  final Map<String, String> defines = <String, String>{};
 
   toString() => "ParsedArguments($options, $arguments)";
 
@@ -111,11 +109,16 @@ class ParsedArguments {
     while (iterator.moveNext()) {
       String argument = iterator.current;
       if (argument.startsWith("-") || argument == "/?" || argument == "/h") {
-        index = argument.indexOf("=");
         String value;
-        if (index != -1) {
-          value = argument.substring(index + 1);
-          argument = argument.substring(0, index);
+        if (argument.startsWith("-D")) {
+          value = argument.substring("-D".length);
+          argument = "-D";
+        } else {
+          index = argument.indexOf("=");
+          if (index != -1) {
+            value = argument.substring(index + 1);
+            argument = argument.substring(0, index);
+          }
         }
         var valueSpecification = specification[argument];
         if (valueSpecification == null) {
@@ -123,7 +126,9 @@ class ParsedArguments {
               "Unknown option '$argument'.");
         }
         String canonicalArgument = argument;
-        if (valueSpecification is String && valueSpecification != ",") {
+        if (valueSpecification is String &&
+            valueSpecification != "," &&
+            valueSpecification != "<define>") {
           canonicalArgument = valueSpecification;
           valueSpecification = specification[valueSpecification];
         }
@@ -147,6 +152,20 @@ class ParsedArguments {
             result.options
                 .putIfAbsent(argument, () => <String>[])
                 .addAll(value.split(","));
+            break;
+
+          case "<define>":
+            int index = value.indexOf('=');
+            String name;
+            String expression;
+            if (index != -1) {
+              name = value.substring(0, index);
+              expression = value.substring(index + 1);
+            } else {
+              name = value;
+              expression = value;
+            }
+            result.defines[name] = expression;
             break;
 
           case "int":
@@ -216,26 +235,27 @@ class ParsedArguments {
 //  * Document the option.
 //  * Get an explicit approval from the front-end team.
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
+  "--bytecode": false,
   "--compile-sdk": Uri,
   "--dump-ir": false,
   "--exclude-source": false,
   "--fatal": ",",
   "--help": false,
   "--legacy": "--legacy-mode",
-  "--legacy-mode": true,
+  "--legacy-mode": false,
   "--libraries-json": Uri,
   "--output": Uri,
   "--packages": Uri,
   "--platform": Uri,
   "--sdk": Uri,
-  "--single-root-scheme": String,
   "--single-root-base": Uri,
-  "--strong": "--strong-mode",
-  "--strong-mode": false,
+  "--single-root-scheme": String,
+  "--supermixin": true,
   "--sync-async": true,
   "--target": String,
   "--verbose": false,
   "--verify": false,
+  "-D": "<define>",
   "-h": "--help",
   "-o": "--output",
   "-t": "--target",
@@ -266,14 +286,14 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  final bool strongMode = options["--strong-mode"] || !options["--legacy-mode"];
+  final bool legacyMode = options["--legacy-mode"];
 
   final bool syncAsync = options["--sync-async"];
 
   final String targetName = options["--target"] ?? "vm";
 
   final TargetFlags flags =
-      new TargetFlags(strongMode: strongMode, syncAsync: syncAsync);
+      new TargetFlags(legacyMode: legacyMode, syncAsync: syncAsync);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -296,6 +316,8 @@ ProcessedOptions analyzeCommandLine(
   final bool errorsAreFatal = fatal.contains("errors");
 
   final bool warningsAreFatal = fatal.contains("warnings");
+
+  final bool bytecode = options["--bytecode"];
 
   final bool compileSdk = options.containsKey("--compile-sdk");
 
@@ -332,23 +354,24 @@ ProcessedOptions analyzeCommandLine(
     }
 
     return new ProcessedOptions(
-        new CompilerOptions()
+        options: new CompilerOptions()
           ..sdkSummary = options["--platform"]
           ..librariesSpecificationUri =
               resolveInputUri(arguments[1], extraSchemes: extraSchemes)
           ..setExitCodeOnProblem = true
           ..fileSystem = fileSystem
           ..packagesFileUri = packages
-          ..strongMode = strongMode
+          ..legacyMode = legacyMode
           ..target = target
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
           ..verbose = verbose
-          ..verify = verify,
-        <Uri>[Uri.parse(arguments[0])],
-        resolveInputUri(arguments[3], extraSchemes: extraSchemes));
+          ..verify = verify
+          ..bytecode = bytecode,
+        inputs: <Uri>[Uri.parse(arguments[0])],
+        output: resolveInputUri(arguments[3], extraSchemes: extraSchemes));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
@@ -363,7 +386,8 @@ ProcessedOptions analyzeCommandLine(
   final Uri platform = compileSdk
       ? null
       : (options["--platform"] ??
-          computePlatformBinariesLocation().resolve("vm_platform.dill"));
+          computePlatformBinariesLocation(forceBuildDir: true).resolve(
+              legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
@@ -371,7 +395,7 @@ ProcessedOptions analyzeCommandLine(
     ..sdkRoot = sdk
     ..sdkSummary = platform
     ..packagesFileUri = packages
-    ..strongMode = strongMode
+    ..legacyMode = legacyMode
     ..target = target
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
@@ -388,14 +412,15 @@ ProcessedOptions analyzeCommandLine(
       inputs.add(resolveInputUri(argument, extraSchemes: extraSchemes));
     }
   }
-  return new ProcessedOptions(compilerOptions, inputs, output);
+  return new ProcessedOptions(
+      options: compilerOptions, inputs: inputs, output: output);
 }
 
-dynamic withGlobalOptions(
+Future<T> withGlobalOptions<T>(
     String programName,
     List<String> arguments,
     bool areRestArgumentsInputs,
-    dynamic f(CompilerContext context, List<String> restArguments)) {
+    Future<T> f(CompilerContext context, List<String> restArguments)) {
   bool verbose = false;
   for (String argument in arguments) {
     if (argument == "--") break;
@@ -408,15 +433,22 @@ dynamic withGlobalOptions(
   ProcessedOptions options;
   CommandLineProblem problem;
   try {
+    if (arguments.contains("--strong") &&
+        arguments.contains("--target=flutter")) {
+      // TODO(ahe): Temporarily ignore option to unbreak flutter build.
+      arguments = new List<String>.from(arguments);
+      arguments.remove("--strong");
+      stderr.writeln("Note: the option '--strong' is deprecated.");
+    }
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
         programName, parsedArguments, areRestArgumentsInputs, verbose);
   } on CommandLineProblem catch (e) {
-    options = new ProcessedOptions(new CompilerOptions());
+    options = new ProcessedOptions();
     problem = e;
   }
 
-  return CompilerContext.runWithOptions(options, (c) {
+  return CompilerContext.runWithOptions<T>(options, (c) {
     if (problem != null) {
       print(computeUsage(programName, verbose).message);
       print(c.formatWithoutLocation(problem.message, Severity.error));
@@ -478,10 +510,6 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     // DebugAbort should never happen in production code, so we want test.py to
     // treat this as a crash which is signalled by exiting with 255.
     exit(255);
-  } on deprecated_InputError catch (e) {
-    exitCode = 1;
-    await CompilerContext.runWithDefaultOptions((c) =>
-        new Future<void>.sync(() => c.report(e.message, Severity.error)));
   }
   return failingValue;
 }

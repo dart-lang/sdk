@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
@@ -17,9 +17,9 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
-    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
-    var outputUnitForMember =
-        compiler.backend.outputUnitData.outputUnitForMember;
+    var closedWorld = compiler.backendClosedWorldForTesting;
+    var env = closedWorld.elementEnvironment;
+    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var inlineMeAway = env.lookupLibraryMember(lib1, "inlineMeAway");

@@ -2,7 +2,7 @@
 
 leafp@google.com
 
-Status: Draft
+**Status**: Implemented.
 
 This is intended to define the core of the Dart 2.0 static and runtime subtyping
 relation.

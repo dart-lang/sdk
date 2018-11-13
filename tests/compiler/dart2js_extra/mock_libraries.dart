@@ -228,7 +228,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'interceptedTypeCheck': 'interceptedTypeCheck(value, property) {}',
   'intTypeCast': 'intTypeCast(value) {}',
   'intTypeCheck': 'intTypeCheck(value) {}',
-  'IrRepresentation': 'class IrRepresentation {}',
   'isJsIndexable': 'isJsIndexable(a, b) {}',
   'JavaScriptIndexingBehavior': 'abstract class JavaScriptIndexingBehavior {}',
   'JSInvocationMirror': r'''

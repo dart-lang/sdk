@@ -1840,6 +1840,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
                                       CanBeSmi can_be_smi,
                                       BarrierFilterMode how_to_jump) {
   if (can_be_smi == kValueIsNotSmi) {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
     COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
                    (kOldObjectAlignmentOffset == 0));
     // Write-barrier triggers if the value is in the new space (has bit set) and
@@ -1864,12 +1870,13 @@ void Assembler::StoreIntoObjectFilter(Register object,
   j(condition, label, distance);
 }
 
-// Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+
   movl(dest, value);
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
@@ -1880,7 +1887,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  call(Address(THR, Thread::write_barrier_entry_point_offset()));
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }
@@ -2090,7 +2097,6 @@ void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
 }
 
 void Assembler::CallToRuntime() {
-  movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
@@ -2227,6 +2233,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     movl(FieldAddress(instance_reg, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);
@@ -2271,6 +2278,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
     movl(FieldAddress(instance, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);
@@ -2424,12 +2432,6 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   movl(result, Address(result, offset));
   ASSERT(kSizeOfClassPairLog2 == 3);
   movl(result, Address(result, class_id, TIMES_8, 0));
-}
-
-void Assembler::LoadClass(Register result, Register object, Register scratch) {
-  ASSERT(scratch != result);
-  LoadClassId(scratch, object);
-  LoadClassById(result, scratch);
 }
 
 void Assembler::CompareClassId(Register object,

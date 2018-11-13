@@ -1,9 +1,21 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Error: The non-ASCII character 'æ' (U+00E6) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+// class C {æøC();}
+//          ^
+//
+// pkg/front_end/testcases/rasta/issue_000035.dart:5:11: Error: The non-ASCII character 'ø' (U+00F8) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+// class C {æøC();}
+//           ^
+
 library;
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   abstract method æøC() → dynamic;
 }

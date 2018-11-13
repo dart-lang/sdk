@@ -1192,16 +1192,18 @@ class This extends Expression {
   void visitChildren(NodeVisitor visitor) {}
 
   static bool foundIn(Node node) {
-    _thisFinder.found = false;
-    node.accept(_thisFinder);
-    return _thisFinder.found;
+    var finder = _ThisFinder._instance;
+    finder.found = false;
+    node.accept(finder);
+    return finder.found;
   }
 }
 
-final _thisFinder = _ThisFinder();
-
-class _ThisFinder extends BaseVisitor {
+class _ThisFinder extends BaseVisitor<void> {
   bool found = false;
+
+  static final _instance = _ThisFinder();
+
   visitThis(This node) {
     found = true;
   }

@@ -424,7 +424,7 @@ testSwitch2() {
   return a;
 }
 
-/*element: testSwitch3:Union([null|exact=JSString], [subclass=JSNumber])*/
+/*element: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
 testSwitch3() {
   dynamic a = 42;
   var b;
@@ -461,7 +461,7 @@ testSwitch5() {
   }
 }
 
-/*element: testContinue1:Union([null|exact=JSString], [subclass=JSNumber])*/
+/*element: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
 testContinue1() {
   dynamic a = 42;
   var b;
@@ -593,7 +593,7 @@ testSpecialization2() {
   var a = topLevelGetter();
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
-  (/*kernel.[null|subclass=Object]*/
+  (
       /*strong.[null|exact=JSString]*/
       () => a.toString())();
   a - 42;
@@ -674,7 +674,6 @@ class A {
   /*element: A.generative:[exact=A]*/
   A.generative();
 
-  /*kernel.element: A.==:Union([exact=JSBool], [exact=JSUInt31])*/
   /*strong.element: A.==:[exact=JSBool]*/
   operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
       42 as dynamic;

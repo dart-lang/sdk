@@ -6,6 +6,8 @@ library fasta.scanner;
 
 import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
 
+import 'fasta_codes.dart' show LocatedMessage;
+
 import '../scanner/token.dart' show Token;
 
 import 'scanner/string_scanner.dart' show StringScanner;
@@ -39,6 +41,14 @@ const int unicodeReplacementCharacter = unicodeReplacementCharacterRune;
 typedef Token Recover(List<int> bytes, Token tokens, List<int> lineStarts);
 
 abstract class Scanner {
+  /// A list of errors that occured during [tokenize] or `null` if none.
+  List<LocatedMessage> errors;
+
+  /// Set true if errors should be reported via the [errors] list.
+  // TODO(danrubel): Remove this once all scanner clients can process
+  // errors reported via the [errors] list.
+  bool reportErrors;
+
   /// Returns true if an error occured during [tokenize].
   bool get hasErrors;
 
@@ -52,21 +62,21 @@ class ScannerResult {
   final List<int> lineStarts;
   final bool hasErrors;
 
-  ScannerResult(this.tokens, this.lineStarts, this.hasErrors);
+  /// Returns a list of errors that occured during [tokenize] or `null` if none.
+  final List<LocatedMessage> errors;
+
+  ScannerResult(this.tokens, this.lineStarts, this.hasErrors, this.errors);
 }
 
 /// Scan/tokenize the given UTF8 [bytes].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scan(List<int> bytes,
-    {bool includeComments: false,
-    bool scanGenericMethodComments: false,
-    Recover recover}) {
+    {bool includeComments: false, Recover recover}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
-  Scanner scanner = new Utf8BytesScanner(bytes,
-      includeComments: includeComments,
-      scanGenericMethodComments: scanGenericMethodComments);
+  Scanner scanner =
+      new Utf8BytesScanner(bytes, includeComments: includeComments);
   return _tokenizeAndRecover(scanner, recover, bytes: bytes);
 }
 
@@ -74,13 +84,11 @@ ScannerResult scan(List<int> bytes,
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
     {bool includeComments: false,
-    bool scanGenericMethodComments: false,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   assert(source != null, 'source must not be null');
-  StringScanner scanner = new StringScanner(source,
-      includeComments: includeComments,
-      scanGenericMethodComments: scanGenericMethodComments);
+  StringScanner scanner =
+      new StringScanner(source, includeComments: includeComments);
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 
@@ -92,5 +100,6 @@ ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
     recover ??= defaultRecoveryStrategy;
     tokens = recover(bytes, tokens, scanner.lineStarts);
   }
-  return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
+  return new ScannerResult(
+      tokens, scanner.lineStarts, scanner.hasErrors, scanner.errors);
 }

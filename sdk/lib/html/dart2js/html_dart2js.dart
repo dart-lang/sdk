@@ -142,6 +142,9 @@ class HtmlElement extends Element implements NoncedElement {
  */
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+
+WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1192,18 +1195,15 @@ class BackgroundFetchManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future fetch(String id, Object requests, [Map options]) {
+  Future<BackgroundFetchRegistration> fetch(String id, Object requests,
+      [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _fetch_1(id, requests, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _fetch_2(id, requests);
+    return promiseToFuture<BackgroundFetchRegistration>(
+        JS("", "#.fetch(#, #, #)", this, id, requests, options_dict));
   }
-
-  @JSName('fetch')
-  Future _fetch_1(id, requests, options) native;
-  @JSName('fetch')
-  Future _fetch_2(id, requests) native;
 
   Future<BackgroundFetchRegistration> get(String id) =>
       promiseToFuture<BackgroundFetchRegistration>(
@@ -1840,17 +1840,13 @@ class CacheStorage extends Interceptor {
   Future keys() => promiseToFuture(JS("", "#.keys()", this));
 
   Future match(/*RequestInfo*/ request, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _match_1(request, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _match_2(request);
+    return promiseToFuture(
+        JS("", "#.match(#, #)", this, request, options_dict));
   }
-
-  @JSName('match')
-  Future _match_1(request, options) native;
-  @JSName('match')
-  Future _match_2(request) native;
 
   Future open(String cacheName) =>
       promiseToFuture(JS("", "#.open(#)", this, cacheName));
@@ -2823,18 +2819,14 @@ class Clients extends Interceptor {
 
   Future get(String id) => promiseToFuture(JS("", "#.get(#)", this, id));
 
-  Future matchAll([Map options]) {
+  Future<List<Client>> matchAll([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _matchAll_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _matchAll_2();
+    return promiseToFuture<List<Client>>(
+        JS("", "#.matchAll(#)", this, options_dict));
   }
-
-  @JSName('matchAll')
-  Future _matchAll_1(options) native;
-  @JSName('matchAll')
-  Future _matchAll_2() native;
 
   Future<WindowClient> openWindow(String url) =>
       promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
@@ -2997,30 +2989,21 @@ class CookieStore extends Interceptor {
   }
 
   Future getAll([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _getAll_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _getAll_2();
+    return promiseToFuture(JS("", "#.getAll(#)", this, options_dict));
   }
-
-  @JSName('getAll')
-  Future _getAll_1(options) native;
-  @JSName('getAll')
-  Future _getAll_2() native;
 
   Future set(String name, String value, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _set_1(name, value, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _set_2(name, value);
+    return promiseToFuture(
+        JS("", "#.set(#, #, #)", this, name, value, options_dict));
   }
-
-  @JSName('set')
-  Future _set_1(name, value, options) native;
-  @JSName('set')
-  Future _set_2(name, value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3090,30 +3073,20 @@ class CredentialsContainer extends Interceptor {
   }
 
   Future create([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _create_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _create_2();
+    return promiseToFuture(JS("", "#.create(#)", this, options_dict));
   }
-
-  @JSName('create')
-  Future _create_1(options) native;
-  @JSName('create')
-  Future _create_2() native;
 
   Future get([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _get_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _get_2();
+    return promiseToFuture(JS("", "#.get(#)", this, options_dict));
   }
-
-  @JSName('get')
-  Future _get_1(options) native;
-  @JSName('get')
-  Future _get_2() native;
 
   Future preventSilentAccess() =>
       promiseToFuture(JS("", "#.preventSilentAccess()", this));
@@ -8722,7 +8695,12 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  static DedicatedWorkerGlobalScope get instance {
+    return _workerSelf as DedicatedWorkerGlobalScope;
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17975,25 +17953,18 @@ class ImageCapture extends Interceptor {
       promiseToFuture<ImageBitmap>(JS("", "#.grabFrame()", this));
 
   Future setOptions(Map photoSettings) {
-    var photoSettings_1 = convertDartToNative_Dictionary(photoSettings);
-    return _setOptions_1(photoSettings_1);
+    var photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
+    return promiseToFuture(JS("", "#.setOptions(#)", this, photoSettings_dict));
   }
 
-  @JSName('setOptions')
-  Future _setOptions_1(photoSettings) native;
-
-  Future takePhoto([Map photoSettings]) {
+  Future<Blob> takePhoto([Map photoSettings]) {
+    var photoSettings_dict = null;
     if (photoSettings != null) {
-      var photoSettings_1 = convertDartToNative_Dictionary(photoSettings);
-      return _takePhoto_1(photoSettings_1);
+      photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
     }
-    return _takePhoto_2();
+    return promiseToFuture<Blob>(
+        JS("", "#.takePhoto(#)", this, photoSettings_dict));
   }
-
-  @JSName('takePhoto')
-  Future _takePhoto_1(photoSettings) native;
-  @JSName('takePhoto')
-  Future _takePhoto_2() native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19344,21 +19315,17 @@ class MediaCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future decodingInfo(Map configuration) {
-    var configuration_1 = convertDartToNative_Dictionary(configuration);
-    return _decodingInfo_1(configuration_1);
+  Future<MediaCapabilitiesInfo> decodingInfo(Map configuration) {
+    var configuration_dict = convertDartToNative_Dictionary(configuration);
+    return promiseToFuture<MediaCapabilitiesInfo>(
+        JS("", "#.decodingInfo(#)", this, configuration_dict));
   }
 
-  @JSName('decodingInfo')
-  Future _decodingInfo_1(configuration) native;
-
-  Future encodingInfo(Map configuration) {
-    var configuration_1 = convertDartToNative_Dictionary(configuration);
-    return _encodingInfo_1(configuration_1);
+  Future<MediaCapabilitiesInfo> encodingInfo(Map configuration) {
+    var configuration_dict = convertDartToNative_Dictionary(configuration);
+    return promiseToFuture<MediaCapabilitiesInfo>(
+        JS("", "#.encodingInfo(#)", this, configuration_dict));
   }
-
-  @JSName('encodingInfo')
-  Future _encodingInfo_1(configuration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20166,17 +20133,13 @@ class MediaStreamTrack extends EventTarget {
   final String readyState;
 
   Future applyConstraints([Map constraints]) {
+    var constraints_dict = null;
     if (constraints != null) {
-      var constraints_1 = convertDartToNative_Dictionary(constraints);
-      return _applyConstraints_1(constraints_1);
+      constraints_dict = convertDartToNative_Dictionary(constraints);
     }
-    return _applyConstraints_2();
+    return promiseToFuture(
+        JS("", "#.applyConstraints(#)", this, constraints_dict));
   }
-
-  @JSName('applyConstraints')
-  Future _applyConstraints_1(constraints) native;
-  @JSName('applyConstraints')
-  Future _applyConstraints_2() native;
 
   MediaStreamTrack clone() native;
 
@@ -21562,22 +21525,21 @@ class Navigator extends NavigatorConcurrentHardware
   }
 
   @JSName('requestKeyboardLock')
-  Future _requestKeyboardLock_1(List keyCodes) native;
+  Future _requestKeyboardLock_1(List keyCodes) =>
+      promiseToFuture(JS("", "#.requestKeyboardLock(#)", this, keyCodes));
   @JSName('requestKeyboardLock')
-  Future _requestKeyboardLock_2() native;
+  Future _requestKeyboardLock_2() =>
+      promiseToFuture(JS("", "#.requestKeyboardLock()", this));
 
+  @JSName('requestMIDIAccess')
   Future requestMidiAccess([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestMidiAccess_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _requestMidiAccess_2();
+    return promiseToFuture(
+        JS("", "#.requestMidiAccess(#)", this, options_dict));
   }
-
-  @JSName('requestMIDIAccess')
-  Future _requestMidiAccess_1(options) native;
-  @JSName('requestMIDIAccess')
-  Future _requestMidiAccess_2() native;
 
   Future requestMediaKeySystemAccess(
           String keySystem, List<Map> supportedConfigurations) =>
@@ -21587,17 +21549,12 @@ class Navigator extends NavigatorConcurrentHardware
   bool sendBeacon(String url, Object data) native;
 
   Future share([Map data]) {
+    var data_dict = null;
     if (data != null) {
-      var data_1 = convertDartToNative_Dictionary(data);
-      return _share_1(data_1);
+      data_dict = convertDartToNative_Dictionary(data);
     }
-    return _share_2();
+    return promiseToFuture(JS("", "#.share(#)", this, data_dict));
   }
-
-  @JSName('share')
-  Future _share_1(data) native;
-  @JSName('share')
-  Future _share_2() native;
 
   // From NavigatorAutomationInformation
 
@@ -22748,18 +22705,14 @@ class OffscreenCanvas extends EventTarget {
 
   int width;
 
-  Future convertToBlob([Map options]) {
+  Future<Blob> convertToBlob([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _convertToBlob_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _convertToBlob_2();
+    return promiseToFuture<Blob>(
+        JS("", "#.convertToBlob(#)", this, options_dict));
   }
-
-  @JSName('convertToBlob')
-  Future _convertToBlob_1(options) native;
-  @JSName('convertToBlob')
-  Future _convertToBlob_2() native;
 
   Object getContext(String contextType, [Map attributes]) {
     if (attributes != null) {
@@ -22892,8 +22845,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23269,8 +23221,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23596,12 +23547,10 @@ class PaymentInstruments extends Interceptor {
       promiseToFuture<List<String>>(JS("", "#.keys()", this));
 
   Future set(String instrumentKey, Map details) {
-    var details_1 = convertDartToNative_Dictionary(details);
-    return _set_1(instrumentKey, details_1);
+    var details_dict = convertDartToNative_Dictionary(details);
+    return promiseToFuture(
+        JS("", "#.set(#, #)", this, instrumentKey, details_dict));
   }
-
-  @JSName('set')
-  Future _set_1(instrumentKey, details) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24132,33 +24081,27 @@ class Permissions extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future query(Map permission) {
-    var permission_1 = convertDartToNative_Dictionary(permission);
-    return _query_1(permission_1);
+  Future<PermissionStatus> query(Map permission) {
+    var permission_dict = convertDartToNative_Dictionary(permission);
+    return promiseToFuture<PermissionStatus>(
+        JS("", "#.query(#)", this, permission_dict));
   }
 
-  @JSName('query')
-  Future _query_1(permission) native;
-
-  Future request(Map permissions) {
-    var permissions_1 = convertDartToNative_Dictionary(permissions);
-    return _request_1(permissions_1);
+  Future<PermissionStatus> request(Map permissions) {
+    var permissions_dict = convertDartToNative_Dictionary(permissions);
+    return promiseToFuture<PermissionStatus>(
+        JS("", "#.request(#)", this, permissions_dict));
   }
-
-  @JSName('request')
-  Future _request_1(permissions) native;
 
   Future<PermissionStatus> requestAll(List<Map> permissions) =>
       promiseToFuture<PermissionStatus>(
           JS("", "#.requestAll(#)", this, permissions));
 
-  Future revoke(Map permission) {
-    var permission_1 = convertDartToNative_Dictionary(permission);
-    return _revoke_1(permission_1);
+  Future<PermissionStatus> revoke(Map permission) {
+    var permission_dict = convertDartToNative_Dictionary(permission);
+    return promiseToFuture<PermissionStatus>(
+        JS("", "#.revoke(#)", this, permission_dict));
   }
-
-  @JSName('revoke')
-  Future _revoke_1(permission) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24758,30 +24701,21 @@ class PushManager extends Interceptor {
       promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
 
   Future permissionState([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _permissionState_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _permissionState_2();
+    return promiseToFuture(JS("", "#.permissionState(#)", this, options_dict));
   }
 
-  @JSName('permissionState')
-  Future _permissionState_1(options) native;
-  @JSName('permissionState')
-  Future _permissionState_2() native;
-
-  Future subscribe([Map options]) {
+  Future<PushSubscription> subscribe([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _subscribe_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _subscribe_2();
+    return promiseToFuture<PushSubscription>(
+        JS("", "#.subscribe(#)", this, options_dict));
   }
-
-  @JSName('subscribe')
-  Future _subscribe_1(options) native;
-  @JSName('subscribe')
-  Future _subscribe_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25456,26 +25390,6 @@ class RtcPeerConnection extends EventTarget {
     return false;
   }
 
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer((value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    }, mediaConstraints);
-    return completer.future;
-  }
-
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer((value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    }, mediaConstraints);
-    return completer.future;
-  }
-
   /**
   * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
   * new getStats API.
@@ -25599,47 +25513,14 @@ class RtcPeerConnection extends EventTarget {
 
   void close() native;
 
-  Future _createAnswer(
-      [options_OR_successCallback,
-      RtcPeerConnectionErrorCallback failureCallback,
-      Map mediaConstraints]) {
-    if (options_OR_successCallback == null &&
-        failureCallback == null &&
-        mediaConstraints == null) {
-      return _createAnswer_1();
+  Future<RtcSessionDescription> createAnswer([Map options]) {
+    var options_dict = null;
+    if (options != null) {
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    if ((options_OR_successCallback is Map) &&
-        failureCallback == null &&
-        mediaConstraints == null) {
-      var options_1 =
-          convertDartToNative_Dictionary(options_OR_successCallback);
-      return _createAnswer_2(options_1);
-    }
-    if (failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback) &&
-        mediaConstraints == null) {
-      return _createAnswer_3(options_OR_successCallback, failureCallback);
-    }
-    if (mediaConstraints != null &&
-        failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback)) {
-      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
-      return _createAnswer_4(
-          options_OR_successCallback, failureCallback, mediaConstraints_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return promiseToFuture<RtcSessionDescription>(
+        JS("", "#.createAnswer(#)", this, options_dict));
   }
-
-  @JSName('createAnswer')
-  Future _createAnswer_1() native;
-  @JSName('createAnswer')
-  Future _createAnswer_2(options) native;
-  @JSName('createAnswer')
-  Future _createAnswer_3(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-  @JSName('createAnswer')
-  Future _createAnswer_4(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback, mediaConstraints) native;
 
   @JSName('createDTMFSender')
   RtcDtmfSender createDtmfSender(MediaStreamTrack track) native;
@@ -25657,47 +25538,14 @@ class RtcPeerConnection extends EventTarget {
   @JSName('createDataChannel')
   RtcDataChannel _createDataChannel_2(label) native;
 
-  Future _createOffer(
-      [options_OR_successCallback,
-      RtcPeerConnectionErrorCallback failureCallback,
-      Map rtcOfferOptions]) {
-    if (options_OR_successCallback == null &&
-        failureCallback == null &&
-        rtcOfferOptions == null) {
-      return _createOffer_1();
+  Future<RtcSessionDescription> createOffer([Map options]) {
+    var options_dict = null;
+    if (options != null) {
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    if ((options_OR_successCallback is Map) &&
-        failureCallback == null &&
-        rtcOfferOptions == null) {
-      var options_1 =
-          convertDartToNative_Dictionary(options_OR_successCallback);
-      return _createOffer_2(options_1);
-    }
-    if (failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback) &&
-        rtcOfferOptions == null) {
-      return _createOffer_3(options_OR_successCallback, failureCallback);
-    }
-    if (rtcOfferOptions != null &&
-        failureCallback != null &&
-        (options_OR_successCallback is _RtcSessionDescriptionCallback)) {
-      var rtcOfferOptions_1 = convertDartToNative_Dictionary(rtcOfferOptions);
-      return _createOffer_4(
-          options_OR_successCallback, failureCallback, rtcOfferOptions_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return promiseToFuture<RtcSessionDescription>(
+        JS("", "#.createOffer(#)", this, options_dict));
   }
-
-  @JSName('createOffer')
-  Future _createOffer_1() native;
-  @JSName('createOffer')
-  Future _createOffer_2(options) native;
-  @JSName('createOffer')
-  Future _createOffer_3(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-  @JSName('createOffer')
-  Future _createOffer_4(_RtcSessionDescriptionCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback, rtcOfferOptions) native;
 
   List<MediaStream> getLocalStreams() native;
 
@@ -25723,48 +25571,16 @@ class RtcPeerConnection extends EventTarget {
   @JSName('setConfiguration')
   void _setConfiguration_1(configuration) native;
 
-  Future _setLocalDescription(Map description, VoidCallback successCallback,
-      [RtcPeerConnectionErrorCallback failureCallback]) {
-    var description_1 = convertDartToNative_Dictionary(description);
-    return _setLocalDescription_1(
-        description_1, successCallback, failureCallback);
-  }
-
-  @JSName('setLocalDescription')
-  Future _setLocalDescription_1(description, VoidCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-
-  @JSName('setLocalDescription')
   Future setLocalDescription(Map description) {
-    var completer = new Completer();
-    _setLocalDescription(description, () {
-      completer.complete();
-    }, (exception) {
-      completer.completeError(exception);
-    });
-    return completer.future;
+    var description_dict = convertDartToNative_Dictionary(description);
+    return promiseToFuture(
+        JS("", "#.setLocalDescription(#)", this, description_dict));
   }
 
-  Future _setRemoteDescription(Map description, VoidCallback successCallback,
-      [RtcPeerConnectionErrorCallback failureCallback]) {
-    var description_1 = convertDartToNative_Dictionary(description);
-    return _setRemoteDescription_1(
-        description_1, successCallback, failureCallback);
-  }
-
-  @JSName('setRemoteDescription')
-  Future _setRemoteDescription_1(description, VoidCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback) native;
-
-  @JSName('setRemoteDescription')
   Future setRemoteDescription(Map description) {
-    var completer = new Completer();
-    _setRemoteDescription(description, () {
-      completer.complete();
-    }, (exception) {
-      completer.completeError(exception);
-    });
-    return completer.future;
+    var description_dict = convertDartToNative_Dictionary(description);
+    return promiseToFuture(
+        JS("", "#.setRemoteDescription(#)", this, description_dict));
   }
 
   /// Stream of `addstream` events handled by this [RtcPeerConnection].
@@ -26489,18 +26305,14 @@ class ServiceWorkerContainer extends EventTarget {
       promiseToFuture<List<ServiceWorkerRegistration>>(
           JS("", "#.getRegistrations()", this));
 
-  Future register(String url, [Map options]) {
+  Future<ServiceWorkerRegistration> register(String url, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _register_1(url, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _register_2(url);
+    return promiseToFuture<ServiceWorkerRegistration>(
+        JS("", "#.register(#, #)", this, url, options_dict));
   }
-
-  @JSName('register')
-  Future _register_1(url, options) native;
-  @JSName('register')
-  Future _register_2(url) native;
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
@@ -26546,7 +26358,12 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   Stream<Event> get onInstall => installEvent.forTarget(this);
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  static ServiceWorkerGlobalScope get instance {
+    return _workerSelf as ServiceWorkerGlobalScope;
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26576,31 +26393,23 @@ class ServiceWorkerRegistration extends EventTarget {
 
   final ServiceWorker waiting;
 
-  Future getNotifications([Map filter]) {
+  Future<List<Notification>> getNotifications([Map filter]) {
+    var filter_dict = null;
     if (filter != null) {
-      var filter_1 = convertDartToNative_Dictionary(filter);
-      return _getNotifications_1(filter_1);
+      filter_dict = convertDartToNative_Dictionary(filter);
     }
-    return _getNotifications_2();
+    return promiseToFuture<List<Notification>>(
+        JS("", "#.getNotifications(#)", this, filter_dict));
   }
-
-  @JSName('getNotifications')
-  Future _getNotifications_1(filter) native;
-  @JSName('getNotifications')
-  Future _getNotifications_2() native;
 
   Future showNotification(String title, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _showNotification_1(title, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _showNotification_2(title);
+    return promiseToFuture(
+        JS("", "#.showNotification(#, #)", this, title, options_dict));
   }
-
-  @JSName('showNotification')
-  Future _showNotification_1(title, options) native;
-  @JSName('showNotification')
-  Future _showNotification_2(title) native;
 
   Future<bool> unregister() =>
       promiseToFuture<bool>(JS("", "#.unregister()", this));
@@ -26813,7 +26622,12 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
 
   /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   Stream<Event> get onConnect => connectEvent.forTarget(this);
+
+  static SharedWorkerGlobalScope get instance {
+    return _workerSelf as SharedWorkerGlobalScope;
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29533,30 +29347,20 @@ class VRDevice extends EventTarget {
   final bool isExternal;
 
   Future requestSession([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestSession_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _requestSession_2();
+    return promiseToFuture(JS("", "#.requestSession(#)", this, options_dict));
   }
-
-  @JSName('requestSession')
-  Future _requestSession_1(options) native;
-  @JSName('requestSession')
-  Future _requestSession_2() native;
 
   Future supportsSession([Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _supportsSession_1(options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _supportsSession_2();
+    return promiseToFuture(JS("", "#.supportsSession(#)", this, options_dict));
   }
-
-  @JSName('supportsSession')
-  Future _supportsSession_1(options) native;
-  @JSName('supportsSession')
-  Future _supportsSession_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29775,17 +29579,13 @@ class VRSession extends EventTarget {
   Future end() => promiseToFuture(JS("", "#.end()", this));
 
   Future requestFrameOfReference(String type, [Map options]) {
+    var options_dict = null;
     if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _requestFrameOfReference_1(type, options_1);
+      options_dict = convertDartToNative_Dictionary(options);
     }
-    return _requestFrameOfReference_2(type);
+    return promiseToFuture(
+        JS("", "#.requestFrameOfReference(#, #)", this, type, options_dict));
   }
-
-  @JSName('requestFrameOfReference')
-  Future _requestFrameOfReference_1(type, options) native;
-  @JSName('requestFrameOfReference')
-  Future _requestFrameOfReference_2(type) native;
 
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
@@ -31347,17 +31147,12 @@ class Window extends EventTarget
   bool confirm([String message]) native;
 
   Future fetch(/*RequestInfo*/ input, [Map init]) {
+    var init_dict = null;
     if (init != null) {
-      var init_1 = convertDartToNative_Dictionary(init);
-      return _fetch_1(input, init_1);
+      init_dict = convertDartToNative_Dictionary(init);
     }
-    return _fetch_2(input);
+    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
   }
-
-  @JSName('fetch')
-  Future _fetch_1(input, init) native;
-  @JSName('fetch')
-  Future _fetch_2(input) native;
 
   /**
    * Finds text in this window.
@@ -32399,17 +32194,12 @@ class WorkerGlobalScope extends EventTarget
   final WorkerGlobalScope self;
 
   Future fetch(/*RequestInfo*/ input, [Map init]) {
+    var init_dict = null;
     if (init != null) {
-      var init_1 = convertDartToNative_Dictionary(init);
-      return _fetch_1(input, init_1);
+      init_dict = convertDartToNative_Dictionary(init);
     }
-    return _fetch_2(input);
+    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
   }
-
-  @JSName('fetch')
-  Future _fetch_1(input, init) native;
-  @JSName('fetch')
-  Future _fetch_2(input) native;
 
   void importScripts(String urls) native;
 
@@ -32443,7 +32233,10 @@ class WorkerGlobalScope extends EventTarget
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   Stream<Event> get onError => errorEvent.forTarget(this);
+
+  static WorkerGlobalScope get instance => _workerSelf;
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34393,7 +34186,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   /**
    * Converts a string name with hyphens into an identifier, by removing hyphens
    * and capitalizing the following letter. Optionally [startUppercase] to
-   * captialize the first letter.
+   * capitalize the first letter.
    */
   String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
     var segments = hyphenedName.split('-');
@@ -38666,8 +38459,8 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Fields.
   HistoryBase get history =>
       _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
-  LocationBase get location => _LocationCrossFrame
-      ._createSafe(JS('LocationBase', '#.location', _window));
+  LocationBase get location => _LocationCrossFrame._createSafe(
+      JS('LocationBase', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 

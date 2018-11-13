@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Node extends core::Object {
   final field core::List<self::Node> nested;
   final field core::String name;
-  constructor •(core::String name, [core::List<self::Node> nested]) → void
+  constructor •(core::String name, [core::List<self::Node> nested]) → self::Node
     ;
   method toString() → core::String
     ;

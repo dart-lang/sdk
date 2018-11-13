@@ -7,7 +7,7 @@ import 'deferred_lib.dart' deferred as lib;
 main() {}
 
 test() async {
-  // The current evaluation order will triger the check of lib.m before the
+  // The current evaluation order will trigger the check of lib.m before the
   // loadLibrary call.
   lib.m(await lib.loadLibrary());
 }

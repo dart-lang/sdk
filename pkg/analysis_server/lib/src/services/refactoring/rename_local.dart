@@ -75,11 +75,10 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<void> fillChange() async {
+    var processor = new RenameProcessor(searchEngine, change, newName);
     for (Element element in elements) {
-      addDeclarationEdit(element);
+      processor.addDeclarationEdit(element);
       var references = await searchEngine.searchReferences(element);
 
       // Exclude "implicit" references to optional positional parameters.
@@ -87,7 +86,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
         references.removeWhere((match) => match.sourceRange.length == 0);
       }
 
-      addReferenceEdits(references);
+      processor.addReferenceEdits(references);
     }
   }
 
@@ -116,7 +115,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element nodeElement = node.bestElement;
+    Element nodeElement = node.staticElement;
     if (nodeElement != null && nodeElement.name == newName) {
       // Duplicate declaration.
       if (node.inDeclarationContext() && _isVisibleWithTarget(nodeElement)) {

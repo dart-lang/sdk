@@ -425,7 +425,8 @@ class Operand : public ValueObject {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false);
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -434,8 +435,17 @@ class Assembler : public ValueObject {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  void MoveRegister(Register rd, Register rn) {
+    if (rd != rn) {
+      mov(rd, rn);
+    }
+  }
+
   void Drop(intptr_t stack_elements) {
-    add(SP, SP, Operand(stack_elements * kWordSize));
+    ASSERT(stack_elements >= 0);
+    if (stack_elements > 0) {
+      add(SP, SP, Operand(stack_elements * kWordSize));
+    }
   }
 
   void Bind(Label* label);
@@ -462,10 +472,10 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
 
   RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
+    return object_pool_wrapper_->MakeObjectPool();
   }
 
   bool use_far_branches() const {
@@ -1374,11 +1384,12 @@ class Assembler : public ValueObject {
 
   void Branch(const StubEntry& stub_entry,
               Register pp,
-              Patchability patchable = kNotPatchable);
+              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
+  void BranchLink(
+      const StubEntry& stub_entry,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkToRuntime();
@@ -1456,15 +1467,21 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
-  // Storing into an object.
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             bool lr_reserved = false);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
@@ -1486,21 +1503,24 @@ class Assembler : public ValueObject {
 
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadNativeEntry(Register dst, const ExternalLabel* label);
+  void LoadNativeEntry(Register dst,
+                       const ExternalLabel* label,
+                       ObjectPool::Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
-  void LoadDecodableImmediate(Register reg, int64_t imm);
-  void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm);
   void LoadDImmediate(VRegister reg, double immd);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
   void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadDoubleWordFromPoolOffset(Register lower,
+                                    Register upper,
+                                    uint32_t offset);
 
   void PushObject(const Object& object) {
     LoadObject(TMP, object);
@@ -1509,9 +1529,8 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
-  // Overwrites class_id register.
+  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object);
   void CompareClassId(Register object,
                       intptr_t class_id,
                       Register scratch = kNoRegister);
@@ -1557,10 +1576,14 @@ class Assembler : public ValueObject {
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
+  // Result:
+  //   * [instance_reg] will contain allocated new-space object
+  //   * [top_reg] will contain Thread::top_offset()
   void TryAllocate(const Class& cls,
                    Label* failure,
                    Register instance_reg,
-                   Register temp_reg);
+                   Register top_reg,
+                   bool tag_result = true);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
@@ -1603,7 +1626,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
+  ObjectPoolWrapper* object_pool_wrapper_;
   int32_t prologue_offset_;
   bool has_single_entry_point_;
   bool use_far_branches_;

@@ -4,7 +4,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   String command;
   String outFilePath;
   String sdkPath;
@@ -24,9 +24,9 @@ main(List<String> args) {
   //
   // Validate the SDK path.
   //
-  sdkPath ??= FolderBasedDartSdk
-      .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
-      .path;
+  sdkPath ??=
+      FolderBasedDartSdk.defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
+          .path;
   if (!FileSystemEntity.isDirectorySync('$sdkPath/lib')) {
     print("'$sdkPath/lib' does not exist.");
     _printUsage();
@@ -36,10 +36,8 @@ main(List<String> args) {
   //
   // Handle commands.
   //
-  if (command == 'build-spec') {
-    _buildSummary(sdkPath, outFilePath, false);
-  } else if (command == 'build-strong') {
-    _buildSummary(sdkPath, outFilePath, true);
+  if (command == 'build-strong') {
+    _buildSummary(sdkPath, outFilePath);
   } else {
     _printUsage();
     return;
@@ -51,11 +49,10 @@ main(List<String> args) {
  */
 const BINARY_NAME = "build_sdk_summaries";
 
-void _buildSummary(String sdkPath, String outPath, bool strong) {
-  String modeName = strong ? 'strong' : 'spec';
-  print('Generating $modeName mode summary.');
+void _buildSummary(String sdkPath, String outPath) {
+  print('Generating strong mode summary.');
   Stopwatch sw = new Stopwatch()..start();
-  List<int> bytes = new SummaryBuilder.forSdk(sdkPath, strong).build();
+  List<int> bytes = new SummaryBuilder.forSdk(sdkPath).build();
   new File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
 }
@@ -66,8 +63,6 @@ void _buildSummary(String sdkPath, String outPath, bool strong) {
 void _printUsage() {
   print('Usage: $BINARY_NAME command arguments');
   print('Where command can be one of the following:');
-  print('  build-spec output_file [sdk_path]');
-  print('    Generate spec mode summary file.');
   print('  build-strong output_file [sdk_path]');
   print('    Generate strong mode summary file.');
 }

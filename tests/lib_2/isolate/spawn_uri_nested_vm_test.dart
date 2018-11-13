@@ -9,7 +9,7 @@
 library NestedSpawnUriLibrary;
 
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
+import 'package:expect/async_minitest.dart';
 
 main() {
   test('isolate fromUri - nested send and reply', () {

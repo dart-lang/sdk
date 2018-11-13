@@ -377,7 +377,9 @@ abstract class RawSecureSocket implements RawSocket {
  * X509Certificate represents an SSL certificate, with accessors to
  * get the fields of the certificate.
  */
+@pragma("vm:entry-point")
 abstract class X509Certificate {
+  @pragma("vm:entry-point")
   external factory X509Certificate._();
 
   /// The DER encoded bytes of the certificate.
@@ -1107,9 +1109,15 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
  */
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
+  @pragma("vm:entry-point", "set")
   List<int> data;
+
+  @pragma("vm:entry-point")
   int start;
+
+  @pragma("vm:entry-point")
   int end;
+
   final size;
 
   _ExternalBuffer(this.size) {
@@ -1256,6 +1264,7 @@ class TlsException implements IOException {
   final String message;
   final OSError osError;
 
+  @pragma("vm:entry-point")
   const TlsException([String message = "", OSError osError = null])
       : this._("TlsException", message, osError);
 
@@ -1280,7 +1289,9 @@ class TlsException implements IOException {
  * An exception that happens in the handshake phase of establishing
  * a secure network connection.
  */
+@pragma("vm:entry-point")
 class HandshakeException extends TlsException {
+  @pragma("vm:entry-point")
   const HandshakeException([String message = "", OSError osError = null])
       : super._("HandshakeException", message, osError);
 }
@@ -1291,6 +1302,7 @@ class HandshakeException extends TlsException {
  * certificate.
  */
 class CertificateException extends TlsException {
+  @pragma("vm:entry-point")
   const CertificateException([String message = "", OSError osError = null])
       : super._("CertificateException", message, osError);
 }

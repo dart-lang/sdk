@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
@@ -34,7 +35,7 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
-    String path = provider.pathContext.fromUri(uri);
+    String path = fileUriToNormalizedPath(provider.pathContext, uri);
     File file = workspace.findFile(path);
     if (file != null) {
       return file.createSource(actualUri ?? uri);

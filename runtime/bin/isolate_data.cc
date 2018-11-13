@@ -4,6 +4,7 @@
 
 #include "bin/isolate_data.h"
 #include "bin/snapshot_utils.h"
+#include "platform/growable_array.h"
 
 namespace dart {
 namespace bin {
@@ -50,6 +51,7 @@ IsolateData::~IsolateData() {
   kernel_buffer_size_ = 0;
   delete app_snapshot_;
   app_snapshot_ = NULL;
+  delete dependencies_;
 }
 
 }  // namespace bin

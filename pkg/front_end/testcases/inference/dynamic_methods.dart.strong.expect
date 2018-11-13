@@ -1,9 +1,15 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/inference/dynamic_methods.dart:16:39: Error: 'hashCode' isn't a function or method and can't be invoked.
+//       d. /*@target=Object::hashCode*/ hashCode();
+//                                       ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
   method foo(core::int x) → core::int
@@ -12,7 +18,9 @@ class Foo extends core::Object {
 static method test() → dynamic {
   dynamic d = new self::Foo::•();
   core::int get_hashCode = d.{core::Object::hashCode};
-  dynamic call_hashCode = d.{core::Object::hashCode}();
+  dynamic call_hashCode = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:16:39: Error: 'hashCode' isn't a function or method and can't be invoked.
+      d. /*@target=Object::hashCode*/ hashCode();
+                                      ^" in d.{core::Object::hashCode}();
   core::String call_toString = d.{core::Object::toString}();
   dynamic call_toStringArg = d.toString(color: "pink");
   dynamic call_foo0 = d.foo();

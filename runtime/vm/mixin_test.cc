@@ -29,9 +29,6 @@ TEST_CASE(Mixin_PrivateSuperResolution) {
       "main() {\n"
       "  return new C().bar();\n"
       "}\n",
-    },
-    {
-      "file:///.packages", "untitled:/"
     }};
   // clang-format on
 
@@ -84,11 +81,10 @@ TEST_CASE(Mixin_PrivateSuperResolutionCrossLibraryShouldFail) {
     }};
   // clang-format on
 
-  Isolate* isolate = Isolate::Current();
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       /* resolver= */ NULL, /* finalize= */ true, /* incrementally= */ true);
-  if (isolate->strong()) {
+  if (FLAG_strong) {
     EXPECT_ERROR(lib, "Error: Superclass has no method named '_bar'.");
   } else {
     EXPECT_VALID(lib);

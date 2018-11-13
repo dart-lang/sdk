@@ -23,7 +23,7 @@ import 'package:source_span/source_span.dart';
  * The Dart scripts that are embedded in an HTML file.
  */
 final ListResultDescriptor<DartScript> DART_SCRIPTS =
-    new ListResultDescriptor<DartScript>('DART_SCRIPTS', DartScript.EMPTY_LIST);
+    new ListResultDescriptor<DartScript>('DART_SCRIPTS', const <DartScript>[]);
 
 /**
  * The errors found while parsing an HTML file.
@@ -39,7 +39,8 @@ class DartScript implements Source {
   /**
    * An empty list of scripts.
    */
-  static final List<DartScript> EMPTY_LIST = <DartScript>[];
+  @deprecated
+  static final List<DartScript> EMPTY_LIST = const <DartScript>[];
 
   /**
    * The source containing this script.
@@ -157,9 +158,9 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[REFERENCED_LIBRARIES] =
-        libraries.isEmpty ? Source.EMPTY_LIST : libraries;
+        libraries.isEmpty ? const <Source>[] : libraries;
     outputs[DART_SCRIPTS] =
-        inlineScripts.isEmpty ? DartScript.EMPTY_LIST : inlineScripts;
+        inlineScripts.isEmpty ? const <DartScript>[] : inlineScripts;
   }
 
   /**

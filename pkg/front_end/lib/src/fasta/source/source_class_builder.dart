@@ -19,7 +19,8 @@ import '../fasta_codes.dart'
         templateConflictsWithMember,
         templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning;
+        templateConflictsWithSetterWarning,
+        templateSupertypeIsIllegal;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -80,6 +81,8 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   KernelTypeBuilder mixedInType;
 
+  bool isMixinDeclaration;
+
   SourceClassBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -94,8 +97,9 @@ class SourceClassBuilder extends KernelClassBuilder {
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      [ShadowClass cls,
-      this.mixedInType])
+      {Class cls,
+      this.mixedInType,
+      this.isMixinDeclaration = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
@@ -113,18 +117,23 @@ class SourceClassBuilder extends KernelClassBuilder {
     void buildBuilders(String name, Declaration declaration) {
       do {
         if (declaration.parent != this) {
-          unexpected(
-              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
+          if (fileUri != declaration.parent.fileUri) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          } else {
+            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
+                charOffset, fileUri);
+          }
         } else if (declaration is KernelFieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
           Member field = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(field);
           }
         } else if (declaration is KernelFunctionBuilder) {
           Member function = declaration.build(library);
-          if (!declaration.isPatch) {
+          if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }
         } else {
@@ -139,8 +148,23 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructors.forEach(buildBuilders);
     actualCls.supertype =
         supertype?.buildSupertype(library, charOffset, fileUri);
+    if (!isMixinDeclaration &&
+        actualCls.supertype != null &&
+        actualCls.superclass.isMixinDeclaration) {
+      // Declared mixins have interfaces that can be implemented, but they
+      // cannot be extended.  However, a mixin declaration with a single
+      // superclass constraint is encoded with the constraint as the supertype,
+      // and that is allowed to be a mixin's interface.
+      library.addProblem(
+          templateSupertypeIsIllegal.withArguments(actualCls.superclass.name),
+          charOffset,
+          noLength,
+          fileUri);
+      actualCls.supertype = null;
+    }
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
+    actualCls.isMixinDeclaration = isMixinDeclaration;
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
@@ -161,15 +185,15 @@ class SourceClassBuilder extends KernelClassBuilder {
       if (!member.isStatic) return;
       // TODO(ahe): Revisit these messages. It seems like the last two should
       // be `context` parameter to this message.
-      addCompileTimeError(templateConflictsWithMember.withArguments(name),
+      addProblem(templateConflictsWithMember.withArguments(name),
           constructor.charOffset, noLength);
       if (constructor.isFactory) {
-        addCompileTimeError(
+        addProblem(
             templateConflictsWithFactory.withArguments("${this.name}.${name}"),
             member.charOffset,
             noLength);
       } else {
-        addCompileTimeError(
+        addProblem(
             templateConflictsWithConstructor
                 .withArguments("${this.name}.${name}"),
             member.charOffset,

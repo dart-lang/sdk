@@ -48,6 +48,9 @@ constexpr bool kDartPrecompiledRuntime = false;
 //   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
+  P(experimental_unsafe_mode_use_at_your_own_risk, bool, false,                \
+    "Omit runtime strong mode type checks and disable optimizations based on " \
+    "types.")                                                                  \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
@@ -62,6 +65,9 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Collects all dynamic function names to identify unique targets")          \
   P(compactor_tasks, int, 2,                                                   \
     "The number of tasks to use for parallel compaction.")                     \
+  P(compilation_counter_threshold, int, 10,                                    \
+    "Function's usage-counter value before interpreted function is compiled, " \
+    "-1 means never")                                                          \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
@@ -111,7 +117,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
-  R(marker_tasks, USING_MULTICORE ? 2 : 0, int, USING_MULTICORE ? 2 : 0,       \
+  P(marker_tasks, int, USING_MULTICORE ? 2 : 0,                                \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
   P(max_polymorphic_checks, int, 4,                                            \
@@ -122,7 +128,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
-  P(omit_strong_type_checks, bool, false, "Omit strong mode type checks.")     \
   P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
@@ -136,9 +141,6 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
-  P(print_precompiler_entry_points, charp, NULL,                               \
-    "Print entry points and info about recognized methods used by "            \
-    "precompiler.")                                                            \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_snapshot_sizes_verbose, bool, false,                                 \
     "Print cluster sizes of generated snapshots.")                             \
@@ -154,22 +156,20 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
-  P(reify_generic_functions, bool, false,                                      \
+  P(reify_generic_functions, bool, true,                                       \
     "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong, bool, false, "Enable strong mode.")                                \
-  P(sync_async, bool, false, "Start `async` functions synchronously.")         \
-  R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
-  R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
+  P(strong, bool, true, "Enable strong mode.")                                 \
+  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \
   R(support_service, false, bool, true, "Support the service protocol.")       \
   R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
-  D(trace_field_guards, bool, false, "Trace changes in field's cids.")         \
+  R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   C(trace_irregexp, false, false, bool, false, "Trace irregexps.")             \
   D(trace_isolates, bool, false, "Trace isolate creation and shut down.")      \
   D(trace_handles, bool, false, "Traces allocation of handles.")               \
@@ -183,6 +183,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
+  C(use_bytecode_compiler, false, false, bool, false, "Compile from bytecode") \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
@@ -201,6 +202,14 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(verify_on_transition, bool, false, "Verify on dart <==> VM.")              \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
-    "TESTING: slow-path triggers a GC.")
+    "TESTING: slow-path triggers a GC.")                                       \
+  P(enable_multiple_entrypoints, bool, true,                                   \
+    "Enable multiple entrypoints per-function and related optimizations.")     \
+  P(enable_testing_pragmas, bool, false,                                       \
+    "Enable magical pragmas for testing purposes. Use at your own risk!")      \
+  R(eliminate_type_checks, true, bool, true,                                   \
+    "Eliminate type checks when allowed by static type analysis.")             \
+  P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")   \
+  D(support_rr, bool, false, "Support running within RR.")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

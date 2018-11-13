@@ -17,7 +17,7 @@ import 'element_helpers.dart' show isInlineJS;
 
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
-class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
+class CoercionReifier extends analyzer.GeneralizingAstVisitor<void> {
   final cloner = _TreeCloner();
 
   CoercionReifier._();

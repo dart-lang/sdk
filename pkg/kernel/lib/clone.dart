@@ -20,6 +20,7 @@ class CloneVisitor implements TreeVisitor {
       <LabeledStatement, LabeledStatement>{};
   final Map<SwitchCase, SwitchCase> switchCases = <SwitchCase, SwitchCase>{};
   final Map<TypeParameter, DartType> typeSubstitution;
+  final Map<TypeParameter, TypeParameter> typeParams;
   bool cloneAnnotations;
 
   /// Creates an instance of the cloning visitor for Kernel ASTs.
@@ -29,8 +30,10 @@ class CloneVisitor implements TreeVisitor {
   /// annotations in procedure bodies are cloned unconditionally.
   CloneVisitor(
       {Map<TypeParameter, DartType> typeSubstitution,
+      Map<TypeParameter, TypeParameter> typeParams,
       this.cloneAnnotations = true})
-      : this.typeSubstitution = ensureMutable(typeSubstitution);
+      : this.typeSubstitution = ensureMutable(typeSubstitution),
+        this.typeParams = typeParams ?? <TypeParameter, TypeParameter>{};
 
   static Map<TypeParameter, DartType> ensureMutable(
       Map<TypeParameter, DartType> map) {
@@ -269,31 +272,6 @@ class CloneVisitor implements TreeVisitor {
     return new Let(newVariable, clone(node.body));
   }
 
-  visitVectorCreation(VectorCreation node) {
-    return new VectorCreation(node.length);
-  }
-
-  visitClosureCreation(ClosureCreation node) {
-    return new ClosureCreation.byReference(
-        node.topLevelFunctionReference,
-        cloneOptional(node.contextVector),
-        visitOptionalType(node.functionType),
-        node.typeArguments.map(visitType).toList());
-  }
-
-  visitVectorSet(VectorSet node) {
-    return new VectorSet(
-        clone(node.vectorExpression), node.index, clone(node.value));
-  }
-
-  visitVectorGet(VectorGet node) {
-    return new VectorGet(clone(node.vectorExpression), node.index);
-  }
-
-  visitVectorCopy(VectorCopy node) {
-    return new VectorCopy(clone(node.vectorExpression));
-  }
-
   visitExpressionStatement(ExpressionStatement node) {
     return new ExpressionStatement(clone(node.expression));
   }
@@ -345,7 +323,8 @@ class CloneVisitor implements TreeVisitor {
   visitForInStatement(ForInStatement node) {
     var newVariable = clone(node.variable);
     return new ForInStatement(
-        newVariable, clone(node.iterable), clone(node.body));
+        newVariable, clone(node.iterable), clone(node.body),
+        isAsync: node.isAsync);
   }
 
   visitSwitchStatement(SwitchStatement node) {
@@ -485,8 +464,11 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitTypeParameter(TypeParameter node) {
-    var newNode = new TypeParameter(node.name);
-    typeSubstitution[node] = new TypeParameterType(newNode);
+    TypeParameter newNode = typeParams[node];
+    if (newNode == null) {
+      newNode = new TypeParameter(node.name);
+      typeSubstitution[node] = new TypeParameterType(newNode);
+    }
     newNode.bound = visitType(node.bound);
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType);

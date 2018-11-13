@@ -25,7 +25,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
     // Determine if the target looks like a library prefix
     Expression targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
-      Element elem = targetId.bestElement;
+      Element elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
         LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library or directives
@@ -38,7 +38,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   List<CompletionSuggestion> _buildSuggestions(

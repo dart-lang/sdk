@@ -62,7 +62,16 @@ SimpleIdentifier _getTargetId(AstNode node) {
       }
     }
     if (parent is Annotation) {
-      return parent.constructorName ?? parent.name;
+      SimpleIdentifier name = parent.constructorName;
+      if (name == null) {
+        Identifier parentName = parent.name;
+        if (parentName is SimpleIdentifier) {
+          return parentName;
+        } else if (parentName is PrefixedIdentifier) {
+          return parentName.identifier;
+        }
+      }
+      return name;
     }
   }
   return null;
@@ -188,11 +197,11 @@ class ArgListContributor extends DartCompletionContributor {
     // for a method or a constructor or an annotation
     SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
     if (targetId == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
-    Element elem = targetId.bestElement;
+    Element elem = targetId.staticElement;
     if (elem == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     // Generate argument list suggestion based upon the type of element
@@ -212,7 +221,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addSuggestions(elem.parameters);
       return suggestions;
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,

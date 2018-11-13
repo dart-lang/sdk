@@ -1,4 +1,10 @@
-// Errors:
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_29944.dart:7:7: Error: A class member can't have the same name as the enclosing class.
+//   var C;
+//       ^
+
+// Unhandled errors:
 //
 // pkg/front_end/testcases/regress/issue_29944.dart:7:7: Error: A class member can't have the same name as the enclosing class.
 //   var C;
@@ -10,7 +16,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic C = null;
-  constructor •() → void
+  constructor •() → self::C
     : super core::Object::•()
     ;
 }

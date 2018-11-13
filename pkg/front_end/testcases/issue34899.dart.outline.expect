@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Foo<T extends core::Object = dynamic> extends core::Object {
+  final field () → asy::Future<dynamic> quux;
+  field self::Foo::T t;
+  constructor •(() → asy::Future<dynamic> quux, self::Foo::T t) → self::Foo<self::Foo::T>
+    ;
+  method call() → asy::Future<self::Foo::T>
+    ;
+}
+class Bar extends core::Object {
+  field self::Foo<self::Baz> qux;
+  synthetic constructor •() → self::Bar
+    ;
+  method quuz() → asy::Future<void>
+    ;
+  method corge(self::Baz baz) → self::Grault
+    ;
+  method garply(self::Grault grault) → void
+    ;
+}
+class Baz extends core::Object {
+  synthetic constructor •() → self::Baz
+    ;
+}
+class Grault extends core::Object {
+  synthetic constructor •() → self::Grault
+    ;
+}
+static method main() → dynamic
+  ;

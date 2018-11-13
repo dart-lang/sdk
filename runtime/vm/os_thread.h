@@ -204,7 +204,7 @@ class OSThread : public BaseThread {
   static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
   // Called at VM startup and shutdown.
-  static void InitOnce();
+  static void Init();
 
   static bool IsThreadInList(ThreadId id);
 

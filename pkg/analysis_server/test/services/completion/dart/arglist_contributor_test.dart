@@ -145,10 +145,25 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     addSource('/libA.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; @A(^) main() { }');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; @A(^) main() { }');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+  }
+
+  test_Annotation_importedConstructor_prefixed() async {
+    addSource('/libA.dart', '''
+class A {
+  const A({int value});
+}
+''');
+    addTestSource('''
+import "${convertAbsolutePathToUri("/libA.dart")}" as p;
+@p.A(^)
+main() {}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'value': 'int'});
   }
 
   test_Annotation_local_constructor_named_param() async {
@@ -417,13 +432,17 @@ class CustomScrollView extends Widget {
 
   test_ArgumentList_Flutter_MethodExpression_children() async {
     // Ensure we don't generate params for a method call
+    // TODO(brianwilkerson) This test has been changed so that it no longer has
+    // anything to do with Flutter (by moving the declaration of `foo` out of
+    // the 'material' library). Determine whether the test is still valid.
     addFlutterPackage();
 
     addTestSource('''
 import 'package:flutter/material.dart';
 
 main() {
-foo(^);
+  foo(^);
+}
 
 foo({String children}) {}
 ''');
@@ -446,7 +465,7 @@ foo({String children}) {}
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
     addSource('/libA.dart', 'library libA; class A{A({int one}); }');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; main() { new A(^);}');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
@@ -455,7 +474,7 @@ foo({String children}) {}
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
     addSource('/libA.dart', 'library libA; class A{A.foo({int one}); }');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; main() { new A.foo(^);}');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; main() { new A.foo(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
@@ -465,7 +484,7 @@ foo({String children}) {}
     addSource(
         '/libA.dart', 'library libA; class A { A({int i, String s, d}) {} }}');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; main() { var a = new A(^);}');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; main() { var a = new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
@@ -476,7 +495,7 @@ foo({String children}) {}
     addSource(
         '/libA.dart', 'library libA; class A{factory A({int one}) => null;}');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; main() { new A(^);}');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
@@ -486,7 +505,7 @@ foo({String children}) {}
     addSource('/libA.dart',
         'library libA; abstract class A{factory A.foo({int one});}');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; main() { new A.foo(^);}');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; main() { new A.foo(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
@@ -496,7 +515,7 @@ foo({String children}) {}
     addSource('/libA.dart',
         'library libA; class A {factory A({int i, String s, d}) {} }}');
     addTestSource(
-        'import "${convertPathForImport("/libA.dart")}"; main() { var a = new A(^);}');
+        'import "${convertAbsolutePathToUri("/libA.dart")}"; main() { var a = new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
@@ -510,7 +529,7 @@ foo({String children}) {}
       expect() { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect(a^)}''');
@@ -526,7 +545,7 @@ foo({String children}) {}
       expect(String arg) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
@@ -542,7 +561,7 @@ foo({String children}) {}
       expect(String arg1, int arg2) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
@@ -558,7 +577,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
@@ -574,7 +593,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect('hello', ^)}''');
@@ -590,7 +609,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect('hello', ^x)}''');
@@ -606,7 +625,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect('hello', x^)}''');
@@ -622,7 +641,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B { }
       String bar() => true;
       void main() {expect('hello', x ^)}''');
@@ -891,7 +910,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_1() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg) { }
       class B { }
       String bar() => true;
@@ -903,7 +921,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2) { }
       class B { }
       String bar() => true;
@@ -915,7 +932,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2) { }
       class B { }
       String bar() => true;
@@ -927,7 +943,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -939,7 +954,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -951,7 +965,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -963,7 +976,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -1018,7 +1030,7 @@ main() { f("16", radix: ^);}''');
       bool hasLength(int expected) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B {
         expect() { }
         void foo() {expect(^)}}
@@ -1034,7 +1046,7 @@ main() { f("16", radix: ^);}''');
       bool hasLength(int expected) { }
       void baz() { }''');
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
+      import '${convertAbsolutePathToUri('/libA.dart')}'
       class B {
         expect(arg, int blat) { }
         void foo() {expect(^)}}

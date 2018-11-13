@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(TruncDivOperator, "~/")                                                    \
   V(UnaryMinus, "unary-")                                                      \
   V(Identical, "identical")                                                    \
+  V(UnsafeCast, "unsafeCast")                                                  \
   V(Length, "length")                                                          \
   V(_setLength, "_setLength")                                                  \
   V(IndexToken, "[]")                                                          \
@@ -60,6 +61,7 @@ class ObjectPointerVisitor;
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(ExprTemp, ":expr_temp")                                                    \
+  V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(AnonymousSignature, "<anonymous signature>")                               \
@@ -73,6 +75,7 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughError")                                      \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
+  V(IntegerDivisionByZeroException, "IntegerDivisionByZeroException")          \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
@@ -181,8 +184,6 @@ class ObjectPointerVisitor;
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
-  V(LiteralToken, "LiteralToken")                                              \
-  V(TokenStream, "TokenStream")                                                \
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
@@ -363,7 +364,6 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
-  V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
@@ -448,8 +448,6 @@ class ObjectPointerVisitor;
   V(options, "options")                                                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
-  V(_classRangeAssert, "_classRangeAssert")                                    \
-  V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(PrependTypeArguments, "_prependTypeArguments")                             \
@@ -458,7 +456,12 @@ class ObjectPointerVisitor;
   V(GrowRegExpStack, "_growRegExpStack")                                       \
   V(DebugProcedureName, ":Eval")                                               \
   V(DebugClassName, "#DebugClass")                                             \
-  V(vm_entry_point, "vm.entry_point")
+  V(vm_entry_point, "vm:entry-point")                                          \
+  V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(Get, "get")                                                                \
+  V(Set, "set")                                                                \
+  V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
+  V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
@@ -599,8 +602,8 @@ class Symbols : public AllStatic {
   static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
-  static void InitOnce(Isolate* isolate);
-  static void InitOnceFromSnapshot(Isolate* isolate);
+  static void Init(Isolate* isolate);
+  static void InitFromSnapshot(Isolate* isolate);
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);

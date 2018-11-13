@@ -6,6 +6,7 @@ library dart2js.abstract_value_domain;
 
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
+import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
@@ -456,4 +457,10 @@ abstract class AbstractValueDomain {
 
   /// Returns compact a textual representation for [value] used for debugging.
   String getCompactText(AbstractValue value);
+
+  /// Deserializes an [AbstractValue] for this domain from [source].
+  AbstractValue readAbstractValueFromDataSource(DataSource source);
+
+  /// Serializes this [value] for this domain to [sink].
+  void writeAbstractValueToDataSink(DataSink sink, AbstractValue value);
 }

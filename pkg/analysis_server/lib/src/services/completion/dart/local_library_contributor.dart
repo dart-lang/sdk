@@ -27,8 +27,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   final OpType optype;
   CompletionSuggestionKind kind;
   final String prefix;
-  List<String> showNames;
-  List<String> hiddenNames;
 
   /**
    * The set of libraries that have been, or are currently being, visited.
@@ -195,13 +193,13 @@ class LocalLibraryContributor extends DartCompletionContributor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     List<CompilationUnitElement> libraryUnits =
-        request.result.unit.element.library.units;
+        request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
     OpType optype = (request as DartCompletionRequestImpl).opType;

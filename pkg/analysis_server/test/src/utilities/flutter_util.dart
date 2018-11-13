@@ -28,7 +28,6 @@ export 'src/material/scaffold.dart';
 
   newFile('$flutterPkgLibPath/widgets.dart', r'''
 export 'src/widgets/basic.dart';
-export 'src/widgets/center.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
 export 'src/widgets/icon.dart';
@@ -87,6 +86,7 @@ class GestureDetector extends StatelessWidget {
     Widget child,
     onTap,
   });
+}
 ''');
   }
 
@@ -160,8 +160,9 @@ class ValueKey<T> extends LocalKey {
 
   void createSrcWidgets() {
     newFile('$flutterPkgLibPath/src/widgets/basic.dart', r'''
+import 'package:flutter/rendering.dart';
+
 import 'framework.dart';
-import 'rendering.dart';
 
 export 'package:flutter/painting.dart';
 export 'package:flutter/rendering.dart';

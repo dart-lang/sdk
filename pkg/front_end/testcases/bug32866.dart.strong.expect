@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 abstract class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   abstract get f() → core::String;
 }
 class A extends core::Object implements self::B {
   final field core::String f;
-  constructor •(core::String f) → void
+  constructor •(core::String f) → self::A
     : self::A::f = f, super core::Object::•()
     ;
 }

@@ -7,16 +7,17 @@ library source_map_name_test;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart' show JElementEnvironment;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/kernel_source_information.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
-import '../memory_compiler.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
+import '../helpers/memory_compiler.dart';
 
 const String SOURCE = '''
 
 var toplevelField;
-void toplevelMethod() {}
+toplevelMethod() {}
 void toplevelAnonymous() {
   var foo = () {};
 }
@@ -79,13 +80,13 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JElementEnvironment env = closedWorld.elementEnvironment;
     LibraryEntity mainApp = env.mainLibrary;
 
     check(MemberEntity element, String expectedName) {
       String name = computeKernelElementNameForSourceMaps(
-          backendStrategy.elementMap, element);
+          closedWorld.elementMap, element);
       Expect.equals(expectedName, name,
           "Unexpected name '$name' for $element, expected '$expectedName'.");
     }

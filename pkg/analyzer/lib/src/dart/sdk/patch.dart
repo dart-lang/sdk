@@ -29,7 +29,6 @@ class SdkPatcher {
    */
   void patch(
       ResourceProvider resourceProvider,
-      bool strongMode,
       Map<String, List<String>> allPatchPaths,
       AnalysisErrorListener errorListener,
       Source source,
@@ -59,7 +58,7 @@ class SdkPatcher {
             'The patch file ${patchFile.path} for $source does not exist.');
       }
       Source patchSource = patchFile.createSource();
-      CompilationUnit patchUnit = parse(patchSource, strongMode, errorListener);
+      CompilationUnit patchUnit = parse(patchSource, errorListener);
 
       // Prepare for reporting errors.
       _baseDesc = source.toString();
@@ -407,17 +406,15 @@ class SdkPatcher {
    */
   @visibleForTesting
   static CompilationUnit parse(
-      Source source, bool strong, AnalysisErrorListener errorListener) {
+      Source source, AnalysisErrorListener errorListener) {
     String code = source.contents.data;
 
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = strong;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     Parser parser = new Parser(source, errorListener);
-    parser.parseGenericMethodComments = strong;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

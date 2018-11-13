@@ -131,7 +131,6 @@ class ClassImplicitConstructor {}
 testImplicitConstructor() => new ClassImplicitConstructor();
 
 class ClassFactoryConstructor {
-  /*kernel.element: ClassFactoryConstructor.:type=[check:ClassFactoryConstructor,inst:JSNull]*/
   /*strong.element: ClassFactoryConstructor.:type=[inst:JSNull]*/
   factory ClassFactoryConstructor() => null;
 }
@@ -143,7 +142,6 @@ class Class {
   /*element: Class.generative:static=[Object.(0)]*/
   const Class.generative();
 
-  /*kernel.element: Class.fact:type=[check:Class,inst:JSNull]*/
   /*strong.element: Class.fact:type=[inst:JSNull]*/
   factory Class.fact() => null;
 
@@ -154,7 +152,6 @@ class GenericClass<X, Y> {
   /*element: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 
-  /*kernel.element: GenericClass.fact:type=[check:GenericClass<GenericClass.X,GenericClass.Y>,inst:JSNull]*/
   /*strong.element: GenericClass.fact:type=[inst:JSBool,inst:JSNull,param:Object]*/
   factory GenericClass.fact() => null;
 

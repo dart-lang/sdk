@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -298,6 +298,18 @@ final Matcher isContextData =
         }));
 
 /**
+ * DartFixSuggestion
+ *
+ * {
+ *   "description": String
+ *   "location": optional Location
+ * }
+ */
+final Matcher isDartFixSuggestion = new LazyMatcher(() => new MatchesJsonObject(
+    "DartFixSuggestion", {"description": isString},
+    optionalFields: {"location": isLocation}));
+
+/**
  * Element
  *
  * {
@@ -335,6 +347,7 @@ final Matcher isElement =
  *   "codeOffset": int
  *   "codeLength": int
  *   "className": optional String
+ *   "mixinName": optional String
  *   "parameters": optional String
  * }
  */
@@ -350,6 +363,7 @@ final Matcher isElementDeclaration =
           "codeLength": isInt
         }, optionalFields: {
           "className": isString,
+          "mixinName": isString,
           "parameters": isString
         }));
 
@@ -374,6 +388,7 @@ final Matcher isElementDeclaration =
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
+ *   MIXIN
  *   PARAMETER
  *   PREFIX
  *   SETTER
@@ -402,6 +417,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "LIBRARY",
   "LOCAL_VARIABLE",
   "METHOD",
+  "MIXIN",
   "PARAMETER",
   "PREFIX",
   "SETTER",
@@ -1058,6 +1074,33 @@ final Matcher isOverride =
         }));
 
 /**
+ * ParameterInfo
+ *
+ * {
+ *   "kind": ParameterKind
+ *   "name": String
+ *   "type": String
+ *   "defaultValue": optional String
+ * }
+ */
+final Matcher isParameterInfo = new LazyMatcher(() => new MatchesJsonObject(
+    "ParameterInfo",
+    {"kind": isParameterKind, "name": isString, "type": isString},
+    optionalFields: {"defaultValue": isString}));
+
+/**
+ * ParameterKind
+ *
+ * enum {
+ *   NAMED
+ *   OPTIONAL
+ *   REQUIRED
+ * }
+ */
+final Matcher isParameterKind =
+    new MatchesEnum("ParameterKind", ["NAMED", "OPTIONAL", "REQUIRED"]);
+
+/**
  * Position
  *
  * {
@@ -1233,6 +1276,9 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   GET_KYTHE_ENTRIES_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
+ *   GET_SIGNATURE_INVALID_FILE
+ *   GET_SIGNATURE_INVALID_OFFSET
+ *   GET_SIGNATURE_UNKNOWN_FUNCTION
  *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
@@ -1246,9 +1292,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
  *   SORT_MEMBERS_PARSE_ERRORS
- *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
- *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -1263,6 +1307,9 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "GET_KYTHE_ENTRIES_INVALID_FILE",
   "GET_NAVIGATION_INVALID_FILE",
   "GET_REACHABLE_SOURCES_INVALID_FILE",
+  "GET_SIGNATURE_INVALID_FILE",
+  "GET_SIGNATURE_INVALID_OFFSET",
+  "GET_SIGNATURE_UNKNOWN_FUNCTION",
   "IMPORT_ELEMENTS_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
@@ -1276,9 +1323,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "SERVER_ERROR",
   "SORT_MEMBERS_INVALID_FILE",
   "SORT_MEMBERS_PARSE_ERRORS",
-  "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
-  "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
 
@@ -1674,6 +1719,32 @@ final Matcher isAnalysisGetReachableSourcesResult = new LazyMatcher(() =>
         {"sources": isMapOf(isString, isListOf(isString))}));
 
 /**
+ * analysis.getSignature params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ */
+final Matcher isAnalysisGetSignatureParams = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "analysis.getSignature params", {"file": isFilePath, "offset": isInt}));
+
+/**
+ * analysis.getSignature result
+ *
+ * {
+ *   "name": String
+ *   "parameters": List<ParameterInfo>
+ *   "dartdoc": optional String
+ * }
+ */
+final Matcher isAnalysisGetSignatureResult = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.getSignature result",
+        {"name": isString, "parameters": isListOf(isParameterInfo)},
+        optionalFields: {"dartdoc": isString}));
+
+/**
  * analysis.highlights params
  *
  * {
@@ -2059,6 +2130,34 @@ final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
     new MatchesJsonObject("diagnostic.getServerPort result", {"port": isInt}));
 
 /**
+ * edit.dartfix params
+ *
+ * {
+ *   "included": List<FilePath>
+ * }
+ */
+final Matcher isEditDartfixParams = new LazyMatcher(() => new MatchesJsonObject(
+    "edit.dartfix params", {"included": isListOf(isFilePath)}));
+
+/**
+ * edit.dartfix result
+ *
+ * {
+ *   "suggestions": List<DartFixSuggestion>
+ *   "otherSuggestions": List<DartFixSuggestion>
+ *   "hasErrors": bool
+ *   "edits": List<SourceFileEdit>
+ * }
+ */
+final Matcher isEditDartfixResult =
+    new LazyMatcher(() => new MatchesJsonObject("edit.dartfix result", {
+          "suggestions": isListOf(isDartFixSuggestion),
+          "otherSuggestions": isListOf(isDartFixSuggestion),
+          "hasErrors": isBool,
+          "edits": isListOf(isSourceFileEdit)
+        }));
+
+/**
  * edit.format params
  *
  * {
@@ -2270,12 +2369,12 @@ final Matcher isEditImportElementsParams = new LazyMatcher(() =>
  * edit.importElements result
  *
  * {
- *   "edit": SourceFileEdit
+ *   "edit": optional SourceFileEdit
  * }
  */
 final Matcher isEditImportElementsResult = new LazyMatcher(() =>
-    new MatchesJsonObject(
-        "edit.importElements result", {"edit": isSourceFileEdit}));
+    new MatchesJsonObject("edit.importElements result", null,
+        optionalFields: {"edit": isSourceFileEdit}));
 
 /**
  * edit.isPostfixCompletionApplicable params

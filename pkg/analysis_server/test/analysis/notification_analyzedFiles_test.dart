@@ -34,7 +34,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     expect(analyzedFiles, isNot(contains(filePath)));
   }
 
-  Future<Null> prepareAnalyzedFiles() async {
+  Future<void> prepareAnalyzedFiles() async {
     addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
     await pumpEventQueue(times: 5000);
   }
@@ -119,7 +119,7 @@ class A {}
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
-    modifyTestFile('import "${convertPathForImport('/foo.dart')}";');
+    modifyTestFile('import "${convertAbsolutePathToUri('/foo.dart')}";');
     await prepareAnalyzedFiles();
     assertHasFile(convertPath('/foo.dart'));
   }

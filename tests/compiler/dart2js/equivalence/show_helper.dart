@@ -33,7 +33,6 @@ show(ArgResults argResults, DataComputer dataComputer,
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
-  bool strongMode = argResults['strong'];
   bool omitImplicitChecks = argResults['omit-implicit-checks'];
   bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
@@ -49,9 +48,6 @@ show(ArgResults argResults, DataComputer dataComputer,
   }
 
   options = new List<String>.from(options);
-  if (!strongMode) {
-    options.add(Flags.noPreviewDart2);
-  }
   if (trustTypeAnnotations) {
     options.add(Flags.trustTypeAnnotations);
   }
@@ -70,13 +66,17 @@ show(ArgResults argResults, DataComputer dataComputer,
   } else {
     SourceFileProvider provider = data.compiler.provider;
     for (Uri uri in data.actualMaps.keys) {
-      if (show != null && !show.any((f) => '$uri'.endsWith(f))) {
+      Uri fileUri = uri;
+      if (fileUri.scheme == 'org-dartlang-sdk') {
+        fileUri = Uri.base.resolve(fileUri.path.substring(1));
+      }
+      if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {
         continue;
       }
-      SourceFile sourceFile = await provider.autoReadFromFile(uri);
+      SourceFile sourceFile = await provider.autoReadFromFile(fileUri);
       String sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
-        sourceCode = new File.fromUri(uri).readAsStringSync();
+        sourceCode = new File.fromUri(fileUri).readAsStringSync();
       }
       if (sourceCode == null) {
         print('--source code missing for $uri--------------------------------');

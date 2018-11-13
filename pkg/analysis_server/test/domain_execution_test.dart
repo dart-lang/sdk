@@ -31,7 +31,6 @@ main() {
       server = new AnalysisServer(
           new MockServerChannel(),
           provider,
-          new MockPackageMapProvider(),
           new AnalysisServerOptions(),
           new DartSdkManager('', false),
           InstrumentationService.NULL_SERVICE);
@@ -202,12 +201,16 @@ void contextFunction() {
     Response response = await waitResponse(request);
 
     var result = new ExecutionGetSuggestionsResult.fromResponse(response);
-    expect(result.suggestions, isNotEmpty);
+//    expect(result.suggestions, isNotEmpty);
+//
+//    expect(
+//        result.suggestions,
+//        contains(
+//            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
 
-    expect(
-        result.suggestions,
-        contains(
-            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
+    // TODO(brianwilkerson) Restore the expectations above (and delete the line
+    // below) after the functionality has been re-enabled.
+    expect(result.suggestions, isEmpty);
   }
 
   void test_mapUri_file() {

@@ -116,11 +116,12 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
     old_space_->set_tasks(old_space_->tasks() + 1);
+    old_space_->set_phase(PageSpace::kSweeping);
   }
 
   virtual void Run() {
     bool result =
-        Thread::EnterIsolateAsHelper(task_isolate_, Thread::kSweeperTask);
+        Thread::EnterIsolateAsHelper(task_isolate_, Thread::kSweeperTask, true);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
@@ -131,7 +132,7 @@ class SweeperTask : public ThreadPool::Task {
       HeapPage* prev_page = NULL;
 
       while (page != NULL) {
-        thread->CheckForSafepoint();
+        ASSERT(thread->BypassSafepoints());  // Or we should be checking in.
         HeapPage* next_page = page->next();
         ASSERT(page->type() == HeapPage::kData);
         bool page_in_use = sweeper.SweepPage(page, freelist_, false);
@@ -151,11 +152,13 @@ class SweeperTask : public ThreadPool::Task {
       }
     }
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateAsHelper(true);
     // This sweeper task is done. Notify the original isolate.
     {
       MonitorLocker ml(old_space_->tasks_lock());
       old_space_->set_tasks(old_space_->tasks() - 1);
+      ASSERT(old_space_->phase() == PageSpace::kSweeping);
+      old_space_->set_phase(PageSpace::kDone);
       ml.NotifyAll();
     }
   }

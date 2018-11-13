@@ -121,9 +121,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         matchingClasses
             .addAll(_findUnusedClassesMatching((ClassEntity nativeClass) {
           InterfaceType nativeType =
-              _elementEnvironment.getThisType(nativeClass);
-          InterfaceType specType =
-              _elementEnvironment.getThisType(type.element);
+              _elementEnvironment.getRawType(nativeClass);
+          InterfaceType specType = _elementEnvironment.getRawType(type.element);
           return _dartTypes.isSubtype(nativeType, specType);
         }));
       } else if (type.isDynamic) {

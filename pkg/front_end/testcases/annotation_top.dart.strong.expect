@@ -11,14 +11,14 @@ typedef F1 = () → void;
 @self::A::•(3)
 typedef F2 = () → void;
 class A extends core::Object {
-  const constructor •(core::int value) → void
+  const constructor •(core::int value) → self::A
     : super core::Object::•()
     ;
 }
 @self::a
 @self::A::•(2)
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
 }

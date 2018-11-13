@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -520,7 +520,7 @@ abstract class ServerPlugin {
    * If the plugin provides folding information, send a folding notification
    * for the file with the given [path] to the server.
    */
-  Future<Null> sendFoldingNotification(String path) {
+  Future<void> sendFoldingNotification(String path) {
     return new Future.value();
   }
 
@@ -528,7 +528,7 @@ abstract class ServerPlugin {
    * If the plugin provides highlighting information, send a highlights
    * notification for the file with the given [path] to the server.
    */
-  Future<Null> sendHighlightsNotification(String path) {
+  Future<void> sendHighlightsNotification(String path) {
     return new Future.value();
   }
 
@@ -536,7 +536,7 @@ abstract class ServerPlugin {
    * If the plugin provides navigation information, send a navigation
    * notification for the file with the given [path] to the server.
    */
-  Future<Null> sendNavigationNotification(String path) {
+  Future<void> sendNavigationNotification(String path) {
     return new Future.value();
   }
 
@@ -576,7 +576,7 @@ abstract class ServerPlugin {
    * If the plugin provides occurrences information, send an occurrences
    * notification for the file with the given [path] to the server.
    */
-  Future<Null> sendOccurrencesNotification(String path) {
+  Future<void> sendOccurrencesNotification(String path) {
     return new Future.value();
   }
 
@@ -584,7 +584,7 @@ abstract class ServerPlugin {
    * If the plugin provides outline information, send an outline notification
    * for the file with the given [path] to the server.
    */
-  Future<Null> sendOutlineNotification(String path) {
+  Future<void> sendOutlineNotification(String path) {
     return new Future.value();
   }
 
@@ -699,7 +699,7 @@ abstract class ServerPlugin {
    * The method that is called when a [request] is received from the analysis
    * server.
    */
-  Future<Null> _onRequest(Request request) async {
+  Future<void> _onRequest(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     int requestTime = new DateTime.now().millisecondsSinceEpoch;

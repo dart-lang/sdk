@@ -4,7 +4,7 @@
 
 /// This library defines the association between runtime objects and
 /// runtime types.
-part of "runtime.dart";
+part of dart._runtime;
 
 /// Runtime type information.  This module defines the mapping from
 /// runtime objects to their runtime type information.  See the types
@@ -113,35 +113,18 @@ getReifiedType(obj) {
   }
 }
 
-/// Given an internal runtime type object, wraps it in a `WrappedType` object
-/// that implements the dart:core Type interface.
-Type wrapType(type) {
-  // If we've already wrapped this type once, use the previous wrapper. This
-  // way, multiple references to the same type return an identical Type.
-  if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
-    return JS('', '#[#]', type, _typeObject);
-  }
-  return JS('Type', '#[#] = #', type, _typeObject, WrappedType(type));
-}
-
-/// The symbol used to store the cached `Type` object associated with a class.
-final _typeObject = JS('', 'Symbol("typeObject")');
-
-/// Given a WrappedType, return the internal runtime type object.
-unwrapType(WrappedType obj) => obj._wrappedType;
-
 /// Return the module name for a raw library object.
-getModuleName(value) => JS('', '#[#]', value, _moduleName);
+String getModuleName(Object module) => JS('', '#[#]', module, _moduleName);
 
-var _loadedModules = JS('', 'new Map()');
-var _loadedSourceMaps = JS('', 'new Map()');
+final _loadedModules = JS('', 'new Map()');
+final _loadedSourceMaps = JS('', 'new Map()');
 
-List getModuleNames() {
-  return JS('', 'Array.from(#.keys())', _loadedModules);
+List<String> getModuleNames() {
+  return JSArray<String>.of(JS('', 'Array.from(#.keys())', _loadedModules));
 }
 
-String getSourceMap(module) {
-  return JS<String>('!', '#.get(#)', _loadedSourceMaps, module);
+String getSourceMap(String moduleName) {
+  return JS('!', '#.get(#)', _loadedSourceMaps, moduleName);
 }
 
 /// Return all library objects in the specified module.
@@ -153,7 +136,7 @@ getModuleLibraries(String name) {
 }
 
 /// Track all libraries
-void trackLibraries(String moduleName, libraries, sourceMap) {
+void trackLibraries(String moduleName, Object libraries, String sourceMap) {
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
 }

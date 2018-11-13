@@ -13,6 +13,8 @@ const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
 
 const _BASIC_URI = "package:flutter/src/widgets/basic.dart";
 const _CENTER_NAME = "Center";
+const _CONTAINER_NAME = "Container";
+const _CONTAINER_URI = "package:flutter/src/widgets/container.dart";
 const _PADDING_NAME = "Padding";
 const _STATE_NAME = "State";
 const _STATEFUL_WIDGET_NAME = "StatefulWidget";
@@ -227,12 +229,18 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
 
 /**
  * Attempt to find and return the closest expression that encloses the [node]
- * and is a Flutter `Widget`.  Return `null` if nothing found.
+ * and is an independent Flutter `Widget`.  Return `null` if nothing found.
  */
 Expression identifyWidgetExpression(AstNode node) {
   for (; node != null; node = node.parent) {
     if (isWidgetExpression(node)) {
-      return node;
+      var parent = node.parent;
+      if (parent is ArgumentList ||
+          parent is ListLiteral ||
+          parent is NamedExpression && parent.expression == node ||
+          parent is Statement) {
+        return node;
+      }
     }
     if (node is ArgumentList || node is Statement || node is FunctionBody) {
       return null;
@@ -283,6 +291,14 @@ bool isExactWidgetTypeCenter(DartType type) {
 }
 
 /**
+ * Return `true` if the given [type] is the Flutter class `Container`.
+ */
+bool isExactWidgetTypeContainer(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _CONTAINER_NAME, _CONTAINER_URI);
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `Padding`.
  */
 bool isExactWidgetTypePadding(DartType type) {
@@ -306,6 +322,17 @@ bool isListOfWidgetsType(DartType type) {
 /// a superclass.
 bool isState(ClassElement element) {
   return _hasSupertype(element, _frameworkUri, _STATE_NAME);
+}
+
+/**
+ * Return `true` if the given [element] is a [ClassElement] that extends
+ * the Flutter class `StatefulWidget`.
+ */
+bool isStatefulWidgetDeclaration(Element element) {
+  if (element is ClassElement) {
+    return isExactlyStatefulWidgetType(element.supertype);
+  }
+  return false;
 }
 
 /**

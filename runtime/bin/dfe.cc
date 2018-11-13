@@ -18,15 +18,11 @@ extern "C" {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 extern const uint8_t kKernelServiceDill[];
 extern intptr_t kKernelServiceDillSize;
-extern const uint8_t kPlatformDill[];
-extern intptr_t kPlatformDillSize;
 extern const uint8_t kPlatformStrongDill[];
 extern intptr_t kPlatformStrongDillSize;
 #else
 const uint8_t* kKernelServiceDill = NULL;
 intptr_t kKernelServiceDillSize = 0;
-const uint8_t* kPlatformDill = NULL;
-intptr_t kPlatformDillSize = 0;
 const uint8_t* kPlatformStrongDill = NULL;
 intptr_t kPlatformStrongDillSize = 0;
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
@@ -42,15 +38,11 @@ DFE dfe;
 #if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
 const uint8_t* kernel_service_dill = NULL;
 const intptr_t kernel_service_dill_size = 0;
-const uint8_t* platform_dill = NULL;
-const intptr_t platform_dill_size = 0;
 const uint8_t* platform_strong_dill = NULL;
 const intptr_t platform_strong_dill_size = 0;
 #else
 const uint8_t* kernel_service_dill = kKernelServiceDill;
 const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
-const uint8_t* platform_dill = kPlatformDill;
-const intptr_t platform_dill_size = kPlatformDillSize;
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 #endif
@@ -98,7 +90,7 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  if (platform_dill == NULL) {
+  if (platform_strong_dill == NULL) {
     return;
   }
 
@@ -138,19 +130,13 @@ void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
 }
 
 void DFE::LoadPlatform(const uint8_t** kernel_buffer,
-                       intptr_t* kernel_buffer_size,
-                       bool strong) {
-  if (strong) {
-    *kernel_buffer = platform_strong_dill;
-    *kernel_buffer_size = platform_strong_dill_size;
-  } else {
-    *kernel_buffer = platform_dill;
-    *kernel_buffer_size = platform_dill_size;
-  }
+                       intptr_t* kernel_buffer_size) {
+  *kernel_buffer = platform_strong_dill;
+  *kernel_buffer_size = platform_strong_dill_size;
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_dill != NULL) &&
+  return (platform_strong_dill != NULL) &&
          (KernelServiceDillAvailable() || (frontend_filename() != NULL));
 }
 
@@ -191,7 +177,6 @@ class WindowsPathSanitizer {
 };
 
 Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
-                                                bool strong,
                                                 bool incremental,
                                                 const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
@@ -203,12 +188,8 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
   const char* sanitized_uri = script_uri;
 #endif
 
-  const uint8_t* platform_binary =
-      strong ? platform_strong_dill : platform_dill;
-  intptr_t platform_binary_size =
-      strong ? platform_strong_dill_size : platform_dill_size;
-  return Dart_CompileToKernel(sanitized_uri, platform_binary,
-                              platform_binary_size, incremental,
+  return Dart_CompileToKernel(sanitized_uri, platform_strong_dill,
+                              platform_strong_dill_size, incremental,
                               package_config);
 }
 
@@ -217,10 +198,9 @@ void DFE::CompileAndReadScript(const char* script_uri,
                                intptr_t* kernel_buffer_size,
                                char** error,
                                int* exit_code,
-                               bool strong,
                                const char* package_config) {
-  Dart_KernelCompilationResult result = CompileScript(
-      script_uri, strong, use_incremental_compiler(), package_config);
+  Dart_KernelCompilationResult result =
+      CompileScript(script_uri, use_incremental_compiler(), package_config);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       *kernel_buffer = result.kernel;
@@ -229,14 +209,17 @@ void DFE::CompileAndReadScript(const char* script_uri,
       *exit_code = 0;
       break;
     case Dart_KernelCompilationStatus_Error:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kCompilationErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Crash:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kDartFrontendErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Unknown:
+      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kErrorExitCode;
       break;
@@ -260,34 +243,176 @@ void DFE::ReadScript(const char* script_uri,
                      Dart_Timeline_Event_Duration, 0, NULL, NULL);
 }
 
+// Attempts to treat [buffer] as a in-memory kernel byte representation.
+// If successful, returns [true] and places [buffer] into [kernel_ir], byte size
+// into [kernel_ir_size].
+// If unsuccessful, returns [false], puts [NULL] into [kernel_ir], -1 into
+// [kernel_ir_size].
+static bool TryReadSimpleKernelBuffer(uint8_t* buffer,
+                                      uint8_t** p_kernel_ir,
+                                      intptr_t* p_kernel_ir_size) {
+  DartUtils::MagicNumber magic_number =
+      DartUtils::SniffForMagicNumber(buffer, *p_kernel_ir_size);
+  if (magic_number == DartUtils::kKernelMagicNumber) {
+    // Do not free buffer if this is a kernel file - kernel_file will be
+    // backed by the same memory as the buffer and caller will own it.
+    // Caller is responsible for freeing the buffer when this function
+    // returns true.
+    *p_kernel_ir = buffer;
+    return true;
+  }
+  free(buffer);
+  *p_kernel_ir = NULL;
+  *p_kernel_ir_size = -1;
+  return false;
+}
+
+/// Reads [script_uri] file, returns [true] if successful, [false] otherwise.
+///
+/// If successful, newly allocated buffer with file contents is returned in
+/// [buffer], file contents byte count - in [size].
+static bool TryReadFile(const char* script_uri, uint8_t** buffer,
+                        intptr_t* size) {
+  void* script_file = DartUtils::OpenFileUri(script_uri, false);
+  if (script_file == NULL) {
+    return false;
+  }
+  DartUtils::ReadFile(buffer, size, script_file);
+  DartUtils::CloseFile(script_file);
+  if (*size <= 0 || buffer == NULL) {
+    return false;
+  }
+  return true;
+}
+
+class KernelIRNode {
+ public:
+  KernelIRNode(uint8_t* kernel_ir, intptr_t kernel_size)
+      : kernel_ir_(kernel_ir), kernel_size_(kernel_size) {}
+
+  ~KernelIRNode() {
+    free(kernel_ir_);
+  }
+
+  static void Add(KernelIRNode** p_head, KernelIRNode** p_tail,
+                  KernelIRNode* node) {
+    if (*p_head == NULL) {
+      *p_head = node;
+    } else {
+      (*p_tail)->next_ = node;
+    }
+    *p_tail = node;
+  }
+
+  static void Merge(KernelIRNode* head, uint8_t** p_bytes,
+                             intptr_t* p_size) {
+    intptr_t size = 0;
+    for (KernelIRNode* node = head; node != NULL; node = node->next_) {
+      size = size + node->kernel_size_;
+    }
+
+    *p_bytes = reinterpret_cast<uint8_t*>(malloc(size));
+    if (*p_bytes == NULL) {
+      OUT_OF_MEMORY();
+    }
+    uint8_t* p = *p_bytes;
+    KernelIRNode* node = head;
+    while (node != NULL) {
+      memmove(p, node->kernel_ir_, node->kernel_size_);
+      p += node->kernel_size_;
+      KernelIRNode* next = node->next_;
+      node = next;
+    }
+    *p_size = size;
+  }
+
+  static void Delete(KernelIRNode* head) {
+    KernelIRNode* node = head;
+    while (node != NULL) {
+      KernelIRNode* next = node->next_;
+      delete (node);
+      node = next;
+    }
+  }
+
+ private:
+  uint8_t* kernel_ir_;
+  intptr_t kernel_size_;
+
+  KernelIRNode* next_ = NULL;
+
+  DISALLOW_COPY_AND_ASSIGN(KernelIRNode);
+};
+
+// Supports "kernel list" files as input.
+// Those are text files that start with '#@dill' on new line, followed
+// by absolute paths to kernel files or relative paths, that are relative
+// to dart process working directory.
+// Below is an example of valid kernel list file:
+// ```
+// #@dill
+// /projects/mytest/build/bin/main.vm.dill
+// /projects/mytest/build/packages/mytest/lib.vm.dill
+// ```
+static bool TryReadKernelListBuffer(uint8_t* buffer,
+                                    intptr_t buffer_size,
+                                    uint8_t** kernel_ir,
+                                    intptr_t* kernel_ir_size) {
+  KernelIRNode* kernel_ir_head = NULL;
+  KernelIRNode* kernel_ir_tail = NULL;
+  // Add all kernels to the linked list
+  char* filename =
+      reinterpret_cast<char*>(buffer + kernel_list_magic_number.length);
+  intptr_t filename_size = buffer_size - kernel_list_magic_number.length;
+  char* tail = reinterpret_cast<char*>(memchr(filename, '\n', filename_size));
+  while (tail != NULL) {
+    *tail = '\0';
+    intptr_t this_kernel_size;
+    uint8_t* this_buffer;
+    if (!TryReadFile(filename, &this_buffer, &this_kernel_size)) {
+      return false;
+    }
+
+    uint8_t* this_kernel_ir;
+    if (!TryReadSimpleKernelBuffer(this_buffer, &this_kernel_ir,
+                                   &this_kernel_size)) {
+      // Abandon read if any of the files in the list are invalid.
+      KernelIRNode::Delete(kernel_ir_head);
+      *kernel_ir = NULL;
+      *kernel_ir_size = -1;
+      return false;
+    }
+    KernelIRNode::Add(&kernel_ir_head, &kernel_ir_tail,
+                      new KernelIRNode(this_kernel_ir, this_kernel_size));
+    filename_size -= tail + 1 - filename;
+    filename = tail + 1;
+    tail = reinterpret_cast<char*>(memchr(filename, '\n', filename_size));
+  }
+  free(buffer);
+
+  KernelIRNode::Merge(kernel_ir_head, kernel_ir, kernel_ir_size);
+  KernelIRNode::Delete(kernel_ir_head);
+  return true;
+}
+
 bool DFE::TryReadKernelFile(const char* script_uri,
                             uint8_t** kernel_ir,
                             intptr_t* kernel_ir_size) {
   *kernel_ir = NULL;
   *kernel_ir_size = -1;
-  void* script_file = DartUtils::OpenFileUri(script_uri, false);
-  if (script_file == NULL) {
+
+  uint8_t* buffer;
+  if (!TryReadFile(script_uri, &buffer, kernel_ir_size)) {
     return false;
   }
-  uint8_t* buffer = NULL;
-  DartUtils::ReadFile(&buffer, kernel_ir_size, script_file);
-  DartUtils::CloseFile(script_file);
-  if (*kernel_ir_size == 0 || buffer == NULL) {
-    return false;
+
+  DartUtils::MagicNumber magic_number =
+      DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size);
+  if (magic_number == DartUtils::kKernelListMagicNumber) {
+    return TryReadKernelListBuffer(buffer, *kernel_ir_size, kernel_ir,
+                                   kernel_ir_size);
   }
-  if (DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) !=
-      DartUtils::kKernelMagicNumber) {
-    free(buffer);
-    *kernel_ir = NULL;
-    *kernel_ir_size = -1;
-    return false;
-  }
-  // Do not free buffer if this is a kernel file - kernel_file will be
-  // backed by the same memory as the buffer and caller will own it.
-  // Caller is responsible for freeing the buffer when this function
-  // returns true.
-  *kernel_ir = buffer;
-  return true;
+  return TryReadSimpleKernelBuffer(buffer, kernel_ir, kernel_ir_size);
 }
 
 }  // namespace bin

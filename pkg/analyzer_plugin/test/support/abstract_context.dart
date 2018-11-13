@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -58,18 +58,6 @@ class AbstractContextTest {
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
-
-  /**
-   * Return `true` if strong mode should be enabled for this test.
-   */
-  bool get enableStrongMode => true;
-
-  /**
-   * Return `true` if previewDart2 should be enabled for this test.
-   */
-  bool get enablePreviewDart2 => true;
-
-  bool get previewDart2 => driver.analysisOptions.previewDart2;
 
   /**
    * Return the analysis session associated with the driver.
@@ -136,8 +124,7 @@ class Required {
         [new DartUriResolver(sdk), packageResolver, resourceResolver]);
     PerformanceLog log = new PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
-      ..previewDart2 = enablePreviewDart2;
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     _driver = new AnalysisDriver(
         scheduler,
         log,

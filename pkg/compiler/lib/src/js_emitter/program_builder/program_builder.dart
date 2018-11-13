@@ -7,12 +7,11 @@ library dart2js.js_emitter.program_builder;
 import 'dart:io';
 import 'dart:convert' show jsonDecode;
 
-import '../../closure.dart' show ClosureConversionTask;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
-import '../../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../../deferred_load.dart'
     show DeferredLoadTask, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
@@ -62,12 +61,10 @@ part 'registry.dart';
 class ProgramBuilder {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
-  final DartTypes _types;
+  final JElementEnvironment _elementEnvironment;
+  final JCommonElements _commonElements;
   final DeferredLoadTask _deferredLoadTask;
   final OutputUnitData _outputUnitData;
-  final ClosureConversionTask _closureDataLookup;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
@@ -112,10 +109,8 @@ class ProgramBuilder {
       this._reporter,
       this._elementEnvironment,
       this._commonElements,
-      this._types,
       this._deferredLoadTask,
       this._outputUnitData,
-      this._closureDataLookup,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
@@ -187,7 +182,8 @@ class ProgramBuilder {
     // Note: In rare cases (mostly tests) output units can be empty. This
     // happens when the deferred code is dead-code eliminated but we still need
     // to check that the library has been loaded.
-    _deferredLoadTask.allOutputUnits.forEach(_registry.registerOutputUnit);
+    _closedWorld.outputUnitData.outputUnits
+        .forEach(_registry.registerOutputUnit);
     collector.outputClassLists.forEach(_registry.registerClasses);
     collector.outputStaticLists.forEach(_registry.registerMembers);
     collector.outputConstantLists.forEach(_registerConstants);
@@ -216,7 +212,7 @@ class ProgramBuilder {
                 "No Class for has been created for superclass "
                 "${superclass} of $c."));
       }
-      if (c is MixinApplication) {
+      if (c.isSimpleMixinApplication || c.isSuperMixinApplication) {
         ClassEntity effectiveMixinClass =
             _elementEnvironment.getEffectiveMixinClass(cls);
         c.setMixinClass(_classes[effectiveMixinClass]);
@@ -541,28 +537,7 @@ class ProgramBuilder {
               FunctionEntity fn = member;
               functionType = _elementEnvironment.getFunctionType(fn);
             } else if (member.isGetter) {
-              if (_options.trustTypeAnnotations) {
-                DartType returnType =
-                    _elementEnvironment.getFunctionType(member).returnType;
-                if (returnType.isFunctionType) {
-                  functionType = returnType;
-                } else if (returnType.treatAsDynamic ||
-                    _types.isSubtype(
-                        returnType,
-                        // ignore: UNNECESSARY_CAST
-                        _commonElements.functionType as DartType)) {
-                  if (returnType.isTypedef) {
-                    TypedefType typedef = returnType;
-                    functionType = typedef.unaliased;
-                  } else {
-                    // Other misc function type such as commonElements.Function.
-                    // Allow any number of arguments.
-                    isFunctionLike = true;
-                  }
-                }
-              } else {
-                isFunctionLike = true;
-              }
+              isFunctionLike = true;
             } // TODO(jacobr): handle field elements.
 
             if (isFunctionLike || functionType != null) {
@@ -667,17 +642,15 @@ class ProgramBuilder {
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
-        _closureDataLookup,
         _outputUnitData,
         _task,
         _namer,
         _rtiChecks,
         _rtiEncoder,
-        _jsInteropAnalysis,
-        _options.strongMode);
+        _jsInteropAnalysis);
 
-    void visitMember(MemberEntity member) {
-      if (member.isInstanceMember && !member.isAbstract && !member.isField) {
+    void visitInstanceMember(MemberEntity member) {
+      if (!member.isAbstract && !member.isField) {
         if (member is! JSignatureMethod) {
           Method method = _buildMethod(member);
           if (method != null) methods.add(method);
@@ -693,6 +666,12 @@ class ProgramBuilder {
             callStubs.add(_buildStubMethod(name, code, element: member));
           });
         }
+      }
+    }
+
+    void visitMember(MemberEntity member) {
+      if (member.isInstanceMember) {
+        visitInstanceMember(member);
       }
     }
 
@@ -718,18 +697,32 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    if (_commonElements.isInstantiationClass(cls)) {
+    if (_commonElements.isInstantiationClass(cls) && !onlyForRti) {
       callStubs.addAll(_generateInstantiationStubs(cls));
     }
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
-      List<MemberEntity> members = <MemberEntity>[];
-      _elementEnvironment.forEachLocalClassMember(cls, members.add);
-      _elementEnvironment.forEachInjectedClassMember(cls, members.add);
-      _elementEnvironment.forEachConstructorBody(cls, members.add);
-      _sorter.sortMembers(members).forEach(visitMember);
+    bool isSuperMixinApplication = false;
+    if (!onlyForRti) {
+      if (_elementEnvironment.isSuperMixinApplication(cls)) {
+        List<MemberEntity> members = <MemberEntity>[];
+        _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+          if (member.enclosingClass == cls) {
+            members.add(member);
+            isSuperMixinApplication = true;
+          }
+        });
+        if (members.isNotEmpty) {
+          _sorter.sortMembers(members).forEach(visitMember);
+        }
+      } else if (!_elementEnvironment.isMixinApplication(cls)) {
+        List<MemberEntity> members = <MemberEntity>[];
+        _elementEnvironment.forEachLocalClassMember(cls, members.add);
+        _elementEnvironment.forEachInjectedClassMember(cls, members.add);
+        _elementEnvironment.forEachConstructorBody(cls, members.add);
+        _sorter.sortMembers(members).forEach(visitMember);
+      }
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForRti
@@ -787,7 +780,9 @@ class ProgramBuilder {
         _worldBuilder.directlyInstantiatedClasses.contains(cls);
 
     Class result;
-    if (_elementEnvironment.isMixinApplication(cls) && !onlyForRti) {
+    if (_elementEnvironment.isMixinApplication(cls) &&
+        !onlyForRti &&
+        !isSuperMixinApplication) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
@@ -823,7 +818,8 @@ class ProgramBuilder {
           onlyForRti: onlyForRti,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
-          isSoftDeferred: _isSoftDeferred(cls));
+          isSoftDeferred: _isSoftDeferred(cls),
+          isSuperMixinApplication: isSuperMixinApplication);
     }
     _classes[cls] = result;
     return result;

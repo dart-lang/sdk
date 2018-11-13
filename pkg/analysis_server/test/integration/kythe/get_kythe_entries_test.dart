@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetKytheEntriesTest);
-    defineReflectiveTests(GetKytheEntriesTest_UseCFE);
   });
 }
 
@@ -37,10 +36,4 @@ class Bar {
     expect(result.entries, isNotEmpty);
     expect(result.files, isEmpty);
   }
-}
-
-@reflectiveTest
-class GetKytheEntriesTest_UseCFE extends GetKytheEntriesTest {
-  @override
-  bool get useCFE => true;
 }

@@ -7,6 +7,9 @@
 #include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/hash.h"
+#endif
 #include "vm/hash_table.h"
 #include "vm/heap/become.h"
 #include "vm/heap/safepoint.h"
@@ -22,6 +25,7 @@
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -48,6 +52,8 @@ DEFINE_FLAG(bool,
             check_reloaded,
             false,
             "Assert that an isolate has reloaded at least once.")
+
+DECLARE_FLAG(bool, trace_deoptimization);
 
 #define I (isolate())
 #define Z (thread->zone())
@@ -327,7 +333,15 @@ class ClassMapTraits {
   }
 
   static uword Hash(const Object& obj) {
-    return String::HashRawSymbol(Class::Cast(obj).Name());
+    uword class_name_hash = String::HashRawSymbol(Class::Cast(obj).Name());
+    RawLibrary* raw_library = Class::Cast(obj).library();
+    if (raw_library == Library::null()) {
+      return class_name_hash;
+    }
+    return FinalizeHash(
+        CombineHashes(class_name_hash,
+                      String::Hash(Library::Handle(raw_library).private_key())),
+        /* hashbits= */ 30);
   }
 };
 
@@ -468,6 +482,9 @@ IsolateReloadContext::~IsolateReloadContext() {
 }
 
 void IsolateReloadContext::ReportError(const Error& error) {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
+    return;
+  }
   if (FLAG_trace_reload) {
     THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
   }
@@ -477,6 +494,9 @@ void IsolateReloadContext::ReportError(const Error& error) {
 }
 
 void IsolateReloadContext::ReportSuccess() {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
+    return;
+  }
   ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
@@ -537,9 +557,12 @@ static void AcceptCompilation(Thread* thread) {
 }
 
 // NOTE: This function returns *after* FinalizeLoading is called.
+// If [root_script_url] is null, attempt to load from [kernel_buffer].
 void IsolateReloadContext::Reload(bool force_reload,
                                   const char* root_script_url,
-                                  const char* packages_url_) {
+                                  const char* packages_url_,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
@@ -576,7 +599,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 
   bool did_kernel_compilation = false;
-  if (isolate()->use_dart_frontend()) {
+  bool skip_reload = false;
+  {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
@@ -589,18 +613,25 @@ void IsolateReloadContext::Reload(bool force_reload,
     // compiled, so ReadKernelFromFile returns NULL.
     kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
     if (kernel_program.get() == NULL) {
-      Dart_SourceFile* modified_scripts = NULL;
-      intptr_t modified_scripts_count = 0;
-
-      FindModifiedSources(thread, force_reload, &modified_scripts,
-                          &modified_scripts_count);
-
       Dart_KernelCompilationResult retval;
-      {
-        TransitionVMToNative transition(thread);
-        retval = KernelIsolate::CompileToKernel(root_lib_url.ToCString(), NULL,
-                                                0, modified_scripts_count,
-                                                modified_scripts, true, NULL);
+      if (kernel_buffer != NULL && kernel_buffer_size != 0) {
+        retval.kernel = const_cast<uint8_t*>(kernel_buffer);
+        retval.kernel_size = kernel_buffer_size;
+        retval.status = Dart_KernelCompilationStatus_Ok;
+      } else {
+        Dart_SourceFile* modified_scripts = NULL;
+        intptr_t modified_scripts_count = 0;
+
+        FindModifiedSources(thread, force_reload, &modified_scripts,
+                            &modified_scripts_count, packages_url_);
+
+        {
+          TransitionVMToNative transition(thread);
+          retval = KernelIsolate::CompileToKernel(
+              root_lib_url.ToCString(), NULL, 0, modified_scripts_count,
+              modified_scripts, true, NULL);
+          did_kernel_compilation = true;
+        }
       }
 
       if (retval.status != Dart_KernelCompilationStatus_Ok) {
@@ -608,23 +639,40 @@ void IsolateReloadContext::Reload(bool force_reload,
         const String& error_str = String::Handle(String::New(retval.error));
         free(retval.error);
         const ApiError& error = ApiError::Handle(ApiError::New(error_str));
+        if (retval.kernel != NULL) {
+          free(const_cast<uint8_t*>(retval.kernel));
+        }
         AddReasonForCancelling(new Aborted(zone_, error));
         ReportReasonsForCancelling();
         CommonFinalizeTail();
         return;
       }
-      did_kernel_compilation = true;
-      kernel_program.set(
-          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
+
+      // The ownership of the kernel buffer goes now to the VM.
+      const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+          Z,
+          ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, retval.kernel,
+                                 retval.kernel_size, Heap::kOld));
+      typed_data.AddFinalizer(
+          retval.kernel,
+          [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
+             void* data) { free(data); },
+          retval.kernel_size);
+
+      // TODO(dartbug.com/33973): Change the heap objects to have a proper
+      // retaining path to the kernel blob and ensure the finalizer will free it
+      // once there are no longer references to it.
+      // (The [ExternalTypedData] currently referenced by e.g. functions point
+      // into the middle of c-allocated buffer and don't have a finalizer).
+      I->RetainKernelBlob(typed_data);
+
+      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
     }
 
-    kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,
-                                                modified_libs_, force_reload);
-  } else {
-    // Check to see which libraries have been modified.
-    modified_libs_ = FindModifiedLibraries(force_reload, root_lib_modified);
+    kernel::KernelLoader::FindModifiedLibraries(
+        kernel_program.get(), I, modified_libs_, force_reload, &skip_reload);
   }
-  if (!modified_libs_->Contains(old_root_lib.index())) {
+  if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
     // Inform GetUnusedChangesInLastReload that a reload has happened.
@@ -635,7 +683,7 @@ void IsolateReloadContext::Reload(bool force_reload,
     // If we use the CFE and performed a compilation, we need to notify that
     // we have accepted the compilation to clear some state in the incremental
     // compiler.
-    if (isolate()->use_dart_frontend() && did_kernel_compilation) {
+    if (did_kernel_compilation) {
       AcceptCompilation(thread);
     }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
@@ -689,7 +737,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   // for example, top level parse errors. We want to capture these errors while
   // propagating the UnwindError or an UnhandledException error.
 
-  if (isolate()->use_dart_frontend()) {
+  {
     const Object& tmp =
         kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
     if (!tmp.IsError()) {
@@ -714,16 +762,6 @@ void IsolateReloadContext::Reload(bool force_reload,
     } else {
       result = tmp.raw();
     }
-  } else {
-    TIR_Print("---- ENTERING TAG HANDLER\n");
-    TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-
-    Dart_Handle retval = (I->library_tag_handler())(
-        Dart_kScriptTag, Api::NewHandle(thread, packages_url.raw()),
-        Api::NewHandle(thread, root_lib_url.raw()));
-    result = Api::UnwrapHandle(retval);
-    TIR_Print("---- EXITED TAG HANDLER\n");
   }
   //
   // WEIRD CONTROL FLOW ENDS.
@@ -869,7 +907,9 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
     if (frame->IsDartFrame()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      func.EnsureHasCompiledUnoptimizedCode();
+      if (!frame->is_interpreted()) {
+        func.EnsureHasCompiledUnoptimizedCode();
+      }
     }
   }
 }
@@ -904,6 +944,8 @@ void IsolateReloadContext::DeoptimizeDependentCode() {
       field.DeoptimizeDependentCode();
     }
   }
+
+  DeoptimizeTypeTestingStubs();
 
   // TODO(johnmccutchan): Also call LibraryPrefix::InvalidateDependentCode.
 }
@@ -993,7 +1035,8 @@ void IsolateReloadContext::FindModifiedSources(
     Thread* thread,
     bool force_reload,
     Dart_SourceFile** modified_sources,
-    intptr_t* count) {
+    intptr_t* count,
+    const char* packages_url) {
   Zone* zone = thread->zone();
   int64_t last_reload = I->last_reload_timestamp();
   GrowableArray<const char*> modified_sources_uris;
@@ -1022,6 +1065,15 @@ void IsolateReloadContext::FindModifiedSources(
       if (force_reload || ScriptModifiedSince(script, last_reload)) {
         modified_sources_uris.Add(uri.ToCString());
       }
+    }
+  }
+
+  // In addition to all sources, we need to check if the .packages file
+  // contents have been modified.
+  if (packages_url != NULL) {
+    if (file_modified_callback_ == NULL ||
+        (*file_modified_callback_)(packages_url, last_reload)) {
+      modified_sources_uris.Add(packages_url);
     }
   }
 
@@ -1206,12 +1258,7 @@ void IsolateReloadContext::RollbackClasses() {
     }
   }
 
-  ClassAndSize* local_saved_class_table = saved_class_table_;
-  saved_class_table_ = NULL;
-  // Can't free this table immediately as another thread (e.g., the sweeper) may
-  // be suspended between loading the table pointer and loading the table
-  // element. Table will be freed at the next major GC or isolate shutdown.
-  class_table->AddOldTable(local_saved_class_table);
+  DiscardSavedClassTable();
 }
 
 void IsolateReloadContext::RollbackLibraries() {
@@ -1364,15 +1411,6 @@ void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
   TIR_Print("---- COMMITTING RELOAD\n");
 
-  // Note that the object heap contains before and after instances
-  // used for morphing. It is therefore important that morphing takes
-  // place prior to any heap walking.
-  // So please keep this code at the top of Commit().
-  if (!MorphInstances()) {
-    free(saved_class_table_);
-    saved_class_table_ = NULL;
-  }
-
 #ifdef DEBUG
   VerifyMaps();
 #endif
@@ -1473,6 +1511,8 @@ void IsolateReloadContext::Commit() {
   }
 
   {
+    MorphInstancesAndApplyNewClassTable();
+
     const GrowableObjectArray& become_enum_mappings =
         GrowableObjectArray::Handle(become_enum_mappings_);
     UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
@@ -1595,10 +1635,17 @@ class ObjectLocator : public ObjectVisitor {
   intptr_t count_;
 };
 
-bool IsolateReloadContext::MorphInstances() {
+static bool HasNoTasks(Heap* heap) {
+  MonitorLocker ml(heap->old_space()->tasks_lock());
+  return heap->old_space()->tasks() == 0;
+}
+
+void IsolateReloadContext::MorphInstancesAndApplyNewClassTable() {
   TIMELINE_SCOPE(MorphInstances);
   if (!HasInstanceMorphers()) {
-    return false;
+    // Fast path: no class had a shape change.
+    DiscardSavedClassTable();
+    return;
   }
 
   if (FLAG_trace_reload) {
@@ -1609,52 +1656,66 @@ bool IsolateReloadContext::MorphInstances() {
     }
   }
 
-  // Find all objects that need to be morphed.
+  // Find all objects that need to be morphed (reallocated to a new size).
   ObjectLocator locator(this);
   {
     HeapIterationScope iteration(Thread::Current());
     iteration.IterateObjects(&locator);
   }
 
-  // Return if no objects are located.
   intptr_t count = locator.count();
   if (count == 0) {
-    return false;
+    // Fast path: classes with shape change have no instances.
+    DiscardSavedClassTable();
+    return;
   }
 
   TIR_Print("Found %" Pd " object%s subject to morphing.\n", count,
             (count > 1) ? "s" : "");
 
-  Array& before = Array::Handle();
-  Array& after = Array::Handle();
-  {  // Prevent GC to take place due object format confusion.
-    // Hint: More than one class share the same cid.
-    NoHeapGrowthControlScope scope;
-    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-      instance_morphers_.At(i)->CreateMorphedCopies();
-    }
-    // Create the inputs for Become.
-    intptr_t index = 0;
-    before = Array::New(count);
-    after = Array::New(count);
-    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-      InstanceMorpher* morpher = instance_morphers_.At(i);
-      for (intptr_t j = 0; j < morpher->before()->length(); j++) {
-        before.SetAt(index, *morpher->before()->At(j));
-        after.SetAt(index, *morpher->after()->At(j));
-        index++;
-      }
-    }
-    ASSERT(index == count);
+  // While we are reallocating instances to their new size, the heap will
+  // contain a mix of instances with the old and new sizes that have the same
+  // cid. This makes the heap unwalkable until the "become" operation below
+  // replaces all the instances of the old size with forwarding corpses. Force
+  // heap growth to prevent size confusion during this period.
+  NoHeapGrowthControlScope scope;
+  // The HeapIterationScope above ensures no other GC tasks can be active.
+  ASSERT(HasNoTasks(I->heap()));
+
+  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+    instance_morphers_.At(i)->CreateMorphedCopies();
   }
 
-  // This is important: The saved class table (describing before objects)
-  // must be zapped to prevent the forwarding in GetClassSizeForHeapWalkAt.
-  // Instance will from now be described by the isolate's class table.
+  // Create the inputs for Become.
+  intptr_t index = 0;
+  const Array& before = Array::Handle(Array::New(count));
+  const Array& after = Array::Handle(Array::New(count));
+  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+    InstanceMorpher* morpher = instance_morphers_.At(i);
+    for (intptr_t j = 0; j < morpher->before()->length(); j++) {
+      before.SetAt(index, *morpher->before()->At(j));
+      after.SetAt(index, *morpher->after()->At(j));
+      index++;
+    }
+  }
+  ASSERT(index == count);
+
+  // Apply the new class table before "become". Become will replace all the
+  // instances of the old size with forwarding corpses, then perform a heap walk
+  // to fix references to the forwarding corpses. During this heap walk, it will
+  // encounter instances of the new size, so it requires the new class table.
+  ASSERT(HasNoTasks(I->heap()));
+#if defined(DEBUG)
+  for (intptr_t i = 0; i < saved_num_cids_; i++) {
+    saved_class_table_[i] = ClassAndSize(nullptr, -1);
+  }
+#endif
   free(saved_class_table_);
-  saved_class_table_ = NULL;
+  saved_class_table_ = nullptr;
+
   Become::ElementsForwardIdentity(before, after);
-  return true;
+  // The heap now contains only instances with the new size. Ordinary GC is safe
+  // again.
 }
 
 void IsolateReloadContext::RunNewFieldInitializers() {
@@ -1735,6 +1796,16 @@ intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
   } else {
     return isolate_->class_table()->SizeAt(cid);
   }
+}
+
+void IsolateReloadContext::DiscardSavedClassTable() {
+  ClassAndSize* local_saved_class_table = saved_class_table_;
+  saved_class_table_ = nullptr;
+  // Can't free this table immediately as another thread (e.g., concurrent
+  // marker or sweeper) may be between loading the table pointer and loading the
+  // table element. The table will be freed at the next major GC or isolate
+  // shutdown.
+  I->class_table()->AddOldTable(local_saved_class_table);
 }
 
 RawLibrary* IsolateReloadContext::saved_root_library() const {
@@ -1885,23 +1956,79 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Zone* zone_;
 };
 
-void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
+typedef UnorderedHashMap<SmiTraits> IntHashMap;
+
+class InvalidateKernelInfoCaches : public ObjectVisitor {
+ public:
+  explicit InvalidateKernelInfoCaches(Zone* zone)
+      : ObjectVisitor(),
+        handle_(Object::Handle(zone)),
+        data_(Array::Handle(zone)),
+        key_(Object::Handle(zone)),
+        value_(Smi::Handle(zone)) {}
+
+  virtual void VisitObject(RawObject* obj) {
+    if (obj->IsPseudoObject()) {
+      // Cannot even be wrapped in handles.
+      return;
+    }
+    handle_ = obj;
+    if (!handle_.IsKernelProgramInfo()) {
+      return;
+    }
+    const KernelProgramInfo& info = KernelProgramInfo::Cast(handle_);
+    // Clear the libraries cache.
+    {
+      data_ ^= info.libraries_cache();
+      ASSERT(!data_.IsNull());
+      IntHashMap table(&key_, &value_, &data_);
+      table.Clear();
+      info.set_libraries_cache(table.Release());
+    }
+    // Clear the classes cache.
+    {
+      data_ ^= info.classes_cache();
+      ASSERT(!data_.IsNull());
+      IntHashMap table(&key_, &value_, &data_);
+      table.Clear();
+      info.set_classes_cache(table.Release());
+    }
+  }
+
+ private:
+  Object& handle_;
+  Array& data_;
+  Object& key_;
+  Smi& value_;
+};
+
+void IsolateReloadContext::RunInvalidationVisitors() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
-  TIR_Print("---- MARKING ALL FUNCTIONS FOR RECOMPILATION\n");
+  TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
+
   HeapIterationScope iteration(thread);
-  MarkFunctionsForRecompilation visitor(isolate_, this, zone);
+  GrowableArray<ObjectVisitor*> arr(zone, 2);
+  ExtensibleObjectVisitor visitor(&arr);
+  MarkFunctionsForRecompilation function_visitor(isolate_, this, zone);
+  InvalidateKernelInfoCaches kernel_info_visitor(zone);
+
+  visitor.Add(&function_visitor);
+  visitor.Add(&kernel_info_visitor);
   iteration.IterateObjects(&visitor);
 }
 
 void IsolateReloadContext::InvalidateWorld() {
   TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
+  if (FLAG_trace_deoptimization) {
+    THR_Print("Deopt for reload\n");
+  }
   DeoptimizeFunctionsOnStack();
   ResetUnoptimizedICsOnStack();
-  MarkAllFunctionsForRecompilation();
+  RunInvalidationVisitors();
 }
 
 RawClass* IsolateReloadContext::MappedClass(const Class& replacement_or_new) {
@@ -2079,14 +2206,24 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
       cls = class_table->At(i);
       subclasses = cls.direct_subclasses();
       if (!subclasses.IsNull()) {
-        subclasses.SetLength(0);
+        cls.ClearDirectSubclasses();
+      }
+      subclasses = cls.direct_implementors();
+      if (!subclasses.IsNull()) {
+        cls.ClearDirectImplementors();
       }
     }
   }
 
-  // Recompute the direct subclasses.
+  // Recompute the direct subclasses / implementors.
+
   AbstractType& super_type = AbstractType::Handle();
   Class& super_cls = Class::Handle();
+
+  Array& interface_types = Array::Handle();
+  AbstractType& interface_type = AbstractType::Handle();
+  Class& interface_class = Class::Handle();
+
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
@@ -2095,6 +2232,15 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
         super_cls = cls.SuperClass();
         ASSERT(!super_cls.IsNull());
         super_cls.AddDirectSubclass(cls);
+      }
+
+      interface_types = cls.interfaces();
+      if (!interface_types.IsNull()) {
+        for (intptr_t j = 0; j < interface_types.Length(); ++j) {
+          interface_type ^= interface_types.At(j);
+          interface_class = interface_type.type_class();
+          interface_class.AddDirectImplementor(cls);
+        }
       }
     }
   }

@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -1759,7 +1759,7 @@ class AnalysisUpdateContentParams implements RequestParams {
       if (json.containsKey("files")) {
         files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"],
             valueDecoder: (String jsonPath, Object json) =>
-                jsonDecoder.decodeUnion(jsonPath, json, "type", {
+                jsonDecoder.decodeUnion(jsonPath, json as Map, "type", {
                   "add": (String jsonPath, Object json) =>
                       new AddContentOverlay.fromJson(
                           jsonDecoder, jsonPath, json),

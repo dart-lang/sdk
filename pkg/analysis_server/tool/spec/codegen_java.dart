@@ -6,7 +6,6 @@
  * Tools for Java code generation.
  */
 import 'package:analyzer/src/codegen/tools.dart';
-import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
@@ -90,7 +89,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool isDeclaredInSpec(TypeDecl type) {
 //    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
 //    if(resolvedType is TypeObject) {
-//      return truye;
+//      return true;
 //    }
     if (type is TypeReference) {
       return api.types.containsKey(type.typeName) && javaType(type) != 'String';

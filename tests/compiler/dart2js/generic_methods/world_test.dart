@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:expect/expect.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const String code = r'''
 import 'package:meta/dart2js.dart';
@@ -85,8 +84,8 @@ main(args) {
 
 main() {
   asyncTest(() async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code}, options: [Flags.strongMode]);
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': code});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     CodegenWorldBuilder worldBuilder = compiler.codegenWorldBuilder;

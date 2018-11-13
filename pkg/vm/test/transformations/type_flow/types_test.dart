@@ -26,6 +26,19 @@ class TestTypeHierarchy implements TypeHierarchy {
         reason: "specializeTypeCone($base) is not defined");
     return result;
   }
+
+  List<DartType> flattenedTypeArgumentsFor(Class klass) =>
+      throw "flattenedTypeArgumentsFor is not supported in the types test.";
+
+  int genericInterfaceOffsetFor(Class klass, Class iface) =>
+      throw "genericInterfaceOffsetFor is not supported in the types test.";
+
+  List<Type> flattenedTypeArgumentsForNonGeneric(Class klass) =>
+      throw "flattenedTypeArgumentsFor is not supported in the types test.";
+
+  Class get futureOrClass =>
+      throw "futureOrClass not supported in the types test.";
+  Class get futureClass => throw "futureClass not supported in the types test.";
 }
 
 main() {
@@ -75,10 +88,10 @@ main() {
 
     final empty = new EmptyType();
     final any = new AnyType();
-    final concreteT1 = new ConcreteType(const IntClassId(1), t1);
-    final concreteT2 = new ConcreteType(const IntClassId(2), t2);
-    final concreteT3 = new ConcreteType(const IntClassId(3), t3);
-    final concreteT4 = new ConcreteType(const IntClassId(4), t4);
+    final concreteT1 = new ConcreteType(const IntClassId(1), t1.classNode);
+    final concreteT2 = new ConcreteType(const IntClassId(2), t2.classNode);
+    final concreteT3 = new ConcreteType(const IntClassId(3), t3.classNode);
+    final concreteT4 = new ConcreteType(const IntClassId(4), t4.classNode);
     final coneT1 = new ConeType(t1);
     final coneT2 = new ConeType(t2);
     final coneT3 = new ConeType(t3);
@@ -261,7 +274,6 @@ main() {
     final t1a = new InterfaceType(c1);
     final t1b = new InterfaceType(c1);
     final t2 = new InterfaceType(c2);
-    final t3 = new InterfaceType(c3);
     final f1a = new FunctionType([t1a], const VoidType());
     final f1b = new FunctionType([t1b], const VoidType());
     final f2 = new FunctionType([t1a, t1a], const VoidType());
@@ -292,27 +304,27 @@ main() {
 
     eq(new EmptyType(), new EmptyType());
     ne(new EmptyType(), new AnyType());
-    ne(new EmptyType(), new ConcreteType(cid1, t1a));
+    ne(new EmptyType(), new ConcreteType(cid1, c1));
     ne(new EmptyType(), new ConeType(t1a));
     ne(new EmptyType(),
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
     ne(new EmptyType(), new NullableType(new EmptyType()));
 
     eq(new AnyType(), new AnyType());
-    ne(new AnyType(), new ConcreteType(cid1, t1a));
+    ne(new AnyType(), new ConcreteType(cid1, c1));
     ne(new AnyType(), new ConeType(t1a));
     ne(new AnyType(),
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
     ne(new AnyType(), new NullableType(new EmptyType()));
 
-    eq(new ConcreteType(cid1, t1a), new ConcreteType(cid1, t1b));
-    ne(new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2));
-    ne(new ConcreteType(cid1, t1a), new ConeType(t1a));
-    ne(new ConcreteType(cid1, t1a), new ConeType(t2));
-    ne(new ConcreteType(cid1, t1a),
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
-    ne(new ConcreteType(cid1, t1a),
-        new NullableType(new ConcreteType(cid1, t1a)));
+    eq(new ConcreteType(cid1, c1), new ConcreteType(cid1, c1));
+    ne(new ConcreteType(cid1, c1), new ConcreteType(cid2, c2));
+    ne(new ConcreteType(cid1, c1), new ConeType(t1a));
+    ne(new ConcreteType(cid1, c1), new ConeType(t2));
+    ne(new ConcreteType(cid1, c1),
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
+    ne(new ConcreteType(cid1, c1),
+        new NullableType(new ConcreteType(cid1, c1)));
 
     eq(new ConeType(t1a), new ConeType(t1b));
     eq(new ConeType(f1a), new ConeType(f1b));
@@ -320,34 +332,34 @@ main() {
     ne(new ConeType(f1a), new ConeType(f2));
     ne(new ConeType(t1a), new ConeType(f1a));
     ne(new ConeType(t1a),
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
     ne(new ConeType(t1a), new NullableType(new ConeType(t1a)));
 
-    eq(new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
-        new SetType([new ConcreteType(cid1, t1b), new ConcreteType(cid2, t2)]));
+    eq(new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]));
     eq(
         new SetType([
-          new ConcreteType(cid1, t1a),
-          new ConcreteType(cid2, t2),
-          new ConcreteType(cid3, t3)
+          new ConcreteType(cid1, c1),
+          new ConcreteType(cid2, c2),
+          new ConcreteType(cid3, c3)
         ]),
         new SetType([
-          new ConcreteType(cid1, t1b),
-          new ConcreteType(cid2, t2),
-          new ConcreteType(cid3, t3)
+          new ConcreteType(cid1, c1),
+          new ConcreteType(cid2, c2),
+          new ConcreteType(cid3, c3)
         ]));
     ne(
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
         new SetType([
-          new ConcreteType(cid1, t1a),
-          new ConcreteType(cid2, t2),
-          new ConcreteType(cid3, t3)
+          new ConcreteType(cid1, c1),
+          new ConcreteType(cid2, c2),
+          new ConcreteType(cid3, c3)
         ]));
-    ne(new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid3, t3)]));
+    ne(new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid3, c3)]));
     ne(
-        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
+        new SetType([new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)]),
         new NullableType(new SetType(
-            [new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)])));
+            [new ConcreteType(cid1, c1), new ConcreteType(cid2, c2)])));
   });
 }

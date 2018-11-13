@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
   method f(core::int x) → core::int {
@@ -12,13 +12,13 @@ class B extends core::Object {
   }
 }
 abstract class I extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I
     : super core::Object::•()
     ;
   abstract method f(covariant core::Object x) → core::int;
 }
 class C extends self::B implements self::I {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
   forwarding-stub method f(covariant core::Object x) → core::int

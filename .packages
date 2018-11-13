@@ -10,6 +10,7 @@ analysis_server:pkg/analysis_server/lib
 analysis_server_client:pkg/analysis_server_client/lib
 analyzer:pkg/analyzer/lib
 analyzer_cli:pkg/analyzer_cli/lib
+analyzer_fe_comparison:pkg/analyzer_fe_comparison/lib
 analyzer_plugin:pkg/analyzer_plugin/lib
 args:third_party/pkg/args/lib
 async:third_party/pkg/async/lib
@@ -23,18 +24,19 @@ charted:third_party/observatory_pub_packages/packages/charted/lib
 cli_util:third_party/pkg/cli_util/lib
 collection:third_party/pkg/collection/lib
 compiler:pkg/compiler/lib
-# Compiler is imported as compiler_unsupported so it can work outside the SDK.
-compiler_unsupported:pkg/compiler/lib
 convert:third_party/pkg/convert/lib
 crypto:third_party/pkg/crypto/lib
 csslib:third_party/pkg/csslib/lib
 dart2js_info:third_party/pkg/dart2js_info/lib
+dart2js_tools:pkg/dart2js_tools/lib
 dart_internal:pkg/dart_internal/lib
-dart_messages:pkg/dart_messages/lib
 dart_style:third_party/pkg_tested/dart_style/lib
 dartdoc:third_party/pkg/dartdoc/lib
+dartfix:pkg/dartfix/lib
 dev_compiler:pkg/dev_compiler/lib
+diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
+file:third_party/pkg/file/packages/file/lib
 fixnum:third_party/pkg/fixnum/lib
 front_end:pkg/front_end/lib
 func:third_party/pkg/func/lib
@@ -69,8 +71,10 @@ package_config:third_party/pkg_tested/package_config/lib
 package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
 petitparser:third_party/pkg/petitparser/lib
+platform:third_party/pkg/platform/lib
 plugin:third_party/pkg/plugin/lib
 pool:third_party/pkg/pool/lib
+process:third_party/pkg/process/lib
 protobuf:third_party/pkg/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib

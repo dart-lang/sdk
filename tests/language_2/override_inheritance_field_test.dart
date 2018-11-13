@@ -8,9 +8,9 @@ class A {
   get getter1 => null; //# 01: ok
   num get getter2 => null; //# 02: ok
   num get getter3 => null; //# 03: ok
-  int get getter4 => null; //# 04: ok
+  int get getter4 => null; //# 04: compile-time error
   int get getter5 => null; //# 05: compile-time error
-  int get getter6 => null; //# 06: ok
+  int get getter6 => null; //# 06: compile-time error
   int get getter7 => null; //# 07: compile-time error
   int get getter8 => null; //# 08: compile-time error
 
@@ -19,10 +19,10 @@ class A {
   set setter3(_) => null; //# 23: ok
   set setter4(_) => null; //# 24: ok
   set setter5(num _) => null; //# 25: ok
-  set setter6(num _) => null; //# 26: ok
+  set setter6(num _) => null; //# 26: compile-time error
   set setter7(int _) => null; //# 27: ok
   set setter8(int _) => null; //# 28: compile-time error
-  set setter9(int _) => null; //# 29: ok
+  set setter9(int _) => null; //# 29: compile-time error
   set setter10(int _) => null; //# 30: compile-time error
   set setter11(int _) => null; //# 31: compile-time error
 

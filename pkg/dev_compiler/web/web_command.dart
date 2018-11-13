@@ -10,26 +10,20 @@ import 'dart:math' as math;
 import 'dart:html' show HttpRequest;
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/element/element.dart'
-    show
-        LibraryElement,
-        ImportElement,
-        ShowElementCombinator,
-        HideElementCombinator;
 import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/memory_file_system.dart'
     show MemoryResourceProvider;
-import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show SummaryDataStore, InSummaryUriResolver, InSummarySource;
+    show SummaryDataStore;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 
 import 'package:args/command_runner.dart';
 
 import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
-import 'package:dev_compiler/src/analyzer/module_compiler.dart'
-    show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
+import 'package:dev_compiler/src/analyzer/command.dart';
+import 'package:dev_compiler/src/analyzer/driver.dart';
+import 'package:dev_compiler/src/analyzer/module_compiler.dart';
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';
@@ -72,8 +66,7 @@ class WebCompileCommand extends Command {
 
   WebCompileCommand({MessageHandler messageHandler})
       : this.messageHandler = messageHandler ?? print {
-    CompilerOptions.addArguments(argParser);
-    AnalyzerOptions.addArguments(argParser);
+    ddcArgParser(argParser: argParser, help: false);
   }
 
   @override
@@ -139,40 +132,32 @@ class WebCompileCommand extends Command {
       List<String> moduleIds) {
     var dartSdkSummaryPath = '/dart-sdk/lib/_internal/web_sdk.sum';
 
-    var resourceProvider = MemoryResourceProvider()
+    var resources = MemoryResourceProvider()
       ..newFileWithBytes(dartSdkSummaryPath, sdkBytes);
-
-    var resourceUriResolver = ResourceUriResolver(resourceProvider);
 
     var options = AnalyzerOptions.basic(
         dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath);
 
-    var summaryDataStore = SummaryDataStore(options.summaryPaths,
-        resourceProvider: resourceProvider);
+    var summaryData = SummaryDataStore([], resourceProvider: resources);
+    var compilerOptions = CompilerOptions.fromArguments(argResults);
+    compilerOptions.replCompile = true;
+    compilerOptions.libraryRoot = '/';
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
 
       // Packages with no dart source files will have empty invalid summaries.
       if (bytes.length == 0) continue;
 
-      var url = '/${moduleIds[i]}.api.ds';
-      var summaryBundle = PackageBundle.fromBuffer(bytes);
-      summaryDataStore.addBundle(url, summaryBundle);
+      var moduleId = moduleIds[i];
+      var url = '/$moduleId.api.ds';
+      summaryData.addBundle(url, PackageBundle.fromBuffer(bytes));
+      compilerOptions.summaryModules[url] = moduleId;
     }
-    var summaryResolver =
-        InSummaryUriResolver(resourceProvider, summaryDataStore);
+    options.analysisRoot = '/web-compile-root';
+    options.fileResolvers = [ResourceUriResolver(resources)];
+    options.resourceProvider = resources;
 
-    var fileResolvers = [summaryResolver, resourceUriResolver];
-
-    var compiler = ModuleCompiler(options,
-        analysisRoot: '/web-compile-root',
-        fileResolvers: fileResolvers,
-        resourceProvider: resourceProvider,
-        summaryData: summaryDataStore);
-
-    var context = compiler.context as AnalysisContextImpl;
-
-    var compilerOptions = CompilerOptions.fromArguments(argResults);
+    var driver = CompilerAnalysisDriver(options, summaryData: summaryData);
 
     var resolveFn = (String url) {
       var packagePrefix = 'package:';
@@ -181,7 +166,7 @@ class WebCompileCommand extends Command {
       var parts = uri.pathSegments;
       var match = null;
       int bestScore = 0;
-      for (var candidate in summaryDataStore.uriToSummaryPath.keys) {
+      for (var candidate in summaryData.uriToSummaryPath.keys) {
         if (path.basename(candidate) != base) continue;
         List<String> candidateParts = path.dirname(candidate).split('/');
         var first = candidateParts.first;
@@ -244,14 +229,12 @@ class WebCompileCommand extends Command {
         var dir = path.dirname(existingLibrary);
         // Need to pull in all the imports from the existing library and
         // re-export all privates as privates in this library.
-        var source = context.sourceFactory.forUri(existingLibrary);
-        if (source == null) {
-          throw "Unable to load source for library $existingLibrary";
-        }
-
-        LibraryElement libraryElement = context.computeLibraryElement(source);
-        if (libraryElement == null) {
-          throw "Unable to get library element.";
+        // Assumption: summaries are available for all libraries, including any
+        // source files that were compiled; we do not need to reconstruct any
+        // summary data here.
+        var unlinked = driver.summaryData.unlinkedMap[existingLibrary];
+        if (unlinked == null) {
+          throw "Unable to get library element for `$existingLibrary`.";
         }
         var sb = StringBuffer(imports);
         sb.write('\n');
@@ -270,9 +253,9 @@ class WebCompileCommand extends Command {
         // importing that library and all libraries it imports.
         sb.write('import ${json.encode(existingLibrary)};\n');
 
-        for (ImportElement importElement in libraryElement.imports) {
-          if (importElement.uri == null) continue;
-          var uri = importElement.uri;
+        for (var import in unlinked.imports) {
+          if (import.uri == null || import.isImplicit) continue;
+          var uri = import.uri;
           // dart: and package: uris are not relative but the path package
           // thinks they are. We have to provide absolute uris as our library
           // has a different directory than the library we are pretending to be.
@@ -282,13 +265,15 @@ class WebCompileCommand extends Command {
             uri = path.normalize(path.join(dir, uri));
           }
           sb.write('import ${json.encode(uri)}');
-          if (importElement.prefix != null)
-            sb.write(' as ${importElement.prefix.name}');
-          for (var combinator in importElement.combinators) {
-            if (combinator is ShowElementCombinator) {
-              sb.write(' show ${combinator.shownNames.join(', ')}');
-            } else if (combinator is HideElementCombinator) {
-              sb.write(' hide ${combinator.hiddenNames.join(', ')}');
+          if (import.prefixReference != 0) {
+            var prefix = unlinked.references[import.prefixReference].name;
+            sb.write(' as $prefix');
+          }
+          for (var combinator in import.combinators) {
+            if (combinator.shows.isNotEmpty) {
+              sb.write(' show ${combinator.shows.join(', ')}');
+            } else if (combinator.hides.isNotEmpty) {
+              sb.write(' hide ${combinator.hides.join(', ')}');
             } else {
               throw 'Unexpected element combinator';
             }
@@ -298,18 +283,17 @@ class WebCompileCommand extends Command {
         sb.write(body);
         sourceCode = sb.toString();
       }
-      resourceProvider.newFile(fileName, sourceCode);
+      resources.newFile(fileName, sourceCode);
 
-      var unit = BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
-
-      JSModuleFile module = compiler.compile(unit, compilerOptions);
+      var name = path.toUri(libraryName).toString();
+      compilerOptions.moduleName = name;
+      JSModuleFile module =
+          compileWithAnalyzer(driver, [fileName], options, compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {
-        moduleCode = module
-            .getCode(ModuleFormat.legacy, unit.name, unit.name + '.map',
-                singleOutFile: true)
-            .code;
+        moduleCode =
+            module.getCode(ModuleFormat.legacyConcat, name, name + '.map').code;
       }
 
       return CompileResult(
@@ -318,14 +302,6 @@ class WebCompileCommand extends Command {
 
     return [allowInterop(compileFn), allowInterop(resolveFn)];
   }
-}
-
-// Given path, determine corresponding dart library.
-String _moduleForLibrary(source) {
-  if (source is InSummarySource) {
-    return source.summaryPath.substring(1).replaceAll('.api.ds', '');
-  }
-  return source.toString().substring(1).replaceAll('.dart', '');
 }
 
 /// Thrown when the input source code has errors.

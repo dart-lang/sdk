@@ -7,9 +7,10 @@ import 'package:kernel/ast.dart' as ir;
 import '../constants/values.dart';
 import '../js_model/elements.dart' show JsToFrontendMap, JField;
 import '../kernel/element_map.dart';
-import '../kernel/element_map_impl.dart' show KernelElementEnvironment;
+import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField;
 import '../options.dart';
+import '../serialization/serialization.dart';
 
 abstract class AllocatorAnalysis {}
 
@@ -30,22 +31,18 @@ abstract class AllocatorAnalysis {}
 //     this.x = this.z = null;
 //
 class KAllocatorAnalysis implements AllocatorAnalysis {
-  final KernelElementEnvironment _elementEnvironment;
-  KernelToElementMap _elementMap;
+  final KernelToElementMap _elementMap;
 
   final Map<KField, ConstantValue> _fixedInitializers =
       <KField, ConstantValue>{};
 
-  KAllocatorAnalysis(this._elementEnvironment) {
-    _elementMap = _elementEnvironment.elementMap;
-  }
+  KAllocatorAnalysis(KernelFrontEndStrategy kernelStrategy)
+      : _elementMap = kernelStrategy.elementMap;
 
   // Register class during resolution. Use simple syntactic analysis to find
   // null-initialized fields.
   void registerInstantiatedClass(KClass class_) {
-    ClassDefinition definition = _elementMap.getClassDefinition(class_);
-    assert(definition.kind == ClassKind.regular);
-    ir.Class classNode = definition.node;
+    ir.Class classNode = _elementMap.getClassNode(class_);
 
     Set<ir.Field> nulls = new Set<ir.Field>();
     for (ir.Field field in classNode.fields) {
@@ -74,12 +71,44 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
 }
 
 class JAllocatorAnalysis implements AllocatorAnalysis {
+  /// Tag used for identifying serialized [JAllocatorAnalysis] objects in a
+  /// debugging data stream.
+  static const String tag = 'allocator-analysis';
+
   // --csp and --fast-startup have different constraints to the generated code.
   final CompilerOptions _options;
   final Map<JField, ConstantValue> _fixedInitializers =
       <JField, ConstantValue>{};
 
   JAllocatorAnalysis._(this._options);
+
+  /// Deserializes a [JAllocatorAnalysis] object from [source].
+  factory JAllocatorAnalysis.readFromDataSource(
+      DataSource source, CompilerOptions options) {
+    source.begin(tag);
+    JAllocatorAnalysis analysis = new JAllocatorAnalysis._(options);
+    int fieldCount = source.readInt();
+    for (int i = 0; i < fieldCount; i++) {
+      JField field = source.readMember();
+      // TODO(sra): Deserialize constant, when non-null is supported.
+      ConstantValue value = const NullConstantValue();
+      analysis._fixedInitializers[field] = value;
+    }
+    source.end(tag);
+    return analysis;
+  }
+
+  /// Serializes this [JAllocatorAnalysis] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(_fixedInitializers.length);
+    _fixedInitializers.forEach((JField field, ConstantValue value) {
+      sink.writeMember(field);
+      // TODO(sra): Serialize constant, when non-null is supported.
+      assert(value.isNull);
+    });
+    sink.end(tag);
+  }
 
   static JAllocatorAnalysis from(KAllocatorAnalysis kAnalysis,
       JsToFrontendMap map, CompilerOptions options) {
@@ -104,7 +133,6 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
       // in-allocator initialization.
       return false;
     }
-    if (!_options.strongMode) return false;
     return true;
   }
   // TODO(sra): Add way to let injected fields be initialized to a constant in

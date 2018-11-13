@@ -1,3 +1,15 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/inference/downward_inference_fixes_no_upwards_errors.dart:21:63: Error: Inferred type argument 'dynamic' violates the corresponding type variable bound of 'max'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   dynamic c = /*error:COULD_NOT_INFER*/ /*@typeArgs=dynamic*/ max(x, y);
+//                                                               ^
+//
+// pkg/front_end/testcases/inference/downward_inference_fixes_no_upwards_errors.dart:22:77: Error: Inferred type argument 'dynamic' violates the corresponding type variable bound of 'max'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   var /*@type=dynamic*/ d = /*error:COULD_NOT_INFER*/ /*@typeArgs=dynamic*/ max(
+//                                                                             ^
+
 library test;
 import self as self;
 import "dart:core" as core;

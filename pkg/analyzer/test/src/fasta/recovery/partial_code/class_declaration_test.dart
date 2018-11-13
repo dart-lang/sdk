@@ -27,6 +27,17 @@ class ClassDeclarationTest extends PartialCodeTest {
           new TestDescriptor('named', 'class A',
               [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}'),
           new TestDescriptor(
+              'extend',
+              'class A extend',
+              [
+                ParserErrorCode.EXPECTED_INSTEAD,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_CLASS_BODY
+              ],
+              'class A extend _s_ {}',
+              expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor(
               'extends',
               'class A extends',
               [
@@ -34,6 +45,17 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends _s_ {}',
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor(
+              'on',
+              'class A on',
+              [
+                ParserErrorCode.EXPECTED_INSTEAD,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_CLASS_BODY
+              ],
+              'class A on _s_ {}',
+              expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
               failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor('extendsBody', 'class A extends {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME], 'class A extends _s_ {}'),

@@ -4,24 +4,24 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 class D<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D<self::D::T>
     : super core::Object::•()
     ;
 }
 class E<T extends core::Object = dynamic> extends self::D<self::E::T> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E<self::E::T>
     : super self::D::•()
     ;
 }
 class B<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B<self::B::T>
     : super core::Object::•()
     ;
   method g(self::E<self::B::T> x) → self::D<self::B::T>
     return null;
 }
 class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U>> {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C<self::C::U>
     : super self::B::•()
     ;
   method g(core::Object x) → self::E<asy::Future<self::C::U>>

@@ -12,6 +12,8 @@
 #include "vm/heap/heap.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
+#include "vm/program_visitor.h"
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
 #include "vm/type_testing_stubs.h"
@@ -29,6 +31,11 @@ DEFINE_FLAG(charp,
             NULL,
             "Print sizes of all instruction objects to the given file");
 #endif
+
+DEFINE_FLAG(bool,
+            trace_reused_instructions,
+            false,
+            "Print code that lacks reusable instructions");
 
 intptr_t ObjectOffsetTrait::Hashcode(Key key) {
   RawObject* obj = key;
@@ -72,11 +79,13 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 }
 
 ImageWriter::ImageWriter(const void* shared_objects,
-                         const void* shared_instructions)
+                         const void* shared_instructions,
+                         const void* reused_instructions)
     : next_data_offset_(0), next_text_offset_(0), objects_(), instructions_() {
   ResetOffsets();
   SetupShared(&shared_objects_, shared_objects);
   SetupShared(&shared_instructions_, shared_instructions);
+  SetupShared(&reuse_instructions_, reused_instructions);
 }
 
 void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
@@ -100,6 +109,15 @@ void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
 
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
+  if (!reuse_instructions_.IsEmpty()) {
+    ObjectOffsetPair* pair = reuse_instructions_.Lookup(instructions);
+    if (pair == NULL) {
+      // Code should have been removed by DropCodeWithoutReusableInstructions.
+      FATAL("Expected instructions to reuse\n");
+    }
+    return pair->offset;
+  }
+
   ObjectOffsetPair* pair = shared_instructions_.Lookup(instructions);
   if (pair != NULL) {
     // Negative offsets tell the reader the offset is w/r/t the shared
@@ -160,6 +178,11 @@ void ImageWriter::DumpInstructionsSizes() {
   js.OpenArray();
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
+    if (data.code_->IsNull()) {
+      // TODO(34650): Type testing stubs are added to the serializer without
+      // their Code.
+      continue;
+    }
     owner = data.code_->owner();
     js.OpenObject();
     if (owner.IsFunction()) {
@@ -260,7 +283,10 @@ void ImageWriter::WriteROData(WriteStream* stream) {
     // Write object header with the mark and VM heap bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    marked_tags = RawObject::OldBit::update(true, marked_tags);
+    marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
+    marked_tags = RawObject::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
     marked_tags |= static_cast<uword>(obj.raw()->ptr()->hash_) << 32;
 #endif
@@ -277,7 +303,7 @@ AssemblyImageWriter::AssemblyImageWriter(Dart_StreamingWriteCallback callback,
                                          void* callback_data,
                                          const void* shared_objects,
                                          const void* shared_instructions)
-    : ImageWriter(shared_objects, shared_instructions),
+    : ImageWriter(shared_objects, shared_instructions, NULL),
       assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(NULL) {
 #if defined(DART_PRECOMPILER)
@@ -329,6 +355,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Object& owner = Object::Handle(zone);
   String& str = String::Handle(zone);
 
+  ObjectStore* object_store = Isolate::Current()->object_store();
+
   TypeTestingStubFinder tts;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
@@ -346,7 +374,11 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       // Write Instructions with the mark and VM heap bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
       marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+      marked_tags = RawObject::OldBit::update(true, marked_tags);
+      marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+      marked_tags =
+          RawObject::OldAndNotRememberedBit::update(true, marked_tags);
+      marked_tags = RawObject::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
       // Can't use GetObjectTagsAndHash because the update methods discard the
       // high bits.
@@ -362,17 +394,20 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
     if (code.IsNull()) {
-      const char* name = tts.StubNameFromAddresss(insns.UncheckedEntryPoint());
+      const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
       assembly_stream_.Print("Precompiled_%s:\n", name);
     } else {
       owner = code.owner();
       if (owner.IsNull()) {
-        const char* name = StubCode::NameOfStub(insns.UncheckedEntryPoint());
+        const char* name = StubCode::NameOfStub(insns.EntryPoint());
+        if (name == nullptr &&
+            code.raw() == object_store->build_method_extractor_code()) {
+          name = "BuildMethodExtractor";
+        }
         if (name != NULL) {
           assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
         } else {
-          const char* name =
-              tts.StubNameFromAddresss(insns.UncheckedEntryPoint());
+          const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
           assembly_stream_.Print("Precompiled__%s:\n", name);
         }
       } else if (owner.IsClass()) {
@@ -525,8 +560,9 @@ BlobImageWriter::BlobImageWriter(uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
                                  const void* shared_objects,
-                                 const void* shared_instructions)
-    : ImageWriter(shared_objects, shared_instructions),
+                                 const void* shared_instructions,
+                                 const void* reused_instructions)
+    : ImageWriter(shared_objects, shared_instructions, reused_instructions),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size) {
 }
 
@@ -556,7 +592,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // Write Instructions with the mark and VM heap bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    marked_tags = RawObject::OldBit::update(true, marked_tags);
+    marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
+    marked_tags = RawObject::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
     // Can't use GetObjectTagsAndHash because the update methods discard the
     // high bits.
@@ -633,6 +672,69 @@ RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
   ASSERT(result->IsMarked());
 
   return result;
+}
+
+void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
+  class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
+   public:
+    explicit DropCodeVisitor(const void* reused_instructions)
+        : code_(Code::Handle()), instructions_(Instructions::Handle()) {
+      ImageWriter::SetupShared(&reused_instructions_, reused_instructions);
+      if (FLAG_trace_reused_instructions) {
+        OS::PrintErr("%" Pd " reusable instructions\n",
+                     reused_instructions_.Size());
+      }
+    }
+
+    void Visit(const Class& cls) {
+      code_ = cls.allocation_stub();
+      if (!code_.IsNull() && !IsAvailable(code_)) {
+        if (FLAG_trace_reused_instructions) {
+          OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
+        }
+        cls.DisableAllocationStub();
+      }
+    }
+
+    void Visit(const Function& func) {
+      if (func.HasCode()) {
+        code_ = func.CurrentCode();
+        if (!IsAvailable(code_)) {
+          if (FLAG_trace_reused_instructions) {
+            OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
+          }
+          func.ClearCode();
+          func.ClearICDataArray();
+          return;
+        }
+      }
+      code_ = func.unoptimized_code();
+      if (!code_.IsNull() && !IsAvailable(code_)) {
+        if (FLAG_trace_reused_instructions) {
+          OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
+        }
+        func.ClearCode();
+        func.ClearICDataArray();
+        return;
+      }
+    }
+
+   private:
+    bool IsAvailable(const Code& code) {
+      ObjectOffsetPair* pair = reused_instructions_.Lookup(code.instructions());
+      return pair != NULL;
+    }
+
+    ObjectOffsetMap reused_instructions_;
+    Code& code_;
+    Instructions& instructions_;
+
+    DISALLOW_COPY_AND_ASSIGN(DropCodeVisitor);
+  };
+
+  DropCodeVisitor visitor(reused_instructions);
+  ProgramVisitor::VisitClasses(&visitor);
+  ProgramVisitor::VisitFunctions(&visitor);
 }
 
 }  // namespace dart

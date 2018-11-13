@@ -4,21 +4,35 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerOptions, DiagnosticMessage;
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 
 import '../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
-  Component component = await compileTestCaseToKernelProgram(source);
+  // Certain tests require super-mixin semantics which is used in Flutter.
+  bool enableSuperMixins = source.pathSegments.last == 'super_calls.dart';
 
-  // Need to omit source positions from bytecode as they are different on
-  // Linux and Windows (due to differences in newline characters).
-  generateBytecode(component, strongMode: true, omitSourcePositions: true);
+  Component component = await compileTestCaseToKernelProgram(source,
+      enableSuperMixins: enableSuperMixins);
+
+  final options = new CompilerOptions()
+    ..onDiagnostic = (DiagnosticMessage message) {
+      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
+    };
+
+  await runWithFrontEndCompilerContext(source, options, component, () {
+    // Need to omit source positions from bytecode as they are different on
+    // Linux and Windows (due to differences in newline characters).
+    generateBytecode(component, omitSourcePositions: true);
+  });
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
   compareResultWithExpectationsFile(source, actual);

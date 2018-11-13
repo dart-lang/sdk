@@ -22,18 +22,16 @@ import '../../../protocol_server.dart'
  * or `null` if the target is in a static method or field
  * or not in a class.
  */
-ClassDeclaration _enclosingClass(CompletionTarget target) {
+ClassOrMixinDeclaration _enclosingClass(CompletionTarget target) {
   AstNode node = target.containingNode;
   while (node != null) {
-    if (node is ClassDeclaration) {
+    if (node is ClassOrMixinDeclaration) {
       return node;
-    }
-    if (node is MethodDeclaration) {
+    } else if (node is MethodDeclaration) {
       if (node.isStatic) {
         return null;
       }
-    }
-    if (node is FieldDeclaration) {
+    } else if (node is FieldDeclaration) {
       if (node.isStatic) {
         return null;
       }
@@ -60,28 +58,22 @@ class InheritedReferenceContributor extends DartCompletionContributor
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
-    ClassDeclaration classDecl = _enclosingClass(request.target);
-    if (classDecl == null || classDecl.element == null) {
-      return EMPTY_LIST;
-    }
-    containingLibrary = request.libraryElement;
-    return _computeSuggestionsForClass2(
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
-  }
-
-  List<CompletionSuggestion> computeSuggestionsForClass(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass: true}) {
-    if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+    ClassOrMixinDeclaration classDecl = _enclosingClass(request.target);
+    if (classDecl == null || classDecl.declaredElement == null) {
+      return const <CompletionSuggestion>[];
     }
     containingLibrary = request.libraryElement;
-
-    return _computeSuggestionsForClass2(classElement, request,
-        skipChildClass: skipChildClass);
+    if (classDecl is ClassDeclaration) {
+      return _computeSuggestionsForClass2(
+          resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
+    } else if (classDecl is MixinDeclaration) {
+      return _computeSuggestionsForClass2(
+          resolutionMap.elementDeclaredByMixinDeclaration(classDecl), request);
+    }
+    return const <CompletionSuggestion>[];
   }
 
   _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,

@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -27,6 +26,7 @@ import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,7 +42,8 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisContextImplTest extends AbstractContextTest {
+class AnalysisContextImplTest extends AbstractContextTest
+    with ResourceProviderMixin {
   void fail_getErrors_html_some() {
     Source source = addSource("/test.html", r'''
 <html><head>
@@ -258,7 +259,8 @@ int b = aa;''';
     expect(partUnit, isNotNull);
     TopLevelVariableDeclaration declaration =
         libraryUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element declarationElement = declaration.variables.variables[0].element;
+    Element declarationElement =
+        declaration.variables.variables[0].declaredElement;
     TopLevelVariableDeclaration use =
         partUnit.declarations[0] as TopLevelVariableDeclaration;
     Element useElement =
@@ -297,8 +299,7 @@ int b = aa;''';
   }
 
   void test_applyChanges_changedSource_updateModificationTime() {
-    String path = resourceProvider.convertPath('/test.dart');
-    File file = resourceProvider.newFile(path, 'var V = 1;');
+    File file = newFile('/test.dart', content: 'var V = 1;');
     Source source = file.createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     // Analyze all.
@@ -306,7 +307,7 @@ int b = aa;''';
     expect(context.analysisCache.getState(source, RESOLVED_UNIT),
         CacheState.INVALID);
     // Update the file and notify the context about the change.
-    resourceProvider.updateFile(path, 'var V = 2;');
+    modifyFile('/test.dart', 'var V = 2;');
     context.applyChanges(new ChangeSet()..changedSource(source));
     // The analysis results are invalidated.
     // We have seen the new contents, so 'modificationTime' is also updated.
@@ -551,11 +552,10 @@ class B {}
     var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;
     stat.reset();
     // Add sources.
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     String path1 = '/test1.dart';
     String path2 = '/test2.dart';
-    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
-    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    Source source1 = newFile(path1, content: '// 1-1').createSource();
+    Source source2 = newFile(path2, content: '// 2-1').createSource();
     context.applyChanges(
         new ChangeSet()..addedSource(source1)..addedSource(source2));
     // Same modification times.
@@ -588,11 +588,10 @@ class B {}
     var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;
     stat.reset();
     // Add sources.
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     String path1 = '/test1.dart';
     String path2 = '/test2.dart';
-    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
-    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    Source source1 = newFile(path1, content: '// 1-1').createSource();
+    Source source2 = newFile(path2, content: '// 2-1').createSource();
     context.applyChanges(
         new ChangeSet()..addedSource(source1)..addedSource(source2));
     // Same modification times.
@@ -623,11 +622,10 @@ class B {}
   void test_cacheConsistencyValidator_getSources() {
     CacheConsistencyValidator validator = context.cacheConsistencyValidator;
     // Add sources.
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     String path1 = '/test1.dart';
     String path2 = '/test2.dart';
-    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
-    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    Source source1 = newFile(path1, content: '// 1-1').createSource();
+    Source source2 = newFile(path2, content: '// 2-1').createSource();
     context.applyChanges(
         new ChangeSet()..addedSource(source1)..addedSource(source2));
     // Verify.
@@ -1079,8 +1077,7 @@ part of lib;
     String newCode = r'''
 import 'dart:async';
 ''';
-    String path = resourceProvider.convertPath('/test.dart');
-    Source source = resourceProvider.newFile(path, oldCode).createSource();
+    Source source = newFile('/test.dart', content: oldCode).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
     // Flush all results units.
@@ -1091,7 +1088,7 @@ import 'dart:async';
       return false;
     });
     // Update the file, but don't notify the context.
-    resourceProvider.updateFile(path, newCode);
+    modifyFile('/test.dart', newCode);
     // Driver must detect that the file was changed and recover.
     CompilationUnit unit = context.resolveCompilationUnit2(source, source);
     expect(unit, isNotNull);
@@ -1105,8 +1102,7 @@ main() {}
 import 'dart:async';
 main() {}
 ''';
-    String path = resourceProvider.convertPath('/test.dart');
-    Source source = resourceProvider.newFile(path, oldCode).createSource();
+    Source source = newFile('/test.dart', content: oldCode).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
     // Flush all results units.
@@ -1119,7 +1115,7 @@ main() {}
       return false;
     });
     // Update the file, but don't notify the context.
-    resourceProvider.updateFile(path, newCode);
+    modifyFile('/test.dart', newCode);
     // Driver must detect that the file was changed and recover.
     CompilationUnit unit = context.resolveCompilationUnit2(source, source);
     expect(unit, isNotNull);
@@ -1761,7 +1757,7 @@ main() {}''');
     // Add the source.
     String oldCode = 'foo() {}';
     String newCode = 'bar() {}';
-    var file = resourceProvider.newFile('/test.dart', oldCode);
+    var file = newFile('/test.dart', content: oldCode);
     Source source = file.createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     _analyzeAll_assertFinished();
@@ -1772,8 +1768,7 @@ main() {}''');
     // 3. Notify the context, and because this is the first time when we
     //    update the content cache, we don't know "originalContents".
     // The source must be invalidated, because it has different contents now.
-    resourceProvider.updateFile(
-        resourceProvider.convertPath('/test.dart'), newCode);
+    modifyFile('/test.dart', newCode);
     contentCache.setContents(source, newCode);
     context.handleContentsChanged(source, null, newCode, true);
     expect(context.getResolvedCompilationUnit2(source, source), isNull);
@@ -1918,7 +1913,7 @@ main() {}''');
 
   void test_parseCompilationUnit_nonExistentSource() {
     Source source = newSource('/test.dart');
-    resourceProvider.deleteFile(resourceProvider.convertPath('/test.dart'));
+    deleteFile('/test.dart');
     try {
       context.parseCompilationUnit(source);
       fail("Expected AnalysisException because file does not exist");
@@ -2330,10 +2325,7 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    String testUri = resourceProvider
-        .getFile(resourceProvider.convertPath('/test.dart'))
-        .toUri()
-        .toString();
+    String testUri = getFile('/test.dart').toUri().toString();
     expect(libraryElementUris, contains(testUri));
     expect(parsedUnitUris, contains(testUri));
     expect(resolvedUnitUris, contains(testUri));
@@ -2341,20 +2333,20 @@ library expectedToFindSemicolon
 
   void test_performAnalysisTask_switchPackageVersion() {
     // version 1
-    resourceProvider.newFile('/pkgs/crypto-1/lib/crypto.dart', r'''
+    newFile('/pkgs/crypto-1/lib/crypto.dart', content: r'''
 library crypto;
 part 'src/hash_utils.dart';
 ''');
-    resourceProvider.newFile('/pkgs/crypto-1/lib/src/hash_utils.dart', r'''
+    newFile('/pkgs/crypto-1/lib/src/hash_utils.dart', content: r'''
 part of crypto;
 const _MASK_8 = 0xff;
 ''');
     // version 2
-    resourceProvider.newFile('/pkgs/crypto-2/lib/crypto.dart', r'''
+    newFile('/pkgs/crypto-2/lib/crypto.dart', content: r'''
 library crypto;
 part 'src/hash_utils.dart';
 ''');
-    resourceProvider.newFile('/pkgs/crypto-2/lib/src/hash_utils.dart', r'''
+    newFile('/pkgs/crypto-2/lib/src/hash_utils.dart', content: r'''
 part of crypto;
 const _MASK_8 = 0xff;
 ''');
@@ -2363,7 +2355,7 @@ const _MASK_8 = 0xff;
       sdkResolver,
       resourceResolver,
       new PackageMapUriResolver(resourceProvider, {
-        'crypto': [resourceProvider.getFolder('/pkgs/crypto-1/lib')]
+        'crypto': [getFolder('/pkgs/crypto-1/lib')]
       })
     ]);
     // analyze
@@ -2376,14 +2368,13 @@ import 'package:crypto/crypto.dart';
       sdkResolver,
       resourceResolver,
       new PackageMapUriResolver(resourceProvider, {
-        'crypto': [resourceProvider.getFolder('/pkgs/crypto-2/lib')]
+        'crypto': [getFolder('/pkgs/crypto-2/lib')]
       })
     ]);
     _analyzeAll_assertFinished();
     _assertNoExceptions();
   }
 
-  @failingTest // TODO(paulberry): Remove the annotation when dartbug.com/28515 is fixed.
   void test_resolveCompilationUnit_existingElementModel() {
     prepareAnalysisContext(new AnalysisOptionsImpl());
     Source source = addSource('/test.dart', r'''
@@ -2505,7 +2496,7 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     CompilationUnit compilationUnit =
         context.resolveCompilationUnit(source, library);
     expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
+    expect(compilationUnit.declaredElement, isNotNull);
   }
 
   void test_resolveCompilationUnit_source() {
@@ -2693,11 +2684,10 @@ int aa = 0;''';
   }
 
   void test_validateCacheConsistency_deletedFile() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    String pathA = resourceProvider.convertPath('/a.dart');
-    String pathB = resourceProvider.convertPath('/b.dart');
-    var fileA = resourceProvider.newFile(pathA, "");
-    var fileB = resourceProvider.newFile(pathB, "import 'a.dart';");
+    String pathA = '/a.dart';
+    String pathB = '/b.dart';
+    var fileA = newFile(pathA, content: "");
+    var fileB = newFile(pathB, content: "import 'a.dart';");
     Source sourceA = fileA.createSource();
     Source sourceB = fileB.createSource();
     context.applyChanges(
@@ -2705,7 +2695,7 @@ int aa = 0;''';
     // analyze everything
     _analyzeAll_assertFinished();
     // delete a.dart
-    resourceProvider.deleteFile(pathA);
+    deleteFile(pathA);
     // analysis should eventually stop
     _analyzeAll_assertFinished();
   }
@@ -2793,11 +2783,10 @@ int aa = 0;''';
   void _checkFlushSingleResolvedUnit(String code,
       void validate(CompilationUnitElement unitElement, String reason)) {
     prepareAnalysisContext(new AnalysisOptionsImpl());
-    String path = resourceProvider.convertPath('/test.dart');
-    Source source = resourceProvider.newFile(path, code).createSource();
+    Source source = newFile('/test.dart', content: code).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     CompilationUnitElement unitElement =
-        context.resolveCompilationUnit2(source, source).element;
+        context.resolveCompilationUnit2(source, source).declaredElement;
     validate(unitElement, 'initial state');
     for (ResultDescriptor<CompilationUnit> descriptor
         in RESOLVED_UNIT_RESULTS) {
@@ -2845,7 +2834,7 @@ int aa = 0;''';
   }
 
   void _removeSource(Source source) {
-    resourceProvider.deleteFile(source.fullName);
+    deleteFile(source.fullName);
     ChangeSet changeSet = new ChangeSet();
     changeSet.removedSource(source);
     context.applyChanges(changeSet);

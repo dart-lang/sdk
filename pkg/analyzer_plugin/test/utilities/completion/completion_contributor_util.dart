@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -450,13 +450,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return a [Future] that completes with the containing library information
    * after it is accessible via [context.getLibrariesContaining].
    */
-  Future<Null> computeLibrariesContaining() {
+  Future<void> computeLibrariesContaining() {
     return driver.getResult(testFile).then((result) => null);
   }
 
   Future computeSuggestions() async {
     ResolveResult result = await driver.getResult(testFile);
-    testSource = result.unit.element.source;
+    testSource = result.unit.declaredElement.source;
     request = new DartCompletionRequestImpl(provider, completionOffset, result);
 
     CompletionTarget target =

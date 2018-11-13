@@ -13,17 +13,16 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
+import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
-import '../kernel/element_map.dart';
+import '../js_model/js_strategy.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world.dart';
 import 'inferrer_engine.dart';
-import 'kernel_inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
@@ -40,13 +39,11 @@ bool useStaticResultTypes = false;
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final CompilerOptions _options;
-  final JClosedWorld _closedWorld;
-  final ClosureDataLookup _closureDataLookup;
+  final JsClosedWorld _closedWorld;
   final InferrerEngine _inferrer;
   final TypeSystem _types;
   final MemberEntity _analyzedMember;
   final ir.Node _analyzedNode;
-  final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData _memberData;
   final bool _inGenerativeConstructor;
@@ -70,15 +67,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   /// The [IsCheck]s that show us what types locals currently are _not_.
   List<IsCheck> _negativeIsChecks;
 
-  KernelTypeGraphBuilder(
-      this._options,
-      this._closedWorld,
-      this._closureDataLookup,
-      this._inferrer,
-      this._analyzedMember,
-      this._analyzedNode,
-      this._elementMap,
-      this._localsMap,
+  KernelTypeGraphBuilder(this._options, this._closedWorld, this._inferrer,
+      this._analyzedMember, this._analyzedNode, this._localsMap,
       [this._locals])
       : this._types = _inferrer.types,
         this._memberData = _inferrer.dataOfMember(_analyzedMember),
@@ -96,6 +86,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals = new LocalsHandler(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
+
+  JsToElementMap get _elementMap => _closedWorld.elementMap;
+
+  ClosureData get _closureDataLookup => _closedWorld.closureDataLookup;
 
   int _loopLevel = 0;
 
@@ -295,6 +289,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     FieldEntity field = _elementMap.getField(node.field);
     _locals.updateField(field, rhsType);
     _inferrer.recordTypeOfField(field, rhsType);
+    return null;
   }
 
   @override
@@ -311,6 +306,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_inferrer.checkIfExposesThis(constructor)) {
       _markThisAsExposed();
     }
+    return null;
   }
 
   @override
@@ -327,11 +323,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_inferrer.checkIfExposesThis(constructor)) {
       _markThisAsExposed();
     }
+    return null;
   }
 
   @override
   visitLocalInitializer(ir.LocalInitializer node) {
     visit(node.variable);
+    return null;
   }
 
   void handleParameters(ir.FunctionNode node) {
@@ -426,16 +424,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       visit(statement);
       if (_locals.aborts) break;
     }
+    return null;
   }
 
   @override
   visitExpressionStatement(ir.ExpressionStatement node) {
     visit(node.expression);
+    return null;
   }
 
   @override
   visitEmptyStatement(ir.EmptyStatement node) {
     // Nothing to do.
+    return null;
   }
 
   @override
@@ -461,6 +462,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals.seenReturnOrThrow = true;
     saved.mergeDiamondFlow(thenLocals, _locals);
     _locals = saved;
+    return null;
   }
 
   @override
@@ -474,6 +476,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _breaksFor[target].add(new LocalsHandler.deepCopyOf(_locals));
     }
+    return null;
   }
 
   @override
@@ -489,6 +492,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.mergeAfterBreaks(_getBreaks(jumpTarget));
       _clearBreaksAndContinues(jumpTarget);
     }
+    return null;
   }
 
   @override
@@ -544,11 +548,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals = saved;
     }
     _clearBreaksAndContinues(jumpTarget);
+    return null;
   }
 
   @override
   visitSwitchCase(ir.SwitchCase node) {
     visit(node.body);
+    return null;
   }
 
   @override
@@ -558,6 +564,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // Do a deep-copy of the locals, because the code following the
     // break will change them.
     _continuesFor[target].add(new LocalsHandler.deepCopyOf(_locals));
+    return null;
   }
 
   @override
@@ -748,7 +755,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, info.callMethod, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
@@ -773,7 +780,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
     TypeInformation type = handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1173,14 +1180,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else if (member.isFunction) {
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, member, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
     } else {
       TypeInformation type =
           handleClosureCall(node, selector, mask, member, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
@@ -1199,7 +1206,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     AbstractValue mask = _memberData.typeOfSend(node);
     TypeInformation type = handleStaticInvoke(
         node, new Selector.getter(member.memberName), mask, member, null);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1230,7 +1237,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           selector, _types.newTypedSelector(receiverType, mask));
     }
     TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1245,7 +1252,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = new Selector.getter(member.memberName);
     _checkIfExposesThis(selector, _types.newTypedSelector(receiverType, mask));
     TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1512,11 +1519,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         _options,
         _closedWorld,
-        _closureDataLookup,
         _inferrer,
         info.callMethod,
         functionNode,
-        _elementMap,
         _localsMap,
         closureLocals);
     visitor.run();
@@ -1594,6 +1599,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       saved.mergeDiamondFlow(_locals, null);
       _locals = saved;
     }
+    return null;
   }
 
   @override
@@ -1606,6 +1612,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     saved.mergeDiamondFlow(_locals, null);
     _locals = saved;
     visit(node.finalizer);
+    return null;
   }
 
   @override
@@ -1632,6 +1639,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.update(local, _types.dynamicType, node, const DynamicType());
     }
     visit(node.body);
+    return null;
   }
 
   @override
@@ -1662,8 +1670,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _markThisAsExposed();
 
-    MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_analyzedMember, node.name);
     AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
     if (member == null) {
@@ -1671,7 +1679,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, member, null);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
@@ -1685,9 +1693,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _markThisAsExposed();
 
     TypeInformation rhsType = visit(node.value);
-    MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget,
-        setter: true);
+    MemberEntity member =
+        _elementMap.getSuperMember(_analyzedMember, node.name, setter: true);
     AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
@@ -1705,8 +1712,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _markThisAsExposed();
 
-    MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget);
+    MemberEntity member =
+        _elementMap.getSuperMember(_analyzedMember, node.name);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
     AbstractValue mask = _memberData.typeOfSend(node);
@@ -1718,7 +1725,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       } else {
         TypeInformation type =
             handleStaticInvoke(node, selector, mask, member, arguments);
-        if (_options.strongMode && useStaticResultTypes) {
+        if (useStaticResultTypes) {
           type = _types.narrowType(type, _elementMap.getStaticType(node));
         }
         return type;
@@ -1726,7 +1733,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       TypeInformation type =
           handleClosureCall(node, selector, mask, member, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;

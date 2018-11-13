@@ -272,9 +272,6 @@ abstract class ServiceObject implements M.ObjectRef {
           case 'SubtypeTestCache':
             obj = new SubtypeTestCache._empty(owner);
             break;
-          case 'TokenStream':
-            obj = new TokenStream._empty(owner);
-            break;
           case 'UnlinkedCall':
             obj = new UnlinkedCall._empty(owner);
             break;
@@ -1180,7 +1177,7 @@ class InboundReferences implements M.InboundReferences {
 
 class InboundReference implements M.InboundReference {
   final ServiceObject /*HeapObject*/ source;
-  final Instance parentField;
+  final HeapObject parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
@@ -1202,7 +1199,7 @@ class RetainingPath implements M.RetainingPath {
 
 class RetainingPathItem implements M.RetainingPathItem {
   final ServiceObject /*HeapObject*/ source;
-  final Instance parentField;
+  final HeapObject parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
@@ -3534,6 +3531,10 @@ class Script extends HeapObject implements M.Script {
   ScriptLine getLine(int line) {
     assert(_loaded);
     assert(line >= 1);
+    var index = (line - lineOffset - 1);
+    if (lines.length < index) {
+      return null;
+    }
     return lines[line - lineOffset - 1];
   }
 
@@ -3983,6 +3984,7 @@ class ObjectPoolEntry implements M.ObjectPoolEntry {
     M.ObjectPoolEntryKind kind = stringToObjectPoolEntryKind(map['kind']);
     int offset = map['offset'];
     switch (kind) {
+      case M.ObjectPoolEntryKind.nativeEntryData:
       case M.ObjectPoolEntryKind.object:
         return new ObjectPoolEntry._fromObject(map['value'], offset);
       default:
@@ -4004,6 +4006,8 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
       return M.ObjectPoolEntryKind.object;
     case 'Immediate':
       return M.ObjectPoolEntryKind.immediate;
+    case 'NativeEntryData':
+      return M.ObjectPoolEntryKind.nativeEntryData;
     case 'NativeFunction':
     case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
@@ -4159,24 +4163,6 @@ class MegamorphicCache extends HeapObject implements M.MegamorphicCache {
   }
 }
 
-class TokenStream extends HeapObject implements M.TokenStreamRef {
-  bool get immutable => true;
-
-  String privateKey;
-
-  TokenStream._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(Map map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
-    super._update(map, mapIsRef);
-
-    if (mapIsRef) {
-      return;
-    }
-    privateKey = map['privateKey'];
-  }
-}
-
 class CodeInstruction {
   final int address;
   final int pcOffset;
@@ -4293,34 +4279,33 @@ class Code extends HeapObject implements M.Code {
     }
   }
 
-  void loadScript() {
+  Future loadScript() {
     if (script != null) {
       // Already done.
-      return;
+      return null;
     }
     if (kind != M.CodeKind.dart) {
-      return;
+      return null;
     }
     if (function == null) {
-      return;
+      return null;
     }
     if ((function.location == null) || (function.location.script == null)) {
       // Attempt to load the function.
-      function.load().then((func) {
+      return function.load().then((func) {
         var script = function.location.script;
         if (script == null) {
           // Function doesn't have an associated script.
-          return;
+          return null;
         }
         // Load the script and then update descriptors.
-        script.load().then((_) => _updateDescriptors(script));
+        return script.load().then((_) => _updateDescriptors(script));
       });
-      return;
     }
     {
       // Load the script and then update descriptors.
       var script = function.location.script;
-      script.load().then((_) => _updateDescriptors(script));
+      return script.load().then((_) => _updateDescriptors(script));
     }
   }
 
@@ -4719,6 +4704,9 @@ Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
     }
   }
   if (scriptIndex == numScripts) {
+    return result;
+  }
+  if (script.source == null) {
     return result;
   }
   var ranges = report['ranges'];

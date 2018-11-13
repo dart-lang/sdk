@@ -15,6 +15,7 @@
 namespace dart {
 
 // Forward declarations.
+class CatchEntryMovesMapBuilder;
 class Code;
 class DeoptInfoBuilder;
 class FlowGraph;
@@ -322,6 +323,7 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id,
+                    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
                     CodeStatistics* stats = NULL);
 
   ~FlowGraphCompiler();
@@ -356,7 +358,14 @@ class FlowGraphCompiler : public ValueObject {
   void ExitIntrinsicMode();
   bool intrinsic_mode() const { return intrinsic_mode_; }
 
-  Label* intrinsic_slow_path_label() { return &intrinsic_slow_path_label_; }
+  void set_intrinsic_slow_path_label(Label* label) {
+    ASSERT(intrinsic_slow_path_label_ == nullptr || label == nullptr);
+    intrinsic_slow_path_label_ = label;
+  }
+  Label* intrinsic_slow_path_label() const {
+    ASSERT(intrinsic_slow_path_label_ != nullptr);
+    return intrinsic_slow_path_label_;
+  }
 
   bool ForceSlowPathForStackOverflow() const;
 
@@ -386,6 +395,8 @@ class FlowGraphCompiler : public ValueObject {
   void InitCompiler();
 
   void CompileGraph();
+
+  void EmitPrologue();
 
   void VisitBlocks();
 
@@ -452,31 +463,39 @@ class FlowGraphCompiler : public ValueObject {
                         TokenPosition token_pos,
                         const StubEntry& stub_entry,
                         RawPcDescriptors::Kind kind,
-                        LocationSummary* locs);
-  void GenerateStaticDartCall(intptr_t deopt_id,
-                              TokenPosition token_pos,
-                              const StubEntry& stub_entry,
-                              RawPcDescriptors::Kind kind,
-                              LocationSummary* locs,
-                              const Function& target);
+                        LocationSummary* locs,
+                        Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
+  void GenerateStaticDartCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      const StubEntry& stub_entry,
+      RawPcDescriptors::Kind kind,
+      LocationSummary* locs,
+      const Function& target,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateInstanceOf(TokenPosition token_pos,
                           intptr_t deopt_id,
                           const AbstractType& type,
                           LocationSummary* locs);
 
-  void GenerateInstanceCall(intptr_t deopt_id,
-                            TokenPosition token_pos,
-                            LocationSummary* locs,
-                            const ICData& ic_data);
+  void GenerateInstanceCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      const ICData& ic_data,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void GenerateStaticCall(intptr_t deopt_id,
-                          TokenPosition token_pos,
-                          const Function& function,
-                          ArgumentsInfo args_info,
-                          LocationSummary* locs,
-                          const ICData& ic_data_in,
-                          ICData::RebindRule rebind_rule);
+  void GenerateStaticCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      const Function& function,
+      ArgumentsInfo args_info,
+      LocationSummary* locs,
+      const ICData& ic_data_in,
+      ICData::RebindRule rebind_rule,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
@@ -509,11 +528,13 @@ class FlowGraphCompiler : public ValueObject {
                                      Label* outside_range_lbl = NULL,
                                      bool fall_through_if_inside = false);
 
-  void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
-                                 const ICData& ic_data,
-                                 intptr_t deopt_id,
-                                 TokenPosition token_pos,
-                                 LocationSummary* locs);
+  void EmitOptimizedInstanceCall(
+      const StubEntry& stub_entry,
+      const ICData& ic_data,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
@@ -554,7 +575,8 @@ class FlowGraphCompiler : public ValueObject {
                        TokenPosition token_index,
                        LocationSummary* locs,
                        bool complete,
-                       intptr_t total_ic_calls);
+                       intptr_t total_ic_calls,
+                       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
@@ -567,13 +589,12 @@ class FlowGraphCompiler : public ValueObject {
                                       TokenPosition token_pos,
                                       intptr_t deopt_id);
 
-  bool NeedsEdgeCounter(TargetEntryInstr* block);
+  bool NeedsEdgeCounter(BlockEntryInstr* block);
 
   void EmitEdgeCounter(intptr_t edge_id);
 #endif  // !defined(TARGET_ARCH_DBC)
-  void EmitCatchEntryState(
-      Environment* env = NULL,
-      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+  void RecordCatchEntryMoves(Environment* env = NULL,
+                             intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
@@ -644,7 +665,7 @@ class FlowGraphCompiler : public ValueObject {
   RawArray* CreateDeoptInfo(Assembler* assembler);
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
-  void FinalizeCatchEntryStateMap(const Code& code);
+  void FinalizeCatchEntryMovesMap(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
   void FinalizeCodeSourceMap(const Code& code);
 
@@ -667,7 +688,7 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t CurrentTryIndex() const {
     if (current_block_ == NULL) {
-      return CatchClauseNode::kInvalidTryIndex;
+      return kInvalidTryIndex;
     }
     return current_block_->try_index();
   }
@@ -678,7 +699,8 @@ class FlowGraphCompiler : public ValueObject {
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
                                            const Array& arguments_descriptor,
-                                           intptr_t num_args_tested);
+                                           intptr_t num_args_tested,
+                                           const AbstractType& receiver_type);
 
   const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
                                          const Function& target,
@@ -737,6 +759,12 @@ class FlowGraphCompiler : public ValueObject {
                                      int bias,
                                      bool jump_on_miss = true);
 
+  // Returns the offset (from the very beginning of the instructions) to the
+  // unchecked entry point (incl. prologue/frame setup, etc.).
+  intptr_t UncheckedEntryOffset() const;
+
+  bool IsEmptyBlock(BlockEntryInstr* block) const;
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
@@ -754,12 +782,14 @@ class FlowGraphCompiler : public ValueObject {
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
-  void EmitOptimizedStaticCall(const Function& function,
-                               const Array& arguments_descriptor,
-                               intptr_t count_with_type_args,
-                               intptr_t deopt_id,
-                               TokenPosition token_pos,
-                               LocationSummary* locs);
+  void EmitOptimizedStaticCall(
+      const Function& function,
+      const Array& arguments_descriptor,
+      intptr_t count_with_type_args,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                  intptr_t deopt_id,
@@ -814,6 +844,11 @@ class FlowGraphCompiler : public ValueObject {
       Label* is_instance_lbl,
       Label* is_not_instance_label);
 
+  RawSubtypeTestCache* GenerateFunctionTypeTest(TokenPosition token_pos,
+                                                const AbstractType& dst_type,
+                                                Label* is_instance_lbl,
+                                                Label* is_not_instance_label);
+
   RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
       TokenPosition token_pos,
       const Class& type_class,
@@ -824,6 +859,7 @@ class FlowGraphCompiler : public ValueObject {
     kTestTypeOneArg,
     kTestTypeTwoArgs,
     kTestTypeFourArgs,
+    kTestTypeSixArgs,
   };
 
   RawSubtypeTestCache* GenerateCallSubtypeTestStub(
@@ -836,10 +872,14 @@ class FlowGraphCompiler : public ValueObject {
       Label* is_not_instance_lbl);
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
+
+  void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
+                                        intptr_t type_arguments_field_offset);
+
 #endif  // !defined(TARGET_ARCH_DBC)
 
-  void GenerateInlinedGetter(intptr_t offset);
-  void GenerateInlinedSetter(intptr_t offset);
+  void GenerateGetterIntrinsic(intptr_t offset);
+  void GenerateSetterIntrinsic(intptr_t offset);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);
@@ -917,7 +957,7 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list_;
   StackMapTableBuilder* stackmap_table_builder_;
   CodeSourceMapBuilder* code_source_map_builder_;
-  CatchEntryStateMapBuilder* catch_entry_state_maps_builder_;
+  CatchEntryMovesMapBuilder* catch_entry_moves_maps_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
@@ -931,7 +971,7 @@ class FlowGraphCompiler : public ValueObject {
   bool may_reoptimize_;
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
-  Label intrinsic_slow_path_label_;
+  Label* intrinsic_slow_path_label_ = nullptr;
   CodeStatistics* stats_;
 
   const Class& double_class_;

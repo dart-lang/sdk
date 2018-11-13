@@ -32,21 +32,62 @@ class ObjectPointerVisitor;
 class RawContext;
 class LocalVariable;
 
-// Returns the FP-relative index where [variable] can be found (assumes
-// [variable] is not captured), in words.
-intptr_t FrameSlotForVariable(const LocalVariable* variable);
+struct FrameLayout {
+  // The offset (in words) from FP to the first object.
+  int first_object_from_fp;
 
-// Returns the FP-relative index where [variable] can be found (assumes
-// [variable] is not captured), in bytes.
-intptr_t FrameOffsetInBytesForVariable(const LocalVariable* variable);
+  // The offset (in words) from FP to the last fixed object.
+  int last_fixed_object_from_fp;
 
-// Returns the FP-relative index where [variable_index] can be found (assumes
-// [variable_index] comes from a [LocalVariable::index()], which is not
-// captured).
-intptr_t FrameSlotForVariableIndex(intptr_t variable_index);
+  // The offset (in words) from FP to the first local.
+  int param_end_from_fp;
 
-// Returns the variable index from a FP-relative index.
-intptr_t VariableIndexForFrameSlot(intptr_t frame_slot);
+  // The offset (in words) from FP to the first local.
+  int first_local_from_fp;
+
+  // The fixed size of the frame.
+  int dart_fixed_frame_size;
+
+  // The offset (in words) from FP to the saved pool (if applicable).
+  int saved_caller_pp_from_fp;
+
+  // The offset (in words) from FP to the code object (if applicable).
+  int code_from_fp;
+
+  // The number of fixed slots below the saved PC.
+  int saved_below_pc() const { return -first_local_from_fp; }
+
+  // Returns the FP-relative index where [variable] can be found (assumes
+  // [variable] is not captured), in words.
+  int FrameSlotForVariable(const LocalVariable* variable) const;
+
+  // Returns the FP-relative index where [variable_index] can be found (assumes
+  // [variable_index] comes from a [LocalVariable::index()], which is not
+  // captured).
+  int FrameSlotForVariableIndex(int index) const;
+
+  // Returns the FP-relative index where [variable] can be found (assumes
+  // [variable] is not captured), in bytes.
+  int FrameOffsetInBytesForVariable(const LocalVariable* variable) const {
+    return FrameSlotForVariable(variable) * kWordSize;
+  }
+
+  // Returns the variable index from a FP-relative index.
+  intptr_t VariableIndexForFrameSlot(intptr_t frame_slot) const {
+    if (frame_slot <= first_local_from_fp) {
+      return frame_slot - first_local_from_fp;
+    } else {
+      ASSERT(frame_slot > param_end_from_fp);
+      return frame_slot - param_end_from_fp;
+    }
+  }
+
+  // Called to initialize the stack frame layout during startup.
+  static void Init();
+};
+
+extern FrameLayout compiler_frame_layout;
+extern FrameLayout runtime_frame_layout;
 
 // Generic stack frame.
 class StackFrame : public ValueObject {
@@ -61,8 +102,9 @@ class StackFrame : public ValueObject {
   // The pool pointer is not implemented on all architectures.
   static int SavedCallerPpSlotFromFp() {
     // Never called on an interpreter frame.
-    if (kSavedCallerPpSlotFromFp != kSavedCallerFpSlotFromFp) {
-      return kSavedCallerPpSlotFromFp;
+    if (runtime_frame_layout.saved_caller_pp_from_fp !=
+        kSavedCallerFpSlotFromFp) {
+      return runtime_frame_layout.saved_caller_pp_from_fp;
     }
     UNREACHABLE();
     return 0;
@@ -98,9 +140,9 @@ class StackFrame : public ValueObject {
 
   void set_pc_marker(RawCode* code) {
     *reinterpret_cast<RawCode**>(
-        fp() +
-        ((is_interpreted() ? kKBCPcMarkerSlotFromFp : kPcMarkerSlotFromFp) *
-         kWordSize)) = code;
+        fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                  : runtime_frame_layout.code_from_fp) *
+                kWordSize)) = code;
   }
 
   // Visit objects in the frame.
@@ -119,11 +161,7 @@ class StackFrame : public ValueObject {
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
-#if defined(DART_USE_INTERPRETER)
   virtual bool is_interpreted() const { return is_interpreted_; }
-#else
-  virtual bool is_interpreted() const { return false; }
-#endif
 
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
@@ -137,13 +175,8 @@ class StackFrame : public ValueObject {
 
  protected:
   explicit StackFrame(Thread* thread)
-#if defined(DART_USE_INTERPRETER)
       : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {
   }
-#else
-      : fp_(0), sp_(0), pc_(0), thread_(thread) {
-  }
-#endif
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const {
@@ -187,9 +220,7 @@ class StackFrame : public ValueObject {
   uword sp_;
   uword pc_;
   Thread* thread_;
-#if defined(DART_USE_INTERPRETER)
   bool is_interpreted_;
-#endif
 
   // The iterators FrameSetIterator and StackFrameIterator set the private
   // fields fp_ and sp_ when they return the respective frame objects.
@@ -307,7 +338,6 @@ class StackFrameIterator : public ValueObject {
     StackFrame* NextFrame(bool validate);
 
    private:
-#if defined(DART_USE_INTERPRETER)
     explicit FrameSetIterator(Thread* thread)
         : fp_(0),
           sp_(0),
@@ -317,20 +347,13 @@ class StackFrameIterator : public ValueObject {
           is_interpreted_(false) {}
     bool is_interpreted() const { return is_interpreted_; }
     void CheckIfInterpreted(uword exit_marker);
-#else
-    explicit FrameSetIterator(Thread* thread)
-        : fp_(0), sp_(0), pc_(0), stack_frame_(thread), thread_(thread) {}
-    bool is_interpreted() const { return false; }
-#endif
 
     uword fp_;
     uword sp_;
     uword pc_;
     StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
     Thread* thread_;
-#if defined(DART_USE_INTERPRETER)
     bool is_interpreted_;
-#endif
 
     friend class StackFrameIterator;
     DISALLOW_COPY_AND_ASSIGN(FrameSetIterator);
@@ -351,9 +374,7 @@ class StackFrameIterator : public ValueObject {
   void SetupLastExitFrameData();
   void SetupNextExitFrameData();
 
-#if defined(DART_USE_INTERPRETER)
   void CheckInterpreterExitFrame(uword exit_marker);
-#endif
 
   bool validate_;     // Validate each frame as we traverse the frames.
   EntryFrame entry_;  // Singleton entry frame returned by NextEntryFrame().

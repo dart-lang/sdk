@@ -147,7 +147,10 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   }
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_DGRAM, IPPROTO_UDP);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -164,6 +167,23 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
       SetLastError(rc);
       return -1;
     }
+  }
+
+  if (reusePort) {
+    // ignore reusePort - not supported on this platform.
+    Log::PrintErr(
+        "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
+        "Windows." __FILE__,
+        __LINE__);
+  }
+
+  status = setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL,
+                      reinterpret_cast<const char*>(&ttl), sizeof(ttl));
+  if (status == SOCKET_ERROR) {
+    DWORD rc = WSAGetLastError();
+    closesocket(s);
+    SetLastError(rc);
+    return -1;
   }
 
   status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));

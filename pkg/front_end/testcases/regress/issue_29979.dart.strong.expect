@@ -1,4 +1,10 @@
-// Errors:
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_29979.dart:6:4: Error: A function expression can't have a name.
+//   (f() {})();
+//    ^
+
+// Unhandled errors:
 //
 // pkg/front_end/testcases/regress/issue_29979.dart:6:4: Error: A function expression can't have a name.
 //   (f() {})();

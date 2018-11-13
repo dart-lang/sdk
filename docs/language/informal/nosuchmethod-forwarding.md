@@ -2,9 +2,9 @@
 
 Author: eernst@
 
-**Status**: Under implementation.
+**Status**: Background material, normative language now in dartLangSpec.tex.
 
-**Version**: 0.6 (2018-03-22)
+**Version**: 0.7 (2018-07-10)
 
 **This document** is an informal specification of the support in Dart 2 for
 invoking `noSuchMethod` in situations where an attempt is made to invoke a
@@ -109,7 +109,7 @@ The grammar remains unchanged.
 ## Static Analysis
 
 We say that a class _C_ _has a non-trivial_ `noSuchMethod` if _C_ declares
-or inherits a non-abstract method named `noSuchMethod` which is distinct
+or inherits a concrete method named `noSuchMethod` which is distinct
 from the declaration in the built-in class `Object`.
 
 *Note that such a declaration cannot be a getter or setter, and it must
@@ -120,15 +120,33 @@ obvious choice `noSuchMethod(Invocation i)` it can be
 `noSuchMethod(Object i, [String s])`, but not
 `noSuchMethod(Invocation i, String s)`.*
 
-If a non-abstract class _C_ has a non-trivial `noSuchMethod` then each
+If a concrete class _C_ has a non-trivial `noSuchMethod` then each
 method signature (including getters and setters) which is a member of _C_'s
-interface and for which _C_ does not have a non-abstract declaration is
-_noSuchMethod forwarded_. No other situations give rise to a noSuchMethod
-forwarded method signature.
+interface and for which _C_ does not have a concrete declaration is
+_noSuchMethod forwarded_.
 
-*This means that whenever it is stated that a class has a noSuchMethod
-forwarded method signature it is guaranteed to be a non-abstract class with
-a non-trivial `noSuchMethod`.*
+A concrete class _C_ that does _not_ have a non-trivial `noSuchMethod`
+implements its interface (*it is a compile-time error not to do so*), but
+there may exist superclasses of _C_ declared in other libraries whose
+interfaces include some private methods for which _C_ has no concrete
+declaration (*such members are by definition omitted from the interface of
+_C_, because their names are inaccessible*). Similarly, even if a class _D_
+does have a non-trivial `noSuchMethod`, there may exist abstract
+declarations of private methods with inaccessible names in superclasses of
+_D_ for which _D_ has no concrete declaration. In both of these situations,
+such inaccessible private method signatures are _noSuchMethod forwarded_.
+
+No other situations give rise to a noSuchMethod forwarded method
+signature.
+
+*This means that whenever it is stated that a class _C_ has a noSuchMethod
+forwarded method signature, it is guaranteed to be a concrete class with a
+non-trivial `noSuchMethod`, or the signature is guaranteed to be
+inaccessible. In the former case, the developer expressed the intent to
+obtain implementations of "missing methods" by having a non-trivial
+`noSuchMethod` declaration, and in the latter case it is impossible to
+write declarations in _C_ that implement the missing private methods, but
+they will then be provided as generated forwarders.*
 
 If a class _C_ has a noSuchMethod forwarded signature then an implicit
 method implementation implementing that method signature is induced in _C_.
@@ -136,7 +154,7 @@ In the case where _C_ already contains an abstract declaration with the
 same name, the induced method implementation replaces the abstract
 declaration.
 
-It is a compile-time error if a non-abstract class _C_ has a non-trivial
+It is a compile-time error if a concrete class _C_ has a non-trivial
 `noSuchMethod`, and a name `m` has a set of method signatures in the
 superinterfaces of _C_ where none is most specific, and there is no
 declaration in _C_ which provides such a most specific method signature.
@@ -146,7 +164,7 @@ noSuchMethod forwarder should be induced, signature ambiguities must still
 be resolved by a developer-written declaration, it cannot be a consequence
 of implicitly inducing a noSuchMethod forwarder. However, that
 developer-written declaration could be an abstract method in the
-non-abstract class itself.*
+concrete class itself.*
 
 *Note that there is no most specific method signature if there are several
 method signatures which are equally specific with respect to the argument
@@ -317,6 +335,10 @@ main() {
 
 
 ## Updates
+
+*   Jul 10th 2018, version 0.7: Added requirement to generate forwarders
+    for inaccessible private methods even in the case where there is no
+    non-trivial `noSuchMethod`.
 
 *   Mar 22nd 2018, version 0.6: Added example to illustrate the case where a
     torn-off method invokes `Object.noSuchMethod`, not the one in the

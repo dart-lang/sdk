@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.element.member;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -158,6 +156,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isOperator => baseElement.isOperator;
 
   @override
+  bool get isSimplyBounded => baseElement.isSimplyBounded;
+
+  @override
   bool get isStatic => baseElement.isStatic;
 
   @override
@@ -244,13 +245,18 @@ class FieldMember extends VariableMember implements FieldElement {
       PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  bool get isCovariant => baseElement.isCovariant;
+
+  @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
+  @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
 
+  @deprecated
   @override
-  DartType get propagatedType => substituteFor(baseElement.propagatedType);
+  DartType get propagatedType => null;
 
   @override
   PropertyAccessorElement get setter =>
@@ -416,6 +422,12 @@ abstract class Member implements Element {
 
   @override
   bool get hasRequired => _baseElement.hasRequired;
+
+  @override
+  bool get hasSealed => _baseElement.hasSealed;
+
+  @override
+  bool get hasVisibleForTemplate => _baseElement.hasVisibleForTemplate;
 
   @override
   bool get hasVisibleForTesting => _baseElement.hasVisibleForTesting;
@@ -702,7 +714,7 @@ class ParameterMember extends VariableMember
     if (type is FunctionType) {
       return type.parameters;
     }
-    return ParameterElement.EMPTY_LIST;
+    return const <ParameterElement>[];
   }
 
   @override

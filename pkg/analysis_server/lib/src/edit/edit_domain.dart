@@ -13,6 +13,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -82,6 +83,18 @@ class EditDomainHandler extends AbstractRequestHandler {
     refactoringWorkspace =
         new RefactoringWorkspace(server.driverMap.values, searchEngine);
     _newRefactoringManager();
+  }
+
+  Future dartfix(Request request) async {
+    // TODO(danrubel): Add support for dartfix plugins
+
+    //
+    // Compute fixes
+    //
+    var dartFix = new EditDartFix(server, request);
+    Response response = await dartFix.compute();
+
+    server.sendResponse(response);
   }
 
   Response format(Request request) {
@@ -346,6 +359,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
         return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_REQUEST_DARTFIX) {
+        dartfix(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
       } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
@@ -380,7 +396,7 @@ class EditDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `edit.importElements` request.
    */
-  Future<Null> importElements(Request request) async {
+  Future<void> importElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     EditImportElementsParams params =
@@ -394,7 +410,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     CompilationUnitElement libraryUnit =
         result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit.element) {
+    if (libraryUnit != result.unit.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getAnalysisResult(libraryUnit.source.fullName);
@@ -408,11 +424,13 @@ class EditDomainHandler extends AbstractRequestHandler {
     ImportElementsComputer computer =
         new ImportElementsComputer(server.resourceProvider, result);
     SourceChange change = await computer.createEdits(params.elements);
+    List<SourceFileEdit> edits = change.edits;
+    SourceFileEdit edit = edits.isEmpty ? null : edits[0];
     //
     // Send the response.
     //
     server.sendResponse(
-        new EditImportElementsResult(change.edits[0]).toResponse(request.id));
+        new EditImportElementsResult(edit: edit).toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
@@ -460,7 +478,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.sendResponse(response);
   }
 
-  Future<Null> organizeDirectives(Request request) async {
+  Future<void> organizeDirectives(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     server.options.analytics?.sendEvent('edit', 'organizeDirectives');
@@ -497,7 +515,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditOrganizeDirectivesResult(fileEdit).toResponse(request.id));
   }
 
-  Future<Null> sortMembers(Request request) async {
+  Future<void> sortMembers(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new EditSortMembersParams.fromRequest(request);
@@ -595,22 +613,20 @@ class EditDomainHandler extends AbstractRequestHandler {
     {
       var analysisResult = await server.getAnalysisResult(file);
       if (analysisResult != null) {
-        // TODO(scheglov) Update other refactorings to use ResolveResult.
-        var unit = analysisResult.unit;
         // Try EXTRACT_LOCAL_VARIABLE.
         if (new ExtractLocalRefactoring(analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
         }
         // Try EXTRACT_METHOD.
-        if (new ExtractMethodRefactoring(
-                searchEngine, server.getAstProvider(file), unit, offset, length)
+        if (new ExtractMethodRefactoring(searchEngine,
+                server.getAstProvider(file), analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_METHOD);
         }
         // Try EXTRACT_WIDGETS.
         if (new ExtractWidgetRefactoring(
-                searchEngine, analysisResult.session, unit, offset, length)
+                searchEngine, analysisResult, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
@@ -953,35 +969,34 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
-        refactoring = new ExtractMethodRefactoring(
-            searchEngine, server.getAstProvider(file), unit, offset, length);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        refactoring = new ExtractMethodRefactoring(searchEngine,
+            server.getAstProvider(file), analysisResult, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_WIDGET) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
-        var analysisSession = server.getAnalysisDriver(file).currentSession;
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
         refactoring = new ExtractWidgetRefactoring(
-            searchEngine, analysisSession, unit, offset, length);
+            searchEngine, analysisResult, offset, length);
         feedback = new ExtractWidgetFeedback();
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
         refactoring = new InlineLocalRefactoring(
-            searchEngine, server.getAstProvider(file), unit, offset);
+            searchEngine, server.getAstProvider(file), analysisResult, offset);
       }
     }
     if (kind == RefactoringKind.INLINE_METHOD) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
         refactoring = new InlineMethodRefactoring(
-            searchEngine, server.getAstProvider(file), unit, offset);
+            searchEngine, server.getAstProvider(file), analysisResult, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
@@ -1015,19 +1030,13 @@ class _RefactoringManager {
           }
         }
 
-        // Canonicalize to ConstructorName.
-        var constructorName = _canonicalizeToConstructorName(node);
-        if (constructorName != null) {
-          node = constructorName;
-          element = constructorName.staticElement;
-          // Use the constructor name offset/length.
-          if (constructorName.name != null) {
-            feedbackOffset = constructorName.name.offset;
-            feedbackLength = constructorName.name.length;
-          } else {
-            feedbackOffset = -1;
-            feedbackLength = 0;
-          }
+        // Rename the class when on `new` in an instance creation.
+        if (node is InstanceCreationExpression) {
+          InstanceCreationExpression creation = node;
+          var typeIdentifier = creation.constructorName.type.name;
+          element = typeIdentifier.staticElement;
+          feedbackOffset = typeIdentifier.offset;
+          feedbackLength = typeIdentifier.length;
         }
 
         // do create the refactoring
@@ -1174,32 +1183,6 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
-  }
-
-  /**
-   * If the [node] is a constructor reference, return the corresponding
-   * [ConstructorName], or `null` otherwise.
-   */
-  static ConstructorName _canonicalizeToConstructorName(AstNode node) {
-    var parent = node.parent;
-    var parent2 = parent?.parent;
-
-    // "named" in "Class.named".
-    if (parent is ConstructorName) {
-      return parent;
-    }
-
-    // "Class" in "Class.named".
-    if (parent is TypeName && parent2 is ConstructorName) {
-      return parent2;
-    }
-
-    // Canonicalize "new Class.named()" to "Class.named".
-    if (node is InstanceCreationExpression) {
-      return node.constructorName;
-    }
-
-    return null;
   }
 }
 

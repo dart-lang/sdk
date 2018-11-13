@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -65,8 +65,8 @@ abstract class EntryMixin implements ServerPlugin {
     String path = parameters.file;
     EntryRequest request = await getEntryRequest(parameters);
     EntryGenerator generator = new EntryGenerator(getEntryContributors(path));
-    GeneratorResult result =
-        await generator.generateGetEntriesResponse(request);
+    GeneratorResult<KytheGetKytheEntriesResult> result =
+        generator.generateGetEntriesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

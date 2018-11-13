@@ -61,25 +61,31 @@ abstract class _IntegerImplementation implements int {
   int operator >>(int other) => other._shrFromInteger(this);
   int operator <<(int other) => other._shlFromInteger(this);
 
+  @pragma("vm:exact-result-type", bool)
   bool operator <(num other) {
     return other > this;
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator >(num other) {
     return other._greaterThanFromInteger(this);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
 
+  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     if (other is num) {
       return other._equalToInteger(this);
@@ -87,6 +93,7 @@ abstract class _IntegerImplementation implements int {
     return false;
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _equalToInteger(int other) native "Integer_equalToInteger";
   int abs() {
     return this < 0 ? -this : this;
@@ -224,6 +231,7 @@ abstract class _IntegerImplementation implements int {
     return this;
   }
 
+  @pragma("vm:exact-result-type", _Double)
   double toDouble() {
     return new _Double.fromInteger(this);
   }
@@ -451,17 +459,21 @@ abstract class _IntegerImplementation implements int {
   }
 }
 
+@pragma("vm:entry-point")
 class _Smi extends _IntegerImplementation implements _int64 {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
   }
   int get hashCode => this;
   int get _identityHashCode => this;
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator ~() native "Smi_bitNegate";
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Smi_bitLength";
 
   int operator &(int other) => other._bitAndFromSmi(this);
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
 
   /**
@@ -649,6 +661,7 @@ class _Smi extends _IntegerImplementation implements _int64 {
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
+@pragma("vm:entry-point")
 class _Mint extends _IntegerImplementation implements _int64 {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");

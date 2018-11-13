@@ -97,11 +97,9 @@ class ErrorProcessor {
     // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors = analysisOptions.errorProcessors;
 
-    // Give strong mode a chance to upgrade it.
-    if (analysisOptions.strongMode) {
-      processors = processors.toList();
-      processors.add(_StrongModeTypeErrorProcessor.instance);
-    }
+    // Add the strong mode processor.
+    processors = processors.toList();
+    processors.add(_StrongModeTypeErrorProcessor.instance);
     return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
         orElse: () => null);
   }
@@ -125,11 +123,8 @@ class _StrongModeTypeErrorProcessor implements ErrorProcessor {
   /// Check if this processor applies to the given [error].
   bool appliesTo(AnalysisError error) {
     ErrorCode errorCode = error.errorCode;
-    if (errorCode is StaticTypeWarningCode) {
-      return true;
-    }
     if (errorCode is StaticWarningCode) {
-      return errorCode.isStrongModeError;
+      return true;
     }
     return false;
   }

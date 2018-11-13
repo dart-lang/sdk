@@ -15,8 +15,9 @@
 #include "vm/heap/become.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/heap.h"
-#include "vm/heap/store_buffer.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
+#include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
@@ -29,6 +30,7 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
@@ -91,36 +93,36 @@ static void CheckOffsets() {
   // These offsets are embedded in precompiled instructions. We need simarm
   // (compiler) and arm (runtime) to agree.
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
-  CHECK_OFFSET(Thread::object_null_offset(), 56);
+  CHECK_OFFSET(Thread::object_null_offset(), 64);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
-  CHECK_OFFSET(Isolate::object_store_offset(), 28);
+  CHECK_OFFSET(Isolate::object_store_offset(), 20);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
 #endif
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
-  CHECK_OFFSET(Thread::object_null_offset(), 104);
+  CHECK_OFFSET(Thread::object_null_offset(), 112);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
-  CHECK_OFFSET(Isolate::object_store_offset(), 56);
+  CHECK_OFFSET(Isolate::object_store_offset(), 40);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
 #endif
 #undef CHECK_OFFSET
 }
 
-char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
-                     const uint8_t* instructions_snapshot,
-                     Dart_IsolateCreateCallback create,
-                     Dart_IsolateShutdownCallback shutdown,
-                     Dart_IsolateCleanupCallback cleanup,
-                     Dart_ThreadExitCallback thread_exit,
-                     Dart_FileOpenCallback file_open,
-                     Dart_FileReadCallback file_read,
-                     Dart_FileWriteCallback file_write,
-                     Dart_FileCloseCallback file_close,
-                     Dart_EntropySource entropy_source,
-                     Dart_GetVMServiceAssetsArchive get_service_assets,
-                     bool start_kernel_isolate) {
+char* Dart::Init(const uint8_t* vm_isolate_snapshot,
+                 const uint8_t* instructions_snapshot,
+                 Dart_IsolateCreateCallback create,
+                 Dart_IsolateShutdownCallback shutdown,
+                 Dart_IsolateCleanupCallback cleanup,
+                 Dart_ThreadExitCallback thread_exit,
+                 Dart_FileOpenCallback file_open,
+                 Dart_FileReadCallback file_read,
+                 Dart_FileWriteCallback file_write,
+                 Dart_FileCloseCallback file_close,
+                 Dart_EntropySource entropy_source,
+                 Dart_GetVMServiceAssetsArchive get_service_assets,
+                 bool start_kernel_isolate) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
@@ -134,34 +136,54 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     FLAG_verify_gc_contains = true;
   }
 #endif
+
+  if (FLAG_enable_interpreter) {
+#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+    return strdup(
+        "--enable-interpreter is not supported when targeting "
+        "a sim* architecture.");
+#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+
+#if defined(TARGET_OS_WINDOWS)
+    // TODO(34393): The interpreter currently relies on computed gotos, which
+    // aren't supported on Windows.
+    return strdup("--enable-interpreter is not supported on Windows.");
+#endif  // defined(TARGET_OS_WINDOWS)
+
+    FLAG_use_field_guards = false;
+    FLAG_optimization_counter_threshold = -1;
+  }
+
+  FrameLayout::Init();
+
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
-  OS::InitOnce();
-  NOT_IN_PRODUCT(CodeObservers::InitOnce());
+  OS::Init();
+  NOT_IN_PRODUCT(CodeObservers::Init());
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
-  VirtualMemory::InitOnce();
-  OSThread::InitOnce();
+  VirtualMemory::Init();
+  OSThread::Init();
   if (FLAG_support_timeline) {
-    Timeline::InitOnce();
+    Timeline::Init();
   }
   NOT_IN_PRODUCT(
-      TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::InitOnce"));
-  Isolate::InitOnce();
-  IdleNotifier::InitOnce();
-  PortMap::InitOnce();
-  FreeListElement::InitOnce();
-  ForwardingCorpse::InitOnce();
-  Api::InitOnce();
-  NativeSymbolResolver::InitOnce();
-  NOT_IN_PRODUCT(Profiler::InitOnce());
-  SemiSpace::InitOnce();
-  NOT_IN_PRODUCT(Metric::InitOnce());
-  StoreBuffer::InitOnce();
-  MarkingStack::InitOnce();
+      TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
+  Isolate::InitVM();
+  IdleNotifier::Init();
+  PortMap::Init();
+  FreeListElement::Init();
+  ForwardingCorpse::Init();
+  Api::Init();
+  NativeSymbolResolver::Init();
+  NOT_IN_PRODUCT(Profiler::Init());
+  SemiSpace::Init();
+  NOT_IN_PRODUCT(Metric::Init());
+  StoreBuffer::Init();
+  MarkingStack::Init();
 
 #if defined(USING_SIMULATOR)
-  Simulator::InitOnce();
+  Simulator::Init();
 #endif
   // Create the read-only handles area.
   ASSERT(predefined_handles_ == NULL);
@@ -177,7 +199,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
-    vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
+    vm_isolate_ = Isolate::InitIsolate("vm-isolate", api_flags, is_vm_isolate);
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -188,10 +210,10 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     HandleScope handle_scope(T);
     Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
-    TargetCPUFeatures::InitOnce();
-    Object::InitOnce(vm_isolate_);
-    ArgumentsDescriptor::InitOnce();
-    ICData::InitOnce();
+    TargetCPUFeatures::Init();
+    Object::Init(vm_isolate_);
+    ArgumentsDescriptor::Init();
+    ICData::Init();
     if (vm_isolate_snapshot != NULL) {
       NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
                                                "VMIsolateSnapshot"));
@@ -216,15 +238,15 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #if defined(DART_PRECOMPILED_RUNTIME)
         return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
-        StubCode::InitOnce();
-        Object::FinishInitOnce(vm_isolate_);
+        StubCode::Init();
+        Object::FinishInit(vm_isolate_);
         // MallocHooks can't be initialized until StubCode has been since stack
         // trace generation relies on stub methods that are generated in
-        // StubCode::InitOnce().
+        // StubCode::Init().
         // TODO(bkonyi) Split initialization for stack trace collection from the
         // initialization for the actual malloc hooks to increase accuracy of
         // memory consumption statistics.
-        MallocHooks::InitOnce();
+        MallocHooks::Init();
 #endif
       } else {
         return strdup("Invalid vm isolate snapshot seen");
@@ -235,7 +257,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return strdup(error.ToErrorCString());
       }
-      Object::FinishInitOnce(vm_isolate_);
+      Object::FinishInit(vm_isolate_);
 #if !defined(PRODUCT)
       if (tds.enabled()) {
         tds.SetNumArguments(2);
@@ -263,22 +285,22 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       return strdup("Missing vm isolate snapshot");
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
-      StubCode::InitOnce();
-      Object::FinishInitOnce(vm_isolate_);
+      StubCode::Init();
+      Object::FinishInit(vm_isolate_);
       // MallocHooks can't be initialized until StubCode has been since stack
       // trace generation relies on stub methods that are generated in
-      // StubCode::InitOnce().
+      // StubCode::Init().
       // TODO(bkonyi) Split initialization for stack trace collection from the
       // initialization for the actual malloc hooks to increase accuracy of
       // memory consumption statistics.
-      MallocHooks::InitOnce();
-      Symbols::InitOnce(vm_isolate_);
+      MallocHooks::Init();
+      Symbols::Init(vm_isolate_);
 #endif
     }
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
     T->InitVMConstants();
-    Scanner::InitOnce();
+    Scanner::Init();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
@@ -352,10 +374,10 @@ void Dart::WaitForIsolateShutdown() {
   ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }
 
-const char* Dart::Cleanup() {
+char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
   if (vm_isolate_ == NULL) {
-    return "VM already terminated.";
+    return strdup("VM already terminated.");
   }
 
   if (FLAG_trace_shutdown) {
@@ -368,23 +390,10 @@ const char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
                  UptimeMillis());
   }
-  Profiler::Shutdown();
+  Profiler::Cleanup();
 #endif  // !defined(PRODUCT)
 
-  NativeSymbolResolver::ShutdownOnce();
-
-  {
-    // Set the VM isolate as current isolate when shutting down
-    // Metrics so that we can use a StackZone.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
-                   UptimeMillis());
-    }
-    bool result = Thread::EnterIsolate(vm_isolate_);
-    ASSERT(result);
-    NOT_IN_PRODUCT(Metric::Cleanup());
-    Thread::ExitIsolate();
-  }
+  NativeSymbolResolver::Cleanup();
 
   // Disable the creation of new isolates.
   if (FLAG_trace_shutdown) {
@@ -433,6 +442,28 @@ const char* Dart::Cleanup() {
   WaitForIsolateShutdown();
 
   IdleNotifier::Stop();
+
+#if !defined(PRODUCT)
+  {
+    // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
+    // create a StackZone. We *must* wait for all other isolate to shutdown
+    // before entering VM isolate because code in the isolate initialization
+    // calls VerifyBootstrapClasses, which calls Heap::Verify which calls
+    // Scavenger::VisitObjects on the VM isolate's new space without taking
+    // any sort of locks: assuming that vm isolate is immutable and never
+    // entered by a mutator thread - which is in general true, but is violated
+    // by the code below.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
+                   UptimeMillis());
+    }
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
+    Metric::Cleanup();
+    Thread::ExitIsolate();
+  }
+#endif
+
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
@@ -440,6 +471,10 @@ const char* Dart::Cleanup() {
   }
   delete thread_pool_;
   thread_pool_ = NULL;
+
+  Api::Cleanup();
+  delete predefined_handles_;
+  predefined_handles_ = NULL;
 
   // Disable creation of any new OSThread structures which means no more new
   // threads can do an EnterIsolate. This must come after isolate shutdown
@@ -464,11 +499,19 @@ const char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
+  PortMap::Cleanup();
   IdleNotifier::Cleanup();
-
+  ICData::Cleanup();
+  ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
-  StoreBuffer::ShutDown();
-
+  MarkingStack::Cleanup();
+  StoreBuffer::Cleanup();
+  Object::Cleanup();
+  SemiSpace::Cleanup();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Stubs are generated when not precompiled, clean them up.
+  StubCode::Cleanup();
+#endif
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -484,25 +527,31 @@ const char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting code observers\n",
                  UptimeMillis());
   }
-  NOT_IN_PRODUCT(CodeObservers::DeleteAll());
+  NOT_IN_PRODUCT(CodeObservers::Cleanup());
   if (FLAG_support_timeline) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
                    UptimeMillis());
     }
-    Timeline::Shutdown();
+    Timeline::Cleanup();
   }
+  OS::Cleanup();
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
-  MallocHooks::TearDown();
+  MallocHooks::Cleanup();
+  Flags::Cleanup();
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  IsolateReloadContext::SetFileModifiedCallback(NULL);
+  Service::SetEmbedderStreamCallbacks(NULL, NULL);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return NULL;
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,
                              const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
-  Isolate* isolate = Isolate::Init(name_prefix, api_flags);
+  Isolate* isolate = Isolate::InitIsolate(name_prefix, api_flags);
   return isolate;
 }
 
@@ -600,6 +649,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+  if (I != Dart::vm_isolate()) {
+    I->object_store()->set_build_method_extractor_code(
+        Code::Handle(StubCode::GetBuildMethodExtractorStub()));
+  }
+#endif
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   const Code& miss_code =
@@ -619,18 +675,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (FLAG_print_class_table) {
     I->class_table()->Print();
   }
-
-  bool is_kernel_isolate = false;
-  USE(is_kernel_isolate);
-
-#ifndef DART_PRECOMPILED_RUNTIME
-  KernelIsolate::InitCallback(I);
-  is_kernel_isolate = KernelIsolate::IsKernelIsolate(I);
-#endif
-
   ServiceIsolate::MaybeMakeServiceIsolate(I);
+
 #if !defined(PRODUCT)
-  if (!ServiceIsolate::IsServiceIsolate(I) && !is_kernel_isolate) {
+  if (!ServiceIsolate::IsServiceIsolate(I) &&
+      !KernelIsolate::IsKernelIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
@@ -680,7 +729,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
   // isolate is always initialized from a vm_snapshot generated in non strong
   // mode.
   if (!is_vm_isolate) {
-    ADD_FLAG(strong, strong, FLAG_strong);
+    buffer.AddString(FLAG_strong ? " strong" : " no-strong");
   }
 
   if (Snapshot::IncludesCode(kind)) {
@@ -689,12 +738,11 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
              FLAG_error_on_bad_type);
-    ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
-             FLAG_error_on_bad_override);
     // sync-async and reify_generic_functions also affect deopt_ids.
-    ADD_FLAG(sync_async, sync_async, FLAG_sync_async);
-    ADD_FLAG(reify_generic_functions, reify_generic_functions,
-             FLAG_reify_generic_functions);
+    buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
+    buffer.AddString(FLAG_reify_generic_functions
+                         ? " reify_generic_functions"
+                         : " no-reify_generic_functions");
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
@@ -710,7 +758,12 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
                                                            : " softfp");
 #elif defined(TARGET_ARCH_ARM64)
-    buffer.AddString(" arm64");
+#if defined(TARGET_OS_FUCHSIA)
+    // See signal handler cheat in Assembler::EnterFrame.
+    buffer.AddString(" arm64-fuchsia");
+#else
+    buffer.AddString(" arm64-sysv");
+#endif
 #elif defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
@@ -719,6 +772,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
     buffer.AddString(" x64-sysv");
 #endif
+
 #elif defined(TARGET_ARCH_DBC)
 #if defined(ARCH_IS_32_BIT)
     buffer.AddString(" dbc32");
@@ -765,6 +819,9 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   isolate->Shutdown();
+  if (KernelIsolate::IsKernelIsolate(isolate)) {
+    KernelIsolate::SetKernelIsolate(NULL);
+  }
   delete isolate;
 }
 

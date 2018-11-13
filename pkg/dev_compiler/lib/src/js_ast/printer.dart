@@ -1622,7 +1622,7 @@ class MinifyRenamer implements LocalNamer {
 
 /// Like [BaseVisitor], but calls [declare] for [Identifier] declarations, and
 /// [visitIdentifier] otherwise.
-abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
+abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   declare(Identifier node);
 
   visitFunctionExpression(FunctionExpression node) {

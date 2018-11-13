@@ -213,21 +213,6 @@ class ResponseTest {
         }));
   }
 
-  void test_create_unanalyzedPriorityFiles() {
-    Response response = new Response.unanalyzedPriorityFiles('0', 'file list');
-    expect(response.id, equals('0'));
-    expect(response.error, isNotNull);
-    expect(
-        response.toJson(),
-        equals({
-          Response.ID: '0',
-          Response.ERROR: {
-            'code': 'UNANALYZED_PRIORITY_FILES',
-            'message': "Unanalyzed files cannot be a priority: 'file list'"
-          }
-        }));
-  }
-
   void test_create_unknownRequest() {
     Response response = new Response.unknownRequest(new Request('0', ''));
     expect(response.id, equals('0'));

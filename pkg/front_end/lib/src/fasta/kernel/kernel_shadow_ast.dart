@@ -20,11 +20,9 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart' as kernel show Expression, Initializer;
 
-import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
@@ -39,17 +37,19 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
+        messageSwitchExpressionNotAssignableCause,
+        messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
-        templateCantUseSuperBoundedTypeForInstanceCreation,
         templateForInLoopElementTypeNotAssignable,
-        templateForInLoopTypeNotIterable;
+        templateForInLoopTypeNotIterable,
+        templateIntegerLiteralIsOutOfRange,
+        templateSwitchExpressionNotAssignable,
+        templateWebLiteralCannotBeRepresentedExactly;
 
 import '../problems.dart' show unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
@@ -69,9 +69,6 @@ import '../type_inference/type_inferrer.dart'
         TypeInferrerDisabled,
         TypeInferrerImpl;
 
-import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
 
@@ -84,20 +81,12 @@ import '../type_inference/type_schema_environment.dart'
 
 import 'body_builder.dart' show combineStatements;
 
-import 'factory.dart' show Factory;
+import 'kernel_builder.dart' show KernelLibraryBuilder;
 
 import 'kernel_expression_generator.dart' show makeLet;
 
-/// Indicates whether type inference involving conditional expressions should
-/// always use least upper bound.
-///
-/// A value of `true` matches the behavior of analyzer.  A value of `false`
-/// matches the informal specification in
-/// https://github.com/dart-lang/sdk/pull/29371.
-///
-/// TODO(paulberry): once compatibility with analyzer is no longer needed,
-/// change this to `false`.
-const bool _forceLub = true;
+part "inference_visitor.dart";
+part "inferred_type_visitor.dart";
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
@@ -141,9 +130,7 @@ class ClassInferenceInfo {
 class ArgumentsJudgment extends Arguments {
   bool _hasExplicitTypeArguments;
 
-  List<ExpressionJudgment> get positionalJudgments => positional.cast();
-
-  List<NamedExpressionJudgment> get namedJudgments => named.cast();
+  List<Expression> get positionalJudgments => positional.cast();
 
   ArgumentsJudgment(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
@@ -163,202 +150,72 @@ class ArgumentsJudgment extends Arguments {
   }
 }
 
-/// Shadow object for [AsExpression].
-class AsJudgment extends AsExpression implements ExpressionJudgment {
-  final Token asOperator;
-
-  DartType inferredType;
-
-  AsJudgment(Expression operand, this.asOperator, DartType type)
-      : super(operand, type);
-
-  ExpressionJudgment get judgment => operand;
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    inferredType = type;
-    inferrer.listener
-        .asExpression(this, fileOffset, null, asOperator, null, inferredType);
-    return null;
-  }
-}
-
 /// Concrete shadow object representing an assert initializer in kernel form.
 class AssertInitializerJudgment extends AssertInitializer
     implements InitializerJudgment {
-  final Token assertKeyword;
-  final Token leftParenthesis;
-  final Token comma;
-  final Token rightParenthesis;
-
-  AssertInitializerJudgment(AssertStatement statement, this.assertKeyword,
-      this.leftParenthesis, this.comma, this.rightParenthesis)
-      : super(statement);
+  AssertInitializerJudgment(AssertStatement statement) : super(statement);
 
   AssertStatementJudgment get judgment => statement;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferStatement(factory, judgment);
-    inferrer.listener.assertInitializer(this, fileOffset, assertKeyword,
-        leftParenthesis, null, comma, null, rightParenthesis);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitAssertInitializerJudgment(this);
   }
 }
 
 /// Concrete shadow object representing an assertion statement in kernel form.
 class AssertStatementJudgment extends AssertStatement
     implements StatementJudgment {
-  final Token assertKeyword;
-  final Token leftParenthesis;
-  final Token comma;
-  final Token rightParenthesis;
-  final Token semicolon;
-
-  AssertStatementJudgment(this.assertKeyword, this.leftParenthesis,
-      Expression condition, this.comma, this.rightParenthesis, this.semicolon,
+  AssertStatementJudgment(Expression condition,
       {Expression message, int conditionStartOffset, int conditionEndOffset})
       : super(condition,
             message: message,
             conditionStartOffset: conditionStartOffset,
             conditionEndOffset: conditionEndOffset);
 
-  ExpressionJudgment get conditionJudgment => condition;
+  Expression get conditionJudgment => condition;
 
-  ExpressionJudgment get messageJudgment => message;
-
-  @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var conditionJudgment = this.conditionJudgment;
-    var messageJudgment = this.messageJudgment;
-    var expectedType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
-        conditionJudgment, conditionJudgment.fileOffset);
-    if (messageJudgment != null) {
-      inferrer.inferExpression(
-          factory, messageJudgment, const UnknownType(), false);
-    }
-    inferrer.listener.assertStatement(this, fileOffset, assertKeyword,
-        leftParenthesis, null, comma, null, rightParenthesis, semicolon);
-  }
-}
-
-/// Shadow object for [AwaitExpression].
-class AwaitJudgment extends AwaitExpression implements ExpressionJudgment {
-  final Token awaitKeyword;
-
-  DartType inferredType;
-
-  AwaitJudgment(this.awaitKeyword, Expression operand) : super(operand);
-
-  ExpressionJudgment get judgment => operand;
+  Expression get messageJudgment => message;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
-      typeContext = inferrer.wrapFutureOrType(typeContext);
-    }
-    var judgment = this.judgment;
-    inferrer.inferExpression(factory, judgment, typeContext, true);
-    inferredType =
-        inferrer.typeSchemaEnvironment.unfutureType(judgment.inferredType);
-    inferrer.listener
-        .awaitExpression(this, fileOffset, awaitKeyword, null, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitAssertStatementJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a statement block in kernel form.
 class BlockJudgment extends Block implements StatementJudgment {
-  final Token leftBracket;
-  final Token rightBracket;
-
-  BlockJudgment(this.leftBracket, List<Statement> statements, this.rightBracket)
-      : super(statements);
+  BlockJudgment(List<Statement> statements) : super(statements);
 
   List<Statement> get judgments => statements;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    for (var judgment in judgments) {
-      inferrer.inferStatement(factory, judgment);
-    }
-    inferrer.listener.block(this, fileOffset, leftBracket, null, rightBracket);
-  }
-}
-
-/// Concrete shadow object representing a boolean literal in kernel form.
-class BoolJudgment extends BoolLiteral implements ExpressionJudgment {
-  final Token literal;
-
-  DartType inferredType;
-
-  BoolJudgment(this.literal, bool value) : super(value);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener
-        .boolLiteral(this, fileOffset, literal, value, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitBlockJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a break statement in kernel form.
 class BreakJudgment extends BreakStatement implements StatementJudgment {
-  final Token breakKeyword;
-  final Token semicolon;
-
-  BreakJudgment(this.breakKeyword, LabeledStatement target, this.semicolon)
-      : super(target);
+  BreakJudgment(LabeledStatement target) : super(target);
 
   LabeledStatementJudgment get targetJudgment => target;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    // No inference needs to be done.
-    inferrer.listener.breakStatement(this, fileOffset, breakKeyword, null,
-        semicolon, targetJudgment?.createBinder(inferrer));
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitBreakJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a continue statement in kernel form.
 class ContinueJudgment extends BreakStatement implements StatementJudgment {
-  final Token continueKeyword;
-  final Token semicolon;
-
-  ContinueJudgment(
-      this.continueKeyword, LabeledStatement target, this.semicolon)
-      : super(target);
+  ContinueJudgment(LabeledStatement target) : super(target);
 
   LabeledStatementJudgment get targetJudgment => target;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    // No inference needs to be done.
-    inferrer.listener.continueStatement(this, fileOffset, continueKeyword, null,
-        semicolon, targetJudgment?.createBinder(inferrer));
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitContinueJudgment(this);
   }
 }
 
@@ -398,9 +255,9 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
     nextCascade = body;
   }
 
-  ExpressionJudgment get targetJudgment => variable.initializer;
+  Expression get targetJudgment => variable.initializer;
 
-  Iterable<ExpressionJudgment> get cascadeJudgments sync* {
+  Iterable<Expression> get cascadeJudgments sync* {
     Let section = body;
     while (true) {
       yield section.variable.initializer;
@@ -429,20 +286,8 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType =
-        inferrer.inferExpression(factory, targetJudgment, typeContext, true);
-    if (inferrer.strongMode) {
-      variable.type = inferredType;
-    }
-    for (var judgment in cascadeJudgments) {
-      inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    }
-    inferrer.listener.cascadeExpression(this, fileOffset, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitCascadeJudgment(this, typeContext);
   }
 }
 
@@ -513,7 +358,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   Expression read;
 
   /// The expression appearing on the RHS of the assignment.
-  final ExpressionJudgment rhs;
+  final Expression rhs;
 
   /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
   /// `++a[b]`).
@@ -567,27 +412,28 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   DartType _getWriteType(ShadowTypeInferrer inferrer) => unhandled(
       '$runtimeType', 'ShadowComplexAssignment._getWriteType', -1, null);
 
-  _ComplexAssignmentInferenceResult
-      _inferRhs<Expression, Statement, Initializer, Type>(
-          ShadowTypeInferrer inferrer,
-          Factory<Expression, Statement, Initializer, Type> factory,
-          DartType readType,
-          DartType writeContext) {
+  _ComplexAssignmentInferenceResult _inferRhs(
+      ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     assert(writeContext != null);
+    if (readType is VoidType &&
+        (combiner != null || nullAwareCombiner != null)) {
+      inferrer.helper
+          ?.addProblem(messageVoidExpression, read.fileOffset, noLength);
+    }
     var writeOffset = write == null ? -1 : write.fileOffset;
     Procedure combinerMember;
     DartType combinedType;
     if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
-      combinerMember =
-          inferrer.findMethodInvocationMember(readType, combiner, silent: true);
+      combinerMember = inferrer.findMethodInvocationMember(readType, combiner,
+          instrumented: false);
       if (combinerMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
             .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
       }
       DartType rhsType;
-      var combinerType =
-          inferrer.getCalleeFunctionType(combinerMember, readType, false);
+      var combinerType = inferrer.getCalleeFunctionType(
+          inferrer.getCalleeType(combinerMember, readType), false);
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
@@ -597,8 +443,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         assert(identical(combiner.arguments.positional.first, rhs));
         // Analyzer uses a null context for the RHS here.
         // TODO(paulberry): improve on this.
-        inferrer.inferExpression(factory, rhs, const UnknownType(), true);
-        rhsType = rhs.inferredType;
+        inferrer.inferExpression(rhs, const UnknownType(), true);
+        rhsType = getInferredType(rhs, inferrer);
         // Do not use rhs after this point because it may be a Shadow node
         // that has been replaced in the tree with its desugaring.
         var expectedType = getPositionalParameterType(combinerType, 0);
@@ -628,22 +474,23 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       }
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
-      inferrer.inferExpression(
-          factory, rhs, writeContext ?? const UnknownType(), true);
-      var rhsType = rhs.inferredType;
-      var replacedRhs =
-          inferrer.ensureAssignable(writeContext, rhsType, rhs, writeOffset);
+      inferrer.inferExpression(rhs, writeContext ?? const UnknownType(), true,
+          isVoidAllowed: true);
+      var rhsType = getInferredType(rhs, inferrer);
+      var replacedRhs = inferrer.ensureAssignable(
+          writeContext, rhsType, rhs, writeOffset,
+          isVoidAllowed: writeContext is VoidType);
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
       if (nullAwareCombiner != null) {
         MethodInvocation equalsInvocation = nullAwareCombiner.condition;
         inferrer.findMethodInvocationMember(
             greatestClosure(inferrer.coreTypes, writeContext), equalsInvocation,
-            silent: true);
+            instrumented: false);
         // Note: the case of readType=null only happens for erroneous code.
         combinedType = readType == null
             ? rhsType
             : inferrer.typeSchemaEnvironment
-                .getLeastUpperBound(readType, rhsType);
+                .getStandardUpperBound(readType, rhsType);
         if (inferrer.strongMode) {
           nullAwareCombiner.staticType = combinedType;
         }
@@ -667,13 +514,13 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
 abstract class ComplexAssignmentJudgmentWithReceiver
     extends ComplexAssignmentJudgment {
   /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
-  final ExpressionJudgment receiver;
+  final Expression receiver;
 
   /// Indicates whether this assignment uses `super`.
   final bool isSuper;
 
   ComplexAssignmentJudgmentWithReceiver(
-      this.receiver, ExpressionJudgment rhs, this.isSuper)
+      this.receiver, Expression rhs, this.isSuper)
       : super(rhs);
 
   @override
@@ -684,12 +531,10 @@ abstract class ComplexAssignmentJudgmentWithReceiver
     return parts;
   }
 
-  DartType _inferReceiver<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
+  DartType _inferReceiver(ShadowTypeInferrer inferrer) {
     if (receiver != null) {
-      inferrer.inferExpression(factory, receiver, const UnknownType(), true);
-      var receiverType = receiver.inferredType;
+      inferrer.inferExpression(receiver, const UnknownType(), true);
+      var receiverType = getInferredType(receiver, inferrer);
       _storeLetType(inferrer, receiver, receiverType);
       return receiverType;
     } else if (isSuper) {
@@ -701,146 +546,17 @@ abstract class ComplexAssignmentJudgmentWithReceiver
   }
 }
 
-/// Concrete shadow object representing a conditional expression in kernel form.
-/// Shadow object for [ConditionalExpression].
-class ConditionalJudgment extends ConditionalExpression
-    implements ExpressionJudgment {
-  final Token question;
-  final Token colon;
-
-  DartType inferredType;
-
-  ExpressionJudgment get conditionJudgment => condition;
-
-  ExpressionJudgment get thenJudgment => then;
-
-  ExpressionJudgment get otherwiseJudgment => otherwise;
-
-  ConditionalJudgment(Expression condition, this.question, Expression then,
-      this.colon, Expression otherwise)
-      : super(condition, then, otherwise, null);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var conditionJudgment = this.conditionJudgment;
-    var thenJudgment = this.thenJudgment;
-    var otherwiseJudgment = this.otherwiseJudgment;
-    var expectedType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
-        condition, condition.fileOffset);
-    inferrer.inferExpression(factory, thenJudgment, typeContext, true);
-    bool useLub = _forceLub || typeContext == null;
-    inferrer.inferExpression(factory, otherwiseJudgment, typeContext, useLub);
-    inferredType = useLub
-        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(
-            thenJudgment.inferredType, otherwiseJudgment.inferredType)
-        : greatestClosure(inferrer.coreTypes, typeContext);
-    if (inferrer.strongMode) {
-      staticType = inferredType;
-    }
-    inferrer.listener.conditionalExpression(
-        this, fileOffset, null, question, null, colon, null, inferredType);
-    return null;
-  }
-}
-
-/// Shadow object for [ConstructorInvocation].
-class ConstructorInvocationJudgment extends ConstructorInvocation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  ConstructorInvocationJudgment(Constructor target, ArgumentsJudgment arguments,
-      {bool isConst: false})
-      : super(target, arguments, isConst: isConst);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var library = inferrer.engine.beingInferred[target];
-    if (library != null) {
-      // There is a cyclic dependency where inferring the types of the
-      // initializing formals of a constructor required us to infer the
-      // corresponding field type which required us to know the type of the
-      // constructor.
-      var name = target.enclosingClass.name;
-      if (target.name.name != '') name += '.${target.name.name}';
-      library.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(name),
-          target.fileOffset,
-          name.length,
-          target.fileUri);
-      for (var declaration in target.function.positionalParameters) {
-        declaration.type ??= const DynamicType();
-      }
-      for (var declaration in target.function.namedParameters) {
-        declaration.type ??= const DynamicType();
-      }
-    } else if ((library = inferrer.engine.toBeInferred[target]) != null) {
-      inferrer.engine.toBeInferred.remove(target);
-      inferrer.engine.beingInferred[target] = library;
-      for (var declaration in target.function.positionalParameters) {
-        inferrer.engine.inferInitializingFormal(declaration, target);
-      }
-      for (var declaration in target.function.namedParameters) {
-        inferrer.engine.inferInitializingFormal(declaration, target);
-      }
-      inferrer.engine.beingInferred.remove(target);
-    }
-    var inferenceResult = inferrer.inferInvocation(
-        factory,
-        typeContext,
-        fileOffset,
-        target.function.functionType,
-        computeConstructorReturnType(target),
-        argumentJudgments,
-        isConst: isConst);
-    var inferredType = inferenceResult.type;
-    this.inferredType = inferredType;
-    if (inferrer.strongMode &&
-        !inferrer.isTopLevel &&
-        inferrer.typeSchemaEnvironment.isSuperBounded(inferredType)) {
-      inferrer.helper.addProblem(
-          templateCantUseSuperBoundedTypeForInstanceCreation
-              .withArguments(inferredType),
-          fileOffset,
-          noLength);
-    }
-    inferrer.listener.constructorInvocation(
-        this, argumentJudgments.fileOffset, target, inferredType);
-
-    return null;
-  }
-}
-
 /// Concrete shadow object representing a continue statement from a switch
 /// statement, in kernel form.
 class ContinueSwitchJudgment extends ContinueSwitchStatement
     implements StatementJudgment {
-  final Token continueKeyword;
-  final Token semicolon;
-
-  ContinueSwitchJudgment(
-      this.continueKeyword, SwitchCase target, this.semicolon)
-      : super(target);
+  ContinueSwitchJudgment(SwitchCase target) : super(target);
 
   SwitchCaseJudgment get targetJudgment => target;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    // No inference needs to be done.
-    inferrer.listener.continueSwitchStatement(this, fileOffset, continueKeyword,
-        null, semicolon, targetJudgment?.createBinder(inferrer));
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitContinueSwitchJudgment(this);
   }
 }
 
@@ -851,126 +567,71 @@ class DeferredCheckJudgment extends Let implements ExpressionJudgment {
   DeferredCheckJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
-  ExpressionJudgment get judgment => body;
+  Expression get judgment => body;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    // Since the variable is not used in the body we don't need to type infer
-    // it.  We can just type infer the body.
-    var judgment = this.judgment;
-    inferrer.inferExpression(factory, judgment, typeContext, true);
-    inferredType = judgment.inferredType;
-    inferrer.listener.deferredCheck(this, fileOffset, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitDeferredCheckJudgment(this, typeContext);
   }
 }
 
 /// Concrete shadow object representing a do loop in kernel form.
 class DoJudgment extends DoStatement implements StatementJudgment {
-  final Token doKeyword;
-  final Token whileKeyword;
-  final Token leftParenthesis;
-  final Token rightParenthesis;
-  final Token semicolon;
-
-  DoJudgment(
-      this.doKeyword,
-      Statement body,
-      this.whileKeyword,
-      this.leftParenthesis,
-      Expression condition,
-      this.rightParenthesis,
-      this.semicolon)
-      : super(body, condition);
+  DoJudgment(Statement body, Expression condition) : super(body, condition);
 
   StatementJudgment get bodyJudgment => body;
 
-  ExpressionJudgment get conditionJudgment => condition;
+  Expression get conditionJudgment => condition;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var conditionJudgment = this.conditionJudgment;
-    inferrer.inferStatement(factory, bodyJudgment);
-    var boolType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        factory, conditionJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, conditionJudgment.inferredType,
-        condition, condition.fileOffset);
-    inferrer.listener.doStatement(this, fileOffset, doKeyword, null,
-        whileKeyword, leftParenthesis, null, rightParenthesis, semicolon);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitDoJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a double literal in kernel form.
 class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
-  final Token literal;
-
   DartType inferredType;
 
-  DoubleJudgment(this.literal, double value) : super(value);
+  DoubleJudgment(double value) : super(value);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.coreTypes.doubleClass.rawType;
-    inferrer.listener
-        .doubleLiteral(this, fileOffset, literal, value, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitDoubleJudgment(this, typeContext);
   }
 }
 
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
-abstract class ExpressionJudgment implements Expression {
+abstract class ExpressionJudgment extends Expression {
   DartType inferredType;
 
   /// Calls back to [inferrer] to perform type inference for whatever concrete
-  /// type of [ExpressionJudgment] this is.
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext);
+  /// type of [Expression] this is.
+  void acceptInference(InferenceVistor visitor, DartType typeContext);
 }
 
 /// Concrete shadow object representing an empty statement in kernel form.
 class EmptyStatementJudgment extends EmptyStatement
     implements StatementJudgment {
-  final Token semicolon;
-
-  EmptyStatementJudgment(this.semicolon);
+  EmptyStatementJudgment();
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    // No inference needs to be done.
-    inferrer.listener.emptyStatement(semicolon);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitEmptyStatementJudgment(this);
   }
 }
 
 /// Concrete shadow object representing an expression statement in kernel form.
 class ExpressionStatementJudgment extends ExpressionStatement
     implements StatementJudgment {
-  final Token semicolon;
-
-  ExpressionStatementJudgment(Expression expression, this.semicolon)
-      : super(expression);
+  ExpressionStatementJudgment(Expression expression) : super(expression);
 
   Expression get judgment => expression;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    inferrer.listener.expressionStatement(this, fileOffset, null, semicolon);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitExpressionStatementJudgment(this);
   }
 }
 
@@ -988,24 +649,8 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var inferenceResult = inferrer.inferInvocation(
-        factory,
-        typeContext,
-        fileOffset,
-        target.function.functionType,
-        computeConstructorReturnType(target),
-        argumentJudgments,
-        isConst: isConst);
-    var inferredType = inferenceResult.type;
-    this.inferredType = inferredType;
-    inferrer.listener.constructorInvocation(
-        this, argumentJudgments.fileOffset, target, inferredType);
-
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
   }
 }
 
@@ -1044,304 +689,53 @@ class ShadowFieldInitializer extends FieldInitializer
   ShadowFieldInitializer(Field field, Expression value) : super(field, value);
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var initializerType =
-        inferrer.inferExpression(factory, value, field.type, true);
-    inferrer.ensureAssignable(field.type, initializerType, value, fileOffset);
-    inferrer.listener.fieldInitializer(
-        this, fileOffset, null, null, null, null, null, field);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitShadowFieldInitializer(this);
   }
 }
 
 /// Concrete shadow object representing a for-in loop in kernel form.
 class ForInJudgment extends ForInStatement implements StatementJudgment {
-  final Token awaitKeyword;
-  final Token forKeyword;
-  final Token leftParenthesis;
-  final Token inKeyword;
-  final Token rightParenthesis;
-
   final bool _declaresVariable;
 
   final SyntheticExpressionJudgment _syntheticAssignment;
 
-  ForInJudgment(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
-      VariableDeclaration variable,
-      this.inKeyword,
-      Expression iterable,
-      this.rightParenthesis,
-      Statement body,
-      this._declaresVariable,
-      this._syntheticAssignment,
+  ForInJudgment(VariableDeclaration variable, Expression iterable,
+      Statement body, this._declaresVariable, this._syntheticAssignment,
       {bool isAsync: false})
       : super(variable, iterable, body, isAsync: isAsync);
 
   VariableDeclarationJudgment get variableJudgment => variable;
 
-  ExpressionJudgment get iterableJudgment => iterable;
+  Expression get iterableJudgment => iterable;
 
   StatementJudgment get bodyJudgment => body;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var iterableClass = isAsync
-        ? inferrer.coreTypes.streamClass
-        : inferrer.coreTypes.iterableClass;
-    DartType context;
-    bool typeNeeded = false;
-    bool typeChecksNeeded = !inferrer.isTopLevel;
-    VariableDeclarationJudgment variable;
-    var syntheticAssignment = _syntheticAssignment;
-    kernel.Expression syntheticWrite;
-    DartType syntheticWriteType;
-    if (_declaresVariable) {
-      variable = this.variableJudgment;
-      if (inferrer.strongMode && variable._implicitlyTyped) {
-        typeNeeded = true;
-        context = const UnknownType();
-      } else {
-        context = variable.type;
-      }
-    } else if (syntheticAssignment is ComplexAssignmentJudgment) {
-      syntheticWrite = syntheticAssignment.write;
-      syntheticWriteType =
-          context = syntheticAssignment._getWriteType(inferrer);
-    } else {
-      context = const UnknownType();
-    }
-    context = inferrer.wrapType(context, iterableClass);
-
-    var iterableJudgment = this.iterableJudgment;
-    inferrer.inferExpression(
-        factory, iterableJudgment, context, typeNeeded || typeChecksNeeded);
-    var inferredExpressionType =
-        inferrer.resolveTypeParameter(iterableJudgment.inferredType);
-    inferrer.ensureAssignable(
-        inferrer.wrapType(const DynamicType(), iterableClass),
-        inferredExpressionType,
-        iterable,
-        iterable.fileOffset,
-        template: templateForInLoopTypeNotIterable);
-
-    DartType inferredType;
-    if (typeNeeded || typeChecksNeeded) {
-      inferredType = const DynamicType();
-      if (inferredExpressionType is InterfaceType) {
-        InterfaceType supertype = inferrer.classHierarchy
-            .getTypeAsInstanceOf(inferredExpressionType, iterableClass);
-        if (supertype != null) {
-          inferredType = supertype.typeArguments[0];
-        }
-      }
-      if (typeNeeded) {
-        inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
-            'type', new InstrumentationValueForType(inferredType));
-        variable.type = inferredType;
-      }
-      if (!_declaresVariable) {
-        this.variable.type = inferredType;
-      }
-    }
-
-    inferrer.inferStatement(factory, bodyJudgment);
-    if (syntheticAssignment != null) {
-      var syntheticStatement = new ExpressionStatement(syntheticAssignment);
-      body = combineStatements(syntheticStatement, body)..parent = this;
-    }
-    if (_declaresVariable) {
-      inferrer.inferMetadataKeepingHelper(factory, variable.annotations);
-      var tempVar =
-          new VariableDeclaration(null, type: inferredType, isFinal: true);
-      var variableGet = new VariableGet(tempVar)
-        ..fileOffset = this.variable.fileOffset;
-      var implicitDowncast = inferrer.ensureAssignable(
-          variable.type, inferredType, variableGet, fileOffset,
-          template: templateForInLoopElementTypeNotAssignable);
-      if (implicitDowncast != null) {
-        this.variable = tempVar..parent = this;
-        variable.initializer = implicitDowncast..parent = variable;
-        body = combineStatements(variable, body)..parent = this;
-      }
-    } else if (syntheticAssignment is SyntheticExpressionJudgment) {
-      if (syntheticAssignment is ComplexAssignmentJudgment) {
-        inferrer.ensureAssignable(
-            greatestClosure(inferrer.coreTypes, syntheticWriteType),
-            this.variable.type,
-            syntheticAssignment.rhs,
-            syntheticAssignment.rhs.fileOffset,
-            template: templateForInLoopElementTypeNotAssignable);
-        if (syntheticAssignment is PropertyAssignmentJudgment) {
-          syntheticAssignment._handleWriteContravariance(
-              inferrer, inferrer.thisType);
-        }
-      }
-      syntheticAssignment._replaceWithDesugared();
-    }
-    if (syntheticWrite is VariableSet) {
-      inferrer.listener.forInStatement(
-          this,
-          fileOffset,
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          null,
-          null,
-          inKeyword,
-          iterable,
-          rightParenthesis,
-          body,
-          variable?.createBinder(inferrer),
-          variable?.type,
-          syntheticWrite.fileOffset,
-          syntheticWrite.variable.type,
-          (syntheticWrite.variable as VariableDeclarationJudgment)
-              .createBinder(inferrer),
-          null);
-    } else if (syntheticWrite is PropertySet) {
-      inferrer.listener.forInStatement(
-          this,
-          fileOffset,
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          null,
-          null,
-          inKeyword,
-          iterable,
-          rightParenthesis,
-          body,
-          variable?.createBinder(inferrer),
-          variable?.type,
-          syntheticWrite.fileOffset,
-          syntheticWrite.interfaceTarget?.setterType,
-          null,
-          syntheticWrite.interfaceTarget);
-    } else if (syntheticWrite is StaticSet) {
-      inferrer.listener.forInStatement(
-          this,
-          fileOffset,
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          null,
-          null,
-          inKeyword,
-          iterable,
-          rightParenthesis,
-          body,
-          variable?.createBinder(inferrer),
-          variable?.type,
-          syntheticWrite.fileOffset,
-          syntheticWrite.target.setterType,
-          null,
-          syntheticWrite.target);
-    } else if (syntheticWrite == null ||
-        syntheticWrite is SyntheticExpressionJudgment) {
-      inferrer.listener.forInStatement(
-          this,
-          fileOffset,
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          null,
-          null,
-          inKeyword,
-          null,
-          rightParenthesis,
-          null,
-          variable?.createBinder(inferrer),
-          variable?.type,
-          null,
-          null,
-          null,
-          null);
-    } else {
-      throw new UnimplementedError(
-          '(${syntheticWrite.runtimeType}) $syntheticWrite');
-    }
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitForInJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a classic for loop in kernel form.
 class ForJudgment extends ForStatement implements StatementJudgment {
-  final Token forKeyword;
-  final Token leftParenthesis;
-  final Token leftSeparator;
-  final Token rightSeparator;
-  final Token rightParenthesis;
+  final List<Expression> initializers;
 
-  final List<ExpressionJudgment> initializers;
-
-  ForJudgment(
-      this.forKeyword,
-      this.leftParenthesis,
-      List<VariableDeclaration> variables,
-      this.initializers,
-      this.leftSeparator,
-      ExpressionJudgment condition,
-      this.rightSeparator,
-      List<Expression> updates,
-      this.rightParenthesis,
-      Statement body)
+  ForJudgment(List<VariableDeclaration> variables, this.initializers,
+      Expression condition, List<Expression> updates, Statement body)
       : super(variables ?? [], condition, updates, body);
 
   List<VariableDeclarationJudgment> get variableJudgments => variables.cast();
 
-  ExpressionJudgment get conditionJudgment => condition;
+  Expression get conditionJudgment => condition;
 
-  List<ExpressionJudgment> get updateJudgments => updates.cast();
+  List<Expression> get updateJudgments => updates.cast();
 
   StatementJudgment get bodyJudgment => body;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var initializers = this.initializers;
-    var conditionJudgment = this.conditionJudgment;
-    if (initializers != null) {
-      for (var initializer in initializers) {
-        variables
-            .add(new VariableDeclaration.forValue(initializer)..parent = this);
-        inferrer.inferExpression(
-            factory, initializer, const UnknownType(), false);
-      }
-    } else {
-      for (var variable in variableJudgments) {
-        inferrer.inferStatement(factory, variable);
-      }
-    }
-    if (conditionJudgment != null) {
-      var expectedType = inferrer.coreTypes.boolClass.rawType;
-      inferrer.inferExpression(
-          factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
-      inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
-          condition, condition.fileOffset);
-    }
-    for (var update in updateJudgments) {
-      inferrer.inferExpression(factory, update, const UnknownType(), false);
-    }
-    inferrer.inferStatement(factory, bodyJudgment);
-    inferrer.listener.forStatement(
-        this,
-        fileOffset,
-        forKeyword,
-        leftParenthesis,
-        null,
-        null,
-        leftSeparator,
-        condition,
-        rightSeparator,
-        updates,
-        rightParenthesis,
-        body);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitForJudgment(this);
   }
 }
 
@@ -1363,16 +757,6 @@ class FunctionNodeJudgment extends FunctionNode {
             returnType: returnType,
             asyncMarker: asyncMarker,
             dartAsyncMarker: dartAsyncMarker);
-
-  ExpressionInferenceResult infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext,
-      DartType returnContext,
-      int returnTypeInstrumentationOffset) {
-    return inferrer.inferLocalFunction(factory, this, typeContext,
-        returnTypeInstrumentationOffset, returnContext);
-  }
 }
 
 /// Concrete shadow object representing a local function declaration in kernel
@@ -1390,18 +774,8 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
   FunctionNodeJudgment get functionJudgment => function;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferMetadataKeepingHelper(factory, variable.annotations);
-    DartType returnContext = _hasImplicitReturnType
-        ? (inferrer.strongMode ? null : const DynamicType())
-        : function.returnType;
-    var inferenceResult = functionJudgment.infer(
-        inferrer, factory, null, returnContext, fileOffset);
-    var inferredType = variable.type = inferenceResult.type;
-    inferrer.listener.functionDeclaration(
-        variableJudgment.createBinder(inferrer), inferredType);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitFunctionDeclarationJudgment(this);
   }
 
   static void setHasImplicitReturnType(
@@ -1410,26 +784,19 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
   }
 }
 
-/// Concrete shadow object representing a function expression in kernel form.
-class FunctionExpressionJudgment extends FunctionExpression
-    implements ExpressionJudgment {
-  DartType inferredType;
+/// Concrete shadow object representing a super initializer in kernel form.
+class InvalidSuperInitializerJudgment extends LocalInitializer
+    implements InitializerJudgment {
+  final Constructor target;
+  final ArgumentsJudgment argumentsJudgment;
 
-  FunctionExpressionJudgment(FunctionNodeJudgment function) : super(function);
-
-  FunctionNodeJudgment get judgment => function;
+  InvalidSuperInitializerJudgment(
+      this.target, this.argumentsJudgment, VariableDeclaration variable)
+      : super(variable);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var judgment = this.judgment;
-    var inferenceResult =
-        judgment.infer(inferrer, factory, typeContext, null, fileOffset);
-    inferredType = inferenceResult.type;
-    inferrer.listener.functionExpression(this, fileOffset, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitInvalidSuperInitializerJudgment(this);
   }
 }
 
@@ -1440,106 +807,52 @@ class FunctionExpressionJudgment extends FunctionExpression
 ///
 ///     let v = a in v == null ? b : v
 class IfNullJudgment extends Let implements ExpressionJudgment {
-  final Token operator;
-
   DartType inferredType;
 
-  IfNullJudgment(VariableDeclaration variable, this.operator, Expression body)
+  IfNullJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
   ConditionalExpression get body => super.body;
 
   /// Returns the expression to the left of `??`.
-  ExpressionJudgment get leftJudgment => variable.initializer;
+  Expression get leftJudgment => variable.initializer;
 
   /// Returns the expression to the right of `??`.
-  ExpressionJudgment get rightJudgment => body.then;
+  Expression get rightJudgment => body.then;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var leftJudgment = this.leftJudgment;
-    var rightJudgment = this.rightJudgment;
-    // To infer `e0 ?? e1` in context K:
-    // - Infer e0 in context K to get T0
-    inferrer.inferExpression(factory, leftJudgment, typeContext, true);
-    var lhsType = leftJudgment.inferredType;
-    if (inferrer.strongMode) {
-      variable.type = lhsType;
-    }
-    // - Let J = T0 if K is `?` else K.
-    // - Infer e1 in context J to get T1
-    bool useLub = _forceLub || typeContext is UnknownType;
-    if (typeContext is UnknownType) {
-      inferrer.inferExpression(factory, rightJudgment, lhsType, true);
-    } else {
-      inferrer.inferExpression(factory, rightJudgment, typeContext, _forceLub);
-    }
-    var rhsType = rightJudgment.inferredType;
-    // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
-    //   UP(t0, t1)
-    // - Then the inferred type is T.
-    inferredType = useLub
-        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
-        : greatestClosure(inferrer.coreTypes, typeContext);
-    if (inferrer.strongMode) {
-      body.staticType = inferredType;
-    }
-    inferrer.listener
-        .ifNull(this, fileOffset, null, operator, null, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitIfNullJudgment(this, typeContext);
   }
 }
 
 /// Concrete shadow object representing an if statement in kernel form.
 class IfJudgment extends IfStatement implements StatementJudgment {
-  final Token ifKeyword;
-  final Token leftParenthesis;
-  final Token rightParenthesis;
-  final Token elseKeyword;
-
-  IfJudgment(
-      this.ifKeyword,
-      this.leftParenthesis,
-      Expression condition,
-      this.rightParenthesis,
-      Statement then,
-      this.elseKeyword,
-      Statement otherwise)
+  IfJudgment(Expression condition, Statement then, Statement otherwise)
       : super(condition, then, otherwise);
 
-  ExpressionJudgment get conditionJudgment => condition;
+  Expression get conditionJudgment => condition;
 
   StatementJudgment get thenJudgment => then;
 
   StatementJudgment get otherwiseJudgment => otherwise;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var conditionJudgment = this.conditionJudgment;
-    var expectedType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
-        condition, condition.fileOffset);
-    inferrer.inferStatement(factory, thenJudgment);
-    if (otherwiseJudgment != null) {
-      inferrer.inferStatement(factory, otherwiseJudgment);
-    }
-    inferrer.listener.ifStatement(this, fileOffset, ifKeyword, leftParenthesis,
-        null, rightParenthesis, null, elseKeyword, null);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitIfJudgment(this);
   }
 }
 
 /// Concrete shadow object representing an assignment to a target for which
 /// assignment is not allowed.
 class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
-  IllegalAssignmentJudgment(ExpressionJudgment rhs) : super(rhs) {
+  /// The offset at which the invalid assignment should be stored.
+  /// If `-1`, then there is no separate location for invalid assignment.
+  final int assignmentOffset;
+
+  IllegalAssignmentJudgment(Expression rhs, {this.assignmentOffset: -1})
+      : super(rhs) {
     rhs.parent = this;
   }
 
@@ -1549,17 +862,8 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    if (write != null) {
-      inferrer.inferExpression(factory, write, const UnknownType(), false);
-    }
-    inferrer.inferExpression(factory, rhs, const UnknownType(), false);
-    _replaceWithDesugared();
-    inferredType = const DynamicType();
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitIllegalAssignmentJudgment(this, typeContext);
   }
 }
 
@@ -1567,10 +871,9 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
 /// `a[b]`.
 class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// In an assignment to an index expression, the index expression.
-  final ExpressionJudgment index;
+  final Expression index;
 
-  IndexAssignmentJudgment(
-      ExpressionJudgment receiver, this.index, ExpressionJudgment rhs,
+  IndexAssignmentJudgment(Expression receiver, this.index, Expression rhs,
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
@@ -1594,68 +897,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var receiverType = _inferReceiver(inferrer, factory);
-    var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
-    // To replicate analyzer behavior, we base type inference on the write
-    // member.  TODO(paulberry): would it be better to use the read member
-    // when doing compound assignment?
-    var calleeType =
-        inferrer.getCalleeFunctionType(writeMember, receiverType, false);
-    DartType expectedIndexTypeForWrite;
-    DartType indexContext = const UnknownType();
-    DartType writeContext = const UnknownType();
-    if (calleeType.positionalParameters.length >= 2) {
-      // TODO(paulberry): we ought to get a context for the index expression
-      // from the index formal parameter, but analyzer doesn't so for now we
-      // replicate its behavior.
-      expectedIndexTypeForWrite = calleeType.positionalParameters[0];
-      writeContext = calleeType.positionalParameters[1];
-    }
-    inferrer.inferExpression(factory, index, indexContext, true);
-    var indexType = index.inferredType;
-    _storeLetType(inferrer, index, indexType);
-    if (writeContext is! UnknownType) {
-      inferrer.ensureAssignable(
-          expectedIndexTypeForWrite,
-          indexType,
-          _getInvocationArguments(inferrer, write).positional[0],
-          write.fileOffset);
-    }
-    InvocationExpression read = this.read;
-    DartType readType;
-    if (read != null) {
-      var readMember =
-          inferrer.findMethodInvocationMember(receiverType, read, silent: true);
-      var calleeFunctionType =
-          inferrer.getCalleeFunctionType(readMember, receiverType, false);
-      inferrer.ensureAssignable(
-          getPositionalParameterType(calleeFunctionType, 0),
-          indexType,
-          _getInvocationArguments(inferrer, read).positional[0],
-          read.fileOffset);
-      readType = calleeFunctionType.returnType;
-      var desugaredInvocation = read is MethodInvocation ? read : null;
-      var checkKind = inferrer.preCheckInvocationContravariance(receiver,
-          receiverType, readMember, desugaredInvocation, read.arguments, read);
-      var replacedRead = inferrer.handleInvocationContravariance(
-          checkKind,
-          desugaredInvocation,
-          read.arguments,
-          read,
-          readType,
-          calleeFunctionType,
-          read.fileOffset);
-      _storeLetType(inferrer, replacedRead, readType);
-    }
-    var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
-    inferrer.listener.indexAssign(this, write.fileOffset, writeMember,
-        inferredResult.combiner, inferredType);
-    _replaceWithDesugared();
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitIndexAssignmentJudgment(this, typeContext);
   }
 }
 
@@ -1664,28 +907,79 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
 abstract class InitializerJudgment implements Initializer {
   /// Performs type inference for whatever concrete type of [InitializerJudgment]
   /// this is.
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory);
+  void acceptInference(InferenceVistor visitor);
+}
+
+Expression checkWebIntLiteralsErrorIfUnexact(
+    ShadowTypeInferrer inferrer, int value, String literal, int charOffset) {
+  if (value >= 0 && value <= (1 << 53)) return null;
+  if (inferrer.library == null) return null;
+  if (!inferrer.library.loader.target.backendTarget
+      .errorOnUnexactWebIntLiterals) return null;
+  BigInt asInt = BigInt.from(value).toUnsigned(64);
+  BigInt asDouble = BigInt.from(asInt.toDouble());
+  if (asInt == asDouble) return null;
+  String text = literal ?? value.toString();
+  String nearest = text.startsWith('0x') || text.startsWith('0X')
+      ? '0x${asDouble.toRadixString(16)}'
+      : asDouble.toString();
+  int length = literal?.length ?? noLength;
+  return inferrer.helper
+      .buildProblem(
+          templateWebLiteralCannotBeRepresentedExactly.withArguments(
+              text, nearest),
+          charOffset,
+          length)
+      .desugared;
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
-  final Token literal;
+  DartType inferredType;
+  final String literal;
+
+  IntJudgment(int value, this.literal) : super(value);
+
+  double asDouble({bool negated: false}) {
+    if (value == 0 && negated) return -0.0;
+    BigInt intValue = BigInt.from(negated ? -value : value);
+    double doubleValue = intValue.toDouble();
+    return intValue == BigInt.from(doubleValue) ? doubleValue : null;
+  }
+
+  @override
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitIntJudgment(this, typeContext);
+  }
+}
+
+class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
+  final String literal;
+  final int fileOffset;
+  bool isParenthesized = false;
 
   DartType inferredType;
 
-  IntJudgment(this.literal, int value) : super(value);
+  ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
+
+  double asDouble({bool negated: false}) {
+    BigInt intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
+    if (intValue == null) return null;
+    double doubleValue = intValue.toDouble();
+    return !doubleValue.isNaN &&
+            !doubleValue.isInfinite &&
+            intValue == BigInt.from(doubleValue)
+        ? doubleValue
+        : null;
+  }
+
+  int asInt64({bool negated: false}) {
+    return int.tryParse(negated ? '-${literal}' : literal);
+  }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.coreTypes.intClass.rawType;
-    inferrer.listener
-        .intLiteral(this, fileOffset, literal, value, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitShadowLargeIntLiteral(this, typeContext);
   }
 }
 
@@ -1695,12 +989,8 @@ class ShadowInvalidInitializer extends LocalInitializer
   ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferExpression(
-        factory, variable.initializer, const UnknownType(), false);
-    inferrer.listener.invalidInitializer(this, fileOffset);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitShadowInvalidInitializer(this);
   }
 }
 
@@ -1716,70 +1006,11 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
     value?.parent = this;
   }
 
-  ExpressionJudgment get judgment => value;
+  Expression get judgment => value;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferExpression(factory, value, field.type, false);
-    inferrer.listener.fieldInitializer(
-        this, fileOffset, null, null, null, null, null, field);
-  }
-}
-
-/// Concrete shadow object representing a non-inverted "is" test in kernel form.
-class IsJudgment extends IsExpression implements ExpressionJudgment {
-  final Token isOperator;
-
-  DartType inferredType;
-
-  ExpressionJudgment get judgment => operand;
-
-  IsJudgment(Expression operand, this.isOperator, DartType type)
-      : super(operand, type);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener.isExpression(
-        this, fileOffset, null, isOperator, null, type, inferredType);
-    return null;
-  }
-}
-
-/// Concrete shadow object representing an inverted "is" test in kernel form.
-class IsNotJudgment extends Not implements ExpressionJudgment {
-  final Token isOperator;
-  final Token notOperator;
-
-  DartType inferredType;
-
-  @override
-  IsExpression get operand => super.operand;
-
-  ExpressionJudgment get judgment => operand.operand;
-
-  IsNotJudgment(Expression operand, this.isOperator, this.notOperator,
-      DartType type, int charOffset)
-      : super(new IsExpression(operand, type)..fileOffset = charOffset);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    IsExpression isExpression = this.operand;
-
-    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener.isNotExpression(this, fileOffset, null, isOperator,
-        notOperator, null, isExpression.type, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitShadowInvalidFieldInitializer(this);
   }
 }
 
@@ -1788,43 +1019,23 @@ class LabeledStatementJudgment extends LabeledStatement
     implements StatementJudgment {
   LabeledStatementJudgment(Statement body) : super(body);
 
-  Object binder;
-
   StatementJudgment get judgment => body;
 
-  Object createBinder(ShadowTypeInferrer inferrer) {
-    // TODO(paulberry): we need one binder for each label
-    return binder ??=
-        inferrer.listener.binderForStatementLabel(this, fileOffset, null);
-  }
-
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferStatement(factory, judgment);
-    // TODO(paulberry): support multiple labels.
-    List<Object> labels = <Object>[
-      inferrer.listener.statementLabel(createBinder(inferrer), null, null)
-    ];
-    inferrer.listener.labeledStatement(labels, null);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitLabeledStatementJudgment(this);
   }
 }
 
 /// Type inference derivation for [LiteralList].
 class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
-  final Token constKeyword;
-  final Token leftBracket;
-  final Token rightBracket;
-
   DartType inferredType;
 
   List<Expression> get judgments => expressions;
 
   final DartType _declaredTypeArgument;
 
-  ListLiteralJudgment(this.constKeyword, this.leftBracket,
-      List<Expression> expressions, this.rightBracket,
+  ListLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
       : _declaredTypeArgument = typeArgument,
         super(expressions,
@@ -1832,102 +1043,8 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
             isConst: isConst);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var listClass = inferrer.coreTypes.listClass;
-    var listType = listClass.thisType;
-    List<DartType> inferredTypes;
-    DartType inferredTypeArgument;
-    List<DartType> formalTypes;
-    List<DartType> actualTypes;
-    bool inferenceNeeded = _declaredTypeArgument == null && inferrer.strongMode;
-    bool typeChecksNeeded = !inferrer.isTopLevel;
-    if (inferenceNeeded || typeChecksNeeded) {
-      formalTypes = [];
-      actualTypes = [];
-    }
-    if (inferenceNeeded) {
-      inferredTypes = [const UnknownType()];
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(listType,
-          listClass.typeParameters, null, null, typeContext, inferredTypes,
-          isConst: isConst);
-      inferredTypeArgument = inferredTypes[0];
-    } else {
-      inferredTypeArgument = _declaredTypeArgument ?? const DynamicType();
-    }
-    if (inferenceNeeded || typeChecksNeeded) {
-      for (int i = 0; i < judgments.length; ++i) {
-        ExpressionJudgment judgment = judgments[i];
-        inferrer.inferExpression(factory, judgment, inferredTypeArgument,
-            inferenceNeeded || typeChecksNeeded);
-        if (inferenceNeeded) {
-          formalTypes.add(listType.typeArguments[0]);
-        }
-        actualTypes.add(judgment.inferredType);
-      }
-    }
-    if (inferenceNeeded) {
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-          listType,
-          listClass.typeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
-          inferredTypes);
-      inferredTypeArgument = inferredTypes[0];
-      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'typeArgs',
-          new InstrumentationValueForTypeArgs([inferredTypeArgument]));
-      typeArgument = inferredTypeArgument;
-    }
-    if (typeChecksNeeded) {
-      for (int i = 0; i < judgments.length; i++) {
-        inferrer.ensureAssignable(typeArgument, actualTypes[i], judgments[i],
-            judgments[i].fileOffset);
-      }
-    }
-    var inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
-    inferrer.listener.listLiteral(this, fileOffset, constKeyword, null,
-        leftBracket, expressions, rightBracket, inferredType);
-    this.inferredType = inferredType;
-    return null;
-  }
-}
-
-/// Shadow object for [LogicalExpression].
-class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
-  final Token operatorToken;
-
-  DartType inferredType;
-
-  LogicalJudgment(Expression left, this.operatorToken, Expression right)
-      : super(left, operatorToken.stringValue, right);
-
-  ExpressionJudgment get leftJudgment => left;
-
-  ExpressionJudgment get rightJudgment => right;
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var boolType = inferrer.coreTypes.boolClass.rawType;
-    var leftJudgment = this.leftJudgment;
-    var rightJudgment = this.rightJudgment;
-    inferrer.inferExpression(
-        factory, leftJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.inferExpression(
-        factory, rightJudgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        boolType, leftJudgment.inferredType, left, left.fileOffset);
-    inferrer.ensureAssignable(
-        boolType, rightJudgment.inferredType, right, right.fileOffset);
-    inferredType = boolType;
-    inferrer.listener
-        .logicalExpression(this, fileOffset, null, null, null, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitListLiteralJudgment(this, typeContext);
   }
 }
 
@@ -1938,44 +1055,23 @@ class MapEntryJudgment extends MapEntry {
   DartType inferredKeyType;
   DartType inferredValueType;
 
-  ExpressionJudgment get keyJudgment => key;
+  Expression get keyJudgment => key;
 
-  ExpressionJudgment get valueJudgment => value;
+  Expression get valueJudgment => value;
 
   MapEntryJudgment(Expression key, Expression value) : super(key, value);
-
-  MapEntry infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType keyTypeContext,
-      DartType valueTypeContext) {
-    ExpressionJudgment keyJudgment = this.keyJudgment;
-    inferrer.inferExpression(factory, keyJudgment, keyTypeContext, true);
-    inferredKeyType = keyJudgment.inferredType;
-
-    ExpressionJudgment valueJudgment = this.valueJudgment;
-    inferrer.inferExpression(factory, valueJudgment, valueTypeContext, true);
-    inferredValueType = valueJudgment.inferredType;
-
-    return null;
-  }
 }
 
 /// Type inference derivation for [MapLiteral].
 class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
-  final Token constKeyword;
-  final Token leftBracket;
-  final Token rightBracket;
-
   DartType inferredType;
 
-  List<MapEntryJudgment> get judgments => entries;
+  List<MapEntry> get judgments => entries;
 
   final DartType _declaredKeyType;
   final DartType _declaredValueType;
 
-  MapLiteralJudgment(this.constKeyword, this.leftBracket,
-      List<MapEntryJudgment> judgments, this.rightBracket,
+  MapLiteralJudgment(List<MapEntry> judgments,
       {DartType keyType, DartType valueType, bool isConst: false})
       : _declaredKeyType = keyType,
         _declaredValueType = valueType,
@@ -1985,84 +1081,8 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
             isConst: isConst);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var mapClass = inferrer.coreTypes.mapClass;
-    var mapType = mapClass.thisType;
-    List<DartType> inferredTypes;
-    DartType inferredKeyType;
-    DartType inferredValueType;
-    List<DartType> formalTypes;
-    List<DartType> actualTypes;
-    assert((_declaredKeyType == null) == (_declaredValueType == null));
-    bool inferenceNeeded = _declaredKeyType == null && inferrer.strongMode;
-    bool typeChecksNeeded = !inferrer.isTopLevel;
-    if (inferenceNeeded || typeChecksNeeded) {
-      formalTypes = [];
-      actualTypes = [];
-    }
-    if (inferenceNeeded) {
-      inferredTypes = [const UnknownType(), const UnknownType()];
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(mapType,
-          mapClass.typeParameters, null, null, typeContext, inferredTypes,
-          isConst: isConst);
-      inferredKeyType = inferredTypes[0];
-      inferredValueType = inferredTypes[1];
-    } else {
-      inferredKeyType = _declaredKeyType ?? const DynamicType();
-      inferredValueType = _declaredValueType ?? const DynamicType();
-    }
-    List<ExpressionJudgment> cachedKeyJudgments =
-        judgments.map((j) => j.keyJudgment).toList();
-    List<ExpressionJudgment> cachedValueJudgments =
-        judgments.map((j) => j.valueJudgment).toList();
-    if (inferenceNeeded || typeChecksNeeded) {
-      for (MapEntryJudgment judgment in judgments) {
-        judgment.infer(inferrer, factory, inferredKeyType, inferredValueType);
-        if (inferenceNeeded) {
-          formalTypes.addAll(mapType.typeArguments);
-        }
-        actualTypes.add(judgment.inferredKeyType);
-        actualTypes.add(judgment.inferredValueType);
-      }
-    }
-    if (inferenceNeeded) {
-      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-          mapType,
-          mapClass.typeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
-          inferredTypes);
-      inferredKeyType = inferredTypes[0];
-      inferredValueType = inferredTypes[1];
-      inferrer.instrumentation?.record(
-          inferrer.uri,
-          fileOffset,
-          'typeArgs',
-          new InstrumentationValueForTypeArgs(
-              [inferredKeyType, inferredValueType]));
-      keyType = inferredKeyType;
-      valueType = inferredValueType;
-    }
-    if (typeChecksNeeded) {
-      for (int i = 0; i < judgments.length; ++i) {
-        ExpressionJudgment keyJudgment = cachedKeyJudgments[i];
-        inferrer.ensureAssignable(
-            keyType, actualTypes[2 * i], keyJudgment, keyJudgment.fileOffset);
-
-        ExpressionJudgment valueJudgment = cachedValueJudgments[i];
-        inferrer.ensureAssignable(valueType, actualTypes[2 * i + 1],
-            valueJudgment, valueJudgment.fileOffset);
-      }
-    }
-    inferredType =
-        new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
-    inferrer.listener.mapLiteral(this, fileOffset, constKeyword, null,
-        leftBracket, entries, rightBracket, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitMapLiteralJudgment(this, typeContext);
   }
 }
 
@@ -2090,7 +1110,6 @@ abstract class ShadowMember implements Member {
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   /// Indicates whether this method invocation is a call to a `call` method
@@ -2099,26 +1118,15 @@ class MethodInvocationJudgment extends MethodInvocation
 
   MethodInvocationJudgment(
       Expression receiver, Name name, ArgumentsJudgment arguments,
-      {this.desugaredError, bool isImplicitCall: false, Member interfaceTarget})
+      {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
 
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var inferenceResult = inferrer.inferMethodInvocation(
-        factory, this, receiver, fileOffset, _isImplicitCall, typeContext,
-        desugaredInvocation: this);
-    inferredType = inferenceResult.type;
-    if (desugaredError != null) {
-      parent.replaceChild(this, desugaredError);
-      parent = null;
-    }
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitMethodInvocationJudgment(this, typeContext);
   }
 }
 
@@ -2141,48 +1149,8 @@ class NamedFunctionExpressionJudgment extends Let
   VariableDeclarationJudgment get variableJudgment => variable;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    ExpressionJudgment initializer = variableJudgment.initializer;
-    inferrer.inferExpression(factory, initializer, typeContext, true);
-    inferredType = initializer.inferredType;
-    if (inferrer.strongMode) variable.type = inferredType;
-    inferrer.listener.namedFunctionExpression(this, fileOffset, inferredType);
-    return null;
-  }
-}
-
-/// Shadow object for [Not].
-class NotJudgment extends Not implements ExpressionJudgment {
-  final bool isSynthetic;
-  final Token operator;
-
-  DartType inferredType;
-
-  NotJudgment(this.isSynthetic, this.operator, ExpressionJudgment operand)
-      : super(operand);
-
-  ExpressionJudgment get judgment => operand;
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var judgment = this.judgment;
-    // First infer the receiver so we can look up the method that was invoked.
-    var boolType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(factory, judgment, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        boolType, judgment.inferredType, operand, fileOffset);
-    inferredType = boolType;
-    // TODO(scheglov) Temporary: https://github.com/dart-lang/sdk/issues/33666
-    if (!isSynthetic) {
-      inferrer.listener.not(this, fileOffset, operator, null, inferredType);
-    }
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitNamedFunctionExpressionJudgment(this, typeContext);
   }
 }
 
@@ -2194,12 +1162,10 @@ class NotJudgment extends Not implements ExpressionJudgment {
 ///     let v = a in v == null ? null : v.b(...)
 class NullAwareMethodInvocationJudgment extends Let
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   NullAwareMethodInvocationJudgment(
-      VariableDeclaration variable, Expression body,
-      {this.desugaredError})
+      VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
@@ -2208,18 +1174,8 @@ class NullAwareMethodInvocationJudgment extends Let
   MethodInvocation get _desugaredInvocation => body.otherwise;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var inferenceResult = inferrer.inferMethodInvocation(
-        factory, this, variable.initializer, fileOffset, false, typeContext,
-        receiverVariable: variable, desugaredInvocation: _desugaredInvocation);
-    inferredType = inferenceResult.type;
-    if (inferrer.strongMode) {
-      body.staticType = inferredType;
-    }
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitNullAwareMethodInvocationJudgment(this, typeContext);
   }
 }
 
@@ -2241,40 +1197,11 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
 
   PropertyGet get _desugaredGet => body.otherwise;
 
-  ExpressionJudgment get receiverJudgment => variable.initializer;
+  Expression get receiverJudgment => variable.initializer;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.inferPropertyGet(
-        factory, this, receiverJudgment, fileOffset, typeContext,
-        receiverVariable: variable, desugaredGet: _desugaredGet);
-    if (inferrer.strongMode) {
-      body.staticType = inferredType;
-    }
-    return null;
-  }
-}
-
-/// Concrete shadow object representing a null literal in kernel form.
-class NullJudgment extends NullLiteral implements ExpressionJudgment {
-  final Token literal;
-
-  DartType inferredType;
-
-  NullJudgment(this.literal);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.coreTypes.nullClass.rawType;
-    inferrer.listener
-        .nullLiteral(this, fileOffset, literal, fileOffset == -1, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitNullAwarePropertyGetJudgment(this, typeContext);
   }
 }
 
@@ -2315,8 +1242,7 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// expression that guards the access; otherwise `null`.
   ConditionalExpression nullAwareGuard;
 
-  PropertyAssignmentJudgment(
-      ExpressionJudgment receiver, ExpressionJudgment rhs,
+  PropertyAssignmentJudgment(Expression receiver, Expression rhs,
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
@@ -2341,65 +1267,8 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var receiverType = _inferReceiver(inferrer, factory);
-
-    DartType readType;
-    if (read != null) {
-      var readMember =
-          inferrer.findPropertyGetMember(receiverType, read, silent: true);
-      readType = inferrer.getCalleeType(readMember, receiverType);
-      inferrer.handlePropertyGetContravariance(receiver, readMember,
-          read is PropertyGet ? read : null, read, readType, read.fileOffset);
-      _storeLetType(inferrer, read, readType);
-    }
-    Member writeMember;
-    if (write != null) {
-      writeMember = _handleWriteContravariance(inferrer, receiverType);
-    }
-    // To replicate analyzer behavior, we base type inference on the write
-    // member.  TODO(paulberry): would it be better to use the read member when
-    // doing compound assignment?
-    var writeContext = inferrer.getSetterType(writeMember, receiverType);
-    var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
-    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
-    inferrer.listener.propertyAssign(
-        this,
-        write.fileOffset,
-        inferrer.getRealTarget(writeMember),
-        writeContext,
-        inferredResult.combiner,
-        inferredType);
-    _replaceWithDesugared();
-    return null;
-  }
-}
-
-/// Shadow object for [PropertyGet].
-class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
-  DartType inferredType;
-
-  PropertyGetJudgment(Expression receiver, Name name, [Member interfaceTarget])
-      : super(receiver, name, interfaceTarget);
-
-  PropertyGetJudgment.byReference(
-      Expression receiver, Name name, Reference interfaceTargetReference)
-      : super.byReference(receiver, name, interfaceTargetReference);
-
-  ExpressionJudgment get receiverJudgment => receiver;
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.inferPropertyGet(
-        factory, this, receiverJudgment, fileOffset, typeContext,
-        desugaredGet: this);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitPropertyAssignmentJudgment(this, typeContext);
   }
 }
 
@@ -2414,84 +1283,23 @@ class RedirectingInitializerJudgment extends RedirectingInitializer
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  infer<Expression, Statement, Initializer, Type>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    List<TypeParameter> classTypeParameters =
-        target.enclosingClass.typeParameters;
-    List<DartType> typeArguments =
-        new List<DartType>(classTypeParameters.length);
-    for (int i = 0; i < typeArguments.length; i++) {
-      typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
-    }
-    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, typeArguments);
-    inferrer.inferInvocation(
-        factory,
-        null,
-        fileOffset,
-        target.function.functionType,
-        target.enclosingClass.thisType,
-        argumentJudgments,
-        skipTypeArgumentInference: true);
-    ArgumentsJudgment.removeNonInferrableArgumentTypes(arguments);
-    inferrer.listener.redirectingInitializer(
-        this, fileOffset, null, null, null, null, target);
-  }
-}
-
-/// Shadow object for [Rethrow].
-class RethrowJudgment extends Rethrow implements ExpressionJudgment {
-  final Token rethrowKeyword;
-
-  DartType inferredType;
-
-  RethrowJudgment(this.rethrowKeyword);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = const BottomType();
-    inferrer.listener.rethrow_(this, fileOffset, rethrowKeyword, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitRedirectingInitializerJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a return statement in kernel form.
 class ReturnJudgment extends ReturnStatement implements StatementJudgment {
-  final Token returnKeyword;
-  final Token semicolon;
+  final String returnKeywordLexeme;
 
-  ReturnJudgment(this.returnKeyword, this.semicolon, [Expression expression])
+  ReturnJudgment(this.returnKeywordLexeme, [Expression expression])
       : super(expression);
 
-  ExpressionJudgment get judgment => expression;
+  Expression get judgment => expression;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var judgment = this.judgment;
-    var closureContext = inferrer.closureContext;
-    var typeContext = !closureContext.isGenerator
-        ? closureContext.returnOrYieldContext
-        : const UnknownType();
-    DartType inferredType;
-    if (expression != null) {
-      inferrer.inferExpression(factory, judgment, typeContext, true);
-      inferredType = judgment.inferredType;
-    } else {
-      inferredType = const VoidType();
-    }
-    // Analyzer treats bare `return` statements as having no effect on the
-    // inferred type of the closure.  TODO(paulberry): is this what we want
-    // for Fasta?
-    if (judgment != null) {
-      closureContext.handleReturn(
-          inferrer, inferredType, expression, fileOffset);
-    }
-    inferrer.listener
-        .returnStatement(this, fileOffset, returnKeyword, null, semicolon);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitReturnJudgment(this);
   }
 }
 
@@ -2500,14 +1308,12 @@ class ReturnJudgment extends ReturnStatement implements StatementJudgment {
 abstract class StatementJudgment extends Statement {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [StatementJudgment] this is.
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> statement);
+  void acceptInference(InferenceVistor visitor);
 }
 
 /// Concrete shadow object representing an assignment to a static variable.
 class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
-  StaticAssignmentJudgment(ExpressionJudgment rhs) : super(rhs);
+  StaticAssignmentJudgment(Expression rhs) : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -2516,331 +1322,85 @@ class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    DartType readType = const DynamicType(); // Only used in error recovery
-    var read = this.read;
-    if (read is StaticGet) {
-      readType = read.target.getterType;
-      _storeLetType(inferrer, read, readType);
-    }
-    Member writeMember;
-    DartType writeContext = const UnknownType();
-    var write = this.write;
-    if (write is StaticSet) {
-      writeContext = write.target.setterType;
-      writeMember = write.target;
-      if (writeMember is ShadowField && writeMember.inferenceNode != null) {
-        writeMember.inferenceNode.resolve();
-        writeMember.inferenceNode = null;
-      }
-    }
-    var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
-    inferrer.listener.staticAssign(
-        this,
-        write?.fileOffset,
-        writeMember,
-        writeContext is UnknownType ? const DynamicType() : writeContext,
-        inferredResult.combiner,
-        inferredType);
-    _replaceWithDesugared();
-    return null;
-  }
-}
-
-/// Concrete shadow object representing a read of a static variable in kernel
-/// form.
-class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
-  DartType inferredType;
-
-  StaticGetJudgment(Member target) : super(target);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var target = this.target;
-    if (target is ShadowField && target.inferenceNode != null) {
-      target.inferenceNode.resolve();
-      target.inferenceNode = null;
-    }
-    var type = target.getterType;
-    if (target is Procedure && target.kind == ProcedureKind.Method) {
-      type = inferrer.instantiateTearOff(type, typeContext, this);
-    }
-    inferredType = type;
-    inferrer.listener.staticGet(this, fileOffset, target, inferredType);
-    return null;
-  }
-}
-
-/// Shadow object for [StaticInvocation].
-class StaticInvocationJudgment extends StaticInvocation
-    implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
-  DartType inferredType;
-
-  StaticInvocationJudgment(Procedure target, ArgumentsJudgment arguments,
-      {this.desugaredError, bool isConst: false})
-      : super(target, arguments, isConst: isConst);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var calleeType = target.function.functionType;
-    var inferenceResult = inferrer.inferInvocation(factory, typeContext,
-        fileOffset, calleeType, calleeType.returnType, argumentJudgments);
-    var inferredType = inferenceResult.type;
-    this.inferredType = inferredType;
-    inferrer.listener.staticInvocation(
-        this,
-        arguments.fileOffset,
-        target,
-        arguments.types,
-        inferrer.lastCalleeType,
-        inferrer.lastInferredSubstitution,
-        inferredType);
-    if (desugaredError != null) {
-      parent.replaceChild(this, desugaredError);
-      parent = null;
-    }
-    return null;
-  }
-}
-
-/// Concrete shadow object representing a string concatenation in kernel form.
-class StringConcatenationJudgment extends StringConcatenation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  StringConcatenationJudgment(List<Expression> expressions)
-      : super(expressions);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    if (!inferrer.isTopLevel) {
-      for (var expression in expressions) {
-        inferrer.inferExpression(
-            factory, expression, const UnknownType(), false);
-      }
-    }
-    inferredType = inferrer.coreTypes.stringClass.rawType;
-    inferrer.listener.stringConcatenation(this, fileOffset, inferredType);
-    return null;
-  }
-}
-
-/// Type inference derivation for [StringLiteral].
-class StringLiteralJudgment extends StringLiteral
-    implements ExpressionJudgment {
-  final Token literal;
-
-  DartType inferredType;
-
-  StringLiteralJudgment(this.literal, String value) : super(value);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var inferredType = inferrer.coreTypes.stringClass.rawType;
-    inferrer.listener
-        .stringLiteral(this, fileOffset, literal, value, inferredType);
-    this.inferredType = inferredType;
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitStaticAssignmentJudgment(this, typeContext);
   }
 }
 
 /// Concrete shadow object representing a super initializer in kernel form.
 class SuperInitializerJudgment extends SuperInitializer
     implements InitializerJudgment {
-  final Token superKeyword;
-  final Token period;
-  final Token constructorName;
-
-  SuperInitializerJudgment(this.superKeyword, this.period, this.constructorName,
-      Constructor target, ArgumentsJudgment arguments)
+  SuperInitializerJudgment(Constructor target, ArgumentsJudgment arguments)
       : super(target, arguments);
 
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var substitution = Substitution.fromSupertype(inferrer.classHierarchy
-        .getClassAsInstanceOf(
-            inferrer.thisType.classNode, target.enclosingClass));
-    inferrer.inferInvocation(
-        factory,
-        null,
-        fileOffset,
-        substitution
-            .substituteType(target.function.functionType.withoutTypeParameters),
-        inferrer.thisType,
-        argumentJudgments,
-        skipTypeArgumentInference: true);
-    inferrer.listener.superInitializer(
-        this, fileOffset, superKeyword, period, constructorName, null);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitSuperInitializerJudgment(this);
   }
 }
 
 /// Shadow object for [SuperMethodInvocation].
 class SuperMethodInvocationJudgment extends SuperMethodInvocation
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
   SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
-      {this.desugaredError, Procedure interfaceTarget})
+      {Procedure interfaceTarget})
       : super(name, arguments, interfaceTarget);
 
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    if (interfaceTarget != null) {
-      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
-          new InstrumentationValueForMember(interfaceTarget));
-    }
-    var inferenceResult = inferrer.inferMethodInvocation(
-        factory, this, null, fileOffset, false, typeContext,
-        interfaceMember: interfaceTarget,
-        methodName: name,
-        arguments: arguments);
-    inferredType = inferenceResult.type;
-    if (desugaredError != null) {
-      parent.replaceChild(this, desugaredError);
-      parent = null;
-    }
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitSuperMethodInvocationJudgment(this, typeContext);
   }
 }
 
 /// Shadow object for [SuperPropertyGet].
 class SuperPropertyGetJudgment extends SuperPropertyGet
     implements ExpressionJudgment {
-  final kernel.Expression desugaredError;
   DartType inferredType;
 
-  SuperPropertyGetJudgment(Name name,
-      {this.desugaredError, Member interfaceTarget})
+  SuperPropertyGetJudgment(Name name, {Member interfaceTarget})
       : super(name, interfaceTarget);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    if (interfaceTarget != null) {
-      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
-          new InstrumentationValueForMember(interfaceTarget));
-    }
-    inferrer.inferPropertyGet(factory, this, null, fileOffset, typeContext,
-        interfaceMember: interfaceTarget, propertyName: name);
-    if (desugaredError != null) {
-      parent.replaceChild(this, desugaredError);
-      parent = null;
-    }
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitSuperPropertyGetJudgment(this, typeContext);
   }
 }
 
 /// Concrete shadow object representing a switch case.
 class SwitchCaseJudgment extends SwitchCase {
-  final Token keyword;
-  final Token colon;
-
-  Object binder;
-
-  SwitchCaseJudgment(this.keyword, List<Expression> expressions,
-      List<int> expressionOffsets, this.colon, Statement body,
+  SwitchCaseJudgment(
+      List<Expression> expressions, List<int> expressionOffsets, Statement body,
       {bool isDefault: false})
       : super(expressions, expressionOffsets, body, isDefault: isDefault);
 
-  SwitchCaseJudgment.defaultCase(this.keyword, this.colon, Statement body)
-      : super.defaultCase(body);
+  SwitchCaseJudgment.defaultCase(Statement body) : super.defaultCase(body);
 
-  SwitchCaseJudgment.empty()
-      : keyword = null,
-        colon = null,
-        super.empty();
+  SwitchCaseJudgment.empty() : super.empty();
 
-  List<ExpressionJudgment> get expressionJudgments => expressions.cast();
+  List<Expression> get expressionJudgments => expressions.cast();
 
   StatementJudgment get bodyJudgment => body;
-
-  Object createBinder(ShadowTypeInferrer inferrer) {
-    // TODO(paulberry): we need one binder for each label
-    return binder ??=
-        inferrer.listener.binderForSwitchLabel(this, fileOffset, null);
-  }
 }
 
 /// Concrete shadow object representing a switch statement in kernel form.
 class SwitchStatementJudgment extends SwitchStatement
     implements StatementJudgment {
-  final Token switchKeyword;
-  final Token leftParenthesis;
-  final Token rightParenthesis;
-  final Token leftBracket;
-  final Token rightBracket;
-
-  SwitchStatementJudgment(
-      this.switchKeyword,
-      this.leftParenthesis,
-      Expression expression,
-      this.rightParenthesis,
-      this.leftBracket,
-      List<SwitchCase> cases,
-      this.rightBracket)
+  SwitchStatementJudgment(Expression expression, List<SwitchCase> cases)
       : super(expression, cases);
 
-  ExpressionJudgment get expressionJudgment => expression;
+  Expression get expressionJudgment => expression;
 
   List<SwitchCaseJudgment> get caseJudgments => cases.cast();
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var expressionJudgment = this.expressionJudgment;
-    inferrer.inferExpression(
-        factory, expressionJudgment, const UnknownType(), true);
-    var expressionType = expressionJudgment.inferredType;
-    for (var switchCase in caseJudgments) {
-      for (var caseExpression in switchCase.expressionJudgments) {
-        inferrer.inferExpression(
-            factory, caseExpression, expressionType, false);
-      }
-      inferrer.inferStatement(factory, switchCase.bodyJudgment);
-      // TODO(paulberry): support labels.
-      inferrer.listener.switchCase(switchCase, null, null, null, null, null);
-    }
-    inferrer.listener.switchStatement(
-        this,
-        fileOffset,
-        switchKeyword,
-        leftParenthesis,
-        expression,
-        rightParenthesis,
-        leftBracket,
-        cases,
-        rightBracket);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitSwitchStatementJudgment(this);
   }
 }
 
@@ -2852,22 +1412,17 @@ class SymbolLiteralJudgment extends SymbolLiteral
   SymbolLiteralJudgment(String value) : super(value);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.coreTypes.symbolClass.rawType;
-    inferrer.listener
-        .symbolLiteral(this, fileOffset, null, null, null, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitSymbolLiteralJudgment(this, typeContext);
   }
 }
 
 /// Synthetic judgment class representing an attempt to invoke an unresolved
 /// constructor, or a constructor that cannot be invoked, or a resolved
 /// constructor with wrong number of arguments.
+// TODO(ahe): Remove this?
 class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
-  final Constructor constructor;
+  final Member constructor;
   final Arguments arguments;
 
   InvalidConstructorInvocationJudgment(
@@ -2877,69 +1432,22 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    FunctionType calleeType;
-    DartType returnType;
-    if (constructor != null) {
-      calleeType = constructor.function.functionType;
-      returnType = computeConstructorReturnType(constructor);
-    } else {
-      calleeType = new FunctionType([], const DynamicType());
-      returnType = const DynamicType();
-    }
-    ExpressionInferenceResult inferenceResult = inferrer.inferInvocation(
-        factory,
-        typeContext,
-        fileOffset,
-        calleeType,
-        returnType,
-        argumentJudgments);
-    this.inferredType = inferenceResult.type;
-    inferrer.listener.constructorInvocation(
-        this, arguments.fileOffset, constructor, inferredType);
-    return super.infer(inferrer, factory, typeContext);
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitInvalidConstructorInvocationJudgment(this, typeContext);
   }
 }
 
-/// Synthetic judgment class representing an attempt to write to a read-only
-/// local variable.
-class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
-  /// Note: private to avoid colliding with Let.variable.
-  final VariableDeclarationJudgment _variable;
+/// Synthetic judgment class representing an attempt to assign to the
+/// [expression] which is not assignable.
+class InvalidWriteJudgment extends SyntheticExpressionJudgment {
+  final Expression expression;
 
-  InvalidVariableWriteJudgment(kernel.Expression desugared, this._variable)
+  InvalidWriteJudgment(kernel.Expression desugared, this.expression)
       : super(desugared);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.listener.variableAssign(this, fileOffset, _variable.type,
-        _variable.createBinder(inferrer), null, _variable.type);
-    return super.infer(inferrer, factory, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt reference a member
-/// that is not allowed at this location.
-class InvalidPropertyGetJudgment extends SyntheticExpressionJudgment {
-  final Member member;
-
-  InvalidPropertyGetJudgment(kernel.Expression desugared, this.member)
-      : super(desugared);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var inferredType = member?.getterType ?? const DynamicType();
-    inferrer.listener.propertyGet(this, fileOffset, member, inferredType);
-    return super.infer(inferrer, factory, typeContext);
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitInvalidWriteJudgment(this, typeContext);
   }
 }
 
@@ -2964,13 +1472,8 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    _replaceWithDesugared();
-    inferredType = const DynamicType();
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitSyntheticExpressionJudgment(this, typeContext);
   }
 
   /// Removes this expression from the expression tree, replacing it with
@@ -3012,71 +1515,10 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 }
 
-class ThisJudgment extends ThisExpression implements ExpressionJudgment {
-  final Token thisKeyword;
-
-  DartType inferredType;
-
-  ThisJudgment(this.thisKeyword);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.thisType ?? const DynamicType();
-    inferrer.listener
-        .thisExpression(this, fileOffset, thisKeyword, inferredType);
-    return null;
-  }
-}
-
-class ThrowJudgment extends Throw implements ExpressionJudgment {
-  final Token throwKeyword;
-  final kernel.Expression desugaredError;
-
-  DartType inferredType;
-
-  ExpressionJudgment get judgment => expression;
-
-  ThrowJudgment(this.throwKeyword, Expression expression, {this.desugaredError})
-      : super(expression);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    inferredType = const BottomType();
-    inferrer.listener
-        .throw_(this, fileOffset, throwKeyword, null, inferredType);
-    if (desugaredError != null) {
-      parent.replaceChild(this, desugaredError);
-      parent = null;
-    }
-    return null;
-  }
-}
-
 /// Concrete shadow object representing a catch clause.
 class CatchJudgment extends Catch {
-  final Token onKeyword;
-  final Token catchKeyword;
-  final Token leftParenthesis;
-  final Token comma;
-  final Token rightParenthesis;
-
-  CatchJudgment(
-      this.onKeyword,
-      this.catchKeyword,
-      this.leftParenthesis,
-      VariableDeclaration exception,
-      this.comma,
-      this.rightParenthesis,
-      Statement body,
-      {DartType guard: const DynamicType(),
-      VariableDeclaration stackTrace})
+  CatchJudgment(VariableDeclaration exception, Statement body,
+      {DartType guard: const DynamicType(), VariableDeclaration stackTrace})
       : super(exception, body, guard: guard, stackTrace: stackTrace);
 
   VariableDeclarationJudgment get exceptionJudgment => exception;
@@ -3084,29 +1526,6 @@ class CatchJudgment extends Catch {
   VariableDeclarationJudgment get stackTraceJudgment => stackTrace;
 
   StatementJudgment get bodyJudgment => body;
-
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferStatement(factory, bodyJudgment);
-    inferrer.listener.catchStatement(
-        this,
-        fileOffset,
-        onKeyword,
-        null,
-        catchKeyword,
-        leftParenthesis,
-        null, // exception
-        comma,
-        null, // stackTrace
-        rightParenthesis,
-        null, // body
-        guard,
-        exceptionJudgment?.createBinder(inferrer),
-        exceptionJudgment?.type,
-        stackTraceJudgment?.createBinder(inferrer),
-        stackTraceJudgment?.type);
-  }
 }
 
 /// Concrete shadow object representing a try-catch block in kernel form.
@@ -3118,25 +1537,16 @@ class TryCatchJudgment extends TryCatch implements StatementJudgment {
   List<CatchJudgment> get catchJudgments => catches.cast();
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferStatement(factory, bodyJudgment);
-    for (var catch_ in catchJudgments) {
-      catch_.infer(inferrer, factory);
-    }
-    inferrer.listener.tryCatch(this, fileOffset);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitTryCatchJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a try-finally block in kernel form.
 class TryFinallyJudgment extends TryFinally implements StatementJudgment {
-  final Token tryKeyword;
   final List<Catch> catches;
-  final Token finallyKeyword;
 
-  TryFinallyJudgment(this.tryKeyword, Statement body, this.catches,
-      this.finallyKeyword, Statement finalizer)
+  TryFinallyJudgment(Statement body, this.catches, Statement finalizer)
       : super(body, finalizer);
 
   List<CatchJudgment> get catchJudgments => catches?.cast();
@@ -3144,19 +1554,8 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
   StatementJudgment get finalizerJudgment => finalizer;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferStatement(factory, body);
-    if (catchJudgments != null) {
-      for (var catch_ in catchJudgments) {
-        catch_.infer(inferrer, factory);
-      }
-      body = new TryCatch(body, catches)..parent = this;
-    }
-    inferrer.inferStatement(factory, finalizerJudgment);
-    inferrer.listener.tryFinally(
-        this, fileOffset, tryKeyword, body, catches, finallyKeyword, finalizer);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitTryFinallyJudgment(this);
   }
 }
 
@@ -3172,21 +1571,15 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
-      Uri uri,
-      TypeInferenceListener<int, Node, int> listener,
-      InterfaceType thisType,
-      SourceLibraryBuilder library) {
-    return new ShadowTypeInferrer._(
-        this, uri, listener, false, thisType, library);
+      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
+    return new ShadowTypeInferrer._(this, uri, false, thisType, library);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
-      TypeInferenceListener<int, Node, int> listener,
-      InterfaceType thisType,
-      ShadowField field) {
-    return field._typeInferrer = new ShadowTypeInferrer._(
-        this, field.fileUri, listener, true, thisType, null);
+      InterfaceType thisType, ShadowField field, KernelLibraryBuilder library) {
+    return field._typeInferrer =
+        new ShadowTypeInferrer._(this, field.fileUri, true, thisType, library);
   }
 
   @override
@@ -3201,15 +1594,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   final typePromoter;
 
-  ShadowTypeInferrer._(
-      ShadowTypeInferenceEngine engine,
-      Uri uri,
-      TypeInferenceListener<int, Node, int> listener,
-      bool topLevel,
-      InterfaceType thisType,
-      SourceLibraryBuilder library)
+  ShadowTypeInferrer._(ShadowTypeInferenceEngine engine, Uri uri, bool topLevel,
+      InterfaceType thisType, KernelLibraryBuilder library)
       : typePromoter = new ShadowTypePromoter(engine.typeSchemaEnvironment),
-        super(engine, uri, listener, topLevel, thisType, library);
+        super(engine, uri, topLevel, thisType, library);
 
   @override
   Expression getFieldInitializer(ShadowField field) {
@@ -3217,11 +1605,9 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferExpression<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Expression expression,
-      DartType typeContext,
-      bool typeNeeded) {
+  DartType inferExpression(
+      kernel.Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed: false}) {
     // `null` should never be used as the type context.  An instance of
     // `UnknownType` should be used instead.
     assert(typeContext != null);
@@ -3238,40 +1624,34 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
-    if (!typeNeeded && isTopLevel) return null;
+    if (!typeNeeded) return null;
 
+    InferenceVistor visitor = new InferenceVistor(this);
     if (expression is ExpressionJudgment) {
-      // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
-      // of type inference is correct for this kind of statement.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      expression.infer(this, factory, typeContext);
-      return expression.inferredType;
+      expression.acceptInference(visitor, typeContext);
     } else {
-      // Encountered an expression type for which type inference is not yet
-      // implemented, so just infer dynamic for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
-      return typeNeeded ? const DynamicType() : null;
+      expression.accept1(visitor, typeContext);
     }
+    DartType inferredType = getInferredType(expression, this);
+    if (inferredType is VoidType && !isVoidAllowed) {
+      if (expression.parent is! ArgumentsJudgment) {
+        helper?.addProblem(
+            messageVoidExpression, expression.fileOffset, noLength);
+      }
+    }
+    return inferredType;
   }
 
   @override
-  DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      ShadowField field,
-      bool typeNeeded) {
+  DartType inferFieldTopLevel(ShadowField field) {
     if (field.initializer == null) return const DynamicType();
-    return inferExpression(
-        factory, field.initializer, const UnknownType(), typeNeeded);
+    return inferExpression(field.initializer, const UnknownType(), true,
+        isVoidAllowed: true);
   }
 
   @override
-  void inferInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Initializer initializer) {
+  void inferInitializer(
+      InferenceHelper helper, kernel.Initializer initializer) {
     assert(initializer is InitializerJudgment);
     this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
@@ -3280,14 +1660,12 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
     InitializerJudgment kernelInitializer = initializer;
-    kernelInitializer.infer(this, factory);
+    kernelInitializer.acceptInference(new InferenceVistor(this));
     this.helper = null;
   }
 
   @override
-  void inferStatement<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      Statement statement) {
+  void inferStatement(Statement statement) {
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
     if (!isTopLevel) assert(helper != null);
@@ -3298,7 +1676,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       // TODO(paulberry): experiment to see if dynamic dispatch would be better,
       // so that the type hierarchy will be simpler (which may speed up "is"
       // checks).
-      return statement.infer(this, factory);
+      return statement.acceptInference(new InferenceVistor(this));
     } else {
       // Encountered a statement type for which type inference is not yet
       // implemented, so just skip it for now.
@@ -3314,13 +1692,8 @@ class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
   TypeLiteralJudgment(DartType type) : super(type);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.coreTypes.typeClass.rawType;
-    inferrer.listener.typeLiteral(this, fileOffset, type, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitTypeLiteralJudgment(this, typeContext);
   }
 }
 
@@ -3394,7 +1767,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 }
 
 class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
-  VariableAssignmentJudgment(ExpressionJudgment rhs) : super(rhs);
+  VariableAssignmentJudgment(Expression rhs) : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -3403,53 +1776,33 @@ class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    DartType readType;
-    var read = this.read;
-    if (read is VariableGet) {
-      readType = read.promotedType ?? read.variable.type;
-    }
-    DartType writeContext = const UnknownType();
-    var write = this.write;
-    if (write is VariableSet) {
-      writeContext = write.variable.type;
-      if (read != null) {
-        _storeLetType(inferrer, read, writeContext);
-      }
-    }
-    var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
-    inferrer.listener.variableAssign(
-        this,
-        write.fileOffset,
-        writeContext,
-        write is VariableSet
-            ? (write.variable as VariableDeclarationJudgment)
-                .createBinder(inferrer)
-            : null,
-        inferredResult.combiner,
-        inferredType);
-    _replaceWithDesugared();
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitVariableAssignmentJudgment(this, typeContext);
   }
 }
 
 /// Concrete shadow object representing a variable declaration in kernel form.
 class VariableDeclarationJudgment extends VariableDeclaration
     implements StatementJudgment {
+  final bool forSyntheticToken;
+
   final bool _implicitlyTyped;
 
+  // TODO(ahe): Remove this field. We can get rid of it by recording closure
+  // mutation in [BodyBuilder].
   final int _functionNestingLevel;
 
+  // TODO(ahe): Remove this field. It's only used locally when compiling a
+  // method, and this can thus be tracked in a [Set] (actually, tracking this
+  // information in a [List] is probably even faster as the average size will
+  // be close to zero).
   bool _mutatedInClosure = false;
 
+  // TODO(ahe): Investigate if this can be removed.
   bool _mutatedAnywhere = false;
 
+  // TODO(ahe): Investigate if this can be removed.
   final bool _isLocalFunction;
-
-  Object binder;
 
   /// The same [annotations] list is used for all [VariableDeclarationJudgment]s
   /// of a variable declaration statement. But we need to perform inference
@@ -3458,7 +1811,8 @@ class VariableDeclarationJudgment extends VariableDeclaration
   bool infersAnnotations = true;
 
   VariableDeclarationJudgment(String name, this._functionNestingLevel,
-      {Expression initializer,
+      {this.forSyntheticToken: false,
+      Expression initializer,
       DartType type,
       bool isFinal: false,
       bool isConst: false,
@@ -3477,82 +1831,26 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
   VariableDeclarationJudgment.forEffect(
       Expression initializer, this._functionNestingLevel)
-      : _implicitlyTyped = false,
+      : forSyntheticToken = false,
+        _implicitlyTyped = false,
         _isLocalFunction = false,
         super.forValue(initializer);
 
   VariableDeclarationJudgment.forValue(
       Expression initializer, this._functionNestingLevel)
-      : _implicitlyTyped = true,
+      : forSyntheticToken = false,
+        _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
 
   List<Expression> get annotationJudgments => annotations;
 
-  ExpressionJudgment get initializerJudgment => initializer;
+  Expression get initializerJudgment => initializer;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    if (annotationJudgments.isNotEmpty) {
-      if (infersAnnotations) {
-        inferrer.inferMetadataKeepingHelper(factory, annotationJudgments);
-      }
-
-      // After the inference was done on the annotations, we may clone them for
-      // this instance of VariableDeclaration in order to avoid having the same
-      // annotation node for two VariableDeclaration nodes in a situation like
-      // the following:
-      //
-      //     class Foo { const Foo(List<String> list); }
-      //
-      //     @Foo(const [])
-      //     var x, y;
-      CloneVisitor cloner = new CloneVisitor();
-      for (int i = 0; i < annotations.length; ++i) {
-        kernel.Expression annotation = annotations[i];
-        if (annotation.parent != this) {
-          annotations[i] = cloner.clone(annotation);
-          annotations[i].parent = this;
-        }
-      }
-    }
-
-    var initializerJudgment = this.initializerJudgment;
-    var declaredType = _implicitlyTyped ? const UnknownType() : type;
-    DartType inferredType;
-    DartType initializerType;
-    if (initializerJudgment != null) {
-      inferrer.inferExpression(factory, initializerJudgment, declaredType,
-          !inferrer.isTopLevel || _implicitlyTyped);
-      initializerType = initializerJudgment.inferredType;
-      inferredType = inferrer.inferDeclarationType(initializerType);
-    } else {
-      inferredType = const DynamicType();
-    }
-    if (inferrer.strongMode && _implicitlyTyped) {
-      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'type',
-          new InstrumentationValueForType(inferredType));
-      type = inferredType;
-    }
-    if (initializer != null) {
-      var replacedInitializer = inferrer.ensureAssignable(
-          type, initializerType, initializer, fileOffset);
-      if (replacedInitializer != null) {
-        initializer = replacedInitializer;
-      }
-    }
-    inferrer.listener.variableDeclaration(
-        createBinder(inferrer), type, _implicitlyTyped ? inferredType : type);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitVariableDeclarationJudgment(this);
   }
-
-  Object createBinder(ShadowTypeInferrer inferrer) =>
-      binder ??= _isLocalFunction
-          ? inferrer.listener
-              .binderForFunctionDeclaration(this, fileOffset, name)
-          : inferrer.listener
-              .binderForVariableDeclaration(this, fileOffset, name);
 
   /// Determine whether the given [VariableDeclarationJudgment] had an implicit
   /// type.
@@ -3581,21 +1879,8 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
       : super(desugared);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    var result = super.infer(inferrer, factory, typeContext);
-    inferrer.inferInvocation(
-        factory,
-        typeContext,
-        fileOffset,
-        TypeInferrerImpl.unknownFunction,
-        const DynamicType(),
-        argumentsJudgment);
-    inferrer.listener.staticInvocation(this, fileOffset, null,
-        argumentsJudgment.types, null, null, inferredType);
-    return result;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitUnresolvedTargetInvocationJudgment(this, typeContext);
   }
 }
 
@@ -3603,59 +1888,15 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
 /// variable.
 class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
   final bool isCompound;
-  final ExpressionJudgment rhs;
+  final Expression rhs;
 
   UnresolvedVariableAssignmentJudgment(
       kernel.Expression desugared, this.isCompound, this.rhs)
       : super(desugared);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.inferExpression(factory, rhs, const UnknownType(), true);
-    inferredType = isCompound ? const DynamicType() : rhs.inferredType;
-    inferrer.listener.variableAssign(
-        this, fileOffset, const DynamicType(), null, null, inferredType);
-    return super.infer(inferrer, factory, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to apply a prefix or
-/// postfix operator to an unresolved variable.
-class UnresolvedVariableUnaryJudgment extends SyntheticExpressionJudgment {
-  final Token token;
-
-  UnresolvedVariableUnaryJudgment(kernel.Expression desugared, this.token)
-      : super(desugared);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.listener
-        .variableGet(this, token.offset, false, null, const DynamicType());
-    inferrer.listener.variableAssign(
-        this, fileOffset, const DynamicType(), null, null, inferredType);
-    return super.infer(inferrer, factory, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to read an unresolved
-/// variable.
-class UnresolvedVariableGetJudgment extends SyntheticExpressionJudgment {
-  UnresolvedVariableGetJudgment(kernel.Expression desugared) : super(desugared);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferrer.listener
-        .variableGet(this, fileOffset, false, null, const DynamicType());
-    return super.infer(inferrer, factory, typeContext);
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitUnresolvedVariableAssignmentJudgment(this, typeContext);
   }
 }
 
@@ -3670,111 +1911,36 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
   VariableGetJudgment(VariableDeclaration variable, this._fact, this._scope)
       : super(variable);
 
-  /// Return `true` if the given [variable] declaration occurs in a let
-  /// expression that is, or is part of, a cascade expression.
-  bool _isInCascade() {
-    TreeNode ancestor = variable.parent;
-    while (ancestor is Let) {
-      if (ancestor is CascadeJudgment) {
-        return true;
-      }
-      ancestor = ancestor.parent;
-    }
-    return false;
-  }
-
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    VariableDeclarationJudgment variable = this.variable;
-    bool mutatedInClosure = variable._mutatedInClosure;
-    DartType declaredOrInferredType = variable.type;
-
-    DartType promotedType = inferrer.typePromoter
-        .computePromotedType(_fact, _scope, mutatedInClosure);
-    if (promotedType != null) {
-      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'promotedType',
-          new InstrumentationValueForType(promotedType));
-    }
-    this.promotedType = promotedType;
-    var type = promotedType ?? declaredOrInferredType;
-    if (variable._isLocalFunction) {
-      type = inferrer.instantiateTearOff(type, typeContext, this);
-    }
-    inferredType = type;
-    inferrer.listener.variableGet(this, fileOffset, _isInCascade(),
-        variable.createBinder(inferrer), inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitVariableGetJudgment(this, typeContext);
   }
 }
 
 /// Concrete shadow object representing a while loop in kernel form.
 class WhileJudgment extends WhileStatement implements StatementJudgment {
-  final Token whileKeyword;
-  final Token leftParenthesis;
-  final Token rightParenthesis;
+  WhileJudgment(Expression condition, Statement body) : super(condition, body);
 
-  WhileJudgment(this.whileKeyword, this.leftParenthesis, Expression condition,
-      this.rightParenthesis, Statement body)
-      : super(condition, body);
-
-  ExpressionJudgment get conditionJudgment => condition;
+  Expression get conditionJudgment => condition;
 
   StatementJudgment get bodyJudgment => body;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var conditionJudgment = this.conditionJudgment;
-    var expectedType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(
-        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
-        condition, condition.fileOffset);
-    inferrer.inferStatement(factory, bodyJudgment);
-    inferrer.listener.whileStatement(this, fileOffset, whileKeyword,
-        leftParenthesis, null, rightParenthesis, null);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitWhileJudgment(this);
   }
 }
 
 /// Concrete shadow object representing a yield statement in kernel form.
 class YieldJudgment extends YieldStatement implements StatementJudgment {
-  final Token yieldKeyword;
-  final Token star;
-  final Token semicolon;
+  YieldJudgment(bool isYieldStar, Expression expression)
+      : super(expression, isYieldStar: isYieldStar);
 
-  YieldJudgment(
-      this.yieldKeyword, this.star, Expression expression, this.semicolon)
-      : super(expression, isYieldStar: star != null);
-
-  ExpressionJudgment get judgment => expression;
+  Expression get judgment => expression;
 
   @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {
-    var judgment = this.judgment;
-    var closureContext = inferrer.closureContext;
-    if (closureContext.isGenerator) {
-      var typeContext = closureContext.returnOrYieldContext;
-      if (isYieldStar && typeContext != null) {
-        typeContext = inferrer.wrapType(
-            typeContext,
-            closureContext.isAsync
-                ? inferrer.coreTypes.streamClass
-                : inferrer.coreTypes.iterableClass);
-      }
-      inferrer.inferExpression(factory, judgment, typeContext, true);
-    } else {
-      inferrer.inferExpression(factory, judgment, const UnknownType(), true);
-    }
-    closureContext.handleYield(
-        inferrer, isYieldStar, judgment.inferredType, expression, fileOffset);
-    inferrer.listener
-        .yieldStatement(this, fileOffset, yieldKeyword, star, null, semicolon);
+  void acceptInference(InferenceVistor visitor) {
+    return visitor.visitYieldJudgment(this);
   }
 }
 
@@ -3789,20 +1955,8 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType =
-        inferrer.typeSchemaEnvironment.futureType(const DynamicType());
-    if (arguments != null) {
-      var calleeType = new FunctionType([], inferredType);
-      inferrer.inferInvocation(factory, typeContext, fileOffset, calleeType,
-          calleeType.returnType, argumentJudgments);
-      inferrer.listener.loadLibrary(this, arguments.fileOffset,
-          import.targetLibrary, calleeType, inferredType);
-    }
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitLoadLibraryJudgment(this, typeContext);
   }
 }
 
@@ -3816,44 +1970,9 @@ class LoadLibraryTearOffJudgment extends StaticGet
   LoadLibraryTearOffJudgment(this.import, Procedure target) : super(target);
 
   @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = new FunctionType(
-        [], inferrer.typeSchemaEnvironment.futureType(const DynamicType()));
-    inferrer.listener.loadLibraryTearOff(
-        this, fileOffset, import.targetLibrary, inferredType);
-    return null;
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitLoadLibraryTearOffJudgment(this, typeContext);
   }
-}
-
-/// Concrete shadow object representing a deferred library-is-loaded check.
-class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  CheckLibraryIsLoadedJudgment(LibraryDependency import) : super(import);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    inferredType = inferrer.typeSchemaEnvironment.objectType;
-    return null;
-  }
-}
-
-/// Concrete shadow object representing a named expression.
-class NamedExpressionJudgment extends NamedExpression {
-  final Token nameToken;
-  final Token colon;
-
-  NamedExpressionJudgment(this.nameToken, this.colon, Expression value)
-      : super(nameToken.lexeme, value);
-
-  ExpressionJudgment get judgment => value;
 }
 
 /// The result of inference for a RHS of an assignment.

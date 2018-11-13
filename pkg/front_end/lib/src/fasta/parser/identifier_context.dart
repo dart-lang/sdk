@@ -95,10 +95,10 @@ class IdentifierContext {
   static const enumValueDeclaration =
       const EnumValueDeclarationIdentifierContext();
 
-  /// Identifier is the name being declared by a class declaration or a named
-  /// mixin application, for example, `Foo` in `class Foo = X with Y;`.
-  static const classOrNamedMixinDeclaration =
-      const ClassOrNamedMixinIdentifierContext();
+  /// Identifier is the name being declared by a class declaration, a mixin
+  /// declaration, or a named mixin application, for example,
+  /// `Foo` in `class Foo = X with Y;`.
+  static const classOrMixinDeclaration = const ClassOrMixinIdentifierContext();
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).
@@ -296,19 +296,9 @@ bool looksLikeExpressionStart(Token next) =>
 /// Return `true` if the given [token] should be treated like the start of
 /// a new statement for the purposes of recovery.
 bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [
-      'assert',
-      'break',
-      'continue',
-      'do',
-      'final',
-      'for',
-      'if',
-      'return',
-      'switch',
-      'try',
-      'var',
-      'void',
-      'while'
+      '@',
+      'assert', 'break', 'continue', 'do', 'else', 'final', 'for', //
+      'if', 'return', 'switch', 'try', 'var', 'void', 'while', //
     ]);
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.

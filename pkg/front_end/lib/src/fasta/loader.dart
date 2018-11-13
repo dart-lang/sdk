@@ -21,10 +21,9 @@ import 'messages.dart'
         Template,
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity,
-        templateInternalProblemMissingSeverity,
         templateSourceBodySummary;
 
-import 'problems.dart' show internalProblem;
+import 'problems.dart' show internalProblem, unhandled;
 
 import 'rewrite_severity.dart' show rewriteSeverity;
 
@@ -35,6 +34,8 @@ import 'target_implementation.dart' show TargetImplementation;
 import 'ticker.dart' show Ticker;
 
 import 'type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+
+const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
 abstract class Loader<L> {
   final Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
@@ -79,6 +80,8 @@ abstract class Loader<L> {
 
   TypeInferenceEngine get typeInferenceEngine => null;
 
+  bool get isSourceLoader => false;
+
   /// Look up a library builder by the name [uri], or if such doesn't
   /// exist, create one. The canonical URI of the library is [uri], and its
   /// actual location is [fileUri].
@@ -103,7 +106,10 @@ abstract class Loader<L> {
         switch (uri.scheme) {
           case "package":
           case "dart":
-            fileUri = target.translateUri(uri);
+            fileUri = target.translateUri(uri) ??
+                new Uri(
+                    scheme: untranslatableUriScheme,
+                    path: Uri.encodeComponent("$uri"));
             break;
 
           default:
@@ -115,9 +121,11 @@ abstract class Loader<L> {
           target.createLibraryBuilder(uri, fileUri, origin);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
-        target.loadExtraRequiredLibraries(this);
       }
       if (library.loader != this) {
+        if (coreLibrary == library) {
+          target.loadExtraRequiredLibraries(this);
+        }
         // This library isn't owned by this loader, so not further processing
         // should be attempted.
         return library;
@@ -130,6 +138,9 @@ abstract class Loader<L> {
         firstSourceUri ??= uri;
         first ??= library;
       }
+      if (coreLibrary == library) {
+        target.loadExtraRequiredLibraries(this);
+      }
       if (target.backendTarget.mayDefineRestrictedType(origin?.uri ?? uri)) {
         library.mayImplementRestrictedTypes = true;
       }
@@ -139,19 +150,25 @@ abstract class Loader<L> {
       unparsedLibraries.addLast(library);
       return library;
     });
-    if (accessor != null &&
-        !accessor.isPatch &&
-        !target.backendTarget
-            .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
-      accessor.addCompileTimeError(messagePlatformPrivateLibraryAccess,
-          charOffset, noLength, accessor.fileUri);
+    if (accessor == null) {
+      if (builder.loader == this && first != builder && isSourceLoader) {
+        unhandled("null", "accessor", charOffset, uri);
+      }
+    } else {
+      builder.recordAccess(charOffset, noLength, accessor.fileUri);
+      if (!accessor.isPatch &&
+          !target.backendTarget
+              .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
+        accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+            noLength, accessor.fileUri);
+      }
     }
     return builder;
   }
 
   void ensureCoreLibrary() {
     if (coreLibrary == null) {
-      read(Uri.parse("dart:core"), -1);
+      read(Uri.parse("dart:core"), 0, accessor: first);
       assert(coreLibrary != null);
     }
   }
@@ -197,37 +214,19 @@ abstract class Loader<L> {
   /// Builds all the method bodies found in the given [library].
   Future<Null> buildBody(covariant LibraryBuilder library);
 
-  /// Register [message] as a compile-time error.
-  ///
-  /// If [wasHandled] is true, this error is added to [handledErrors],
-  /// otherwise it is added to [unhandledErrors].
-  void addCompileTimeError(
-      Message message, int charOffset, int length, Uri fileUri,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    addMessage(message, charOffset, length, fileUri, Severity.error,
-        wasHandled: wasHandled, context: context);
-  }
-
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   void addProblem(Message message, int charOffset, int length, Uri fileUri,
-      {List<LocatedMessage> context}) {
-    Severity severity = message.code.severity;
-    if (severity == null) {
-      addMessage(message, charOffset, length, fileUri, Severity.error,
-          context: context);
-      internalProblem(
-          templateInternalProblemMissingSeverity
-              .withArguments(message.code.name),
-          charOffset,
-          fileUri);
-    }
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity}) {
+    severity ??= message.code.severity;
     if (severity == Severity.errorLegacyWarning) {
       severity =
-          target.backendTarget.strongMode ? Severity.error : Severity.warning;
+          target.backendTarget.legacyMode ? Severity.warning : Severity.error;
     }
     addMessage(message, charOffset, length, fileUri, severity,
-        context: context);
+        wasHandled: wasHandled, context: context);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
@@ -236,6 +235,10 @@ abstract class Loader<L> {
   /// Returns true if the message is new, that is, not previously
   /// reported. This is important as some parser errors may be reported up to
   /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
+  ///
+  /// If [severity] is `Severity.error`, the message is added to
+  /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
+  /// [wasHandled] is false.
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
       {bool wasHandled: false, List<LocatedMessage> context}) {
@@ -247,6 +250,17 @@ charOffset: $charOffset
 fileUri: $fileUri
 severity: $severity
 """;
+    // TODO(askesc): Swap message and context around for interface checks
+    // and mixin overrides to make comparing context here unnecessary.
+    if (context != null) {
+      for (LocatedMessage contextMessage in context) {
+        trace += """
+message: ${contextMessage.message}
+charOffset: ${contextMessage.charOffset}
+fileUri: ${contextMessage.uri}
+""";
+      }
+    }
     if (!seenMessages.add(trace)) return false;
     if (message.code.severity == Severity.context) {
       internalProblem(

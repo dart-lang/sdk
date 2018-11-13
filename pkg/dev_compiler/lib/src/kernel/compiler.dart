@@ -5,7 +5,7 @@
 import 'dart:collection';
 import 'dart:math' show max, min;
 
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
+import 'package:front_end/src/api_unstable/ddc.dart' show TypeSchemaEnvironment;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -17,6 +17,7 @@ import 'package:source_span/source_span.dart' show SourceLocation;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
+import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
@@ -37,6 +38,8 @@ class ProgramCompiler extends Object
         ExpressionVisitor<JS.Expression>,
         DartTypeVisitor<JS.Expression>,
         ConstantVisitor<JS.Expression> {
+  final SharedCompilerOptions options;
+
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
   ///
@@ -48,8 +51,8 @@ class ProgramCompiler extends Object
   /// corresponding Kernel summary module we imported it with.
   final _importToSummary = Map<Library, Component>.identity();
 
-  /// Maps a summary to the file URI we used to load it from disk.
-  final _summaryToUri = Map<Component, Uri>.identity();
+  /// Maps a summary to the JS import name for the module.
+  final _summaryToModule = Map<Component, String>.identity();
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = Map<Library, JS.TemporaryId>();
@@ -127,10 +130,6 @@ class ProgramCompiler extends Object
 
   final _superHelpers = Map<String, JS.Method>();
 
-  final bool emitMetadata;
-  final bool enableAsserts;
-  final bool replCompile;
-
   // Compilation of Kernel's [BreakStatement].
   //
   // Kernel represents Dart's `break` and `continue` uniformly as
@@ -196,27 +195,26 @@ class ProgramCompiler extends Object
 
   final NullableInference _nullableInference;
 
-  factory ProgramCompiler(Component component,
-      {bool emitMetadata = false,
-      bool replCompile = false,
-      bool enableAsserts = true,
-      Map<String, String> declaredVariables = const {}}) {
+  factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
+      SharedCompilerOptions options, Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
-    var types =
-        TypeSchemaEnvironment(coreTypes, ClassHierarchy(component), true);
+    var types = TypeSchemaEnvironment(coreTypes, hierarchy, true);
     var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
-        types, jsTypeRep, NullableInference(jsTypeRep),
-        emitMetadata: emitMetadata,
-        enableAsserts: enableAsserts,
-        replCompile: replCompile);
+        types, jsTypeRep, NullableInference(jsTypeRep), options);
   }
 
-  ProgramCompiler._(this.coreTypes, LibraryIndex sdk, this._extensionTypes,
-      this._constants, this.types, this._typeRep, this._nullableInference,
-      {this.emitMetadata, this.enableAsserts, this.replCompile})
+  ProgramCompiler._(
+      this.coreTypes,
+      LibraryIndex sdk,
+      this._extensionTypes,
+      this._constants,
+      this.types,
+      this._typeRep,
+      this._nullableInference,
+      this.options)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =
             sdk.getClass('dart:async', 'StreamIterator'),
@@ -234,24 +232,27 @@ class ProgramCompiler extends Object
 
   Uri get currentLibraryUri => _currentLibrary.importUri;
 
-  JS.Program emitModule(
-      Component buildUnit, List<Component> summaries, List<Uri> summaryUris) {
+  bool get emitMetadata => options.emitMetadata;
+
+  JS.Program emitModule(Component component, List<Component> summaries,
+      Map<Uri, String> summaryModules) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
-    _component = buildUnit;
+    _component = component;
 
+    var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
-      var summaryUri = summaryUris[i];
+      var moduleImport = moduleImports[i];
       for (var l in summary.libraries) {
         assert(!_importToSummary.containsKey(l));
         _importToSummary[l] = summary;
-        _summaryToUri[summary] = summaryUri;
+        _summaryToModule[summary] = moduleImport;
       }
     }
 
-    var libraries = buildUnit.libraries.where((l) => !l.isExternal);
+    var libraries = component.libraries.where((l) => !l.isExternal);
     var ddcRuntime =
         libraries.firstWhere(isSdkInternalRuntime, orElse: () => null);
     if (ddcRuntime != null) {
@@ -334,7 +335,7 @@ class ProgramCompiler extends Object
     _copyAndFlattenBlocks(items, moduleItems);
 
     // Build the module.
-    return JS.Program(items, name: buildUnit.root.name);
+    return JS.Program(items, name: options.moduleName);
   }
 
   /// Flattens blocks in [items] to a single list.
@@ -366,17 +367,11 @@ class ProgramCompiler extends Object
       return JS.dartSdkModule;
     }
     var summary = _importToSummary[library];
-    assert(summary != null);
-    // TODO(jmesserly): look up the appropriate relative import path if the user
-    // specified that on the command line.
-    var uri = _summaryToUri[summary];
-    var summaryPath = uri.path;
-    var extensionIndex = summaryPath.lastIndexOf('.');
-    // Note: These URIs do not contain absolute paths from the physical file
-    // system, but only the relevant path within a user's project. This path
-    // will match the path where the .js file is generated, so we use it as
-    // the module name.
-    var moduleName = summaryPath.substring(1, extensionIndex);
+    var moduleName = _summaryToModule[summary];
+    if (moduleName == null) {
+      throw StateError('Could not find module name for library "$library" '
+          'from component "$summary".');
+    }
     return moduleName;
   }
 
@@ -437,10 +432,8 @@ class ProgramCompiler extends Object
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
       library.classes.forEach(_emitClass);
-      library.typedefs.forEach(_emitTypedef);
     } else {
       library.classes.forEach(_emitClass);
-      library.typedefs.forEach(_emitTypedef);
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
@@ -563,7 +556,9 @@ class ProgramCompiler extends Object
     _emitVirtualFieldSymbols(c, body);
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
-    _defineExtensionMembers(className, body);
+    if (!c.isMixinDeclaration) {
+      _defineExtensionMembers(className, body);
+    }
     _emitClassMetadata(c.annotations, className, body);
 
     var classDef = JS.Statement.from(body);
@@ -621,6 +616,67 @@ class ProgramCompiler extends Object
     var classExpr = JS.ClassExpression(
         JS.TemporaryId(getLocalClassName(c)), heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
+  }
+
+  /// Like [_emitClassStatement] but emits a Dart 2.1 mixin represented by
+  /// [c].
+  ///
+  /// Mixins work similar to normal classes, but their instance methods close
+  /// over the actual superclass. Given a Dart class like:
+  ///
+  ///     mixin M on C {
+  ///       foo() => super.foo() + 42;
+  ///     }
+  ///
+  /// We generate a JS class like this:
+  ///
+  ///     lib.M = class M extends core.Object {}
+  ///     lib.M[dart.mixinOn] = (C) => class M extends C {
+  ///       foo() {
+  ///         return super.foo() + 42;
+  ///       }
+  ///     };
+  ///
+  /// The special `dart.mixinOn` symbolized property is used by the runtime
+  /// helper `dart.applyMixin`. The helper calls the function with the actual
+  /// base class, and then copies the resulting members to the destination
+  /// class.
+  ///
+  /// In the long run we may be able to improve this so we do not have the
+  /// unnecessary class, but for now, this lets us get the right semantics with
+  /// minimal compiler and runtime changes.
+  void _emitMixinStatement(
+      Class c,
+      JS.Expression className,
+      JS.Expression heritage,
+      List<JS.Method> methods,
+      List<JS.Statement> body) {
+    var staticMethods = methods.where((m) => m.isStatic).toList();
+    var instanceMethods = methods.where((m) => !m.isStatic).toList();
+
+    body.add(_emitClassStatement(c, className, heritage, staticMethods));
+    var superclassId = JS.TemporaryId(getLocalClassName(c.superclass));
+    var classId = className is JS.Identifier
+        ? className
+        : JS.TemporaryId(getLocalClassName(c));
+
+    var mixinMemberClass =
+        JS.ClassExpression(classId, superclassId, instanceMethods);
+
+    JS.Node arrowFnBody = mixinMemberClass;
+    var extensionInit = <JS.Statement>[];
+    _defineExtensionMembers(classId, extensionInit);
+    if (extensionInit.isNotEmpty) {
+      extensionInit.insert(0, mixinMemberClass.toStatement());
+      extensionInit.add(classId.toReturn());
+      arrowFnBody = JS.Block(extensionInit);
+    }
+
+    body.add(js.statement('#[#.mixinOn] = #', [
+      className,
+      runtimeModule,
+      JS.ArrowFun([superclassId], arrowFnBody)
+    ]));
   }
 
   void _defineClass(Class c, JS.Expression className, List<JS.Method> methods,
@@ -750,7 +806,7 @@ class ProgramCompiler extends Object
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
       mixinBody
-          .add(runtimeStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
+          .add(runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]));
 
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
@@ -758,8 +814,8 @@ class ProgramCompiler extends Object
         //
         // We do this with the following pattern:
         //
-        //     mixinMembers(C, class C$ extends M { <methods>  });
-        mixinBody.add(runtimeStatement('mixinMembers(#, #)', [
+        //     applyMixin(C, class C$ extends M { <methods>  });
+        mixinBody.add(runtimeStatement('applyMixin(#, #)', [
           classExpr,
           JS.ClassExpression(
               JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
@@ -794,17 +850,22 @@ class ProgramCompiler extends Object
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.classNode);
 
       if (shouldDefer(m)) {
-        deferredSupertypes.add(runtimeStatement('mixinMembers(#, #)',
+        deferredSupertypes.add(runtimeStatement('applyMixin(#, #)',
             [getBaseClass(mixins.length - i), emitDeferredType(m)]));
       } else {
         body.add(
-            runtimeStatement('mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
+            runtimeStatement('applyMixin(#, #)', [mixinId, emitClassRef(m)]));
       }
 
       baseClass = mixinId;
     }
 
-    body.add(_emitClassStatement(c, className, baseClass, methods));
+    if (c.isMixinDeclaration) {
+      _emitMixinStatement(c, className, baseClass, methods, body);
+    } else {
+      body.add(_emitClassStatement(c, className, baseClass, methods));
+    }
+
     _classEmittingExtends = savedTopLevelClass;
   }
 
@@ -1080,7 +1141,7 @@ class ProgramCompiler extends Object
       fields.add(valueField);
       for (var f in fields) {
         assert(f.isConst);
-        body.add(_defineValueOnClass(
+        body.add(defineValueOnClass(
                 classRef,
                 _emitStaticMemberName(f.name.name),
                 _visitInitializer(f.initializer, f.annotations))
@@ -1541,18 +1602,8 @@ class ProgramCompiler extends Object
 
   JS.Statement _addConstructorToClass(
       JS.Expression className, String name, JS.Expression jsCtor) {
-    jsCtor = _defineValueOnClass(className, _constructorName(name), jsCtor);
+    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
-  }
-
-  JS.Expression _defineValueOnClass(
-      JS.Expression className, JS.Expression name, JS.Expression value) {
-    var args = [className, name, value];
-    if (name is JS.LiteralString &&
-        JS.invalidStaticFieldName(name.valueWithoutQuotes)) {
-      return runtimeCall('defineValue(#, #, #)', args);
-    }
-    return js.call('#.# = #', args);
   }
 
   List<JS.Method> _emitClassMethods(Class c) {
@@ -1596,7 +1647,14 @@ class ProgramCompiler extends Object
 
     var savedUri = _currentUri;
     for (var m in c.procedures) {
-      _currentUri = m.fileUri ?? savedUri;
+      // For the Dart SDK, we use the member URI because it may be different
+      // from the class (because of patch files). User code does not need this.
+      //
+      // TODO(jmesserly): CFE has a bug(?) where nSM forwarders sometimes have a
+      // bogus file URI, that is mismatched compared to the offsets. This causes
+      // a crash when we look up the location. So for those forwarders, we just
+      // suppress source spans.
+      _currentUri = m.isNoSuchMethodForwarder ? null : (m.fileUri ?? savedUri);
       if (_isForwardingStub(m)) {
         // TODO(jmesserly): is there any other kind of forwarding stub?
         jsMethods.addAll(_emitCovarianceCheckStub(m));
@@ -1725,7 +1783,7 @@ class ProgramCompiler extends Object
         JS.Method(
             name,
             js.fun('function(x) { return super.# = #; }',
-                [name, _emitImplicitCast(JS.Identifier('x'), setterType)]),
+                [name, _emitCast(JS.Identifier('x'), setterType)]),
             isSetter: true),
         JS.Method(name, js.fun('function() { return super.#; }', [name]),
             isGetter: true)
@@ -1751,8 +1809,7 @@ class ProgramCompiler extends Object
 
       if (isCovariant(param) &&
           !isCovariant(superMember.function.positionalParameters[i])) {
-        var check =
-            _emitImplicitCast(jsParam, superMethodType.positionalParameters[i]);
+        var check = _emitCast(jsParam, superMethodType.positionalParameters[i]);
         if (i >= function.requiredParameterCount) {
           body.add(js.statement('if (# !== void 0) #;', [jsParam, check]));
         } else {
@@ -1771,8 +1828,7 @@ class ProgramCompiler extends Object
         body.add(js.statement('if (# in #) #;', [
           name,
           namedArgumentTemp,
-          _emitImplicitCast(
-              JS.PropertyAccess(namedArgumentTemp, name), paramType.type)
+          _emitCast(JS.PropertyAccess(namedArgumentTemp, name), paramType.type)
         ]));
       }
     }
@@ -1819,7 +1875,7 @@ class ProgramCompiler extends Object
 
     JS.Expression value = JS.Identifier('value');
     if (!field.isFinal && field.isGenericCovariantImpl) {
-      value = _emitImplicitCast(value, field.type);
+      value = _emitCast(value, field.type);
     }
     args.add(value);
 
@@ -1866,11 +1922,13 @@ class ProgramCompiler extends Object
   /// This is needed because in ES6, if you only override a getter
   /// (alternatively, a setter), then there is an implicit override of the
   /// setter (alternatively, the getter) that does nothing.
-  JS.Method _emitSuperAccessorWrapper(Procedure method,
+  JS.Method _emitSuperAccessorWrapper(Procedure member,
       Map<String, Procedure> getters, Map<String, Procedure> setters) {
-    var name = method.name.name;
-    var memberName = _declareMemberName(method);
-    if (method.isGetter) {
+    if (member.isAbstract) return null;
+
+    var name = member.name.name;
+    var memberName = _declareMemberName(member);
+    if (member.isGetter) {
       if (!setters.containsKey(name) &&
           _classProperties.inheritedSetters.contains(name)) {
         // Generate a setter that forwards to super.
@@ -1878,7 +1936,7 @@ class ProgramCompiler extends Object
         return JS.Method(memberName, fn, isSetter: true);
       }
     } else {
-      assert(method.isSetter);
+      assert(member.isSetter);
       if (!getters.containsKey(name) &&
           _classProperties.inheritedGetters.contains(name)) {
         // Generate a getter that forwards to super.
@@ -1938,24 +1996,6 @@ class ProgramCompiler extends Object
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
-  }
-
-  void _emitTypedef(Typedef t) {
-    var savedUri = _currentUri;
-    _currentUri = t.fileUri;
-    var body = runtimeCall('typedef(#, () => #)',
-        [js.string(t.name, "'"), visitFunctionType(t.type)]);
-
-    JS.Statement result;
-    if (t.typeParameters.isNotEmpty) {
-      result = _defineClassTypeArguments(
-          t, t.typeParameters, js.statement('const # = #;', [t.name, body]));
-    } else {
-      result = js.statement('# = #;', [_emitTopLevelName(t), body]);
-    }
-
-    _currentUri = savedUri;
-    moduleItems.add(result);
   }
 
   void _emitTopLevelFields(List<Field> fields) {
@@ -2358,23 +2398,38 @@ class ProgramCompiler extends Object
 
   JS.Expression _emitFunctionTagged(JS.Expression fn, FunctionType type,
       {bool topLevel = false}) {
-    var lazy = topLevel && !_typeIsLoaded(type);
+    var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
     var typeRep = visitFunctionType(type, lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
-  bool _typeIsLoaded(DartType type) {
+  /// Whether the expression for [type] can be evaluated at this point in the JS
+  /// module.
+  ///
+  /// Types cannot be evaluated if they depend on something that hasn't been
+  /// defined yet. For example:
+  ///
+  ///     C foo() => null;
+  ///     class C {}
+  ///
+  /// If we're emitting the type information for `foo`, we cannot refer to `C`
+  /// yet, so we must evaluate foo's type lazily.
+  bool _canEmitTypeAtTopLevel(DartType type) {
     if (type is InterfaceType) {
       return !_pendingClasses.contains(type.classNode) &&
-          type.typeArguments.every(_typeIsLoaded);
+          type.typeArguments.every(_canEmitTypeAtTopLevel);
     }
     if (type is FunctionType) {
-      return (_typeIsLoaded(type.returnType) &&
-          type.positionalParameters.every(_typeIsLoaded) &&
-          type.namedParameters.every((n) => _typeIsLoaded(n.type)));
+      // Generic functions are always safe to emit, because they're lazy until
+      // type arguments are applied.
+      if (type.typeParameters.isNotEmpty) return true;
+
+      return (_canEmitTypeAtTopLevel(type.returnType) &&
+          type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
+          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type)));
     }
     if (type is TypedefType) {
-      return type.typeArguments.every(_typeIsLoaded);
+      return type.typeArguments.every(_canEmitTypeAtTopLevel);
     }
     return true;
   }
@@ -2404,7 +2459,7 @@ class ProgramCompiler extends Object
   visitBottomType(type) => runtimeCall('bottom');
 
   @override
-  visitInterfaceType(type, {bool lowerGeneric = false}) {
+  visitInterfaceType(type) {
     var c = type.classNode;
     _declareBeforeUse(c);
 
@@ -2435,8 +2490,6 @@ class ProgramCompiler extends Object
     Iterable<JS.Expression> jsArgs = null;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
-    } else if (lowerGeneric) {
-      jsArgs = [];
     }
     if (jsArgs != null) {
       var typeRep = _emitGenericClassType(type, jsArgs);
@@ -2462,9 +2515,6 @@ class ProgramCompiler extends Object
     var genericName = _emitTopLevelNameNoInterop(t.classNode, suffix: '\$');
     return js.call('#(#)', [genericName, typeArgs]);
   }
-
-  @override
-  visitVectorType(type) => defaultDartType(type);
 
   @override
   visitFunctionType(type, {Member member, bool lazy = false}) {
@@ -2513,9 +2563,37 @@ class ProgramCompiler extends Object
       typeParts = [addTypeFormalsAsParameters(typeParts)];
 
       helperCall = 'gFnType(#)';
+
+      /// Whether the type parameter [t] has an explicit bound, like
+      /// `<T extends C>`, `<T extends Object>` or `<T extends dynamic>`.
+      ///
+      /// In contrast, a type parameter like `<T>` has an implicit bound.
+      /// Implicit bounds are a bit unusual, in that `Object` is used as the
+      /// bound for checking, but `dynamic` is filled in as the default value.
+      ///
+      /// Kernel represents `<T>` as `<T extends Object = dynamic>`. We can find
+      /// explicit bounds by looking for anything *except* that.
+      typeParameterHasExplicitBound(TypeParameter t) =>
+          t.bound != types.objectType || t.defaultType != const DynamicType();
+
       // If any explicit bounds were passed, emit them.
-      if (typeFormals.any((t) => t.bound != null)) {
-        var bounds = typeFormals.map((t) => _emitType(t.bound)).toList();
+      if (typeFormals.any(typeParameterHasExplicitBound)) {
+        /// Emits the bound of the type parameter [t] for use in runtime
+        /// checking and the default value (e.g. for dynamic class).
+        ///
+        /// For most type parameters we can use [TypeParameter.bound]. However,
+        /// for *implicit* bounds such as `<T>` (represented in Kernel as
+        /// `<T extends Object = dynamic>`) we need to emit `dynamic` so we use
+        /// the correct default value at runtime.
+        ///
+        /// Because `dynamic` and `Object` are both top types, they'll behave
+        /// identically for the purposes of type checks.
+        emitTypeParameterBound(TypeParameter t) =>
+            typeParameterHasExplicitBound(t)
+                ? _emitType(t.bound)
+                : visitDynamicType(const DynamicType());
+
+        var bounds = typeFormals.map(emitTypeParameterBound).toList();
         typeParts.add(addTypeFormalsAsParameters(bounds));
       }
     } else {
@@ -2602,23 +2680,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTypedefType(type, {bool lowerGeneric = false}) {
-    var args = type.typeArguments;
-    List<JS.Expression> jsArgs = null;
-    if (args.any((a) => a != const DynamicType())) {
-      jsArgs = args.map(_emitType).toList();
-    } else if (lowerGeneric) {
-      jsArgs = [];
-    }
-    if (jsArgs != null) {
-      var genericName =
-          _emitTopLevelNameNoInterop(type.typedefNode, suffix: '\$');
-      var typeRep = JS.Call(genericName, jsArgs);
-      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
-    }
-
-    return _emitTopLevelNameNoInterop(type.typedefNode);
-  }
+  visitTypedefType(type) => visitFunctionType(type.unalias);
 
   JS.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
@@ -2823,7 +2885,7 @@ class ProgramCompiler extends Object
 
     initParameter(VariableDeclaration p, JS.Identifier jsParam) {
       if (isCovariant(p)) {
-        var castExpr = _emitImplicitCast(jsParam, p.type);
+        var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
       if (_annotatedNullCheck(p.annotations)) {
@@ -3087,7 +3149,7 @@ class ProgramCompiler extends Object
 
   @override
   visitAssertStatement(AssertStatement node) {
-    if (!enableAsserts) return JS.EmptyStatement();
+    if (!options.enableAsserts) return JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
     var jsCondition = _visitExpression(condition);
@@ -3280,6 +3342,11 @@ class ProgramCompiler extends Object
             [_nullParameterCheck(_emitVariableRef(node.variable)), body]);
       }
 
+      if (variableIsReferenced(node.variable.name, iterable)) {
+        var temp = JS.TemporaryId('iter');
+        return JS.Block(
+            [iterable.toVariableDeclaration(temp), JS.ForOf(init, temp, body)]);
+      }
       return JS.ForOf(init, iterable, body);
     });
   }
@@ -3647,7 +3714,7 @@ class ProgramCompiler extends Object
         // If the receiver is nullable, use a helper so calls like
         // `null.hashCode` and `null.runtimeType` will work.
         // Also method tearoffs like `null.toString`.
-        if (_isObjectMethod(memberName)) {
+        if (_isObjectMethodTearoff(memberName)) {
           return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
         }
         return runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -3667,7 +3734,7 @@ class ProgramCompiler extends Object
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
   // access to the target expression there (needed for `dart.replNameLookup`).
-  String get _replSuffix => replCompile ? 'Repl' : '';
+  String get _replSuffix => options.replCompile ? 'Repl' : '';
 
   JS.Expression _emitPropertySet(
       Expression receiver, Member member, Expression value,
@@ -3768,8 +3835,9 @@ class ProgramCompiler extends Object
     }
 
     var jsName = _emitMemberName(name, member: target);
-    if (isObjectMember(name)) {
-      assert(arguments.types.isEmpty); // Object methods don't take type args.
+
+    // Handle Object methods that are supported by `null`.
+    if (_isObjectMethodCall(name, arguments)) {
       if (isNullable(receiver)) {
         // If the receiver is nullable, use a helper so calls like
         // `null.toString()` will work.
@@ -4022,16 +4090,27 @@ class ProgramCompiler extends Object
 
       if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
           leftType == types.stringType && op == '+') {
-        // special cases where we inline the operation
-        // these values are assumed to be non-null (determined by the checker)
-        // TODO(jmesserly): it would be nice to just inline the method from core,
-        // instead of special cases here.
+        // Inline operations on primitive types where possible.
+        // TODO(jmesserly): inline these from dart:core instead of hardcoding
+        // the implementation details here.
+
+        /// Emits an inlined binary operation using the JS [code], adding null
+        /// checks if needed to ensure we throw the appropriate error.
         JS.Expression binary(String code) {
           return js.call(code, [notNull(left), notNull(right)]);
         }
 
         JS.Expression bitwise(String code) {
           return _coerceBitOperationResultToUnsigned(node, binary(code));
+        }
+
+        /// Similar to [binary] but applies a boolean conversion to the right
+        /// operand, to match the boolean bitwise operators in dart:core.
+        ///
+        /// Short circuiting operators should not be used in [code], because the
+        /// null checks for both operands must happen unconditionally.
+        JS.Expression bitwiseBool(String code) {
+          return js.call(code, [notNull(left), _visitTest(right)]);
         }
 
         switch (op) {
@@ -4049,13 +4128,19 @@ class ProgramCompiler extends Object
             return _emitOperatorCall(left, target, op, [right]);
 
           case '&':
-            return bitwise('# & #');
+            return _typeRep.isBoolean(leftType)
+                ? bitwiseBool('!!(# & #)')
+                : bitwise('# & #');
 
           case '|':
-            return bitwise('# | #');
+            return _typeRep.isBoolean(leftType)
+                ? bitwiseBool('!!(# | #)')
+                : bitwise('# | #');
 
           case '^':
-            return bitwise('# ^ #');
+            return _typeRep.isBoolean(leftType)
+                ? bitwiseBool('# !== #')
+                : bitwise('# ^ #');
 
           case '>>':
             int shiftCount = _asIntInRange(right, 0, 31);
@@ -4679,15 +4764,15 @@ class ProgramCompiler extends Object
       return jsFrom;
     }
 
-    return isTypeError
-        ? _emitImplicitCast(jsFrom, to)
-        : js.call('#.as(#)', [_emitType(to), jsFrom]);
+    return _emitCast(jsFrom, to, implicit: isTypeError);
   }
 
-  JS.Expression _emitImplicitCast(JS.Expression expr, DartType type) {
-    return types.isTop(type)
-        ? expr
-        : js.call('#._check(#)', [_emitType(type), expr]);
+  JS.Expression _emitCast(JS.Expression expr, DartType type,
+      {bool implicit = true}) {
+    if (types.isTop(type)) return expr;
+
+    var code = implicit ? '#._check(#)' : '#.as(#)';
+    return js.call(code, [_emitType(type), expr]);
   }
 
   @override
@@ -4897,21 +4982,6 @@ class ProgramCompiler extends Object
   @override
   visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => js.boolean(true);
 
-  @override
-  visitVectorCreation(VectorCreation node) => defaultExpression(node);
-
-  @override
-  visitVectorGet(VectorGet node) => defaultExpression(node);
-
-  @override
-  visitVectorSet(VectorSet node) => defaultExpression(node);
-
-  @override
-  visitVectorCopy(VectorCopy node) => defaultExpression(node);
-
-  @override
-  visitClosureCreation(ClosureCreation node) => defaultExpression(node);
-
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;
     var parent = f.parent;
@@ -4975,6 +5045,8 @@ class ProgramCompiler extends Object
   // are emitted via their normal expression nodes.
   @override
   defaultConstant(Constant node) => _emitInvalidNode(node);
+  @override
+  visitSymbolConstant(node) => defaultConstant(node);
   @override
   visitMapConstant(node) => defaultConstant(node);
   @override
@@ -5055,5 +5127,16 @@ bool isObjectMember(String name) {
   return false;
 }
 
-bool _isObjectMethod(String name) =>
+bool _isObjectMethodTearoff(String name) =>
     name == 'toString' || name == 'noSuchMethod';
+
+bool _isObjectMethodCall(String name, Arguments args) {
+  if (name == 'toString') {
+    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
+  } else if (name == 'noSuchMethod') {
+    return args.positional.length == 1 &&
+        args.named.isEmpty &&
+        args.types.isEmpty;
+  }
+  return false;
+}

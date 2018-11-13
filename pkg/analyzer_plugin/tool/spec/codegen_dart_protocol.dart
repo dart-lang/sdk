@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -653,7 +653,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           String fieldAccessor = 'json[$fieldNameString]';
           String jsonPath = 'jsonPath + ${literalString('.${field.name}')}';
           if (field.value != null) {
-            String valueString = literalString(field.value);
+            String valueString = literalString(field.value as String);
             writeln('if ($fieldAccessor != $valueString) {');
             indent(() {
               writeln(
@@ -857,7 +857,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           String flag = 'FLAG_${name.toUpperCase()}';
           String camelName = camelJoin(['is', name]);
           writeln('static const int $flag = $value;');
-          makeFlagsArgs.add('$camelName: false');
+          makeFlagsArgs.add('bool $camelName: false');
           makeFlagsStatements.add('if ($camelName) flags |= $flag;');
         });
         writeln();
@@ -897,7 +897,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       for (TypeObjectField field in type.fields) {
         String fieldNameString = literalString(field.name);
         if (field.value != null) {
-          writeln('result[$fieldNameString] = ${literalString(field.value)};');
+          writeln(
+              'result[$fieldNameString] = ${literalString(field.value as String)};');
           continue;
         }
         String fieldToJson = toJsonCode(field.type).asSnippet(field.name);
@@ -1066,13 +1067,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
                 'Each choice in the union needs a constant value for the field ${type.field}');
           }
           String closure = fromJsonCode(choice).asClosure;
-          decoders.add('${literalString(field.value)}: $closure');
+          decoders.add('${literalString(field.value as String)}: $closure');
         } else {
           throw new Exception('Union types must be unions of objects.');
         }
       }
       return new FromJsonSnippet((String jsonPath, String json) =>
-          'jsonDecoder.decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})');
+          'jsonDecoder.decodeUnion($jsonPath, $json as Map, ${literalString(type.field)}, {${decoders.join(', ')}})');
     } else {
       throw new Exception("Can't convert $type from JSON");
     }
@@ -1108,9 +1109,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /**
    * Create a string literal that evaluates to [s].
    */
-  String literalString(String s) {
-    return json.encode(s);
-  }
+  String literalString(String s) => json.encode(s);
 
   /**
    * Compute the code necessary to convert [type] to JSON.

@@ -6,9 +6,11 @@ library dart2js.world.class_set;
 
 import 'dart:collection' show IterableBase, MapBase;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../elements/entities.dart' show ClassEntity;
+import '../elements/indexed.dart' show IndexedClass;
+import '../serialization/serialization.dart';
 import '../util/enumset.dart' show EnumSet;
 
 /// Enum for the different kinds of instantiation of a class.
@@ -45,6 +47,10 @@ enum Instantiation {
 ///       E
 ///
 class ClassHierarchyNode {
+  /// Tag used for identifying serialized [ClassHierarchyNode] objects in a
+  /// debugging data stream.
+  static const String tag = 'class-hierarchy-node';
+
   /// Enum set for selecting instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
@@ -95,9 +101,9 @@ class ClassHierarchyNode {
   }
 
   final ClassHierarchyNode parentNode;
-  final ClassEntity cls;
   final EnumSet<Instantiation> _mask = new EnumSet<Instantiation>.fromValues(
       const <Instantiation>[Instantiation.UNINSTANTIATED]);
+  final IndexedClass cls;
 
   final int hierarchyDepth;
 
@@ -206,6 +212,38 @@ class ClassHierarchyNode {
     if (parentNode != null) {
       parentNode.addDirectSubclass(this);
     }
+  }
+
+  /// Deserializes a [ClassHierarchyNode] object from [source].
+  factory ClassHierarchyNode.readFromDataSource(
+      DataSource source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
+    source.begin(tag);
+    IndexedClass cls = source.readClass();
+    ClassHierarchyNode parentNode;
+    IndexedClass superclass = source.readClassOrNull();
+    if (superclass != null) {
+      parentNode = nodeMap[superclass];
+      assert(parentNode != null,
+          "No ClassHierarchyNode for superclass $superclass.");
+    }
+    int maskValue = source.readInt();
+    int hierarchyDepth = source.readInt();
+    int instantiatedSubclassCount = source.readInt();
+    source.end(tag);
+    return new ClassHierarchyNode(parentNode, cls, hierarchyDepth)
+      .._instantiatedSubclassCount = instantiatedSubclassCount
+      .._mask.value = maskValue;
+  }
+
+  /// Serializes this [ClassHierarchyNode] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeClass(cls);
+    sink.writeClassOrNull(parentNode?.cls);
+    sink.writeInt(_mask.value);
+    sink.writeInt(hierarchyDepth);
+    sink.writeInt(_instantiatedSubclassCount);
+    sink.end(tag);
   }
 
   /// Adds [subclass] as a direct subclass of [cls].
@@ -454,7 +492,7 @@ class ClassHierarchyNode {
 ///      A  ->  [C, D, F]
 ///
 /// The subtypes `B` and `E` are not directly modeled because they are implied
-/// by their subclass relation to `A` and `D`, repectively. This can be seen
+/// by their subclass relation to `A` and `D`, respectively. This can be seen
 /// if we expand the subclass subtrees:
 ///
 ///      A  ->  [C, D, F]
@@ -462,6 +500,10 @@ class ClassHierarchyNode {
 ///      B          E
 ///
 class ClassSet {
+  /// Tag used for identifying serialized [ClassSet] objects in a debugging
+  /// data stream.
+  static const String tag = 'class-set';
+
   final ClassHierarchyNode node;
   ClassEntity _leastUpperInstantiatedSubtype;
 
@@ -500,6 +542,36 @@ class ClassSet {
   List<ClassHierarchyNode> _mixinApplications;
 
   ClassSet(this.node);
+
+  /// Deserializes a [ClassSet] object from [source].
+  factory ClassSet.readFromDataSource(
+      DataSource source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
+    source.begin(tag);
+    ClassHierarchyNode node = nodeMap[source.readClass()];
+    List<ClassHierarchyNode> subtypes = source.readList(() {
+      return nodeMap[source.readClass()];
+    }, emptyAsNull: true);
+    List<ClassHierarchyNode> mixinApplications = source.readList(() {
+      return nodeMap[source.readClass()];
+    }, emptyAsNull: true);
+    source.end(tag);
+    return new ClassSet(node)
+      .._subtypes = subtypes
+      .._mixinApplications = mixinApplications;
+  }
+
+  /// Serializes this [ClassSet] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeClass(node.cls);
+    sink.writeList(_subtypes, (ClassHierarchyNode node) {
+      sink.writeClass(node.cls);
+    }, allowNull: true);
+    sink.writeList(_mixinApplications, (ClassHierarchyNode node) {
+      sink.writeClass(node.cls);
+    }, allowNull: true);
+    sink.end(tag);
+  }
 
   ClassEntity get cls => node.cls;
 
@@ -968,7 +1040,7 @@ typedef IterationStep ForEachFunction(ClassEntity cls);
 /// Singleton map implemented as a field on the key.
 class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
   ClassHierarchyNode operator [](Object cls) {
-    // TOOD(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
     if (cls is ClassHierarchyNodesMapKey) {
       return cls._classHierarchyNode;
     }
@@ -976,7 +1048,7 @@ class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
   }
 
   operator []=(Object cls, ClassHierarchyNode node) {
-    // TOOD(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
     if (cls is ClassHierarchyNodesMapKey) {
       cls._classHierarchyNode = node;
       return;

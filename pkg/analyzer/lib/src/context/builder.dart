@@ -32,10 +32,10 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/sdk.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:args/args.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -133,12 +133,7 @@ class ContextBuilder {
   /**
    * Whether to enable the Dart 2.0 preview.
    */
-  bool previewDart2 = false;
-
-  /**
-   * Whether to enable the Dart 2.0 Common Front End implementation.
-   */
-  bool useCFE = false;
+  bool get previewDart2 => true;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -179,18 +174,6 @@ class ContextBuilder {
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
 
-    // The folder with `vm_platform_strong.dill`, which has required patches.
-    Folder kernelPlatformFolder;
-    if (useCFE) {
-      DartSdk sdk = sf.dartSdk;
-      if (sdk is FolderBasedDartSdk) {
-        var binariesPath = computePlatformBinariesPath(sdk.directory.path);
-        if (binariesPath != null) {
-          kernelPlatformFolder = resourceProvider.getFolder(binariesPath);
-        }
-      }
-    }
-
     AnalysisDriver driver = new AnalysisDriver(
         analysisDriverScheduler,
         performanceLog,
@@ -199,9 +182,7 @@ class ContextBuilder {
         fileContentOverlay,
         contextRoot,
         sf,
-        options,
-        enableKernelDriver: useCFE,
-        kernelPlatformFolder: kernelPlatformFolder);
+        options);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,
@@ -214,8 +195,9 @@ class ContextBuilder {
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
     if (packages != null && packages != Packages.noPackages) {
+      var pathContext = resourceProvider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
-        String path = resourceProvider.pathContext.fromUri(uri);
+        String path = fileUriToNormalizedPath(pathContext, uri);
         folderMap[packageName] = [resourceProvider.getFolder(path)];
       });
     }
@@ -353,7 +335,7 @@ class ContextBuilder {
       Map<String, List<Folder>> packageMap, AnalysisOptions analysisOptions) {
     String summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
-      return new SummaryBasedDartSdk(summaryPath, analysisOptions.strongMode,
+      return new SummaryBasedDartSdk(summaryPath, true,
           resourceProvider: resourceProvider);
     } else if (packageMap != null) {
       SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
@@ -408,8 +390,8 @@ class ContextBuilder {
     SdkDescription description =
         new SdkDescription(<String>[sdkPath], analysisOptions);
     return sdkManager.getSdk(description, () {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-          resourceProvider.getFolder(sdkPath), analysisOptions.strongMode);
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(sdkPath), true);
       sdk.analysisOptions = analysisOptions;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
@@ -563,8 +545,9 @@ class ContextBuilder {
   void resolveSymbolicLinks(Map<String, Uri> map) {
     Context pathContext = resourceProvider.pathContext;
     for (String packageName in map.keys) {
-      Folder folder =
-          resourceProvider.getFolder(pathContext.fromUri(map[packageName]));
+      var uri = map[packageName];
+      String path = fileUriToNormalizedPath(pathContext, uri);
+      Folder folder = resourceProvider.getFolder(path);
       String folderPath = resolveSymbolicLink(folder);
       // Add a '.' so that the URI is suitable for resolving relative URI's
       // against it.
@@ -812,10 +795,6 @@ class _BasicWorkspace extends Workspace {
   Packages _packages;
 
   _BasicWorkspace._(this.provider, this.root, this._builder);
-
-  @override
-  // Alternately, we could check the pubspec for "sdk: flutter"
-  bool get hasFlutterDependency => packageMap.containsKey('flutter');
 
   @override
   Map<String, List<Folder>> get packageMap {

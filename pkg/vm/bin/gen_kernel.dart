@@ -6,16 +6,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
-import 'package:vm/bytecode/gen_bytecode.dart' show isKernelBytecodeEnabled;
 import 'package:vm/kernel_front_end.dart'
     show compileToKernel, ErrorDetector, ErrorPrinter, parseCommandLineDefines;
+import 'package:vm/target/vm.dart' show VmTarget;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('platform',
@@ -27,7 +26,6 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
-  ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
   ..addFlag('sync-async',
       help: 'Start `async` functions synchronously', defaultsTo: true)
   ..addFlag('embed-sources',
@@ -45,12 +43,11 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('enable-constant-evaluation',
       help: 'Whether kernel constant evaluation will be enabled.',
       defaultsTo: true)
-  ..addMultiOption('entry-points',
-      help: 'Path to JSON file with the list of entry points')
-  ..addFlag('gen-bytecode',
-      help: 'Generate bytecode', defaultsTo: isKernelBytecodeEnabled)
+  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
   ..addFlag('drop-ast',
-      help: 'Drop AST for members with bytecode', defaultsTo: false);
+      help: 'Drop AST for members with bytecode', defaultsTo: false)
+  ..addFlag('use-future-bytecode-format',
+      help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -83,12 +80,11 @@ Future<int> compile(List<String> arguments) async {
   final String filename = options.rest.single;
   final String kernelBinaryFilename = options['output'] ?? "$filename.dill";
   final String packages = options['packages'];
-  final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
-  final bool syncAsync = options['sync-async'];
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
+  final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final Map<String, String> environmentDefines = {};
@@ -97,29 +93,20 @@ Future<int> compile(List<String> arguments) async {
     return _badUsageExitCode;
   }
 
-  final List<String> entryPoints = options['entry-points'] ?? <String>[];
-  if (entryPoints.isEmpty) {
-    entryPoints.addAll([
-      'pkg/vm/lib/transformations/type_flow/entry_points.json',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json',
-    ]);
-  }
-
   final errorPrinter = new ErrorPrinter();
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
-    ..strongMode = strongMode
-    ..target = new VmTarget(
-        new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+    ..target = new VmTarget(new TargetFlags(syncAsync: true))
     ..linkedDependencies = <Uri>[
       Uri.base.resolveUri(new Uri.file(platformKernel))
     ]
     ..packagesFileUri =
         packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
-    ..reportMessages = true
-    ..onProblem = errorDetector
+    ..onDiagnostic = (DiagnosticMessage m) {
+      printDiagnosticMessage(m, stderr.writeln);
+      errorDetector(m);
+    }
     ..embedSourceText = options['embed-sources'];
 
   final inputUri = new Uri.file(filename);
@@ -127,10 +114,10 @@ Future<int> compile(List<String> arguments) async {
       Uri.base.resolveUri(inputUri), compilerOptions,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
-      entryPoints: entryPoints,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       dropAST: dropAST,
+      useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
       enableConstantEvaluation: enableConstantEvaluation);
 

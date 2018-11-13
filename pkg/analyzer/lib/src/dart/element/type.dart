@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.element.type;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,6 +11,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -90,6 +89,24 @@ class BottomTypeImpl extends TypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return this;
+    } else {
+      // In theory this should never happen, since we only need to do this
+      // replacement when checking super-boundedness of explicitly-specified
+      // types, or types produced by mixin inference or instantiate-to-bounds,
+      // and bottom can't occur in any of those cases.
+      assert(false,
+          'Attempted to check super-boundedness of a type including "bottom"');
+      // But just in case it does, return `dynamic` since that's similar to what
+      // we do with Null.
+      return typeProvider.objectType;
+    }
+  }
+
+  @override
   BottomTypeImpl substitute2(
           List<DartType> argumentTypes, List<DartType> parameterTypes,
           [List<FunctionTypeAliasElement> prune]) =>
@@ -105,14 +122,14 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
   CircularFunctionTypeImpl() : super._circular();
 
   @override
-  List<ParameterElement> get baseParameters => ParameterElement.EMPTY_LIST;
+  List<ParameterElement> get baseParameters => const <ParameterElement>[];
 
   @override
   DartType get baseReturnType => DynamicTypeImpl.instance;
 
   @override
   List<TypeParameterElement> get boundTypeParameters =>
-      TypeParameterElement.EMPTY_LIST;
+      const <TypeParameterElement>[];
 
   @override
   FunctionTypedElement get element => null;
@@ -125,51 +142,51 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
 
   @override
   List<FunctionTypeAliasElement> get newPrune =>
-      FunctionTypeAliasElement.EMPTY_LIST;
+      const <FunctionTypeAliasElement>[];
 
   @override
   List<String> get normalParameterNames => <String>[];
 
   @override
-  List<DartType> get normalParameterTypes => DartType.EMPTY_LIST;
+  List<DartType> get normalParameterTypes => const <DartType>[];
 
   @override
   List<String> get optionalParameterNames => <String>[];
 
   @override
-  List<DartType> get optionalParameterTypes => DartType.EMPTY_LIST;
+  List<DartType> get optionalParameterTypes => const <DartType>[];
 
   @override
-  List<ParameterElement> get parameters => ParameterElement.EMPTY_LIST;
+  List<ParameterElement> get parameters => const <ParameterElement>[];
 
   @override
   List<FunctionTypeAliasElement> get prunedTypedefs =>
-      FunctionTypeAliasElement.EMPTY_LIST;
+      const <FunctionTypeAliasElement>[];
 
   @override
   DartType get returnType => DynamicTypeImpl.instance;
 
   @override
-  List<DartType> get typeArguments => DartType.EMPTY_LIST;
+  List<DartType> get typeArguments => const <DartType>[];
 
   @override
-  List<TypeParameterElement> get typeFormals => TypeParameterElement.EMPTY_LIST;
+  List<TypeParameterElement> get typeFormals => const <TypeParameterElement>[];
 
   @override
   List<TypeParameterElement> get typeParameters =>
-      TypeParameterElement.EMPTY_LIST;
+      const <TypeParameterElement>[];
 
   @override
   bool get _isInstantiated => false;
 
   @override
-  List<ParameterElement> get _parameters => ParameterElement.EMPTY_LIST;
+  List<ParameterElement> get _parameters => const <ParameterElement>[];
 
   @override
   DartType get _returnType => DynamicTypeImpl.instance;
 
   @override
-  List<DartType> get _typeArguments => DartType.EMPTY_LIST;
+  List<DartType> get _typeArguments => const <DartType>[];
 
   @override
   void set _typeArguments(List<DartType> arguments) {
@@ -178,7 +195,7 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
 
   @override
   List<TypeParameterElement> get _typeParameters =>
-      TypeParameterElement.EMPTY_LIST;
+      const <TypeParameterElement>[];
 
   @override
   void set _typeParameters(List<TypeParameterElement> parameters) {
@@ -340,6 +357,16 @@ class DynamicTypeImpl extends TypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
+
+  @override
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -374,12 +401,12 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Initialize a newly created function type to be declared by the given
    * [element].
    *
-   * If [typeArguments] are provided, they are used to instantiate the typedef.
+   * Note: this constructor mishandles generics.
+   * See https://github.com/dart-lang/sdk/issues/34657.
    */
-  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      {List<DartType> typeArguments}) {
-    return new _FunctionTypeImplLazy._(element, element?.name, null,
-        typeArguments, null, null, typeArguments != null);
+  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element) {
+    return new _FunctionTypeImplLazy._(
+        element, element?.name, null, null, null, null, false);
   }
 
   /**
@@ -404,6 +431,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var freshVarElements = <TypeParameterElement>[];
     for (int i = 0; i < formalCount; i++) {
       var typeParamElement = originalFormals[i];
+
       var freshElement =
           new TypeParameterElementImpl.synthetic(typeParamElement.name);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
@@ -762,18 +790,42 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         this,
         type,
         (DartType t, DartType s) =>
-            (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
-        new TypeSystemImpl(null).instantiateToBounds);
+            (t as TypeImpl).isMoreSpecificThan(s, withDynamic));
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    var typeSystem = new TypeSystemImpl(null);
+    var typeSystem = new StrongTypeSystemImpl(null);
     return FunctionTypeImpl.relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
-        (DartType t, DartType s) => t.isAssignableTo(s),
-        typeSystem.instantiateToBounds);
+        (DartType t, DartType s) => t.isAssignableTo(s));
+  }
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant: true}) {
+    var returnType = (this.returnType as TypeImpl)
+        .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
+    ParameterElement transformParameter(ParameterElement p) {
+      TypeImpl type = p.type;
+      var newType =
+          type.replaceTopAndBottom(typeProvider, isCovariant: !isCovariant);
+      if (identical(newType, type)) return p;
+      return new ParameterElementImpl.synthetic(
+          p.name,
+          newType,
+          // ignore: deprecated_member_use
+          p.parameterKind);
+    }
+
+    var parameters = _transformOrShare(this.parameters, transformParameter);
+    if (identical(returnType, this.returnType) &&
+        identical(parameters, this.parameters)) {
+      return this;
+    } else {
+      return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters);
+    }
   }
 
   @override
@@ -795,7 +847,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   void _freeVariablesInFunctionType(
       FunctionType type, Set<TypeParameterType> free) {
     // Make some fresh variables to avoid capture.
-    List<DartType> typeArgs = DartType.EMPTY_LIST;
+    List<DartType> typeArgs = const <DartType>[];
     if (type.typeFormals.isNotEmpty) {
       typeArgs = new List<DartType>.from(type.typeFormals.map((e) =>
           new TypeParameterTypeImpl(new TypeParameterElementImpl(e.name, -1))));
@@ -847,7 +899,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // For now though, this is a pretty quick operation.
     if (g.typeFormals.isEmpty) {
       assert(g == f);
-      return DartType.EMPTY_LIST;
+      return const <DartType>[];
     }
     assert(f.typeFormals.isEmpty);
     assert(g.typeFormals.length <= f.typeArguments.length);
@@ -881,11 +933,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * If [boundsRelation] is omitted, uses [returnRelation]. This is for
    * backwards compatibility, and convenience for Dart 1 type system methods.
    */
-  static bool relate(
-      FunctionType t,
-      DartType other,
+  static bool relate(FunctionType t, DartType other,
       bool returnRelation(DartType t, DartType s),
-      DartType instantiateToBounds(DartType t),
       {bool parameterRelation(ParameterElement t, ParameterElement s),
       bool boundsRelation(DartType bound2, DartType bound1,
           TypeParameterElement formal2, TypeParameterElement formal1)}) {
@@ -1145,7 +1194,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * A list containing the actual types of the type arguments.
    */
-  List<DartType> _typeArguments = DartType.EMPTY_LIST;
+  List<DartType> _typeArguments = const <DartType>[];
 
   /**
    * If not `null` and [_typeArguments] is `null`, the actual type arguments
@@ -1340,7 +1389,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool get isObject => element.supertype == null;
+  bool get isObject => element.supertype == null && !element.isMixin;
 
   @override
   List<MethodElement> get methods {
@@ -1358,19 +1407,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get mixins {
-    ClassElement classElement = element;
-    List<InterfaceType> mixins = classElement.mixins;
-    List<TypeParameterElement> typeParameters = classElement.typeParameters;
-    List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.length == 0) {
-      return mixins;
-    }
-    int count = mixins.length;
-    List<InterfaceType> typedMixins = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedMixins[i] = mixins[i].substitute2(typeArguments, parameterTypes);
-    }
-    return typedMixins;
+    List<InterfaceType> mixins = element.mixins;
+    return _instantiateSuperTypes(mixins);
   }
 
   @override
@@ -1389,12 +1427,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  List<InterfaceType> get superclassConstraints {
+    List<InterfaceType> constraints = element.superclassConstraints;
+    return _instantiateSuperTypes(constraints);
+  }
+
+  @override
   List<DartType> get typeArguments {
     if (_typeArguments == null) {
       try {
         _typeArguments = _typeArgumentsComputer();
       } on RecursiveInstantiateToBounds {
-        _hasTypeParameterReferenceInBound = true;
+        _typeArguments = new List<DartType>.filled(
+            element.typeParameters.length,
+            element.context.typeProvider.dynamicType);
       }
       _typeArgumentsComputer = null;
     }
@@ -1501,10 +1547,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement jElement = j.element;
     InterfaceType supertype = jElement.supertype;
     //
-    // If J has no direct supertype then it is Object, and Object has no direct
-    // supertypes.
+    // If J is Object, then it has no direct supertypes.
     //
-    if (supertype == null) {
+    if (j.isObject) {
       return false;
     }
     //
@@ -1512,9 +1557,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     List<DartType> jArgs = j.typeArguments;
     List<DartType> jVars = jElement.type.typeArguments;
-    supertype = supertype.substitute2(jArgs, jVars);
-    if (supertype == i) {
-      return true;
+    if (supertype != null) {
+      supertype = supertype.substitute2(jArgs, jVars);
+      if (supertype == i) {
+        return true;
+      }
+    }
+    //
+    // I is listed in the on clause of J.
+    //
+    for (InterfaceType interfaceType in jElement.superclassConstraints) {
+      interfaceType = interfaceType.substitute2(jArgs, jVars);
+      if (interfaceType == i) {
+        return true;
+      }
     }
     //
     // I is listed in the implements clause of J.
@@ -1644,6 +1700,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return true;
         }
       }
+      if (element.isMixin) {
+        for (InterfaceType constraint in superclassConstraints) {
+          if ((constraint as InterfaceTypeImpl)
+              .isMoreSpecificThan(type, withDynamic, visitedElements)) {
+            return true;
+          }
+        }
+      }
       // If a type I includes an instance method named `call`, and the type of
       // `call` is the function type F, then I is considered to be more specific
       // than F.
@@ -1694,6 +1758,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       String getterName, LibraryElement library) {
     for (InterfaceType mixin in mixins.reversed) {
       PropertyAccessorElement element = mixin.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    for (InterfaceType constraint in superclassConstraints) {
+      PropertyAccessorElement element = constraint.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
@@ -1752,6 +1822,93 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
   }
 
+  ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
+      {bool concrete: false,
+      bool forSuperInvocation: false,
+      int startMixinIndex,
+      bool setter: false,
+      bool thisType: false}) {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+
+    /// TODO(scheglov) Remove [includeSupers]. It is used only to work around
+    /// the problem with Flutter code base (using old super-mixins).
+    ExecutableElement lookUpImpl(InterfaceTypeImpl type,
+        {bool acceptAbstract: false,
+        bool includeType: true,
+        bool inMixin: false,
+        int startMixinIndex}) {
+      if (type == null || !visitedClasses.add(type.element)) {
+        return null;
+      }
+
+      if (includeType) {
+        ExecutableElement result;
+        if (setter) {
+          result = type.getSetter(name);
+        } else {
+          result = type.getMethod(name);
+          result ??= type.getGetter(name);
+        }
+        if (result != null && result.isAccessibleIn(library)) {
+          if (!concrete || acceptAbstract || !result.isAbstract) {
+            return result;
+          }
+        }
+      }
+
+      if (!inMixin || acceptAbstract) {
+        var mixins = type.mixins;
+        startMixinIndex ??= mixins.length;
+        for (var i = startMixinIndex - 1; i >= 0; i--) {
+          var result = lookUpImpl(
+            mixins[i],
+            acceptAbstract: acceptAbstract,
+            inMixin: true,
+          );
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+
+      // We were not able to find the concrete dispatch target.
+      // It is OK to look into interfaces, we need just some resolution now.
+      if (!concrete) {
+        for (InterfaceType mixin in type.interfaces) {
+          var result = lookUpImpl(mixin, acceptAbstract: acceptAbstract);
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+
+      if (!inMixin || acceptAbstract) {
+        return lookUpImpl(type.superclass,
+            acceptAbstract: acceptAbstract, inMixin: inMixin);
+      }
+
+      return null;
+    }
+
+    if (element.isMixin) {
+      // TODO(scheglov) We should choose the most specific signature.
+      // Not just the first signature.
+      for (InterfaceType constraint in superclassConstraints) {
+        var result = lookUpImpl(constraint, acceptAbstract: true);
+        if (result != null) {
+          return result;
+        }
+      }
+      return null;
+    } else {
+      return lookUpImpl(
+        this,
+        includeType: thisType,
+        startMixinIndex: startMixinIndex,
+      );
+    }
+  }
+
   @override
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType: true}) {
@@ -1802,6 +1959,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    for (InterfaceType constraint in superclassConstraints) {
+      MethodElement element = constraint.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
@@ -1842,6 +2005,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    for (InterfaceType constraint in superclassConstraints) {
+      PropertyAccessorElement element = constraint.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
@@ -1878,6 +2047,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           .map((DartType t) => (t as TypeImpl).pruned(prune))
           .toList();
       return result;
+    }
+  }
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant: true}) {
+    var typeArguments = _transformOrShare(
+        this.typeArguments,
+        (t) => (t as TypeImpl)
+            .replaceTopAndBottom(typeProvider, isCovariant: isCovariant));
+    if (identical(typeArguments, this.typeArguments)) {
+      return this;
+    } else {
+      return new InterfaceTypeImpl._(element, name, prunedTypedefs)
+        ..typeArguments = typeArguments;
     }
   }
 
@@ -1926,6 +2110,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
+    List<TypeParameterElement> typeParameters = element.typeParameters;
+    if (typeParameters.isEmpty) {
+      return defined;
+    }
+    List<DartType> instantiated = element.type.typeArguments;
+    int count = defined.length;
+    List<InterfaceType> typedConstraints = new List<InterfaceType>(count);
+    for (int i = 0; i < count; i++) {
+      typedConstraints[i] = defined[i].substitute2(typeArguments, instantiated);
+    }
+    return typedConstraints;
+  }
+
   /**
    * Starting from this type, search its class hierarchy for types of the form
    * Future<R>, and return a list of the resulting R's.
@@ -1960,10 +2158,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * the analyzer), `null` is returned.
    */
   static InterfaceType computeLeastUpperBound(InterfaceType i, InterfaceType j,
-      {bool strong = false}) {
+      {@deprecated bool strong = true}) {
     // compute set of supertypes
-    Set<InterfaceType> si = computeSuperinterfaceSet(i, strong: strong);
-    Set<InterfaceType> sj = computeSuperinterfaceSet(j, strong: strong);
+    Set<InterfaceType> si = computeSuperinterfaceSet(i);
+    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
     // union si with i and sj with j
     si.add(i);
     sj.add(j);
@@ -1988,8 +2186,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * See [computeLeastUpperBound].
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type,
-          {bool strong = false}) =>
-      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>(), strong);
+          {@deprecated bool strong = true}) =>
+      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>(), true);
 
   /**
    * Return the type from the [types] list that has the longest inheritance path
@@ -2114,33 +2312,44 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
     ClassElement classElement = type.element;
     // Object case
-    if (classElement.supertype == null || visitedTypes.contains(classElement)) {
+    if (type.isObject || visitedTypes.contains(classElement)) {
       return depth;
     }
     int longestPath = 1;
     try {
       visitedTypes.add(classElement);
-      List<InterfaceType> superinterfaces = classElement.interfaces;
       int pathLength;
-      if (superinterfaces.length > 0) {
-        // loop through each of the superinterfaces recursively calling this
-        // method and keeping track of the longest path to return
-        for (InterfaceType superinterface in superinterfaces) {
-          pathLength = _computeLongestInheritancePathToObject(
-              superinterface, depth + 1, visitedTypes);
-          if (pathLength > longestPath) {
-            longestPath = pathLength;
-          }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in classElement.superclassConstraints) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
         }
       }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in classElement.interfaces) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+
       // finally, perform this same check on the super type
       // TODO(brianwilkerson) Does this also need to add in the number of mixin
       // classes?
       InterfaceType supertype = classElement.supertype;
-      pathLength = _computeLongestInheritancePathToObject(
-          supertype, depth + 1, visitedTypes);
-      if (pathLength > longestPath) {
-        longestPath = pathLength;
+      if (supertype != null) {
+        pathLength = _computeLongestInheritancePathToObject(
+            supertype, depth + 1, visitedTypes);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
       }
     } finally {
       visitedTypes.remove(classElement);
@@ -2158,21 +2367,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * See [computeSuperinterfaceSet], and [computeLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(
-      InterfaceType type, HashSet<InterfaceType> set, bool strong) {
+      InterfaceType type, HashSet<InterfaceType> set, bool _) {
     Element element = type.element;
     if (element != null) {
       List<InterfaceType> superinterfaces = type.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
-        if (!strong || !superinterface.isDartCoreFunction) {
+        if (!superinterface.isDartCoreFunction) {
           if (set.add(superinterface)) {
-            _computeSuperinterfaceSet(superinterface, set, strong);
+            _computeSuperinterfaceSet(superinterface, set, true);
           }
         }
       }
       InterfaceType supertype = type.superclass;
-      if (supertype != null && (!strong || !supertype.isDartCoreFunction)) {
+      if (supertype != null && !supertype.isDartCoreFunction) {
         if (set.add(supertype)) {
-          _computeSuperinterfaceSet(supertype, set, strong);
+          _computeSuperinterfaceSet(supertype, set, true);
         }
       }
     }
@@ -2272,6 +2481,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return member;
       }
     }
+    for (InterfaceType constraint in targetType.superclassConstraints) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          constraint, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
     for (InterfaceType mixinType in targetType.mixins.reversed) {
       ExecutableElement member = _lookUpMemberInInterfaces(
           mixinType, true, library, visitedInterfaces, getMember);
@@ -2305,11 +2521,6 @@ abstract class TypeImpl implements DartType {
   final String name;
 
   /**
-   * The cached value for [hasTypeParameterReferenceInBound].
-   */
-  bool _hasTypeParameterReferenceInBound;
-
-  /**
    * Initialize a newly created type to be declared by the given [element] and
    * to have the given [name].
    */
@@ -2320,46 +2531,6 @@ abstract class TypeImpl implements DartType {
 
   @override
   Element get element => _element;
-
-  /**
-   * Return `true` if the type is parameterized and has a type parameter with
-   * the bound that references a type parameter.
-   */
-  bool get hasTypeParameterReferenceInBound {
-    if (_hasTypeParameterReferenceInBound == null) {
-      bool hasTypeParameterReference(DartType type) {
-        if (type == this) {
-          // Cycle detection -- and cycles should be considered unboundable.
-          return true;
-        } else if (type is TypeImpl &&
-            type._hasTypeParameterReferenceInBound == true) {
-          return true;
-        } else if (type is TypeParameterType) {
-          return true;
-        } else if (type is FunctionType) {
-          return (type as TypeImpl).hasTypeParameterReferenceInBound;
-        } else if (type is ParameterizedType) {
-          return type.typeArguments.any(hasTypeParameterReference);
-        } else {
-          return false;
-        }
-      }
-
-      Element element = this.element;
-      if (element is FunctionTypedElement) {
-        _hasTypeParameterReferenceInBound = element.parameters.any(
-                (parameter) => hasTypeParameterReference(parameter.type)) ||
-            (element.returnType != null &&
-                hasTypeParameterReference(element.returnType));
-      } else if (element is TypeParameterizedElement) {
-        _hasTypeParameterReferenceInBound = element.typeParameters
-            .any((parameter) => hasTypeParameterReference(parameter.bound));
-      } else {
-        _hasTypeParameterReferenceInBound = false;
-      }
-    }
-    return _hasTypeParameterReferenceInBound;
-  }
 
   @override
   bool get isBottom => false;
@@ -2479,6 +2650,14 @@ abstract class TypeImpl implements DartType {
    * Only legal to call on a [TypeImpl] that is not already subject to pruning.
    */
   TypeImpl pruned(List<FunctionTypeAliasElement> prune);
+
+  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
+  /// `Null` and all contravariant occurrences of `Null` with `Object`.
+  ///
+  /// The boolean `isCovariant` indicates whether this type is in covariant or
+  /// contravariant position.
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true});
 
   @override
   DartType resolveToBound(DartType objectType) => this;
@@ -2723,6 +2902,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    return this;
+  }
+
+  @override
   DartType resolveToBound(DartType objectType) {
     if (element.bound == null) {
       return objectType;
@@ -2752,7 +2937,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       List<TypeParameterElement> typeParameters) {
     int count = typeParameters.length;
     if (count == 0) {
-      return TypeParameterType.EMPTY_LIST;
+      return const <TypeParameterType>[];
     }
     List<TypeParameterType> types = new List<TypeParameterType>(count);
     for (int i = 0; i < count; i++) {
@@ -2812,6 +2997,16 @@ class UndefinedTypeImpl extends TypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
 
   @override
   DartType substitute2(
@@ -2875,6 +3070,16 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return typeProvider.nullType;
+    } else {
+      return this;
+    }
+  }
 
   @override
   VoidTypeImpl substitute2(
@@ -3057,7 +3262,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
       // make it generic, which will allow it to return List<DartType> instead
       // of List<TypeParameterType>.
       if (typeParameters.isEmpty) {
-        _typeArguments = DartType.EMPTY_LIST;
+        _typeArguments = const <DartType>[];
       } else {
         _typeArguments = new List<DartType>.from(
             typeParameters.map((t) => t.type),
@@ -3070,12 +3275,12 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
   @override
   List<TypeParameterElement> get typeFormals {
     if (_isInstantiated || element == null) {
-      return TypeParameterElement.EMPTY_LIST;
+      return const <TypeParameterElement>[];
     }
     List<TypeParameterElement> baseTypeFormals = element.typeParameters;
     int formalCount = baseTypeFormals.length;
     if (formalCount == 0) {
-      return TypeParameterElement.EMPTY_LIST;
+      return const <TypeParameterElement>[];
     }
 
     // Create type formals with specialized bounds.
@@ -3173,7 +3378,12 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     Element element = this.element;
-    if (prune != null && prune.contains(element)) {
+    Element forCircularity = this.element;
+    if (element is GenericFunctionTypeElement &&
+        element.enclosingElement is FunctionTypeAliasElement) {
+      forCircularity = element.enclosingElement;
+    }
+    if (prune != null && prune.contains(forCircularity)) {
       // Circularity found.  Prune the type declaration.
       return new CircularFunctionTypeImpl();
     }

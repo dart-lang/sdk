@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
-    defineReflectiveTests(ReanalyzeTest_UseCFE);
   });
 }
 
@@ -37,17 +36,5 @@ class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
         expect(analysisRestarted, isTrue);
       });
     });
-  }
-}
-
-@reflectiveTest
-class ReanalyzeTest_UseCFE extends ReanalyzeTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_reanalyze() {
-    fail('Test fails with CFE');
   }
 }

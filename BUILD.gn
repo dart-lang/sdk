@@ -36,30 +36,19 @@ group("most") {
 group("runtime") {
   import("runtime/runtime_args.gni")
 
-  target_supports_aot = dart_target_arch == "arm" ||
-                        dart_target_arch == "arm64" || dart_target_arch == "x64"
-
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:kernel_platform_files($host_toolchain)",
-
-    # TODO(rmacnak): Link this into 'dart'.
-    "utils/kernel-service:copy_kernel_service_snapshot",
     "utils/kernel-service:kernel-service",
   ]
-
-  if (target_supports_aot) {
-    deps += [ "runtime/bin:precompiler_entry_points_json" ]
-  }
 }
 
 group("runtime_kernel") {
@@ -74,7 +63,6 @@ group("runtime_kernel") {
 
 group("runtime_precompiled") {
   deps = [
-    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
   ]

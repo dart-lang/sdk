@@ -4,28 +4,28 @@
 
 import 'dart:io';
 
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/transformer.dart'
     show transformComponent;
+import 'annotation_matcher.dart';
 
 import '../../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
 runTestCase(Uri source) async {
-  Component component = await compileTestCaseToKernelProgram(source);
+  final target = new TestingVmTarget(new TargetFlags());
+  Component component =
+      await compileTestCaseToKernelProgram(source, target: target);
 
   final coreTypes = new CoreTypes(component);
 
-  final entryPoints = [
-    pkgVmDir + '/lib/transformations/type_flow/entry_points.json',
-    pkgVmDir + '/lib/transformations/type_flow/entry_points_extra.json',
-  ];
-
-  component = transformComponent(coreTypes, component, entryPoints);
+  component = transformComponent(target, coreTypes, component,
+      new ExpressionPragmaAnnotationParser(coreTypes));
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
 
@@ -39,8 +39,9 @@ main() {
     final testCasesDir = new Directory(
         pkgVmDir + '/testcases/transformations/type_flow/transformer');
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+    for (var entry in testCasesDir
+        .listSync(recursive: true, followLinks: false)
+        .reversed) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }

@@ -11,30 +11,17 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/inferrer/builder_kernel.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
-const List<String> skipForKernel = const <String>[
-  // TODO(johnniwinther): Remove this when issue 31767 is fixed.
-  'mixin_constructor_default_parameter_values.dart',
-];
-
 const List<String> skipForStrong = const <String>[
   // TODO(johnniwinther): Remove this when issue 31767 is fixed.
   'mixin_constructor_default_parameter_values.dart',
-  // These contain compile-time errors:
-  'erroneous_super_get.dart',
-  'erroneous_super_invoke.dart',
-  'erroneous_super_set.dart',
-  'switch3.dart',
-  'switch4.dart',
-  // TODO(johnniwinther): Make a strong mode clean version of this?
-  'call_in_loop.dart',
 ];
 
 main(List<String> args) {
@@ -49,7 +36,6 @@ runTests(List<String> args, [int shardIndex]) {
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
-        skipForKernel: skipForKernel,
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1, onTest: (Uri uri) {
@@ -68,9 +54,9 @@ class TypeMaskDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new TypeMaskIrComputer(
             compiler.reporter,
@@ -79,7 +65,7 @@ class TypeMaskDataComputer extends DataComputer {
             member,
             localsMap.getLocalsMap(member),
             compiler.globalInference.resultsForTesting,
-            backendStrategy.closureDataLookup)
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 }
@@ -87,10 +73,10 @@ class TypeMaskDataComputer extends DataComputer {
 /// IR visitor for computing inference data for a member.
 class TypeMaskIrComputer extends IrDataExtractor {
   final GlobalTypeInferenceResults results;
-  GlobalTypeInferenceElementResult result;
-  final KernelToElementMapForBuilding _elementMap;
+  GlobalTypeInferenceMemberResult result;
+  final JsToElementMap _elementMap;
   final KernelToLocalsMap _localsMap;
-  final ClosureDataLookup _closureDataLookup;
+  final ClosureData _closureDataLookup;
 
   TypeMaskIrComputer(
       DiagnosticReporter reporter,
@@ -120,9 +106,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
   }
 
   String getParameterValue(Local parameter) {
-    GlobalTypeInferenceParameterResult elementResult =
-        results.resultOfParameter(parameter);
-    return getTypeMaskValue(elementResult.type);
+    return getTypeMaskValue(results.resultOfParameter(parameter));
   }
 
   String getTypeMaskValue(TypeMask typeMask) {
@@ -131,7 +115,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
-    GlobalTypeInferenceElementResult oldResult = result;
+    GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionExpression(node);
@@ -140,7 +124,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    GlobalTypeInferenceElementResult oldResult = result;
+    GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionDeclaration(node);

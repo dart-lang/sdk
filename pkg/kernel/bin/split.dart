@@ -23,8 +23,9 @@ void usage() {
 }
 
 main(args) async {
-  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
-  Component binary = CommandLineHelper.tryLoadDill(args[0], usage);
+  CommandLineHelper.requireExactlyOneArgument(args, usage,
+      requireFileExists: true);
+  Component binary = CommandLineHelper.tryLoadDill(args[0]);
 
   int part = 1;
   binary.libraries.forEach((lib) => lib.isExternal = true);

@@ -20,11 +20,6 @@ html/element_animate_test/timing_dict: RuntimeError # Issue 29922
 html/element_types_keygen_test: CompileTimeError # Issue 29055
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 
-[ $runtime == drt && ($compiler == dartdevc || $compiler == dartdevk) ]
-html/svg_test: RuntimeError # Issue 29922
-math/math2_test: RuntimeError # Issue 29922
-math/math_test: RuntimeError # Issue 29922
-
 [ $system == linux && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
@@ -42,9 +37,7 @@ async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
-async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError # Issue 29922
-async/stream_join_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -79,7 +72,6 @@ html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
-html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/element_classes_test: RuntimeError # Issue 29922
 html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
@@ -88,11 +80,8 @@ html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
 html/js_typed_interop_type_test: RuntimeError # Issue 30947
 html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
-html/no_linked_scripts_htmltest: Skip # Issue 29919
-html/notification_permission_test: Timeout # Issue 32002
-html/scripts_htmltest: Skip # Issue 29919
+html/notification_permission_test: Skip # Issue 32002
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
-html/two_scripts_htmltest: Skip # Issue 29919
 html/webgl_extensions_test: RuntimeError # Issue 31017
 html/worker_api_test: RuntimeError # Issue 29922
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)

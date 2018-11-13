@@ -7,8 +7,8 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
-#include "vm/heap/store_buffer.h"
 #include "vm/heap/verifier.h"
 #include "vm/heap/weak_table.h"
 #include "vm/isolate.h"
@@ -38,7 +38,7 @@ DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 // objects. The kMarkBit does not intersect with the target address because of
 // object alignment.
 enum {
-  kForwardingMask = 1 << RawObject::kMarkBit,
+  kForwardingMask = 1 << RawObject::kOldAndNotMarkedBit,
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };
@@ -110,6 +110,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     thread_->StoreBufferAddObjectGC(visiting_old_object_);
   }
 
+  DART_FORCE_INLINE
   void ScavengePointer(RawObject** p) {
     // ScavengePointer cannot be called recursively.
     RawObject* raw_obj = *p;
@@ -166,6 +167,24 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Copy the object to the new location.
       memmove(reinterpret_cast<void*>(new_addr),
               reinterpret_cast<void*>(raw_addr), size);
+
+      RawObject* new_obj = RawObject::FromAddr(new_addr);
+      if (new_obj->IsOldObject()) {
+        // Promoted: update age/barrier tags.
+        uint32_t tags = new_obj->ptr()->tags_;
+        tags = RawObject::OldBit::update(true, tags);
+        tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+        tags = RawObject::NewBit::update(false, tags);
+        // Setting the forwarding pointer below will make this tenured object
+        // visible to the concurrent marker, but we haven't visited its slots
+        // yet. We mark the object here to prevent the concurrent marker from
+        // adding it to the mark stack and visiting its unprocessed slots. We
+        // push it to the mark stack after forwarding its slots.
+        tags =
+            RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
+        new_obj->ptr()->tags_ = tags;
+      }
+
       // Remember forwarding address.
       ForwardTo(raw_addr, new_addr);
     }
@@ -258,44 +277,52 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 }
 
 SemiSpace::~SemiSpace() {
-  if (reserved_ != NULL) {
-#if defined(DEBUG)
-    memset(reserved_->address(), Heap::kZapByte,
-           size_in_words() << kWordSizeLog2);
-#endif  // defined(DEBUG)
-    delete reserved_;
-  }
+  delete reserved_;
 }
 
 Mutex* SemiSpace::mutex_ = NULL;
 SemiSpace* SemiSpace::cache_ = NULL;
 
-void SemiSpace::InitOnce() {
-  ASSERT(mutex_ == NULL);
-  mutex_ = new Mutex();
+void SemiSpace::Init() {
+  if (mutex_ == NULL) {
+    mutex_ = new Mutex();
+  }
   ASSERT(mutex_ != NULL);
 }
 
+void SemiSpace::Cleanup() {
+  MutexLocker locker(mutex_);
+  delete cache_;
+  cache_ = NULL;
+}
+
 SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
+  SemiSpace* result = nullptr;
   {
     MutexLocker locker(mutex_);
     // TODO(koda): Cache one entry per size.
-    if (cache_ != NULL && cache_->size_in_words() == size_in_words) {
-      SemiSpace* result = cache_;
-      cache_ = NULL;
-      return result;
+    if (cache_ != nullptr && cache_->size_in_words() == size_in_words) {
+      result = cache_;
+      cache_ = nullptr;
     }
   }
+  if (result != nullptr) {
+#ifdef DEBUG
+    result->reserved_->Protect(VirtualMemory::kReadWrite);
+#endif
+    return result;
+  }
+
   if (size_in_words == 0) {
-    return new SemiSpace(NULL);
+    return new SemiSpace(nullptr);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
     const bool kExecutable = false;
     VirtualMemory* memory =
         VirtualMemory::Allocate(size_in_bytes, kExecutable, name);
-    if (memory == NULL) {
+    if (memory == nullptr) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
-      return NULL;
+      return nullptr;
     }
 #if defined(DEBUG)
     memset(memory->address(), Heap::kZapByte, size_in_bytes);
@@ -306,12 +333,13 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 
 void SemiSpace::Delete() {
 #ifdef DEBUG
-  if (reserved_ != NULL) {
+  if (reserved_ != nullptr) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
     memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
+    reserved_->Protect(VirtualMemory::kNoAccess);
   }
 #endif
-  SemiSpace* old_cache = NULL;
+  SemiSpace* old_cache = nullptr;
   {
     MutexLocker locker(mutex_);
     old_cache = cache_;
@@ -395,7 +423,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
 
-  isolate->PrepareForGC();
+  isolate->ReleaseStoreBuffers();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -577,10 +605,18 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 }
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
+  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
   int64_t start = OS::GetCurrentMonotonicMicros();
-  isolate->VisitObjectPointers(visitor, ValidationPolicy::kDontValidateFrames);
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");
+    isolate->VisitObjectPointers(visitor,
+                                 ValidationPolicy::kDontValidateFrames);
+  }
   int64_t middle = OS::GetCurrentMonotonicMicros();
-  IterateStoreBuffers(isolate, visitor);
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
+    IterateStoreBuffers(isolate, visitor);
+  }
   IterateObjectIdTable(isolate, visitor);
   int64_t end = OS::GetCurrentMonotonicMicros();
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
@@ -615,6 +651,8 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 }
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
+  Thread* thread = Thread::Current();
+
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
@@ -638,6 +676,14 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
         raw_object->VisitPointersNonvirtual(visitor);
+        if (raw_object->IsMarked()) {
+          // Complete our promise from ScavengePointer. Note that marker cannot
+          // visit this object until it pops a block from the mark stack, which
+          // involves a memory fence from the mutex, so even on architectures
+          // with a relaxed memory model, the marker will see the fully
+          // forwarded contents of this object.
+          thread->MarkingStackAddObject(raw_object);
+        }
       }
       visitor->VisitingOldObject(NULL);
     }
@@ -877,6 +923,7 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
+  FlushTLS();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
@@ -890,10 +937,13 @@ void Scavenger::Scavenge() {
     page_space->AcquireDataLock();
     IterateRoots(isolate, &visitor);
     int64_t iterate_roots = OS::GetCurrentMonotonicMicros();
-    ProcessToSpace(&visitor);
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessToSpace");
+      ProcessToSpace(&visitor);
+    }
     int64_t process_to_space = OS::GetCurrentMonotonicMicros();
     {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
       ScavengerWeakVisitor weak_visitor(thread, this);
       IterateWeakRoots(isolate, &weak_visitor);
     }

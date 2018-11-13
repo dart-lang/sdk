@@ -16,9 +16,11 @@ namespace dart {
 static bool running_ = false;
 static Mutex* lock_ = NULL;
 
-void NativeSymbolResolver::InitOnce() {
+void NativeSymbolResolver::Init() {
   ASSERT(running_ == false);
-  lock_ = new Mutex();
+  if (lock_ == NULL) {
+    lock_ = new Mutex();
+  }
   running_ = true;
   SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
   HANDLE hProcess = GetCurrentProcess();
@@ -29,7 +31,7 @@ void NativeSymbolResolver::InitOnce() {
   }
 }
 
-void NativeSymbolResolver::ShutdownOnce() {
+void NativeSymbolResolver::Cleanup() {
   MutexLocker lock(lock_);
   if (!running_) {
     return;

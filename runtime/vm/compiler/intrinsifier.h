@@ -13,6 +13,7 @@ namespace dart {
 
 // Forward declarations.
 class Assembler;
+class Label;
 class FlowGraphCompiler;
 class Function;
 class TargetEntryInstr;
@@ -43,7 +44,7 @@ class Intrinsifier : public AllStatic {
   static bool CanIntrinsify(const Function& function);
 
 #define DECLARE_FUNCTION(class_name, function_name, enum_name, type, fp)       \
-  static void enum_name(Assembler* assembler);
+  static void enum_name(Assembler* assembler, Label* normal_ir_body);
 
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
 #if defined(TARGET_ARCH_DBC)
@@ -61,7 +62,9 @@ class Intrinsifier : public AllStatic {
 
 #undef DECLARE_FUNCTION
 
-  static void IntrinsifyRegExpExecuteMatch(Assembler* assembler, bool sticky);
+  static void IntrinsifyRegExpExecuteMatch(Assembler* assembler,
+                                           Label* normal_ir_body,
+                                           bool sticky);
 #endif
 };
 

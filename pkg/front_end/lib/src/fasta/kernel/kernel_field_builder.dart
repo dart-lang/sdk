@@ -16,9 +16,6 @@ import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../problems.dart' show internalProblem;
 
-import '../type_inference/type_inference_listener.dart'
-    show KernelTypeInferenceListener;
-
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
@@ -35,7 +32,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
-  final Token initializerTokenForInference;
+  Token initializerTokenForInference;
   final bool hasInitializer;
 
   KernelFieldBuilder(
@@ -90,14 +87,14 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
-    var listener = new KernelTypeInferenceListener();
     var typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
-            listener, field.enclosingClass?.thisType, field);
+            field.enclosingClass?.thisType, field, null);
     if (hasInitializer) {
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(initializerTokenForInference);
     }
+    initializerTokenForInference = null;
   }
 
   @override

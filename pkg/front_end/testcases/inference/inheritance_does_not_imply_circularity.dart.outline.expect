@@ -4,16 +4,16 @@ import "dart:core" as core;
 
 class I1 extends core::Object {
   final field dynamic x;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I1
     ;
 }
 abstract class I2 extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::I2
     ;
   abstract get x() → core::num;
 }
 class C extends core::Object implements self::I1, self::I2 {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     ;
   get x() → core::int
     ;

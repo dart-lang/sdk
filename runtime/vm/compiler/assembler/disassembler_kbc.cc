@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/assembler/disassembler_kbc.h"
 
@@ -128,18 +128,21 @@ static void FormatA_D(char* buf,
   Apply(&buf, &size, pc, op2, bc, "");
 }
 
-static void FormatA_X(char* buf,
-                      intptr_t size,
-                      uword pc,
-                      uint32_t op,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = (op & 0xFF00) >> 8;
-  const int32_t bc = static_cast<int32_t>(op) >> 16;
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, bc, "");
-}
+// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
+// remove it once bytecode instruction set is finalized.
+//
+// static void FormatA_X(char* buf,
+//                      intptr_t size,
+//                      uword pc,
+//                      uint32_t op,
+//                      Fmt op1,
+//                      Fmt op2,
+//                      Fmt op3) {
+//  const int32_t a = (op & 0xFF00) >> 8;
+//  const int32_t bc = static_cast<int32_t>(op) >> 16;
+//  Apply(&buf, &size, pc, op1, a, ", ");
+//  Apply(&buf, &size, pc, op2, bc, "");
+// }
 
 static void FormatX(char* buf,
                     intptr_t size,
@@ -178,20 +181,23 @@ static void FormatA_B_C(char* buf,
   Apply(&buf, &size, pc, op3, c, "");
 }
 
-static void FormatA_B_Y(char* buf,
-                        intptr_t size,
-                        uword pc,
-                        uint32_t op,
-                        Fmt op1,
-                        Fmt op2,
-                        Fmt op3) {
-  const int32_t a = (op >> 8) & 0xFF;
-  const int32_t b = (op >> 16) & 0xFF;
-  const int32_t y = static_cast<int8_t>((op >> 24) & 0xFF);
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, b, ", ");
-  Apply(&buf, &size, pc, op3, y, "");
-}
+// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
+// remove it once bytecode instruction set is finalized.
+//
+// static void FormatA_B_Y(char* buf,
+//                        intptr_t size,
+//                        uword pc,
+//                        uint32_t op,
+//                        Fmt op1,
+//                        Fmt op2,
+//                        Fmt op3) {
+//  const int32_t a = (op >> 8) & 0xFF;
+//  const int32_t b = (op >> 16) & 0xFF;
+//  const int32_t y = static_cast<int8_t>((op >> 24) & 0xFF);
+//  Apply(&buf, &size, pc, op1, a, ", ");
+//  Apply(&buf, &size, pc, op2, b, ", ");
+//  Apply(&buf, &size, pc, op3, y, "");
+// }
 
 #define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                      \
   static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) {  \
@@ -210,12 +216,8 @@ static bool HasLoadFromPool(KBCInstr instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
     case KernelBytecode::kLoadConstant:
     case KernelBytecode::kPushConstant:
-    case KernelBytecode::kStaticCall:
     case KernelBytecode::kIndirectStaticCall:
-    case KernelBytecode::kInstanceCall1:
-    case KernelBytecode::kInstanceCall2:
-    case KernelBytecode::kInstanceCall1Opt:
-    case KernelBytecode::kInstanceCall2Opt:
+    case KernelBytecode::kInstanceCall:
     case KernelBytecode::kStoreStaticTOS:
     case KernelBytecode::kPushStatic:
     case KernelBytecode::kAllocate:
@@ -318,7 +320,7 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
       }
       if (!first) {
         f.Print("]\n");
-        formatter->Print(str);
+        formatter->Print("%s", str);
       }
     }
     int instruction_length;
@@ -353,6 +355,17 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   const ObjectPool& object_pool =
       ObjectPool::Handle(zone, bytecode.GetObjectPool());
   object_pool.DebugPrint();
+
+  THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
+  PcDescriptors::PrintHeaderString();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone, bytecode.pc_descriptors());
+  THR_Print("%s}\n", descriptors.ToCString());
+
+  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
+  const ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
+  THR_Print("%s}\n", handlers.ToCString());
 #else
   UNREACHABLE();
 #endif
@@ -360,4 +373,4 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

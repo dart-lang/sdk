@@ -182,12 +182,8 @@ class Message {
       ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
-      _completer.complete(new Response.json({
-        'type': 'ServiceError',
-        'id': '',
-        'kind': 'InternalError',
-        'message': 'could not send message [${serial}] to isolate',
-      }));
+      _completer.complete(new Response.internalError(
+          'could not send message [${serial}] to isolate'));
     }
     return _completer.future;
   }

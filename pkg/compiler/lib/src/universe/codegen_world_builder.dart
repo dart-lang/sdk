@@ -8,6 +8,9 @@ part of world_builder;
 ///
 /// This adds additional access to liveness of selectors and elements.
 abstract class CodegenWorldBuilder implements WorldBuilder {
+  /// All directly or indirectly instantiated classes.
+  Iterable<ClassEntity> get instantiatedClasses;
+
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are
   /// included.
@@ -81,14 +84,12 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Returns the types that are live as constant type literals.
   Iterable<DartType> get constTypeLiterals;
 
-  /// Returns the types that are live as constant type literals.
+  /// Returns the types that are live as constant type arguments.
   Iterable<DartType> get liveTypeArguments;
 }
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
     implements CodegenWorldBuilder {
-  final ElementEnvironment _elementEnvironment;
-  final NativeBasicData _nativeBasicData;
   final JClosedWorld _world;
 
   /// The set of all directly instantiated classes, that is, classes with a
@@ -165,21 +166,21 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
-  final KernelToWorldBuilder _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
+  final JsToWorldBuilder _elementMap;
 
   final Set<DartType> _constTypeLiterals = new Set<DartType>();
   final Set<DartType> _liveTypeArguments = new Set<DartType>();
 
   CodegenWorldBuilderImpl(
-      this._elementMap,
-      this._globalLocalsMap,
-      this._elementEnvironment,
-      this._nativeBasicData,
-      this._world,
-      this.selectorConstraintsStrategy);
+      this._elementMap, this._world, this.selectorConstraintsStrategy);
 
-  Iterable<ClassEntity> get processedClasses => _processedClasses.keys
+  ElementEnvironment get _elementEnvironment => _world.elementEnvironment;
+
+  NativeBasicData get _nativeBasicData => _world.nativeData;
+
+  GlobalLocalsMap get _globalLocalsMap => _world.globalLocalsMap;
+
+  Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
   /// All directly instantiated classes, that is, classes with a generative
@@ -204,23 +205,15 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed,
-      {bool byMirrors: false}) {
+      InterfaceType type, ClassUsedCallback classUsed) {
     ClassEntity cls = type.element;
     bool isNative = _nativeBasicData.isNativeClass(cls);
     _instantiatedTypes.add(type);
-    if (!cls.isAbstract
-        // We can't use the closed-world assumption with native abstract
-        // classes; a native abstract class may have non-abstract subclasses
-        // not declared to the program.  Instances of these classes are
-        // indistinguishable from the abstract class.
-        ||
-        isNative
-        // Likewise, if this registration comes from the mirror system,
-        // all bets are off.
-        // TODO(herhut): Track classes required by mirrors separately.
-        ||
-        byMirrors) {
+    // We can't use the closed-world assumption with native abstract
+    // classes; a native abstract class may have non-abstract subclasses
+    // not declared to the program.  Instances of these classes are
+    // indistinguishable from the abstract class.
+    if (!cls.isAbstract || isNative) {
       _directlyInstantiatedClasses.add(cls);
       _processInstantiatedClass(cls, classUsed);
     }

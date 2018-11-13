@@ -35,15 +35,16 @@ class BulkCompiler {
 
   BulkCompiler(CompilerOptions options)
       : options = new ProcessedOptions(
-            options
+            options: options
               ..packagesFileUri ??= Uri.base.resolve(".packages")
               ..linkedDependencies = <Uri>[
-                computePlatformBinariesLocation().resolve("vm_platform.dill")
+                computePlatformBinariesLocation(forceBuildDir: true)
+                    .resolve("vm_platform.dill")
               ]
               ..fileSystem = (new FileBackedMemoryFileSystem()
                 ..entities[mainUri.path] =
                     (new MemoryFileSystemEntity(mainUri)..bytes = <int>[])),
-            <Uri>[mainUri]);
+            inputs: <Uri>[mainUri]);
 
   Future<Null> compile(String source) {
     defineSource(mainUri.path, source);

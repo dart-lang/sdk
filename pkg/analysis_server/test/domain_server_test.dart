@@ -26,7 +26,6 @@ main() {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new MockPackageMapProvider(),
         new AnalysisServerOptions(),
         new DartSdkManager('', false),
         InstrumentationService.NULL_SERVICE);

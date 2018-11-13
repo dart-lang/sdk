@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 9;
+  UInt32 formatVersion = 12;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -253,6 +253,9 @@ type Typedef {
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
+  List<TypeParameter> typeParametersOfFunctionType;
+  List<VariableDeclaration> positionalParameters;
+  List<VariableDeclaration> namedParameters;
 }
 
 type Combinator {
@@ -288,7 +291,7 @@ type Class extends Node {
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
-              isEliminatedMixin); // Where level is index into ClassLevel
+              isEliminatedMixin, isMixinDeclaration); // Where level is index into ClassLevel
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -831,37 +834,6 @@ type CheckLibraryIsLoaded extends Expression {
   LibraryDependencyReference deferredImport;
 }
 
-type VectorCreation extends Expression {
-  Byte tag = 102;
-  UInt length;
-}
-
-type VectorGet extends Expression {
-  Byte tag = 103;
-  Expression vectorExpression;
-  UInt index;
-}
-
-type VectorSet extends Expression {
-  Byte tag = 104;
-  Expression vectorExpression;
-  UInt index;
-  Expression value;
-}
-
-type VectorCopy extends Expression {
-  Byte tag = 105;
-  Expression vectorExpression;
-}
-
-type ClosureCreation extends Expression {
-  Byte tag = 106;
-  MemberReference topLevelFunctionReference;
-  Expression contextVector;
-  FunctionType functionType;
-  List<DartType> typeArguments;
-}
-
 type ConstantExpression extends Expression {
   Byte tag = 107;
   ConstantReference constantReference;
@@ -893,39 +865,45 @@ type StringConstant extends Constant {
   StringReference value;
 }
 
-type MapConstant extends Constant {
+type SymbolConstant extends Constant {
   Byte tag = 5;
+  Option<LibraryReference> library;
+  StringReference name;
+}
+
+type MapConstant extends Constant {
+  Byte tag = 6;
   DartType keyType;
   DartType valueType;
   List<[ConstantReference, ConstantReference]> keyValueList;
 }
 
 type ListConstant extends Constant {
-  Byte tag = 6;
+  Byte tag = 7;
   DartType type;
   List<ConstantReference> values;
 }
 
 type InstanceConstant extends Constant {
-  Byte tag = 7;
+  Byte tag = 8;
   CanonicalNameReference class;
   List<DartType> typeArguments;
   List<[FieldReference, ConstantReference]> values;
 }
 
 type PartialInstantiationConstant extends Constant {
-  Byte tag = 8;
+  Byte tag = 9;
   ConstantReference tearOffConstant;
   List<DartType> typeArguments;
 }
 
 type TearOffConstant extends Constant {
-  Byte tag = 9;
+  Byte tag = 10;
   CanonicalNameReference staticProcedureReference;
 }
 
 type TypeLiteralConstant extends Constant {
-  Byte tag = 10;
+  Byte tag = 11;
   DartType type;
 }
 
@@ -1131,10 +1109,6 @@ type FunctionDeclaration extends Statement {
 
 abstract type DartType extends Node {}
 
-type VectorType extends DartType {
-  Byte tag = 88;
-}
-
 type InvalidType extends DartType {
   Byte tag = 90;
 }
@@ -1167,7 +1141,6 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  List<StringReference> positionalParameterNames;
   CanonicalNameReference typedefReference;
   DartType returnType;
 }

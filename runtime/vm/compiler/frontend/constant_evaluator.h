@@ -8,6 +8,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/hash_table.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -50,7 +51,10 @@ class ConstantEvaluator {
   Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateConstructorInvocation(intptr_t offset,
                                           bool reset_position = true);
+  Instance& EvaluateStaticInvocation(intptr_t offset,
+                                     bool reset_position = true);
   RawObject* EvaluateExpressionSafe(intptr_t offset);
+  RawObject* EvaluateAnnotations();
 
  private:
   bool IsBuildingFlowGraph() const;
@@ -164,15 +168,19 @@ class ConstantHelper {
   ConstantEvaluator const_evaluator_;
   TranslationHelper& translation_helper_;
   NameIndex skip_vmservice_library_;
+  Class& symbol_class_;
+  Field& symbol_name_field_;
   AbstractType& temp_type_;
   TypeArguments& temp_type_arguments_;
   TypeArguments& temp_type_arguments2_;
   TypeArguments& temp_type_arguments3_;
   Object& temp_object_;
+  String& temp_string_;
   Array& temp_array_;
   Instance& temp_instance_;
   Field& temp_field_;
   Class& temp_class_;
+  Library& temp_library_;
   Function& temp_function_;
   Closure& temp_closure_;
   Context& temp_context_;
@@ -180,6 +188,38 @@ class ConstantHelper {
 
   DISALLOW_COPY_AND_ASSIGN(ConstantHelper);
 };
+
+class KernelConstMapKeyEqualsTraits : public AllStatic {
+ public:
+  static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const Smi& key1 = Smi::Cast(a);
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.Value() == key2.Value());
+  }
+  static bool IsMatch(const intptr_t key1, const Object& b) {
+    return KeyAsSmi(key1) == Smi::Cast(b).raw();
+  }
+  static uword Hash(const Object& obj) {
+    const Smi& key = Smi::Cast(obj);
+    return HashValue(key.Value());
+  }
+  static uword Hash(const intptr_t key) {
+    return HashValue(Smi::Value(KeyAsSmi(key)));
+  }
+  static RawObject* NewKey(const intptr_t key) { return KeyAsSmi(key); }
+
+ private:
+  static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
+
+  static RawSmi* KeyAsSmi(const intptr_t key) {
+    ASSERT(key >= 0);
+    return Smi::New(key);
+  }
+};
+typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
 
 }  // namespace kernel
 }  // namespace dart

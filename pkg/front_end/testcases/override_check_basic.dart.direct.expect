@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
 class C extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method f1(self::A x) → void {}
@@ -22,7 +22,7 @@ class C extends core::Object {
   method f4() → self::A {}
 }
 class D extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D
     : super self::C::•()
     ;
   method f1(core::Object x) → void {}
@@ -31,7 +31,7 @@ class D extends self::C {
   method f4() → self::B {}
 }
 class E extends self::C {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E
     : super self::C::•()
     ;
   method f1(self::B x) → void {}

@@ -287,6 +287,7 @@ class ActivationFrame : public ZoneAllocated {
     ASSERT(!code_.IsNull());
     return code_;
   }
+  bool is_interpreted() const { return is_interpreted_; }
 
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
@@ -420,6 +421,7 @@ class ActivationFrame : public ZoneAllocated {
 
   Kind kind_;
 
+  bool is_interpreted_;  // Running under kernel bytecode interpreter.
   bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
   ZoneGrowableArray<intptr_t> desc_indices_;

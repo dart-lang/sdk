@@ -6,23 +6,23 @@ class Base extends core::Object {
   field core::int intProp;
   field core::num numProp;
   field core::double doubleProp;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Base
     ;
 }
 class Test1 extends self::Base {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Test1
     ;
   method test() → void
     ;
 }
 class Test2 extends self::Base {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Test2
     ;
   method test() → void
     ;
 }
 class Test3 extends self::Base {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Test3
     ;
   method test3() → void
     ;

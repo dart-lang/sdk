@@ -10,12 +10,13 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Return a protocol [Element] corresponding to the given [engine.Element].
  */
 Element convertElement(engine.Element element) {
-  String name = element.displayName;
+  String name = getElementDisplayName(element);
   String elementTypeParameters = _getTypeParametersString(element);
   String elementParameters = _getParametersString(element);
   String elementReturnType = getReturnTypeString(element);
@@ -100,8 +101,13 @@ ElementKind convertElementKind(engine.ElementKind kind) {
  * Return an [ElementKind] corresponding to the given [engine.Element].
  */
 ElementKind convertElementToElementKind(engine.Element element) {
-  if (element is engine.ClassElement && element.isEnum) {
-    return ElementKind.ENUM;
+  if (element is engine.ClassElement) {
+    if (element.isEnum) {
+      return ElementKind.ENUM;
+    }
+    if (element.isMixin) {
+      return ElementKind.MIXIN;
+    }
   }
   if (element is engine.FieldElement &&
       element.isEnumConstant &&
@@ -118,6 +124,14 @@ ElementKind convertElementToElementKind(engine.Element element) {
     return ElementKind.ENUM_CONSTANT;
   }
   return convertElementKind(element.kind);
+}
+
+String getElementDisplayName(engine.Element element) {
+  if (element is engine.CompilationUnitElement) {
+    return pathos.basename(element.source.fullName);
+  } else {
+    return element.displayName;
+  }
 }
 
 String _getParametersString(engine.Element element) {

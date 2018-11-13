@@ -7,12 +7,12 @@ library constant_expression_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart' show KElementEnvironment;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/elements/entities.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import 'constant_expression_evaluate_test.dart' show MemoryEnvironment;
 
 class TestData {
@@ -22,10 +22,7 @@ class TestData {
   /// Tested constants.
   final List<ConstantData> constants;
 
-  final bool strongModeOnly;
-
-  const TestData(this.declarations, this.constants,
-      {this.strongModeOnly: false});
+  const TestData(this.declarations, this.constants);
 }
 
 class ConstantData {
@@ -38,9 +35,6 @@ class ConstantData {
   /// ConstantExpression.getText() result if different from [code].
   final String text;
 
-  /// ConstantExpression.getText() result if different from [code].
-  final String strongText;
-
   /// The expected instance type for ConstructedConstantExpression.
   final String type;
 
@@ -48,10 +42,9 @@ class ConstantData {
   final Map<String, String> fields;
 
   const ConstantData(String code, this.kind,
-      {String text, String strongText, this.type, this.fields})
+      {String text, this.type, this.fields})
       : this.code = code,
-        this.text = text ?? code,
-        this.strongText = strongText ?? text ?? code;
+        this.text = text ?? code;
 }
 
 const List<TestData> DATA = const [
@@ -95,13 +88,13 @@ toplevelFunction() {}
     const ConstantData('#name', ConstantExpressionKind.SYMBOL),
     const ConstantData('const []', ConstantExpressionKind.LIST),
     const ConstantData('const [0, 1]', ConstantExpressionKind.LIST,
-        strongText: 'const <int>[0, 1]'),
+        text: 'const <int>[0, 1]'),
     const ConstantData('const <int>[0, 1]', ConstantExpressionKind.LIST),
     const ConstantData('const <dynamic>[0, 1]', ConstantExpressionKind.LIST,
         text: 'const [0, 1]'),
     const ConstantData('const {}', ConstantExpressionKind.MAP),
     const ConstantData('const {0: 1, 2: 3}', ConstantExpressionKind.MAP,
-        strongText: 'const <int, int>{0: 1, 2: 3}'),
+        text: 'const <int, int>{0: 1, 2: 3}'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}', ConstantExpressionKind.MAP),
     const ConstantData(
@@ -182,9 +175,7 @@ toplevelFunction() {}
         'const [const <dynamic, dynamic>{0: true, "1": "c" "d"}, '
         'const Class(const Class<dynamic, dynamic>(toplevelConstant))]',
         ConstantExpressionKind.LIST,
-        text: 'const [const {0: true, "1": "cd"}, '
-            'const Class(const Class(toplevelConstant))]',
-        strongText: 'const <Object>[const {0: true, "1": "cd"}, '
+        text: 'const <Object>[const {0: true, "1": "cd"}, '
             'const Class(const Class(toplevelConstant))]'),
   ]),
   const TestData('''
@@ -243,11 +234,11 @@ class C extends B {
         }),
   ]),
   const TestData('''
-class A<T> implements B {
+class A<T> implements B<Null> {
   final field1;
   const A({this.field1:42});
 }
-class B<S> implements C {
+class B<S> implements C<Null> {
   const factory B({field1}) = A<B<S>>;
   const factory B.named() = A<S>;
 }
@@ -311,32 +302,26 @@ class C<T> {
     const ConstantData('identity', ConstantExpressionKind.FUNCTION),
     const ConstantData(
         'const C<int>(0, identity)', ConstantExpressionKind.CONSTRUCTED,
-        type: 'C<int>', strongText: 'const C<int>(0, <int>(identity))'),
+        type: 'C<int>', text: 'const C<int>(0, <int>(identity))'),
     const ConstantData(
         'const C<double>(0.5, identity)', ConstantExpressionKind.CONSTRUCTED,
-        type: 'C<double>',
-        strongText: 'const C<double>(0.5, <double>(identity))'),
-  ], strongModeOnly: true)
+        type: 'C<double>', text: 'const C<double>(0.5, <double>(identity))'),
+  ])
 ];
 
 main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTest(strongMode: false);
-    print('--test from kernel (strong)---------------------------------------');
-    await runTest(strongMode: true);
+    await runTest();
   });
 }
 
-Future runTest({bool strongMode}) async {
+Future runTest() async {
   for (TestData data in DATA) {
-    await testData(data, strongMode: strongMode);
+    await testData(data);
   }
 }
 
-Future testData(TestData data, {bool strongMode}) async {
-  if (data.strongModeOnly && !strongMode) return;
-
+Future testData(TestData data) async {
   StringBuffer sb = new StringBuffer();
   sb.writeln('${data.declarations}');
   Map<String, ConstantData> constants = {};
@@ -353,11 +338,11 @@ Future testData(TestData data, {bool strongMode}) async {
   }
   sb.writeln('}');
   String source = sb.toString();
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: {'main.dart': source});
   Compiler compiler = result.compiler;
-  var elementEnvironment = compiler.frontendStrategy.elementEnvironment;
+  KElementEnvironment elementEnvironment =
+      compiler.frontendStrategy.elementEnvironment;
 
   MemoryEnvironment environment = new MemoryEnvironment(
       new KernelEvaluationEnvironment(
@@ -367,13 +352,13 @@ Future testData(TestData data, {bool strongMode}) async {
   dynamic library = elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldEntity field = elementEnvironment.lookupLibraryMember(library, name);
-    dynamic constant = elementEnvironment.getFieldConstant(field);
+    dynamic constant = elementEnvironment.getFieldConstantForTesting(field);
     Expect.equals(
         data.kind,
         constant.kind,
         "Unexpected kind '${constant.kind}' for constant "
         "`${constant.toDartText()}`, expected '${data.kind}'.");
-    String text = strongMode ? data.strongText : data.text;
+    String text = data.text;
     Expect.equals(
         text,
         constant.toDartText(),

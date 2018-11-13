@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
+import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 
@@ -124,6 +125,10 @@ class NativeThrowBehavior {
  * `null` may be returned.
  */
 class NativeBehavior {
+  /// Tag used for identifying serialized [NativeBehavior] objects in a
+  /// debugging data stream.
+  static const String tag = 'native-behavior';
+
   /// [DartType]s or [SpecialType]s returned or yielded by the native
   /// element.
   final List typesReturned = [];
@@ -155,6 +160,88 @@ class NativeBehavior {
   NativeBehavior() : sideEffects = new SideEffects.empty();
 
   NativeBehavior.internal(this.sideEffects);
+
+  /// Deserializes a [NativeBehavior] object from [source].
+  factory NativeBehavior.readFromDataSource(DataSource source) {
+    source.begin(tag);
+
+    List readTypes() {
+      List types = [];
+      types.addAll(source.readDartTypes());
+      int specialCount = source.readInt();
+      for (int i = 0; i < specialCount; i++) {
+        String name = source.readString();
+        types.add(SpecialType.fromName(name));
+      }
+      return types;
+    }
+
+    List typesReturned = readTypes();
+    List typesInstantiated = readTypes();
+    String codeTemplateText = source.readStringOrNull();
+    SideEffects sideEffects = new SideEffects.readFromDataSource(source);
+    int throwBehavior = source.readInt();
+    bool isAllocation = source.readBool();
+    bool useGvn = source.readBool();
+    source.end(tag);
+
+    NativeBehavior behavior = new NativeBehavior.internal(sideEffects);
+    behavior.typesReturned.addAll(typesReturned);
+    behavior.typesInstantiated.addAll(typesInstantiated);
+    if (codeTemplateText != null) {
+      behavior.codeTemplateText = codeTemplateText;
+      behavior.codeTemplate = js.js.parseForeignJS(codeTemplateText);
+    }
+    switch (throwBehavior) {
+      case 0:
+        behavior.throwBehavior = NativeThrowBehavior.NEVER;
+        break;
+      case 1:
+        behavior.throwBehavior =
+            NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+        break;
+      case 2:
+        behavior.throwBehavior = NativeThrowBehavior.MAY;
+        break;
+      case 3:
+        behavior.throwBehavior = NativeThrowBehavior.MUST;
+        break;
+    }
+    behavior.isAllocation = isAllocation;
+    behavior.useGvn = useGvn;
+    return behavior;
+  }
+
+  /// Serializes this [NativeBehavior] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+
+    void writeTypes(List types) {
+      List<DartType> dartTypes = [];
+      List<SpecialType> specialTypes = [];
+      for (var type in types) {
+        if (type is DartType) {
+          dartTypes.add(type);
+        } else {
+          specialTypes.add(type);
+        }
+      }
+      sink.writeDartTypes(dartTypes);
+      sink.writeInt(specialTypes.length);
+      for (SpecialType type in specialTypes) {
+        sink.writeString(type.name);
+      }
+    }
+
+    writeTypes(typesReturned);
+    writeTypes(typesInstantiated);
+    sink.writeStringOrNull(codeTemplateText);
+    sideEffects.writeToDataSink(sink);
+    sink.writeInt(throwBehavior._bits);
+    sink.writeBool(isAllocation);
+    sink.writeBool(useGvn);
+    sink.end(tag);
+  }
 
   String toString() {
     return 'NativeBehavior('

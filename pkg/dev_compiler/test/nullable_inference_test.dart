@@ -4,9 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -490,7 +488,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   @override
   visitComponent(Component node) {
     inference ??= NullableInference(JSTypeRep(
-      TypeSchemaEnvironment(CoreTypes(node), ClassHierarchy(node), true),
+      fe.TypeSchemaEnvironment(CoreTypes(node), ClassHierarchy(node), true),
     ));
 
     if (useAnnotations) {
@@ -542,14 +540,15 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 }
 
 fe.InitializedCompilerState _compilerState;
-final _fileSystem = MemoryFileSystem(Uri.file('/memory/'));
+final _fileSystem = fe.MemoryFileSystem(Uri.file('/memory/'));
 
 Future<Component> kernelCompile(String code) async {
   var succeeded = true;
-  void errorHandler(fe.CompilationMessage error) {
-    if (error.severity == fe.Severity.error) {
+  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+    if (message.severity == fe.Severity.error) {
       succeeded = false;
     }
+    fe.printDiagnosticMessage(message, print);
   }
 
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
@@ -577,7 +576,7 @@ const nullCheck = const _NullCheck();
       _compilerState, sdkUri, packagesUri, [], DevCompilerTarget(),
       fileSystem: _fileSystem);
   fe.DdcResult result =
-      await fe.compile(_compilerState, [mainUri], errorHandler);
+      await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);
   return result.component;
 }

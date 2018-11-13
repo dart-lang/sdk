@@ -8,7 +8,7 @@
 
 namespace dart {
 
-TEST_CASE(Utf8Encode) {
+ISOLATE_UNIT_TEST_CASE(Utf8Encode) {
   const intptr_t kInputLen = 3;
   const uint16_t kInput[kInputLen] = {0xe6, 0xe7, 0xe8};  // æøå
   const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
@@ -27,7 +27,7 @@ TEST_CASE(Utf8Encode) {
   }
 }
 
-TEST_CASE(Utf8Decode) {
+ISOLATE_UNIT_TEST_CASE(Utf8Decode) {
   // Examples from the Unicode specification, chapter 3
   {
     const char* src = "\x41\xC3\xB1\x42";

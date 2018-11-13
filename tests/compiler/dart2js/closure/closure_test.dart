@@ -9,8 +9,8 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:expect/expect.dart';
@@ -19,13 +19,11 @@ import '../equivalence/id_equivalence_helper.dart';
 import 'package:front_end/src/fasta/util/link.dart' show Link;
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[];
-
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const ClosureDataComputer(),
-        skipForKernel: skipForKernel, args: args, testOmit: true);
+        args: args, testOmit: true);
   });
 }
 
@@ -36,10 +34,10 @@ class ClosureDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
-    ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    ClosureData closureDataLookup = closedWorld.closureDataLookup;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     assert(
         definition.kind == MemberKind.regular ||
@@ -61,7 +59,7 @@ class ClosureDataComputer extends DataComputer {
 /// Kernel IR visitor for computing closure data.
 class ClosureIrChecker extends IrDataExtractor {
   final MemberEntity member;
-  final ClosureDataLookup closureDataLookup;
+  final ClosureData closureDataLookup;
   final CodegenWorldBuilder codegenWorldBuilder;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
@@ -76,7 +74,7 @@ class ClosureIrChecker extends IrDataExtractor {
   ClosureIrChecker(
       DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap,
-      KernelToElementMapForBuilding elementMap,
+      JsToElementMap elementMap,
       this.member,
       this._localsMap,
       this.closureDataLookup,
@@ -199,8 +197,8 @@ class ClosureIrChecker extends IrDataExtractor {
       print(' capturedScope (${capturedScope.runtimeType})');
       capturedScope.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
     }
-    print(' closureRepresentationInfo (${closureRepresentationInfo
-        .runtimeType})');
+    print(
+        ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
     closureRepresentationInfo
         ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
     closureRepresentationInfo

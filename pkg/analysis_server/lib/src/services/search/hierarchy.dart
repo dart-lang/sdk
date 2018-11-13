@@ -19,6 +19,7 @@ List<Element> getChildren(Element parent, [String name]) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
+    return false;
   });
   return children;
 }
@@ -171,6 +172,10 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
       if (superType != null) {
         queue.add(superType.element);
       }
+    }
+    // append superclass constraints
+    for (InterfaceType interface in current.superclassConstraints) {
+      queue.add(interface.element);
     }
     // append interfaces
     for (InterfaceType interface in current.interfaces) {

@@ -16,8 +16,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -58,8 +58,15 @@ class FileSystemStateTest {
       new ResourceUriResolver(provider)
     ], null, provider);
     AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
-    fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
-        provider, sourceFactory, analysisOptions, new Uint32List(0));
+    fileSystemState = new FileSystemState(
+        logger,
+        byteStore,
+        contentOverlay,
+        provider,
+        sourceFactory,
+        analysisOptions,
+        new Uint32List(0),
+        new Uint32List(0));
   }
 
   test_definedClassMemberNames() {
@@ -351,6 +358,7 @@ class A2 {}
     expect(_excludeSdk(file.importedFiles), isEmpty);
     expect(file.exportedFiles, isEmpty);
     expect(file.partedFiles, isEmpty);
+    expect(file.libraryFiles, [file]);
     expect(_excludeSdk(file.directReferencedFiles), isEmpty);
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
@@ -389,13 +397,13 @@ part of L;
     String a3 = _p('/aaa/lib/a3.dart');
     String content_a1 = r'''
 import 'package:aaa/a1.dart';
-import '[invalid uri]';
+import ':[invalid uri]';
 
 export 'package:aaa/a2.dart';
-export '[invalid uri]';
+export ':[invalid uri]';
 
 part 'a3.dart';
-part '[invalid uri]';
+part ':[invalid uri]';
 ''';
     provider.newFile(a, content_a1);
 
@@ -468,6 +476,8 @@ class A1 {}
     expect(file.partedFiles, hasLength(1));
     expect(file.partedFiles[0].path, a4);
     expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a4.dart'));
+
+    expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
     expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
 
@@ -576,6 +586,43 @@ part 'not-a2.dart';
     // The file with the `package:` style URI is canonical, and is the first.
     var files = fileSystemState.getFilesForPath(path);
     expect(files, [filePackageUri, fileFileUri]);
+  }
+
+  test_getFilesSubtypingName() {
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+
+    provider.newFile(a, r'''
+class A {}
+class B extends A {}
+''');
+    provider.newFile(b, r'''
+class A {}
+class D implements A {}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile, bFile]),
+    );
+
+    // Change b.dart so that it does not subtype A.
+    provider.newFile(b, r'''
+class C {}
+class D implements C {}
+''');
+    bFile.refresh();
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile]),
+    );
+    expect(
+      fileSystemState.getFilesSubtypingName('C'),
+      unorderedEquals([bFile]),
+    );
   }
 
   test_hasUri() {

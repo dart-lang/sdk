@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 class Foo<T extends self::Foo<self::Foo::T> = dynamic> extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Foo<self::Foo::T>
     ;
 }
 abstract class Bar extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Bar
     ;
   abstract method fisk<S extends self::Foo<self::Bar::fisk::S> = dynamic>() → void;
 }
 class Hest extends core::Object implements self::Bar {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::Hest
     ;
   method fisk<U extends self::Foo<self::Hest::fisk::U> = dynamic>() → void
     ;

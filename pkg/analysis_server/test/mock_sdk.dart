@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library testing.mock_sdk;
 
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
@@ -22,7 +20,7 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
-  const Object() {}
+  const Object();
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
@@ -120,6 +118,10 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
+class Exception {
+  factory Exception([var message]);
+}
+
 class Iterator<E> {
   bool moveNext();
   E get current;
@@ -151,9 +153,13 @@ class List<E> implements Iterable<E> {
 }
 
 abstract class Map<K, V> extends Object {
+  Iterable<K> get keys;
+  int get length;
+  Iterable<V> get values;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
   Map<RK, RV> cast<RK, RV>();
   bool containsKey(Object key);
-  Iterable<K> get keys;
 }
 
 external bool identical(Object a, Object b);
@@ -293,8 +299,6 @@ const Map<String, LibraryInfo> libraries = const {
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
       provider.newFileWithBytes(
-          provider.convertPath('/lib/_internal/spec.sum'), bytes);
-      provider.newFileWithBytes(
           provider.convertPath('/lib/_internal/strong.sum'), bytes);
     }
   }
@@ -361,7 +365,7 @@ const Map<String, LibraryInfo> libraries = const {
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
       resource.File summaryFile =
-          provider.getFile(provider.convertPath('/lib/_internal/spec.sum'));
+          provider.getFile(provider.convertPath('/lib/_internal/strong.sum'));
       List<int> bytes;
       if (summaryFile.exists) {
         bytes = summaryFile.readAsBytesSync();
@@ -412,9 +416,7 @@ const Map<String, LibraryInfo> libraries = const {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(
-            librarySources, context, context.analysisOptions.strongMode)
-        .build();
+    return new SummaryBuilder(librarySources, context).build();
   }
 }
 

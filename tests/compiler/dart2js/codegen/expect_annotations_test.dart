@@ -4,15 +4,13 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""
@@ -39,10 +37,10 @@ int methodAssumeDynamicTrustTypeAnnotations(String arg) => arg.length;
 void main(List<String> args) {
   print(method(args[0]));
   print(methodAssumeDynamic('foo'));
-  print(methodTrustTypeAnnotations(42));
+  print(methodTrustTypeAnnotations(42 as dynamic));
   print(methodTrustTypeAnnotations("fourtyTwo"));
   print(methodNoInline('bar'));
-  print(methodNoInlineTrustTypeAnnotations(42));
+  print(methodNoInlineTrustTypeAnnotations(42 as dynamic));
   print(methodNoInlineTrustTypeAnnotations("fourtyTwo"));
   print(methodAssumeDynamicTrustTypeAnnotations(null));
 }
@@ -51,14 +49,13 @@ void main(List<String> args) {
 
 main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await runTest();
   });
 }
 
 runTest() async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.noPreviewDart2]);
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
@@ -70,15 +67,15 @@ runTest() async {
       'AssumeDynamicClass is unresolved.');
 
   void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
-      TypeMask expectedReturnType, TypesInferrer inferrer) {
+      TypeMask expectedReturnType, GlobalTypeInferenceResults results) {
     compiler.codegenWorldBuilder.forEachParameterAsLocal(function,
         (Local parameter) {
-      TypeMask type = inferrer.getTypeOfParameter(parameter);
+      TypeMask type = results.resultOfParameter(parameter);
       Expect.equals(
           expectedParameterType, simplify(type, closedWorld), "$parameter");
     });
     if (expectedReturnType != null) {
-      TypeMask type = inferrer.getReturnTypeOfMember(function);
+      TypeMask type = results.resultOfMember(function).returnType;
       Expect.equals(
           expectedReturnType, simplify(type, closedWorld), "$function");
     }
@@ -96,26 +93,24 @@ runTest() async {
     Expect.isNotNull(method);
     Expect.equals(
         expectNoInline,
-        optimizerHints.noInline(
-            closedWorld.elementEnvironment, closedWorld.commonElements, method),
-        "Unexpected annotation of @NoInline on '$method'.");
+        closedWorld.annotationsData.nonInlinableFunctions.contains(method),
+        "Unexpected annotation of @NoInline() on '$method'.");
     Expect.equals(
         expectTrustTypeAnnotations,
-        optimizerHints.trustTypeAnnotations(
-            closedWorld.elementEnvironment, closedWorld.commonElements, method),
-        "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
+        closedWorld.annotationsData.trustTypeAnnotationsMembers
+            .contains(method),
+        "Unexpected annotation of @TrustTypeAnnotations() on '$method'.");
     Expect.equals(
         expectAssumeDynamic,
-        optimizerHints.assumeDynamic(
-            closedWorld.elementEnvironment, closedWorld.commonElements, method),
-        "Unexpected annotation of @AssumeDynamic on '$method'.");
-    TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
+        closedWorld.annotationsData.assumeDynamicMembers.contains(method),
+        "Unexpected annotation of @AssumeDynamic() on '$method'.");
+    GlobalTypeInferenceResults results =
+        compiler.globalInference.resultsForTesting;
     if (expectTrustTypeAnnotations && expectedParameterType != null) {
-      testTypeMatch(
-          method, expectedParameterType, expectedReturnType, inferrer);
+      testTypeMatch(method, expectedParameterType, expectedReturnType, results);
     } else if (expectAssumeDynamic) {
       testTypeMatch(
-          method, closedWorld.abstractValueDomain.dynamicType, null, inferrer);
+          method, closedWorld.abstractValueDomain.dynamicType, null, results);
     }
   }
 

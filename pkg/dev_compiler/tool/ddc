@@ -75,7 +75,7 @@ if [ "$KERNEL" = true ]; then
   NODE_PATH=$GEN_DIR/kernel/common:$LIBROOT:$NODE_PATH
 
   $SDK_DIR/sdk/bin/dartdevk --modules=node \
-      --dart-sdk-summary=$GEN_DIR/kernel/ddc_sdk.dill \
+      --dart-sdk-summary=$GEN_DIR/ddc_sdk.sum \
       -o $LIBROOT/$BASENAME.js $*
 else
 
@@ -113,7 +113,8 @@ echo "
       if (!source_maps) {
         console.log('For Dart source maps: npm install source-map-support');
       }
-      console.error(e.toString(), sdk.dart.stackTrace(e).toString());
+      let toString = sdk.dart.toString;
+      console.error(toString(e), toString(sdk.dart.stackTrace(e)));
       process.exit(1);
     }" \
     > $LIBROOT/$BASENAME.run.js

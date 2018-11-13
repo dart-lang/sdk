@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.dart.error.hint_codes;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -12,18 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
  * mentioned in the Dart Language Specification.
  */
 class HintCode extends ErrorCode {
-  /**
-   * When an abstract supertype member is referenced with `super` as its target,
-   * it cannot be overridden, so it is always a runtime error.
-   *
-   * Parameters:
-   * 0: the display name for the kind of the referenced element
-   * 1: the name of the referenced element
-   */
-  static const HintCode ABSTRACT_SUPER_MEMBER_REFERENCE = const HintCode(
-      'ABSTRACT_SUPER_MEMBER_REFERENCE',
-      "The {0} '{1}' is always abstract in the supertype.");
-
   /**
    * This hint is generated anywhere where the
    * [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated,
@@ -297,6 +283,19 @@ class HintCode extends ErrorCode {
       correction: "Remove @required.");
 
   /**
+   * This hint is generated anywhere where `@sealed` annotates something other
+   * than a class or mixin.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_SEALED_ANNOTATION = const HintCode(
+      'INVALID_SEALED_ANNOTATION',
+      "The member '{0}' is annotated with @sealed but only classes and mixins "
+      "can be annotated with it.",
+      correction: "Remove @sealed.");
+
+  /**
    * This hint is generated anywhere where a member annotated with `@protected`
    * is used outside an instance member of a subclass.
    *
@@ -308,6 +307,16 @@ class HintCode extends ErrorCode {
       'INVALID_USE_OF_PROTECTED_MEMBER',
       "The member '{0}' can only be used within instance members of subclasses "
       "of '{1}'.");
+
+  /// This hint is generated anywhere where a member annotated with
+  /// `@visibleForTemplate` is used outside of a "template" Dart file.
+  ///
+  /// Parameters:
+  /// 0: the name of the member
+  /// 1: the name of the defining class
+  static const HintCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
+      const HintCode('INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+          "The member '{0}' can only be used within '{1}' or a template library.");
 
   /// This hint is generated anywhere where a member annotated with
   /// `@visibleForTesting` is used outside the defining library, or a test.
@@ -398,10 +407,10 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MISSING_RETURN = const HintCode(
       'MISSING_RETURN',
-      "This function declares a return type of '{0}', but doesn't end with a "
+      "This function has a return type of '{0}', but doesn't end with a "
       "return statement.",
-      correction:
-          "Try adding a return statement, or changing the return type to 'void'.");
+      correction: "Try adding a return statement, "
+          "or changing the return type to 'void'.");
 
   /**
    * Generate a hint for classes that inherit from classes annotated with

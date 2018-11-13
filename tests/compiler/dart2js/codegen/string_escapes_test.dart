@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 // Test that the compiler handles string literals containing line terminators.
 

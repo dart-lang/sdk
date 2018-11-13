@@ -13,36 +13,85 @@ main() {
 }
 
 @reflectiveTest
-class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
+class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
   @override
   bool get enableNewAnalysisDriver => true;
 
-  @override // Passes with driver
-  test_conflictingGenericInterfaces_simple() =>
-      super.test_conflictingGenericInterfaces_simple();
+  @override
+  @failingTest
+  test_awaitInWrongContext_sync() {
+    return super.test_awaitInWrongContext_sync();
+  }
 
-  @override // Passes with driver
-  test_conflictingGenericInterfaces_viaMixin() =>
-      super.test_conflictingGenericInterfaces_viaMixin();
+  @override
+  @failingTest
+  test_constEvalThrowsException() {
+    return super.test_constEvalThrowsException();
+  }
 
-  @override // Passes with driver
-  test_mixinInference_conflictingSubstitution() =>
-      super.test_mixinInference_conflictingSubstitution();
+  @override
+  @failingTest
+  test_genericFunctionTypeArgument_typedef() {
+    return super.test_genericFunctionTypeArgument_typedef();
+  }
 
-  @override // Passes with driver
-  test_mixinInference_doNotIgnorePreviousExplicitMixins() =>
-      super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_async() {
+    return super.test_invalidIdentifierInAsync_async();
+  }
 
-  @override // Passes with driver
-  test_mixinInference_impossibleSubstitution() =>
-      super.test_mixinInference_impossibleSubstitution();
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_await() {
+    return super.test_invalidIdentifierInAsync_await();
+  }
 
-  @override // Passes with driver
-  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() =>
-      super
-          .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
+  @override
+  @failingTest
+  test_invalidIdentifierInAsync_yield() {
+    return super.test_invalidIdentifierInAsync_yield();
+  }
 
-  @override // Passes with driver
-  test_mixinInference_recursiveSubtypeCheck() =>
-      super.test_mixinInference_recursiveSubtypeCheck();
+  @override
+  @failingTest
+  test_mixinOfNonClass() {
+    return super.test_mixinOfNonClass();
+  }
+
+  @override
+  @failingTest
+  test_objectCannotExtendAnotherClass() {
+    return super.test_objectCannotExtendAnotherClass();
+  }
+
+  @override
+  @failingTest
+  test_superInitializerInObject() {
+    return super.test_superInitializerInObject();
+  }
+
+  @override
+  @failingTest
+  test_yieldEachInNonGenerator_async() {
+    return super.test_yieldEachInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  test_yieldEachInNonGenerator_sync() {
+    return super.test_yieldEachInNonGenerator_sync();
+  }
+
+  @override
+  @failingTest
+  test_yieldInNonGenerator_async() {
+    return super.test_yieldInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  test_yieldInNonGenerator_sync() {
+    return super.test_yieldInNonGenerator_sync();
+  }
 }

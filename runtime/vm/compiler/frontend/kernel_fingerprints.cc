@@ -287,8 +287,6 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
     }
   }
 
-  CalculateListOfStringsFingerprint();  // read positional parameter names.
-
   if (!simple) {
     // TODO(bkonyi): include in hash.
     SkipCanonicalNameReference();  // read typedef reference.
@@ -299,14 +297,14 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
 
 void KernelFingerprintHelper::CalculateGetterNameFingerprint() {
   const NameIndex name = ReadCanonicalNameReference();
-  if (I->strong() && !H.IsRoot(name) && (H.IsGetter(name) || H.IsField(name))) {
+  if (FLAG_strong && !H.IsRoot(name) && (H.IsGetter(name) || H.IsField(name))) {
     BuildHash(H.DartGetterName(name).Hash());
   }
 }
 
 void KernelFingerprintHelper::CalculateSetterNameFingerprint() {
   const NameIndex name = ReadCanonicalNameReference();
-  if (I->strong() && !H.IsRoot(name)) {
+  if (FLAG_strong && !H.IsRoot(name)) {
     BuildHash(H.DartSetterName(name).Hash());
   }
 }
@@ -314,7 +312,7 @@ void KernelFingerprintHelper::CalculateSetterNameFingerprint() {
 void KernelFingerprintHelper::CalculateMethodNameFingerprint() {
   const NameIndex name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (I->strong() && !H.IsRoot(name) && !H.IsField(name)) {
+  if (FLAG_strong && !H.IsRoot(name) && !H.IsField(name)) {
     BuildHash(H.DartProcedureName(name).Hash());
   }
 }

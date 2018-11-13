@@ -8,33 +8,30 @@ import 'package:kernel/ast.dart'
         DartType,
         DartTypeVisitor,
         DynamicType,
+        Field,
         FunctionType,
         InterfaceType,
-        Node,
         TypeParameter,
         TypeParameterType,
         TypedefType,
         VariableDeclaration;
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
 
-import '../../base/instrumentation.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import '../builder/library_builder.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../kernel/kernel_shadow_ast.dart';
+import '../../base/instrumentation.dart' show Instrumentation;
 
-import '../kernel/toplevel_inference_factory.dart';
+import '../kernel/kernel_builder.dart'
+    show LibraryBuilder, KernelLibraryBuilder;
+
+import '../kernel/kernel_shadow_ast.dart' show ShadowField;
 
 import '../messages.dart' show noLength, templateCantInferTypeDueToCircularity;
 
-import '../source/source_library_builder.dart';
+import 'type_inferrer.dart' show TypeInferrer, TypeInferrerImpl;
 
-import 'type_inference_listener.dart' show TypeInferenceListener;
-
-import 'type_inferrer.dart';
-
-import 'type_schema_environment.dart';
+import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.
@@ -57,11 +54,11 @@ class FieldInitializerInferenceNode extends InferenceNode {
       // typeInferrer to be null.  If this happens, just skip type inference for
       // this field.
       if (typeInferrer != null) {
-        var inferredType = typeInferrer.inferDeclarationType(typeInferrer
-            .inferFieldTopLevel(toplevelInferenceFactory, field, true));
+        var inferredType = typeInferrer
+            .inferDeclarationType(typeInferrer.inferFieldTopLevel(field));
         if (isCircular) {
           // Report the appropriate error.
-          _library.addCompileTimeError(
+          _library.addProblem(
               templateCantInferTypeDueToCircularity
                   .withArguments(field.name.name),
               field.fileOffset,
@@ -241,17 +238,12 @@ abstract class TypeInferenceEngine {
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
-      Uri uri,
-      TypeInferenceListener<int, Node, int> listener,
-      InterfaceType thisType,
-      SourceLibraryBuilder library);
+      Uri uri, InterfaceType thisType, KernelLibraryBuilder library);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(
-      TypeInferenceListener<int, Node, int> listener,
-      InterfaceType thisType,
-      ShadowField field);
+      InterfaceType thisType, ShadowField field, KernelLibraryBuilder library);
 
   /// Retrieve the [TypeInferrer] for the given [field], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
@@ -286,9 +278,9 @@ abstract class TypeInferenceEngine {
 
   void inferInitializingFormal(VariableDeclaration formal, Constructor parent) {
     if (formal.type == null) {
-      for (ShadowField field in parent.enclosingClass.fields) {
+      for (Field field in parent.enclosingClass.fields) {
         if (field.name.name == formal.name) {
-          if (field.inferenceNode != null) {
+          if (field is ShadowField && field.inferenceNode != null) {
             field.inferenceNode.resolve();
           }
           formal.type = field.type;

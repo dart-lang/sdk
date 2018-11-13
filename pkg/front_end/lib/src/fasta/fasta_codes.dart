@@ -4,9 +4,12 @@
 
 library fasta.codes;
 
-import 'package:kernel/ast.dart' show Constant, DartType;
+import 'package:kernel/ast.dart'
+    show Constant, DartType, demangleMixinApplicationName;
 
 import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
+
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
 
@@ -21,16 +24,20 @@ const int noLength = 1;
 class Code<T> {
   final String name;
 
+  /// The unique positive integer associated with this code,
+  /// or `-1` if none. This index is used when translating
+  /// this error to its corresponding Analyzer error.
+  final int index;
+
   final Template<T> template;
 
-  final String analyzerCode;
-
-  final String dart2jsCode;
+  final List<String> analyzerCodes;
 
   final Severity severity;
 
   const Code(this.name, this.template,
-      {this.analyzerCode, this.dart2jsCode, this.severity});
+      {int index, this.analyzerCodes, this.severity: Severity.error})
+      : this.index = index ?? -1;
 
   String toString() => name;
 }
@@ -61,15 +68,13 @@ class MessageCode extends Code<Null> implements Message {
   final String tip;
 
   const MessageCode(String name,
-      {String analyzerCode,
-      String dart2jsCode,
-      Severity severity,
+      {int index,
+      List<String> analyzerCodes,
+      Severity severity: Severity.error,
       this.message,
       this.tip})
       : super(name, null,
-            analyzerCode: analyzerCode,
-            dart2jsCode: dart2jsCode,
-            severity: severity);
+            index: index, analyzerCodes: analyzerCodes, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
@@ -123,12 +128,14 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     return message.compareTo(message);
   }
 
-  FormattedMessage withFormatting(String formatted, int line, int column) {
-    return new FormattedMessage(this, formatted, line, column);
+  FormattedMessage withFormatting(String formatted, int line, int column,
+      Severity severity, List<FormattedMessage> relatedInformation) {
+    return new FormattedMessage(
+        this, formatted, line, column, severity, relatedInformation);
   }
 }
 
-class FormattedMessage {
+class FormattedMessage implements DiagnosticMessage {
   final LocatedMessage locatedMessage;
 
   final String formatted;
@@ -137,8 +144,13 @@ class FormattedMessage {
 
   final int column;
 
-  const FormattedMessage(
-      this.locatedMessage, this.formatted, this.line, this.column);
+  @override
+  final Severity severity;
+
+  final List<FormattedMessage> relatedInformation;
+
+  const FormattedMessage(this.locatedMessage, this.formatted, this.line,
+      this.column, this.severity, this.relatedInformation);
 
   Code get code => locatedMessage.code;
 
@@ -147,6 +159,28 @@ class FormattedMessage {
   String get tip => locatedMessage.tip;
 
   Map<String, dynamic> get arguments => locatedMessage.arguments;
+
+  Uri get uri => locatedMessage.uri;
+
+  int get charOffset => locatedMessage.charOffset;
+
+  int get length => locatedMessage.length;
+
+  @override
+  Iterable<String> get ansiFormatted sync* {
+    yield formatted;
+    if (relatedInformation != null) {
+      for (FormattedMessage m in relatedInformation) {
+        yield m.formatted;
+      }
+    }
+  }
+
+  @override
+  Iterable<String> get plainTextFormatted {
+    // TODO(ahe): Implement this correctly.
+    return ansiFormatted;
+  }
 }
 
 String relativizeUri(Uri uri) {

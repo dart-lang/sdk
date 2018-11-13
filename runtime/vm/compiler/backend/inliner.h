@@ -15,6 +15,8 @@ class Field;
 class FlowGraph;
 class ForwardInstructionIterator;
 class Function;
+class FunctionEntryInstr;
+class GraphEntryInstr;
 class ICData;
 class InstanceCallInstr;
 class Instruction;
@@ -110,6 +112,11 @@ class FlowGraphInliner : ValueObject {
     return speculative_policy_;
   }
 
+  struct ExactnessInfo {
+    const bool is_exact;
+    bool emit_exactness_guard;
+  };
+
   static bool TryReplaceInstanceCallWithInline(
       FlowGraph* flow_graph,
       ForwardInstructionIterator* iterator,
@@ -129,9 +136,11 @@ class FlowGraphInliner : ValueObject {
                                         Definition* receiver,
                                         TokenPosition token_pos,
                                         const ICData* ic_data,
-                                        TargetEntryInstr** entry,
+                                        GraphEntryInstr* graph_entry,
+                                        FunctionEntryInstr** entry,
                                         Instruction** last,
-                                        SpeculativeInliningPolicy* policy);
+                                        SpeculativeInliningPolicy* policy,
+                                        ExactnessInfo* exactness = nullptr);
 
  private:
   friend class CallSiteInliner;

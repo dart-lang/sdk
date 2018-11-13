@@ -1,7 +1,6 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'test_helper.dart';
 import 'dart:async';
@@ -72,11 +71,8 @@ var tests = <IsolateTest>[
     expect(reasonForCancelling['type'], equals('ReasonForCancelling'));
     expect(reasonForCancelling['message'], contains('library_isnt_here_man'));
 
-    // TODO(32341): enable in Dart 2
-    if (!Platform.executableArguments.contains("--preview_dart_2")) {
-      String v2 = await invokeTest(spawnedIsolate);
-      expect(v2, 'apple');
-    }
+    String v2 = await invokeTest(spawnedIsolate);
+    expect(v2, 'apple');
   }
 ];
 

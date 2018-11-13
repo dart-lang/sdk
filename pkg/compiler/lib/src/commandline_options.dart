@@ -26,23 +26,20 @@ class Flags {
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
       '--experimental-allocations-path';
+
+  // Temporary experiment for code generation of locals for frequently used
+  // 'this' and constants.
+  static const String experimentLocalNames = '--experiment-code-1';
+
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
 
-  /// TODO(sigmund): delete these flags.
-  static const String useKernel = '--use-kernel';
-  static const String useOldFrontend = '--use-old-frontend';
-
-  static const String strongMode = '--strong';
   static const String previewDart2 = '--preview-dart-2';
-  // Revert to Dart 1.0
-  //
-  // Temporary option to opt-out of Dart 2.0 while migrating.
-  static const String noPreviewDart2 = '--no-preview-dart-2';
 
   static const String omitImplicitChecks = '--omit-implicit-checks';
+  static const String omitAsCasts = '--omit-as-casts';
   static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
 
   static const String platformBinaries = '--platform-binaries=.+';

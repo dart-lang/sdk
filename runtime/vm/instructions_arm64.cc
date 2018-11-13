@@ -170,11 +170,7 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   return start;
 }
 
-// Decodes a load sequence ending at 'end' (the last instruction of the load
-// sequence is the instruction before the one at end).  Returns a pointer to
-// the first instruction in the sequence.  Returns the register being loaded
-// and the index in the pool being read from in the output parameters 'reg'
-// and 'index' respectively.
+// See comment in instructions_arm64.h
 uword InstructionPattern::DecodeLoadWordFromPool(uword end,
                                                  Register* reg,
                                                  intptr_t* index) {
@@ -239,6 +235,74 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   // PP is untagged on ARM64.
   ASSERT(Utils::IsAligned(offset, 8));
   *index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
+  return start;
+}
+
+// See comment in instructions_arm64.h
+uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
+                                                       Register* reg1,
+                                                       Register* reg2,
+                                                       intptr_t* index) {
+  // Cases:
+  //
+  //   1. ldp reg1, reg2, [pp, offset]
+  //
+  //   2. add tmp, pp, #upper12
+  //      ldp reg1, reg2, [tmp, #lower12]
+  //
+  //   3. add tmp, pp, #upper12
+  //      add tmp, tmp, #lower12
+  //      ldp reg1, reg2, [tmp, 0]
+  //
+  // Note that the pp register is untagged!
+  //
+  uword start = end - Instr::kInstrSize;
+  Instr* ldr_instr = Instr::At(start);
+
+  // Last instruction is always an ldp into two 64-bit X registers.
+  RELEASE_ASSERT(ldr_instr->IsLoadStoreRegPairOp() &&
+                 (ldr_instr->Bit(22) == 1));
+
+  // Grab the destination register from the ldp instruction.
+  *reg1 = ldr_instr->RtField();
+  *reg2 = ldr_instr->Rt2Field();
+
+  Register base_reg = ldr_instr->RnField();
+  const int base_offset = 8 * ldr_instr->Imm7Field();
+
+  intptr_t pool_offset = 0;
+  if (base_reg == PP) {
+    // Case 1.
+    pool_offset = base_offset;
+  } else {
+    // Case 2 & 3.
+    RELEASE_ASSERT(base_reg == TMP);
+
+    pool_offset = base_offset;
+
+    start -= Instr::kInstrSize;
+    Instr* add_instr = Instr::At(start);
+    RELEASE_ASSERT(add_instr->IsAddSubImmOp());
+    RELEASE_ASSERT(add_instr->RdField() == TMP);
+
+    const auto shift = add_instr->Imm12ShiftField();
+    RELEASE_ASSERT(shift == 0 || shift == 1);
+    pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+
+    if (add_instr->RnField() == TMP) {
+      start -= Instr::kInstrSize;
+      Instr* prev_add_instr = Instr::At(start);
+      RELEASE_ASSERT(prev_add_instr->IsAddSubImmOp());
+      RELEASE_ASSERT(prev_add_instr->RnField() == PP);
+
+      const auto shift = prev_add_instr->Imm12ShiftField();
+      RELEASE_ASSERT(shift == 0 || shift == 1);
+      pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+    } else {
+      RELEASE_ASSERT(add_instr->RnField() == PP);
+    }
+  }
+  *index = ObjectPool::IndexFromOffset(pool_offset - kHeapObjectTag);
   return start;
 }
 
@@ -315,13 +379,15 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   // Last instruction: blr ip0.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
 
-  Register reg;
-  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
-      pc - Instr::kInstrSize, &reg, &data_pool_index_);
-  ASSERT(reg == R5);
-  InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
-                                             &reg, &target_pool_index_);
-  ASSERT(reg == CODE_REG);
+  Register ic_data_reg, code_reg;
+  intptr_t pool_index;
+  InstructionPattern::DecodeLoadDoubleWordFromPool(
+      pc - 2 * Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+  RELEASE_ASSERT(ic_data_reg == R5);
+  RELEASE_ASSERT(code_reg == CODE_REG);
+
+  data_pool_index_ = pool_index;
+  target_pool_index_ = pool_index + 1;
 }
 
 RawObject* SwitchableCallPattern::data() const {

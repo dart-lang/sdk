@@ -6,6 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:smith/smith.dart';
+export 'package:smith/smith.dart';
+
 import 'compiler_configuration.dart';
 import 'http_server.dart';
 import 'path.dart';
@@ -17,45 +20,30 @@ import 'runtime_configuration.dart';
 ///
 /// Includes the compiler used to compile the code, the runtime the result is
 /// executed on, etc.
-class Configuration {
-  Configuration(
-      {this.architecture,
-      this.compiler,
-      this.mode,
+class TestConfiguration {
+  TestConfiguration(
+      {this.configuration,
       this.progress,
-      this.runtime,
-      this.system,
       this.selectors,
+      this.testList,
       this.appendLogs,
+      this.repeat,
       this.batch,
       this.batchDart2JS,
       this.copyCoreDumps,
-      this.hotReload,
-      this.hotReloadRollback,
-      this.isChecked,
-      this.isHostChecked,
-      this.isCsp,
-      this.isMinified,
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
-      this.noPreviewDart2,
       this.printTiming,
       this.printReport,
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
-      this.useAnalyzerCfe,
-      this.useAnalyzerFastaParser,
-      this.useBlobs,
-      this.useSdk,
-      this.useFastStartup,
-      this.useEnableAsserts,
-      this.useDart2JSWithKernel,
-      this.useDart2JSOldFrontend,
+      this.useKernelBytecode,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
+      this.writeResults,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -64,7 +52,6 @@ class Configuration {
       this.dartPrecompiledPath,
       this.flutterPath,
       this.taskCount,
-      int timeout,
       this.shardCount,
       this.shard,
       this.stepName,
@@ -73,26 +60,20 @@ class Configuration {
       this.testDriverErrorPort,
       this.localIP,
       this.dart2jsOptions,
-      this.vmOptions,
       String packages,
       this.packageRoot,
       this.suiteDirectory,
-      this.builderTag,
       this.outputDirectory,
       this.reproducingArguments,
       this.fastTestsOnly,
       this.printPassingStdout})
-      : _packages = packages,
-        _timeout = timeout;
-
-  final Architecture architecture;
-  final Compiler compiler;
-  final Mode mode;
-  final Progress progress;
-  final Runtime runtime;
-  final System system;
+      : _packages = packages;
 
   final Map<String, RegExp> selectors;
+  final Progress progress;
+  // The test configuration read from the -n option and the test matrix
+  // or else computed from the test options.
+  final Configuration configuration;
 
   // Boolean flags.
 
@@ -101,33 +82,43 @@ class Configuration {
   final bool batchDart2JS;
   final bool copyCoreDumps;
   final bool fastTestsOnly;
-  final bool hotReload;
-  final bool hotReloadRollback;
-  final bool isChecked;
-  final bool isHostChecked;
-  final bool isCsp;
-  final bool isMinified;
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
-  final bool noPreviewDart2;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
-  final bool useAnalyzerCfe;
-  final bool useAnalyzerFastaParser;
-  final bool useBlobs;
-  final bool useSdk;
-  final bool useFastStartup;
-  final bool useEnableAsserts;
-  final bool useDart2JSWithKernel;
-  final bool useDart2JSOldFrontend;
+  final bool useKernelBytecode;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
+  final bool writeResults;
   final bool printPassingStdout;
+
+  Architecture get architecture => configuration.architecture;
+  Compiler get compiler => configuration.compiler;
+  Mode get mode => configuration.mode;
+  Runtime get runtime => configuration.runtime;
+  System get system => configuration.system;
+
+  // Boolean getters
+  bool get hotReload => configuration.useHotReload;
+  bool get hotReloadRollback => configuration.useHotReloadRollback;
+  bool get isChecked => configuration.isChecked;
+  bool get isHostChecked => configuration.isHostChecked;
+  bool get isCsp => configuration.isCsp;
+  bool get isMinified => configuration.isMinified;
+  bool get noPreviewDart2 => !configuration.previewDart2;
+  bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
+  bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
+  bool get useBlobs => configuration.useBlobs;
+  bool get useSdk => configuration.useSdk;
+  bool get useFastStartup => configuration.useFastStartup;
+  bool get useEnableAsserts => configuration.enableAsserts;
+  bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
+  bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
 
   // Various file paths.
 
@@ -138,10 +129,12 @@ class Configuration {
   final String dartPath;
   final String dartPrecompiledPath;
   final String flutterPath;
+  final List<String> testList;
 
   final int taskCount;
   final int shardCount;
   final int shard;
+  final int repeat;
   final String stepName;
 
   final int testServerPort;
@@ -153,9 +146,10 @@ class Configuration {
   final List<String> dart2jsOptions;
 
   /// Extra VM options passed to the testing script.
-  final List<String> vmOptions;
+  List<String> get vmOptions => configuration.vmOptions;
 
   String _packages;
+
   String get packages {
     // If the .packages file path wasn't given, find it.
     if (packageRoot == null && _packages == null) {
@@ -168,10 +162,11 @@ class Configuration {
   final String outputDirectory;
   final String packageRoot;
   final String suiteDirectory;
-  final String builderTag;
+  String get builderTag => configuration.builderTag;
   final List<String> reproducingArguments;
 
   TestingServers _servers;
+
   TestingServers get servers {
     if (_servers == null) {
       throw new StateError("Servers have not been started yet.");
@@ -186,19 +181,19 @@ class Configuration {
       Compiler.appJitk,
       Compiler.dartdevk,
       Compiler.dartk,
+      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.fasta,
     ];
     return fastaCompilers.contains(compiler) ||
-        (compiler == Compiler.dart2js && !useDart2JSOldFrontend) ||
-        (compiler == Compiler.dart2analyzer &&
-            (builderTag == 'analyzer_use_fasta' || useAnalyzerCfe));
+        (compiler == Compiler.dart2js && !useDart2JSOldFrontend);
   }
 
   /// The base directory named for this configuration, like:
   ///
   ///     none_vm_release_x64
   String _configurationDirectory;
+
   String get configurationDirectory {
     // Lazy initialize and cache since it requires hitting the file system.
     if (_configurationDirectory == null) {
@@ -213,9 +208,11 @@ class Configuration {
   ///     build/none_vm_release_x64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
-  int _timeout;
+  // TODO(whesse): Put non-default timeouts explicitly in configs, not this.
+  /// Calculates a default timeout based on the compiler and runtime used,
+  /// and the mode, architecture, etc.
   int get timeout {
-    if (_timeout == null) {
+    if (configuration.timeout == null) {
       var isReload = hotReload || hotReloadRollback;
 
       var compilerMulitiplier = compilerConfiguration.timeoutMultiplier;
@@ -225,10 +222,10 @@ class Configuration {
           isReload: isReload,
           arch: architecture);
 
-      _timeout = 60 * compilerMulitiplier * runtimeMultiplier;
+      configuration.timeout = 60 * compilerMulitiplier * runtimeMultiplier;
     }
 
-    return _timeout;
+    return configuration.timeout;
   }
 
   List<String> get standardOptions {
@@ -254,6 +251,7 @@ class Configuration {
   }
 
   String _windowsSdkPath;
+
   String get windowsSdkPath {
     if (!Platform.isWindows) {
       throw new StateError(
@@ -284,9 +282,6 @@ class Configuration {
       case Runtime.chrome:
         location = chromePath;
         break;
-      case Runtime.drt:
-        location = drtPath;
-        break;
       case Runtime.firefox:
         location = firefoxPath;
         break;
@@ -302,28 +297,28 @@ class Configuration {
 
     const locations = const {
       Runtime.firefox: const {
-        System.windows: 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
+        System.win: 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
         System.linux: 'firefox',
-        System.macos: '/Applications/Firefox.app/Contents/MacOS/firefox'
+        System.mac: '/Applications/Firefox.app/Contents/MacOS/firefox'
       },
       Runtime.chrome: const {
-        System.windows:
+        System.win:
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        System.macos:
+        System.mac:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         System.linux: 'google-chrome'
       },
       Runtime.safari: const {
-        System.macos: '/Applications/Safari.app/Contents/MacOS/Safari'
+        System.mac: '/Applications/Safari.app/Contents/MacOS/Safari'
       },
       Runtime.ie9: const {
-        System.windows: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       },
       Runtime.ie10: const {
-        System.windows: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       },
       Runtime.ie11: const {
-        System.windows: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       }
     };
 
@@ -337,10 +332,12 @@ class Configuration {
   }
 
   RuntimeConfiguration _runtimeConfiguration;
+
   RuntimeConfiguration get runtimeConfiguration =>
       _runtimeConfiguration ??= new RuntimeConfiguration(this);
 
   CompilerConfiguration _compilerConfiguration;
+
   CompilerConfiguration get compilerConfiguration =>
       _compilerConfiguration ??= new CompilerConfiguration(this);
 
@@ -477,228 +474,12 @@ class Configuration {
         'batch': batch,
         'batch_dart2js': batchDart2JS,
         'reset_browser_configuration': resetBrowser,
-        'selectors': selectors.keys.toList()
+        'selectors': selectors.keys.toList(),
+        'use_kernel_bytecode': useKernelBytecode,
       };
     }
     return _summaryMap;
   }
-}
-
-class Architecture {
-  static const ia32 = const Architecture._('ia32');
-  static const x64 = const Architecture._('x64');
-  static const arm = const Architecture._('arm');
-  static const armv6 = const Architecture._('armv6');
-  static const armv5te = const Architecture._('armv5te');
-  static const arm64 = const Architecture._('arm64');
-  static const simarm = const Architecture._('simarm');
-  static const simarmv6 = const Architecture._('simarmv6');
-  static const simarmv5te = const Architecture._('simarmv5te');
-  static const simarm64 = const Architecture._('simarm64');
-  static const simdbc = const Architecture._('simdbc');
-  static const simdbc64 = const Architecture._('simdbc64');
-
-  static final List<String> names = _all.keys.toList();
-
-  static final _all = new Map<String, Architecture>.fromIterable([
-    ia32,
-    x64,
-    arm,
-    armv6,
-    armv5te,
-    arm64,
-    simarm,
-    simarmv6,
-    simarmv5te,
-    simarm64,
-    simdbc,
-    simdbc64
-  ], key: (architecture) => (architecture as Architecture).name);
-
-  static Architecture find(String name) {
-    var architecture = _all[name];
-    if (architecture != null) return architecture;
-
-    throw new ArgumentError('Unknown architecture "$name".');
-  }
-
-  final String name;
-
-  const Architecture._(this.name);
-
-  String toString() => "Architecture($name)";
-}
-
-class Compiler {
-  static const none = const Compiler._('none');
-  static const precompiler = const Compiler._('precompiler');
-  static const dart2js = const Compiler._('dart2js');
-  static const dart2analyzer = const Compiler._('dart2analyzer');
-  static const dartdevc = const Compiler._('dartdevc');
-  static const dartdevk = const Compiler._('dartdevk');
-  static const appJit = const Compiler._('app_jit');
-  static const appJitk = const Compiler._('app_jitk');
-  static const dartk = const Compiler._('dartk');
-  static const dartkp = const Compiler._('dartkp');
-  static const specParser = const Compiler._('spec_parser');
-  static const fasta = const Compiler._('fasta');
-
-  static final List<String> names = _all.keys.toList();
-
-  static final _all = new Map<String, Compiler>.fromIterable([
-    none,
-    precompiler,
-    dart2js,
-    dart2analyzer,
-    dartdevc,
-    dartdevk,
-    appJit,
-    appJitk,
-    dartk,
-    dartkp,
-    specParser,
-    fasta,
-  ], key: (compiler) => (compiler as Compiler).name);
-
-  static Compiler find(String name) {
-    var compiler = _all[name];
-    if (compiler != null) return compiler;
-
-    throw new ArgumentError('Unknown compiler "$name".');
-  }
-
-  final String name;
-
-  const Compiler._(this.name);
-
-  /// Gets the runtimes this compiler can target.
-  List<Runtime> get supportedRuntimes {
-    switch (this) {
-      case Compiler.dart2js:
-        // Note: by adding 'none' as a configuration, if the user
-        // runs test.py -c dart2js -r drt,none the dart2js_none and
-        // dart2js_drt will be duplicating work. If later we don't need 'none'
-        // with dart2js, we should remove it from here.
-        return const [
-          Runtime.d8,
-          Runtime.jsshell,
-          Runtime.drt,
-          Runtime.none,
-          Runtime.firefox,
-          Runtime.chrome,
-          Runtime.safari,
-          Runtime.ie9,
-          Runtime.ie10,
-          Runtime.ie11,
-          Runtime.opera,
-          Runtime.chromeOnAndroid,
-        ];
-
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
-        // TODO(rnystrom): Expand to support other JS execution environments
-        // (other browsers, d8) when tested and working.
-        return const [
-          Runtime.none,
-          Runtime.drt,
-          Runtime.chrome,
-        ];
-
-      case Compiler.dart2analyzer:
-        return const [Runtime.none];
-      case Compiler.appJit:
-      case Compiler.appJitk:
-      case Compiler.dartk:
-        return const [Runtime.vm, Runtime.selfCheck];
-      case Compiler.precompiler:
-      case Compiler.dartkp:
-        return const [Runtime.dartPrecompiled];
-      case Compiler.specParser:
-        return const [Runtime.none];
-      case Compiler.fasta:
-        return const [Runtime.none];
-      case Compiler.none:
-        return const [
-          Runtime.vm,
-          Runtime.flutter,
-          Runtime.drt,
-          Runtime.contentShellOnAndroid
-        ];
-    }
-
-    throw "unreachable";
-  }
-
-  /// The preferred runtime to use with this compiler if no other runtime is
-  /// specified.
-  Runtime get defaultRuntime {
-    switch (this) {
-      case Compiler.dart2js:
-        return Runtime.d8;
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
-        return Runtime.chrome;
-      case Compiler.dart2analyzer:
-        return Runtime.none;
-      case Compiler.appJit:
-      case Compiler.appJitk:
-      case Compiler.dartk:
-        return Runtime.vm;
-      case Compiler.precompiler:
-      case Compiler.dartkp:
-        return Runtime.dartPrecompiled;
-      case Compiler.specParser:
-      case Compiler.fasta:
-        return Runtime.none;
-      case Compiler.none:
-        return Runtime.vm;
-    }
-
-    throw "unreachable";
-  }
-
-  Mode get defaultMode {
-    switch (this) {
-      case Compiler.dart2analyzer:
-      case Compiler.dart2js:
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
-      case Compiler.fasta:
-        return Mode.release;
-
-      default:
-        return Mode.debug;
-    }
-  }
-
-  String toString() => "Compiler($name)";
-}
-
-class Mode {
-  static const debug = const Mode._('debug');
-  static const product = const Mode._('product');
-  static const release = const Mode._('release');
-
-  static final List<String> names = _all.keys.toList();
-
-  static final _all = new Map<String, Mode>.fromIterable(
-      [debug, product, release],
-      key: (mode) => (mode as Mode).name);
-
-  static Mode find(String name) {
-    var mode = _all[name];
-    if (mode != null) return mode;
-
-    throw new ArgumentError('Unknown mode "$name".');
-  }
-
-  final String name;
-
-  const Mode._(this.name);
-
-  bool get isDebug => this == debug;
-
-  String toString() => "Mode($name)";
 }
 
 class Progress {
@@ -729,164 +510,4 @@ class Progress {
   const Progress._(this.name);
 
   String toString() => "Progress($name)";
-}
-
-class Runtime {
-  static const vm = const Runtime._('vm');
-  static const flutter = const Runtime._('flutter');
-  static const dartPrecompiled = const Runtime._('dart_precompiled');
-  static const d8 = const Runtime._('d8');
-  static const jsshell = const Runtime._('jsshell');
-  static const drt = const Runtime._('drt');
-  static const firefox = const Runtime._('firefox');
-  static const chrome = const Runtime._('chrome');
-  static const safari = const Runtime._('safari');
-  static const ie9 = const Runtime._('ie9');
-  static const ie10 = const Runtime._('ie10');
-  static const ie11 = const Runtime._('ie11');
-  static const opera = const Runtime._('opera');
-  static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
-  static const contentShellOnAndroid = const Runtime._('ContentShellOnAndroid');
-  static const selfCheck = const Runtime._('self_check');
-  static const none = const Runtime._('none');
-
-  static final List<String> names = _all.keys.toList()..add("ff");
-
-  static final _all = new Map<String, Runtime>.fromIterable([
-    vm,
-    flutter,
-    dartPrecompiled,
-    d8,
-    jsshell,
-    drt,
-    firefox,
-    chrome,
-    safari,
-    ie9,
-    ie10,
-    ie11,
-    opera,
-    chromeOnAndroid,
-    contentShellOnAndroid,
-    selfCheck,
-    none
-  ], key: (runtime) => (runtime as Runtime).name);
-
-  static Runtime find(String name) {
-    // Allow "ff" as a synonym for Firefox.
-    if (name == "ff") return firefox;
-
-    var runtime = _all[name];
-    if (runtime != null) return runtime;
-
-    throw new ArgumentError('Unknown runtime "$name".');
-  }
-
-  final String name;
-
-  const Runtime._(this.name);
-
-  bool get isBrowser => const [
-        drt,
-        ie9,
-        ie10,
-        ie11,
-        safari,
-        opera,
-        chrome,
-        firefox,
-        chromeOnAndroid,
-        contentShellOnAndroid
-      ].contains(this);
-
-  bool get isIE => name.startsWith("ie");
-
-  bool get isSafari => name.startsWith("safari");
-
-  /// Whether this runtime is a command-line JavaScript environment.
-  bool get isJSCommandLine => const [d8, jsshell].contains(this);
-
-  /// If the runtime doesn't support `Window.open`, we use iframes instead.
-  bool get requiresIFrame => !const [ie11, ie10].contains(this);
-
-  /// The preferred compiler to use with this runtime if no other compiler is
-  /// specified.
-  Compiler get defaultCompiler {
-    switch (this) {
-      case vm:
-      case flutter:
-      case drt:
-        return Compiler.none;
-
-      case dartPrecompiled:
-        return Compiler.precompiler;
-
-      case d8:
-      case jsshell:
-      case firefox:
-      case chrome:
-      case safari:
-      case ie9:
-      case ie10:
-      case ie11:
-      case opera:
-      case chromeOnAndroid:
-      case contentShellOnAndroid:
-        return Compiler.dart2js;
-
-      case selfCheck:
-        return Compiler.dartk;
-
-      case none:
-        // If we aren't running it, we probably just want to analyze it.
-        return Compiler.dart2analyzer;
-    }
-
-    throw "unreachable";
-  }
-
-  String toString() => "Runtime($name)";
-}
-
-class System {
-  static const android = const System._('android');
-  static const fuchsia = const System._('fuchsia');
-  static const linux = const System._('linux');
-  static const macos = const System._('macos');
-  static const windows = const System._('windows');
-
-  static final List<String> names = _all.keys.toList();
-
-  static final _all = new Map<String, System>.fromIterable(
-      [android, fuchsia, linux, macos, windows],
-      key: (system) => (system as System).name);
-
-  static System find(String name) {
-    var system = _all[name];
-    if (system != null) return system;
-
-    throw new ArgumentError('Unknown operating system "$name".');
-  }
-
-  final String name;
-
-  const System._(this.name);
-
-  /// The root directory name for build outputs on this system.
-  String get outputDirectory {
-    switch (this) {
-      case android:
-      case fuchsia:
-      case linux:
-      case windows:
-        return 'out/';
-
-      case macos:
-        return 'xcodebuild/';
-    }
-
-    throw "unreachable";
-  }
-
-  String toString() => "System($name)";
 }

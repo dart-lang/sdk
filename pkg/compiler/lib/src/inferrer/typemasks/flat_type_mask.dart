@@ -9,6 +9,10 @@ part of masks;
  * base type.
  */
 class FlatTypeMask implements TypeMask {
+  /// Tag used for identifying serialized [FlatTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'flat-type-mask';
+
   static const int EMPTY = 0;
   static const int EXACT = 1;
   static const int SUBCLASS = 2;
@@ -39,10 +43,6 @@ class FlatTypeMask implements TypeMask {
   FlatTypeMask.nonNullSubtype(ClassEntity base)
       : this.internal(base, SUBTYPE << 1);
 
-  ClassQuery get _classQuery => isExact
-      ? ClassQuery.EXACT
-      : (isSubclass ? ClassQuery.SUBCLASS : ClassQuery.SUBTYPE);
-
   FlatTypeMask.internal(this.base, this.flags);
 
   /**
@@ -68,6 +68,31 @@ class FlatTypeMask implements TypeMask {
     return commonMasks.getCachedMask(
         base, flags, () => new FlatTypeMask.internal(base, flags));
   }
+
+  /// Deserializes a [FlatTypeMask] object from [source].
+  factory FlatTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    ClassEntity base = source.readClassOrNull();
+    int flags = source.readInt();
+    source.end(tag);
+    CommonMasks commonMasks = closedWorld.abstractValueDomain;
+    return commonMasks.getCachedMask(
+        base, flags, () => new FlatTypeMask.internal(base, flags));
+  }
+
+  /// Serializes this [FlatTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.flat);
+    sink.begin(tag);
+    sink.writeClassOrNull(base);
+    sink.writeInt(flags);
+    sink.end(tag);
+  }
+
+  ClassQuery get _classQuery => isExact
+      ? ClassQuery.EXACT
+      : (isSubclass ? ClassQuery.SUBCLASS : ClassQuery.SUBTYPE);
 
   bool get isEmpty => isEmptyOrNull && !isNullable;
   bool get isNull => isEmptyOrNull && isNullable;

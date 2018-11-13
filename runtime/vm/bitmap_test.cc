@@ -9,7 +9,7 @@
 
 namespace dart {
 
-TEST_CASE(BitmapBuilder) {
+ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   // Test basic bit map builder operations.
   BitmapBuilder* builder1 = new BitmapBuilder();
   EXPECT_EQ(0, builder1->Length());

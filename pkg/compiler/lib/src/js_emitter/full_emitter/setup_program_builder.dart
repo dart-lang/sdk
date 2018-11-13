@@ -37,8 +37,6 @@ jsAst.Statement buildSetupProgram(
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
   jsAst.Expression staticsAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.STATICS);
-  jsAst.Expression interceptedNamesAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTED_NAMES);
   jsAst.Expression mangledGlobalNamesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
   jsAst.Expression mangledNamesAccess =
@@ -94,9 +92,6 @@ jsAst.Statement buildSetupProgram(
     'staticsPropertyName': namer.staticsPropertyName,
     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
     'typeInformation': typeInformationAccess,
-    'enabledInvokeOn': closedWorld.backendUsage.isInvokeOnUsed,
-    'interceptedNames': interceptedNamesAccess,
-    'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
     'notInCspMode': !compiler.options.useContentSecurityPolicy,
     'inCspMode': compiler.options.useContentSecurityPolicy,
     'deferredAction': namer.deferredAction,
@@ -681,10 +676,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
         funcs.push(f);
         f.\$stubName = getterStubName;
         f.\$callName = null;
-        // Update the interceptedNames map (which only exists if `invokeOn` was
-        // enabled).
-        if (#enabledInvokeOn)
-          if (isIntercepted) #interceptedNames[getterStubName] = 1;
       }
 
       if (#usesMangledNames) {
@@ -735,8 +726,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
   if (!#mangledGlobalNames) #mangledGlobalNames = map();
   if (!#statics) #statics = map();
   if (!#typeInformation) #typeInformation = map();
-  if (#enabledInvokeOn)
-    if (!#interceptedNames) #interceptedNames = #interceptedNamesSet;
   var libraries = #libraries;
   var mangledNames = #mangledNames;
   var mangledGlobalNames = #mangledGlobalNames;

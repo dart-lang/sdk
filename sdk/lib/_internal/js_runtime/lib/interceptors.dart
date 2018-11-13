@@ -16,6 +16,7 @@ import 'dart:_js_helper'
         JSSyntaxRegExp,
         Primitives,
         argumentErrorValue,
+        checkBool,
         checkInt,
         checkNull,
         checkNum,
@@ -45,6 +46,7 @@ import 'dart:_js_helper'
 
 import 'dart:_foreign_helper'
     show
+        getInterceptor,
         JS,
         JS_EFFECT,
         JS_EMBEDDED_GLOBAL,
@@ -68,22 +70,6 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
     result[_symbolToString(key)] = value;
   });
   return result;
-}
-
-/**
- * Get the interceptor for [object]. Called by the compiler when it needs
- * to emit a call to an intercepted method, that is a method that is
- * defined in an interceptor class.
- */
-@NoInline()
-getInterceptor(object) {
-  // This is a magic method: the compiler does specialization of it
-  // depending on the uses of intercepted methods and instantiated
-  // primitive types.
-
-  // The [JS] call prevents the type analyzer from making assumptions about the
-  // return type.
-  return JS('', 'void 0');
 }
 
 getDispatchProperty(object) {
@@ -378,6 +364,12 @@ class JSBool extends Interceptor implements bool {
 
   // Note: if you change this, also change the function [S].
   String toString() => JS('String', r'String(#)', this);
+
+  bool operator &(bool other) => JS('bool', "# && #", checkBool(other), this);
+
+  bool operator |(bool other) => JS('bool', "# || #", checkBool(other), this);
+
+  bool operator ^(bool other) => !identical(this, checkBool(other));
 
   // The values here are SMIs, co-prime and differ about half of the bit
   // positions, including the low bit, so they are different mod 2^k.

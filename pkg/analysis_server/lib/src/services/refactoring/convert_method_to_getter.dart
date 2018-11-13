@@ -94,10 +94,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  @override
-  bool requiresPreview() => false;
-
-  Future<Null> _updateElementDeclaration(Element element) async {
+  Future<void> _updateElementDeclaration(Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare parameters
@@ -125,7 +122,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
   }
 
-  Future<Null> _updateElementReferences(Element element) async {
+  Future<void> _updateElementReferences(Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     List<SearchMatch> matches = await searchEngine.searchReferences(element);

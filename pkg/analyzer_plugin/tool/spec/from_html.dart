@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -127,7 +127,7 @@ class ApiReader {
         throw new Exception(
             '$context: Unexpected attribute in ${element.localName}: $name');
       }
-      attributesFound.add(name);
+      attributesFound.add(name as String);
     });
     for (String expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
@@ -296,7 +296,7 @@ class ApiReader {
         if (valueType == null) {
           throw new Exception('$context: Value type not specified');
         }
-        types.add(new TypeMap(keyType, valueType, child));
+        types.add(new TypeMap(keyType as TypeReference, valueType, child));
       },
       'enum': (dom.Element child) {
         types.add(typeEnumFromHtml(child, context));

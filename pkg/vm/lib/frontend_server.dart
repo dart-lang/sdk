@@ -15,11 +15,7 @@ import 'package:build_integration/file_system/multi_root.dart';
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
 // ignore_for_file: implementation_imports
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart'
-    show FileSystemEntity;
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -28,9 +24,11 @@ import 'package:kernel/kernel.dart'
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
+
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
     show compileToKernel, parseCommandLineDefines;
+import 'package:vm/target/install.dart' show installAdditionalTargets;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -45,17 +43,13 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
-  ..addFlag('strong',
-      help: 'Run compiler in strong mode (uses strong mode semantics)',
-      defaultsTo: false)
-  ..addFlag('sync-async',
-      help: 'Start `async` functions synchronously.', defaultsTo: true)
+  // TODO(alexmarkov): Cleanup uses in Flutter and remove these obsolete flags.
+  ..addFlag('strong', help: 'Obsolete', defaultsTo: true)
+  ..addFlag('sync-async', help: 'Obsolete', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
-  ..addMultiOption('entry-points',
-      help: 'Path to JSON file with the list of entry points')
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -96,7 +90,20 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addMultiOption('define',
       abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).');
+      help: 'The values for the environment constants (e.g. -Dkey=value).')
+  ..addFlag('embed-source-text',
+      help: 'Includes sources into generated dill file. Having sources'
+          ' allows to effectively use observatory to debug produced'
+          ' application, produces better stack traces on exceptions.',
+      defaultsTo: true)
+  ..addFlag('unsafe-package-serialization',
+      help: 'Potentially unsafe: Does not allow for invalidating packages, '
+          'additionally the output dill file might include more libraries than '
+          'needed. The use case is test-runs, where invalidation is not really '
+          'used, and where dill filesize does not matter, and the gain is '
+          'improved speed.',
+      defaultsTo: false,
+      hide: true);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -157,6 +164,10 @@ abstract class CompilerInterface {
   /// won't recompile sources that were previously reported as changed.
   void acceptLastDelta();
 
+  /// Rejects results of previous compilation and sets compiler back to last
+  /// accepted state.
+  Future<void> rejectLastDelta();
+
   /// This let's compiler know that source file identifed by `uri` was changed.
   void invalidate(Uri uri);
 
@@ -192,7 +203,7 @@ abstract class ProgramTransformer {
 /// Class that for test mocking purposes encapsulates creation of [BinaryPrinter].
 class BinaryPrinterFactory {
   /// Creates new [BinaryPrinter] to write to [targetSink].
-  BinaryPrinter newBinaryPrinter(IOSink targetSink) {
+  BinaryPrinter newBinaryPrinter(Sink<List<int>> targetSink) {
     return new LimitedBinaryPrinter(targetSink, (_) => true /* predicate */,
         false /* excludeUriToSource */);
   }
@@ -200,13 +211,16 @@ class BinaryPrinterFactory {
 
 class FrontendCompiler implements CompilerInterface {
   FrontendCompiler(this._outputStream,
-      {this.printerFactory, this.transformer}) {
+      {this.printerFactory,
+      this.transformer,
+      this.unsafePackageSerialization}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
 
   StringSink _outputStream;
   BinaryPrinterFactory printerFactory;
+  bool unsafePackageSerialization;
 
   CompilerOptions _compilerOptions;
   Uri _mainSource;
@@ -246,22 +260,21 @@ class FrontendCompiler implements CompilerInterface {
     final String boundaryKey = new Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
-    final String platformKernelDill = options['platform'] ??
-        (options['strong'] ? 'platform_strong.dill' : 'platform.dill');
+    final String platformKernelDill =
+        options['platform'] ?? 'platform_strong.dill';
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..packagesFileUri = _getFileOrUri(_options['packages'])
-      ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
-      ..onProblem =
-          (message, Severity severity, List<FormattedMessage> context) {
+      ..embedSourceText = options['embed-source-text']
+      ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
-        switch (severity) {
+        switch (message.severity) {
           case Severity.error:
           case Severity.internalProblem:
             printMessage = true;
-            errors.add(message.formatted);
+            errors.addAll(message.plainTextFormatted);
             break;
           case Severity.warning:
             printMessage = true;
@@ -269,13 +282,10 @@ class FrontendCompiler implements CompilerInterface {
           case Severity.errorLegacyWarning:
           case Severity.context:
           case Severity.ignored:
-            throw 'Unexpected severity: $severity';
+            throw 'Unexpected severity: ${message.severity}';
         }
         if (printMessage) {
-          _outputStream.writeln(message.formatted);
-          for (FormattedMessage message in context) {
-            _outputStream.writeln(message.formatted);
-          }
+          printDiagnosticMessage(message, _outputStream.writeln);
         }
       };
     if (options.wasParsed('filesystem-root')) {
@@ -300,9 +310,15 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
-    final TargetFlags targetFlags = new TargetFlags(
-        strongMode: options['strong'], syncAsync: options['sync-async']);
+    // Ensure that Flutter and VM targets are added to targets dictionary.
+    installAdditionalTargets();
+
+    final TargetFlags targetFlags = new TargetFlags(syncAsync: true);
     compilerOptions.target = getTarget(options['target'], targetFlags);
+    if (compilerOptions.target == null) {
+      print('Failed to create front-end target ${options['target']}.');
+      return false;
+    }
 
     final String importDill = options['import-dill'];
     if (importDill != null) {
@@ -330,7 +346,6 @@ class FrontendCompiler implements CompilerInterface {
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
-          entryPoints: options['entry-points'],
           environmentDefines: environmentDefines));
     }
     if (component != null) {
@@ -362,6 +377,20 @@ class FrontendCompiler implements CompilerInterface {
             sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
         : printerFactory.newBinaryPrinter(sink);
 
+    component.libraries.sort((Library l1, Library l2) {
+      return "${l1.fileUri}".compareTo("${l2.fileUri}");
+    });
+
+    component.computeCanonicalNames();
+    for (Library library in component.libraries) {
+      library.additionalExports.sort((Reference r1, Reference r2) {
+        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+      });
+    }
+    if (unsafePackageSerialization == true) {
+      writePackagesToSinkAndTrimComponent(component, sink);
+    }
+
     printer.writeComponentFile(component);
     await sink.close();
   }
@@ -390,8 +419,13 @@ class FrontendCompiler implements CompilerInterface {
       if (uri == null || '$uri' == '') continue nextUri;
 
       final List<int> oldBytes = component.uriToSource[uri].source;
-      final FileSystemEntity entity =
-          _compilerOptions.fileSystem.entityForUri(uri);
+      FileSystemEntity entity;
+      try {
+        entity = _compilerOptions.fileSystem.entityForUri(uri);
+      } catch (_) {
+        // Ignore errors that might be caused by non-file uris.
+        continue nextUri;
+      }
       if (!await entity.exists()) {
         _generator.invalidate(uri);
         continue nextUri;
@@ -425,11 +459,7 @@ class FrontendCompiler implements CompilerInterface {
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
-
-    final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-    final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-    printer.writeComponentFile(deltaProgram);
-    await sink.close();
+    await writeDillFile(deltaProgram, _kernelBinaryFilename);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -467,9 +497,110 @@ class FrontendCompiler implements CompilerInterface {
     _outputStream.writeln(boundaryKey);
   }
 
+  /// Map of already serialized dill data. All uris in a serialized component
+  /// maps to the same blob of data. Used by
+  /// [writePackagesToSinkAndTrimComponent].
+  Map<Uri, List<int>> cachedPackageLibraries = new Map<Uri, List<int>>();
+
+  /// Map of dependencies for already serialized dill data.
+  /// E.g. if blob1 dependents on blob2, but only using a single file from blob1
+  /// that does not dependent on blob2, blob2 would not be included leaving the
+  /// dill file in a weird state that could cause the VM to crash if asked to
+  /// forcefully compile everything. Used by
+  /// [writePackagesToSinkAndTrimComponent].
+  Map<Uri, List<Uri>> cachedPackageDependencies = new Map<Uri, List<Uri>>();
+
+  writePackagesToSinkAndTrimComponent(
+      Component deltaProgram, Sink<List<int>> ioSink) {
+    if (deltaProgram == null) return;
+
+    List<Library> packageLibraries = new List<Library>();
+    List<Library> libraries = new List<Library>();
+    deltaProgram.computeCanonicalNames();
+
+    for (var lib in deltaProgram.libraries) {
+      Uri uri = lib.importUri;
+      if (uri.scheme == "package") {
+        packageLibraries.add(lib);
+      } else {
+        libraries.add(lib);
+      }
+    }
+    deltaProgram.libraries
+      ..clear()
+      ..addAll(libraries);
+
+    Map<String, List<Library>> newPackages = new Map<String, List<Library>>();
+    Set<List<int>> alreadyAdded = new Set<List<int>>();
+
+    addDataAndDependentData(List<int> data, Uri uri) {
+      if (alreadyAdded.add(data)) {
+        ioSink.add(data);
+        // Now also add all dependencies.
+        for (Uri dep in cachedPackageDependencies[uri]) {
+          addDataAndDependentData(cachedPackageLibraries[dep], dep);
+        }
+      }
+    }
+
+    for (Library lib in packageLibraries) {
+      List<int> data = cachedPackageLibraries[lib.fileUri];
+      if (data != null) {
+        addDataAndDependentData(data, lib.fileUri);
+      } else {
+        String package = lib.importUri.pathSegments.first;
+        newPackages[package] ??= <Library>[];
+        newPackages[package].add(lib);
+      }
+    }
+
+    for (String package in newPackages.keys) {
+      List<Library> libraries = newPackages[package];
+      Component singleLibrary = new Component(
+          libraries: libraries,
+          uriToSource: deltaProgram.uriToSource,
+          nameRoot: deltaProgram.root);
+      ByteSink byteSink = new ByteSink();
+      final BinaryPrinter printer = printerFactory.newBinaryPrinter(byteSink);
+      printer.writeComponentFile(singleLibrary);
+
+      // Record things this package blob dependent on.
+      Set<Uri> libraryUris = new Set<Uri>();
+      for (Library lib in libraries) {
+        libraryUris.add(lib.fileUri);
+      }
+      Set<Uri> deps = new Set<Uri>();
+      for (Library lib in libraries) {
+        for (LibraryDependency dep in lib.dependencies) {
+          Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
+          if (dependencyLibrary.importUri.scheme != "package") continue;
+          Uri dependencyLibraryUri =
+              dep.importedLibraryReference.asLibrary.fileUri;
+          if (libraryUris.contains(dependencyLibraryUri)) continue;
+          deps.add(dependencyLibraryUri);
+        }
+      }
+
+      List<int> data = byteSink.builder.takeBytes();
+      for (Library lib in libraries) {
+        cachedPackageLibraries[lib.fileUri] = data;
+        cachedPackageDependencies[lib.fileUri] = new List<Uri>.from(deps);
+      }
+      ioSink.add(data);
+    }
+  }
+
   @override
   void acceptLastDelta() {
     _generator.accept();
+  }
+
+  @override
+  Future<void> rejectLastDelta() async {
+    await _generator.reject();
+    final String boundaryKey = new Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
+    _outputStream.writeln(boundaryKey);
   }
 
   @override
@@ -496,6 +627,8 @@ class FrontendCompiler implements CompilerInterface {
       // be processed as uris.
       return Uri.base.resolve(fileOrUri);
     }
+    Uri uri = Uri.parse(fileOrUri);
+    if (uri.scheme == 'package') return uri;
     return Uri.base.resolveUri(new Uri.file(fileOrUri));
   }
 
@@ -522,17 +655,29 @@ class FrontendCompiler implements CompilerInterface {
   }
 }
 
+/// A [Sink] that directly writes data into a byte builder.
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  void close() {}
+}
+
 String _escapePath(String path) {
   return path.replaceAll(r'\', r'\\').replaceAll(r' ', r'\ ');
 }
 
 // https://ninja-build.org/manual.html#_depfile
-void _writeDepfile(Component component, String output, String depfile) async {
+_writeDepfile(Component component, String output, String depfile) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
   for (Uri dep in component.uriToSource.keys) {
-    if (dep == null) continue;
+    // Skip empty or corelib dependencies.
+    if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }
@@ -554,7 +699,7 @@ class _CompileExpressionRequest {
 /// Listens for the compilation commands on [input] stream.
 /// This supports "interactive" recompilation mode of execution.
 void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
-    ArgResults options, void quit(),
+    ArgResults options, Completer<int> completer,
     {IncrementalCompiler generator}) {
   _State state = _State.READY_FOR_INSTRUCTION;
   _CompileExpressionRequest compileExpressionRequest;
@@ -605,10 +750,12 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
           state = _State.COMPILE_EXPRESSION_EXPRESSION;
         } else if (string == 'accept') {
           compiler.acceptLastDelta();
+        } else if (string == 'reject') {
+          await compiler.rejectLastDelta();
         } else if (string == 'reset') {
           compiler.resetIncrementalCompiler();
         } else if (string == 'quit') {
-          quit();
+          completer.complete(0);
         }
         break;
       case _State.RECOMPILE_LIST:
@@ -668,7 +815,7 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
 /// processes user input.
 /// `compiler` is an optional parameter so it can be replaced with mocked
 /// version for testing.
-Future<void> starter(
+Future<int> starter(
   List<String> args, {
   CompilerInterface compiler,
   Stream<List<int>> input,
@@ -682,7 +829,7 @@ Future<void> starter(
   } catch (error) {
     print('ERROR: $error\n');
     print(usage);
-    exit(1);
+    return 1;
   }
 
   if (options['train']) {
@@ -714,24 +861,25 @@ Future<void> starter(
       compiler.acceptLastDelta();
       await compiler.recompileDelta();
       compiler.acceptLastDelta();
-      return;
+      return 0;
     } finally {
       temp.deleteSync(recursive: true);
     }
   }
 
-  compiler ??= new FrontendCompiler(
-    output,
-    printerFactory: binaryPrinterFactory,
-  );
+  compiler ??= new FrontendCompiler(output,
+      printerFactory: binaryPrinterFactory,
+      unsafePackageSerialization: options["unsafe-package-serialization"]);
 
   if (options.rest.isNotEmpty) {
-    exit(await compiler.compile(options.rest[0], options, generator: generator)
+    return await compiler.compile(options.rest[0], options,
+            generator: generator)
         ? 0
-        : 254);
+        : 254;
   }
 
-  listenAndCompile(compiler, input ?? stdin, options, () {
-    exit(0);
-  }, generator: generator);
+  Completer<int> completer = new Completer<int>();
+  listenAndCompile(compiler, input ?? stdin, options, completer,
+      generator: generator);
+  return completer.future;
 }

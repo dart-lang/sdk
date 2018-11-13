@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 
 import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
+
+typedef CompilationUnit AdjustValidUnitBeforeComparison(CompilationUnit unit);
 
 /**
  * A base class that adds support for tests that test how well the parser
@@ -27,6 +30,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * A list of suffixes that can be used by tests of class members.
    */
   static final List<TestSuffix> classMemberSuffixes = <TestSuffix>[
+    new TestSuffix('annotation', '@annotation var f;'),
     new TestSuffix('field', 'var f;'),
     new TestSuffix('fieldConst', 'const f = 0;'),
     new TestSuffix('fieldFinal', 'final f = 0;'),
@@ -197,6 +201,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         try {
           testRecovery(
               invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
+              adjustValidUnitBeforeComparison:
+                  descriptor.adjustValidUnitBeforeComparison,
               expectedErrorsInValidCode: expectedValidCodeErrors);
           failed = true;
         } catch (e) {
@@ -208,6 +214,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       } else {
         testRecovery(
             invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
+            adjustValidUnitBeforeComparison:
+                descriptor.adjustValidUnitBeforeComparison,
             expectedErrorsInValidCode: expectedValidCodeErrors);
       }
     });
@@ -256,10 +264,19 @@ class TestDescriptor {
   final List<String> failing;
 
   /**
+   * A function that modifies the valid compilation unit before it is compared
+   * with the invalid compilation unit, or `null` if no modification needed.
+   */
+  AdjustValidUnitBeforeComparison adjustValidUnitBeforeComparison;
+
+  /**
    * Initialize a newly created test descriptor.
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.allFailing: false, this.failing, this.expectedErrorsInValidCode});
+      {this.allFailing: false,
+      this.failing,
+      this.expectedErrorsInValidCode,
+      this.adjustValidUnitBeforeComparison});
 }
 
 /**

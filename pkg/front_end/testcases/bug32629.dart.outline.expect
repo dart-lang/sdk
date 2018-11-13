@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef Reducer<S extends core::Object = dynamic> = (S, dynamic) → S;
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A
     ;
   method call(dynamic a, dynamic b) → dynamic
     ;

@@ -6,6 +6,8 @@ library fasta.kernel_mixin_application_builder;
 
 import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
+import '../fasta_codes.dart' show LocatedMessage;
+
 import '../problems.dart' show unsupported;
 
 import 'kernel_builder.dart'
@@ -25,7 +27,8 @@ class KernelMixinApplicationBuilder
 
   KernelMixinApplicationBuilder(
       KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins)
-      : super(supertype, mixins);
+      : assert(mixins != null),
+        super(supertype, mixins);
 
   @override
   InterfaceType build(LibraryBuilder library) {
@@ -47,8 +50,8 @@ class KernelMixinApplicationBuilder
   }
 
   @override
-  buildInvalidType(int charOffset, Uri fileUri) {
-    return unsupported("buildInvalidType", charOffset, fileUri);
+  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
+    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   KernelMixinApplicationBuilder clone(List<TypeBuilder> newTypes) {

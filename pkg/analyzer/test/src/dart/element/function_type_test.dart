@@ -86,29 +86,33 @@ class FunctionTypeTest {
   DartType mapOf(DartType keyType, DartType valueType) =>
       mapType.instantiate([keyType, valueType]);
 
-  test_forInstantiatedTypedef_bothTypeParameters() {
+  test_forInstantiatedTypedef_bothTypeParameters_noTypeArgs() {
+    // typedef F<T> = Map<T, U> Function<U>();
     var t = new MockTypeParameterElement('T');
     var u = new MockTypeParameterElement('U');
     var e = new MockGenericTypeAliasElement('F',
         typeParameters: [t],
         innerTypeParameters: [u],
         returnType: mapOf(t.type, u.type));
-    FunctionType f =
-        new FunctionTypeImpl.forTypedef(e, typeArguments: [objectType]);
+    FunctionType f = new FunctionTypeImpl.forTypedef(e);
+    // Note: forTypedef returns the type `<T>() -> Map<T, U>`.
+    // See https://github.com/dart-lang/sdk/issues/34657.
     basicChecks(f,
         element: same(e),
-        displayName: 'F<Object>',
+        displayName: 'F',
         name: 'F',
-        typeArguments: [same(objectType)],
-        typeParameters: [same(t)],
-        returnType: mapOf(objectType, u.type));
+        typeFormals: [same(t)],
+        returnType: mapOf(t.type, u.type));
   }
 
-  test_forInstantiatedTypedef_innerTypeParameter() {
+  test_forInstantiatedTypedef_innerTypeParameter_noTypeArgs() {
+    // typedef F = T F<T>();
     var t = new MockTypeParameterElement('T');
     var e = new MockGenericTypeAliasElement('F',
         innerTypeParameters: [t], returnType: t.type);
-    FunctionType f = new FunctionTypeImpl.forTypedef(e, typeArguments: []);
+    FunctionType f = new FunctionTypeImpl.forTypedef(e);
+    // Note: forTypedef returns the type `() -> T`.
+    // See https://github.com/dart-lang/sdk/issues/34657.
     basicChecks(f,
         element: same(e),
         displayName: 'F',
@@ -116,25 +120,28 @@ class FunctionTypeTest {
         returnType: same(t.type));
   }
 
-  test_forInstantiatedTypedef_noTypeParameters() {
+  test_forInstantiatedTypedef_noTypeParameters_noTypeArgs() {
+    // typedef F = void Function();
     var e = new MockGenericTypeAliasElement('F');
-    FunctionType f = new FunctionTypeImpl.forTypedef(e, typeArguments: []);
+    FunctionType f = new FunctionTypeImpl.forTypedef(e);
+    // Note: forTypedef returns the type `() -> void`.
     basicChecks(f, element: same(e), displayName: 'F', name: 'F');
   }
 
-  test_forInstantiatedTypedef_outerTypeParameters() {
+  test_forInstantiatedTypedef_outerTypeParameters_noTypeArgs() {
+    // typedef F<T> = T Function();
     var t = new MockTypeParameterElement('T');
     var e = new MockGenericTypeAliasElement('F',
         typeParameters: [t], returnType: t.type);
-    FunctionType f =
-        new FunctionTypeImpl.forTypedef(e, typeArguments: [objectType]);
+    FunctionType f = new FunctionTypeImpl.forTypedef(e);
+    // Note: forTypedef returns the type `<T>() -> T`.
+    // See https://github.com/dart-lang/sdk/issues/34657.
     basicChecks(f,
         element: same(e),
-        displayName: 'F<Object>',
+        displayName: 'F',
         name: 'F',
-        typeArguments: [same(objectType)],
-        typeParameters: [same(t)],
-        returnType: same(objectType));
+        typeFormals: [same(t)],
+        returnType: same(t.type));
   }
 
   test_forTypedef() {
@@ -1188,7 +1195,7 @@ class MockGenericTypeAliasElement implements GenericTypeAliasElement {
   get isSynthetic => false;
 
   @override
-  get type => _type ??= new FunctionTypeImpl.forTypedef(this);
+  FunctionType get type => _type ??= new FunctionTypeImpl.forTypedef(this);
 
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
@@ -1277,4 +1284,7 @@ class MockTypeParameterElement implements TypeParameterElement {
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
+
+  @override
+  toString() => name;
 }

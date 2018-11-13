@@ -34,6 +34,12 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Class name must not be empty.");
   }
 
+  void test_validateClassName_invalidCharacter() {
+    assertRefactoringStatus(
+        validateClassName("-NewName"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Class name must not contain '-'.");
+  }
+
   void test_validateClassName_leadingBlanks() {
     assertRefactoringStatus(
         validateClassName(" NewName"), RefactoringProblemSeverity.FATAL,
@@ -50,12 +56,6 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
         validateClassName("badName"), RefactoringProblemSeverity.WARNING,
         expectedMessage: "Class name should start with an uppercase letter.");
-  }
-
-  void test_validateClassName_invalidCharacter() {
-    assertRefactoringStatus(
-        validateClassName("-NewName"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Class name must not contain '-'.");
   }
 
   void test_validateClassName_null() {
@@ -281,6 +281,12 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Function type alias name must not be empty.");
   }
 
+  void test_validateFunctionTypeAliasName_invalidCharacters() {
+    assertRefactoringStatus(validateFunctionTypeAliasName("New-Name"),
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Function type alias name must not contain \'-\'.");
+  }
+
   void test_validateFunctionTypeAliasName_leadingBlanks() {
     assertRefactoringStatus(validateFunctionTypeAliasName(" NewName"),
         RefactoringProblemSeverity.FATAL,
@@ -299,12 +305,6 @@ class NamingConventionsTest extends RefactoringTest {
         RefactoringProblemSeverity.WARNING,
         expectedMessage:
             "Function type alias name should start with an uppercase letter.");
-  }
-
-  void test_validateFunctionTypeAliasName_invalidCharacters() {
-    assertRefactoringStatus(validateFunctionTypeAliasName("New-Name"),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function type alias name must not contain \'-\'.");
   }
 
   void test_validateFunctionTypeAliasName_null() {

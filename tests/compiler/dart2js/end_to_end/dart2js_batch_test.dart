@@ -39,11 +39,11 @@ Future<Directory> createTempDir() {
 Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
-    Directory sunflowerDir =
-        new Directory.fromUri(Uri.base.resolve('third_party/sunflower'));
+    Directory appDir =
+        new Directory.fromUri(Uri.base.resolve('samples-dev/swarm'));
 
-    print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
-    copyDirectory(sunflowerDir, tmpDir);
+    print("Copying '${appDir.path}' to '${tmpDir.path}'.");
+    copyDirectory(appDir, tmpDir);
   });
 }
 
@@ -61,7 +61,7 @@ Future<Process> launchDart2Js(_) {
 }
 
 Future runTests(Process process) {
-  String inFile = path.join(tmpDir.path, 'web/sunflower.dart');
+  String inFile = path.join(tmpDir.path, 'swarm.dart');
   String outFile = path.join(tmpDir.path, 'out.js');
   String outFile2 = path.join(tmpDir.path, 'out2.js');
 

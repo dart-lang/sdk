@@ -14,6 +14,7 @@
 # fail.
 
 import("../build/dart/copy_tree.gni")
+import("../runtime/runtime_args.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
@@ -38,7 +39,6 @@ declare_args() {
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
-# ........analysis_server_dart1.dart.snapshot (this is temporary; #33877)
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
 # ........dartdoc.dart.snapshot
@@ -62,24 +62,17 @@ declare_args() {
 # ......dart_server.platform
 # ......dart_shared.platform
 # ......_internal/
-#.........spec.sum
 #.........strong.sum
 #.........dart2js_platform.dill
 #.........dart2js_server_platform.dill
 #.........dart2js_platform_strong.dill
 #.........dart2js_server_platform_strong.dill
-#.........vm_outline.dill
-#.........vm_outline_strong.dill
-#.........vm_platform.dill
 #.........vm_platform_strong.dill
 #.........dev_compiler/
-# ......analysis_server/
-# ......analyzer/
 # ......async/
 # ......collection/
 # ......convert/
 # ......core/
-# ......front_end/
 # ......html/
 # ......_http/
 # ......internal/
@@ -87,7 +80,6 @@ declare_args() {
 # ......isolate/
 # ......js/
 # ......js_util/
-# ......kernel/
 # ......math/
 # ......mirrors/
 # ......typed_data/
@@ -119,10 +111,6 @@ _platform_sdk_snapshots = [
     "../utils/analysis_server",
   ],
   [
-    "analysis_server_dart1",
-    "../utils/analysis_server_dart1",
-  ],
-  [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
@@ -135,23 +123,23 @@ _platform_sdk_snapshots = [
     "../utils/dartfmt",
   ],
   [
-    "kernel-service",
-    "../utils/kernel-service",
-  ],
-  [
     "pub",
     "../utils/pub",
   ],
 ]
+if (create_kernel_service_snapshot) {
+  _platform_sdk_snapshots += [
+    [
+      "kernel-service",
+      "../utils/kernel-service:kernel-service_snapshot",
+    ],
+  ]
+}
 
 _full_sdk_snapshots = [
   [
     "analysis_server",
     "../utils/analysis_server",
-  ],
-  [
-    "analysis_server_dart1",
-    "../utils/analysis_server_dart1",
   ],
   [
     "dart2js",
@@ -182,35 +170,20 @@ _full_sdk_snapshots = [
     "../utils/bazel:kernel_worker",
   ],
   [
-    "kernel-service",
-    "../utils/kernel-service",
-  ],
-  [
     "pub",
     "../utils/pub",
   ],
 ]
+if (create_kernel_service_snapshot) {
+  _full_sdk_snapshots += [
+    [
+      "kernel-service",
+      "../utils/kernel-service:kernel-service_snapshot",
+    ],
+  ]
+}
 
 # Libraries that go under lib/
-_platform_sdk_libraries = [
-  "_internal",
-  "async",
-  "cli",
-  "collection",
-  "convert",
-  "core",
-  "developer",
-  "html",
-  "_http",
-  "internal",
-  "io",
-  "isolate",
-  "math",
-  "mirrors",
-  "profiler",
-  "typed_data",
-]
-
 _full_sdk_libraries = [
   "_chrome",
   "_internal",
@@ -238,29 +211,32 @@ _full_sdk_libraries = [
   "web_sql",
 ]
 
-# Package sources copied to lib/
-_analyzer_source_dirs = [
-  "analyzer",
-  "analysis_server",
-  "front_end",
-  "kernel",
-]
+# Apps running on the platform SDK shouldn't be using Dart4Web libraries, but
+# the analyzer and dartdoc expect all the library sources to be present.
+#
+# _platform_sdk_libraries = [
+#   "_internal",
+#   "async",
+#   "cli",
+#   "collection",
+#   "convert",
+#   "core",
+#   "developer",
+#   "html",
+#   "_http",
+#   "internal",
+#   "io",
+#   "isolate",
+#   "math",
+#   "mirrors",
+#   "profiler",
+#   "typed_data",
+# ]
+_platform_sdk_libraries = _full_sdk_libraries
 
 # From here down to the copy_trees() invocation, we collect all the information
 # about trees that need to be copied in the list of scopes, copy_tree_specs.
 copy_tree_specs = []
-
-# This loop generates rules for copying analyzer sources into lib/
-foreach(analyzer_source_dir, _analyzer_source_dirs) {
-  copy_tree_specs += [ {
-        target = "copy_${analyzer_source_dir}_source_dir"
-        visibility = [ ":copy_analyzer_sources" ]
-        source = "../pkg/$analyzer_source_dir"
-        dest = "$root_out_dir/dart-sdk/lib/$analyzer_source_dir"
-        ignore_patterns =
-            "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages,test,testcases"
-      } ]
-}
 
 # This rule copies dartdoc templates to
 # bin/snapshots/resources/dartdoc/templates
@@ -485,15 +461,6 @@ group("copy_full_sdk_snapshots") {
   }
 }
 
-# This is the main rule for copying analyzer sources to lib/
-group("copy_analyzer_sources") {
-  visibility = [ ":create_common_sdk" ]
-  public_deps = []
-  foreach(analyzer_source_dir, _analyzer_source_dirs) {
-    public_deps += [ ":copy_${analyzer_source_dir}_source_dir" ]
-  }
-}
-
 # This rule writes the .packages file for dartdoc resources.
 write_file("$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/.packages",
            "dartdoc:.")
@@ -512,11 +479,9 @@ copy("copy_analysis_summaries") {
   visibility = [ ":create_common_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartanalyzer:generate_summary_spec",
     "../utils/dartanalyzer:generate_summary_strong",
   ]
   sources = [
-    "$root_gen_dir/spec.sum",
     "$root_gen_dir/strong.sum",
   ]
   outputs = [
@@ -532,9 +497,6 @@ copy("copy_vm_dill_files") {
     "../runtime/vm:kernel_platform_files",
   ]
   sources = [
-    "$root_out_dir/vm_outline.dill",
-    "$root_out_dir/vm_outline_strong.dill",
-    "$root_out_dir/vm_platform.dill",
     "$root_out_dir/vm_platform_strong.dill",
   ]
   outputs = [
@@ -548,14 +510,10 @@ copy("copy_dart2js_dill_files") {
     ":copy_libraries",
     "../utils/compiler:compile_dart2js_platform",
     "../utils/compiler:compile_dart2js_server_platform",
-    "../utils/compiler:compile_dart2js_platform_strong",
-    "../utils/compiler:compile_dart2js_server_platform_strong",
   ]
   sources = [
     "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/dart2js_server_platform.dill",
-    "$root_out_dir/dart2js_platform_strong.dill",
-    "$root_out_dir/dart2js_server_platform_strong.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -948,7 +906,6 @@ group("create_common_sdk") {
   visibility = [ ":create_sdk" ]
   public_deps = [
     ":copy_analysis_summaries",
-    ":copy_analyzer_sources",
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",

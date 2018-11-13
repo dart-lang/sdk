@@ -1046,7 +1046,12 @@ class LiteralExpression extends Expression {
 class VariableDeclarationList extends Expression {
   final List<VariableInitialization> declarations;
 
-  VariableDeclarationList(this.declarations);
+  /// When pretty-printing a declaration list with multiple declarations over
+  /// several lines, the declarations are usually indented with respect to the
+  /// `var` keyword. Set [indentSplits] to `false` to suppress the indentation.
+  final bool indentSplits;
+
+  VariableDeclarationList(this.declarations, {this.indentSplits = true});
 
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitVariableDeclarationList(this);

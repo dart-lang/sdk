@@ -251,43 +251,6 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
   T lookup(Object key) => _source.lookup(key) as T;
 }
 
-abstract class _CastQueueMixin<S, T> implements Queue<T> {
-  Queue<S> get _source;
-
-  T removeFirst() => _source.removeFirst() as T;
-  T removeLast() => _source.removeLast() as T;
-
-  @deprecated
-  void add(T value) {
-    _source.add(value as S);
-  }
-
-  void addFirst(T value) {
-    _source.addFirst(value as S);
-  }
-
-  void addLast(T value) {
-    _source.addLast(value as S);
-  }
-
-  bool remove(Object other) => _source.remove(other);
-  void addAll(Iterable<T> elements) {
-    _source.addAll(new CastIterable<T, S>(elements));
-  }
-
-  void removeWhere(bool test(T element)) {
-    _source.removeWhere((S element) => test(element as T));
-  }
-
-  void retainWhere(bool test(T element)) {
-    _source.retainWhere((S element) => test(element as T));
-  }
-
-  void clear() {
-    _source.clear();
-  }
-}
-
 class CastMap<SK, SV, K, V> extends MapBase<K, V> {
   final Map<SK, SV> _source;
 
@@ -359,18 +322,40 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
   }
 }
 
-class CastQueue<S, T> extends _CastIterableBase<S, T>
-    with _CastQueueMixin<S, T> {
+class CastQueue<S, T> extends _CastIterableBase<S, T> implements Queue<T> {
   final Queue<S> _source;
   CastQueue(this._source);
   Queue<R> cast<R>() => new CastQueue<S, R>(_source);
-}
 
-// TODO(lrn): Use when ListQueue implements List.
-// class CastListQueue<S, T>
-//     extends _CastListBase<S, T> with _CastQueueMixin<S, T>
-//     implements ListQueue<T> {
-//   final ListQueue<S> _source;
-//   CastListQueue(this._source);
-//   ListQueue<R> cast<R>() => new CastListQueue<S, R>(_source);
-// }
+  T removeFirst() => _source.removeFirst() as T;
+  T removeLast() => _source.removeLast() as T;
+
+  void add(T value) {
+    _source.add(value as S);
+  }
+
+  void addFirst(T value) {
+    _source.addFirst(value as S);
+  }
+
+  void addLast(T value) {
+    _source.addLast(value as S);
+  }
+
+  bool remove(Object other) => _source.remove(other);
+  void addAll(Iterable<T> elements) {
+    _source.addAll(new CastIterable<T, S>(elements));
+  }
+
+  void removeWhere(bool test(T element)) {
+    _source.removeWhere((S element) => test(element as T));
+  }
+
+  void retainWhere(bool test(T element)) {
+    _source.retainWhere((S element) => test(element as T));
+  }
+
+  void clear() {
+    _source.clear();
+  }
+}

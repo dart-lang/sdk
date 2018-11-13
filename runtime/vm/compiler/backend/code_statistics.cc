@@ -14,7 +14,7 @@ CombinedCodeStatistics::CombinedCodeStatistics() {
   return_const_with_load_field_count_ = 0;
   intptr_t i = 0;
 
-#define DO(type)                                                               \
+#define DO(type, attrs)                                                        \
   entries_[i].name = #type;                                                    \
   entries_[i].bytes = 0;                                                       \
   entries_[i++].count = 0;
@@ -23,7 +23,7 @@ CombinedCodeStatistics::CombinedCodeStatistics() {
 
 #undef DO
 
-#define DO(type)                                                               \
+#define DO(type, attrs)                                                        \
   entries_[i].name = "SlowPath:" #type;                                        \
   entries_[i].bytes = 0;                                                       \
   entries_[i++].count = 0;

@@ -44,7 +44,7 @@ RawString* Report::PrependSnippet(Kind kind,
       UNREACHABLE();
   }
   String& result = String::Handle();
-  if (!script.IsNull()) {
+  if (!script.IsNull() && !String::Handle(script.Source()).IsNull()) {
     const String& script_url = String::Handle(script.url());
     if (token_pos.IsReal()) {
       intptr_t line, column, token_len;

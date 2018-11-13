@@ -21,7 +21,7 @@ import 'kernel_builder.dart'
 
 class KernelBodyBuilder extends BodyBuilder {
   @override
-  final Forest forest = const Fangorn();
+  final Forest forest;
 
   KernelBodyBuilder(
       KernelLibraryBuilder library,
@@ -34,11 +34,13 @@ class KernelBodyBuilder extends BodyBuilder {
       bool isInstanceMember,
       Uri uri,
       TypeInferrer typeInferrer)
-      : super(library, member, scope, formalParameterScope, hierarchy,
+      : forest = const Fangorn(),
+        super(library, member, scope, formalParameterScope, hierarchy,
             coreTypes, classBuilder, isInstanceMember, uri, typeInferrer);
 
   KernelBodyBuilder.forField(ModifierBuilder member, TypeInferrer typeInferrer)
-      : super.forField(member, typeInferrer);
+      : forest = const Fangorn(),
+        super.forField(member, typeInferrer);
 
   @override
   void enterThenForTypePromotion(Expression condition) {

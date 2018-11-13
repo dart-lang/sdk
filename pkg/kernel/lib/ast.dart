@@ -285,7 +285,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// other than [ClassLevel.Body].  Members in an external library have no
   /// body, but have their typed interface present.
   ///
-  /// If the libary is non-external, then its classes are at [ClassLevel.Body]
+  /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
   bool isExternal;
 
@@ -581,9 +581,25 @@ class Typedef extends NamedNode implements FileUriNode {
   final List<TypeParameter> typeParameters;
   DartType type;
 
+  // The following two fields describe parameters of the underlying function
+  // type.  They are needed to keep such attributes as names and annotations.
+  final List<TypeParameter> typeParametersOfFunctionType;
+  final List<VariableDeclaration> positionalParameters;
+  final List<VariableDeclaration> namedParameters;
+
   Typedef(this.name, this.type,
-      {Reference reference, this.fileUri, List<TypeParameter> typeParameters})
+      {Reference reference,
+      this.fileUri,
+      List<TypeParameter> typeParameters,
+      List<TypeParameter> typeParametersOfFunctionType,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.typeParametersOfFunctionType =
+            typeParametersOfFunctionType ?? <TypeParameter>[],
+        this.positionalParameters =
+            positionalParameters ?? <VariableDeclaration>[],
+        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         super(reference) {
     setParents(this.typeParameters, this);
   }
@@ -712,6 +728,7 @@ class Class extends NamedNode implements FileUriNode {
   static const int FlagEnum = 1 << 3;
   static const int FlagAnonymousMixin = 1 << 4;
   static const int FlagEliminatedMixin = 1 << 5;
+  static const int FlagMixinDeclaration = 1 << 6;
 
   int flags = 0;
 
@@ -736,10 +753,10 @@ class Class extends NamedNode implements FileUriNode {
   /// class C {}
   /// class D {}
   /// ...creates:
-  /// abstract class A&B extends A mixedIn B {}
-  /// abstract class A&B&C extends A&B mixedIn C {}
-  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
-  /// class Z extends A&B&C&D {}
+  /// abstract class _Z&A&B extends A mixedIn B {}
+  /// abstract class _Z&A&B&C extends A&B mixedIn C {}
+  /// abstract class _Z&A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends _Z&A&B&C&D {}
   /// All X&Y classes are marked as synthetic.
   bool get isAnonymousMixin => flags & FlagAnonymousMixin != 0;
 
@@ -756,6 +773,40 @@ class Class extends NamedNode implements FileUriNode {
   void set isEliminatedMixin(bool value) {
     flags =
         value ? (flags | FlagEliminatedMixin) : (flags & ~FlagEliminatedMixin);
+  }
+
+  /// True if this class was a mixin declaration in Dart.
+  ///
+  /// Mixins are declared in Dart with the `mixin` keyword.  They are compiled
+  /// to Kernel classes.
+  bool get isMixinDeclaration => flags & FlagMixinDeclaration != 0;
+
+  void set isMixinDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagMixinDeclaration)
+        : (flags & ~FlagMixinDeclaration);
+  }
+
+  List<Supertype> superclassConstraints() {
+    var constraints = <Supertype>[];
+
+    // Not a mixin declaration.
+    if (!isMixinDeclaration) return constraints;
+
+    // Otherwise we have a left-linear binary tree (subtrees are supertype and
+    // mixedInType) of constraints, where all the interior nodes are anonymous
+    // mixin applications.
+    Supertype current = supertype;
+    while (current != null && current.classNode.isAnonymousMixin) {
+      Class currentClass = current.classNode;
+      assert(currentClass.implementedTypes.length == 2);
+      Substitution substitution = Substitution.fromSupertype(current);
+      constraints.add(
+          substitution.substituteSupertype(currentClass.implementedTypes[1]));
+      current =
+          substitution.substituteSupertype(currentClass.implementedTypes[0]);
+    }
+    return constraints..add(current);
   }
 
   /// The URI of the source file this class was loaded from.
@@ -850,6 +901,22 @@ class Class extends NamedNode implements FileUriNode {
   Class get mixin => mixedInClass?.mixin ?? this;
 
   bool get isMixinApplication => mixedInType != null;
+
+  String get demangledName {
+    if (isAnonymousMixin) return nameAsMixinApplication;
+    assert(!name.contains('&'));
+    return name;
+  }
+
+  String get nameAsMixinApplication {
+    assert(isAnonymousMixin);
+    return demangleMixinApplicationName(name);
+  }
+
+  String get nameAsMixinApplicationSubclass {
+    assert(isAnonymousMixin);
+    return demangleMixinApplicationSubclassName(name);
+  }
 
   /// Members declared in this class.
   ///
@@ -1033,6 +1100,9 @@ abstract class Member extends NamedNode implements FileUriNode {
 
   /// Returns true if this is an abstract procedure.
   bool get isAbstract => false;
+
+  /// Returns true if the member has the 'const' modifier.
+  bool get isConst;
 
   /// True if this is a field or non-setter procedure.
   ///
@@ -2224,8 +2294,7 @@ class PropertyGet extends Expression {
     if (interfaceTarget != null) {
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      return Substitution
-          .fromInterfaceType(receiverType)
+      return Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
@@ -2342,8 +2411,7 @@ class DirectPropertyGet extends Expression {
   DartType getStaticType(TypeEnvironment types) {
     Class superclass = target.enclosingClass;
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-    return Substitution
-        .fromInterfaceType(receiverType)
+    return Substitution.fromInterfaceType(receiverType)
         .substituteType(target.getterType);
   }
 }
@@ -2446,11 +2514,10 @@ class DirectMethodInvocation extends InvocationExpression {
     }
     Class superclass = target.enclosingClass;
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-    var returnType = Substitution
-        .fromInterfaceType(receiverType)
+    var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(target.function.returnType);
-    return Substitution
-        .fromPairs(target.function.typeParameters, arguments.types)
+    return Substitution.fromPairs(
+            target.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
 }
@@ -2481,8 +2548,7 @@ class SuperPropertyGet extends Expression {
     }
     var receiver =
         types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
-    return Substitution
-        .fromInterfaceType(receiver)
+    return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
 
@@ -2613,7 +2679,7 @@ class Arguments extends TreeNode {
   final List<DartType> types;
   @coqsingle
   final List<Expression> positional;
-  final List<NamedExpression> named;
+  List<NamedExpression> named;
 
   Arguments(this.positional,
       {List<DartType> types, List<NamedExpression> named})
@@ -2727,12 +2793,11 @@ class MethodInvocation extends InvocationExpression {
       }
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      var getterType = Substitution
-          .fromInterfaceType(receiverType)
+      var getterType = Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
       if (getterType is FunctionType) {
-        return Substitution
-            .fromPairs(getterType.typeParameters, arguments.types)
+        return Substitution.fromPairs(
+                getterType.typeParameters, arguments.types)
             .substituteType(getterType.returnType);
       } else {
         return const DynamicType();
@@ -2744,8 +2809,8 @@ class MethodInvocation extends InvocationExpression {
         if (receiverType.typeParameters.length != arguments.types.length) {
           return const BottomType();
         }
-        return Substitution
-            .fromPairs(receiverType.typeParameters, arguments.types)
+        return Substitution.fromPairs(
+                receiverType.typeParameters, arguments.types)
             .substituteType(receiverType.returnType);
       }
     }
@@ -2806,11 +2871,10 @@ class SuperMethodInvocation extends InvocationExpression {
     Class superclass = interfaceTarget.enclosingClass;
     var receiverType =
         types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
-    var returnType = Substitution
-        .fromInterfaceType(receiverType)
+    var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
-    return Substitution
-        .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
+    return Substitution.fromPairs(
+            interfaceTarget.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
 
@@ -2859,8 +2923,8 @@ class StaticInvocation extends InvocationExpression {
   }
 
   DartType getStaticType(TypeEnvironment types) {
-    return Substitution
-        .fromPairs(target.function.typeParameters, arguments.types)
+    return Substitution.fromPairs(
+            target.function.typeParameters, arguments.types)
         .substituteType(target.function.returnType);
   }
 
@@ -2951,8 +3015,7 @@ class Instantiation extends Expression {
 
   DartType getStaticType(TypeEnvironment types) {
     FunctionType type = expression.getStaticType(types);
-    return Substitution
-        .fromPairs(type.typeParameters, typeArguments)
+    return Substitution.fromPairs(type.typeParameters, typeArguments)
         .substituteType(type.withoutTypeParameters);
   }
 
@@ -3565,181 +3628,6 @@ class CheckLibraryIsLoaded extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
-}
-
-/// Expression of the form `MakeVector(N)` where `N` is an integer representing
-/// the length of the vector.
-///
-/// For detailed comment about Vectors see [VectorType].
-class VectorCreation extends Expression {
-  int length;
-
-  VectorCreation(this.length);
-
-  accept(ExpressionVisitor v) => v.visitVectorCreation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitVectorCreation(this, arg);
-
-  visitChildren(Visitor v) {}
-
-  transformChildren(Transformer v) {}
-
-  DartType getStaticType(TypeEnvironment types) {
-    return const VectorType();
-  }
-}
-
-/// Expression of the form `v[i]` where `v` is a vector expression, and `i` is
-/// an integer index.
-class VectorGet extends Expression {
-  Expression vectorExpression;
-  int index;
-
-  VectorGet(this.vectorExpression, this.index) {
-    vectorExpression?.parent = this;
-  }
-
-  accept(ExpressionVisitor v) => v.visitVectorGet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitVectorGet(this, arg);
-
-  visitChildren(Visitor v) {
-    vectorExpression.accept(v);
-  }
-
-  transformChildren(Transformer v) {
-    if (vectorExpression != null) {
-      vectorExpression = vectorExpression.accept(v);
-      vectorExpression?.parent = this;
-    }
-  }
-
-  DartType getStaticType(TypeEnvironment types) {
-    return const DynamicType();
-  }
-}
-
-/// Expression of the form `v[i] = x` where `v` is a vector expression, `i` is
-/// an integer index, and `x` is an arbitrary expression.
-class VectorSet extends Expression {
-  Expression vectorExpression;
-  int index;
-  Expression value;
-
-  VectorSet(this.vectorExpression, this.index, this.value) {
-    vectorExpression?.parent = this;
-    value?.parent = this;
-  }
-
-  accept(ExpressionVisitor v) => v.visitVectorSet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitVectorSet(this, arg);
-
-  visitChildren(Visitor v) {
-    vectorExpression.accept(v);
-    value.accept(v);
-  }
-
-  transformChildren(Transformer v) {
-    if (vectorExpression != null) {
-      vectorExpression = vectorExpression.accept(v);
-      vectorExpression?.parent = this;
-    }
-    if (value != null) {
-      value = value.accept(v);
-      value?.parent = this;
-    }
-  }
-
-  DartType getStaticType(TypeEnvironment types) {
-    return value.getStaticType(types);
-  }
-}
-
-/// Expression of the form `CopyVector(v)` where `v` is a vector expression.
-class VectorCopy extends Expression {
-  Expression vectorExpression;
-
-  VectorCopy(this.vectorExpression) {
-    vectorExpression?.parent = this;
-  }
-
-  accept(ExpressionVisitor v) => v.visitVectorCopy(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitVectorCopy(this, arg);
-
-  visitChildren(Visitor v) {
-    vectorExpression.accept(v);
-  }
-
-  transformChildren(Transformer v) {
-    if (vectorExpression != null) {
-      vectorExpression = vectorExpression.accept(v);
-      vectorExpression?.parent = this;
-    }
-  }
-
-  DartType getStaticType(TypeEnvironment types) {
-    return const VectorType();
-  }
-}
-
-/// Expression of the form `MakeClosure<T>(f, c, t)` where `f` is a name of a
-/// closed top-level function, `c` is a Vector representing closure context, `t`
-/// is the type of the resulting closure and `T` is a vector of type arguments
-/// to be passed to `f`.
-///
-/// Note these restrictions on its usage:
-///
-///   1. `f` must reference a statically-resolved top-level function.
-///
-///   2. The length of `T` must be less than or equal to the number of type
-///      parameters on `f`.
-///
-///   3. It is disallowed to use `MakeClosure` on the same function twice with
-///      different numbers of type arguments.
-///
-///   4. The type arguments `T` must be guaranteed to satisfy the bounds of the
-///      corresponding type parameters on `f`.
-class ClosureCreation extends Expression {
-  Reference topLevelFunctionReference;
-  Expression contextVector;
-  FunctionType functionType;
-  List<DartType> typeArguments;
-
-  ClosureCreation(Member topLevelFunction, Expression contextVector,
-      FunctionType functionType, List<DartType> typeArguments)
-      : this.byReference(getMemberReference(topLevelFunction), contextVector,
-            functionType, typeArguments);
-
-  ClosureCreation.byReference(this.topLevelFunctionReference,
-      this.contextVector, this.functionType, this.typeArguments) {
-    contextVector?.parent = this;
-  }
-
-  Procedure get topLevelFunction => topLevelFunctionReference?.asProcedure;
-
-  void set topLevelFunction(Member topLevelFunction) {
-    topLevelFunctionReference = getMemberReference(topLevelFunction);
-  }
-
-  accept(ExpressionVisitor v) => v.visitClosureCreation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitClosureCreation(this, arg);
-
-  visitChildren(Visitor v) {
-    contextVector?.accept(v);
-    functionType.accept(v);
-    visitList(typeArguments, v);
-  }
-
-  transformChildren(Transformer v) {
-    if (contextVector != null) {
-      contextVector = contextVector.accept(v);
-      contextVector?.parent = this;
-    }
-    functionType = v.visitDartType(functionType);
-    transformTypeList(typeArguments, v);
-  }
-
-  DartType getStaticType(TypeEnvironment types) {
-    return functionType;
-  }
 }
 
 // ------------------------------------------------------------------------
@@ -4614,7 +4502,10 @@ class _PrivateName extends Name {
   Library get library => libraryName.asLibrary;
 
   static int _computeHashCode(String name, Reference libraryName) {
-    return 131 * name.hashCode + 17 * libraryName.hashCode;
+    // TODO(dmitryas): Factor in [libraryName] in a non-deterministic way into
+    // the result.  Note, the previous code here was the following:
+    //     return 131 * name.hashCode + 17 * libraryName.asLibrary._libraryId;
+    return name.hashCode;
   }
 }
 
@@ -4765,36 +4656,6 @@ class InterfaceType extends DartType {
   }
 }
 
-/// [VectorType] represents Vectors, a special kind of data that is not
-/// available for use by Dart programmers directly. It is used by Kernel
-/// transformations as efficient index-based storage.
-///
-/// * Vectors aren't user-visible. For example, they are not supposed to be
-/// exposed to Dart programs through variables or be visible in stack traces.
-///
-/// * Vectors have fixed length at runtime. The length is known at compile
-/// time, and [VectorCreation] AST node stores it in a field.
-///
-/// * Indexes for accessing and assigning Vector items are known at compile
-/// time. The corresponding [VectorGet] and [VectorSet] AST nodes store the
-/// index in a field.
-///
-/// * For efficiency considerations, bounds checks aren't performed for Vectors.
-/// If necessary, a transformer or verifier can do this checks at compile-time,
-/// after adding length field to [VectorType], to make sure that previous
-/// transformations didn't introduce any access errors.
-///
-/// * Access to Vectors is untyped.
-///
-/// * Vectors can be used by various transformations of Kernel components.
-/// Currently they are used by Closure Conversion to represent closure contexts.
-class VectorType extends DartType {
-  const VectorType();
-
-  accept(DartTypeVisitor v) => v.visitVectorType(this);
-  visitChildren(Visitor v) {}
-}
-
 /// A possibly generic function type.
 @coq
 class FunctionType extends DartType {
@@ -4803,11 +4664,6 @@ class FunctionType extends DartType {
   @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
-
-  /// The optional names of [positionalParameters], not `null`, but might be
-  /// empty if information is not available.
-  @informative
-  final List<String> positionalParameterNames;
 
   /// The [Typedef] this function type is created for.
   @nocoq
@@ -4820,7 +4676,6 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      this.positionalParameterNames: const <String>[],
       this.typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
@@ -5108,11 +4963,13 @@ class TypeParameter extends TreeNode {
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     bound.accept(v);
     defaultType?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     bound = v.visitDartType(bound);
     if (defaultType != null) {
       defaultType = v.visitDartType(defaultType);
@@ -5251,8 +5108,7 @@ class DoubleConstant extends PrimitiveConstant<double> {
 
   int get hashCode => value.isNaN ? 199 : super.hashCode;
   bool operator ==(Object other) =>
-      other is DoubleConstant &&
-      (other.value == value || identical(value, other.value) /* For NaN */);
+      other is DoubleConstant && identical(value, other.value);
 
   DartType getType(TypeEnvironment types) => types.doubleType;
 }
@@ -5267,6 +5123,34 @@ class StringConstant extends PrimitiveConstant<String> {
   acceptReference(Visitor v) => v.visitStringConstantReference(this);
 
   DartType getType(TypeEnvironment types) => types.stringType;
+}
+
+class SymbolConstant extends Constant {
+  final String name;
+  final Reference libraryReference;
+
+  SymbolConstant(this.name, this.libraryReference);
+
+  visitChildren(Visitor v) {}
+
+  accept(ConstantVisitor v) => v.visitSymbolConstant(this);
+  acceptReference(Visitor v) => v.visitSymbolConstantReference(this);
+
+  String toString() {
+    return libraryReference != null
+        ? '#${libraryReference.asLibrary.importUri}::$name'
+        : '#$name';
+  }
+
+  int get hashCode => name.hashCode ^ libraryReference.hashCode;
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SymbolConstant &&
+          other.name == name &&
+          other.libraryReference == libraryReference);
+
+  DartType getType(TypeEnvironment types) => types.symbolType;
 }
 
 class MapConstant extends Constant {
@@ -5552,9 +5436,13 @@ class Component extends TreeNode {
 
   void computeCanonicalNames() {
     for (var library in libraries) {
-      root.getChildFromUri(library.importUri).bindTo(library.reference);
-      library.computeCanonicalNames();
+      computeCanonicalNamesForLibrary(library);
     }
+  }
+
+  void computeCanonicalNamesForLibrary(Library library) {
+    root.getChildFromUri(library.importUri).bindTo(library.reference);
+    library.computeCanonicalNames();
   }
 
   void unbindCanonicalNames() {
@@ -5932,4 +5820,33 @@ Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }
+}
+
+/// Convert the synthetic name of an implicit mixin application class
+/// into a name suitable for user-faced strings.
+///
+/// For example, when compiling "class A extends S with M1, M2", the
+/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
+/// This function will return "S with M1" and "S with M1, M2", respectively.
+String demangleMixinApplicationName(String name) {
+  List<String> nameParts = name.split('&');
+  if (nameParts.length < 2) return name;
+  String demangledName = nameParts[1];
+  for (int i = 2; i < nameParts.length; i++) {
+    demangledName += (i == 2 ? " with " : ", ") + nameParts[i];
+  }
+  return demangledName;
+}
+
+/// Extract from the synthetic name of an implicit mixin application class
+/// the name of the final subclass of the mixin application.
+///
+/// For example, when compiling "class A extends S with M1, M2", the
+/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
+/// This function will return "A" for both classes.
+String demangleMixinApplicationSubclassName(String name) {
+  List<String> nameParts = name.split('&');
+  if (nameParts.length < 2) return name;
+  assert(nameParts[0].startsWith('_'));
+  return nameParts[0].substring(1);
 }

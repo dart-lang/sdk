@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_CODE_DESCRIPTORS_H_
 #define RUNTIME_VM_CODE_DESCRIPTORS_H_
 
-#include "vm/ast.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -14,6 +13,8 @@
 #include "vm/runtime_entry.h"
 
 namespace dart {
+
+static const intptr_t kInvalidTryIndex = -1;
 
 class DescriptorList : public ZoneAllocated {
  public:
@@ -118,7 +119,7 @@ class ExceptionHandlerList : public ZoneAllocated {
   // Called by rethrows, to mark their enclosing handlers.
   void SetNeedsStackTrace(intptr_t try_index) {
     // Rethrows can be generated outside a try by the compiler.
-    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+    if (try_index == kInvalidTryIndex) {
       return;
     }
     ASSERT(try_index >= 0);
@@ -144,43 +145,16 @@ class ExceptionHandlerList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ExceptionHandlerList);
 };
 
-// An encoded move from stack/constant to stack performed
-struct CatchEntryStatePair {
-  enum { kCatchEntryStateIsMove = 1, kCatchEntryStateDestShift = 1 };
-
-  intptr_t src, dest;
-
-  static CatchEntryStatePair FromConstant(intptr_t pool_id,
-                                          intptr_t dest_slot) {
-    CatchEntryStatePair pair;
-    pair.src = pool_id;
-    pair.dest = (dest_slot << kCatchEntryStateDestShift);
-    return pair;
-  }
-
-  static CatchEntryStatePair FromMove(intptr_t src_slot, intptr_t dest_slot) {
-    CatchEntryStatePair pair;
-    pair.src = src_slot;
-    pair.dest =
-        (dest_slot << kCatchEntryStateDestShift) | kCatchEntryStateIsMove;
-    return pair;
-  }
-
-  bool operator==(const CatchEntryStatePair& rhs) {
-    return src == rhs.src && dest == rhs.dest;
-  }
-};
-
-// Used to construct CatchEntryState metadata for AoT mode of compilation.
-class CatchEntryStateMapBuilder : public ZoneAllocated {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// Used to construct CatchEntryMoves for the AOT mode of compilation.
+class CatchEntryMovesMapBuilder : public ZoneAllocated {
  public:
-  CatchEntryStateMapBuilder();
+  CatchEntryMovesMapBuilder();
 
   void NewMapping(intptr_t pc_offset);
-  void AppendMove(intptr_t src_slot, intptr_t dest_slot);
-  void AppendConstant(intptr_t pool_id, intptr_t dest_slot);
+  void Append(const CatchEntryMove& move);
   void EndMapping();
-  RawTypedData* FinalizeCatchEntryStateMap();
+  RawTypedData* FinalizeCatchEntryMovesMap();
 
  private:
   class TrieNode;
@@ -188,12 +162,13 @@ class CatchEntryStateMapBuilder : public ZoneAllocated {
   Zone* zone_;
   TrieNode* root_;
   intptr_t current_pc_offset_;
-  GrowableArray<CatchEntryStatePair> moves_;
+  GrowableArray<CatchEntryMove> moves_;
   uint8_t* buffer_;
   WriteStream stream_;
 
-  DISALLOW_COPY_AND_ASSIGN(CatchEntryStateMapBuilder);
+  DISALLOW_COPY_AND_ASSIGN(CatchEntryMovesMapBuilder);
 };
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // A CodeSourceMap maps from pc offsets to a stack of inlined functions and
 // their positions. This is encoded as a little bytecode that pushes and pops

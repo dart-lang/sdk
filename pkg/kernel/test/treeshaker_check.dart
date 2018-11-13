@@ -24,7 +24,8 @@ main(List<String> args) {
   var component = loadComponentFromBinary(args[0]);
   var coreTypes = new CoreTypes(component);
   var hierarchy = new ClassHierarchy(component);
-  var shaker = new TreeShaker(coreTypes, hierarchy, component);
+  var shaker =
+      new TreeShaker(coreTypes, hierarchy, component, legacyMode: true);
   shaker.transform(component);
   new TreeShakingSanityCheck(shaker).visit(component);
 }

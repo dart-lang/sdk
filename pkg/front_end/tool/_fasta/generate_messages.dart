@@ -45,6 +45,10 @@ Future<String> generateMessagesFile() async {
 part of fasta.codes;
 """);
 
+  bool hasError = false;
+  int largestIndex = 0;
+  final indexNameMap = new Map<int, String>();
+
   List<String> keys = yaml.keys.cast<String>().toList()..sort();
   for (String name in keys) {
     var description = yaml[name];
@@ -55,8 +59,51 @@ part of fasta.codes;
     if (map == null) {
       throw "No 'template:' in key $name.";
     }
-    sb.writeln(compileTemplate(name, map['template'], map['tip'],
-        map['analyzerCode'], map['dart2jsCode'], map['severity']));
+    var index = map['index'];
+    if (index != null) {
+      if (index is! int || index < 1) {
+        print('Error: Expected positive int for "index:" field in $name,'
+            ' but found $index');
+        hasError = true;
+        index = -1;
+        // Continue looking for other problems.
+      } else {
+        String otherName = indexNameMap[index];
+        if (otherName != null) {
+          print('Error: The "index:" field must be unique, '
+              'but is the same for $otherName and $name');
+          hasError = true;
+          // Continue looking for other problems.
+        } else {
+          indexNameMap[index] = name;
+          if (largestIndex < index) {
+            largestIndex = index;
+          }
+        }
+      }
+    }
+    sb.writeln(compileTemplate(name, index, map['template'], map['tip'],
+        map['analyzerCode'], map['severity']));
+  }
+  if (largestIndex > indexNameMap.length) {
+    print('Error: The "index:" field values should be unique, consecutive'
+        ' whole numbers starting with 1.');
+    hasError = true;
+    // Fall through to print more information.
+  }
+  if (hasError) {
+    exitCode = 1;
+    print('The largest index is $largestIndex');
+    final sortedIndices = indexNameMap.keys.toList()..sort();
+    int nextAvailableIndex = largestIndex + 1;
+    for (int index = 1; index <= sortedIndices.length; ++index) {
+      if (sortedIndices[index - 1] != index) {
+        nextAvailableIndex = index;
+        break;
+      }
+    }
+    print('The next available index is ${nextAvailableIndex}');
+    return '';
   }
 
   return new DartFormatter().format("$sb");
@@ -65,8 +112,8 @@ part of fasta.codes;
 final RegExp placeholderPattern =
     new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
-String compileTemplate(String name, String template, String tip,
-    String analyzerCode, String dart2jsCode, String severity) {
+String compileTemplate(String name, int index, String template, String tip,
+    Object analyzerCode, String severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
@@ -79,6 +126,15 @@ String compileTemplate(String name, String template, String tip,
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
+  bool hasNameSystem = false;
+  void ensureNameSystem() {
+    if (hasNameSystem) return;
+    conversions.add(r"""
+NameSystem nameSystem = new NameSystem();
+StringBuffer buffer;""");
+    hasNameSystem = true;
+  }
+
   for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
     String name = match[1];
     String padding = match[2];
@@ -104,6 +160,8 @@ String compileTemplate(String name, String template, String tip,
     switch (name) {
       case "character":
         parameters.add("String character");
+        conversions.add("if (character.runes.length != 1)"
+            "throw \"Not a character '\${character}'\";");
         arguments.add("'character': character");
         break;
 
@@ -119,17 +177,23 @@ String compileTemplate(String name, String template, String tip,
 
       case "name":
         parameters.add("String name");
+        conversions.add("if (name.isEmpty) throw 'No name provided';");
         arguments.add("'name': name");
+        conversions.add("name = demangleMixinApplicationName(name);");
         break;
 
       case "name2":
         parameters.add("String name2");
+        conversions.add("if (name2.isEmpty) throw 'No name provided';");
         arguments.add("'name2': name2");
+        conversions.add("name2 = demangleMixinApplicationName(name2);");
         break;
 
       case "name3":
         parameters.add("String name3");
+        conversions.add("if (name3.isEmpty) throw 'No name provided';");
         arguments.add("'name3': name3");
+        conversions.add("name3 = demangleMixinApplicationName(name3);");
         break;
 
       case "lexeme":
@@ -146,38 +210,33 @@ String compileTemplate(String name, String template, String tip,
 
       case "string":
         parameters.add("String string");
+        conversions.add("if (string.isEmpty) throw 'No string provided';");
         arguments.add("'string': string");
         break;
 
       case "string2":
         parameters.add("String string2");
+        conversions.add("if (string2.isEmpty) throw 'No string provided';");
         arguments.add("'string2': string2");
         break;
 
       case "string3":
         parameters.add("String string3");
+        conversions.add("if (string3.isEmpty) throw 'No string provided';");
         arguments.add("'string3': string3");
         break;
 
       case "type":
-        parameters.add("DartType _type");
-        conversions.add(r"""
-NameSystem nameSystem = new NameSystem();
-StringBuffer buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-String type = '$buffer';
-""");
-        arguments.add("'type': _type");
-        break;
-
       case "type2":
-        parameters.add("DartType _type2");
-        conversions.add(r"""
+      case "type3":
+        parameters.add("DartType _${name}");
+        ensureNameSystem();
+        conversions.add("""
 buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-String type2 = '$buffer';
+new Printer(buffer, syntheticNames: nameSystem).writeNode(_${name});
+String ${name} = '\$buffer';
 """);
-        arguments.add("'type2': _type2");
+        arguments.add("'${name}': _${name}");
         break;
 
       case "uri":
@@ -200,33 +259,46 @@ String type2 = '$buffer';
 
       case "count":
         parameters.add("int count");
+        conversions.add("if (count == null) throw 'No count provided';");
         arguments.add("'count': count");
         break;
 
       case "count2":
         parameters.add("int count2");
+        conversions.add("if (count2 == null) throw 'No count provided';");
         arguments.add("'count2': count2");
         break;
 
       case "constant":
-        parameters.add("Constant constant");
-        arguments.add("'constant': constant");
+        parameters.add("Constant _constant");
+        ensureNameSystem();
+        conversions.add(r"""
+buffer = new StringBuffer();
+new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
+String constant = '$buffer';
+""");
+
+        arguments.add("'constant': _constant");
+
         break;
 
       case "num1":
         parameters.add("num _num1");
+        conversions.add("if (_num1 == null) throw 'No number provided';");
         conversions.add("String num1 = ${format('_num1')};");
         arguments.add("'num1': _num1");
         break;
 
       case "num2":
         parameters.add("num _num2");
+        conversions.add("if (_num2 == null) throw 'No number provided';");
         conversions.add("String num2 = ${format('_num2')};");
         arguments.add("'num2': _num2");
         break;
 
       case "num3":
         parameters.add("num _num3");
+        conversions.add("if (_num3 == null) throw 'No number provided';");
         conversions.add("String num3 = ${format('_num3')};");
         arguments.add("'num3': _num3");
         break;
@@ -244,11 +316,16 @@ String type2 = '$buffer';
   }
 
   List<String> codeArguments = <String>[];
-  if (analyzerCode != null) {
-    codeArguments.add('analyzerCode: "$analyzerCode"');
-  }
-  if (dart2jsCode != null) {
-    codeArguments.add('dart2jsCode: "$dart2jsCode"');
+  if (index != null) {
+    codeArguments.add('index: $index');
+  } else if (analyzerCode != null) {
+    if (analyzerCode is String) {
+      analyzerCode = <String>[analyzerCode];
+    }
+    List<Object> codes = analyzerCode;
+    // If "index:" is defined, then "analyzerCode:" should not be generated
+    // in the front end. See comment in messages.yaml
+    codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
   }
   if (severity != null) {
     String severityEnumName = severityEnumNames[severity];

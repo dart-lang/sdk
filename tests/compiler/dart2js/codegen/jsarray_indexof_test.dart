@@ -15,7 +15,7 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/universe/selector.dart';
 import 'package:expect/expect.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import '../helpers/element_lookup.dart';
 import '../helpers/program_lookup.dart';
 
@@ -32,14 +32,10 @@ main() {
 
 main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTest([Flags.noPreviewDart2]);
-    print('--test from kernel (trust-type-annotations)-----------------------');
-    await runTest([Flags.noPreviewDart2, Flags.trustTypeAnnotations]);
     print('--test from kernel (strong mode)----------------------------------');
-    await runTest([Flags.strongMode]);
-    print('--test from kernel (strong mode, omit-implicit.checks)------------');
-    await runTest([Flags.strongMode, Flags.omitImplicitChecks]);
+    await runTest([]);
+    print('--test from kernel (strong mode, omit-implicit-checks)------------');
+    await runTest([Flags.omitImplicitChecks]);
   });
 }
 

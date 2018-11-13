@@ -12,6 +12,8 @@ class DartAssistKind {
       'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
       'dart.assist.assignToVariable', 30, "Assign value to new local variable");
+  static const CONVERT_CLASS_TO_MIXIN = const AssistKind(
+      'dart.assist.convert.classToMixin', 30, "Convert class to a mixin");
   static const CONVERT_DOCUMENTATION_INTO_BLOCK = const AssistKind(
       'dart.assist.convert.blockComment',
       30,
@@ -50,6 +52,8 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_INT_LITERAL = const AssistKind(
+      'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
   static const CONVERT_TO_NORMAL_PARAMETER = const AssistKind(
       'dart.assist.convert.toConstructorNormalParameter',
       30,
@@ -84,6 +88,8 @@ class DartAssistKind {
       const AssistKind('dart.assist.flutter.wrap.center', 30, "Center widget");
   static const FLUTTER_WRAP_COLUMN = const AssistKind(
       'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
+  static const FLUTTER_WRAP_CONTAINER = const AssistKind(
+      'dart.assist.flutter.wrap.container', 30, "Wrap with Container");
   static const FLUTTER_WRAP_GENERIC = const AssistKind(
       'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
   static const FLUTTER_WRAP_PADDING =

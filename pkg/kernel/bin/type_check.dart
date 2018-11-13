@@ -20,8 +20,9 @@ void usage() {
 }
 
 void main(List<String> args) {
-  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
-  final binary = CommandLineHelper.tryLoadDill(args[0], usage);
+  CommandLineHelper.requireExactlyOneArgument(args, usage,
+      requireFileExists: true);
+  final binary = CommandLineHelper.tryLoadDill(args[0]);
   ErrorFormatter errorFormatter = new ErrorFormatter();
   new StrongModeTypeChecker(errorFormatter, binary)..checkComponent(binary);
   if (errorFormatter.numberOfFailures > 0) {

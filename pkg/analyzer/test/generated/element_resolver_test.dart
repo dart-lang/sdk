@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.element_resolver_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,16 +10,16 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -305,7 +303,7 @@ class C {}
 }
 
 @reflectiveTest
-class ElementResolverTest extends EngineTestCase {
+class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -314,7 +312,7 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * The type provider used to access the types.
    */
-  TestTypeProvider _typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * The library containing the code being resolved.
@@ -384,8 +382,7 @@ class ElementResolverTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     _listener = new GatheringErrorListener();
-    _typeProvider = new TestTypeProvider();
-    _resolver = _createResolver();
+    _createResolver();
   }
 
   test_lookUpMethodInInterfaces() async {
@@ -461,7 +458,6 @@ class ElementResolverTest extends EngineTestCase {
         expression.staticElement,
         stringElement.lookUpMethod(
             TokenType.EQ_EQ.lexeme, stringElement.library));
-    expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
 
@@ -480,7 +476,6 @@ class ElementResolverTest extends EngineTestCase {
         expression.staticElement,
         stringElement.lookUpMethod(
             TokenType.EQ_EQ.lexeme, stringElement.library));
-    expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
 
@@ -495,22 +490,6 @@ class ElementResolverTest extends EngineTestCase {
         left, TokenType.PLUS, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
-    expect(expression.propagatedElement, isNull);
-    _listener.assertNoErrors();
-  }
-
-  test_visitBinaryExpression_plus_propagatedElement() async {
-    // var i = 1;
-    // var j;
-    // i + j
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.propagatedType = numType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.PLUS, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    expect(expression.staticElement, isNull);
-    expect(expression.propagatedElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
   }
 
@@ -673,8 +652,8 @@ class ElementResolverTest extends EngineTestCase {
 
   test_visitExportDirective_noCombinators() async {
     ExportDirective directive = AstTestFactory.exportDirective2(null);
-    directive.element = ElementFactory
-        .exportFor(ElementFactory.library(_definingLibrary.context, "lib"));
+    directive.element = ElementFactory.exportFor(
+        ElementFactory.library(_definingLibrary.context, "lib"));
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -822,8 +801,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorName name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
-    InstanceCreationExpression creation = AstTestFactory
-        .instanceCreationExpression(Keyword.NEW, name, [
+    InstanceCreationExpression creation =
+        AstTestFactory.instanceCreationExpression(Keyword.NEW, name, [
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
     _resolveNode(creation);
@@ -1135,8 +1114,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
-    SuperConstructorInvocation invocation = AstTestFactory
-        .superConstructorInvocation([
+    SuperConstructorInvocation invocation =
+        AstTestFactory.superConstructorInvocation([
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
     AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [
@@ -1156,20 +1135,21 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Create and return the resolver used by the tests.
    */
-  ElementResolver _createResolver() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  void _createResolver() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
-    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
-    CompilationUnitElementImpl unit =
-        new CompilationUnitElementImpl("test.dart");
+    _typeProvider = context.typeProvider;
+
+    var inheritance = new InheritanceManager2(context.typeSystem);
+    Source source = new FileSource(getFile("/test.dart"));
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
-        _definingLibrary, source, _typeProvider, _listener,
+        inheritance, _definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(_definingLibrary));
-    return _visitor.elementResolver;
+    _resolver = _visitor.elementResolver;
   }
 
   /**

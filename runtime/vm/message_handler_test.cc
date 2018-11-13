@@ -40,7 +40,10 @@ class TestMessageHandler : public MessageHandler {
         end_called_(false),
         results_(NULL) {}
 
-  ~TestMessageHandler() { delete[] port_buffer_; }
+  ~TestMessageHandler() {
+    PortMap::ClosePorts(this);
+    delete[] port_buffer_;
+  }
 
   void MessageNotify(Message::Priority priority) { notify_count_++; }
 
@@ -233,7 +236,6 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   EXPECT_EQ(port2, ports[0]);
   EXPECT_EQ(port3, ports[1]);
   EXPECT_EQ(port1, ports[2]);
-  PortMap::ClosePorts(&handler);
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
@@ -394,7 +396,6 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   }
   handler_peer.decrement_live_ports();
   EXPECT(!handler.HasLivePorts());
-  PortMap::ClosePorts(&handler);
   delete[] ports;
 }
 

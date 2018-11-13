@@ -107,8 +107,7 @@ class DartPostfixCompletion {
     await null;
     return processor.expand(kind, processor.findIntExpression, (expr) {
       String index = processor.newVariable("i");
-      return "for (int $index = 0; $index < ${processor.utils.getNodeText(
-          expr)}; $index++)";
+      return "for (int $index = 0; $index < ${processor.utils.getNodeText(expr)}; $index++)";
     });
   }
 
@@ -328,8 +327,6 @@ class PostfixCompletionProcessor {
 
   LineInfo get lineInfo => completionContext.lineInfo;
 
-  int get requestLine => lineInfo.getLocation(selectionOffset).lineNumber;
-
   int get selectionOffset => completionContext.selectionOffset;
 
   /**
@@ -454,7 +451,7 @@ class PostfixCompletionProcessor {
       if (boolExpr.parent is ExpressionFunctionBody &&
           boolExpr.parent.parent is FunctionExpression) {
         FunctionExpression fnExpr = boolExpr.parent.parent;
-        var type = fnExpr.bestType;
+        var type = fnExpr.staticType;
         if (type is! FunctionType) {
           return boolExpr;
         }
@@ -463,7 +460,7 @@ class PostfixCompletionProcessor {
           return fnExpr;
         }
       }
-      if (boolExpr.bestType == typeProvider.boolType) {
+      if (boolExpr.staticType == typeProvider.boolType) {
         return boolExpr;
       }
     }
@@ -530,7 +527,7 @@ class PostfixCompletionProcessor {
     }
     if (astNode is ThrowExpression) {
       ThrowExpression expr = astNode;
-      var type = expr.expression.bestType;
+      var type = expr.expression.staticType;
       return type.displayName;
     }
     return 'Exception';
@@ -548,6 +545,10 @@ class PostfixCompletionProcessor {
   }
 
   Expression _findOuterExpression(AstNode start, InterfaceType builtInType) {
+    if (start is SimpleIdentifier && start.staticElement is PrefixElement) {
+      return null;
+    }
+
     AstNode parent;
     if (start is Expression) {
       parent = start;
@@ -557,13 +558,16 @@ class PostfixCompletionProcessor {
     if (parent == null) {
       return null;
     }
+
     var list = <Expression>[];
     while (parent is Expression) {
       list.add(parent);
       parent = parent.parent;
     }
+
     Expression expr = list.firstWhere((expr) {
-      DartType type = expr.bestType;
+      DartType type = expr.staticType;
+      if (type == null) return false;
       if (type.isSubtypeOf(builtInType)) return true;
       Element element = type.element;
       if (element is TypeDefiningElement) {

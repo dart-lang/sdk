@@ -19,11 +19,11 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final List<AnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.
-  AnalysisContextCollectionImpl({
-    @required List<String> includedPaths,
-    ResourceProvider resourceProvider,
-    String sdkPath,
-  }) : resourceProvider =
+  AnalysisContextCollectionImpl(
+      {@required List<String> includedPaths,
+      ResourceProvider resourceProvider,
+      String sdkPath})
+      : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     if (sdkPath != null) {
@@ -38,10 +38,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       var contextBuilder = new ContextBuilder(
         resourceProvider: this.resourceProvider,
       );
-      var context = contextBuilder.createContext(
-        contextRoot: root,
-        sdkPath: sdkPath,
-      );
+      var context =
+          contextBuilder.createContext(contextRoot: root, sdkPath: sdkPath);
       contexts.add(context);
     }
   }

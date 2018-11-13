@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST1 = r"""
 main() {
@@ -26,7 +26,7 @@ main() {
 
 const String TEST3 = r"""
 main() {
-  var a = 52;
+  dynamic a = 52;
   var g = () { a = 'foo'; };
   var f = () => a + 87;
   f();

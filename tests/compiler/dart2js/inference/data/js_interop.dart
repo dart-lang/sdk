@@ -10,6 +10,7 @@ import 'package:js/js.dart';
 /*element: main:[null]*/
 main() {
   anonymousClass();
+  jsInteropClass();
 }
 
 @JS()
@@ -20,6 +21,30 @@ class Class1 {
       {/*[exact=JSUInt31]*/ a, /*Value([exact=JSString], value: "")*/ b});
 }
 
-/*kernel.element: anonymousClass:[null|subclass=Object]*/
 /*strong.element: anonymousClass:[null|subclass=JavaScriptObject]*/
 anonymousClass() => new Class1(a: 1, b: '');
+
+@JS()
+class JsInteropClass {
+  /*element: JsInteropClass.:[null|subclass=Object]*/
+  external JsInteropClass();
+
+  /*element: JsInteropClass.getter:[null|subclass=Object]*/
+  external int get getter;
+
+  external void set setter(int /*[subclass=JSInt]*/ value);
+
+  /*element: JsInteropClass.method:[null|subclass=Object]*/
+  external int method(int /*[exact=JSUInt31]*/ a);
+}
+
+/*element: jsInteropClass:[subclass=JSInt]*/
+jsInteropClass() {
+  JsInteropClass cls = new JsInteropClass();
+  return cls. /*update: [null|subclass=JavaScriptObject]*/ setter =
+      cls. /*[null|subclass=JavaScriptObject]*/ getter
+          /*invoke: [null|subclass=JSInt]*/ +
+          cls. /*invoke: [subclass=JavaScriptObject]*/ method(0)
+          /*invoke: [subclass=JSInt]*/ +
+          10;
+}

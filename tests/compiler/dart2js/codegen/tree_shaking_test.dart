@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST = r"""
 class A {
@@ -16,6 +16,7 @@ class B extends A {
 }
 class C implements A {
   bar() => 68;
+  noSuchMethod(_) {}
 }
 main() {
   new A();

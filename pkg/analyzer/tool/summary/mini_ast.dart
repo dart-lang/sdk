@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/messages.dart' show LocatedMessage, Message;
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/problems.dart'
     show internalProblem, unsupported;
@@ -147,8 +147,9 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
-  void addCompileTimeError(Message message, int offset, int length) {
-    internalProblem(message, offset, uri);
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
+    internalProblem(message, charOffset, uri);
   }
 
   @override
@@ -173,10 +174,25 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    debugEvent("ClassBody");
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    debugEvent("ClassOrMixinBody");
     push(popList(memberCount,
         new List<ClassMember>.filled(memberCount, null, growable: true)));
+  }
+
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleClassNoWithClause() {
+    debugEvent("NoClassWithClause");
+  }
+
+  @override
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    debugEvent("NamedMixinApplicationWithClause");
   }
 
   @override
@@ -186,11 +202,11 @@ class MiniAstBuilder extends StackListener {
 
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
-    List<ClassMember> members = pop();
+    List<ClassMember> members = popTypedList();
     TypeName superclass = pop();
     pop(); // Type variables
     String name = pop();
-    List<Annotation> metadata = pop();
+    List<Annotation> metadata = popTypedList();
     Comment comment = pop();
     compilationUnit.declarations.add(
         new ClassDeclaration(comment, metadata, name, superclass, members));
@@ -215,7 +231,7 @@ class MiniAstBuilder extends StackListener {
         new List.filled(count, null, growable: true);
     popList(count, constants);
     String name = pop();
-    List<Annotation> metadata = pop();
+    List<Annotation> metadata = popTypedList();
     Comment comment = pop();
     compilationUnit.declarations
         .add(new EnumDeclaration(comment, metadata, name, constants));
@@ -228,7 +244,7 @@ class MiniAstBuilder extends StackListener {
     pop(); // Body
     pop(); // Type variables
     String name = pop();
-    List<Annotation> metadata = pop();
+    List<Annotation> metadata = popTypedList();
     Comment comment = pop();
     push(new ConstructorDeclaration(comment, metadata, name));
   }
@@ -345,7 +361,7 @@ class MiniAstBuilder extends StackListener {
     pop(); // Type variables
     String name = pop();
     TypeName returnType = pop();
-    List<Annotation> metadata = pop();
+    List<Annotation> metadata = popTypedList();
     Comment comment = pop();
     push(new MethodDeclaration(
         comment, metadata, getOrSet?.lexeme == 'get', name, returnType));
@@ -387,6 +403,12 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
+  }
+
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
   }
@@ -423,7 +445,7 @@ class MiniAstBuilder extends StackListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      List<Annotation> metadata = pop();
+      List<Annotation> metadata = popTypedList();
       Comment comment = pop();
       push(new EnumConstantDeclaration(comment, metadata, token.lexeme));
     } else {
@@ -456,11 +478,23 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     debugEvent("Type");
-    List<TypeName> typeArguments = pop();
+    List<TypeName> typeArguments = popTypedList();
     String name = pop();
     push(new TypeName(name, typeArguments));
+  }
+
+  /// Calls [pop] and creates a list with the appropriate type parameter `T`
+  /// from the resulting `List<dynamic>`.
+  List<T> popTypedList<T>() {
+    List list = pop();
+    return list != null ? new List<T>.from(list) : null;
+  }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
   }
 }
 

@@ -1,4 +1,4 @@
-// Errors:
+// Unhandled errors:
 //
 // pkg/front_end/testcases/inference_new/strongly_connected_component.dart:19:67: Error: Can't infer the type of 'y': circularity found during type inference.
 // Specify the type explicitly.

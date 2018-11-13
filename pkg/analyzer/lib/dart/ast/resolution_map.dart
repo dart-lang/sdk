@@ -19,7 +19,11 @@ abstract class ResolutionMap {
    * that element will be returned. Otherwise, the element found using the
    * result of static analysis will be returned. If resolution has not been
    * performed, then `null` will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElementForFunctionExpressionInvocation] instead.
    */
+  @deprecated
   ExecutableElement bestElementForFunctionExpressionInvocation(
       FunctionExpressionInvocation node);
 
@@ -29,7 +33,11 @@ abstract class ResolutionMap {
    * will be returned. Otherwise, the element found using the result of static
    * analysis will be returned. If resolution has not been performed, then
    * `null` will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElementForIdentifier] instead.
    */
+  @deprecated
   Element bestElementForIdentifier(Identifier node);
 
   /**
@@ -38,7 +46,11 @@ abstract class ResolutionMap {
    * will be returned. Otherwise, the element found using the result of static
    * analysis will be returned. If resolution has not been performed, then
    * `null` will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElementForMethodReference] instead.
    */
+  @deprecated
   MethodElement bestElementForMethodReference(MethodReferenceExpression node);
 
   /**
@@ -46,7 +58,11 @@ abstract class ResolutionMap {
    * [node]. If type propagation was able to find a better parameter element
    * than static analysis, that type will be returned. Otherwise, the result of
    * static analysis will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticParameterElementForExpression] instead.
    */
+  @deprecated
   ParameterElement bestParameterElementForExpression(Expression node);
 
   /**
@@ -55,7 +71,11 @@ abstract class ResolutionMap {
    * type will be returned. Otherwise, the result of static analysis will be
    * returned. If no type analysis has been performed, then the type 'dynamic'
    * will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticTypeForExpression] instead.
    */
+  @deprecated
   DartType bestTypeForExpression(Expression node);
 
   /**
@@ -147,6 +167,13 @@ abstract class ResolutionMap {
    * either this node corresponds to a list of declarations or if the AST
    * structure has not been resolved.
    */
+  ClassElement elementDeclaredByMixinDeclaration(MixinDeclaration node);
+
+  /**
+   * Return the element associated with the declaration [node], or `null` if
+   * either this node corresponds to a list of declarations or if the AST
+   * structure has not been resolved.
+   */
   VariableElement elementDeclaredByVariableDeclaration(
       VariableDeclaration node);
 
@@ -176,7 +203,11 @@ abstract class ResolutionMap {
    * Return the element associated with the function being invoked at [node]
    * based on propagated type information, or `null` if the AST structure has
    * not been resolved or the function could not be resolved.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElementForFunctionExpressionInvocation] instead.
    */
+  @deprecated
   ExecutableElement propagatedElementForFunctionExpressionInvocation(
       FunctionExpressionInvocation node);
 
@@ -186,7 +217,11 @@ abstract class ResolutionMap {
    * resolved or if this identifier could not be resolved. One example of the
    * latter case is an identifier that is not defined within the scope in which
    * it appears.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElementForIdentifier] instead.
    */
+  @deprecated
   Element propagatedElementForIdentifier(Identifier node);
 
   /**
@@ -195,7 +230,11 @@ abstract class ResolutionMap {
    * there is no meaningful propagated element to return (e.g. because this is a
    * non-compound assignment expression, or because the method referred to could
    * not be resolved).
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElementForMethodReference] instead.
    */
+  @deprecated
   MethodElement propagatedElementForMethodReference(
       MethodReferenceExpression node);
 
@@ -206,13 +245,21 @@ abstract class ResolutionMap {
    * parameters of the function being invoked, then return the parameter element
    * representing the parameter to which the value of [node] will be
    * bound. Otherwise, return `null`.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticParameterElementForExpression] instead.
    */
+  @deprecated
   ParameterElement propagatedParameterElementForExpression(Expression node);
 
   /**
    * Return the propagated type of the expression [node], or `null` if type
    * propagation has not been performed on the AST structure.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticTypeForExpression] instead.
    */
+  @deprecated
   DartType propagatedTypeForExpression(Expression node);
 
   /**

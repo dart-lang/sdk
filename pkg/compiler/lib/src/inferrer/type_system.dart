@@ -55,20 +55,20 @@ class TypeSystem {
   final List<TypeInformation> _orderedTypeInformations = <TypeInformation>[];
 
   /// [ParameterTypeInformation]s for parameters.
-  final Map<Local, TypeInformation> parameterTypeInformations =
-      new Map<Local, TypeInformation>();
+  final Map<Local, ParameterTypeInformation> parameterTypeInformations =
+      new Map<Local, ParameterTypeInformation>();
 
   /// [MemberTypeInformation]s for members.
-  final Map<MemberEntity, TypeInformation> memberTypeInformations =
-      new Map<MemberEntity, TypeInformation>();
+  final Map<MemberEntity, MemberTypeInformation> memberTypeInformations =
+      new Map<MemberEntity, MemberTypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
-  final Map<ir.Node, TypeInformation> allocatedLists =
-      new Map<ir.Node, TypeInformation>();
+  final Map<ir.TreeNode, ListTypeInformation> allocatedLists =
+      new Map<ir.TreeNode, ListTypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<ir.Node, TypeInformation> allocatedMaps =
-      new Map<ir.Node, TypeInformation>();
+  final Map<ir.TreeNode, TypeInformation> allocatedMaps =
+      new Map<ir.TreeNode, TypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
@@ -398,10 +398,20 @@ class TypeSystem {
     });
   }
 
+  void forEachParameterType(
+      void f(Local parameter, ParameterTypeInformation typeInformation)) {
+    parameterTypeInformations.forEach(f);
+  }
+
   MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
     assert(!member.isAbstract,
         failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
+  }
+
+  void forEachMemberType(
+      void f(MemberEntity member, MemberTypeInformation typeInformation)) {
+    memberTypeInformations.forEach(f);
   }
 
   MemberTypeInformation _getInferredTypeOfMember(MemberEntity member) {

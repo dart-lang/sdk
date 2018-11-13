@@ -20,7 +20,7 @@ namespace dart {
 CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
 const char* CpuInfo::fields_[kCpuInfoMax] = {0};
 
-void CpuInfo::InitOnce() {
+void CpuInfo::Init() {
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   fields_[kCpuInfoProcessor] = "vendor_id";
   fields_[kCpuInfoModel] = "model name";
@@ -28,7 +28,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "flags";
   fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoCpuId;
-  CpuId::InitOnce();
+  CpuId::Init();
 #elif defined(HOST_ARCH_ARM)
   fields_[kCpuInfoProcessor] = "Processor";
   fields_[kCpuInfoModel] = "model name";
@@ -36,7 +36,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "Features";
   fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
-  ProcCpuInfo::InitOnce();
+  ProcCpuInfo::Init();
 #elif defined(HOST_ARCH_ARM64)
   fields_[kCpuInfoProcessor] = "Processor";
   fields_[kCpuInfoModel] = "CPU implementer";
@@ -44,7 +44,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "Features";
   fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
-  ProcCpuInfo::InitOnce();
+  ProcCpuInfo::Init();
 #else
 #error Unrecognized target architecture
 #endif

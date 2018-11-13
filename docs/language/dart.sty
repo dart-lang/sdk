@@ -1,12 +1,5 @@
-\def\keyword#1{\textbf{#1}}
-\def\builtinId#1{\textbf{#1}}
-\def\code#1{\textsf{#1}}
-\def\comment#1{\textit{#1}}
-\def\capt#1{\rmfamily \caption{#1}}
-\def\lt{\ensuremath{<}}
-\def\gt{\ensuremath{>}}
-\def\<{\ensuremath{\langle}}
-\def\>{\ensuremath{\rangle}}
+\def\builtinId#1{\textsf{\textbf{#1}}}
+\def\keyword#1{\textsf{\textbf{#1}}}
 \def\metavar#1{\ensuremath{\mathit{#1}}}
 
 \def\ABSTRACT{\builtinId{abstract}}
@@ -34,7 +27,6 @@
 \def\ASYNC{\keyword{async}}
 \def\AWAIT{\keyword{await}}
 \def\BREAK{\keyword{break}}
-\def\CALL{\keyword{call}}
 \def\CASE{\keyword{case}}
 \def\CATCH{\keyword{catch}}
 \def\CLASS{\keyword{class}}
@@ -73,8 +65,16 @@
 \def\WITH{\keyword{with}}
 \def\YIELD{\keyword{yield}}
 
-% A quoted comma as used in the grammar: needs spacing fix.
-\newcommand{\gcomma}{\mbox{`,\hspace{-0.1em}'}}
+% Used for inline code snippets.
+\def\code#1{\texttt{#1}}
+
+% `call` has no special lexical status, so we just use \code{}.
+\def\CALL{\code{call}}
+
+% Define commands for `<<`, `>>`, `>>>` that avoid introducing guillemets.
+\def\ltlt{<\mbox <}
+\def\gtgt{>\mbox >}
+\def\gtgtgt{>\mbox >\mbox >}
 
 % Used as line break in the right hand side of a grammar
 % alternative, that is, when starting a "continuation line".
@@ -88,16 +88,24 @@
 \newenvironment{rationale}[1]{{\it #1}}{}
 \newenvironment{commentary}[1]{{\sf #1}}{}
 
-\newenvironment{dartCode}[1][!ht] {
-%  \begin{verbatim}[#1]
-  \def\@programcr{\@addfield\strut}
-  \let\\=\@programcr
-  \relax\@vobeyspaces\obeylines
+\newcommand{\flatten}[1]{\ensuremath{\mbox{\it flatten}({#1})}}
 
-  \sffamily
-}{
-  %\end{verbatim}
-}
+% Used as a mini-section marker, indicating visibly that a range of
+% text (usually just a couple of paragraphs) are concerned with one
+% specific topic in a list of similar topics (like many forms of
+% expressions of a similar nature).
+\newcommand{\Case}[1]{\textbf{Case }$\langle\hspace{0.1em}${#1}$\hspace{0.1em}\rangle$\textbf{.}}
+
+\newenvironment{dartCode}[1][!ht] {
+  \def\@programcr{\@addfield\strut}%
+  \let\\=\@programcr%
+  \relax\@vobeyspaces\obeylines%
+  \ttfamily%
+  \vspace{1em}
+}{\vspace{1em}}
+
+% Used for comments in a code context.
+\def\comment#1{\textsf{#1}}
 
 % A commonly used name for an identifier
 \newcommand{\id}{\metavar{id}}

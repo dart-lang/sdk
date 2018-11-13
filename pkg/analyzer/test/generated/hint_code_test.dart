@@ -38,6 +38,7 @@ const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _Protected protected = const _Protected();
 const Required required = const Required();
+const _Sealed sealed = const _Sealed();
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
 
 class Immutable {
@@ -63,6 +64,9 @@ class Required {
   final String reason;
   const Required([this.reason]);
 }
+class _Sealed {
+  const _Sealed();
+}
 class _VisibleForTesting {
   const _VisibleForTesting();
 }
@@ -73,92 +77,23 @@ class _VisibleForTesting {
         r'''
 library js;
 class JS {
-  const JS([String js]) { }
+  const JS([String js]);
 }
 '''
-      ]
+      ],
+      [
+        'angular_meta',
+        r'''
+library angular.meta;
+
+const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
+
+class _VisibleForTemplate {
+  const _VisibleForTemplate();
+}
+'''
+      ],
     ]);
-  }
-
-  test_abstractSuperMemberReference_getter() async {
-    Source source = addSource(r'''
-abstract class A {
-  int get test;
-}
-class B extends A {
-  int get test {
-    super.test;
-    return 0;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_method_invocation() async {
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test();
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_method_reference() async {
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_setter() async {
-    Source source = addSource(r'''
-abstract class A {
-  void set test(int v);
-}
-class B extends A {
-  void set test(int v){
-    super.test = 0;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
-  }
-
-  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
-    Source source = addSource('''
-abstract class A {
-  int m();
-  noSuchMethod(_) => 42;
-}
-
-class B extends A {
-  int m() => super.m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    verify([source]);
   }
 
   test_argumentTypeNotAssignable_functionType() async {
@@ -1096,14 +1031,7 @@ class Function {}
 class A extends Function {}
 ''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertErrors(source, [HintCode.DEPRECATED_EXTENDS_FUNCTION]);
-    } else {
-      assertErrors(source, [
-        HintCode.DEPRECATED_EXTENDS_FUNCTION,
-        StaticWarningCode.FUNCTION_WITHOUT_CALL
-      ]);
-    }
+    assertErrors(source, [HintCode.DEPRECATED_EXTENDS_FUNCTION]);
     verify([source]);
   }
 
@@ -1125,14 +1053,7 @@ class A extends Function {}
 class A extends Object with Function {}
 ''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertErrors(source, [HintCode.DEPRECATED_MIXIN_FUNCTION]);
-    } else {
-      assertErrors(source, [
-        HintCode.DEPRECATED_MIXIN_FUNCTION,
-        StaticWarningCode.FUNCTION_WITHOUT_CALL
-      ]);
-    }
+    assertErrors(source, [HintCode.DEPRECATED_MIXIN_FUNCTION]);
     verify([source]);
   }
 
@@ -1621,6 +1542,54 @@ m6({a, @required b}) => null;
     verify([source]);
   }
 
+  test_invalidSealedAnnotation_onClass() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed class A {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onMixin() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed mixin M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onMixinApplication() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+abstract class A {}
+
+abstract class B {}
+
+@sealed abstract class M = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onNonClass() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed m({a = 1}) => null;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidUseOfProtectedMember_closure() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -1680,6 +1649,33 @@ abstract class B implements A {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  test_invalidUseOfProtectedMember_fromSuperclassConstraint() async {
+    Source sourceA = addNamedSource('/a.dart', r'''
+import 'package:meta/meta.dart';
+
+abstract class A {
+  @protected
+  void foo() {}
+}
+''');
+    Source sourceM = addNamedSource('/m.dart', r'''
+import 'a.dart';
+
+mixin M on A {
+  @override
+  void foo() {
+    super.foo();
+  }
+}
+''');
+
+    await computeAnalysisResult(sourceA);
+    await computeAnalysisResult(sourceM);
+    assertNoErrors(sourceA);
+    assertNoErrors(sourceM);
+    verify([sourceA, sourceM]);
   }
 
   test_invalidUseOfProtectedMember_function() async {
@@ -1774,17 +1770,22 @@ abstract class B implements A {
   }
 
   test_invalidUseOfProtectedMember_in_docs_OK() async {
-    Source source = addSource(r'''
+    addNamedSource('/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
   @protected
-  int a() => c;
+  int c = 0;
+
   @protected
-  int get b => a();
+  int get b => 0;
+
   @protected
-  int c = 42;
+  int a() => 0;
 }
+''');
+    Source source = addSource(r'''
+import 'a.dart';
 
 /// OK: [A.a], [A.b], [A.c].
 f() {}
@@ -2047,6 +2048,138 @@ main() {
     verify([source]);
   }
 
+  test_invalidUseOfVisibleForTemplateMember_constructor() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  int _x;
+
+  @visibleForTemplate
+  A.forTemplate(this._x);
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A.forTemplate(0);
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
+        source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_export_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+export 'lib1.dart' show fn0;
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_method() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+class B {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
+        source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_method_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib1.template.dart', r'''
+import 'lib1.dart';
+
+class B {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_propertyAccess() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  @visibleForTemplate
+  int get a => 7;
+
+  @visibleForTemplate
+  set b(_) => 7;
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A().a;
+  new A().b = 6;
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [
+      HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+      HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER
+    ]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_topLevelFunction() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  fn0();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
+        source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    verify([source, source2]);
+  }
+
   test_invalidUseOfVisibleForTestingMember_constructor() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -2067,6 +2200,22 @@ void main() {
     await computeAnalysisResult(source);
     await computeAnalysisResult(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTestingMember_export_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+export 'lib1.dart' show fn0;
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -2121,22 +2270,6 @@ class C {
     verify([source, source2, source3]);
   }
 
-  test_invalidUseOfVisibleForTestingMember_OK_export() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-@visibleForTesting
-int fn0() => 1;
-''');
-    Source source2 = addNamedSource('/lib2.dart', r'''
-export 'lib1.dart' show fn0;
-''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
   test_invalidUseOfVisibleForTestingMember_propertyAccess() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -2182,6 +2315,52 @@ void main() {
     await computeAnalysisResult(source);
     await computeAnalysisResult(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTemplate_asProtected_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+class B extends A {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTemplate_asTemplate_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib1.template.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -2383,6 +2562,20 @@ class A {
 class A {
   int m() {}
 }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_method_inferred() async {
+    Source source = addSource(r'''
+abstract class A {
+  int m();
+}
+class B extends A {
+  m() {}
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
@@ -3112,7 +3305,7 @@ var b = new A().g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3127,7 +3320,7 @@ var b = a.g();
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3141,7 +3334,7 @@ var b = new A().g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3156,7 +3349,7 @@ var b = a.g();
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3171,7 +3364,7 @@ var b = a.g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3183,11 +3376,7 @@ class A {
 var b = new A().g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3200,11 +3389,7 @@ var a = new A();
 var b = a.g();
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3216,11 +3401,7 @@ class A {
 var b = new A().g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3233,11 +3414,7 @@ var a = new A();
 var b = a.g();
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3250,11 +3427,7 @@ var a = new A();
 var b = a.g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3270,11 +3443,7 @@ var b = f(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3337,11 +3506,7 @@ var b = (<T>(y) => 0)(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the
     // closure is generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3387,11 +3552,7 @@ var b = a.f(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3441,11 +3602,7 @@ var b = new B(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3520,11 +3677,7 @@ var b = new B.named(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3602,11 +3755,7 @@ var b = new foo.B(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3619,11 +3768,7 @@ var a = new A();
 var b = a.g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3642,11 +3787,7 @@ var b = (a.x).y;
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the type
     // of a.x affects the lookup of y, which in turn affects the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3661,7 +3802,7 @@ var b = a.g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3673,11 +3814,7 @@ class A {
 var x = new A().f();
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -3701,11 +3838,7 @@ class A {
 var x = new A().f(0);
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -3741,11 +3874,7 @@ class A {
 var x = new A().f;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -3757,11 +3886,7 @@ class A {
 var x = new A().f;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -3811,14 +3936,6 @@ f(var a) {
     } else {
       assertErrors(source, [HintCode.UNDEFINED_GETTER]);
     }
-  }
-
-  test_undefinedGetter_message() async {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_GETTER.message,
-        StaticTypeWarningCode.UNDEFINED_GETTER.message);
   }
 
   test_undefinedIdentifier_exportHide() async {
@@ -4005,14 +4122,6 @@ f(var a) {
     } else {
       assertErrors(source, [HintCode.UNDEFINED_SETTER]);
     }
-  }
-
-  test_undefinedSetter_message() async {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_SETTER.message,
-        StaticTypeWarningCode.UNDEFINED_SETTER.message);
   }
 
   test_unnecessaryCast_type_supertype() async {

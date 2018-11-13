@@ -44,15 +44,20 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
 
   // Setup the interfaces in the class.
+  // Normally the class finalizer is resolving super types and interfaces
+  // before finalizing the types in a class. A side-effect of this is setting
+  // the is_implemented() bit on a class. We do that manually here.
   const Array& interfaces = Array::Handle(Array::New(2));
   Class& interface = Class::Handle();
   String& interface_name = String::Handle();
   interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface.set_is_implemented();
   interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface.set_is_implemented();
   cls.set_interfaces(interfaces);
 
   // Finalization of types happens before the fields and functions have been
@@ -161,61 +166,6 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
 }
 
-ISOLATE_UNIT_TEST_CASE(TokenStream) {
-  Zone* zone = Thread::Current()->zone();
-  String& source = String::Handle(zone, String::New("= ( 9 , ."));
-  String& private_key = String::Handle(zone, String::New(""));
-  const TokenStream& token_stream =
-      TokenStream::Handle(zone, TokenStream::New(source, private_key, false));
-  TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
-  iterator.Advance();  // Advance to '(' token.
-  EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
-  iterator.Advance();
-  iterator.Advance();
-  iterator.Advance();  // Advance to '.' token.
-  EXPECT_EQ(Token::kPERIOD, iterator.CurrentTokenKind());
-  iterator.Advance();  // Advance to end of stream.
-  EXPECT_EQ(Token::kEOS, iterator.CurrentTokenKind());
-}
-
-ISOLATE_UNIT_TEST_CASE(GenerateExactSource) {
-  // Verify the exact formatting of generated sources.
-  const char* kScriptChars =
-      "\n"
-      "class A {\n"
-      "  static bar() { return 42; }\n"
-      "  static fly() { return 5; }\n"
-      "  void catcher(x) {\n"
-      "    try {\n"
-      "      if (x is! List) {\n"
-      "        for (int i = 0; i < x; i++) {\n"
-      "          fly();\n"
-      "          ++i;\n"
-      "        }\n"
-      "      } else {\n"
-      "        for (int i = 0; i < x; i--) {\n"
-      "          !fly();\n"
-      "          --i;\n"
-      "        }\n"
-      "      }\n"
-      "    } on Blah catch (a) {\n"
-      "      _print(17);\n"
-      "    } catch (e, s) {\n"
-      "      bar()\n"
-      "    }\n"
-      "  }\n"
-      "}\n";
-
-  String& url = String::Handle(String::New("dart-test:GenerateExactSource"));
-  String& source = String::Handle(String::New(kScriptChars));
-  Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  script.Tokenize(String::Handle(String::New("")));
-  const TokenStream& tokens = TokenStream::Handle(script.tokens());
-  const String& gen_source = String::Handle(tokens.GenerateSource());
-  EXPECT_STREQ(source.ToCString(), gen_source.ToCString());
-}
-
 TEST_CASE(Class_ComputeEndTokenPos) {
   const char* kScript =
       "\n"
@@ -230,6 +180,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
       "}\n";
   Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib_h);
+  TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(lib_h);
   EXPECT(!lib.IsNull());
@@ -2086,9 +2037,11 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
-  EXPECT_EQ((2 * kWordSize), left_over_array.Length());
+  EXPECT_EQ(4 * kWordSize - TypedData::InstanceSize(0),
+            left_over_array.Length());
 
-  // 2. Should produce an array of length 3 and a left over int8 array.
+  // 2. Should produce an array of length 3 and a left over int8 array or
+  // instance.
   array = GrowableObjectArray::New(kArrayLen);
   EXPECT_EQ(kArrayLen, array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -2105,9 +2058,14 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(obj.IsTypedData());
-  left_over_array ^= obj.raw();
-  EXPECT_EQ(0, left_over_array.Length());
+  if (TypedData::InstanceSize(0) <= 2 * kWordSize) {
+    EXPECT(obj.IsTypedData());
+    left_over_array ^= obj.raw();
+    EXPECT_EQ(2 * kWordSize - TypedData::InstanceSize(0),
+              left_over_array.Length());
+  } else {
+    EXPECT(obj.IsInstance());
+  }
 
   // 3. Should produce an array of length 1 and a left over int8 array.
   array = GrowableObjectArray::New(kArrayLen + 3);
@@ -2128,7 +2086,8 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
-  EXPECT_EQ((6 * kWordSize), left_over_array.Length());
+  EXPECT_EQ(8 * kWordSize - TypedData::InstanceSize(0),
+            left_over_array.Length());
 
   // 4. Verify that GC can handle the filler object for a large array.
   array = GrowableObjectArray::New((1 * MB) >> kWordSizeLog2);
@@ -2266,7 +2225,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-TEST_CASE(Script) {
+ISOLATE_UNIT_TEST_CASE(Script) {
   const char* url_chars = "builtin:test-case";
   const char* source_chars = "This will not compile.";
   const String& url = String::Handle(String::New(url_chars));
@@ -2286,6 +2245,7 @@ TEST_CASE(Script) {
   EXPECT_EQ('n', str.CharAt(10));
   EXPECT_EQ('.', str.CharAt(21));
 
+  TransitionVMToNative transition(thread);
   const char* kScript = "main() {}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
@@ -2294,107 +2254,6 @@ TEST_CASE(Script) {
   EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-}
-
-ISOLATE_UNIT_TEST_CASE(EmbeddedScript) {
-  const char* url_chars = "builtin:test-case";
-  const char* text =
-      /* 1 */
-      "<!DOCTYPE html>\n"
-      /* 2 */
-      "  ... more junk ...\n"
-      /* 3 */
-      "  <script type='application/dart'>main() {\n"
-      /* 4 */
-      "    return 'foo';\n"
-      /* 5 */
-      "  }\n"
-      /* 6 */ "</script>\n";
-  const char* line1 = text;
-  const char* line2 = strstr(line1, "\n") + 1;
-  const char* line3 = strstr(line2, "\n") + 1;
-  const char* line4 = strstr(line3, "\n") + 1;
-  const char* line5 = strstr(line4, "\n") + 1;
-
-  const int first_dart_line = 3;
-  EXPECT(strstr(line3, "main") != NULL);
-  const int last_dart_line = 5;
-  EXPECT(strstr(line5, "}") != NULL);
-
-  const char* script_begin = strstr(text, "main");
-  EXPECT(script_begin != NULL);
-  const char* script_end = strstr(text, "</script>");
-  EXPECT(script_end != NULL);
-  int script_length = script_end - script_begin;
-  EXPECT(script_length > 0);
-
-  // The Dart script starts on line 3 instead of 1, offset is 3 - 1 = 2.
-  int line_offset = 2;
-  // Dart script starts with "main" on line 3.
-  intptr_t col_offset = script_begin - line3;
-  EXPECT(col_offset > 0);
-
-  char* src_chars = strdup(script_begin);
-  src_chars[script_length] = '\0';
-
-  const String& url = String::Handle(String::New(url_chars));
-  const String& source = String::Handle(String::New(src_chars));
-  const Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  script.SetLocationOffset(line_offset, col_offset);
-
-  String& str = String::Handle();
-  str = script.GetLine(first_dart_line);
-  EXPECT_STREQ("main() {", str.ToCString());
-  str = script.GetLine(last_dart_line);
-  EXPECT_STREQ("  }", str.ToCString());
-
-  script.Tokenize(String::Handle(String::New("ABC")));
-  // Tokens: 0: kIDENT, 1: kLPAREN, 2: kRPAREN, 3: kLBRACE, 4: kNEWLINE,
-  //         5: kRETURN, 6: kSTRING, 7: kSEMICOLON, 8: kNEWLINE,
-  //         9: kRBRACE, 10: kNEWLINE
-
-  intptr_t line, col;
-  intptr_t fast_line;
-  script.GetTokenLocation(TokenPosition(0), &line, &col);
-  EXPECT_EQ(first_dart_line, line);
-  EXPECT_EQ(col, col_offset + 1);
-
-  // We allow asking for only the line number, which only scans the token stream
-  // instead of rescanning the script.
-  script.GetTokenLocation(TokenPosition(0), &fast_line, NULL);
-  EXPECT_EQ(line, fast_line);
-
-  script.GetTokenLocation(TokenPosition(5), &line, &col);  // Token 'return'
-  EXPECT_EQ(4, line);  // 'return' is in line 4.
-  EXPECT_EQ(5, col);   // Four spaces before 'return'.
-
-  // We allow asking for only the line number, which only scans the token stream
-  // instead of rescanning the script.
-  script.GetTokenLocation(TokenPosition(5), &fast_line, NULL);
-  EXPECT_EQ(line, fast_line);
-
-  TokenPosition first_idx, last_idx;
-  script.TokenRangeAtLine(3, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx.value());  // Token 'main' is first token.
-  EXPECT_EQ(3, last_idx.value());   // Token { is last token.
-  script.TokenRangeAtLine(4, &first_idx, &last_idx);
-  EXPECT_EQ(5, first_idx.value());  // Token 'return' is first token.
-  EXPECT_EQ(7, last_idx.value());   // Token ; is last token.
-  script.TokenRangeAtLine(5, &first_idx, &last_idx);
-  EXPECT_EQ(9, first_idx.value());  // Token } is first and only token.
-  EXPECT_EQ(9, last_idx.value());
-  script.TokenRangeAtLine(1, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx.value());
-  EXPECT_EQ(3, last_idx.value());
-  script.TokenRangeAtLine(6, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx.value());
-  EXPECT_EQ(-1, last_idx.value());
-  script.TokenRangeAtLine(1000, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx.value());
-  EXPECT_EQ(-1, last_idx.value());
-
-  free(src_chars);
 }
 
 ISOLATE_UNIT_TEST_CASE(Context) {
@@ -2613,10 +2472,12 @@ static RawFunction* CreateFunction(const char* name) {
 // Test for Code and Instruction object creation.
 ISOLATE_UNIT_TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler * assembler);
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2633,10 +2494,12 @@ ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
       MallocHooks::stack_trace_collection_enabled();
   MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(Assembler * assembler);
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2658,11 +2521,13 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   extern void GenerateEmbedStringInCode(Assembler * assembler, const char* str);
   const char* kHello = "Hello World!";
   word expected_length = static_cast<word>(strlen(kHello));
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateEmbedStringInCode(&_assembler_, kHello);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedStringInCode"));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2679,11 +2544,13 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
 ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
   const intptr_t kSmiTestValue = 5;
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiInCode"));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2695,11 +2562,13 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
 ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
   const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2724,10 +2593,11 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
                                     TokenPosition::kNoSource, true);
 
   extern void GenerateIncrement(Assembler * assembler);
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
   code.set_exception_handlers(exception_handlers);
 
   // Verify the exception handler table entries by accessing them.
@@ -2764,10 +2634,11 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   descriptors ^= builder->FinalizePcDescriptors(0);
 
   extern void GenerateIncrement(Assembler * assembler);
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.
@@ -2825,10 +2696,11 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   descriptors ^= builder->FinalizePcDescriptors(0);
 
   extern void GenerateIncrement(Assembler * assembler);
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.
@@ -3009,15 +2881,20 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
   const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, Bool::True());
+  const TypeArguments& targ_3 = TypeArguments::Handle(TypeArguments::New(5));
+  const TypeArguments& targ_4 = TypeArguments::Handle(TypeArguments::New(6));
+  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, targ_3, targ_4,
+                 Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   TypeArguments& test_targ_2 = TypeArguments::Handle();
+  TypeArguments& test_targ_3 = TypeArguments::Handle();
+  TypeArguments& test_targ_4 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_targ_2, &test_result);
+                 &test_targ_2, &test_targ_3, &test_targ_4, &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
@@ -3191,7 +3068,6 @@ ISOLATE_UNIT_TEST_CASE(ArrayNew_Overflow_Crash) {
 }
 
 TEST_CASE(StackTraceFormat) {
-  Isolate* isolate = Isolate::Current();
   const char* kScriptChars =
       "void baz() {\n"
       "  throw 'MyException';\n"
@@ -3235,8 +3111,7 @@ TEST_CASE(StackTraceFormat) {
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
 
-  const char* lib_url =
-      isolate->use_dart_frontend() ? "file:///test-lib" : "test-lib";
+  const char* lib_url = "file:///test-lib";
   const size_t kBufferSize = 1024;
   char expected[kBufferSize];
   snprintf(expected, kBufferSize,
@@ -3818,6 +3693,7 @@ TEST_CASE(Metadata) {
   EXPECT_VALID(h_lib);
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(h_lib);
   EXPECT(!lib.IsNull());
@@ -3857,42 +3733,43 @@ TEST_CASE(Metadata) {
 TEST_CASE(FunctionSourceFingerprint) {
   const char* kScriptChars =
       "class A {\n"
-      "  static void test1(int a) {\n"
+      "  static test1(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
-      "  static void test2(a) {\n"
+      "  static test2(a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
-      "  static void test3(b) {\n"
+      "  static test3(b) {\n"
       "    return b > 1 ? b + 1 : b;\n"
       "  }\n"
-      "  static void test4(b) {\n"
+      "  static test4(b) {\n"
       "    return b > 1 ? b - 1 : b;\n"
       "  }\n"
-      "  static void test5(b) {\n"
+      "  static test5(b) {\n"
       "    return b > 1 ? b - 2 : b;\n"
       "  }\n"
-      "  void test6(int a) {\n"
+      "  test6(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}\n"
       "class B {\n"
-      "  static void /* Different declaration style. */\n"
+      "  static /* Different declaration style. */\n"
       "  test1(int a) {\n"
       "    /* Returns a + 1 for a > 1, a otherwise. */\n"
       "    return a > 1 ?\n"
       "        a + 1 :\n"
       "        a;\n"
       "  }\n"
-      "  static void test5(b) {\n"
+      "  static test5(b) {\n"
       "    return b > 1 ?\n"
       "        b - 2 : b;\n"
       "  }\n"
-      "  void test6(int a) {\n"
+      "  test6(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}";
   TestCase::LoadTestScript(kScriptChars, NULL);
+  TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
@@ -3954,13 +3831,19 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(result);
 
+  Function& func_b = Function::Handle();
+  {
+    TransitionNativeToVM transition(thread);
+    const String& name = String::Handle(String::New(TestCase::url()));
+    const Library& vmlib =
+        Library::Handle(Library::LookupLibrary(thread, name));
+    EXPECT(!vmlib.IsNull());
+    const Class& class_a = Class::Handle(
+        vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+    func_b = GetFunction(class_a, "b");
+  }
+
   // With no breakpoint, function A.b is inlineable.
-  const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& vmlib = Library::Handle(Library::LookupLibrary(thread, name));
-  EXPECT(!vmlib.IsNull());
-  const Class& class_a = Class::Handle(
-      vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-  const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
@@ -4010,7 +3893,7 @@ class ObjectAccumulator : public ObjectVisitor {
     }
     Object& handle = Object::Handle(obj);
     // Skip some common simple objects to run in reasonable time.
-    if (handle.IsString() || handle.IsArray() || handle.IsLiteralToken()) {
+    if (handle.IsString() || handle.IsArray()) {
       return;
     }
     objects_->Add(&handle);
@@ -4292,18 +4175,6 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"valueAsString\":\"<being initialized>\"}",
         js.ToCString());
   }
-  // LiteralToken reference.  This is meant to be an example of a
-  // "weird" type that isn't usually returned by the VM Service except
-  // when we are doing direct heap inspection.
-  {
-    JSONStream js;
-    LiteralToken& tok = LiteralToken::Handle(LiteralToken::New());
-    tok.PrintJSON(&js, true);
-    ElideJSONSubstring("objects", js.ToCString(), buffer);
-    EXPECT_STREQ(
-        "{\"type\":\"@Object\",\"_vmType\":\"LiteralToken\",\"id\":\"\"}",
-        buffer);
-  }
 }
 
 #endif  // !PRODUCT
@@ -4325,6 +4196,8 @@ TEST_CASE(InstanceEquality) {
   EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+
+  TransitionNativeToVM transition(thread);
   const Class& clazz = Class::Handle(GetClass(lib, "A"));
   EXPECT(!clazz.IsNull());
   const Instance& a0 = Instance::Handle(Instance::New(clazz));
@@ -4352,6 +4225,8 @@ TEST_CASE(HashCode) {
   EXPECT_VALID(h_result);
   Integer& result = Integer::Handle();
   result ^= Api::UnwrapHandle(h_result);
+
+  TransitionNativeToVM transition(thread);
   String& foo = String::Handle(String::New("foo"));
   Integer& expected = Integer::Handle();
   expected ^= foo.HashCode();
@@ -4417,13 +4292,14 @@ TEST_CASE(LinkedHashMap) {
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
   EXPECT_VALID(h_result);
 
+  TransitionNativeToVM transition(thread);
+
   // 2. Create an empty internalized LinkedHashMap in C++.
   Instance& dart_map = Instance::Handle();
   dart_map ^= Api::UnwrapHandle(h_result);
   LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
 
   // 3. Expect them to have identical structure.
-  TransitionNativeToVM transition(thread);
   CheckIdenticalHashStructure(thread, dart_map, cc_map);
 }
 

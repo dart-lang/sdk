@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -268,6 +268,7 @@ final Matcher isElement =
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
+ *   MIXIN
  *   PARAMETER
  *   PREFIX
  *   SETTER
@@ -296,6 +297,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "LIBRARY",
   "LOCAL_VARIABLE",
   "METHOD",
+  "MIXIN",
   "PARAMETER",
   "PREFIX",
   "SETTER",
@@ -691,6 +693,33 @@ final Matcher isOutline =
         }, optionalFields: {
           "children": isListOf(isOutline)
         }));
+
+/**
+ * ParameterInfo
+ *
+ * {
+ *   "kind": ParameterKind
+ *   "name": String
+ *   "type": String
+ *   "defaultValue": optional String
+ * }
+ */
+final Matcher isParameterInfo = new LazyMatcher(() => new MatchesJsonObject(
+    "ParameterInfo",
+    {"kind": isParameterKind, "name": isString, "type": isString},
+    optionalFields: {"defaultValue": isString}));
+
+/**
+ * ParameterKind
+ *
+ * enum {
+ *   NAMED
+ *   OPTIONAL
+ *   REQUIRED
+ * }
+ */
+final Matcher isParameterKind =
+    new MatchesEnum("ParameterKind", ["NAMED", "OPTIONAL", "REQUIRED"]);
 
 /**
  * Position

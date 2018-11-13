@@ -146,10 +146,6 @@ class DartUnitHighlightsComputer {
     if (element is! VariableElement) {
       return false;
     }
-    // has propagated type
-    if (node.propagatedType != null) {
-      return false;
-    }
     // has dynamic static type
     DartType staticType = node.staticType;
     if (staticType == null || !staticType.isDynamic) {
@@ -160,7 +156,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
@@ -271,7 +267,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is! MethodElement) {
       return false;
     }
@@ -467,6 +463,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitExtendsClause(ExtendsClause node) {
+    computer._addRegion_token(node.extendsKeyword, HighlightRegionType.KEYWORD);
+    return super.visitExtendsClause(node);
+  }
+
+  @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFieldDeclaration(node);
@@ -599,6 +601,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
+    return super.visitMixinDeclaration(node);
+  }
+
+  @override
   Object visitNativeClause(NativeClause node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeClause(node);
@@ -608,6 +616,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  Object visitOnClause(OnClause node) {
+    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
+    return super.visitOnClause(node);
   }
 
   @override

@@ -351,7 +351,7 @@ test15() {
 class A16 {
   // TODO(johnniwinther): Investigate why these include `null`. The ast version
   // didn't.
-  /*kernel.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
+
   /*strong.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   var f16;
 
@@ -470,8 +470,7 @@ class A20 {
     /*iterator: [exact=A20]*/
     /*current: [exact=A20]*/
     /*moveNext: [exact=A20]*/
-    for (/*kernel.update: [exact=A20]*/ /*strong.update: [exact=A20]*/ f20
-        in a) {}
+    for (/*update: [exact=A20]*/ f20 in a) {}
   }
 
   /*element: A20.iterator:[exact=A20]*/
@@ -554,10 +553,10 @@ class A23 {
   /*element: A23.:[exact=A23]*/
   A23() {
     // Test string interpolation.
-    '${/*update: [exact=A23]*/f23a = null}';
+    '${/*update: [exact=A23]*/ f23a = null}';
     // Test string juxtaposition.
     ''
-        '${/*update: [exact=A23]*/f23b = null}';
+        '${/*update: [exact=A23]*/ f23b = null}';
     // Test list literal.
     [/*update: [exact=A23]*/ f23c = null];
     // Test map literal.
@@ -610,7 +609,7 @@ class A24 {
 
   /*element: A24.+:Value([exact=JSString], value: "foo")*/
   operator +(
-          /*kernel.[exact=JSUInt31]*/
+
           /*strong.[empty]*/
           other) =>
       'foo';

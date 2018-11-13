@@ -25,18 +25,12 @@ export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 
 case "${1//_/-}" in
   abcompile) SCRIPT="${TOOL_DIR}/abcompile.dart";;
-  analyzer-compile)
-    stop "'$1' isn't supported anymore, please use 'compile' instead."
-    ;;
   compile) SCRIPT="${TOOL_DIR}/compile.dart";;
   compile-platform) SCRIPT="${TOOL_DIR}/compile_platform.dart";;
   log) SCRIPT="${TOOL_DIR}/log_analyzer.dart";;
   logd) SCRIPT="${TOOL_DIR}/log_collector.dart";;
   outline) SCRIPT="${TOOL_DIR}/outline.dart";;
   parser) SCRIPT="${TOOL_DIR}/parser.dart";;
-  run)
-    stop "'$1' isn't supported anymore, please use 'kernel-service' instead."
-    ;;
   scanner) SCRIPT="${TOOL_DIR}/scanner.dart";;
   dump-partial) SCRIPT="${TOOL_DIR}/dump_partial.dart";;
   dump-ir)
@@ -48,13 +42,6 @@ case "${1//_/-}" in
     if [ "$#" != "3" ]; then
       stop "Usage: $1 dillfile [output]"
     fi
-    ;;
-  kernel-service)
-    shift
-    PATCHED_SDK_DIR=$(
-      ls -d {xcodebuild,out}/${DART_CONFIGURATION} 2>/dev/null \
-        | head -1)
-    exec "${DART_VM}" --preview_dart_2 -DDFE_VERBOSE=true "$@"
     ;;
   testing)
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"
@@ -68,4 +55,4 @@ esac
 
 shift
 
-exec "${DART_VM}" --no_preview_dart_2 -c "${SCRIPT}" "$@"
+exec "${DART_VM}" -c "${SCRIPT}" "$@"

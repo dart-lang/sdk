@@ -722,7 +722,7 @@ processObj(p) {
 }
 ''');
     await indexTestUnit('''
-import '${convertPathForImport(pkgLib)}';
+import '${convertAbsolutePathToUri(pkgLib)}';
 class A {
   test() {}
 }
@@ -737,7 +737,7 @@ main(var a) {
     refactoring.newName = 'newName';
     // validate change
     await assertSuccessfulRefactoring('''
-import '${convertPathForImport('/.pub-cache/lib.dart')}';
+import '${convertAbsolutePathToUri('/.pub-cache/lib.dart')}';
 class A {
   newName() {}
 }

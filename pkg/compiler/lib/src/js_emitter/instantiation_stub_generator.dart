@@ -176,20 +176,22 @@ class InstantiationStubGenerator {
     // For every call-selector generate a stub to the corresponding selector
     // with filled-in type arguments.
 
-    Set<ParameterStructure> parameterStructures;
-    for (Selector selector in callSelectors.keys) {
-      CallStructure callStructure = selector.callStructure;
-      if (callStructure.typeArgumentCount != 0) continue;
-      CallStructure genericCallStructure =
-          callStructure.withTypeArgumentCount(typeArgumentCount);
-      parameterStructures ??= computeLiveParameterStructures();
-      for (ParameterStructure parameterStructure in parameterStructures) {
-        if (genericCallStructure.signatureApplies(parameterStructure)) {
-          Selector genericSelector =
-              new Selector.call(selector.memberName, genericCallStructure);
-          stubs.add(_generateStub(
-              instantiationClass, functionField, selector, genericSelector));
-          break;
+    if (callSelectors != null) {
+      Set<ParameterStructure> parameterStructures;
+      for (Selector selector in callSelectors.keys) {
+        CallStructure callStructure = selector.callStructure;
+        if (callStructure.typeArgumentCount != 0) continue;
+        CallStructure genericCallStructure =
+            callStructure.withTypeArgumentCount(typeArgumentCount);
+        parameterStructures ??= computeLiveParameterStructures();
+        for (ParameterStructure parameterStructure in parameterStructures) {
+          if (genericCallStructure.signatureApplies(parameterStructure)) {
+            Selector genericSelector =
+                new Selector.call(selector.memberName, genericCallStructure);
+            stubs.add(_generateStub(
+                instantiationClass, functionField, selector, genericSelector));
+            break;
+          }
         }
       }
     }

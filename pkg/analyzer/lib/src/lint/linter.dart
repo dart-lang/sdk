@@ -121,7 +121,9 @@ class DartLinter implements AnalysisErrorListener {
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
-          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
+          contents: sourceFile.readAsStringSync(),
+          sourcePath: options.resourceProvider.pathContext
+              .normalize(sourceFile.absolute.path));
 }
 
 class FileGlobFilter extends LintFilter {
@@ -288,9 +290,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     Source source = createSource(node.span.sourceUrl);
 
     // Cache error and location info for creating AnalysisErrorInfos
-    // Note that error columns are 1-based
     AnalysisError error = new AnalysisError(
-        source, node.span.start.column + 1, node.span.length, lintCode);
+        source, node.span.start.offset, node.span.length, lintCode);
     LineInfo lineInfo = new LineInfo.fromContent(source.contents.data);
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], lineInfo));

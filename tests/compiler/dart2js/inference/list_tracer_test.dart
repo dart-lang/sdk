@@ -3,18 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
 import '../helpers/element_lookup.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 String generateTest(String listAllocation) {
   return """
-int anInt = 42;
-double aDouble = 42.5;
+dynamic anInt = 42;
+dynamic aDouble = 42.5;
 
 class A {
   final field;
@@ -22,7 +21,7 @@ class A {
 
   A(this.field);
 
-  A.bar(list) {
+  A.bar(list) : field = null {
     nonFinalField = list;
   }
 
@@ -144,14 +143,14 @@ main() {
   listUsedWithConstraint[0] += anInt;
 
   listEscapingFromSetter[0] = anInt;
-  foo(new A(null).field = listEscapingFromSetter);
+  foo((new A(null) as dynamic).field = listEscapingFromSetter);
 
   listUsedInLocal[0] = anInt;
-  var a = listUsedInLocal;
+  dynamic a = listUsedInLocal;
   listUsedInLocal[1] = aDouble;
 
   // At least use [listUnused] in a local to pretend it's used.
-  var b = listUnset;
+  dynamic b = listUnset;
 
   listOnlySetWithConstraint[0]++;
 
@@ -190,37 +189,34 @@ main() {
 void main() {
   runTest() async {
     // Test literal list.
-    await doTest('[]', nullify: false);
+    await doTest('<dynamic>[]', nullify: false);
     // Test growable list.
-    await doTest('new List()', nullify: false);
+    await doTest('new List<dynamic>()', nullify: false);
     // Test fixed list.
-    await doTest('new List(1)', nullify: true);
+    await doTest('new List<dynamic>(1)', nullify: true);
     // Test List.filled.
-    await doTest('new List.filled(1, 0)', nullify: false);
+    await doTest('new List<dynamic>.filled(1, 0)', nullify: false);
     // Test List.filled.
-    await doTest('new List.filled(1, null)', nullify: true);
+    await doTest('new List<dynamic>.filled(1, null)', nullify: true);
   }
 
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await runTest();
   });
 }
 
 doTest(String allocation, {bool nullify}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: [Flags.noPreviewDart2]);
+  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   var compiler = result.compiler;
-  var typesInferrer = compiler.globalInference.typesInferrerInternal;
-  var closedWorld = typesInferrer.closedWorld;
+  var results = compiler.globalInference.resultsForTesting;
+  var closedWorld = results.closedWorld;
   var commonMasks = closedWorld.abstractValueDomain;
 
   checkType(String name, type) {
     var element = findMember(closedWorld, name);
-    ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
+    ContainerTypeMask mask = results.resultOfMember(element).type;
     if (nullify) type = type.nullable();
     Expect.equals(type, simplify(mask.elementType, closedWorld), name);
   }

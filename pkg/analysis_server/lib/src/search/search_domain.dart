@@ -180,6 +180,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
           return protocol.ElementKind.GETTER;
         case search.DeclarationKind.METHOD:
           return protocol.ElementKind.METHOD;
+        case search.DeclarationKind.MIXIN:
+          return protocol.ElementKind.MIXIN;
         case search.DeclarationKind.SETTER:
           return protocol.ElementKind.SETTER;
         case search.DeclarationKind.VARIABLE:
@@ -216,6 +218,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
           declaration.codeOffset,
           declaration.codeLength,
           className: declaration.className,
+          mixinName: declaration.mixinName,
           parameters: declaration.parameters);
     }).toList();
 

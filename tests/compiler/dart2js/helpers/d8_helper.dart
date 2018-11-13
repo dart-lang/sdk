@@ -10,12 +10,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/filenames.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     {bool printSteps: false}) async {
@@ -32,22 +32,24 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
   return entryPoint;
 }
 
-Future<Compiler> runWithD8(
+Future<D8Result> runWithD8(
     {Uri entryPoint,
     Map<String, String> memorySourceFiles: const <String, String>{},
     List<String> options: const <String>[],
     String expectedOutput,
-    bool printJs: false}) async {
+    bool printJs: false,
+    bool printSteps: false}) async {
+  retainDataForTesting = true;
   entryPoint ??= Uri.parse('memory:main.dart');
   Uri mainFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
+      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
   String output = uriPathToNative(mainFile.resolve('out.js').path);
   List<String> dart2jsArgs = [
     mainFile.toString(),
     '-o$output',
     '--packages=${Platform.packageConfig}',
   ]..addAll(options);
-  print('Running: dart2js ${dart2jsArgs.join(' ')}');
+  if (printSteps) print('Running: dart2js ${dart2jsArgs.join(' ')}');
 
   CompilationResult result = await dart2js.internalMain(dart2jsArgs);
   Expect.isTrue(result.isSuccess);
@@ -60,15 +62,23 @@ Future<Compiler> runWithD8(
     'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
     output
   ];
-  print('Running: d8 ${d8Args.join(' ')}');
+  if (printSteps) print('Running: d8 ${d8Args.join(' ')}');
   ProcessResult runResult = Process.runSync(d8executable, d8Args);
   String out = '${runResult.stderr}\n${runResult.stdout}';
-  print('d8 output:');
-  print(out);
+  if (printSteps) print('d8 output:');
+  if (printSteps) print(out);
   if (expectedOutput != null) {
     Expect.equals(0, runResult.exitCode);
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
-  return result.compiler;
+  return new D8Result(result, runResult, output);
+}
+
+class D8Result {
+  final CompilationResult compilationResult;
+  final ProcessResult runResult;
+  final String outputPath;
+
+  D8Result(this.compilationResult, this.runResult, this.outputPath);
 }

@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_
 
+#include "vm/compiler/backend/il.h"  // For CompileType.
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
 #include "vm/object.h"
@@ -15,10 +16,13 @@ namespace dart {
 namespace kernel {
 
 class KernelReaderHelper;
+class TypeTranslator;
 
 class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
+
+  TranslationHelper(Thread* thread, Heap::Space space);
 
   virtual ~TranslationHelper() {}
 
@@ -54,6 +58,8 @@ class TranslationHelper {
 
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
+
+  void SetKernelProgramInfo(const KernelProgramInfo& info);
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
@@ -150,17 +156,18 @@ class TranslationHelper {
 
   Type& GetCanonicalType(const Class& klass);
 
-  void ReportError(const char* format, ...);
+  void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
-  void ReportError(const Error& prev_error, const char* format, ...);
+                   ...) PRINTF_ATTRIBUTE(4, 5);
+  void ReportError(const Error& prev_error, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
   void ReportError(const Error& prev_error,
                    const Script& script,
                    const TokenPosition position,
                    const char* format,
-                   ...);
+                   ...) PRINTF_ATTRIBUTE(5, 6);
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -187,6 +194,8 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+  KernelProgramInfo& info_;
+  Smi& name_index_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
@@ -831,13 +840,31 @@ class DirectCallMetadataHelper : public MetadataHelper {
 };
 
 struct InferredTypeMetadata {
-  InferredTypeMetadata(intptr_t cid_, bool nullable_)
-      : cid(cid_), nullable(nullable_) {}
+  enum Flag {
+    kFlagNullable = 1 << 0,
+    kFlagInt = 1 << 1,
+  };
+
+  InferredTypeMetadata(intptr_t cid_, uint8_t flags_)
+      : cid(cid_), flags(flags_) {}
 
   const intptr_t cid;
-  const bool nullable;
+  const uint8_t flags;
 
-  bool IsTrivial() const { return (cid == kDynamicCid) && nullable; }
+  bool IsTrivial() const {
+    return (cid == kDynamicCid) && (flags == kFlagNullable);
+  }
+  bool IsNullable() const { return (flags & kFlagNullable) != 0; }
+  bool IsInt() const { return (flags & kFlagInt) != 0; }
+
+  CompileType ToCompileType(Zone* zone) const {
+    if (IsInt()) {
+      return CompileType::FromAbstractType(
+          Type::ZoneHandle(zone, Type::IntType()), IsNullable());
+    } else {
+      return CompileType::CreateNullable(IsNullable(), cid);
+    }
+  }
 };
 
 // Helper class which provides access to inferred type metadata.
@@ -854,15 +881,10 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
-                              bool has_non_this_uses = true,
-                              bool has_tearoff_uses = true)
-      : has_dynamic_invocations(has_dynamic_invocations),
-        has_non_this_uses(has_non_this_uses),
-        has_tearoff_uses(has_tearoff_uses) {}
-  bool has_dynamic_invocations;
-  bool has_non_this_uses;
-  bool has_tearoff_uses;
+  bool has_dynamic_invocations = true;
+  bool has_this_uses = true;
+  bool has_non_this_uses = true;
+  bool has_tearoff_uses = true;
 };
 
 // Helper class which provides access to direct call metadata.
@@ -879,6 +901,42 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
                     ProcedureAttributesMetadata* metadata);
 
   DISALLOW_COPY_AND_ASSIGN(ProcedureAttributesMetadataHelper);
+};
+
+class ObfuscationProhibitionsMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.obfuscation-prohibitions.metadata"; }
+
+  explicit ObfuscationProhibitionsMetadataHelper(KernelReaderHelper* helper);
+
+  void ReadProhibitions() { ReadMetadata(0); }
+
+ private:
+  void ReadMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(ObfuscationProhibitionsMetadataHelper);
+};
+
+struct CallSiteAttributesMetadata {
+  const AbstractType* receiver_type = nullptr;
+};
+
+// Helper class which provides access to direct call metadata.
+class CallSiteAttributesMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.call-site-attributes.metadata"; }
+
+  CallSiteAttributesMetadataHelper(KernelReaderHelper* helper,
+                                   TypeTranslator* type_translator);
+
+  CallSiteAttributesMetadata GetCallSiteAttributes(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset, CallSiteAttributesMetadata* metadata);
+
+  TypeTranslator& type_translator_;
+
+  DISALLOW_COPY_AND_ASSIGN(CallSiteAttributesMetadataHelper);
 };
 
 class KernelReaderHelper {
@@ -914,21 +972,26 @@ class KernelReaderHelper {
 
   void ReadUntilFunctionNode();
 
+  Tag PeekTag(uint8_t* payload = NULL);
+
  protected:
   const Script& script() const { return script_; }
 
   virtual void set_current_script_id(intptr_t id) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    // Do nothing by default.
+    // This is overridden in KernelTokenPositionCollector.
     USE(id);
   }
 
   virtual void RecordYieldPosition(TokenPosition position) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    // Do nothing by default.
+    // This is overridden in KernelTokenPositionCollector.
     USE(position);
   }
 
   virtual void RecordTokenPosition(TokenPosition position) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    // Do nothing by default.
+    // This is overridden in KernelTokenPositionCollector.
     USE(position);
   }
 
@@ -975,8 +1038,13 @@ class KernelReaderHelper {
   void SkipLibraryTypedef();
   TokenPosition ReadPosition(bool record = true);
   Tag ReadTag(uint8_t* payload = NULL);
-  Tag PeekTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
+
+  intptr_t SourceTableSize();
+  intptr_t GetOffsetForSourceInfo(intptr_t index);
+  String& SourceTableUriFor(intptr_t index);
+  const String& GetSourceFor(intptr_t index);
+  RawTypedData* GetLineStartsFor(intptr_t index);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;
@@ -990,7 +1058,9 @@ class KernelReaderHelper {
   // kernel program.
   intptr_t data_program_offset_;
 
+  friend class BytecodeMetadataHelper;
   friend class ClassHelper;
+  friend class CallSiteAttributesMetadataHelper;
   friend class ConstantEvaluator;
   friend class ConstantHelper;
   friend class ConstructorHelper;
@@ -1009,10 +1079,8 @@ class KernelReaderHelper {
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
-
-#if defined(DART_USE_INTERPRETER)
-  friend class BytecodeMetadataHelper;
-#endif  // defined(DART_USE_INTERPRETER)
+  friend class ObfuscationProhibitionsMetadataHelper;
+  friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(KernelReaderHelper);
@@ -1157,6 +1225,12 @@ class TypeTranslator {
                                   const Function& parameterized_function);
 
   const Type& ReceiverType(const Class& klass);
+
+  void SetupFunctionParameters(const Class& klass,
+                               const Function& function,
+                               bool is_method,
+                               bool is_closure,
+                               FunctionNodeHelper* function_node_helper);
 
  private:
   // Can build a malformed type.

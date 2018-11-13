@@ -165,11 +165,9 @@ class LineInfoTest extends EngineTestCase {
   }
 
   Token _scanWithListener(String source, GatheringErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
+      {bool lazyAssignmentOperators: false}) {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    scanner.scanGenericMethodComments = genericMethodComments;
     scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);

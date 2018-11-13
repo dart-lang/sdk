@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   final field self::C::T t;
-  const constructor •(self::C::T t) → void
+  const constructor •(self::C::T t) → self::C<self::C::T>
     : self::C::t = t, super core::Object::•()
     ;
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -37,7 +37,7 @@ class PluginIsolateChannelTest {
   }
 
   @failingTest
-  Future<Null> test_close() async {
+  Future<void> test_close() async {
     bool done = false;
     channel.listen((Request request) {}, onDone: () {
       done = true;
@@ -49,7 +49,7 @@ class PluginIsolateChannelTest {
     expect(done, isTrue);
   }
 
-  Future<Null> test_listen() async {
+  Future<void> test_listen() async {
     Request sentRequest = new PluginShutdownParams().toRequest('5');
     Request receivedRequest;
     channel.listen((Request request) {
@@ -80,7 +80,7 @@ class PluginIsolateChannelTest {
    * times. By default, this should pump the event queue enough times to allow
    * any code to run, as long as it's not waiting on some external event.
    */
-  Future<Null> _pumpEventQueue([int times = 5000]) {
+  Future<void> _pumpEventQueue([int times = 5000]) {
     if (times == 0) return new Future.value();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and

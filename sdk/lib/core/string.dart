@@ -5,7 +5,15 @@
 part of dart.core;
 
 /**
- * A sequence of characters.
+ * A sequence of UTF-16 code units.
+ *
+ * Strings are mainly used to represent text. A character may be represented by
+ * multiple code points, each code point consisting of one or two code
+ * units. For example the Papua New Guinea flag character requires four code
+ * units to represent two code points, but should be treated like a single
+ * character: "🇵🇬". Platforms that do not support the flag character may show
+ * the letters "PG" instead. If the code points are swapped, it instead becomes
+ * the Guadeloupe flag "🇬🇵" ("GP").
  *
  * A string can be either single or multiline. Single line strings are
  * written using matching single or double quotes, and multiline strings are
@@ -84,7 +92,7 @@ part of dart.core;
  * [RegExp] to work with regular expressions.
  *
  * Also see:
-
+ *
  * * [Dart Cookbook](https://www.dartlang.org/docs/cookbook/#strings)
  *   for String examples and recipes.
  * * [Dart Up and Running](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#strings-and-regular-expressions)
@@ -213,6 +221,24 @@ abstract class String implements Comparable<String>, Pattern {
    * combining accent character '◌́'.
    */
   bool operator ==(Object other);
+
+  /**
+   * Compares this string to [other].
+   *
+   * Returns a negative value if `this` is ordered before `other`,
+   * a positive value if `this` is ordered after `other`,
+   * or zero if `this` and `other` are equivalent.
+   *
+   * The ordering is the same as the ordering of the code points at the first
+   * position where the two strings differ.
+   * If one string is a prefix of the other,
+   * then the shorter string is ordered before the longer string.
+   * If the strings have exactly the same content, they are equivalent with
+   * regard to the ordering.
+   * Ordering does not check for Unicode equivalence.
+   * The comparison is case sensitive.
+   */
+  int compareTo(String other);
 
   /**
    * Returns true if this string ends with [other]. For example:

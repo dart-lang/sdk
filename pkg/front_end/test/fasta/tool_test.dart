@@ -15,18 +15,15 @@ const String toolPath = "pkg/front_end/tool/fasta";
 
 const List<String> subtools = const <String>[
   "abcompile",
-  "analyzer-compile",
   "compile",
   "compile-platform",
   "log",
   "logd",
   "outline",
   "parser",
-  "run",
   "scanner",
   "dump-partial",
   "dump-ir",
-  "kernel-service",
   "testing",
   "generate-messages",
 ];
@@ -65,15 +62,11 @@ Expected -DbRoot=/absolute/path/to/other/sdk/repo
 """,
       "stderr": "",
     },
-    "analyzer-compile": {
-      "exitCode": 2,
-      "stdout": "",
-      "stderr": "'analyzer-compile' isn't supported anymore,"
-          " please use 'compile' instead.\n",
-    },
     "compile": {
       "exitCode": 1,
-      "stdout": """Usage: compile [options] dartfile
+      "stdout": """
+Error: No input file provided to the compiler.
+Usage: compile [options] dartfile
 
 Compiles a Dart program to the Dill/Kernel IR format.
 
@@ -85,6 +78,7 @@ Error: No Dart file specified.
     "compile-platform": {
       "exitCode": 1,
       "stdout": """
+Error: No input file provided to the compiler.
 Usage: compile_platform [options] dart-library-uri libraries.json vm_outline_strong.dill platform.dill outline.dill
 
 Compiles Dart SDK platform to the Dill/Kernel IR format.
@@ -101,7 +95,9 @@ Error: Expected five arguments.
     },
     "outline": {
       "exitCode": 1,
-      "stdout": """Usage: outline [options] dartfile
+      "stdout": """
+Error: No input file provided to the compiler.
+Usage: outline [options] dartfile
 
 Creates an outline of a Dart program in the Dill/Kernel IR format.
 
@@ -114,12 +110,6 @@ Error: No Dart file specified.
       "exitCode": 0,
       "stdout": "",
       "stderr": "",
-    },
-    "run": {
-      "exitCode": 2,
-      "stdout": "",
-      "stderr": "'run' isn't supported anymore,"
-          " please use 'kernel-service' instead.\n",
     },
     "scanner": {
       "exitCode": 0,
@@ -135,10 +125,6 @@ Error: No Dart file specified.
       "exitCode": 2,
       "stdout": "",
       "stderr": "Usage: dump-ir dillfile [output]\n",
-    },
-    "kernel-service": {
-      "exitCode": 255,
-      "stdout": "",
     },
   };
 
@@ -160,11 +146,6 @@ ${result.stderr}
       case "scanner":
         Expect.isTrue(result.stdout.startsWith("Reading files took: "));
         Expect.stringEquals(expectation["stderr"], result.stderr);
-        break;
-
-      case "kernel-service":
-        Expect.stringEquals(expectation["stdout"], result.stdout);
-        Expect.isTrue(result.stderr.startsWith("Usage: dart ["));
         break;
 
       default:

@@ -91,8 +91,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
       CompletionContributor contributor = new DartCompletionManager();
-      String contributorTag = 'computeSuggestions - ${contributor
-          .runtimeType}';
+      String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);
       try {
         suggestions.addAll(await contributor.computeSuggestions(request));
@@ -162,7 +161,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /**
    * Process a `completion.getSuggestions` request.
    */
-  Future<Null> processRequest(Request request) async {
+  Future<void> processRequest(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     performance = new CompletionPerformance();
@@ -175,14 +174,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
     AnalysisResult result = await server.getAnalysisResult(filePath);
 
-    if (result == null || !result.exists) {
-      if (server.onNoAnalysisCompletion != null) {
-        String completionId = (_nextCompletionId++).toString();
-        await server.onNoAnalysisCompletion(
-            request, this, params, performance, completionId);
-        return;
-      }
-    } else {
+    if (result != null && result.exists) {
       if (offset < 0 || offset > result.content.length) {
         server.sendResponse(new Response.invalidParameter(
             request,

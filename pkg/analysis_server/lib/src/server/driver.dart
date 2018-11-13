@@ -7,6 +7,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
+import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -31,15 +33,15 @@ import 'package:telemetry/telemetry.dart' as telemetry;
 /// TODO(pquitslund): replaces with a simple [ArgParser] instance
 /// when the args package supports ignoring unrecognized
 /// options/flags (https://github.com/dart-lang/args/issues/9).
+/// TODO(devoncarew): Consider removing the ability to support unrecognized
+/// flags for the analysis server.
 class CommandLineParser {
   final List<String> _knownFlags;
-  final bool _alwaysIgnoreUnrecognized;
   final ArgParser _parser;
 
   /// Creates a new command line parser
-  CommandLineParser({bool alwaysIgnoreUnrecognized: false})
+  CommandLineParser()
       : _knownFlags = <String>[],
-        _alwaysIgnoreUnrecognized = alwaysIgnoreUnrecognized,
         _parser = new ArgParser(allowTrailingOptions: true);
 
   ArgParser get parser => _parser;
@@ -114,10 +116,11 @@ class CommandLineParser {
   }
 
   List<String> _filterUnknowns(List<String> args) {
-    // Only filter args if the ignore flag is specified, or if
-    // _alwaysIgnoreUnrecognized was set to true
-    if (_alwaysIgnoreUnrecognized ||
-        args.contains('--ignore-unrecognized-flags')) {
+    // TODO(devoncarew): Consider dropping support for the
+    // --ignore-unrecognized-flags option.
+
+    // Only filter args if the ignore flag is specified.
+    if (args.contains('--ignore-unrecognized-flags')) {
       // Filter all unrecognized flags and options.
       List<String> filtered = <String>[];
       for (int i = 0; i < args.length; ++i) {
@@ -253,19 +256,27 @@ class Driver implements ServerStarter {
   static const String CACHE_FOLDER = "cache";
 
   /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  static const String PREVIEW_DART2 = "preview-dart-2";
-
-  /**
-   * Whether to enable the Dart 2.0 Common Front End implementation.
-   */
-  static const String USE_CFE = "use-cfe";
-
-  /**
    * Whether to enable parsing via the Fasta parser.
    */
   static const String USE_FASTA_PARSER = "use-fasta-parser";
+
+  /**
+   * A directory to analyze in order to train an analysis server snapshot.
+   */
+  static const String TRAIN_USING = "train-using";
+
+  /**
+   * User Experience, Experiment #1. This experiment changes the notion of
+   * what analysis roots are and priority files: the analysis root is set to be
+   * the priority files' containing directory.
+   */
+  static const String UX_EXPERIMENT_1 = "ux-experiment-1";
+
+  /**
+   * User Experience, Experiment #2. This experiment introduces the notion of an
+   * intermittent file system.
+   */
+  static const String UX_EXPERIMENT_2 = "ux-experiment-2";
 
   /**
    * The instrumentation server that is to be used by the analysis server.
@@ -284,11 +295,15 @@ class Driver implements ServerStarter {
    */
   ResolverProvider packageResolverProvider;
 
+  /***
+   * An optional manager to handle file systems which may not always be
+   * available.
+   */
+  DetachableFileSystemManager detachableFileSystemManager;
+
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
-
-  StdioAnalysisServer stdioServer;
 
   Driver();
 
@@ -312,17 +327,18 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    if (results.wasParsed(PREVIEW_DART2)) {
-      analysisServerOptions.previewDart2 = results[PREVIEW_DART2];
-    } else {
-      analysisServerOptions.previewDart2 = true;
-    }
-    analysisServerOptions.useCFE = results[USE_CFE];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
+    analysisServerOptions.enableUXExperiment1 = results[UX_EXPERIMENT_1];
+    analysisServerOptions.enableUXExperiment2 = results[UX_EXPERIMENT_2];
+
+    bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
+    if (results.wasParsed(TRAIN_USING)) {
+      disableAnalyticsForSession = true;
+    }
 
     telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
         'UA-26406144-29', 'analysis-server',
-        disableForSession: results[SUPPRESS_ANALYTICS_FLAG]);
+        disableForSession: disableAnalyticsForSession);
     analysisServerOptions.analytics = analytics;
 
     if (analysisServerOptions.clientId != null) {
@@ -352,6 +368,15 @@ class Driver implements ServerStarter {
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser, analytics, fromHelp: true);
       return null;
+    }
+
+    String trainDirectory = results[TRAIN_USING];
+    if (trainDirectory != null) {
+      if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
+        print("Training directory '$trainDirectory' not found.\n");
+        exitCode = 1;
+        return null;
+      }
     }
 
     int port;
@@ -406,7 +431,9 @@ class Driver implements ServerStarter {
     InstrumentationService instrumentationService =
         new InstrumentationService(instrumentationServer);
     instrumentationService.logVersion(
-        _readUuid(instrumentationService),
+        trainDirectory != null
+            ? 'training-0'
+            : _readUuid(instrumentationService),
         analysisServerOptions.clientId,
         analysisServerOptions.clientVersion,
         AnalysisServer.VERSION,
@@ -424,32 +451,73 @@ class Driver implements ServerStarter {
     socketServer = new SocketServer(
         analysisServerOptions,
         new DartSdkManager(defaultSdkPath, true),
-        defaultSdk,
         instrumentationService,
         diagnosticServer,
         fileResolverProvider,
-        packageResolverProvider);
+        packageResolverProvider,
+        detachableFileSystemManager);
     httpServer = new HttpAnalysisServer(socketServer);
-    stdioServer = new StdioAnalysisServer(socketServer);
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
       diagnosticServer.startOnPort(port);
     }
 
-    _captureExceptions(instrumentationService, () {
-      stdioServer.serveStdio().then((_) async {
-        // TODO(brianwilkerson) Determine whether this await is necessary.
-        await null;
+    if (trainDirectory != null) {
+      Directory tempDriverDir =
+          Directory.systemTemp.createTempSync('analysis_server_');
+      analysisServerOptions.cacheFolder = tempDriverDir.path;
+
+      DevAnalysisServer devServer = new DevAnalysisServer(socketServer);
+      devServer.initServer();
+
+      () async {
+        // We first analyze code with an empty driver cache.
+        print('Analyzing with an empty driver cache:');
+        int exitCode = await devServer.processDirectories([trainDirectory]);
+        if (exitCode != 0) exit(exitCode);
+
+        print('');
+
+        // Then again with a populated cache.
+        print('Analyzing with a populated driver cache:');
+        exitCode = await devServer.processDirectories([trainDirectory]);
+        if (exitCode != 0) exit(exitCode);
+
         if (serve_http) {
           httpServer.close();
         }
         await instrumentationService.shutdown();
-        exit(0);
-      });
-    },
-        print:
-            results[INTERNAL_PRINT_TO_CONSOLE] ? null : httpServer.recordPrint);
+
+        socketServer.analysisServer.shutdown();
+
+        try {
+          tempDriverDir.deleteSync(recursive: true);
+        } catch (_) {
+          // ignore any exception
+        }
+
+        exit(exitCode);
+      }();
+    } else {
+      _captureExceptions(instrumentationService, () {
+        StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
+        stdioServer.serveStdio().then((_) async {
+          // TODO(brianwilkerson) Determine whether this await is necessary.
+          await null;
+
+          if (serve_http) {
+            httpServer.close();
+          }
+          await instrumentationService.shutdown();
+          socketServer.analysisServer.shutdown();
+          exit(0);
+        });
+      },
+          print: results[INTERNAL_PRINT_TO_CONSOLE]
+              ? null
+              : httpServer.recordPrint);
+    }
 
     return socketServer.analysisServer;
   }
@@ -487,8 +555,7 @@ class Driver implements ServerStarter {
    * Create and return the parser used to parse the command-line arguments.
    */
   CommandLineParser _createArgParser() {
-    CommandLineParser parser =
-        new CommandLineParser(alwaysIgnoreUnrecognized: true);
+    CommandLineParser parser = new CommandLineParser();
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
@@ -541,11 +608,24 @@ class Driver implements ServerStarter {
         defaultsTo: "as-is");
     parser.addOption(CACHE_FOLDER,
         help: "[path] path to the location where to cache data");
-    parser.addFlag(PREVIEW_DART2, help: "Enable the Dart 2.0 preview");
-    parser.addFlag(USE_CFE,
-        help: "Enable the Dart 2.0 Common Front End implementation");
+    parser.addFlag("preview-dart-2",
+        help: "Enable the Dart 2.0 preview (deprecated)", hide: true);
     parser.addFlag(USE_FASTA_PARSER,
+        defaultsTo: true,
         help: "Whether to enable parsing via the Fasta parser");
+    parser.addOption(TRAIN_USING,
+        help: "Pass in a directory to analyze for purposes of training an "
+            "analysis server snapshot.");
+    parser.addFlag(UX_EXPERIMENT_1,
+        help: "User Experience, Experiment #1, "
+            "this experiment changes the notion of analysis roots and priority "
+            "files.",
+        hide: true);
+    parser.addFlag(UX_EXPERIMENT_2,
+        help: "User Experience, Experiment #2, "
+            "this experiment introduces the notion of an intermittent file "
+            "system.",
+        hide: true);
 
     return parser;
   }

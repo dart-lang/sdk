@@ -315,11 +315,11 @@ class ProcessStarter {
 
     // This runs in the original process.
 
-    // Be sure to listen for exit-codes, now we have a child-process.
-    ExitCodeHandler::ProcessStarted();
-
-    // Register the child process if not detached.
+    // If the child process is not started in detached mode, be sure to
+    // listen for exit-codes, now that we have a non detached child process
+    // and also Register this child process.
     if (Process::ModeIsAttached(mode_)) {
+      ExitCodeHandler::ProcessStarted();
       err = RegisterProcess(pid);
       if (err != 0) {
         return err;

@@ -4,7 +4,7 @@
 // Test that parameters keep their names in the output.
 
 import 'package:async_helper/async_helper.dart';
-import '../compiler_helper.dart';
+import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
 void foo(bar) {
@@ -64,14 +64,13 @@ void main() {
     hash = hash + 10;
     hash = hash + 42;
   }
-  print(t);
+  print(hash);
 }
 """;
 
 main() {
   runTests() async {
-    await compileAndMatchFuzzy(
-        TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;");
+    await compileAndMatchFuzzy(TEST_ONE, 'foo', "var x = x \\? 2 : 3;");
     await compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);");
 
     await compileAndMatchFuzzy(TEST_TWO, 'main', "x \\+= 10");

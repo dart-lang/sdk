@@ -131,7 +131,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('_ResolutionWorldImpact($name)');
+    sb.write('ResolutionWorldImpactBuilder($name)');
     WorldImpact.printOn(sb, this);
     if (_features != null) {
       sb.write('\n features:');

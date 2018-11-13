@@ -4,25 +4,19 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 main() {
-  useStrongModeWorldStrategy = true;
   asyncTest(() async {
-    print('--test from non-strong mode---------------------------------------');
-    await runTest(strongMode: false);
-    print('--test from strong mode-------------------------------------------');
-    await runTest(strongMode: true);
+    await runTest();
   });
 }
 
-runTest({bool strongMode}) async {
+runTest() async {
   CompilationResult result = await runCompiler(memorySourceFiles: {
     'main.dart': '''
 class A {
@@ -117,6 +111,18 @@ class Q {
 
 class R extends Q {}
 
+class Class1a {
+  call(a, b, c) {} // Call structure only used in Class1a and Class2b.
+}
+
+class Class1b {
+  call(a, b, c) {}
+}
+
+class Class2 {
+  Class1a c;
+}
+
 main() {
   A a = new A();
   B b = new B();
@@ -138,37 +144,29 @@ main() {
   R r;
   r.method3();
   r = new R(); // Create R after call.
+  new Class1a();
+  new Class1b();
+  new Class2().c(0, 1, 2);
 }
 '''
-  }, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
+  });
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
 
   Map<String, List<String>> expectedLiveMembersMap = <String, List<String>>{
-    'A': strongMode
-        ? ['method1', 'getter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'B': strongMode
-        ? ['method2', 'setter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'C': strongMode
-        ? ['method1', 'getter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'D': strongMode
-        ? ['method2', 'setter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'G': strongMode
-        ? ['method1', 'getter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'I': strongMode
-        ? ['method1', 'getter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'K': strongMode
-        ? ['method1', 'getter']
-        : ['method1', 'method2', 'getter', 'setter'],
-    'N': strongMode ? [] : ['method1', 'getter', 'setter'],
+    'A': ['method1', 'getter'],
+    'B': ['method2', 'setter'],
+    'C': ['method1', 'getter'],
+    'D': ['method2', 'setter'],
+    'G': ['method1', 'getter'],
+    'I': ['method1', 'getter'],
+    'K': ['method1', 'getter'],
+    'N': [],
     'P': ['method1', 'getter', 'setter'],
     'Q': ['method3'],
+    'Class1a': ['call'],
+    'Class1b': [],
+    'Class2': ['c'],
   };
 
   KClosedWorld closedWorld =
@@ -188,8 +186,7 @@ main() {
     Expect.setEquals(
         expectedLiveMembers,
         actualLiveMembers,
-        "Unexpected live members for $cls "
-        "in ${strongMode ? 'Dart 2' : 'Dart 1'}. \n"
+        "Unexpected live members for $cls. \n"
         "Expected members for ${cls.name}: $expectedLiveMembers\n"
         "Actual members for ${cls.name}  : $actualLiveMembers");
   });

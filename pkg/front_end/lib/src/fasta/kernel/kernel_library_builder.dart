@@ -10,13 +10,20 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         Class,
+        Constructor,
         ConstructorInvocation,
         DartType,
+        DynamicType,
         Expression,
         Field,
+        FunctionNode,
+        FunctionType,
+        InterfaceType,
         Library,
         LibraryDependency,
         LibraryPart,
+        ListLiteral,
+        MapLiteral,
         Member,
         Name,
         Procedure,
@@ -25,10 +32,16 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         TreeNode,
         Typedef,
+        TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VoidType;
 
 import 'package:kernel/clone.dart' show CloneVisitor;
+
+import 'package:kernel/type_algebra.dart' show substitute;
+
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../scanner/token.dart' show Token;
 
@@ -40,6 +53,8 @@ import '../fasta_codes.dart'
         Message,
         messageConflictsWithTypeVariableCause,
         messageGenericFunctionTypeInBound,
+        messageGenericFunctionTypeUsedAsActualTypeArgument,
+        messageIncorrectTypeArgumentVariable,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         noLength,
@@ -49,7 +64,11 @@ import '../fasta_codes.dart'
         templateDuplicatedImport,
         templateDuplicatedImportInType,
         templateExportHidesExport,
+        templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateImportHidesImport,
+        templateIncorrectTypeArgument,
+        templateIncorrectTypeArgumentInReturnType,
+        templateIncorrectTypeArgumentInferred,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
@@ -61,7 +80,11 @@ import '../import.dart' show Import;
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
-    show abstractMask, namedMixinApplicationMask, staticMask;
+    show
+        abstractMask,
+        mixinDeclarationMask,
+        namedMixinApplicationMask,
+        staticMask;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -69,6 +92,8 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
     show DeclarationBuilder, SourceLibraryBuilder;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import 'kernel_builder.dart'
     show
@@ -78,6 +103,7 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         DynamicTypeBuilder,
+        EnumConstantInfo,
         FormalParameterBuilder,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -137,6 +163,17 @@ class KernelLibraryBuilder
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
 
+  // List of types inferred in the outline.  Errors in these should be reported
+  // differently than for specified types.
+  // TODO(dmitryas):  Find a way to mark inferred types.
+  final Set<DartType> inferredTypes = new Set<DartType>.identity();
+
+  // List of typedef instantiations built for this library.  They are needed to
+  // perform type argument checks.
+  // TODO(dmitryas):  Find a way to keep type arguments of typedefs around.
+  final Map<FunctionType, List<DartType>> typedefInstantiations =
+      new Map<FunctionType, List<DartType>>.identity();
+
   /// Exports that can't be serialized.
   ///
   /// The key is the name of the exported member.
@@ -162,14 +199,12 @@ class KernelLibraryBuilder
 
   Uri get uri => library.importUri;
 
-  void becomeCoreLibrary(dynamicType) {
-    if (scope.local["dynamic"] == null) {
-      addBuilder(
-          "dynamic",
-          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
-              dynamicType, this, -1),
-          -1);
-    }
+  void addSyntheticDeclarationOfDynamic() {
+    addBuilder(
+        "dynamic",
+        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+            const DynamicType(), this, -1),
+        -1);
   }
 
   KernelTypeBuilder addNamedType(
@@ -217,12 +252,17 @@ class KernelLibraryBuilder
     // library scope.
     Scope constructorScope = new Scope(constructors, null, null, "constructors",
         isModifiable: false);
+    bool isMixinDeclaration = false;
+    if (modifiers & mixinDeclarationMask != 0) {
+      isMixinDeclaration = true;
+      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, supertypeOffset, className,
+        applyMixins(supertype, charOffset, className, isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,
         classScope,
@@ -231,7 +271,8 @@ class KernelLibraryBuilder
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         startCharOffset,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        isMixinDeclaration: isMixinDeclaration);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
 
@@ -249,10 +290,8 @@ class KernelLibraryBuilder
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.addCompileTimeError(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
+          cls.addProblem(templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset, name.length,
               context: [
                 messageConflictsWithTypeVariableCause.withLocation(
                     tv.fileUri, tv.charOffset, name.length)
@@ -264,9 +303,7 @@ class KernelLibraryBuilder
 
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
-    // Formally, a setter has the name `id=`, so it can never conflict with a
-    // type variable.
-    setters.forEach(setParent);
+    setters.forEach(setParentAndCheckConflicts);
     addBuilder(className, cls, charOffset);
   }
 
@@ -278,7 +315,7 @@ class KernelLibraryBuilder
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        addCompileTimeError(messageTypeVariableDuplicatedName, tv.charOffset,
+        addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
             tv.name.length, fileUri,
             context: [
               templateTypeVariableDuplicatedNameCause
@@ -292,8 +329,8 @@ class KernelLibraryBuilder
           // Only classes and type variables can't have the same name. See
           // [#29555](https://github.com/dart-lang/sdk/issues/29555).
           if (tv.name == owner.name) {
-            addCompileTimeError(messageTypeVariableSameNameAsEnclosing,
-                tv.charOffset, tv.name.length, fileUri);
+            addProblem(messageTypeVariableSameNameAsEnclosing, tv.charOffset,
+                tv.name.length, fileUri);
           }
         }
       }
@@ -301,8 +338,8 @@ class KernelLibraryBuilder
     return typeVariablesByName;
   }
 
-  KernelTypeBuilder applyMixins(
-      KernelTypeBuilder type, int charOffset, String subclassName,
+  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
+      String subclassName, bool isMixinDeclaration,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
@@ -323,14 +360,6 @@ class KernelLibraryBuilder
       }
     }
     if (type is KernelMixinApplicationBuilder) {
-      String extractName(name) {
-        if (name is QualifiedName) {
-          return name.suffix;
-        } else {
-          return name;
-        }
-      }
-
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -347,7 +376,7 @@ class KernelLibraryBuilder
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      KernelTypeBuilder supertype = type.supertype;
+      KernelTypeBuilder supertype = type.supertype ?? loader.target.objectType;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it
@@ -388,32 +417,20 @@ class KernelLibraryBuilder
         }
       }
 
-      /// The type variables used in [supertype] and the current mixin.
-      Map<String, TypeVariableBuilder> usedTypeVariables;
-
-      /// Helper function that updates [usedTypeVariables]. It needs to be
-      /// called twice per iteration: once on supertype and once on the current
-      /// mixin.
-      void computeUsedTypeVariables(KernelNamedTypeBuilder type) {
+      /// Helper function that returns `true` if a type variable with a name
+      /// from [typeVariableNames] is referenced in [type].
+      bool usesTypeVariables(KernelNamedTypeBuilder type) {
         List<KernelTypeBuilder> typeArguments = type.arguments;
         if (typeArguments != null && typeVariables != null) {
           for (KernelTypeBuilder argument in typeArguments) {
             if (typeVariableNames.contains(argument.name)) {
-              usedTypeVariables ??= <String, TypeVariableBuilder>{};
-              KernelTypeVariableBuilder freshTypeVariable =
-                  (usedTypeVariables[argument.name] ??=
-                      addTypeVariable(argument.name, null, charOffset));
-              // Notice that [argument] may have been created below as part of
-              // [applicationTypeArguments] and have to be rebound now
-              // (otherwise it would refer to a type variable in the subclass).
-              argument.bind(freshTypeVariable);
-            } else {
-              if (argument is KernelNamedTypeBuilder) {
-                computeUsedTypeVariables(argument);
-              }
+              return true;
+            } else if (argument is KernelNamedTypeBuilder) {
+              if (usesTypeVariables(argument)) return true;
             }
           }
         }
+        return false;
       }
 
       /// Iterate over the mixins from left to right. At the end of each
@@ -422,14 +439,14 @@ class KernelLibraryBuilder
       for (int i = 0; i < type.mixins.length; i++) {
         KernelTypeBuilder mixin = type.mixins[i];
         isNamedMixinApplication = name != null && mixin == type.mixins.last;
-        usedTypeVariables = null;
+        bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (supertype is KernelNamedTypeBuilder) {
-            computeUsedTypeVariables(supertype);
+            isGeneric = isGeneric || usesTypeVariables(supertype);
           }
           if (mixin is KernelNamedTypeBuilder) {
             runningName += "&${extractName(mixin.name)}";
-            computeUsedTypeVariables(mixin);
+            isGeneric = isGeneric || usesTypeVariables(mixin);
           }
         }
         String fullname =
@@ -443,20 +460,42 @@ class KernelLibraryBuilder
         } else {
           // Otherwise, we pass the fresh type variables to the mixin
           // application in the same order as they're declared on the subclass.
-          if (usedTypeVariables != null) {
-            applicationTypeVariables = <TypeVariableBuilder>[];
+          if (isGeneric) {
+            this.beginNestedDeclaration("mixin application");
+
+            applicationTypeVariables =
+                copyTypeVariables(typeVariables, currentDeclaration);
+
+            List<TypeBuilder> newTypes = <TypeBuilder>[];
+            if (supertype is KernelNamedTypeBuilder &&
+                supertype.arguments != null) {
+              for (int i = 0; i < supertype.arguments.length; ++i) {
+                supertype.arguments[i] = supertype.arguments[i].clone(newTypes);
+              }
+            }
+            if (mixin is KernelNamedTypeBuilder && mixin.arguments != null) {
+              for (int i = 0; i < mixin.arguments.length; ++i) {
+                mixin.arguments[i] = mixin.arguments[i].clone(newTypes);
+              }
+            }
+            for (TypeBuilder newType in newTypes) {
+              currentDeclaration.addType(
+                  new UnresolvedType<KernelTypeBuilder>(newType, -1, null));
+            }
+
+            DeclarationBuilder mixinDeclaration =
+                this.endNestedDeclaration("mixin application");
+            mixinDeclaration.resolveTypes(applicationTypeVariables, this);
+
             applicationTypeArguments = <KernelTypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
-              TypeVariableBuilder freshTypeVariable =
-                  usedTypeVariables[typeVariable.name];
-              if (freshTypeVariable != null) {
-                applicationTypeVariables.add(freshTypeVariable);
-                applicationTypeArguments.add(
-                    addNamedType(typeVariable.name, null, charOffset)..bind(
-                        // This may be rebound in the next iteration when
-                        // calling [computeUsedTypeVariables].
-                        typeVariable));
-              }
+              applicationTypeArguments
+                  .add(addNamedType(typeVariable.name, null, charOffset)..bind(
+                      // The type variable types passed as arguments to the
+                      // generic class representing the anonymous mixin
+                      // application should refer back to the type variables of
+                      // the class that extend the anonymous mixin application.
+                      typeVariable));
             }
           }
         }
@@ -471,8 +510,10 @@ class KernelLibraryBuilder
                 : abstractMask,
             fullname,
             applicationTypeVariables,
-            supertype,
-            isNamedMixinApplication ? interfaces : null,
+            isMixinDeclaration ? null : supertype,
+            isNamedMixinApplication
+                ? interfaces
+                : isMixinDeclaration ? [supertype, mixin] : null,
             new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
                 scope.withTypeVariables(typeVariables),
                 "mixin $fullname ", isModifiable: false),
@@ -483,8 +524,7 @@ class KernelLibraryBuilder
             startCharOffset,
             charOffset,
             TreeNode.noOffset,
-            null,
-            mixin);
+            mixedInType: isMixinDeclaration ? null : mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);
@@ -515,7 +555,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(
-        mixinApplication, charOffset, name,
+        mixinApplication, charOffset, name, false,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
@@ -704,22 +744,17 @@ class KernelLibraryBuilder
     }
   }
 
+  @override
   void addEnum(
       String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<EnumConstantInfo> enumConstantInfos,
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(
-        metadataCollector,
-        metadata,
-        name,
-        constantNamesAndOffsets,
-        this,
-        charOffset,
-        charEndOffset);
+    KernelEnumBuilder builder = new KernelEnumBuilder(metadataCollector,
+        metadata, name, enumConstantInfos, this, charOffset, charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);
@@ -809,18 +844,31 @@ class KernelLibraryBuilder
       return;
     }
     if (cls != null) {
+      if (declaration.next != null) {
+        int count = 0;
+        Declaration current = declaration.next;
+        while (current != null) {
+          count++;
+          current = current.next;
+        }
+        cls.name += "#$count";
+      }
       library.addClass(cls);
     } else if (member != null) {
-      library.addMember(member);
+      if (declaration.next == null) {
+        library.addMember(member);
+      }
     } else if (typedef != null) {
-      library.addTypedef(typedef);
+      if (declaration.next == null) {
+        library.addTypedef(typedef);
+      }
     }
   }
 
-  void addNativeDependency(Uri nativeImportUri) {
+  void addNativeDependency(String nativeImportPath) {
     Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral("$nativeImportUri")]);
+        new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
     if (constructor.isConstructor) {
       annotation = new ConstructorInvocation(constructor.target, arguments)
@@ -850,8 +898,8 @@ class KernelLibraryBuilder
         Import import = imports[importIndex++];
 
         // Rather than add a LibraryDependency, we attach an annotation.
-        if (import.nativeImportUri != null) {
-          addNativeDependency(import.nativeImportUri);
+        if (import.nativeImportPath != null) {
+          addNativeDependency(import.nativeImportPath);
           continue;
         }
 
@@ -998,8 +1046,16 @@ class KernelLibraryBuilder
     var builderTemplate = isExport
         ? templateDuplicatedExportInType
         : templateDuplicatedImportInType;
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri,
-        builderTemplate.withArguments(name, uri, otherUri));
+    return new KernelInvalidTypeBuilder(
+        name,
+        builderTemplate
+            .withArguments(
+                name,
+                // TODO(ahe): We should probably use a context object here
+                // instead of including URIs in this message.
+                uri,
+                otherUri)
+            .withLocation(fileUri, charOffset, name.length));
   }
 
   int finishDeferredLoadTearoffs() {
@@ -1159,7 +1215,8 @@ class KernelLibraryBuilder
       if (declaration is KernelClassBuilder) {
         {
           List<Object> issues = strongMode
-              ? getNonSimplicityIssuesForDeclaration(declaration)
+              ? getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true)
               : const <Object>[];
           reportIssues(issues);
           // In case of issues, use non-strong mode for error recovery.
@@ -1179,7 +1236,8 @@ class KernelLibraryBuilder
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
         List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForDeclaration(declaration)
+            ? getNonSimplicityIssuesForDeclaration(declaration,
+                performErrorRecovery: true)
             : const <Object>[];
         reportIssues(issues);
         // In case of issues, use non-strong mode for error recovery.
@@ -1200,8 +1258,8 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(covariant KernelLibraryBuilder part) {
-    super.includePart(part);
+  void includePart(covariant KernelLibraryBuilder part, Set<Uri> usedParts) {
+    super.includePart(part, usedParts);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
   }
@@ -1286,7 +1344,7 @@ class KernelLibraryBuilder
 
   void exportMemberFromPatch(String name, Declaration member) {
     if (uri.scheme != "dart" || !uri.path.startsWith("_")) {
-      addCompileTimeError(templatePatchInjectionFailed.withArguments(name, uri),
+      addProblem(templatePatchInjectionFailed.withArguments(name, uri),
           member.charOffset, noLength, member.fileUri);
     }
     // Platform-private libraries, such as "dart:_internal" have special
@@ -1299,6 +1357,567 @@ class KernelLibraryBuilder
         (!member.isSetter && scope.local[name] == null));
     addToExportScope(name, member);
   }
+
+  void reportBoundViolation(
+      Message message, int fileOffset, TypeParameter violated) {
+    List<LocatedMessage> context;
+    if (violated != null && violated.fileOffset != -1) {
+      // It looks like when parameters come from patch files, they don't
+      // have a reportable location.
+      context = <LocatedMessage>[
+        messageIncorrectTypeArgumentVariable.withLocation(
+            violated.location.file, violated.fileOffset, noLength)
+      ];
+    }
+    addProblem(message, fileOffset, noLength, fileUri, context: context);
+  }
+
+  void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
+    if (!loader.target.strongMode) return;
+    List<Object> boundViolations = typeEnvironment.findBoundViolations(
+        field.type,
+        allowSuperBounded: true,
+        typedefInstantiations: typedefInstantiations);
+    if (boundViolations != null) {
+      for (int i = 0; i < boundViolations.length; i += 3) {
+        DartType argument = boundViolations[i];
+        TypeParameter variable = boundViolations[i + 1];
+        DartType enclosingType = boundViolations[i + 2];
+
+        Message message;
+        bool inferred = inferredTypes.contains(argument);
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+        }
+
+        reportBoundViolation(message, field.fileOffset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInFunctionNodeParts(
+      TypeEnvironment typeEnvironment, int fileOffset,
+      {List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      DartType returnType}) {
+    if (!loader.target.strongMode) return;
+    if (typeParameters != null) {
+      for (TypeParameter parameter in typeParameters) {
+        List<Object> violations = typeEnvironment.findBoundViolations(
+            parameter.bound,
+            allowSuperBounded: false,
+            typedefInstantiations: typedefInstantiations);
+        if (violations != null) {
+          int offset = parameter.fileOffset;
+          for (int i = 0; i < violations.length; i += 3) {
+            DartType argument = violations[i];
+            TypeParameter variable = violations[i + 1];
+            DartType enclosingType = violations[i + 2];
+
+            Message message;
+            bool inferred = inferredTypes.contains(argument);
+            if (argument is FunctionType &&
+                argument.typeParameters.length > 0) {
+              if (inferred) {
+                message =
+                    templateGenericFunctionTypeInferredAsActualTypeArgument
+                        .withArguments(argument);
+              } else {
+                message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+              }
+              variable = null;
+            } else {
+              if (inferred) {
+                message = templateIncorrectTypeArgumentInferred.withArguments(
+                    argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              } else {
+                message = templateIncorrectTypeArgument.withArguments(argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              }
+            }
+
+            reportBoundViolation(message, offset, variable);
+          }
+        }
+      }
+    }
+    if (positionalParameters != null) {
+      for (VariableDeclaration formal in positionalParameters) {
+        List<Object> violations = typeEnvironment.findBoundViolations(
+            formal.type,
+            allowSuperBounded: true,
+            typedefInstantiations: typedefInstantiations);
+        if (violations != null) {
+          int offset = formal.fileOffset;
+          for (int i = 0; i < violations.length; i += 3) {
+            DartType argument = violations[i];
+            TypeParameter variable = violations[i + 1];
+            DartType enclosingType = violations[i + 2];
+
+            Message message;
+            bool inferred = inferredTypes.contains(argument);
+            if (argument is FunctionType &&
+                argument.typeParameters.length > 0) {
+              if (inferred) {
+                message =
+                    templateGenericFunctionTypeInferredAsActualTypeArgument
+                        .withArguments(argument);
+              } else {
+                message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+              }
+              variable = null;
+            } else {
+              if (inferred) {
+                message = templateIncorrectTypeArgumentInferred.withArguments(
+                    argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              } else {
+                message = templateIncorrectTypeArgument.withArguments(argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              }
+            }
+
+            reportBoundViolation(message, offset, variable);
+          }
+        }
+      }
+    }
+    if (namedParameters != null) {
+      for (VariableDeclaration named in namedParameters) {
+        List<Object> violations = typeEnvironment.findBoundViolations(
+            named.type,
+            allowSuperBounded: true,
+            typedefInstantiations: typedefInstantiations);
+        if (violations != null) {
+          int offset = named.fileOffset;
+          for (int i = 0; i < violations.length; i += 3) {
+            DartType argument = violations[i];
+            TypeParameter variable = violations[i + 1];
+            DartType enclosingType = violations[i + 2];
+
+            Message message;
+            bool inferred = inferredTypes.contains(argument);
+            if (argument is FunctionType &&
+                argument.typeParameters.length > 0) {
+              if (inferred) {
+                message =
+                    templateGenericFunctionTypeInferredAsActualTypeArgument
+                        .withArguments(argument);
+              } else {
+                message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+              }
+              variable = null;
+            } else {
+              if (inferred) {
+                message = templateIncorrectTypeArgumentInferred.withArguments(
+                    argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              } else {
+                message = templateIncorrectTypeArgument.withArguments(argument,
+                    typeEnvironment.getGenericTypeName(enclosingType));
+              }
+            }
+
+            reportBoundViolation(message, offset, variable);
+          }
+        }
+      }
+    }
+    if (returnType != null) {
+      List<Object> violations = typeEnvironment.findBoundViolations(returnType,
+          allowSuperBounded: true,
+          typedefInstantiations: typedefInstantiations);
+      if (violations != null) {
+        int offset = fileOffset;
+        for (int i = 0; i < violations.length; i += 3) {
+          DartType argument = violations[i];
+          TypeParameter variable = violations[i + 1];
+          DartType enclosingType = violations[i + 2];
+
+          // We don't need to check if [argument] was inferred or specified
+          // here, because inference in return types boils down to instantiate-
+          // -to-bound, and it can't provide a type that violates the bound.
+          Message message;
+          if (argument is FunctionType && argument.typeParameters.length > 0) {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+            variable = null;
+          } else {
+            message = templateIncorrectTypeArgumentInReturnType.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+
+          reportBoundViolation(message, offset, variable);
+        }
+      }
+    }
+  }
+
+  void checkBoundsInFunctionNode(
+      FunctionNode function, TypeEnvironment typeEnvironment) {
+    if (!loader.target.strongMode) return;
+    checkBoundsInFunctionNodeParts(typeEnvironment, function.fileOffset,
+        typeParameters: function.typeParameters,
+        positionalParameters: function.positionalParameters,
+        namedParameters: function.namedParameters,
+        returnType: function.returnType);
+  }
+
+  void checkBoundsInListLiteral(
+      ListLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInMapLiteral(MapLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    checkBoundsInType(node.keyType, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+    checkBoundsInType(node.valueType, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInType(
+      DartType type, TypeEnvironment typeEnvironment, int offset,
+      {bool inferred = false, bool allowSuperBounded = true}) {
+    if (!loader.target.strongMode) return;
+    List<Object> violations = typeEnvironment.findBoundViolations(type,
+        allowSuperBounded: allowSuperBounded,
+        typedefInstantiations: typedefInstantiations);
+    if (violations != null) {
+      for (int i = 0; i < violations.length; i += 3) {
+        DartType argument = violations[i];
+        TypeParameter variable = violations[i + 1];
+        DartType enclosingType = violations[i + 2];
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+        }
+
+        reportBoundViolation(message, offset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInVariableDeclaration(
+      VariableDeclaration node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    if (node.type == null) return;
+    List<Object> violations = typeEnvironment.findBoundViolations(node.type,
+        allowSuperBounded: true, typedefInstantiations: typedefInstantiations);
+    if (violations != null) {
+      for (int i = 0; i < violations.length; i += 3) {
+        DartType argument = violations[i];
+        TypeParameter variable = violations[i + 1];
+        DartType enclosingType = violations[i + 2];
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, typeEnvironment.getGenericTypeName(enclosingType));
+          }
+        }
+
+        reportBoundViolation(message, node.fileOffset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInConstructorInvocation(
+      ConstructorInvocation node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    if (node.arguments.types.isEmpty) return;
+    Constructor constructor = node.target;
+    Class klass = constructor.enclosingClass;
+    DartType constructedType = new InterfaceType(klass, node.arguments.types);
+    List<Object> violations = typeEnvironment.findBoundViolations(
+        constructedType,
+        allowSuperBounded: false,
+        typedefInstantiations: typedefInstantiations);
+    if (violations != null) {
+      String constructedTypeName = "${klass.name}::${constructor.name.name}";
+      for (int i = 0; i < violations.length; i += 3) {
+        DartType argument = violations[i];
+        TypeParameter variable = violations[i + 1];
+        DartType enclosingType = violations[i + 2];
+        String enclosingName = enclosingType == constructedType
+            ? constructedTypeName
+            : typeEnvironment.getGenericTypeName(enclosingType);
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
+        reportBoundViolation(message, node.fileOffset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInFactoryInvocation(
+      StaticInvocation node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    if (node.arguments.types.isEmpty) return;
+    Procedure factory = node.target;
+    assert(factory.isFactory);
+    Class klass = factory.enclosingClass;
+    DartType constructedType = new InterfaceType(klass, node.arguments.types);
+    List<Object> violations = typeEnvironment.findBoundViolations(
+        constructedType,
+        allowSuperBounded: false,
+        typedefInstantiations: typedefInstantiations);
+    if (violations != null) {
+      String constructedTypeName = "${klass.name}::${factory.name.name}";
+      for (int i = 0; i < violations.length; i += 3) {
+        DartType argument = violations[i];
+        TypeParameter variable = violations[i + 1];
+        DartType enclosingType = violations[i + 2];
+        String enclosingName = enclosingType == constructedType
+            ? constructedTypeName
+            : typeEnvironment.getGenericTypeName(enclosingType);
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
+        reportBoundViolation(message, node.fileOffset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInStaticInvocation(
+      StaticInvocation node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    if (node.arguments.types.isEmpty) return;
+    Class klass = node.target.enclosingClass;
+    List<TypeParameter> parameters = node.target.function.typeParameters;
+    List<DartType> arguments = node.arguments.types;
+    // The following error is to be reported elsewhere.
+    if (parameters.length != arguments.length) return;
+    List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
+        parameters, arguments,
+        typedefInstantiations: typedefInstantiations);
+    if (violations != null) {
+      String targetName;
+      if (klass == null) {
+        targetName = "${node.target.name.name}";
+      } else {
+        targetName = "${klass.name}::${node.target.name.name}";
+      }
+      for (int i = 0; i < violations.length; i += 3) {
+        DartType argument = violations[i];
+        TypeParameter variable = violations[i + 1];
+        DartType enclosingType = violations[i + 2];
+        String enclosingName = enclosingType == null
+            ? targetName
+            : typeEnvironment.getGenericTypeName(enclosingType);
+
+        Message message;
+        if (argument is FunctionType) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
+        reportBoundViolation(message, node.fileOffset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInMethodInvocation(
+      DartType receiverType,
+      TypeEnvironment typeEnvironment,
+      TypeInferrerImpl typeInferrer,
+      Name name,
+      Member interfaceTarget,
+      Arguments arguments,
+      int offset,
+      {bool inferred = false}) {
+    if (!loader.target.strongMode) return;
+    if (arguments.types.isEmpty) return;
+    Class klass;
+    List<DartType> klassArguments;
+    if (receiverType is InterfaceType) {
+      klass = receiverType.classNode;
+      klassArguments = receiverType.typeArguments;
+    } else {
+      return;
+    }
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    for (int i = 0; i < klassArguments.length; ++i) {
+      substitutionMap[klass.typeParameters[i]] = klassArguments[i];
+    }
+    // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
+    Member method = typeEnvironment.hierarchy.getDispatchTarget(klass, name) ??
+        interfaceTarget;
+    if (method == null || method is! Procedure) {
+      return;
+    }
+    List<TypeParameter> methodParameters = method.function.typeParameters;
+    // The error is to be reported elsewhere.
+    if (methodParameters.length != arguments.types.length) return;
+    List<TypeParameter> instantiatedMethodParameters =
+        new List<TypeParameter>.filled(methodParameters.length, null);
+    for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
+      instantiatedMethodParameters[i] =
+          new TypeParameter(methodParameters[i].name);
+      substitutionMap[methodParameters[i]] =
+          new TypeParameterType(instantiatedMethodParameters[i]);
+    }
+    for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
+      instantiatedMethodParameters[i].bound =
+          substitute(methodParameters[i].bound, substitutionMap);
+    }
+    List<Object> violations = typeEnvironment.findBoundViolationsElementwise(
+        instantiatedMethodParameters, arguments.types,
+        typedefInstantiations: typedefInstantiations);
+    if (violations != null) {
+      String targetName = "${klass.name}";
+      if (klassArguments.length > 0) {
+        targetName += "<${klassArguments[0]}";
+        for (int i = 1; i < klassArguments.length; ++i) {
+          targetName += ", ${klassArguments[i]}";
+        }
+        targetName += ">";
+      }
+      targetName += "::${name.name}";
+      for (int i = 0; i < violations.length; i += 3) {
+        DartType argument = violations[i];
+        TypeParameter variable = violations[i + 1];
+        DartType enclosingType = violations[i + 2];
+        String enclosingName = enclosingType == null
+            ? targetName
+            : typeEnvironment.getGenericTypeName(enclosingType);
+
+        Message message;
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          if (inferred) {
+            message = templateGenericFunctionTypeInferredAsActualTypeArgument
+                .withArguments(argument);
+          } else {
+            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          }
+          variable = null;
+        } else {
+          if (inferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument, enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(
+                argument, enclosingName);
+          }
+        }
+
+        reportBoundViolation(message, offset, variable);
+      }
+    }
+  }
+
+  void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
+    if (!loader.target.strongMode) return;
+    forEach((String name, Declaration declaration) {
+      if (declaration is KernelFieldBuilder) {
+        checkBoundsInField(declaration.target, typeEnvironment);
+      } else if (declaration is KernelProcedureBuilder) {
+        checkBoundsInFunctionNode(declaration.target.function, typeEnvironment);
+      } else if (declaration is KernelClassBuilder) {
+        declaration.checkBoundsInOutline(typeEnvironment);
+      }
+    });
+
+    typedefInstantiations.clear();
+    inferredTypes.clear();
+  }
 }
 
 Uri computeLibraryUri(Declaration declaration) {
@@ -1310,3 +1929,5 @@ Uri computeLibraryUri(Declaration declaration) {
   return unhandled("no library parent", "${declaration.runtimeType}",
       declaration.charOffset, declaration.fileUri);
 }
+
+String extractName(name) => name is QualifiedName ? name.name : name;

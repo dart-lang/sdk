@@ -4,14 +4,13 @@
 
 // Tests related to the [TypeSystem] class.
 
-library analyzer.test.generated.type_system_test;
-
 import 'package:analyzer/analyzer.dart'
     show ErrorReporter, ParameterKind, StrongModeCode;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -33,7 +32,6 @@ main() {
     defineReflectiveTests(StrongAssignabilityTest);
     defineReflectiveTests(StrongSubtypingTest);
     defineReflectiveTests(StrongGenericFunctionInferenceTest);
-    defineReflectiveTests(LeastUpperBoundTest);
     defineReflectiveTests(StrongLeastUpperBoundTest);
     defineReflectiveTests(StrongGreatestLowerBoundTest);
   });
@@ -64,7 +62,8 @@ abstract class BoundTestBase {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: new MemoryResourceProvider());
     typeProvider = context.typeProvider;
     var simpleFunctionElement =
         ElementFactory.genericTypeAliasElement('A', returnType: voidType);
@@ -129,8 +128,8 @@ abstract class BoundTestBase {
       returns = voidType;
     }
 
-    return ElementFactory
-        .functionElement8(required, returns, optional: optional, named: named)
+    return ElementFactory.functionElement8(required, returns,
+            optional: optional, named: named)
         .type;
   }
 }
@@ -171,7 +170,9 @@ class ConstraintMatchingTest {
   DartType list(DartType T) => typeProvider.listType.instantiate([T]);
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
+    typeProvider = AnalysisContextFactory.contextWithCore(
+            resourceProvider: new MemoryResourceProvider())
+        .typeProvider;
     typeSystem = new StrongTypeSystemImpl(typeProvider);
     T = _newTypeParameter('T');
   }
@@ -480,93 +481,6 @@ class ConstraintMatchingTest {
       element.bound = bound;
     }
     return new TypeParameterTypeImpl(element);
-  }
-}
-
-/**
- * Tests LUB in spec mode.
- *
- * Tests defined in this class are ones whose behavior is spec mode-specific.
- * In particular, function parameters are compared using LUB in spec mode, but
- * GLB in strong mode.
- */
-@reflectiveTest
-class LeastUpperBoundTest extends LeastUpperBoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new TypeSystemImpl(typeProvider);
-  }
-
-  void test_functionsLubNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': objectType, 'b': numType});
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsLubPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [objectType, numType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsLubRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([objectType, numType, numType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_nestedNestedFunctionsLubInnermostParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([
-        _functionType([stringType, intType, intType])
-      ])
-    ]);
-    FunctionType type2 = _functionType([
-      _functionType([
-        _functionType([intType, doubleType, numType])
-      ])
-    ]);
-    FunctionType expected = _functionType([
-      _functionType([
-        _functionType([objectType, numType, numType])
-      ])
-    ]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_typeParam_class_implements_Function() {
-    DartType typeA = ElementFactory.classElement('A', functionType).type;
-    TypeParameterElementImpl typeParamElement =
-        ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeA;
-    DartType typeParam = typeParamElement.type;
-    _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
-  }
-
-  /// Check least upper bound of the same class with different type parameters.
-  void test_typeParameters_different() {
-    // class List<int>
-    // class List<double>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.instantiate(<DartType>[doubleType]);
-    _checkLeastUpperBound(listOfIntType, listOfDoubleType, objectType);
-  }
-
-  /// Check least upper bound of two related classes with different
-  /// type parameters.
-  void test_typeParametersAndClass_different() {
-    // class List<int>
-    // class Iterable<double>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType iterableOfDoubleType =
-        iterableType.instantiate(<DartType>[doubleType]);
-    _checkLeastUpperBound(listOfIntType, iterableOfDoubleType, objectType);
   }
 }
 
@@ -1055,8 +969,8 @@ class StrongAssignabilityTest {
         required: <DartType>[],
         named: <String, DartType>{'x': intType},
         result: intType);
-    DartType rr = TypeBuilder
-        .function(required: <DartType>[intType, intType], result: intType);
+    DartType rr = TypeBuilder.function(
+        required: <DartType>[intType, intType], result: intType);
     DartType ro = TypeBuilder.function(
         required: <DartType>[intType],
         optional: <DartType>[intType],
@@ -1120,8 +1034,8 @@ class StrongAssignabilityTest {
         TypeBuilder.function(required: <DartType>[intType], result: objectType);
     FunctionType left =
         TypeBuilder.function(required: <DartType>[intType], result: intType);
-    FunctionType right = TypeBuilder
-        .function(required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder.function(
+        required: <DartType>[objectType], result: objectType);
     FunctionType bottom =
         TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
@@ -1225,8 +1139,8 @@ class StrongGenericFunctionInferenceTest {
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo =
         TypeBuilder.variable('TTo', bound: iterableType.instantiate([tFrom]));
-    var cast = TypeBuilder
-        .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var cast = TypeBuilder.function(
+        types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [stringType]), [
       stringType,
       iterableType.instantiate([stringType])
@@ -1334,8 +1248,8 @@ class StrongGenericFunctionInferenceTest {
     // <TFrom, TTo>(TFrom) -> TTo
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo = TypeBuilder.variable('TTo');
-    var cast = TypeBuilder
-        .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var cast = TypeBuilder.function(
+        types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [intType]), [intType, dynamicType]);
   }
 
@@ -1343,8 +1257,8 @@ class StrongGenericFunctionInferenceTest {
     // <TFrom, TTo extends TFrom>(TFrom) -> TTo
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo = TypeBuilder.variable('TTo', bound: tFrom);
-    var cast = TypeBuilder
-        .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var cast = TypeBuilder.function(
+        types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [intType]), [intType, intType]);
   }
 
@@ -1972,7 +1886,9 @@ class StrongSubtypingTest {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
+    typeProvider = AnalysisContextFactory.contextWithCore(
+            resourceProvider: new MemoryResourceProvider())
+        .typeProvider;
     typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
@@ -2085,8 +2001,8 @@ class StrongSubtypingTest {
 
     _checkIsNotSubtypeOf(
         TypeBuilder.function(types: [u, v], required: [u], result: v),
-        TypeBuilder
-            .function(types: [c, d], required: [intType], result: intType));
+        TypeBuilder.function(
+            types: [c, d], required: [intType], result: intType));
   }
 
   void test_genericFunction_genericDoesNotSubtypeNonGeneric() {
@@ -2179,8 +2095,8 @@ class StrongSubtypingTest {
         required: <DartType>[],
         named: <String, DartType>{'x': intType},
         result: intType);
-    DartType rr = TypeBuilder
-        .function(required: <DartType>[intType, intType], result: intType);
+    DartType rr = TypeBuilder.function(
+        required: <DartType>[intType, intType], result: intType);
     DartType ro = TypeBuilder.function(
         required: <DartType>[intType],
         optional: <DartType>[intType],
@@ -2247,8 +2163,8 @@ class StrongSubtypingTest {
         TypeBuilder.function(required: <DartType>[intType], result: objectType);
     FunctionType left =
         TypeBuilder.function(required: <DartType>[intType], result: intType);
-    FunctionType right = TypeBuilder
-        .function(required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder.function(
+        required: <DartType>[objectType], result: objectType);
     FunctionType bottom =
         TypeBuilder.function(required: <DartType>[objectType], result: intType);
 

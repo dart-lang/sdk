@@ -178,6 +178,8 @@ class PrintCommand extends DebuggerCommand {
         await debugger.isolate.evalFrame(debugger.currentFrame, expression);
     if (response is S.DartError) {
       debugger.console.print(response.message);
+    } else if (response is S.Sentinel) {
+      debugger.console.print(response.valueAsString);
     } else {
       debugger.console.print('= ', newline: false);
       debugger.console.printRef(debugger.isolate, response, debugger.objects);
@@ -2689,25 +2691,25 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
 
   S.Script get script => _frame.location.script;
 
-  int _varsTop(varsDiv) {
+  int _varsTop(DivElement varsDiv) {
     const minTop = 0;
     if (varsDiv == null) {
       return minTop;
     }
-    final paddingTop = document.body.contentEdge.top;
-    final parent = varsDiv.parent.getBoundingClientRect();
-    final varsHeight = varsDiv.clientHeight;
-    final maxTop = parent.height - varsHeight;
-    final adjustedTop = paddingTop - parent.top;
-    return (max(minTop, min(maxTop, adjustedTop)));
+    final num paddingTop = document.body.contentEdge.top;
+    final Rectangle parent = varsDiv.parent.getBoundingClientRect();
+    final int varsHeight = varsDiv.clientHeight;
+    final int maxTop = (parent.height - varsHeight).toInt();
+    final int adjustedTop = (paddingTop - parent.top).toInt();
+    return max(minTop, min(maxTop, adjustedTop));
   }
 
   void _onScroll(event) {
     if (!_expanded || _varsDiv == null) {
       return;
     }
-    var currentTop = _varsDiv.style.top;
-    var newTop = _varsTop(_varsDiv);
+    String currentTop = _varsDiv.style.top;
+    int newTop = _varsTop(_varsDiv);
     if (currentTop != newTop) {
       _varsDiv.style.top = '${newTop}px';
     }

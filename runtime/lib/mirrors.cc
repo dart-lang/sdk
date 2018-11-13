@@ -28,6 +28,13 @@ namespace dart {
     Exceptions::PropagateError(Error::Handle(type.error()));                   \
   }
 
+#define RETURN_OR_PROPAGATE(expr)                                              \
+  RawObject* result = expr;                                                    \
+  if (RawObject::IsErrorClassId(result->GetClassIdMayBeSmi())) {               \
+    Exceptions::PropagateError(Error::Handle(Error::RawCast(result)));         \
+  }                                                                            \
+  return result;
+
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -130,6 +137,10 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // hence do not have a token position, and therefore cannot be reparsed.
     has_extra_parameter_info = false;
   }
+  if (func.HasBytecode() && (func.kernel_offset() == 0)) {
+    // Anonymous closures in bytecode cannot be reparsed.
+    has_extra_parameter_info = false;
+  }
 
   Array& param_descriptor = Array::Handle();
   if (has_extra_parameter_info) {
@@ -138,11 +149,8 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // * Whether a parameters has been declared as final.
     // * Any metadata associated with the parameter.
     Object& result = Object::Handle();
-    if (func.kernel_offset() > 0) {
-      result = kernel::BuildParameterDescriptor(func);
-    } else {
-      result = Parser::ParseFunctionParameters(func);
-    }
+    ASSERT(func.kernel_offset() > 0);
+    result = kernel::BuildParameterDescriptor(func);
     if (result.IsError()) {
       Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();
@@ -345,7 +353,10 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   args.SetAt(1, str);
   str = lib.url();
   const char* censored_libraries[] = {
-      "dart:_builtin", "dart:_vmservice", NULL,
+      "dart:_builtin",
+      "dart:_vmservice",
+      "dart:vmservice_io",
+      NULL,
   };
   for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
     if (str.Equals(censored_libraries[i])) {
@@ -575,136 +586,6 @@ static void VerifyMethodKindShifts() {
 #endif
 }
 
-static RawInstance* ReturnResult(const Object& result) {
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-    UNREACHABLE();
-  }
-  if (result.IsInstance()) {
-    return Instance::Cast(result).raw();
-  }
-  ASSERT(result.IsNull());
-  return Instance::null();
-}
-
-// Invoke the function, or noSuchMethod if it is null. Propagate any unhandled
-// exceptions. Wrap and propagate any compilation errors.
-static RawInstance* InvokeDynamicFunction(const Instance& receiver,
-                                          const Function& function,
-                                          const String& target_name,
-                                          const Array& args,
-                                          const Array& args_descriptor_array) {
-  // Note "args" is already the internal arguments with the receiver as the
-  // first element.
-  Object& result = Object::Handle();
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (function.IsNull() || !function.is_reflectable() ||
-      !function.AreValidArguments(args_descriptor, NULL)) {
-    result = DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
-                                           args_descriptor_array);
-  } else {
-    result = DartEntry::InvokeFunction(function, args, args_descriptor_array);
-  }
-  return ReturnResult(result);
-}
-
-static RawInstance* InvokeLibraryGetter(const Library& library,
-                                        const String& getter_name,
-                                        const bool throw_nsm_if_absent) {
-  // To access a top-level we may need to use the Field or the getter Function.
-  // The getter function may either be in the library or in the field's owner
-  // class, depending on whether it was an actual getter, or an uninitialized
-  // field.
-  const Field& field = Field::Handle(library.LookupLocalField(getter_name));
-  Function& getter = Function::Handle();
-  if (field.IsNull()) {
-    // No field found. Check for a getter in the lib.
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    getter = library.LookupLocalFunction(internal_getter_name);
-    if (getter.IsNull()) {
-      getter = library.LookupLocalFunction(getter_name);
-      if (!getter.IsNull()) {
-        // Looking for a getter but found a regular method: closurize it.
-        const Function& closure_function =
-            Function::Handle(getter.ImplicitClosureFunction());
-        return closure_function.ImplicitStaticClosure();
-      }
-    }
-  } else {
-    if (!field.IsUninitialized()) {
-      return field.StaticValue();
-    }
-    // An uninitialized field was found.  Check for a getter in the field's
-    // owner class.
-    const Class& klass = Class::Handle(field.Owner());
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    getter = klass.LookupStaticFunction(internal_getter_name);
-  }
-
-  if (!getter.IsNull() && getter.is_reflectable()) {
-    // Invoke the getter and return the result.
-    const Object& result = Object::Handle(
-        DartEntry::InvokeFunction(getter, Object::empty_array()));
-    return ReturnResult(result);
-  }
-
-  if (throw_nsm_if_absent) {
-    ThrowNoSuchMethod(AbstractType::Handle(
-                          Class::Handle(library.toplevel_class()).RareType()),
-                      getter_name, Object::null_array(), Object::null_array(),
-                      InvocationMirror::kTopLevel, InvocationMirror::kGetter);
-    UNREACHABLE();
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-static RawInstance* InvokeClassGetter(const Class& klass,
-                                      const String& getter_name,
-                                      const bool throw_nsm_if_absent) {
-  // Note static fields do not have implicit getters.
-  const Field& field = Field::Handle(klass.LookupStaticField(getter_name));
-  if (field.IsNull() || field.IsUninitialized()) {
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    Function& getter =
-        Function::Handle(klass.LookupStaticFunction(internal_getter_name));
-
-    if (getter.IsNull() || !getter.is_reflectable()) {
-      if (getter.IsNull()) {
-        getter = klass.LookupStaticFunction(getter_name);
-        if (!getter.IsNull()) {
-          // Looking for a getter but found a regular method: closurize it.
-          const Function& closure_function =
-              Function::Handle(getter.ImplicitClosureFunction());
-          return closure_function.ImplicitStaticClosure();
-        }
-      }
-      if (throw_nsm_if_absent) {
-        ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()), getter_name,
-                          Object::null_array(), Object::null_array(),
-                          InvocationMirror::kStatic, InvocationMirror::kGetter);
-        UNREACHABLE();
-      }
-      // Fall through case: Indicate that we didn't find any function or field
-      // using a special null instance. This is different from a field being
-      // null. Callers make sure that this null does not leak into Dartland.
-      return Object::sentinel().raw();
-    }
-
-    // Invoke the getter and return the result.
-    const Object& result = Object::Handle(
-        DartEntry::InvokeFunction(getter, Object::empty_array()));
-    return ReturnResult(result);
-  }
-  return field.StaticValue();
-}
-
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
   // Generic function type parameters are not reified, but mapped to dynamic,
@@ -805,50 +686,54 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
     canonical_uri ^= result.raw();
   }
 
-  // Create a new library if it does not exist yet.
+  // Return the existing library if it has already been loaded.
   Library& library =
       Library::Handle(zone, Library::LookupLibrary(thread, canonical_uri));
-  if (library.IsNull()) {
-    library = Library::New(canonical_uri);
-    library.Register(thread);
+  if (!library.IsNull()) {
+    return CreateLibraryMirror(thread, library);
   }
 
-  // Ensure loading started.
-  if (library.LoadNotStarted()) {
-    library.SetLoadRequested();
-
-    isolate->BlockClassFinalization();
-    Object& result = Object::Handle(zone);
-    {
-      TransitionVMToNative transition(thread);
-      Api::Scope api_scope(thread);
-      Dart_Handle retval = handler(
-          Dart_kImportTag,
-          Api::NewHandle(thread, isolate->object_store()->root_library()),
-          Api::NewHandle(thread, canonical_uri.raw()));
-      result = Api::UnwrapHandle(retval);
+  // Request the embedder to load the library.
+  isolate->BlockClassFinalization();
+  Object& result = Object::Handle(zone);
+  {
+    TransitionVMToNative transition(thread);
+    Api::Scope api_scope(thread);
+    Dart_Handle retval =
+        handler(Dart_kImportTag,
+                Api::NewHandle(thread, isolate->object_store()->root_library()),
+                Api::NewHandle(thread, canonical_uri.raw()));
+    result = Api::UnwrapHandle(retval);
+  }
+  isolate->UnblockClassFinalization();
+  if (result.IsError()) {
+    if (result.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
     }
-    isolate->UnblockClassFinalization();
-    if (result.IsError()) {
-      if (result.IsLanguageError()) {
-        Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
-      }
-      Exceptions::PropagateError(Error::Cast(result));
-    }
+    Exceptions::PropagateError(Error::Cast(result));
   }
 
-  if (!library.Loaded()) {
-    // This code assumes a synchronous tag handler (which dart::bin and tonic
-    // provide). Strictly though we should complete a future in response to
-    // Dart_FinalizeLoading.
-    UNIMPLEMENTED();
-  }
+  // This code assumes a synchronous tag handler (which dart::bin and tonic
+  // provide). Strictly though we should complete a future in response to
+  // Dart_FinalizeLoading.
 
   if (!ClassFinalizer::ProcessPendingClasses()) {
     Exceptions::PropagateError(Error::Handle(thread->sticky_error()));
   }
 
-  return CreateLibraryMirror(thread, library);
+  // Prefer the tag handler's idea of which library is represented by the URI.
+  if (result.IsLibrary()) {
+    return CreateLibraryMirror(thread, Library::Cast(result));
+  }
+
+  if (result.IsNull()) {
+    library = Library::LookupLibrary(thread, canonical_uri);
+    if (!library.IsNull()) {
+      return CreateLibraryMirror(thread, library);
+    }
+  }
+
+  FATAL("Non-library from tag handler");
 }
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
@@ -1341,48 +1226,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
                                arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
-
-  Class& klass = Class::Handle(reflectee.clazz());
-  Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
-
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const int kTypeArgsLen = 0;
-  const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
-
-  if (function.IsNull()) {
-    // Didn't find a method: try to find a getter and invoke call on its result.
-    const String& getter_name =
-        String::Handle(zone, Field::GetterName(function_name));
-    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
-    if (!function.IsNull()) {
-      ASSERT(function.kind() != RawFunction::kMethodExtractor);
-      // Invoke the getter.
-      const int kNumArgs = 1;
-      const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
-      getter_args.SetAt(0, reflectee);
-      const Array& getter_args_descriptor = Array::Handle(
-          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
-      const Instance& getter_result = Instance::Handle(
-          zone, InvokeDynamicFunction(reflectee, function, getter_name,
-                                      getter_args, getter_args_descriptor));
-      // Replace the closure as the receiver in the arguments list.
-      args.SetAt(0, getter_result);
-      // Call the closure.
-      const Object& call_result =
-          Object::Handle(zone, DartEntry::InvokeClosure(args, args_descriptor));
-      if (call_result.IsError()) {
-        Exceptions::PropagateError(Error::Cast(call_result));
-        UNREACHABLE();
-      }
-      return call_result.raw();
-    }
-  }
-
-  // Found an ordinary method.
-  return InvokeDynamicFunction(reflectee, function, function_name, args,
-                               args_descriptor);
+  RETURN_OR_PROPAGATE(reflectee.Invoke(function_name, args, arg_names));
 }
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
@@ -1391,33 +1235,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   // with its cousins.
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-  Class& klass = Class::Handle(reflectee.clazz());
-
-  const String& internal_getter_name =
-      String::Handle(Field::GetterName(getter_name));
-  Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
-
-  // Check for method extraction when method extractors are not created.
-  if (function.IsNull() && !FLAG_lazy_dispatchers) {
-    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
-    if (!function.IsNull()) {
-      const Function& closure_function =
-          Function::Handle(zone, function.ImplicitClosureFunction());
-      return closure_function.ImplicitInstanceClosure(reflectee);
-    }
-  }
-
-  const int kTypeArgsLen = 0;
-  const int kNumArgs = 1;
-  const Array& args = Array::Handle(zone, Array::New(kNumArgs));
-  args.SetAt(0, reflectee);
-  const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-
-  // InvokeDynamic invokes NoSuchMethod if the provided function is null.
-  return InvokeDynamicFunction(reflectee, function, internal_getter_name, args,
-                               args_descriptor);
+  RETURN_OR_PROPAGATE(reflectee.InvokeGetter(getter_name));
 }
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
@@ -1427,23 +1245,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
-
-  const Class& klass = Class::Handle(zone, reflectee.clazz());
-  const String& internal_setter_name =
-      String::Handle(zone, Field::SetterName(setter_name));
-  const Function& setter = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
-
-  const int kTypeArgsLen = 0;
-  const int kNumArgs = 2;
-  const Array& args = Array::Handle(zone, Array::New(kNumArgs));
-  args.SetAt(0, reflectee);
-  args.SetAt(1, value);
-  const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-
-  return InvokeDynamicFunction(reflectee, setter, internal_setter_name, args,
-                               args_descriptor);
+  RETURN_OR_PROPAGATE(reflectee.InvokeSetter(setter_name, value));
 }
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
@@ -1498,74 +1300,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
                                arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
-
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const int kTypeArgsLen = 0;
-  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
-
-  Function& function =
-      Function::Handle(klass.LookupStaticFunction(function_name));
-
-  if (function.IsNull()) {
-    // Didn't find a method: try to find a getter and invoke call on its result.
-    const String& getter_name =
-        String::Handle(Field::GetterName(function_name));
-    function = klass.LookupStaticFunction(getter_name);
-    if (!function.IsNull()) {
-      // Invoke the getter.
-      const Object& getter_result = Object::Handle(
-          DartEntry::InvokeFunction(function, Object::empty_array()));
-      if (getter_result.IsError()) {
-        Exceptions::PropagateError(Error::Cast(getter_result));
-        UNREACHABLE();
-      }
-      // Make room for the closure (receiver) in the argument list.
-      const intptr_t num_args = args.Length();
-      const Array& call_args = Array::Handle(Array::New(num_args + 1));
-      Object& temp = Object::Handle();
-      for (int i = 0; i < num_args; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-          Array::Handle(ArgumentsDescriptor::New(
-              kTypeArgsLen, call_args.Length(), arg_names));
-      // Call the closure.
-      const Object& call_result = Object::Handle(
-          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
-      if (call_result.IsError()) {
-        Exceptions::PropagateError(Error::Cast(call_result));
-        UNREACHABLE();
-      }
-      return call_result.raw();
-    }
-  }
-
-  const Array& args_descriptor_array = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
-
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
-
-  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
-      !function.is_reflectable()) {
-    ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()), function_name,
-                      args, arg_names, InvocationMirror::kStatic,
-                      InvocationMirror::kMethod);
-    UNREACHABLE();
-  }
-
-  Object& result = Object::Handle(
-      DartEntry::InvokeFunction(function, args, args_descriptor_array));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-    UNREACHABLE();
-  }
-  return result.raw();
+  RETURN_OR_PROPAGATE(klass.Invoke(function_name, args, arg_names));
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
@@ -1580,7 +1315,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
     UNREACHABLE();
   }
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-  return InvokeClassGetter(klass, getter_name, true);
+  RETURN_OR_PROPAGATE(klass.InvokeGetter(getter_name, true));
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
@@ -1591,55 +1326,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   const Class& klass = Class::Handle(ref.GetClassReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
-
-  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
-
-  // Check for real fields and user-defined setters.
-  const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
-  Function& setter = Function::Handle();
-  const String& internal_setter_name =
-      String::Handle(Field::SetterName(setter_name));
-
-  if (field.IsNull()) {
-    setter = klass.LookupStaticFunction(internal_setter_name);
-
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, value);
-
-    if (setter.IsNull() || !setter.is_reflectable()) {
-      ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                        internal_setter_name, args, Object::null_array(),
-                        InvocationMirror::kStatic, InvocationMirror::kSetter);
-      UNREACHABLE();
-    }
-
-    // Invoke the setter and return the result.
-    Object& result = Object::Handle(DartEntry::InvokeFunction(setter, args));
-    if (result.IsError()) {
-      Exceptions::PropagateError(Error::Cast(result));
-      UNREACHABLE();
-    }
-    return result.raw();
-  }
-
-  if (field.is_final() || !field.is_reflectable()) {
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, value);
-
-    ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      internal_setter_name, args, Object::null_array(),
-                      InvocationMirror::kStatic, InvocationMirror::kSetter);
-    UNREACHABLE();
-  }
-
-  field.SetStaticValue(value);
-  return value.raw();
+  RETURN_OR_PROPAGATE(klass.InvokeSetter(setter_name, value));
 }
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
@@ -1804,60 +1491,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
                                arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
-
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const int kTypeArgsLen = 0;
-  Function& function =
-      Function::Handle(library.LookupLocalFunction(function_name));
-
-  if (function.IsNull()) {
-    // Didn't find a method: try to find a getter and invoke call on its result.
-    const Instance& getter_result =
-        Instance::Handle(InvokeLibraryGetter(library, function_name, false));
-    if (getter_result.raw() != Object::sentinel().raw()) {
-      // Make room for the closure (receiver) in arguments.
-      intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
-      Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-          Array::Handle(ArgumentsDescriptor::New(
-              kTypeArgsLen, call_args.Length(), arg_names));
-      // Call closure.
-      const Object& call_result = Object::Handle(
-          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
-      if (call_result.IsError()) {
-        Exceptions::PropagateError(Error::Cast(call_result));
-        UNREACHABLE();
-      }
-      return call_result.raw();
-    }
-  }
-
-  const Array& args_descriptor_array = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
-
-  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
-      !function.is_reflectable()) {
-    ThrowNoSuchMethod(AbstractType::Handle(
-                          Class::Handle(library.toplevel_class()).RareType()),
-                      function_name, args, arg_names,
-                      InvocationMirror::kTopLevel, InvocationMirror::kMethod);
-    UNREACHABLE();
-  }
-
-  const Object& result = Object::Handle(
-      DartEntry::InvokeFunction(function, args, args_descriptor_array));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-    UNREACHABLE();
-  }
-  return result.raw();
+  RETURN_OR_PROPAGATE(library.Invoke(function_name, args, arg_names));
 }
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
@@ -1867,7 +1501,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& library = Library::Handle(ref.GetLibraryReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-  return InvokeLibraryGetter(library, getter_name, true);
+  RETURN_OR_PROPAGATE(library.InvokeGetter(getter_name, true));
 }
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
@@ -1878,54 +1512,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   const Library& library = Library::Handle(ref.GetLibraryReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
-
-  // To access a top-level we may need to use the Field or the
-  // setter Function.  The setter function may either be in the
-  // library or in the field's owner class, depending.
-  const Field& field = Field::Handle(library.LookupLocalField(setter_name));
-  Function& setter = Function::Handle();
-  const String& internal_setter_name =
-      String::Handle(Field::SetterName(setter_name));
-
-  if (field.IsNull()) {
-    setter = library.LookupLocalFunction(internal_setter_name);
-
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, value);
-
-    if (setter.IsNull() || !setter.is_reflectable()) {
-      ThrowNoSuchMethod(AbstractType::Handle(
-                            Class::Handle(library.toplevel_class()).RareType()),
-                        internal_setter_name, args, Object::null_array(),
-                        InvocationMirror::kTopLevel, InvocationMirror::kSetter);
-      UNREACHABLE();
-    }
-
-    // Invoke the setter and return the result.
-    const Object& result =
-        Object::Handle(DartEntry::InvokeFunction(setter, args));
-    if (result.IsError()) {
-      Exceptions::PropagateError(Error::Cast(result));
-      UNREACHABLE();
-    }
-    return result.raw();
-  }
-
-  if (field.is_final() || !field.is_reflectable()) {
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, value);
-
-    ThrowNoSuchMethod(AbstractType::Handle(
-                          Class::Handle(library.toplevel_class()).RareType()),
-                      internal_setter_name, args, Object::null_array(),
-                      InvocationMirror::kTopLevel, InvocationMirror::kSetter);
-    UNREACHABLE();
-  }
-
-  field.SetStaticValue(value);
-  return value.raw();
+  RETURN_OR_PROPAGATE(library.InvokeSetter(setter_name, value));
 }
 
 DEFINE_NATIVE_ENTRY(MethodMirror_owner, 2) {
@@ -2035,16 +1622,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
       if (script.kind() == RawScript::kLibraryTag) break;
     }
     ASSERT(!script.IsNull());
-    const String& libname = String::Handle(zone, lib.name());
-    if (libname.Length() == 0) {
-      // No library declaration.
-      const String& uri = String::Handle(zone, script.url());
-      return CreateSourceLocation(uri, 1, 1);
-    }
-    const TokenStream& stream = TokenStream::Handle(zone, script.tokens());
-    TokenStream::Iterator tkit(zone, stream, TokenPosition::kMinSource);
-    if (tkit.CurrentTokenKind() == Token::kSCRIPTTAG) tkit.Advance();
-    token_pos = tkit.CurrentPosition();
+    const String& uri = String::Handle(zone, script.url());
+    return CreateSourceLocation(uri, 1, 1);
   }
 
   ASSERT(!script.IsNull());

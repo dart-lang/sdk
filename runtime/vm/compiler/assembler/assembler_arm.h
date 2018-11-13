@@ -338,8 +338,10 @@ class FieldAddress : public Address {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false)
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
       : buffer_(),
+        object_pool_wrapper_(object_pool_wrapper),
         prologue_offset_(-1),
         has_single_entry_point_(true),
         use_far_branches_(use_far_branches),
@@ -375,10 +377,10 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
 
   RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
+    return object_pool_wrapper_->MakeObjectPool();
   }
 
   bool use_far_branches() const {
@@ -690,25 +692,37 @@ class Assembler : public ValueObject {
   void blx(Register rm, Condition cond = AL);
 
   void Branch(const StubEntry& stub_entry,
-              Patchability patchable = kNotPatchable,
+              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
-  void BranchLink(const Code& code, Patchability patchable);
+  void Branch(const Address& address, Condition cond = AL);
+
+  void BranchLink(
+      const StubEntry& stub_entry,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
+  void BranchLink(const Code& code,
+                  ObjectPool::Patchability patchable,
+                  Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(const StubEntry& stub_entry);
-  void BranchLinkPatchable(const Code& code);
+  void BranchLinkPatchable(
+      const StubEntry& stub_entry,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
+  void BranchLinkPatchable(
+      const Code& code,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                 const Object& equivalence);
+  void BranchLinkWithEquivalence(
+      const StubEntry& stub_entry,
+      const Object& equivalence,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -784,7 +798,7 @@ class Assembler : public ValueObject {
                                   Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       Patchability patchable,
+                       ObjectPool::Patchability patchable,
                        Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
@@ -794,14 +808,21 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             bool lr_reserved = false);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -839,7 +860,6 @@ class Assembler : public ValueObject {
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object, Register scratch);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
@@ -996,7 +1016,7 @@ class Assembler : public ValueObject {
 
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
-  void LeaveFrame(RegList regs);
+  void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
@@ -1012,7 +1032,22 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+
+  void LeaveDartFrame();
+
+  // Leaves the frame and returns.
+  //
+  // The difference to "LeaveDartFrame(); Ret();" is that we return using
+  //
+  //   ldmia sp!, {fp, pc}
+  //
+  // instead of
+  //
+  //   ldmia sp!, {fp, lr}
+  //   blx lr
+  //
+  // This means that our return must go to ARM mode (and not thumb).
+  void LeaveDartFrameAndReturn();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -1108,9 +1143,25 @@ class Assembler : public ValueObject {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
+  // Whether we can branch to a target which is [distance] bytes away from the
+  // beginning of the branch instruction.
+  //
+  // Use this function for testing whether [distance] can be encoded using the
+  // 24-bit offets in the branch instructions, which are multiples of 4.
+  static bool CanEncodeBranchDistance(int32_t distance) {
+    ASSERT(Utils::IsAligned(distance, 4));
+    // The distance is off by 8 due to the way the ARM CPUs read PC.
+    distance -= Instr::kPCReadOffset;
+    distance >>= 2;
+    return Utils::IsInt(24, distance);
+  }
+
+  static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
+  static int32_t DecodeBranchOffset(int32_t inst);
+
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
+  ObjectPoolWrapper* object_pool_wrapper_;
   int32_t prologue_offset_;
   bool has_single_entry_point_;
   bool use_far_branches_;
@@ -1242,8 +1293,7 @@ class Assembler : public ValueObject {
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
-  int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
-  static int32_t DecodeBranchOffset(int32_t inst);
+  void BailoutIfInvalidBranchOffset(int32_t offset);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
 
@@ -1255,6 +1305,11 @@ class Assembler : public ValueObject {
     // Filter falls through to the "after-store" code. Target label
     // is barrier update code label.
     kJumpToBarrier,
+
+    // Filter falls through into the conditional barrier update code and does
+    // not jump. Target label is unused. The barrier should run if the NE
+    // condition is set.
+    kNoJump
   };
 
   void StoreIntoObjectFilter(Register object,

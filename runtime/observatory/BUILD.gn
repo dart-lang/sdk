@@ -19,6 +19,9 @@ prebuilt_dart2js_action("build_observatory") {
   outputs = [
     output,
   ]
+  if (is_debug) {
+    outputs += [ "$target_gen_dir/observatory/web/main.dart.js.map" ]
+  }
 
   version_string = exec_script("../../tools/make_version.py",
                                [
@@ -36,8 +39,10 @@ prebuilt_dart2js_action("build_observatory") {
     "-o",
     rebase_path(output),
     "--packages=" + rebase_path(".packages"),
-    "--minify",
   ]
+  if (!is_debug) {
+    args += [ "--minify" ]
+  }
 }
 
 # The rules here down to "deploy_observatory" copy files into place such that
@@ -60,7 +65,6 @@ observatory_ignore_patterns = [
   "*.concat.js",
   "*.dart",
   "*.log",
-  "*.map",
   "*.precompiled.js",
   "*.scriptUrls",
   "*_buildLogs*",
@@ -77,6 +81,10 @@ observatory_ignore_patterns = [
   "webcomponents-lite.js",
   "webcomponents.*",
 ]
+
+if (!is_debug) {
+  observatory_ignore_patterns += [ "*.map" ]
+}
 
 # The ignore_patterns entry in the scopes accepted by copy_trees() is a
 # string of comma delimited patterns.
@@ -157,8 +165,11 @@ copy("copy_main_dart_js") {
   sources = [
     "$target_gen_dir/observatory/web/main.dart.js",
   ]
+  if (is_debug) {
+    sources += [ "$target_gen_dir/observatory/web/main.dart.js.map" ]
+  }
   outputs = [
-    "$target_out_dir/observatory/deployed/web/main.dart.js",
+    "$target_out_dir/observatory/deployed/web/{{source_file_part}}",
   ]
 }
 

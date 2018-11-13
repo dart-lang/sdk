@@ -60,6 +60,7 @@ class _RandomAccessFileOps {
       new _RandomAccessFileOpsImpl(pointer);
 }
 
+@pragma("vm:entry-point")
 class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
     implements _RandomAccessFileOps {
   _RandomAccessFileOpsImpl._();
@@ -414,6 +415,7 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   }
 }
 
+@pragma("vm:entry-point")
 Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
   return new Uint8List.view(source.buffer, offsetInBytes, length);
 }

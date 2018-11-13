@@ -145,9 +145,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
 
-  /// Whether to generate code containing checked-mode assignability checks.
-  bool enableTypeAssertions = false;
-
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
 
@@ -182,14 +179,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to trust primitive types during inference and optimizations.
   bool trustPrimitives = false;
 
-  /// Whether to trust type annotations during inference and optimizations.
-  bool trustTypeAnnotations = false;
-
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
 
+  /// Whether to omit as casts.
+  bool omitAsCasts = false;
+
   /// Whether to omit class type arguments only needed for `toString` on
-  /// `RuntimeType`.
+  /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
 
   /// What should the compiler do with type assertions of assignments.
@@ -209,9 +206,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
-
-  /// Enables strong mode in dart2js.
-  bool strongMode = true;
 
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
@@ -238,6 +232,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   bool experimentalTrackAllocations = false;
 
+  /// Expermental optimization.
+  bool experimentLocalNames = false;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using
@@ -254,11 +251,12 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to start `async` functions synchronously.
   bool startAsyncSynchronously = false;
 
+  /// If specified, a bundle of optimizations to enable (or disable).
+  int optimizationLevel = null;
+
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri libraryRoot, Uri platformBinaries}) {
-    bool isStrong = _hasOption(options, Flags.strongMode) ||
-        !_hasOption(options, Flags.noPreviewDart2);
     return new CompilerOptions()
       ..libraryRoot = libraryRoot
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -285,14 +283,13 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableMinification = _hasOption(options, Flags.minify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
-      ..enableTypeAssertions =
-          _hasOption(options, Flags.enableCheckedMode) && !isStrong
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
           options, "${Flags.experimentalAllocationsPath}=", null)
+      ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
@@ -303,15 +300,14 @@ class CompilerOptions implements DiagnosticOptions {
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
-      ..strongMode = isStrong
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
+      ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
-      ..trustTypeAnnotations = _hasOption(options, Flags.trustTypeAnnotations)
       ..useContentSecurityPolicy =
           _hasOption(options, Flags.useContentSecurityPolicy)
       ..useFrequencyNamer =
@@ -349,12 +345,27 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingProduction) {
       useStartupEmitter = true;
       trustPrimitives = true;
-      if (strongMode) {
+      omitImplicitChecks = true;
+    }
+
+    if (optimizationLevel != null) {
+      if (optimizationLevel == 0) {
+        disableInlining = true;
+        disableTypeInference = true;
+        disableRtiOptimization = true;
+      }
+      if (optimizationLevel >= 2) {
+        enableMinification = true;
+        laxRuntimeTypeToString = true;
+      }
+      if (optimizationLevel >= 3) {
         omitImplicitChecks = true;
-      } else {
-        trustTypeAnnotations = true;
+      }
+      if (optimizationLevel == 4) {
+        trustPrimitives = true;
       }
     }
+
     // TODO(johnniwinther): Should we support this in the future?
     generateCodeWithCompileTimeErrors = false;
     if (platformConfigUri == null) {
@@ -362,31 +373,15 @@ class CompilerOptions implements DiagnosticOptions {
     }
     librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot);
 
-    if (strongMode) {
-      // Strong mode always trusts type annotations (inferred or explicit), so
-      // assignments checks should be trusted.
-      assignmentCheckPolicy = CheckPolicy.trusted;
-      if (omitImplicitChecks) {
-        parameterCheckPolicy = CheckPolicy.trusted;
-        implicitDowncastCheckPolicy = CheckPolicy.trusted;
-      } else {
-        parameterCheckPolicy = CheckPolicy.checked;
-        implicitDowncastCheckPolicy = CheckPolicy.checked;
-      }
+    // Strong mode always trusts type annotations (inferred or explicit), so
+    // assignments checks should be trusted.
+    assignmentCheckPolicy = CheckPolicy.trusted;
+    if (omitImplicitChecks) {
+      parameterCheckPolicy = CheckPolicy.trusted;
+      implicitDowncastCheckPolicy = CheckPolicy.trusted;
     } else {
-      // The implicit-downcast representation is a strong-mode only feature.
-      implicitDowncastCheckPolicy = CheckPolicy.ignored;
-
-      if (enableTypeAssertions) {
-        assignmentCheckPolicy = CheckPolicy.checked;
-        parameterCheckPolicy = CheckPolicy.checked;
-      } else if (trustTypeAnnotations) {
-        assignmentCheckPolicy = CheckPolicy.trusted;
-        parameterCheckPolicy = CheckPolicy.trusted;
-      } else {
-        assignmentCheckPolicy = CheckPolicy.ignored;
-        parameterCheckPolicy = CheckPolicy.ignored;
-      }
+      parameterCheckPolicy = CheckPolicy.checked;
+      implicitDowncastCheckPolicy = CheckPolicy.checked;
     }
   }
 

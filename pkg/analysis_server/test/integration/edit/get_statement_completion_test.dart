@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -14,12 +12,12 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetStatementCompletionTest);
-    defineReflectiveTests(GetStatementCompletionTest_UseCFE);
   });
 }
 
 @reflectiveTest
 class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_statement_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -52,14 +50,4 @@ void foo() { }''');
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-}
-
-@reflectiveTest
-class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  Future test_statement_completion() => super.test_statement_completion();
 }

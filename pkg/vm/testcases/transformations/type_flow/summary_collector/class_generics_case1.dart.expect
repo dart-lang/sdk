@@ -1,0 +1,44 @@
+------------ #lib::Element:: ------------
+%this = _Parameter #0 [_T (#lib::Element)+]
+t1 = _Call direct [dart.core::Object::] (%this)
+RESULT: _T {}?
+------------ #lib::MockHashMap:: ------------
+%K = _Parameter #0 [null]
+%V = _Parameter #1 [null]
+t2 = _CreateConcreteType (#lib::_NotRealHashMap @ (%K, %V))
+t3 = _Call direct [#lib::_NotRealHashMap::] (t2)
+RESULT: t2
+------------ #lib::_NotRealHashMap:: ------------
+%this = _Parameter #0 [_T (#lib::_NotRealHashMap<dynamic, dynamic>)+]
+t1 = _Call direct [dart.core::Object::] (%this)
+RESULT: _T {}?
+------------ #lib::_NotRealHashMap::setEntry ------------
+%this = _Parameter #0 [_T (#lib::_NotRealHashMap<dynamic, dynamic>)+]
+%key = _Parameter #1 [_T (dart.core::Object)+?]
+%value = _Parameter #2 [_T (dart.core::Object)+?]
+t3 = _Extract (%this[#lib::_NotRealHashMap/0])
+t4 = _TypeCheck (%key against t3) (for parameter key)
+t5 = _Extract (%this[#lib::_NotRealHashMap/1])
+t6 = _TypeCheck (%value against t5) (for parameter value)
+RESULT: _T {}?
+------------ #lib::InheritedElement:: ------------
+%this = _Parameter #0 [_T (#lib::InheritedElement)+]
+t1 = _Call direct [#lib::Element::] (%this)
+RESULT: _T {}?
+------------ #lib::InheritedElement::setDependencies ------------
+%this = _Parameter #0 [_T (#lib::InheritedElement)+]
+%dependent = _Parameter #1 [_T (#lib::Element)+?]
+%value = _Parameter #2 [_T (dart.core::Object)+?]
+t3* = _Call virtual get [#lib::InheritedElement::_dependents] (%this)
+t4 = _Call [#lib::MockHashMap::setEntry] (t3, %dependent, %value)
+RESULT: _T {}?
+------------ #lib::InheritedElement::_dependents ------------
+%this = _Parameter #0 [_T (#lib::InheritedElement)+]
+t1* = _Call direct [#lib::MockHashMap::] (#lib::Element, dart.core::Object)
+RESULT: t1
+------------ #lib::main ------------
+t0 = _Call direct [#lib::InheritedElement::] (_T (#lib::InheritedElement))
+t1 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::InheritedElement), _T (dart.core::_Smi))
+t2 = _Call direct [#lib::Element::] (_T (#lib::Element))
+t3 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::Element), _T {}?)
+RESULT: _T {}?

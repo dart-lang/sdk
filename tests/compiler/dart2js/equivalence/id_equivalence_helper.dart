@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
 /// `true` if ANSI colors are supported by stdout.
@@ -84,6 +84,9 @@ abstract class DataComputer {
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
+  /// Called before testing to setup flags needed for data collection.
+  void onCompilation(Compiler compiler) {}
+
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
@@ -149,6 +152,7 @@ Future<CompiledData> computeData(Uri entryPoint,
     Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
   }
   Compiler compiler = result.compiler;
+  dataComputer.onCompilation(compiler);
   dynamic closedWorld = testFrontend
       ? compiler.resolutionWorldBuilder.closedWorldForTesting
       : compiler.backendClosedWorldForTesting;
@@ -490,7 +494,6 @@ typedef void Callback();
 /// file and any supporting libraries.
 Future checkTests(Directory dataDir, DataComputer dataComputer,
     {bool testStrongMode: true,
-    List<String> skipForKernel: const <String>[],
     List<String> skipForStrong: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
@@ -527,15 +530,13 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
     if (shouldContinue) continued = true;
     testCount++;
     List<String> testOptions = options.toList();
-    bool strongModeOnlyTest = false;
     bool trustTypeAnnotations = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
     }
     if (name.contains('_strong')) {
-      strongModeOnlyTest = true;
       if (!testStrongMode) {
-        testOptions.add(Flags.strongMode);
+        // TODO(johnniwinther): Remove irrelevant tests.
       }
     }
     if (name.endsWith('_checked.dart')) {
@@ -562,7 +563,6 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
           new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd)
     };
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-      kernelMarker: new MemberAnnotations<IdValue>(),
       strongMarker: new MemberAnnotations<IdValue>(),
       omitMarker: new MemberAnnotations<IdValue>(),
     };
@@ -593,36 +593,12 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForKernel.contains(name) ||
-        (testStrongMode && strongModeOnlyTest)) {
-      print('--skipped for kernel--------------------------------------------');
-    } else {
-      print('--from kernel---------------------------------------------------');
-      List<String> options = [Flags.noPreviewDart2]..addAll(testOptions);
-      if (trustTypeAnnotations) {
-        options.add(Flags.trustTypeAnnotations);
-      }
-      MemberAnnotations<IdValue> annotations = expectedMaps[kernelMarker];
-      CompiledData compiledData2 = await computeData(
-          entryPoint, memorySourceFiles, dataComputer,
-          options: options,
-          verbose: verbose,
-          testFrontend: testFrontend,
-          forUserLibrariesOnly: forUserLibrariesOnly,
-          globalIds: annotations.globalData.keys);
-      if (await checkCode(
-          kernelName, entity.uri, code, annotations, compiledData2,
-          filterActualData: filterActualData,
-          fatalErrors: !testAfterFailures)) {
-        hasFailures = true;
-      }
-    }
     if (testStrongMode) {
       if (skipForStrong.contains(name)) {
         print('--skipped for kernel (strong mode)----------------------------');
       } else {
         print('--from kernel (strong mode)-----------------------------------');
-        List<String> options = [Flags.strongMode]..addAll(testOptions);
+        List<String> options = new List<String>.from(testOptions);
         if (trustTypeAnnotations && !testOmit) {
           options.add(Flags.omitImplicitChecks);
         }
@@ -648,7 +624,6 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
       } else {
         print('--from kernel (strong mode, omit-implicit-checks)-------------');
         List<String> options = [
-          Flags.strongMode,
           Flags.omitImplicitChecks,
           Flags.laxRuntimeTypeToString
         ]..addAll(testOptions);
@@ -828,7 +803,6 @@ Spannable computeSpannable(
   throw new UnsupportedError('Unsupported id $id.');
 }
 
-const String kernelMarker = 'kernel.';
 const String strongMarker = 'strong.';
 const String omitMarker = 'omit.';
 
@@ -847,7 +821,7 @@ const String omitMarker = 'omit.';
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [kernelMarker, strongMarker, omitMarker];
+  List<String> mapKeys = [strongMarker, omitMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {

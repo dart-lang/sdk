@@ -849,11 +849,17 @@ abstract class Uri {
     String scheme;
 
     // Derive some positions that weren't set to normalize the indices.
-    // If pathStart isn't set (it's before scheme end or host start), then
-    // the path is empty.
     if (fragmentStart < queryStart) queryStart = fragmentStart;
-    if (pathStart < hostStart || pathStart <= schemeEnd) {
+    // If pathStart isn't set (it's before scheme end or host start), then
+    // the path is empty, or there is no authority part and the path
+    // starts with a non-simple character.
+    if (pathStart < hostStart) {
+      // There is an authority, but no path. The path would start with `/`
+      // if it was there.
       pathStart = queryStart;
+    } else if (pathStart <= schemeEnd) {
+      // There is a scheme, but no authority.
+      pathStart = schemeEnd + 1;
     }
     // If there is an authority with no port, set the port position
     // to be at the end of the authority (equal to pathStart).
@@ -2110,7 +2116,8 @@ class _Uri implements Uri {
     }
     var result;
     if (path != null) {
-      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable);
+      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable,
+          escapeDelimiters: true);
     } else {
       result = pathSegments
           .map((s) => _uriEncode(_pathCharTable, s, utf8, false))
@@ -2143,7 +2150,8 @@ class _Uri implements Uri {
       if (queryParameters != null) {
         throw new ArgumentError('Both query and queryParameters specified');
       }
-      return _normalizeOrSubstring(query, start, end, _queryCharTable);
+      return _normalizeOrSubstring(query, start, end, _queryCharTable,
+          escapeDelimiters: true);
     }
     if (queryParameters == null) return null;
 
@@ -2175,7 +2183,8 @@ class _Uri implements Uri {
 
   static String _makeFragment(String fragment, int start, int end) {
     if (fragment == null) return null;
-    return _normalizeOrSubstring(fragment, start, end, _queryCharTable);
+    return _normalizeOrSubstring(fragment, start, end, _queryCharTable,
+        escapeDelimiters: true);
   }
 
   /**
@@ -2261,8 +2270,10 @@ class _Uri implements Uri {
    * this methods returns the substring if [component] from [start] to [end].
    */
   static String _normalizeOrSubstring(
-      String component, int start, int end, List<int> charTable) {
-    return _normalize(component, start, end, charTable) ??
+      String component, int start, int end, List<int> charTable,
+      {bool escapeDelimiters = false}) {
+    return _normalize(component, start, end, charTable,
+            escapeDelimiters: escapeDelimiters) ??
         component.substring(start, end);
   }
 

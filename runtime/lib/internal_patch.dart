@@ -68,6 +68,8 @@ final bool is64Bit = _inquireIs64Bit();
 
 bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
 
+@pragma("vm:entry-point")
+@pragma("vm:exact-result-type", bool)
 bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
   return cid >= lowerLimit && cid <= upperLimit;
 }
@@ -97,8 +99,15 @@ class Lists {
 // function type arguments (may be null). The result is null if both input
 // vectors are null or is a newly allocated and canonicalized vector of length
 // 'totalLen'.
+@pragma("vm:entry-point")
 _prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
     totalLen) native "Internal_prependTypeArguments";
+
+// Check that a set of type arguments satisfy the type parameter bounds on a
+// closure.
+@pragma("vm:entry-point")
+_boundsCheckForPartialInstantiation(closure, typeArgs)
+    native "Internal_boundsCheckForPartialInstantiation";
 
 // Called by IRRegExpMacroAssembler::GrowStack.
 Int32List _growRegExpStack(Int32List stack) {
@@ -108,3 +117,10 @@ Int32List _growRegExpStack(Int32List stack) {
   }
   return newStack;
 }
+
+// This function can be used to skip implicit or explicit checked down casts in
+// the parts of the core library implementation where we know by construction the
+// type of a value.
+//
+// Important: this is unsafe and must be used with care.
+T unsafeCast<T>(Object v) native "Internal_unsafeCast";

@@ -28,14 +28,11 @@ main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
-    defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
-    defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
-    defineReflectiveTests(OptionsTest_UseCFE);
   }, name: 'Driver');
 }
 
@@ -79,8 +76,6 @@ class BaseTest {
 
   AnalysisOptions get analysisOptions => driver.analysisDriver.analysisOptions;
 
-  bool get useCFE => false;
-
   bool get usePreviewDart2 => false;
 
   /// Normalize text with bullets.
@@ -104,6 +99,8 @@ class BaseTest {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
   }) async {
+    options = _p(options);
+
     driver = new Driver(isTesting: true);
     var cmd = <String>[];
     if (options != null) {
@@ -115,9 +112,6 @@ class BaseTest {
     cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
     if (usePreviewDart2) {
       cmd.insert(0, '--preview-dart-2');
-    }
-    if (useCFE) {
-      cmd.insert(0, '--use-cfe');
     }
 
     await driver.start(cmd);
@@ -149,6 +143,23 @@ class BaseTest {
     String uriPrefix = fileSpec.substring(0, uriPrefixLength);
     String relativePath = fileSpec.substring(uriPrefixLength);
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
+  }
+
+  /**
+   * Convert the given posix [filePath] to conform to this provider's path context.
+   *
+   * This is a utility method for testing; paths passed in to other methods in
+   * this class are never converted automatically.
+   */
+  String _p(String filePath) {
+    if (filePath == null) {
+      return null;
+    }
+    if (path.style == path.windows.style) {
+      filePath =
+          filePath.replaceAll(path.posix.separator, path.windows.separator);
+    }
+    return filePath;
   }
 }
 
@@ -507,7 +518,10 @@ var b = new B();
       {String uri,
       List<String> additionalArgs: const [],
       String dartSdkSummaryPath}) async {
+    path = _p(path);
+
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+    var options = _p('data/options_tests_project/' + optionsFileName);
 
     List<String> args = <String>[];
     if (dartSdkSummaryPath != null) {
@@ -525,8 +539,7 @@ var b = new B();
     uri ??= 'file:///test_file.dart';
     String source = '$uri|$path';
 
-    await drive(source,
-        args: args, options: 'data/options_tests_project/$optionsFileName');
+    await drive(source, args: args, options: options);
   }
 
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
@@ -535,8 +548,14 @@ var b = new B();
     Set<String> triedDirectories = new Set<String>();
     bool isSuitable(String sdkDir) {
       triedDirectories.add(sdkDir);
-      return new File(path.join(sdkDir, 'lib', '_internal', 'spec.sum'))
+      return new File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
           .existsSync();
+    }
+
+    String makeAbsoluteAndNormalized(String result) {
+      result = path.absolute(result);
+      result = path.normalize(result);
+      return result;
     }
 
     // Usually the sdk directory is the parent of the parent of the "dart"
@@ -544,12 +563,12 @@ var b = new B();
     Directory executableParent = new File(Platform.executable).parent;
     Directory executableGrandparent = executableParent.parent;
     if (isSuitable(executableGrandparent.path)) {
-      return executableGrandparent.path;
+      return makeAbsoluteAndNormalized(executableGrandparent.path);
     }
     // During build bot execution, the sdk directory is simply the parent of the
     // "dart" executable.
     if (isSuitable(executableParent.path)) {
-      return executableParent.path;
+      return makeAbsoluteAndNormalized(executableParent.path);
     }
     // If neither of those are suitable, assume we are running locally within the
     // SDK project (e.g. within an IDE).  Find the build output directory and
@@ -563,7 +582,7 @@ var b = new B();
           if (subdir is Directory) {
             String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
             if (isSuitable(candidateSdkDir)) {
-              return candidateSdkDir;
+              return makeAbsoluteAndNormalized(candidateSdkDir);
             }
           }
         }
@@ -625,11 +644,6 @@ class ExitCodesTest extends BaseTest {
     expect(exitCode, 1);
   }
 
-  test_fatalWarnings() async {
-    await drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
-    expect(exitCode, 2);
-  }
-
   test_missingDartFile() async {
     await drive('data/NO_DART_FILE_HERE.dart');
     expect(exitCode, 3);
@@ -642,11 +656,6 @@ class ExitCodesTest extends BaseTest {
 
   test_notFatalHints() async {
     await drive('data/file_with_hint.dart');
-    expect(exitCode, 0);
-  }
-
-  test_notFatalWarnings() async {
-    await drive('data/file_with_warning.dart');
     expect(exitCode, 0);
   }
 
@@ -686,12 +695,6 @@ class ExitCodesTest extends BaseTest {
 class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
   @override
   bool get usePreviewDart2 => true;
-}
-
-@reflectiveTest
-class ExitCodesTest_UseCFE extends ExitCodesTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -797,12 +800,6 @@ class LinterTest_PreviewDart2 extends LinterTest {
 }
 
 @reflectiveTest
-class LinterTest_UseCFE extends LinterTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class NonDartFilesTest extends BaseTest {
   test_analysisOptionsYaml() async {
     await withTempDirAsync((tempDir) async {
@@ -904,22 +901,8 @@ class OptionsTest extends BaseTest {
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
-        contains("error - This function declares a return type of 'int'"));
+        contains("error - This function has a return type of 'int'"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
-  }
-
-  test_basic_language() async {
-    await _driveBasic();
-    expect(analysisOptions.enableSuperMixins, isTrue);
-  }
-
-  test_basic_strongMode() async {
-    await _driveBasic();
-    expect(analysisOptions.strongMode, isTrue);
-    // https://github.com/dart-lang/sdk/issues/26129
-    AnalysisContext sdkContext =
-        driver.analysisDriver.sourceFactory.dartSdk.context;
-    expect(sdkContext.analysisOptions.strongMode, isTrue);
   }
 
   test_includeDirective() async {
@@ -941,31 +924,9 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
 
-  test_previewDart2() async {
-    await drive('data/options_tests_project/test_file.dart',
-        args: ['--preview-dart-2']);
-    expect(analysisOptions.useFastaParser, isFalse);
-  }
-
-  test_strongSdk() async {
-    String testDir = path.join(testDirectory, 'data', 'strong_sdk');
-    await drive(path.join(testDir, 'main.dart'));
-    expect(analysisOptions.strongMode, isTrue);
-    expect(outSink.toString(), contains('No issues found'));
-  }
-
   test_todo() async {
     await drive('data/file_with_todo.dart');
     expect(outSink.toString().contains('[info]'), isFalse);
-  }
-
-  @failingTest
-  test_useCFE() async {
-    // Disabled until integration with the CFE has been restarted.
-    fail('Times out when run on a VM with --preview-dart-2 enabled');
-//    await drive('data/options_tests_project/test_file.dart',
-//        args: ['--use-cfe']);
-//    expect(driver.context.analysisOptions.useFastaParser, isTrue);
   }
 
   test_withFlags_overrideFatalWarning() async {
@@ -1007,54 +968,6 @@ class OptionsTest extends BaseTest {
 class OptionsTest_PreviewDart2 extends OptionsTest {
   @override
   bool get usePreviewDart2 => true;
-}
-
-@reflectiveTest
-class OptionsTest_UseCFE extends OptionsTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_analysisOptions_excludes() =>
-      callFailingTest(super.test_analysisOptions_excludes);
-
-  @override
-  @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
-      callFailingTest(super
-          .test_analysisOptions_excludesRelativeToAnalysisOptions_explicit);
-
-  @override
-  @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
-      callFailingTest(super
-          .test_analysisOptions_excludesRelativeToAnalysisOptions_inferred);
-
-  @override
-  @failingTest
-  test_basic_filters() => callFailingTest(super.test_basic_filters);
-
-  @override
-  @failingTest
-  test_basic_language() => callFailingTest(super.test_basic_language);
-
-  @override
-  @failingTest
-  test_basic_strongMode() => callFailingTest(super.test_basic_strongMode);
-
-  @override
-  @failingTest
-  test_includeDirective() => callFailingTest(super.test_includeDirective);
-
-  @override
-  @failingTest
-  test_previewDart2() => callFailingTest(super.test_previewDart2);
-
-  @override
-  @failingTest
-  test_withFlags_overrideFatalWarning() =>
-      callFailingTest(super.test_withFlags_overrideFatalWarning);
 }
 
 class TestSource implements Source {

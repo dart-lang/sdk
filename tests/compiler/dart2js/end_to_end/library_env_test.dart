@@ -8,7 +8,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../memory_source_file_helper.dart';
+import '../helpers/memory_source_file_helper.dart';
 
 import "package:async_helper/async_helper.dart";
 

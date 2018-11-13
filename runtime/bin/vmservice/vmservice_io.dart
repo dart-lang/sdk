@@ -16,14 +16,21 @@ part 'loader.dart';
 part 'server.dart';
 
 // The TCP ip/port that the HTTP server listens on.
+@pragma("vm:entry-point")
 int _port;
+@pragma("vm:entry-point")
 String _ip;
 // Should the HTTP server auto start?
+@pragma("vm:entry-point")
 bool _autoStart;
 // Should the HTTP server run in devmode?
+@pragma("vm:entry-point")
 bool _originCheckDisabled;
+@pragma("vm:entry-point")
 bool _isWindows = false;
+@pragma("vm:entry-point")
 bool _isFuchsia = false;
+@pragma("vm:entry-point")
 var _signalWatch;
 var _signalSubscription;
 
@@ -87,6 +94,9 @@ class PendingWrite {
     var file = new File.fromUri(uri);
     var parent_directory = file.parent;
     await parent_directory.create(recursive: true);
+    if (await file.exists()) {
+      await file.delete();
+    }
     var result = await file.writeAsBytes(bytes);
     completer.complete(null);
     WriteLimiter._writeCompleted();
@@ -136,6 +146,9 @@ Future writeStreamFileCallback(Uri path, Stream<List<int>> bytes) async {
   var file = new File.fromUri(path);
   var parent_directory = file.parent;
   await parent_directory.create(recursive: true);
+  if (await file.exists()) {
+    await file.delete();
+  }
   IOSink sink = await file.openWrite();
   await sink.addStream(bytes);
   await sink.close();
@@ -220,7 +233,7 @@ _registerSignalHandler() {
   _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
 }
 
-@pragma("vm.entry_point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;

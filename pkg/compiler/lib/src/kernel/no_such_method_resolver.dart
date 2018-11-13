@@ -5,7 +5,7 @@
 part of dart2js.kernel.element_map;
 
 class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
-  final KernelToElementMapForImpactImpl elementMap;
+  final KernelToElementMapImpl elementMap;
 
   KernelNoSuchMethodResolver(this.elementMap);
 

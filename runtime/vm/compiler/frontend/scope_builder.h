@@ -228,8 +228,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ScopeBuildingResult);
 };
 
-bool IsFieldInitializer(const Function& function, Zone* zone);
-
 // Returns true if the given method can skip type checks for all arguments
 // that are not covariant or generic covariant in its implementation.
 bool MethodCanSkipTypeChecksForNonCovariantArguments(

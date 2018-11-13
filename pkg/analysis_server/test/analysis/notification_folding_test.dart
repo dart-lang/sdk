@@ -15,12 +15,12 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationFoldingTest);
+    defineReflectiveTests(AnalysisNotificationFoldingTest);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationFoldingTest extends AbstractAnalysisTest {
+class AnalysisNotificationFoldingTest extends AbstractAnalysisTest {
   static const sampleCode = '''
 import 'dart:async';
 import 'dart:core';

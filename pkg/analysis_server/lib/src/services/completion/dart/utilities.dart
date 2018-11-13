@@ -102,28 +102,12 @@ protocol.Element createLocalElement(
 }
 
 /**
- * Create a new suggestion for the given [fieldDecl]. Return the new suggestion
- * or `null` if it could not be created.
- */
-CompletionSuggestion createLocalFieldSuggestion(
-    Source source, FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-  bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-  TypeAnnotation type = fieldDecl.fields.type;
-  return createLocalSuggestion(
-      varDecl.name, deprecated, DART_RELEVANCE_LOCAL_FIELD, type,
-      classDecl: fieldDecl.parent,
-      element: createLocalElement(
-          source, protocol.ElementKind.FIELD, varDecl.name,
-          returnType: type, isDeprecated: deprecated));
-}
-
-/**
  * Create a new suggestion based upon the given information. Return the new
  * suggestion or `null` if it could not be created.
  */
 CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
-    {ClassDeclaration classDecl,
+    {ClassOrMixinDeclaration classDecl,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
     protocol.Element element}) {
   if (id == null) {
@@ -223,7 +207,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
     }
     type = element.returnType;
   } else if (element is VariableElement) {
-    type = identifier.bestType;
+    type = identifier.staticType;
   } else {
     return null;
   }

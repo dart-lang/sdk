@@ -9,14 +9,17 @@
 import "package:expect/expect.dart";
 
 class A {
+  @pragma("vm:entry-point") // Prevent obfuscation
   void foo() {
     Expect.fail('A.foo should not be reachable');
   }
 
+  @pragma("vm:entry-point") // Prevent obfuscation
   dynamic get bar {
     Expect.fail('A.bar should not be reachable');
   }
 
+  @pragma("vm:entry-point") // Prevent obfuscation
   set bazz(int x) {
     Expect.fail('A.bazz should not be reachable');
   }

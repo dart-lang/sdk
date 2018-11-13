@@ -98,6 +98,7 @@ import "dart:_internal"
     show
         CastStream,
         CastStreamTransformer,
+        EmptyIterator,
         printToZone,
         printToConsole,
         IterableElementError;

@@ -91,10 +91,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_type_checks = false;
     api_flags.enable_asserts = false;
     api_flags.enable_error_on_bad_type = false;
-    api_flags.enable_error_on_bad_override = false;
-    api_flags.reify_generic_functions = false;
-    api_flags.strong = false;
-    api_flags.sync_async = false;
+    api_flags.unsafe_trust_strong_mode_types = false;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;
 #endif
@@ -116,15 +113,15 @@ class RunKernelTask : public ThreadPool::Task {
       return;
     }
 
-    bool init_success = false;
+    bool got_unwind;
     {
       ASSERT(Isolate::Current() == NULL);
       StartIsolateScope start_scope(isolate);
-      init_success = RunMain(isolate);
+      got_unwind = RunMain(isolate);
     }
     KernelIsolate::FinishedInitializing();
 
-    if (!init_success) {
+    if (got_unwind) {
       ShutdownIsolate(reinterpret_cast<uword>(isolate));
       return;
     }
@@ -175,9 +172,6 @@ class RunKernelTask : public ThreadPool::Task {
     if (FLAG_trace_kernel) {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Shutdown.\n");
     }
-    // This should be the last line so the check
-    // IsKernelIsolate works during the shutdown process.
-    KernelIsolate::SetKernelIsolate(NULL);
   }
 
   bool RunMain(Isolate* I) {
@@ -211,20 +205,27 @@ class RunKernelTask : public ThreadPool::Task {
     ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Kernel isolate did not initialize properly.
-      const Error& error = Error::Cast(result);
-      OS::PrintErr(DART_KERNEL_ISOLATE_NAME
-                   ": Calling main resulted in an error: %s",
-                   error.ToErrorCString());
+      if (FLAG_trace_kernel) {
+        const Error& error = Error::Cast(result);
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME
+                     ": Calling main resulted in an error: %s",
+                     error.ToErrorCString());
+      }
+      if (result.IsUnwindError()) {
+        return true;
+      }
       return false;
     }
     ASSERT(result.IsReceivePort());
     const ReceivePort& rp = ReceivePort::Cast(result);
     KernelIsolate::SetLoadPort(rp.Id());
-    return true;
+    return false;
   }
 };
 
 void KernelIsolate::Run() {
+  MonitorLocker ml(monitor_);
+  initializing_ = true;
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
@@ -232,12 +233,10 @@ void KernelIsolate::Run() {
 }
 
 void KernelIsolate::Shutdown() {
-  Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
-  {
-    MonitorLocker ml(monitor_);
-    while (isolate_ != NULL) {
-      ml.Wait();
-    }
+  MonitorLocker ml(monitor_);
+  while (isolate_ != NULL) {
+    Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
+    ml.Wait();
   }
 }
 
@@ -449,10 +448,6 @@ class KernelCompilationRequest : public ValueObject {
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
 
-    Dart_CObject dart_sync_async;
-    dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = isolate->sync_async();
-
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &isolate_id,
@@ -462,8 +457,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &library_uri_object,
                                    &class_object,
                                    &is_static_object,
-                                   &suppress_warnings,
-                                   &dart_sync_async};
+                                   &suppress_warnings};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.
@@ -569,9 +563,16 @@ class KernelCompilationRequest : public ValueObject {
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
 
-    Dart_CObject dart_sync_async;
-    dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = isolate->sync_async();
+    Dart_CObject bytecode;
+    bytecode.type = Dart_CObject_kBool;
+    // Interpreter is supported only on x64 and arm64.
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+    bytecode.value.as_bool =
+        FLAG_enable_interpreter || FLAG_use_bytecode_compiler;
+#else
+    bytecode.value.as_bool =
+        FLAG_use_bytecode_compiler && !FLAG_enable_interpreter;
+#endif
 
     Dart_CObject package_config_uri;
     if (package_config != NULL) {
@@ -617,7 +618,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,
-                                   &dart_sync_async,
+                                   &bytecode,
                                    &package_config_uri,
                                    &multiroot_filepaths_object,
                                    &multiroot_scheme_object};

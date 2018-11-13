@@ -76,10 +76,8 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver =
         new PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[
-        provider.getResource(provider.convertPath('/pkgA/lib/'))
-      ],
-      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib/'))]
+      'pkgA': <Folder>[provider.getResource(provider.convertPath('/pkgA/lib'))],
+      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib'))]
     });
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
@@ -134,10 +132,8 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver =
         new PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[
-        provider.getResource(provider.convertPath('/pkgA/lib/'))
-      ],
-      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib/'))]
+      'pkgA': <Folder>[provider.getResource(provider.convertPath('/pkgA/lib'))],
+      'pkgB': <Folder>[provider.getResource(provider.convertPath('/pkgB/lib'))]
     });
     {
       Source source =

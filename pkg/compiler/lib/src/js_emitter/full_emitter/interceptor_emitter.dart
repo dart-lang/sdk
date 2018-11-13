@@ -94,28 +94,6 @@ class InterceptorEmitter extends CodeEmitterHelper {
   }
 
   /**
-   * If [JSInvocationMirror._invokeOn] has been compiled, emit all the
-   * possible selector names that are intercepted into the
-   * [interceptedNames] embedded global. The implementation of
-   * [_invokeOn] will use it to determine whether it should call the
-   * method with an extra parameter.
-   */
-  jsAst.ObjectInitializer generateInterceptedNamesSet() {
-    // We could also generate the list of intercepted names at
-    // runtime, by running through the subclasses of Interceptor
-    // (which can easily be identified).
-    if (!closedWorld.backendUsage.isInvokeOnUsed) return null;
-
-    Iterable<jsAst.Name> invocationNames = interceptorInvocationNames.toList()
-      ..sort();
-    ;
-    List<jsAst.Property> properties = invocationNames.map((jsAst.Name name) {
-      return new jsAst.Property(js.quoteName(name), js.number(1));
-    }).toList();
-    return new jsAst.ObjectInitializer(properties, isOneLiner: true);
-  }
-
-  /**
    * Emit initializer for `typeToInterceptorMap` data structure used by
    * `findInterceptorForType`.  See declaration of `typeToInterceptor` in
    * `interceptors.dart`.

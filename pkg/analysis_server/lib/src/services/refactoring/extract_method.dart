@@ -16,7 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -75,15 +75,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   final SearchEngine searchEngine;
   final AstProvider astProvider;
-  final CompilationUnit unit;
+  final ResolveResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
-  AnalysisSession session;
-  CompilationUnitElement unitElement;
-  LibraryElement libraryElement;
   SourceRange selectionRange;
   CorrectionUtils utils;
-  Set<Source> librariesToImport = new Set<Source>();
+  final Set<Source> librariesToImport = new Set<Source>();
 
   String returnType = '';
   String variableType;
@@ -98,18 +95,19 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /**
    * The map of local names to their visibility ranges.
    */
-  Map<String, List<SourceRange>> _localNames = <String, List<SourceRange>>{};
+  final Map<String, List<SourceRange>> _localNames =
+      <String, List<SourceRange>>{};
 
   /**
    * The set of names that are referenced without any qualifier.
    */
-  Set<String> _unqualifiedNames = new Set<String>();
+  final Set<String> _unqualifiedNames = new Set<String>();
 
-  Set<String> _excludedNames = new Set<String>();
+  final Set<String> _excludedNames = new Set<String>();
   List<RefactoringMethodParameter> _parameters = <RefactoringMethodParameter>[];
-  Map<String, RefactoringMethodParameter> _parametersMap =
+  final Map<String, RefactoringMethodParameter> _parametersMap =
       <String, RefactoringMethodParameter>{};
-  Map<String, List<SourceRange>> _parameterReferencesMap =
+  final Map<String, List<SourceRange>> _parameterReferencesMap =
       <String, List<SourceRange>>{};
   bool _hasAwait = false;
   DartType _returnType;
@@ -121,13 +119,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(this.searchEngine, this.astProvider, this.unit,
-      this.selectionOffset, this.selectionLength) {
-    unitElement = unit.element;
-    libraryElement = unitElement.library;
-    session = astProvider.driver.currentSession;
+  ExtractMethodRefactoringImpl(this.searchEngine, this.astProvider,
+      this.resolveResult, this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils = new CorrectionUtils(unit);
+    utils =
+        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
   }
 
   @override
@@ -140,7 +136,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String get refactoringName {
-    AstNode node = new NodeLocator(selectionOffset).searchWithin(unit);
+    AstNode node =
+        new NodeLocator(selectionOffset).searchWithin(resolveResult.unit);
     if (node != null &&
         node.getAncestor((node) => node is ClassDeclaration) != null) {
       return 'Extract Method';
@@ -311,7 +308,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
       // add replace edit
       SourceEdit edit = newSourceEdit_range(range, invocationSource);
-      doSourceChange_addElementEdit(change, unitElement, edit);
+      doSourceChange_addElementEdit(
+          change, resolveResult.unit.declaredElement, edit);
     }
     // add method declaration
     {
@@ -391,12 +389,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         int offset = _parentMember.end;
         SourceEdit edit =
             new SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
-        doSourceChange_addElementEdit(change, unitElement, edit);
+        doSourceChange_addElementEdit(
+            change, resolveResult.unit.declaredElement, edit);
       }
     }
     // done
-    addLibraryImports(session.resourceProvider.pathContext, change,
-        libraryElement, librariesToImport);
+    addLibraryImports(resolveResult.session.resourceProvider.pathContext,
+        change, resolveResult.libraryElement, librariesToImport);
     return change;
   }
 
@@ -404,9 +403,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   bool isAvailable() {
     return !_checkSelection().hasFatalError;
   }
-
-  @override
-  bool requiresPreview() => false;
 
   /**
    * Adds a new reference to the parameter with the given name.
@@ -457,7 +453,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // method of class
     if (parent is ClassDeclaration) {
-      ClassElement classElement = parent.element;
+      ClassElement classElement = parent.declaredElement;
       return validateCreateMethod(
           searchEngine, astProvider, classElement, name);
     }
@@ -482,8 +478,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
 
     _ExtractMethodAnalyzer selectionAnalyzer =
-        new _ExtractMethodAnalyzer(unit, selectionRange);
-    unit.accept(selectionAnalyzer);
+        new _ExtractMethodAnalyzer(resolveResult.unit, selectionRange);
+    resolveResult.unit.accept(selectionAnalyzer);
     // May be a fatal error.
     {
       if (selectionAnalyzer.status.hasFatalError) {
@@ -584,7 +580,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return null;
     }
     int offset = selectionRange.offset;
-    AstNode node = new NodeLocator2(offset, offset).searchWithin(unit);
+    AstNode node =
+        new NodeLocator2(offset, offset).searchWithin(resolveResult.unit);
 
     // Check for the parameter list of a FunctionExpression.
     {
@@ -622,7 +619,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (argument.parent is NamedExpression) {
       argument = argument.parent as NamedExpression;
     }
-    ParameterElement parameter = argument.bestParameterElement;
+    ParameterElement parameter = argument.staticParameterElement;
     if (parameter != null) {
       DartType parameterType = parameter.type;
       if (parameterType is FunctionType) {
@@ -679,7 +676,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     String originalSource = utils.getText(range.offset, range.length);
     _SourcePattern pattern = new _SourcePattern();
     List<SourceEdit> replaceEdits = <SourceEdit>[];
-    unit.accept(new _GetSourcePatternVisitor(range, pattern, replaceEdits));
+    resolveResult.unit
+        .accept(new _GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
     String source = SourceEdit.applySequence(originalSource, replaceEdits);
     pattern.normalizedSource = _getNormalizedSource(source);
@@ -730,10 +728,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _parameterReferencesMap.clear();
     RefactoringStatus result = new RefactoringStatus();
     List<VariableElement> assignedUsedVariables = [];
-    unit.accept(new _InitializeParametersVisitor(this, assignedUsedVariables));
+    resolveResult.unit
+        .accept(new _InitializeParametersVisitor(this, assignedUsedVariables));
     // single expression
     if (_selectionExpression != null) {
-      _returnType = _selectionExpression.bestType;
+      _returnType = _selectionExpression.staticType;
     }
     // verify that none or all execution flows end with a "return"
     if (_selectionStatements != null) {
@@ -744,7 +743,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      TypeSystem typeSystem = await session.typeSystem;
+      TypeSystem typeSystem = await resolveResult.session.typeSystem;
       _ReturnTypeComputer returnTypeComputer =
           new _ReturnTypeComputer(typeSystem);
       _selectionStatements.forEach((statement) {
@@ -782,10 +781,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return result;
   }
 
-  Future<Null> _initializeReturnType() async {
+  Future<void> _initializeReturnType() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    TypeProvider typeProvider = await session.typeProvider;
+    TypeProvider typeProvider = await resolveResult.session.typeProvider;
     InterfaceType futureType = typeProvider.futureType;
     if (_selectionFunctionExpression != null) {
       variableType = '';
@@ -827,7 +826,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * Checks if it is OK to extract the node with the given [SourceRange].
    */
   bool _isExtractable(SourceRange range) {
-    _ExtractMethodAnalyzer analyzer = new _ExtractMethodAnalyzer(unit, range);
+    _ExtractMethodAnalyzer analyzer =
+        new _ExtractMethodAnalyzer(resolveResult.unit, range);
     utils.unit.accept(analyzer);
     return analyzer.status.isOK;
   }
@@ -999,7 +999,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
         invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
-      Element element = node.bestElement;
+      Element element = node.staticElement;
       if (element is FunctionElement || element is MethodElement) {
         invalidSelection('Cannot extract a single method name.');
       }
@@ -1251,7 +1251,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
         // add parameter
         RefactoringMethodParameter parameter = ref._parametersMap[name];
         if (parameter == null) {
-          DartType parameterType = node.bestType;
+          DartType parameterType = node.staticType;
           StringBuffer parametersBuffer = new StringBuffer();
           String parameterTypeCode = ref.utils.getTypeSource(
               parameterType, ref.librariesToImport,
@@ -1317,7 +1317,7 @@ class _Occurrence {
   final SourceRange range;
   final bool isSelection;
 
-  Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
+  final Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
   _Occurrence(this.range, this.isSelection);
 }
@@ -1340,7 +1340,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
       return;
     }
     // prepare type
-    DartType type = expression.bestType;
+    DartType type = expression.staticType;
     if (type.isBottom) {
       return;
     }
@@ -1365,7 +1365,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
 class _SourcePattern {
   final List<DartType> parameterTypes = <DartType>[];
   String normalizedSource;
-  Map<String, String> originalToPatternNames = {};
+  final Map<String, String> originalToPatternNames = {};
 
   bool isCompatible(_SourcePattern other) {
     if (other.normalizedSource != normalizedSource) {

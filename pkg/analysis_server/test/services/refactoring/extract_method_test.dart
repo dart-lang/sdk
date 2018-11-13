@@ -2880,7 +2880,7 @@ Future<int> newFuture() => null;
 
   void _createRefactoring(int offset, int length) {
     refactoring = new ExtractMethodRefactoring(
-        searchEngine, astProvider, testUnit, offset, length);
+        searchEngine, astProvider, testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

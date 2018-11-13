@@ -1,13 +1,23 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/regress/issue_31299.dart:18:12: Warning: Too many positional arguments: 0 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//   new A.foo(1, 2);
+//            ^
+// pkg/front_end/testcases/regress/issue_31299.dart:10:3: Context: Found this candidate, but the arguments don't match.
+//   A.foo() : m = 2;
+//   ^^^
+
 library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
   field core::int m;
-  constructor •() → void
+  constructor •() → self::A
     : self::A::m = 1, super core::Object::•()
     ;
-  constructor foo() → void
+  constructor foo() → self::A
     : self::A::m = 2, super core::Object::•()
     ;
   method foo(core::int a, core::int b) → core::int

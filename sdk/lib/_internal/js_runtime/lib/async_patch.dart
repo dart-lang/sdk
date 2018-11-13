@@ -74,7 +74,6 @@ class _AsyncRun {
       callback();
     }
 
-    ;
     JS('void', 'self.scheduleImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }
@@ -84,7 +83,6 @@ class _AsyncRun {
       callback();
     }
 
-    ;
     JS('void', 'self.setImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }
@@ -685,11 +683,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
         }
       } else {
         // TODO(32956): Remove this test.
-        if (JS_GET_FLAG('STRONG_MODE')) {
-          _current = JS<T>('', '#', value);
-        } else {
-          _current = value;
-        }
+        _current = JS<T>('', '#', value);
         return true;
       }
     }

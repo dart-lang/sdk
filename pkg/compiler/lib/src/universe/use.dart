@@ -24,6 +24,7 @@ import '../js_model/closure.dart';
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
+import 'world_builder.dart' show StrongModeConstraint;
 
 enum DynamicUseKind {
   INVOKE,
@@ -42,6 +43,15 @@ class DynamicUse {
   /// Short textual representation use for testing.
   String get shortText {
     StringBuffer sb = new StringBuffer();
+    if (receiverConstraint != null) {
+      var constraint = receiverConstraint;
+      if (constraint is StrongModeConstraint) {
+        sb.write(constraint.cls.name);
+      } else {
+        sb.write(constraint);
+      }
+      sb.write('.');
+    }
     sb.write(selector.name);
     if (typeArguments != null && typeArguments.isNotEmpty) {
       sb.write('<');
@@ -285,13 +295,14 @@ class StaticUse {
 
   /// Invocation of a super method [element] with the given [callStructure].
   factory StaticUse.superInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+      FunctionEntity element, CallStructure callStructure,
+      [List<DartType> typeArguments]) {
     assert(
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
 
   /// Read access of a super field or getter [element].
@@ -568,11 +579,9 @@ class GenericStaticUse extends StaticUse {
 enum TypeUseKind {
   IS_CHECK,
   AS_CAST,
-  CHECKED_MODE_CHECK,
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
-  MIRROR_INSTANTIATION,
   NATIVE_INSTANTIATION,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
@@ -601,9 +610,6 @@ class TypeUse {
       case TypeUseKind.AS_CAST:
         sb.write('as:');
         break;
-      case TypeUseKind.CHECKED_MODE_CHECK:
-        sb.write('check:');
-        break;
       case TypeUseKind.CATCH_TYPE:
         sb.write('catch:');
         break;
@@ -612,9 +618,6 @@ class TypeUse {
         break;
       case TypeUseKind.INSTANTIATION:
         sb.write('inst:');
-        break;
-      case TypeUseKind.MIRROR_INSTANTIATION:
-        sb.write('mirror:');
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         sb.write('native:');
@@ -644,11 +647,6 @@ class TypeUse {
   /// [type] used in an as cast, like `e as T`.
   factory TypeUse.asCast(DartType type) {
     return new TypeUse.internal(type, TypeUseKind.AS_CAST);
-  }
-
-  /// [type] used as a type annotation in Dart 1, like `T foo;`.
-  factory TypeUse.checkedModeCheck(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.CHECKED_MODE_CHECK);
   }
 
   /// [type] used as a parameter type or field type in Dart 2, like `T` in:
@@ -684,11 +682,6 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
   }
 
-  /// [type] used in an instantiation through mirrors.
-  factory TypeUse.mirrorInstantiation(InterfaceType type) {
-    return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
-  }
-
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
@@ -696,6 +689,13 @@ class TypeUse {
 
   /// [type] used as a direct RTI value.
   factory TypeUse.constTypeLiteral(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  }
+
+  /// [type] used in a `instanceof` check.
+  factory TypeUse.instanceConstructor(DartType type) {
+    // TODO(johnniwinther,sra): Use a separate use kind if constructors is no
+    // longer used for RTI.
     return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 

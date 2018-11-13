@@ -3,7 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart'
-    show AnalysisError, ErrorSeverity, ErrorType, StrongModeCode;
+    show
+        AnalysisError,
+        ErrorSeverity,
+        ErrorType,
+        StrongModeCode,
+        StaticTypeWarningCode;
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:path/path.dart' as path;
@@ -64,6 +69,16 @@ String formatError(AnalysisContext context, AnalysisError error) {
 }
 
 ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
+  var errorCode = error.errorCode;
+  if (errorCode == StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK ||
+      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_GETTER ||
+      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_METHOD) {
+    // These are normally hints, but they should be errors when running DDC, so
+    // that users won't be surprised by behavioral differences between DDC and
+    // dart2js.
+    return ErrorSeverity.ERROR;
+  }
+
   // TODO(jmesserly): this Analyzer API totally bonkers, but it's what
   // analyzer_cli and server use.
   //
@@ -74,7 +89,22 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
   // * it requires an AnalysisContext
   return ErrorProcessor.getProcessor(context.analysisOptions, error)
           ?.severity ??
-      error.errorCode.errorSeverity;
+      errorCode.errorSeverity;
+}
+
+bool isFatalError(AnalysisContext context, AnalysisError e, bool replCompile) {
+  if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
+
+  // These errors are not fatal in the REPL compile mode as we
+  // allow access to private members across library boundaries
+  // and those accesses will show up as undefined members unless
+  // additional analyzer changes are made to support them.
+  // TODO(jacobr): consider checking that the identifier name
+  // referenced by the error is private.
+  return !replCompile ||
+      (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+          e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+          e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
 }
 
 const invalidImportDartMirrors = StrongModeCode(

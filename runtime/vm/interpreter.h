@@ -6,7 +6,7 @@
 #define RUNTIME_VM_INTERPRETER_H_
 
 #include "vm/globals.h"
-#if defined(DART_USE_INTERPRETER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
@@ -53,12 +53,14 @@ class Interpreter {
   uword stack_limit() const { return stack_limit_; }
 
   // Returns true if the interpreter's stack contains the given frame.
-  // TODO(regis): Once the interpreter shares the native stack, we may rely on
-  // a new thread vm_tag to identify an interpreter frame and we will not need
-  // this HasFrame() method.
+  // TODO(regis): We should rely on a new thread vm_tag to identify an
+  // interpreter frame and not need this HasFrame() method.
   bool HasFrame(uword frame) const {
     return frame >= stack_base() && frame <= get_fp();
   }
+
+  // Identify an entry frame by looking at its pc marker value.
+  static bool IsEntryFrameMarker(uword pc) { return (pc & 2) != 0; }
 
   // Call on program start.
   static void InitOnce();
@@ -92,12 +94,6 @@ class Interpreter {
     return intrinsics_[id] != NULL;
   }
 
-  enum SpecialIndex {
-    kExceptionSpecialIndex,
-    kStackTraceSpecialIndex,
-    kSpecialIndexCount
-  };
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
@@ -110,12 +106,11 @@ class Interpreter {
   DEBUG_ONLY(uint64_t icount_;)
 
   InterpreterSetjmpBuffer* last_setjmp_buffer_;
-  uword top_exit_frame_info_;
 
   RawObjectPool* pp_;  // Pool Pointer.
   RawArray* argdesc_;  // Arguments Descriptor: used to pass information between
                        // call instruction and the function entry.
-  RawObject* special_[kSpecialIndexCount];
+  RawObject* special_[KernelBytecode::kSpecialIndexCount];
 
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
 
@@ -203,6 +198,12 @@ class Interpreter {
                         RawObject** args,
                         RawSubtypeTestCache* cache);
 
+  bool AllocateInt64Box(Thread* thread,
+                        int64_t value,
+                        uint32_t* pc,
+                        RawObject** FP,
+                        RawObject** SP);
+
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;
@@ -223,6 +224,6 @@ class Interpreter {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_INTERPRETER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_INTERPRETER_H_

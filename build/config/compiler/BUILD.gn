@@ -690,11 +690,13 @@ if (is_win) {
       # See http://lwn.net/Articles/192624/ .
       "-Wl,-O1",
       "-Wl,--gc-sections",
+    ]
 
+    if (is_clang) {
       # Identical code folding to reduce size.
       # Warning: This changes C/C++ semantics of function pointer comparison.
-      "-Wl,--icf=all",
-    ]
+      common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
+    }
 
     if (!using_sanitizer) {
       # Functions interposed by the sanitizers can make ld think
@@ -744,6 +746,13 @@ config("no_optimize") {
       "-ffunction-sections",
     ]
   }
+}
+
+# These are two named configs that zlib's BUILD.gn expects to exist.
+config("default_optimization") {
+}
+
+config("optimize_speed") {
 }
 
 # Symbols ----------------------------------------------------------------------

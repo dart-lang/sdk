@@ -600,8 +600,7 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      {Token question: null});
+      FormalParameterList parameters);
 
   /**
    * Returns a newly created formal parameter. Either or both of the
@@ -616,8 +615,7 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      @required FormalParameterList parameters,
-      Token question});
+      @required FormalParameterList parameters});
 
   /**
    * Initialize a newly created generic function type.
@@ -704,8 +702,9 @@ abstract class AstFactory {
   /**
    * Returns a newly created instance creation expression.
    */
-  InstanceCreationExpression instanceCreationExpression(Token keyword,
-      ConstructorName constructorName, ArgumentList argumentList);
+  InstanceCreationExpression instanceCreationExpression(
+      Token keyword, ConstructorName constructorName, ArgumentList argumentList,
+      {TypeArgumentList typeArguments});
 
   /**
    * Returns a newly created integer literal.
@@ -813,6 +812,21 @@ abstract class AstFactory {
       ArgumentList argumentList);
 
   /**
+   * Return a newly created mixin declaration.
+   */
+  MixinDeclaration mixinDeclaration(
+      Comment comment,
+      List<Annotation> metadata,
+      Token mixinKeyword,
+      SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      OnClause onClause,
+      ImplementsClause implementsClause,
+      Token leftBracket,
+      List<ClassMember> members,
+      Token rightBracket);
+
+  /**
    * Returns a newly created named expression..
    */
   NamedExpression namedExpression(Label name, Expression expression);
@@ -840,6 +854,11 @@ abstract class AstFactory {
    * Returns a newly created null literal.
    */
   NullLiteral nullLiteral(Token literal);
+
+  /**
+   * Return a newly created on clause.
+   */
+  OnClause onClause(Token onKeyword, List<TypeName> superclassConstraints);
 
   /**
    * Returns a newly created parenthesized expression.
@@ -1058,8 +1077,7 @@ abstract class AstFactory {
    * Returns a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
-      {Token question: null});
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments);
 
   /**
    * Returns a newly created type parameter. Either or both of the [comment]

@@ -130,7 +130,8 @@ class LocalVariable : public ZoneAllocated {
   // Returns true if this local variable represents a parameter that needs type
   // check when we enter the function.
   bool needs_type_check() const {
-    return (type_check_mode_ == kDoTypeCheck) && !FLAG_omit_strong_type_checks;
+    return (type_check_mode_ == kDoTypeCheck) &&
+           Isolate::Current()->should_emit_strong_mode_checks();
   }
 
   // Returns true if this local variable represents a parameter which type is

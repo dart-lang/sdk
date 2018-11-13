@@ -10,9 +10,8 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/inferred_data.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -22,9 +21,7 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(dataDir, const SideEffectsDataComputer(),
-        args: args,
-        options: [stopAfterTypeInference],
-        skipForStrong: ['closure_call.dart']);
+        args: args, options: [stopAfterTypeInference]);
   });
 }
 
@@ -38,15 +35,10 @@ class SideEffectsDataComputer extends DataComputer {
   void computeMemberData(
       Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
       {bool verbose: false}) {
-    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new SideEffectsIrComputer(
-            compiler.reporter,
-            actualMap,
-            elementMap,
-            compiler.backendClosedWorldForTesting,
-            backendStrategy.closureDataLookup,
+    new SideEffectsIrComputer(compiler.reporter, actualMap, closedWorld,
             compiler.globalInference.resultsForTesting.inferredData)
         .run(definition.node);
   }
@@ -54,19 +46,15 @@ class SideEffectsDataComputer extends DataComputer {
 
 /// AST visitor for computing side effects data for a member.
 class SideEffectsIrComputer extends IrDataExtractor {
-  final JClosedWorld closedWorld;
-  final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup _closureDataLookup;
+  final JsClosedWorld closedWorld;
   final InferredData inferredData;
 
-  SideEffectsIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
-      this._elementMap,
-      this.closedWorld,
-      this._closureDataLookup,
-      this.inferredData)
+  SideEffectsIrComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap, this.closedWorld, this.inferredData)
       : super(reporter, actualMap);
+
+  JsToElementMap get _elementMap => closedWorld.elementMap;
+  ClosureData get _closureDataLookup => closedWorld.closureDataLookup;
 
   String getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {

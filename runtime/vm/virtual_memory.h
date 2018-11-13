@@ -29,7 +29,7 @@ class VirtualMemory {
   void* address() const { return region_.pointer(); }
   intptr_t size() const { return region_.size(); }
 
-  static void InitOnce();
+  static void Init();
 
   bool Contains(uword addr) const { return region_.Contains(addr); }
 

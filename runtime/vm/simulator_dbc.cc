@@ -202,7 +202,8 @@ class SimulatorHelpers {
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawArray* array = static_cast<RawArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
-      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2]);
+      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2],
+                          thread);
       return true;
     }
     return false;
@@ -237,7 +238,8 @@ class SimulatorHelpers {
         static_cast<RawGrowableObjectArray*>(args[0]);
     if (CheckIndex(index, array->ptr()->length_)) {
       RawArray* data = array->ptr()->data_;
-      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2]);
+      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2],
+                         thread);
       return true;
     }
     return false;
@@ -339,6 +341,7 @@ class SimulatorHelpers {
       uword tags = 0;
       tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
       tags = RawObject::SizeTag::update(instance_size, tags);
+      tags = RawObject::NewBit::update(true, tags);
       // Also writes zero in the hash_ field.
       *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
       *reinterpret_cast<double*>(start + Double::value_offset()) = value;
@@ -504,7 +507,7 @@ DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
 IntrinsicHandler Simulator::intrinsics_[Simulator::kIntrinsicCount];
 
 // Synchronization primitives support.
-void Simulator::InitOnce() {
+void Simulator::Init() {
   for (intptr_t i = 0; i < kIntrinsicCount; i++) {
     intrinsics_[i] = 0;
   }
@@ -563,7 +566,6 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
 
   last_setjmp_buffer_ = NULL;
-  top_exit_frame_info_ = 0;
 
   DEBUG_ONLY(icount_ = 0);
 }
@@ -810,6 +812,7 @@ void Simulator::InlineCacheMiss(int checked_args,
                                 RawObject** FP,
                                 RawObject** SP) {
   RawObject** result = top;
+  top[0] = 0;  // Clean up result slot.
   RawObject** miss_handler_args = top + 1;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
@@ -2627,7 +2630,7 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(StoreStaticTOS, A_D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    field->StorePointer(&field->ptr()->value_.static_value_, value);
+    field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
     DISPATCH();
   }
 
@@ -2648,8 +2651,8 @@ RawObject* Simulator::Call(const Code& code,
     RawObject* value = FP[value_reg];
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -2661,8 +2664,8 @@ RawObject* Simulator::Call(const Code& code,
     RawObject* value = FP[rD];
 
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
     DISPATCH();
   }
 
@@ -2673,8 +2676,8 @@ RawObject* Simulator::Call(const Code& code,
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
     SP -= 2;  // Drop instance and value.
     instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-        value);
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -2742,6 +2745,7 @@ RawObject* Simulator::Call(const Code& code,
       uint32_t tags = 0;
       tags = RawObject::ClassIdTag::update(kContextCid, tags);
       tags = RawObject::SizeTag::update(instance_size, tags);
+      tags = RawObject::NewBit::update(true, tags);
       // Also writes 0 in the hash_ field of the header.
       *reinterpret_cast<uword*>(start + Array::tags_offset()) = tags;
       *reinterpret_cast<uword*>(start + Context::num_variables_offset()) =
@@ -2778,13 +2782,13 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(AllocateOpt, A_D);
-    const uword tags =
-        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+    uint32_t tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
     const uword start =
         thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
     if (LIKELY(start != 0)) {
       // Writes both the tags and the initial identity hash on 64 bit platforms.
+      tags = RawObject::NewBit::update(true, tags);
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size; current_offset += kWordSize) {
@@ -2810,7 +2814,7 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(AllocateTOpt, A_D);
-    const uword tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
+    uint32_t tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
     const uword start =
         thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
@@ -2818,6 +2822,7 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* type_args = SP[0];
       const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
       // Writes both the tags and the initial identity hash on 64 bit platforms.
+      tags = RawObject::NewBit::update(true, tags);
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size; current_offset += kWordSize) {
@@ -2861,6 +2866,7 @@ RawObject* Simulator::Call(const Code& code,
             tags = RawObject::SizeTag::update(instance_size, tags);
           }
           tags = RawObject::ClassIdTag::update(cid, tags);
+          tags = RawObject::NewBit::update(true, tags);
           // Writes both the tags and the initial identity hash on 64 bit
           // platforms.
           *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
@@ -2909,13 +2915,15 @@ RawObject* Simulator::Call(const Code& code,
       RawTypeArguments* instance_type_arguments =
           static_cast<RawTypeArguments*>(null_value);
       RawObject* instance_cid_or_function;
+      RawTypeArguments* parent_function_type_arguments;
+      RawTypeArguments* delayed_function_type_arguments;
       if (cid == kClosureCid) {
         RawClosure* closure = static_cast<RawClosure*>(instance);
-        if (closure->ptr()->function_type_arguments_ != TypeArguments::null()) {
-          // Cache cannot be used for generic closures.
-          goto InstanceOfCallRuntime;
-        }
         instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
+        parent_function_type_arguments =
+            closure->ptr()->function_type_arguments_;
+        delayed_function_type_arguments =
+            closure->ptr()->delayed_type_arguments_;
         instance_cid_or_function = closure->ptr()->function_;
       } else {
         instance_cid_or_function = Smi::New(cid);
@@ -2928,6 +2936,10 @@ RawObject* Simulator::Call(const Code& code,
               instance->ptr())[instance_class->ptr()
                                    ->type_arguments_field_offset_in_words_];
         }
+        parent_function_type_arguments =
+            static_cast<RawTypeArguments*>(null_value);
+        delayed_function_type_arguments =
+            static_cast<RawTypeArguments*>(null_value);
       }
 
       for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
@@ -2940,7 +2952,11 @@ RawObject* Simulator::Call(const Code& code,
             (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
              instantiator_type_arguments) &&
             (entries[SubtypeTestCache::kFunctionTypeArguments] ==
-             function_type_arguments)) {
+             function_type_arguments) &&
+            (entries[SubtypeTestCache::kInstanceParentFunctionTypeArguments] ==
+             parent_function_type_arguments) &&
+            (entries[SubtypeTestCache::kInstanceDelayedFunctionTypeArguments] ==
+             delayed_function_type_arguments)) {
           SP[-4] = entries[SubtypeTestCache::kTestResult];
           goto InstanceOfOk;
         }
@@ -3006,15 +3022,17 @@ RawObject* Simulator::Call(const Code& code,
         RawTypeArguments* instance_type_arguments =
             static_cast<RawTypeArguments*>(null_value);
         RawObject* instance_cid_or_function;
+
+        RawTypeArguments* parent_function_type_arguments;
+        RawTypeArguments* delayed_function_type_arguments;
         if (cid == kClosureCid) {
           RawClosure* closure = static_cast<RawClosure*>(instance);
-          if (closure->ptr()->function_type_arguments_ !=
-              TypeArguments::null()) {
-            // Cache cannot be used for generic closures.
-            goto AssertAssignableCallRuntime;
-          }
           instance_type_arguments =
               closure->ptr()->instantiator_type_arguments_;
+          parent_function_type_arguments =
+              closure->ptr()->function_type_arguments_;
+          delayed_function_type_arguments =
+              closure->ptr()->delayed_type_arguments_;
           instance_cid_or_function = closure->ptr()->function_;
         } else {
           instance_cid_or_function = Smi::New(cid);
@@ -3027,6 +3045,10 @@ RawObject* Simulator::Call(const Code& code,
                 instance->ptr())[instance_class->ptr()
                                      ->type_arguments_field_offset_in_words_];
           }
+          parent_function_type_arguments =
+              static_cast<RawTypeArguments*>(null_value);
+          delayed_function_type_arguments =
+              static_cast<RawTypeArguments*>(null_value);
         }
 
         for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
@@ -3039,7 +3061,13 @@ RawObject* Simulator::Call(const Code& code,
               (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
                instantiator_type_arguments) &&
               (entries[SubtypeTestCache::kFunctionTypeArguments] ==
-               function_type_arguments)) {
+               function_type_arguments) &&
+              (entries
+                   [SubtypeTestCache::kInstanceParentFunctionTypeArguments] ==
+               parent_function_type_arguments) &&
+              (entries
+                   [SubtypeTestCache::kInstanceDelayedFunctionTypeArguments] ==
+               delayed_function_type_arguments)) {
             if (true_value == entries[SubtypeTestCache::kTestResult]) {
               goto AssertAssignableOk;
             } else {
@@ -3607,7 +3635,8 @@ RawObject* Simulator::Call(const Code& code,
     RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 
@@ -3617,7 +3646,8 @@ RawObject* Simulator::Call(const Code& code,
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                        thread);
     DISPATCH();
   }
 

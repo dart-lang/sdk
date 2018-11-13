@@ -273,16 +273,16 @@ function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isInte
   return isIntercepted
       ? new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
-          "return function tearOff_" + name + (functionCounter++) + "(x) {" +
+          "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);" +
-                "return new c(this, funcs[0], x, name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);" +
+                "return new c(this, funcs[0], receiver, name);" +
            "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null)
       : new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++)+ "() {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);" +
                 "return new c(this, funcs[0], null, name);" +
              "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null);
 }''', {
@@ -292,17 +292,17 @@ function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isInte
     });
   } else {
     tearOffGetter = js.statement('''
-        function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
+      function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
         var cache = null;
         return isIntercepted
-            ? function(x) {
+            ? function(receiver) {
                 if (cache === null) cache = #(
-                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);
-                return new cache(this, funcs[0], x, name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);
+                return new cache(this, funcs[0], receiver, name);
               }
             : function() {
                 if (cache === null) cache = #(
-                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);
                 return new cache(this, funcs[0], null, name);
               };
       }''', [tearOffAccessExpression, tearOffAccessExpression]);
@@ -311,12 +311,12 @@ function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isInte
   jsAst.Statement tearOff = js.statement('''
       function tearOff(funcs, applyTrampolineIndex,
           reflectionInfo, isStatic, name, isIntercepted) {
-      var cache;
+      var cache = null;
       return isStatic
           ? function() {
-              if (cache === void 0) cache = #tearOff(
+              if (cache === null) cache = #tearOff(
                   this, funcs, applyTrampolineIndex,
-                  reflectionInfo, true, [], name).prototype;
+                  reflectionInfo, true, false, name).prototype;
               return cache;
             }
           : tearOffGetter(funcs, applyTrampolineIndex,

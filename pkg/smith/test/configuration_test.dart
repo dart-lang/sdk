@@ -199,7 +199,7 @@ void main() {
         expect(
             Configuration.parse("dart2js", {
               "builder-tag": "the tag",
-              "vm-options": "vm stuff",
+              "vm-options": ["vm stuff", "more vm stuff"],
               "enable-asserts": true,
               "checked": true,
               "csp": true,
@@ -221,7 +221,7 @@ void main() {
               Runtime.d8,
               System.host,
               builderTag: "the tag",
-              vmOptions: "vm stuff",
+              vmOptions: ["vm stuff", "more vm stuff"],
               enableAsserts: true,
               isChecked: true,
               isCsp: true,

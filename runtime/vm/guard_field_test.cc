@@ -5,6 +5,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -63,6 +64,7 @@ TEST_CASE(GuardFieldSimpleTest) {
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
   Field& f2 = Field::ZoneHandle(LookupField(lib, "A", "f2"));
   Field& f3 = Field::ZoneHandle(LookupField(lib, "A", "f3"));
@@ -113,6 +115,7 @@ TEST_CASE(GuardFieldFinalListTest) {
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
   Field& f2 = Field::ZoneHandle(LookupField(lib, "A", "f2"));
   Field& f3 = Field::ZoneHandle(LookupField(lib, "A", "f3"));
@@ -165,6 +168,7 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
   Field& f2 = Field::ZoneHandle(LookupField(lib, "A", "f2"));
   Field& f3 = Field::ZoneHandle(LookupField(lib, "A", "f3"));
@@ -220,6 +224,7 @@ TEST_CASE(GuardFieldConstructorTest) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  TransitionNativeToVM transition(thread);
   EXPECT_VALID(result);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
   Field& f2 = Field::ZoneHandle(LookupField(lib, "A", "f2"));
@@ -269,6 +274,7 @@ TEST_CASE(GuardFieldConstructor2Test) {
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Field& f3 = Field::ZoneHandle(LookupField(lib, "A", "f3"));
   const intptr_t no_length = Field::kNoFixedLength;
   EXPECT_EQ(no_length, f3.guarded_list_length());

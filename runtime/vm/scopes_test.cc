@@ -4,7 +4,6 @@
 
 #include "vm/scopes.h"
 #include "platform/assert.h"
-#include "vm/ast.h"
 #include "vm/unit_test.h"
 
 namespace dart {

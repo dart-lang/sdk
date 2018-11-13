@@ -91,7 +91,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     addSource(libFile, '''
         library testA;
         import "dart:async" deferred as bar;
-        part "${convertPathForImport(testFile)}";''');
+        part "${convertAbsolutePathToUri(testFile)}";''');
     addTestSource('part of testA; foo() {bar.^}');
     // Assume that libraries containing has been computed for part files
     await computeLibrariesContaining();
@@ -105,11 +105,11 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     addSource('/libA.dart', 'library libA; class A { }');
     addSource('/libB.dart', '''
         library libB;
-        export "${convertPathForImport("/libA.dart")}";
+        export "${convertAbsolutePathToUri("/libA.dart")}";
         class B { }
         @deprecated class B1 { }''');
     addTestSource(
-        'import "${convertPathForImport("/libB.dart")}" as foo; main() {foo.^} class C { }');
+        'import "${convertAbsolutePathToUri("/libB.dart")}" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
     assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
@@ -125,7 +125,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertPathForImport("/testB.dart")}" as b;
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -187,8 +187,8 @@ main() {
         class Y { }''');
     addSource(libFile, '''
         library testA;
-        import "${convertPathForImport("/testB.dart")}" as b;
-        part "${convertPathForImport(testFile)}";
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
+        part "${convertAbsolutePathToUri(testFile)}";
         var T2;
         class A { }''');
     addTestSource('''
@@ -217,7 +217,7 @@ main() {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertPathForImport("/testB.dart")}" as b;
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -242,7 +242,7 @@ main() {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertPathForImport("/testB.dart")}" as b;
+        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -267,7 +267,7 @@ main() {
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "${convertPathForImport("/testB.dart")}";
+        import "${convertAbsolutePathToUri("/testB.dart")}";
         foo(X x) {x.^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -279,7 +279,7 @@ main() {
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "${convertPathForImport("/testA.dart")}";
+        import "${convertAbsolutePathToUri("/testA.dart")}";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();

@@ -43,6 +43,7 @@ class BaseDirectChainedHashMap : public B {
     return Lookup(key) != NULL;
   }
 
+  intptr_t Size() const { return count_; }
   bool IsEmpty() const { return count_ == 0; }
 
   virtual void Clear() {

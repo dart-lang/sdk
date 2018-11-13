@@ -28,12 +28,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  @override
-  void setUp() {
-    super.setUp();
-    testFile = resourceProvider.convertPath('/project/test.dart');
-  }
-
   void addTestSource(String code, [Uri uri]) {
     testCode = code;
     testSource = addSource(testFile, code, uri);
@@ -116,7 +110,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
     testAnalysisResult = await driver.getResult(convertPath(testFile));
     testUnit = testAnalysisResult.unit;
@@ -131,12 +125,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testFile = resourceProvider.convertPath('/project/test.dart');
   }
 }
 
-class _ElementsByNameFinder extends RecursiveAstVisitor<Null> {
+class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
   final String name;
   final List<Element> elements = [];
 

@@ -591,7 +591,6 @@ void Class::CheckReload(const Class& replacement,
   if (is_prefinalized()) {
     if (!CanReloadPreFinalized(replacement, context)) return;
   }
-  ASSERT(is_finalized() == replacement.is_finalized());
   TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n", ToCString(),
             id(), replacement.id());
 }
@@ -688,12 +687,13 @@ static const Function* static_call_target = NULL;
 void ICData::Reset(Zone* zone) const {
   RebindRule rule = rebind_rule();
   if (rule == kInstance) {
-    intptr_t num_args = NumArgsTested();
+    const intptr_t num_args = NumArgsTested();
+    const bool tracking_exactness = IsTrackingExactness();
     if (num_args == 2) {
       ClearWithSentinel();
     } else {
-      const Array& data_array =
-          Array::Handle(zone, CachedEmptyICDataArray(num_args));
+      const Array& data_array = Array::Handle(
+          zone, CachedEmptyICDataArray(num_args, tracking_exactness));
       set_ic_data_array(data_array);
     }
     return;
@@ -716,7 +716,10 @@ void ICData::Reset(Zone* zone) const {
              old_target.kind() == RawFunction::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupStaticFunction(selector);
+      new_target = cls.LookupFunction(selector);
+      if (new_target.kind() != old_target.kind()) {
+        new_target = Function::null();
+      }
     } else {
       // Super call.
       Function& caller = Function::Handle(zone);

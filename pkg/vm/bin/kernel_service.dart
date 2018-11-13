@@ -27,19 +27,14 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/hybrid_file_system.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm.dart' show VmTarget;
-import '../lib/incremental_compiler.dart';
-import '../lib/http_filesystem.dart';
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/incremental_compiler.dart';
+import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
+import 'package:vm/http_filesystem.dart';
+import 'package:vm/target/vm.dart' show VmTarget;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
@@ -68,15 +63,13 @@ bool allowDartInternalImport = false;
 
 abstract class Compiler {
   final FileSystem fileSystem;
-  final bool strongMode;
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
 
   Compiler(this.fileSystem, Uri platformKernelPath,
-      {this.strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false,
+      {bool suppressWarnings: false,
+      bool bytecode: false,
       String packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
@@ -90,28 +83,24 @@ abstract class Compiler {
       print("DFE: packagesUri: ${packagesUri}");
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
       print("DFE: platformKernelPath: ${platformKernelPath}");
-      print("DFE: strongMode: ${strongMode}");
-      print("DFE: syncAsync: ${syncAsync}");
     }
 
     options = new CompilerOptions()
-      ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmTarget(
-          new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+      ..target = new VmTarget(new TargetFlags(syncAsync: true))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
-      ..onProblem = (FormattedMessage message, Severity severity,
-          List<FormattedMessage> context) {
+      ..bytecode = bytecode
+      ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
-        switch (severity) {
+        switch (message.severity) {
           case Severity.error:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
-            // are handled in the generated code (issue #30194).
+            // are handled in the generated code.
             printMessage = false; // errors are printed by VM
-            errors.add(message.formatted);
+            errors.addAll(message.plainTextFormatted);
             break;
           case Severity.warning:
             printMessage = !suppressWarnings;
@@ -119,19 +108,27 @@ abstract class Compiler {
           case Severity.errorLegacyWarning:
           case Severity.context:
           case Severity.ignored:
-            throw "Unexpected severity: $severity";
+            throw "Unexpected severity: ${message.severity}";
         }
         if (printMessage) {
-          stderr.writeln(message.formatted);
-          for (FormattedMessage message in context) {
-            stderr.writeln(message.formatted);
-          }
+          printDiagnosticMessage(message, stderr.writeln);
         }
       };
   }
 
   Future<Component> compile(Uri script) {
-    return runWithPrintToStderr(() => compileInternal(script));
+    return runWithPrintToStderr(() async {
+      final component = await compileInternal(script);
+
+      if (options.bytecode && errors.isEmpty) {
+        await runWithFrontEndCompilerContext(script, options, component, () {
+          // TODO(alexmarkov): pass environment defines
+          generateBytecode(component);
+        });
+      }
+
+      return component;
+    });
   }
 
   Future<Component> compileInternal(Uri script);
@@ -141,14 +138,12 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
-      {bool strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false,
+      {bool suppressWarnings: false,
+      bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
-            strongMode: strongMode,
             suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync,
+            bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
@@ -169,14 +164,12 @@ class SingleShotCompilerWrapper extends Compiler {
 
   SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
-      bool strongMode: false,
       bool suppressWarnings: false,
-      bool syncAsync: false,
+      bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
-            strongMode: strongMode,
             suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync,
+            bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
@@ -198,9 +191,8 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
-    {bool strongMode: false,
-    bool suppressWarnings: false,
-    bool syncAsync: false,
+    {bool suppressWarnings: false,
+    bool bytecode: false,
     String packageConfig: null,
     String multirootFilepaths,
     String multirootScheme}) async {
@@ -217,9 +209,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
     compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
-        strongMode: strongMode,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
+        bytecode: bytecode,
         packageConfig: packageConfig);
     isolateCompilers[isolateId] = compiler;
   }
@@ -260,8 +251,8 @@ Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
   final int isolateId = request[2];
   final String expression = request[3];
-  final List definitions = request[4];
-  final List typeDefinitions = request[5];
+  final List<String> definitions = request[4].cast<String>();
+  final List<String> typeDefinitions = request[5].cast<String>();
   final String libraryUri = request[6];
   final String klass = request[7]; // might be null
   final bool isStatic = request[8];
@@ -383,11 +374,10 @@ Future _processLoadRequest(request) async {
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool strong = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
-  final bool syncAsync = request[9];
+  final bool bytecode = request[9];
   final String packageConfig = request[10];
   final String multirootFilepaths = request[11];
   final String multirootScheme = request[12];
@@ -400,8 +390,8 @@ Future _processLoadRequest(request) async {
     platformKernelPath = Uri.parse(platformKernelFile);
     platformKernel = request[3];
   } else {
-    platformKernelPath = computePlatformBinariesLocation()
-        .resolve(strong ? 'vm_platform_strong.dill' : 'vm_platform.dill');
+    platformKernelPath =
+        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   }
 
   Compiler compiler;
@@ -440,9 +430,8 @@ Future _processLoadRequest(request) async {
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
-        strongMode: strong,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
+        bytecode: bytecode,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme);
@@ -451,9 +440,8 @@ Future _processLoadRequest(request) async {
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: false,
-        strongMode: strong,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
+        bytecode: bytecode,
         packageConfig: packageConfig);
   }
 
@@ -547,9 +535,6 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
 }
 
 train(String scriptUri, String platformKernelPath) {
-  // TODO(28532): Enable on Windows.
-  if (Platform.isWindows) return;
-
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
@@ -569,11 +554,11 @@ train(String scriptUri, String platformKernelPath) {
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* strong */,
+    true /* strong */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
-    false /* synchronous async */,
+    true /* synchronous async */,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,

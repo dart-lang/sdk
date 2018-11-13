@@ -36,7 +36,7 @@ Future<List<Uri>> getDependencies(Uri script,
     ..packagesFileUri = packages
     ..sdkSummary = platform
     ..sdkRoot = sdk;
-  var pOptions = new ProcessedOptions(options, <Uri>[script]);
+  var pOptions = new ProcessedOptions(options: options, inputs: <Uri>[script]);
   return await CompilerContext.runWithOptions(pOptions,
       (CompilerContext c) async {
     FileSystem fileSystem = c.options.fileSystem;
@@ -53,7 +53,7 @@ Future<List<Uri>> getDependencies(Uri script,
         fileSystem, false, dillTarget, uriTranslator,
         uriToSource: c.uriToSource);
 
-    kernelTarget.read(script);
+    kernelTarget.setEntryPoints(<Uri>[script]);
     await dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
     return new List<Uri>.from(c.dependencies);

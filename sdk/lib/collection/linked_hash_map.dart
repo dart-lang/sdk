@@ -141,4 +141,16 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
     MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
+
+  /**
+   * Creates a [LinkedHashMap] containing the entries of [entries].
+   *
+   * Returns a new `LinkedHashMap<K, V>` where all entries of [entries]
+   * have been added in iteration order.
+   *
+   * If multiple [entries] have the same key,
+   * later occurrences overwrite the earlier ones.
+   */
+  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
+      <K, V>{}..addEntries(entries);
 }

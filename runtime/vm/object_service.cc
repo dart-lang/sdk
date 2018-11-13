@@ -394,32 +394,12 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else if (guarded_list_length() == kNoFixedLength) {
     jsobj.AddProperty("_guardLength", "variable");
   } else {
-    jsobj.AddProperty("_guardLength", guarded_list_length());
+    jsobj.AddPropertyF("_guardLength", "%" Pd, guarded_list_length());
   }
   const class Script& script = Script::Handle(Script());
   if (!script.IsNull()) {
     jsobj.AddLocation(script, token_pos());
   }
-}
-
-void LiteralToken::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
-void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  AddCommonObjectProperties(&jsobj, "Object", ref);
-  // TODO(johnmccutchan): Generate a stable id. TokenStreams hang off
-  // a Script object but do not have a back reference to generate a stable id.
-  jsobj.AddServiceId(*this);
-  if (ref) {
-    return;
-  }
-  const String& private_key = String::Handle(PrivateKey());
-  jsobj.AddProperty("privateKey", private_key);
-  // TODO(johnmccutchan): Add support for printing LiteralTokens and add
-  // them to members array.
-  JSONArray members(&jsobj, "members");
 }
 
 // See also Dart_ScriptGetTokenInfo.
@@ -454,11 +434,11 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   // Print the line number table
-  if (!source.IsNull()) {
+  const GrowableObjectArray& lineNumberArray =
+      GrowableObjectArray::Handle(GenerateLineNumberArray());
+  if (!lineNumberArray.IsNull() && (lineNumberArray.Length() > 0)) {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
-    const GrowableObjectArray& lineNumberArray =
-        GrowableObjectArray::Handle(GenerateLineNumberArray());
     Object& value = Object::Handle();
     intptr_t pos = 0;
 
@@ -656,6 +636,11 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "Immediate");
           jsentry.AddProperty64("value", imm);
+          break;
+        case ObjectPool::kNativeEntryData:
+          obj = ObjectAt(i);
+          jsentry.AddProperty("kind", "NativeEntryData");
+          jsentry.AddProperty("value", obj);
           break;
         case ObjectPool::kNativeFunction:
           imm = RawValueAt(i);

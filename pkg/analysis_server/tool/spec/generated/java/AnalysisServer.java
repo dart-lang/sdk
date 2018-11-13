@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+ * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package com.google.dart.server.generated;
@@ -138,8 +138,31 @@ public interface AnalysisServer {
    * generated.
    *
    * @param file The file for which reachable source information is being requested.
+   *
+   * @deprecated
    */
   public void analysis_getReachableSources(String file, GetReachableSourcesConsumer consumer);
+
+  /**
+   * {@code analysis.getSignature}
+   *
+   * Return the signature information associated with the given location in the given file. If the
+   * signature information for the given file has not yet been computed, or the most recently
+   * computed signature information for the given file is out of date, then the response for this
+   * request will be delayed until it has been computed. If a request is made for a file which does
+   * not exist, or which is not currently subject to analysis (e.g. because it is not associated with
+   * any analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_SIGNATURE_INVALID_FILE will be generated. If the location given is not inside the argument
+   * list for a function (including method and constructor) invocation, then an error of type
+   * GET_SIGNATURE_INVALID_OFFSET will be generated. If the location is inside an argument list but
+   * the function is not defined or cannot be determined (such as a method invocation where the
+   * target has type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will be
+   * generated.
+   *
+   * @param file The file in which signature information is being requested.
+   * @param offset The location for which signature information is being requested.
+   */
+  public void analysis_getSignature(String file, int offset, GetSignatureConsumer consumer);
 
   /**
    * {@code analysis.reanalyze}
@@ -383,6 +406,22 @@ public interface AnalysisServer {
    * DEBUG_PORT_COULD_NOT_BE_OPENED.
    */
   public void diagnostic_getServerPort(GetServerPortConsumer consumer);
+
+  /**
+   * {@code edit.dartfix}
+   *
+   * Analyze the specified sources for recommended changes and return a set of suggested edits for
+   * those sources. These edits may include changes to sources outside the set of specified sources
+   * if a change in a specified source requires it.
+   *
+   * @param included A list of the files and directories for which edits should be suggested. If a
+   *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
+   *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
+   *         file which does not exist, or which is not currently subject to analysis (e.g. because
+   *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
+   *         error of type FILE_NOT_ANALYZED will be generated.
+   */
+  public void edit_dartfix(List<String> included, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}

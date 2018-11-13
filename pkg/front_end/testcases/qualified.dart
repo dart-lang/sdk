@@ -15,6 +15,8 @@ class Bad extends lib.Missing {
 
 class WithMixin extends lib.Supertype with lib.Mixin {}
 
+class IllegalSupertype extends lib.VoidFunction {}
+
 main() {
   new C<String>();
   new C<String>.a();
@@ -24,4 +26,5 @@ main() {
   new lib.C<String>.b();
   new WithMixin().supertypeMethod();
   new WithMixin().foo();
+  new IllegalSupertype();
 }

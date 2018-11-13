@@ -39,7 +39,6 @@
 
 namespace dart {
 
-static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
 static const intptr_t kMinStackSize = 512;
 
 /*
@@ -114,11 +113,12 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
                                              kMinStackSize / 4, Heap::kOld)));
 
   // Create and generate all preset blocks.
-  entry_block_ = new (zone) GraphEntryInstr(
-      *parsed_function_,
-      new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex,
-                                  GetNextDeoptId()),
-      osr_id);
+  entry_block_ = new (zone) GraphEntryInstr(*parsed_function_, osr_id);
+
+  auto function_entry = new (zone) FunctionEntryInstr(
+      entry_block_, block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
+  entry_block_->set_normal_entry(function_entry);
+
   start_block_ = new (zone)
       JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
   success_block_ = new (zone)

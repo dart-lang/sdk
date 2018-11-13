@@ -63,7 +63,6 @@ class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
 class RawLinkedHashMap;
-class RawLiteralToken;
 class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
@@ -76,6 +75,7 @@ class RawPatchClass;
 class RawPcDescriptors;
 class RawReceivePort;
 class RawRedirectionData;
+class RawNativeEntryData;
 class RawScript;
 class RawSignatureData;
 class RawSendPort;
@@ -83,7 +83,6 @@ class RawSmi;
 class RawStackMap;
 class RawStackTrace;
 class RawSubtypeTestCache;
-class RawTokenStream;
 class RawTwoByteString;
 class RawType;
 class RawTypeArguments;
@@ -94,7 +93,6 @@ class RawUnhandledException;
 class RawUnresolvedClass;
 class RawWeakProperty;
 class String;
-class TokenStream;
 class TypeArguments;
 class TypedData;
 class UnhandledException;
@@ -137,24 +135,16 @@ enum SerializeState {
   kIsNotSerialized = 1,
 };
 
-#define HEAP_SPACE(kind) (kind == Snapshot::kMessage) ? Heap::kNew : Heap::kOld
-
 // Structure capturing the raw snapshot.
 //
-// TODO(turnidge): Remove this class once the snapshot does not have a
-// header anymore.  This is pending on making the embedder pass in the
-// length of their snapshot.
 class Snapshot {
  public:
   enum Kind {
-    // N.B. The order of these values must be preserved to give proper error
-    // messages for old snapshots.
-    kFull = 0,  // Full snapshot of core libraries or an application.
-    kScript,    // A partial snapshot of only the application script.
-    kMessage,   // A partial snapshot used only for isolate messaging.
-    kFullJIT,   // Full + JIT code
-    kFullAOT,   // Full + AOT code
-    kNone,      // dart_bootstrap/gen_snapshot
+    kFull,     // Full snapshot of core libraries or an application.
+    kFullJIT,  // Full + JIT code
+    kFullAOT,  // Full + AOT code
+    kMessage,  // A partial snapshot used only for isolate messaging.
+    kNone,     // gen_snapshot
     kInvalid
   };
   static const char* KindToCString(Kind kind);
@@ -338,7 +328,6 @@ class SnapshotReader : public BaseReader {
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   GrowableObjectArray* TokensHandle() { return &tokens_; }
-  TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Function* FunctionHandle() { return &function_; }
@@ -355,9 +344,6 @@ class SnapshotReader : public BaseReader {
 
   // Get an object from the backward references list.
   Object* GetBackRef(intptr_t id);
-
-  // Read a script snapshot.
-  RawObject* ReadScriptSnapshot();
 
   // Read version number of snapshot and verify.
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
@@ -386,7 +372,6 @@ class SnapshotReader : public BaseReader {
   RawObject* RunDelayedRehashingOfMaps();
 
   RawClass* ReadClassId(intptr_t object_id);
-  RawFunction* ReadFunctionId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
 
   // Implementation to read an object.
@@ -418,10 +403,6 @@ class SnapshotReader : public BaseReader {
 
   // Process all the deferred canonicalization entries and patch all references.
   void ProcessDeferredCanonicalizations();
-
-  // Update subclasses array and is implemented bit for interfaces/superclass in
-  // the core snapshot.
-  void FixSubclassesAndImplementors();
 
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);
@@ -456,7 +437,6 @@ class SnapshotReader : public BaseReader {
   AbstractType& type_;             // Temporary type handle.
   TypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
-  TokenStream& stream_;            // Temporary token stream handle.
   ExternalTypedData& data_;        // Temporary stream data handle.
   TypedData& typed_data_;          // Temporary typed data handle.
   Function& function_;             // Temporary function handle.
@@ -485,7 +465,6 @@ class SnapshotReader : public BaseReader {
   friend class Library;
   friend class LibraryPrefix;
   friend class LinkedHashMap;
-  friend class LiteralToken;
   friend class MirrorReference;
   friend class MixinAppType;
   friend class Namespace;
@@ -495,7 +474,6 @@ class SnapshotReader : public BaseReader {
   friend class Script;
   friend class SignatureData;
   friend class SubtypeTestCache;
-  friend class TokenStream;
   friend class Type;
   friend class TypeArguments;
   friend class TypeParameter;
@@ -504,15 +482,6 @@ class SnapshotReader : public BaseReader {
   friend class UnresolvedClass;
   friend class WeakProperty;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
-};
-
-class ScriptSnapshotReader : public SnapshotReader {
- public:
-  ScriptSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
-  ~ScriptSnapshotReader();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotReader);
 };
 
 class MessageSnapshotReader : public SnapshotReader {
@@ -710,8 +679,6 @@ class SnapshotWriter : public BaseWriter {
   // Write a version string for the snapshot.
   void WriteVersionAndFeatures();
 
-  void WriteFunctionId(RawFunction* func, bool owner_is_class);
-
   RawFunction* IsSerializableClosure(RawClosure* closure);
 
   void WriteStaticImplicitClosure(intptr_t object_id,
@@ -772,7 +739,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawInstructions;
   friend class RawLibrary;
   friend class RawLinkedHashMap;
-  friend class RawLiteralToken;
   friend class RawLocalVarDescriptors;
   friend class RawMirrorReference;
   friend class RawObjectPool;
@@ -781,7 +747,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawScript;
   friend class RawStackTrace;
   friend class RawSubtypeTestCache;
-  friend class RawTokenStream;
   friend class RawType;
   friend class RawTypeRef;
   friend class RawBoundedType;
@@ -791,21 +756,6 @@ class SnapshotWriter : public BaseWriter {
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
-};
-
-class ScriptSnapshotWriter : public SnapshotWriter {
- public:
-  static const intptr_t kInitialSize = 64 * KB;
-  explicit ScriptSnapshotWriter(ReAlloc alloc);
-  ~ScriptSnapshotWriter() {}
-
-  // Writes a partial snapshot of the script.
-  void WriteScriptSnapshot(const Library& lib);
-
- private:
-  ForwardList forward_list_;
-
-  DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);
 };
 
 class SerializedObjectBuffer : public StackResource {

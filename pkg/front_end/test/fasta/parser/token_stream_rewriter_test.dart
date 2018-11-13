@@ -22,46 +22,30 @@ abstract class TokenStreamRewriterTest {
   /// Indicates whether the tests should set up [Token.previous].
   bool get setPrevious;
 
-  void test_insertTokenAfter_end_single() {
+  void test_insertToken_end() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a]);
     var rewriter = new TokenStreamRewriter();
-    expect(rewriter.insertTokenAfter(a, b), same(a));
+    expect(rewriter.insertToken(a, b), same(b));
     expect(a.next, same(b));
     expect(b.next, same(eof));
     expect(eof.previous, same(b));
     expect(b.previous, same(a));
   }
 
-  void test_insertTokenAfter_middle_multiple() {
-    var a = _makeToken(0, 'a');
-    var b = _makeToken(1, 'b');
-    var c = _makeToken(2, 'c');
-    var d = _makeToken(3, 'd');
-    var e = _makeToken(4, 'e');
-    _link([a, b, e]);
-    _link([c, d]);
-    var rewriter = new TokenStreamRewriter();
-    rewriter.insertTokenAfter(b, c);
-    expect(a.next, same(b));
-    expect(b.next, same(c));
-    expect(c.next, same(d));
-    expect(d.next, same(e));
-  }
-
-  void test_insertTokenAfter_middle_single() {
+  void test_insertToken_middle() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
     _link([a, c]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.insertTokenAfter(a, b);
+    rewriter.insertToken(a, b);
     expect(a.next, same(b));
     expect(b.next, same(c));
   }
 
-  void test_insertTokenAfter_second_insertion_earlier_in_stream() {
+  void test_insertToken_second_insertion_earlier_in_stream() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
@@ -69,12 +53,12 @@ abstract class TokenStreamRewriterTest {
     var e = _makeToken(4, 'e');
     _link([a, c, e]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.insertTokenAfter(c, d);
+    rewriter.insertToken(c, d);
     expect(c.next, same(d));
     expect(d.next, same(e));
     // The next call to rewriter should be able to find the insertion point
     // even though it is before the insertion point used above.
-    rewriter.insertTokenAfter(a, b);
+    rewriter.insertToken(a, b);
     expect(a.next, same(b));
     expect(b.next, same(c));
   }

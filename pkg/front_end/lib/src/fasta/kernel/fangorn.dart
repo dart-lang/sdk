@@ -9,28 +9,36 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsExpression,
         AssertInitializer,
+        AwaitExpression,
         Block,
-        BreakStatement,
+        BoolLiteral,
         Catch,
-        ContinueSwitchStatement,
+        CheckLibraryIsLoaded,
+        ConditionalExpression,
         DartType,
-        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
         InvalidExpression,
-        LabeledStatement,
+        IsExpression,
         Let,
         LibraryDependency,
+        LogicalExpression,
         MapEntry,
         Member,
         Name,
         NamedExpression,
+        Not,
+        NullLiteral,
         Procedure,
+        Rethrow,
         Statement,
-        SwitchCase,
+        StringConcatenation,
+        StringLiteral,
         ThisExpression,
+        Throw,
         TreeNode,
         VariableDeclaration,
         setParents;
@@ -49,9 +57,9 @@ import 'kernel_expression_generator.dart'
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
-        KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
+        KernelParserErrorGenerator,
         KernelPrefixUseGenerator,
         KernelPropertyAccessGenerator,
         KernelReadOnlyAccessGenerator,
@@ -69,16 +77,11 @@ import 'kernel_expression_generator.dart'
 import 'kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
-        AsJudgment,
         AssertInitializerJudgment,
         AssertStatementJudgment,
-        AwaitJudgment,
         BlockJudgment,
-        BoolJudgment,
         BreakJudgment,
         CatchJudgment,
-        CheckLibraryIsLoadedJudgment,
-        ConditionalJudgment,
         ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
@@ -87,24 +90,15 @@ import 'kernel_shadow_ast.dart'
         ForJudgment,
         IfJudgment,
         IntJudgment,
-        IsJudgment,
-        IsNotJudgment,
         LabeledStatementJudgment,
         ListLiteralJudgment,
         LoadLibraryJudgment,
-        LogicalJudgment,
         MapEntryJudgment,
         MapLiteralJudgment,
-        NotJudgment,
-        NullJudgment,
-        RethrowJudgment,
         ReturnJudgment,
-        StringConcatenationJudgment,
-        StringLiteralJudgment,
+        ShadowLargeIntLiteral,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
-        ThisJudgment,
-        ThrowJudgment,
         TryCatchJudgment,
         TryFinallyJudgment,
         TypeLiteralJudgment,
@@ -117,6 +111,7 @@ import 'forest.dart'
         Forest,
         Generator,
         LoadLibraryBuilder,
+        Message,
         PrefixBuilder,
         PrefixUseGenerator,
         TypeDeclarationBuilder,
@@ -159,21 +154,27 @@ class Fangorn extends Forest {
   }
 
   @override
-  StringLiteralJudgment asLiteralString(Expression value) => value;
+  StringLiteral asLiteralString(Expression value) => value;
 
   @override
-  BoolJudgment literalBool(bool value, Token token) {
-    return new BoolJudgment(token, value)..fileOffset = offsetForToken(token);
+  BoolLiteral literalBool(bool value, Token token) {
+    return new BoolLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
   DoubleJudgment literalDouble(double value, Token token) {
-    return new DoubleJudgment(token, value)..fileOffset = offsetForToken(token);
+    return new DoubleJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override
   IntJudgment literalInt(int value, Token token) {
-    return new IntJudgment(token, value)..fileOffset = offsetForToken(token);
+    return new IntJudgment(value, token?.lexeme)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  ShadowLargeIntLiteral literalLargeInt(String literal, Token token) {
+    return new ShadowLargeIntLiteral(literal, offsetForToken(token));
   }
 
   @override
@@ -187,8 +188,7 @@ class Fangorn extends Forest {
       Token rightBracket) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new ListLiteralJudgment(
-        constKeyword, leftBracket, expressions, rightBracket,
+    return new ListLiteralJudgment(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
@@ -205,21 +205,19 @@ class Fangorn extends Forest {
       Token rightBracket) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new MapLiteralJudgment(
-        constKeyword, leftBracket, entries, rightBracket,
+    return new MapLiteralJudgment(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
   @override
-  NullJudgment literalNull(Token token) {
-    return new NullJudgment(token)..fileOffset = offsetForToken(token);
+  NullLiteral literalNull(Token token) {
+    return new NullLiteral()..fileOffset = offsetForToken(token);
   }
 
   @override
-  StringLiteralJudgment literalString(String value, Token token) {
-    return new StringLiteralJudgment(token, value)
-      ..fileOffset = offsetForToken(token);
+  StringLiteral literalString(String value, Token token) {
+    return new StringLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -243,18 +241,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  List<MapEntry> mapEntryList(int length) {
-    return new List<MapEntryJudgment>.filled(length, null, growable: true);
-  }
-
-  @override
   int readOffset(TreeNode node) => node.fileOffset;
-
-  @override
-  int getTypeCount(List typeArguments) => typeArguments.length;
-
-  @override
-  DartType getTypeAt(List typeArguments, int index) => typeArguments[index];
 
   @override
   Expression loadLibrary(LibraryDependency dependency, Arguments arguments) {
@@ -263,12 +250,12 @@ class Fangorn extends Forest {
 
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
-    return new CheckLibraryIsLoadedJudgment(dependency);
+    return new CheckLibraryIsLoaded(dependency);
   }
 
   @override
-  Expression asExpression(Expression expression, covariant type, Token token) {
-    return new AsJudgment(expression, token, type)
+  Expression asExpression(Expression expression, DartType type, Token token) {
+    return new AsExpression(expression, type)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -279,13 +266,8 @@ class Fangorn extends Forest {
       Expression condition,
       Token comma,
       Expression message) {
-    return new AssertInitializerJudgment(
-        assertStatement(
-            assertKeyword, leftParenthesis, condition, comma, message, null),
-        assertKeyword,
-        leftParenthesis,
-        comma,
-        leftParenthesis.endGroup);
+    return new AssertInitializerJudgment(assertStatement(
+        assertKeyword, leftParenthesis, condition, comma, message, null));
   }
 
   @override
@@ -324,8 +306,7 @@ class Fangorn extends Forest {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
       }
     }
-    return new AssertStatementJudgment(assertKeyword, leftParenthesis,
-        condition, comma, leftParenthesis.endGroup, semicolon,
+    return new AssertStatementJudgment(condition,
         conditionStartOffset: startOffset,
         conditionEndOffset: endOffset,
         message: message);
@@ -333,8 +314,7 @@ class Fangorn extends Forest {
 
   @override
   Expression awaitExpression(Expression operand, Token token) {
-    return new AwaitJudgment(token, operand)
-      ..fileOffset = offsetForToken(token);
+    return new AwaitExpression(operand)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -350,14 +330,13 @@ class Fangorn extends Forest {
         copy.add(statement);
       }
     }
-    return new BlockJudgment(openBrace, copy ?? statements, closeBrace)
+    return new BlockJudgment(copy ?? statements)
       ..fileOffset = offsetForToken(openBrace);
   }
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new BreakJudgment(breakKeyword, null, semicolon)
-      ..fileOffset = breakKeyword.charOffset;
+    return new BreakJudgment(null)..fileOffset = breakKeyword.charOffset;
   }
 
   @override
@@ -369,10 +348,7 @@ class Fangorn extends Forest {
       VariableDeclaration stackTraceParameter,
       DartType stackTraceType,
       Statement body) {
-    exceptionType ??= const DynamicType();
-    // TODO(brianwilkerson) Get the left and right parentheses and the comma.
-    return new CatchJudgment(
-        onKeyword, catchKeyword, null, exceptionParameter, null, null, body,
+    return new CatchJudgment(exceptionParameter, body,
         guard: exceptionType, stackTrace: stackTraceParameter)
       ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
   }
@@ -380,34 +356,30 @@ class Fangorn extends Forest {
   @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
-    return new ConditionalJudgment(
-        condition, question, thenExpression, colon, elseExpression)
+    return new ConditionalExpression(
+        condition, thenExpression, elseExpression, null)
       ..fileOffset = offsetForToken(question);
   }
 
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ContinueJudgment(continueKeyword, null, semicolon)
-      ..fileOffset = continueKeyword.charOffset;
+    return new ContinueJudgment(null)..fileOffset = continueKeyword.charOffset;
   }
 
   @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
       Expression condition, Token semicolon) {
-    // TODO(brianwilkerson): Plumb through the left-and right parentheses.
-    return new DoJudgment(
-        doKeyword, body, whileKeyword, null, condition, null, semicolon)
-      ..fileOffset = doKeyword.charOffset;
+    return new DoJudgment(body, condition)..fileOffset = doKeyword.charOffset;
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {
-    return new ExpressionStatementJudgment(expression, semicolon);
+    return new ExpressionStatementJudgment(expression);
   }
 
   @override
   Statement emptyStatement(Token semicolon) {
-    return new EmptyStatementJudgment(semicolon);
+    return new EmptyStatementJudgment();
   }
 
   @override
@@ -422,44 +394,27 @@ class Fangorn extends Forest {
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
-    // TODO(brianwilkerson): Plumb through the right separator.
     return new ForJudgment(
-        forKeyword,
-        leftParenthesis,
-        variableList,
-        initializers,
-        leftSeparator,
-        condition,
-        null,
-        updaters,
-        leftParenthesis.endGroup,
-        body)
+        variableList, initializers, condition, updaters, body)
       ..fileOffset = forKeyword.charOffset;
   }
 
   @override
   Statement ifStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    // TODO(brianwilkerson) Plumb through the left and right parentheses.
-    return new IfJudgment(ifKeyword, null, condition, null, thenStatement,
-        elseKeyword, elseStatement)
+    return new IfJudgment(condition, thenStatement, elseStatement)
       ..fileOffset = ifKeyword.charOffset;
   }
 
   @override
   Expression isExpression(
-      Expression operand, isOperator, Token notOperator, covariant type) {
-    int offset = offsetForToken(isOperator);
+      Expression operand, Token isOperator, Token notOperator, DartType type) {
+    Expression result = new IsExpression(operand, type)
+      ..fileOffset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new IsNotJudgment(operand, isOperator, notOperator, type, offset)
-        ..fileOffset = offset;
+      result = notExpression(result, notOperator, false);
     }
-    return new IsJudgment(operand, isOperator, type)..fileOffset = offset;
-  }
-
-  @override
-  Label label(Token identifier, Token colon) {
-    return new Label(identifier.lexeme, identifier.charOffset);
+    return result;
   }
 
   @override
@@ -469,14 +424,14 @@ class Fangorn extends Forest {
   @override
   Expression logicalExpression(
       Expression leftOperand, Token operator, Expression rightOperand) {
-    return new LogicalJudgment(leftOperand, operator, rightOperand)
+    return new LogicalExpression(
+        leftOperand, operator.stringValue, rightOperand)
       ..fileOffset = offsetForToken(operator);
   }
 
   @override
   Expression notExpression(Expression operand, Token token, bool isSynthetic) {
-    return new NotJudgment(isSynthetic, token, operand)
-      ..fileOffset = offsetForToken(token);
+    return new Not(operand)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -488,22 +443,20 @@ class Fangorn extends Forest {
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ExpressionStatementJudgment(
-        new RethrowJudgment(rethrowKeyword)
-          ..fileOffset = offsetForToken(rethrowKeyword),
-        semicolon);
+        new Rethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
   @override
   Statement returnStatement(
       Token returnKeyword, Expression expression, Token semicolon) {
-    return new ReturnJudgment(returnKeyword, semicolon, expression)
+    return new ReturnJudgment(returnKeyword?.lexeme, expression)
       ..fileOffset = returnKeyword.charOffset;
   }
 
   @override
   Expression stringConcatenationExpression(
       List<Expression> expressions, Token token) {
-    return new StringConcatenationJudgment(expressions)
+    return new StringConcatenation(expressions)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -514,21 +467,22 @@ class Fangorn extends Forest {
 
   @override
   Expression thisExpression(Token token) {
-    return new ThisJudgment(token)..fileOffset = offsetForToken(token);
+    return new ThisExpression()..fileOffset = offsetForToken(token);
   }
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) {
-    return new ThrowJudgment(throwKeyword, expression)
-      ..fileOffset = offsetForToken(throwKeyword);
+    return new Throw(expression)..fileOffset = offsetForToken(throwKeyword);
   }
+
+  @override
+  bool isThrow(Object o) => o is Throw;
 
   @override
   Statement tryStatement(Token tryKeyword, Statement body,
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
     if (finallyBlock != null) {
-      return new TryFinallyJudgment(
-          tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+      return new TryFinallyJudgment(body, catchClauses, finallyBlock);
     }
     return new TryCatchJudgment(body, catchClauses ?? const <CatchJudgment>[]);
   }
@@ -548,10 +502,11 @@ class Fangorn extends Forest {
   @override
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new BlockJudgment(null, statement.declarations, null)
+      return new BlockJudgment(
+          new List<Statement>.from(statement.declarations, growable: true))
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
-      return new BlockJudgment(null, <Statement>[statement], null)
+      return new BlockJudgment(<Statement>[statement])
         ..fileOffset = statement.fileOffset;
     } else {
       return statement;
@@ -561,32 +516,20 @@ class Fangorn extends Forest {
   @override
   Statement whileStatement(
       Token whileKeyword, Expression condition, Statement body) {
-    // TODO(brianwilkerson) Plumb through the left and right parentheses.
-    return new WhileJudgment(whileKeyword, null, condition, null, body)
+    return new WhileJudgment(condition, body)
       ..fileOffset = whileKeyword.charOffset;
   }
 
   @override
   Statement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
-    return new YieldJudgment(yieldKeyword, star, expression, semicolon)
+    return new YieldJudgment(star != null, expression)
       ..fileOffset = yieldKeyword.charOffset;
   }
 
   @override
   Expression getExpressionFromExpressionStatement(Statement statement) {
     return (statement as ExpressionStatement).expression;
-  }
-
-  @override
-  String getLabelName(Label label) => label.name;
-
-  @override
-  int getLabelOffset(Label label) => label.charOffset;
-
-  @override
-  String getVariableDeclarationName(VariableDeclaration declaration) {
-    return declaration.name;
   }
 
   @override
@@ -621,34 +564,10 @@ class Fangorn extends Forest {
       statement is ExpressionStatement;
 
   @override
-  bool isLabel(covariant node) => node is Label;
-
-  @override
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
   bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
-
-  @override
-  void resolveBreak(LabeledStatement target, BreakStatement user) {
-    user.target = target;
-  }
-
-  @override
-  void resolveContinue(LabeledStatement target, BreakStatement user) {
-    user.target = target;
-  }
-
-  @override
-  void resolveContinueInSwitch(
-      SwitchCase target, ContinueSwitchStatement user) {
-    user.target = target;
-  }
-
-  @override
-  void setParameterType(VariableDeclaration parameter, DartType type) {
-    parameter.type = type ?? const DynamicType();
-  }
 
   @override
   KernelVariableUseGenerator variableUseGenerator(
@@ -789,12 +708,6 @@ class Fangorn extends Forest {
   }
 
   @override
-  KernelLargeIntAccessGenerator largeIntAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token) {
-    return new KernelLargeIntAccessGenerator(helper, token);
-  }
-
-  @override
   KernelUnresolvedNameGenerator unresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
     return new KernelUnresolvedNameGenerator(helper, token, name);
@@ -843,6 +756,12 @@ class Fangorn extends Forest {
     return new KernelUnexpectedQualifiedUseGenerator(
         helper, token, prefixGenerator, isUnresolved);
   }
+
+  @override
+  KernelParserErrorGenerator parserErrorGenerator(
+      ExpressionGeneratorHelper helper, Token token, Message message) {
+    return new KernelParserErrorGenerator(helper, token, message);
+  }
 }
 
 class _VariablesDeclaration extends Statement {
@@ -872,15 +791,4 @@ class _VariablesDeclaration extends Statement {
   transformChildren(v) {
     unsupported("transformChildren", fileOffset, uri);
   }
-}
-
-/// A data holder used to hold the information about a label that is pushed on
-/// the stack.
-class Label {
-  String name;
-  int charOffset;
-
-  Label(this.name, this.charOffset);
-
-  String toString() => "label($name)";
 }

@@ -49,8 +49,44 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
   ((sizeof(array) / sizeof(*(array))) /                                        \
    static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
 
+#if defined(PRODUCT) && defined(DEBUG)
+#error Both PRODUCT and DEBUG defined.
+#endif  // defined(PRODUCT) && defined(DEBUG)
+
+#if defined(PRODUCT)
+#define NOT_IN_PRODUCT(code)
+#else  // defined(PRODUCT)
+#define NOT_IN_PRODUCT(code) code
+#endif  // defined(PRODUCT)
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+#error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+#error DART_PRECOMPILED_RUNTIME and DART_NOSNAPSHOT are mutually exclusive
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define NOT_IN_PRECOMPILED(code)
+#else
+#define NOT_IN_PRECOMPILED(code) code
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #if defined(ARCH_IS_64_BIT)
 #define HASH_IN_OBJECT_HEADER 1
+#endif
+
+// For checking deterministic graph generation, we can store instruction
+// tag in the ICData and check it when recreating the flow graph in
+// optimizing compiler. Enable it for other modes (product, release) if needed
+// for debugging.
+#if defined(DEBUG)
+#define TAG_IC_DATA
+#endif
+
+#if !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_ANDROID)
+#define CONCURRENT_MARKING 1
 #endif
 
 // The expression OFFSET_OF(type, field) computes the byte-offset of

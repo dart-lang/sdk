@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 class Base {
   int i, j;
   Base.ctor(int this.i
-            , {int this.j: 10} //   //# 01: compile-time error
+            , {int this.j: 10} //   //# 01: ok
       ) {
     if (j == null) {
       j = 10;
@@ -24,12 +24,12 @@ abstract class M {
 
 class C extends Base with M {
   int l = 131;
-  C.foo() : super.ctor(1, j: 13); //# 01: compile-time error
+  C.foo() : super.ctor(1, j: 13); //# 01: continued
   C.bar() : super.ctor(1);
 }
 
 main() {
-  C c1 = new C.foo(); //            //# 01: compile-time error
+  C c1 = new C.foo(); //            //# 01: continued
   C c2 = new C.bar();
   Expect.equals(1, c2.i);
   Expect.equals(10, c2.j);

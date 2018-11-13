@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -153,6 +153,9 @@ abstract class IntegrationTestMixin {
    *
    *   The current status of pub execution, indicating whether we are currently
    *   running pub.
+   *
+   *   Note: this status type is deprecated, and is no longer sent by the
+   *   server.
    */
   Stream<ServerStatusParams> onServerStatus;
 
@@ -392,6 +395,7 @@ abstract class IntegrationTestMixin {
    *   reachable from a given file, clients can check for its presence in the
    *   resulting key set.
    */
+  @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
     var params = new AnalysisGetReachableSourcesParams(file).toJson();
@@ -399,6 +403,60 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new AnalysisGetReachableSourcesResult.fromJson(
         decoder, 'result', result);
+  }
+
+  /**
+   * Return the signature information associated with the given location in the
+   * given file. If the signature information for the given file has not yet
+   * been computed, or the most recently computed signature information for the
+   * given file is out of date, then the response for this request will be
+   * delayed until it has been computed. If a request is made for a file which
+   * does not exist, or which is not currently subject to analysis (e.g.
+   * because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_SIGNATURE_INVALID_FILE
+   * will be generated. If the location given is not inside the argument list
+   * for a function (including method and constructor) invocation, then an
+   * error of type GET_SIGNATURE_INVALID_OFFSET will be generated. If the
+   * location is inside an argument list but the function is not defined or
+   * cannot be determined (such as a method invocation where the target has
+   * type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will
+   * be generated.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file in which signature information is being requested.
+   *
+   * offset: int
+   *
+   *   The location for which signature information is being requested.
+   *
+   * Returns
+   *
+   * name: String
+   *
+   *   The name of the function being invoked at the given offset.
+   *
+   * parameters: List<ParameterInfo>
+   *
+   *   A list of information about each of the parameters of the function being
+   *   invoked.
+   *
+   * dartdoc: String (optional)
+   *
+   *   The dartdoc associated with the function being invoked. Other than the
+   *   removal of the comment delimiters, including leading asterisks in the
+   *   case of a block comment, the dartdoc is unprocessed markdown. This data
+   *   is omitted if there is no referenced element, or if the element has no
+   *   dartdoc.
+   */
+  Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
+      String file, int offset) async {
+    var params = new AnalysisGetSignatureParams(file, offset).toJson();
+    var result = await server.send("analysis.getSignature", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetSignatureResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1438,6 +1496,54 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Analyze the specified sources for recommended changes and return a set of
+   * suggested edits for those sources. These edits may include changes to
+   * sources outside the set of specified sources if a change in a specified
+   * source requires it.
+   *
+   * Parameters
+   *
+   * included: List<FilePath>
+   *
+   *   A list of the files and directories for which edits should be suggested.
+   *
+   *   If a request is made with a path that is invalid, e.g. is not absolute
+   *   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+   *   generated. If a request is made for a file which does not exist, or
+   *   which is not currently subject to analysis (e.g. because it is not
+   *   associated with any analysis root specified to
+   *   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
+   *   generated.
+   *
+   * Returns
+   *
+   * suggestions: List<DartFixSuggestion>
+   *
+   *   A list of recommended changes that can be automatically made by applying
+   *   the 'edits' included in this response.
+   *
+   * otherSuggestions: List<DartFixSuggestion>
+   *
+   *   A list of recommended changes that could not be automatically made.
+   *
+   * hasErrors: bool
+   *
+   *   True if the analyzed source contains errors that might impact the
+   *   correctness of the recommended changes that can be automatically
+   *   applied.
+   *
+   * edits: List<SourceFileEdit>
+   *
+   *   A list of source edits to apply the recommended changes.
+   */
+  Future<EditDartfixResult> sendEditDartfix(List<String> included) async {
+    var params = new EditDartfixParams(included).toJson();
+    var result = await server.send("edit.dartfix", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditDartfixResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Return the set of fixes that are available for the errors at a given
    * offset in a given file.
    *
@@ -1706,13 +1812,14 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * edit: SourceFileEdit
+   * edit: SourceFileEdit (optional)
    *
    *   The edits to be applied in order to make the specified elements
    *   accessible. The file to be edited will be the defining compilation unit
    *   of the library containing the file specified in the request, which can
    *   be different than the file specified in the request if the specified
-   *   file is a part file.
+   *   file is a part file. This field will be omitted if there are no edits
+   *   that need to be applied.
    */
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements) async {

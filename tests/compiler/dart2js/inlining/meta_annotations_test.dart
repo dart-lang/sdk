@@ -7,9 +7,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/world.dart' show KClosedWorld;
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""
@@ -39,12 +38,8 @@ main() {
     Compiler compiler = result.compiler;
     KClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
-    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
-    Expect.isNotNull(closedWorld.commonElements.metaNoInlineClass,
-        'NoInlineClass is unresolved.');
-    Expect.isNotNull(closedWorld.commonElements.metaTryInlineClass,
-        'TryInlineClass is unresolved.');
 
     void test(String name,
         {bool expectNoInline: false, bool expectTryInline: false}) {
@@ -54,13 +49,11 @@ main() {
       Expect.isNotNull(method);
       Expect.equals(
           expectNoInline,
-          optimizerHints.noInline(closedWorld.elementEnvironment,
-              closedWorld.commonElements, method),
+          closedWorld.annotationsData.nonInlinableFunctions.contains(method),
           "Unexpected annotation of @noInline on '$method'.");
       Expect.equals(
           expectTryInline,
-          optimizerHints.tryInline(closedWorld.elementEnvironment,
-              closedWorld.commonElements, method),
+          closedWorld.annotationsData.tryInlineFunctions.contains(method),
           "Unexpected annotation of @tryInline on '$method'.");
     }
 

@@ -4,14 +4,23 @@
 
 library dart2js.world;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
+import 'closure.dart';
 import 'common.dart';
 import 'common/names.dart';
-import 'common_elements.dart' show CommonElements, ElementEnvironment;
+import 'common_elements.dart'
+    show
+        JCommonElements,
+        JElementEnvironment,
+        KCommonElements,
+        KElementEnvironment;
 import 'constants/constant_system.dart';
+import 'deferred_load.dart';
+import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'js_backend/annotations.dart';
 import 'js_backend/allocator_analysis.dart'
     show JAllocatorAnalysis, KAllocatorAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
@@ -20,8 +29,10 @@ import 'js_backend/native_data.dart' show NativeData;
 import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types.dart'
     show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
+import 'js_model/locals.dart';
 import 'ordered_typeset.dart';
 import 'options.dart';
+import 'js_emitter/sorter.dart';
 import 'types/abstract_value_domain.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/class_set.dart';
@@ -50,11 +61,11 @@ abstract class JClosedWorld implements World {
 
   InterceptorData get interceptorData;
 
-  ElementEnvironment get elementEnvironment;
+  JElementEnvironment get elementEnvironment;
 
   DartTypes get dartTypes;
 
-  CommonElements get commonElements;
+  JCommonElements get commonElements;
 
   /// Returns the [AbstractValueDomain] used in the global type inference.
   AbstractValueDomain get abstractValueDomain;
@@ -70,6 +81,16 @@ abstract class JClosedWorld implements World {
   Iterable<MemberEntity> get processedMembers;
 
   ClassHierarchy get classHierarchy;
+
+  AnnotationsData get annotationsData;
+
+  GlobalLocalsMap get globalLocalsMap;
+  ClosureData get closureDataLookup;
+
+  OutputUnitData get outputUnitData;
+
+  /// The [Sorter] used for sorting elements in the generated code.
+  Sorter get sorter;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
@@ -161,11 +182,6 @@ abstract class JClosedWorld implements World {
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
 
-  /// Extends the [receiver] type for calling [selector] to take live
-  /// `noSuchMethod` handlers into account.
-  AbstractValue extendMaskIfReachesAll(
-      Selector selector, AbstractValue receiver);
-
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure`.
   ///
@@ -203,7 +219,7 @@ abstract class JClosedWorld implements World {
 abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
 
-  KClosedWorld closeWorld();
+  KClosedWorld closeWorld(DiagnosticReporter reporter);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
@@ -238,18 +254,15 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
-  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
-  final Map<ClassEntity, ClassSet> _classSets;
-
   final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
       <ClassEntity, Map<ClassEntity, bool>>{};
 
-  final ElementEnvironment elementEnvironment;
+  final JElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
-  final CommonElements commonElements;
+  final JCommonElements commonElements;
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
-  final Set<ClassEntity> _implementedClasses;
+  final Set<ClassEntity> implementedClasses;
 
   final Iterable<MemberEntity> liveInstanceMembers;
 
@@ -271,21 +284,14 @@ abstract class ClosedWorldBase implements JClosedWorld {
       this.interceptorData,
       this.backendUsage,
       this.noSuchMethodData,
-      Set<ClassEntity> implementedClasses,
+      this.implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
       this.mixinUses,
       this.typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets,
-      AbstractValueStrategy abstractValueStrategy)
-      : this._implementedClasses = implementedClasses,
-        this._classHierarchyNodes = classHierarchyNodes,
-        this._classSets = classSets,
-        classHierarchy = new ClassHierarchyImpl(
-            commonElements, classHierarchyNodes, classSets) {}
+      this.classHierarchy);
 
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
@@ -301,7 +307,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
-    return _implementedClasses.contains(cls);
+    return implementedClasses.contains(cls);
   }
 
   @override
@@ -309,7 +315,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
     if (nativeData.isJsInteropClass(cls)) {
       return commonElements.jsJavaScriptObjectClass;
     }
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
+    ClassHierarchyNode hierarchy = classHierarchy.getClassHierarchyNode(cls);
     return hierarchy != null
         ? hierarchy.getLubOfInstantiatedSubclasses()
         : null;
@@ -320,7 +326,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
     if (nativeData.isJsInteropClass(cls)) {
       return commonElements.jsJavaScriptObjectClass;
     }
-    ClassSet classSet = _classSets[cls];
+    ClassSet classSet = classHierarchy.getClassSet(cls);
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
@@ -392,7 +398,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
       return result == IterationStep.STOP;
     }
 
-    ClassSet classSet = getClassSet(base);
+    ClassSet classSet = classHierarchy.getClassSet(base);
     assert(classSet != null, failedAt(base, "No class set for $base."));
     ClassHierarchyNode node = classSet.node;
     if (query == ClassQuery.EXACT) {
@@ -496,24 +502,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return false;
   }
 
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    return _classHierarchyNodes[cls];
-  }
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls) {
-    return _classSets[cls];
-  }
-
   void _ensureFunctionSet() {
     if (_allFunctions == null) {
       // [FunctionSet] is created lazily because it is not used when we switch
@@ -570,16 +558,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return abstractValueDomain.locateSingleMember(receiver, selector);
   }
 
-  AbstractValue extendMaskIfReachesAll(
-      Selector selector, AbstractValue receiver) {
-    bool canReachAll = true;
-    if (receiver != null) {
-      canReachAll = backendUsage.isInvokeOnUsed &&
-          abstractValueDomain.needsNoSuchMethodHandling(receiver, selector);
-    }
-    return canReachAll ? abstractValueDomain.dynamicType : receiver;
-  }
-
   bool fieldNeverChanges(MemberEntity element) {
     if (!element.isField) return false;
     if (nativeData.isNativeMember(element)) {
@@ -597,16 +575,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
       return !assignedInstanceMembers.contains(element);
     }
     return false;
-  }
-
-  /// Should only be called by subclasses.
-  void addClassHierarchyNode(ClassEntity cls, ClassHierarchyNode node) {
-    _classHierarchyNodes[cls] = node;
-  }
-
-  /// Should only be called by subclasses.
-  void addClassSet(ClassEntity cls, ClassSet classSet) {
-    _classSets[cls] = classSet;
   }
 }
 
@@ -628,8 +596,8 @@ abstract class KClosedWorld {
   BackendUsage get backendUsage;
   NativeData get nativeData;
   InterceptorData get interceptorData;
-  ElementEnvironment get elementEnvironment;
-  CommonElements get commonElements;
+  KElementEnvironment get elementEnvironment;
+  KCommonElements get commonElements;
   ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
@@ -646,4 +614,6 @@ abstract class KClosedWorld {
   Iterable<MemberEntity> get processedMembers;
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
+
+  AnnotationsData get annotationsData;
 }

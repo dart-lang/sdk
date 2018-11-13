@@ -25,7 +25,7 @@ class AbstractValueFactory {
 
   static AbstractValue inferredTypeForParameter(
       Local element, GlobalTypeInferenceResults results) {
-    return results.resultOfParameter(element).type ??
+    return results.resultOfParameter(element) ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
@@ -64,7 +64,8 @@ class AbstractValueFactory {
 
     AbstractValue result =
         abstractValueDomain.unionOfMany(typesReturned.map(fromNativeType));
-    assert(!abstractValueDomain.isEmpty(result));
+    assert(!abstractValueDomain.isEmpty(result),
+        "Unexpected empty return value for $nativeBehavior.");
     return result;
   }
 }

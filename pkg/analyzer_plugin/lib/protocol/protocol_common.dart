@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This file has been automatically generated.  Please do not edit it manually.
+// This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
@@ -1697,15 +1697,10 @@ class Element implements HasToJson {
   }
 
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
-
   bool get isConst => (flags & FLAG_CONST) != 0;
-
   bool get isFinal => (flags & FLAG_FINAL) != 0;
-
   bool get isStatic => (flags & FLAG_STATIC) != 0;
-
   bool get isPrivate => (flags & FLAG_PRIVATE) != 0;
-
   bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   @override
@@ -1781,6 +1776,7 @@ class Element implements HasToJson {
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
+ *   MIXIN
  *   PARAMETER
  *   PREFIX
  *   SETTER
@@ -1834,6 +1830,8 @@ class ElementKind implements Enum {
 
   static const ElementKind METHOD = const ElementKind._("METHOD");
 
+  static const ElementKind MIXIN = const ElementKind._("MIXIN");
+
   static const ElementKind PARAMETER = const ElementKind._("PARAMETER");
 
   static const ElementKind PREFIX = const ElementKind._("PREFIX");
@@ -1875,6 +1873,7 @@ class ElementKind implements Enum {
     LIBRARY,
     LOCAL_VARIABLE,
     METHOD,
+    MIXIN,
     PARAMETER,
     PREFIX,
     SETTER,
@@ -1926,6 +1925,8 @@ class ElementKind implements Enum {
         return LOCAL_VARIABLE;
       case "METHOD":
         return METHOD;
+      case "MIXIN":
+        return MIXIN;
       case "PARAMETER":
         return PARAMETER;
       case "PREFIX":
@@ -4581,6 +4582,232 @@ class Outline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
+}
+
+/**
+ * ParameterInfo
+ *
+ * {
+ *   "kind": ParameterKind
+ *   "name": String
+ *   "type": String
+ *   "defaultValue": optional String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ParameterInfo implements HasToJson {
+  ParameterKind _kind;
+
+  String _name;
+
+  String _type;
+
+  String _defaultValue;
+
+  /**
+   * The kind of the parameter.
+   */
+  ParameterKind get kind => _kind;
+
+  /**
+   * The kind of the parameter.
+   */
+  void set kind(ParameterKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The name of the parameter.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the parameter.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The type of the parameter.
+   */
+  String get type => _type;
+
+  /**
+   * The type of the parameter.
+   */
+  void set type(String value) {
+    assert(value != null);
+    this._type = value;
+  }
+
+  /**
+   * The default value for this parameter. This value will be omitted if the
+   * parameter does not have a default value.
+   */
+  String get defaultValue => _defaultValue;
+
+  /**
+   * The default value for this parameter. This value will be omitted if the
+   * parameter does not have a default value.
+   */
+  void set defaultValue(String value) {
+    this._defaultValue = value;
+  }
+
+  ParameterInfo(ParameterKind kind, String name, String type,
+      {String defaultValue}) {
+    this.kind = kind;
+    this.name = name;
+    this.type = type;
+    this.defaultValue = defaultValue;
+  }
+
+  factory ParameterInfo.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      ParameterKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ParameterKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      String type;
+      if (json.containsKey("type")) {
+        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "type");
+      }
+      String defaultValue;
+      if (json.containsKey("defaultValue")) {
+        defaultValue = jsonDecoder.decodeString(
+            jsonPath + ".defaultValue", json["defaultValue"]);
+      }
+      return new ParameterInfo(kind, name, type, defaultValue: defaultValue);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ParameterInfo", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["kind"] = kind.toJson();
+    result["name"] = name;
+    result["type"] = type;
+    if (defaultValue != null) {
+      result["defaultValue"] = defaultValue;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ParameterInfo) {
+      return kind == other.kind &&
+          name == other.name &&
+          type == other.type &&
+          defaultValue == other.defaultValue;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultValue.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ParameterKind
+ *
+ * enum {
+ *   NAMED
+ *   OPTIONAL
+ *   REQUIRED
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ParameterKind implements Enum {
+  /**
+   * A named parameter.
+   */
+  static const ParameterKind NAMED = const ParameterKind._("NAMED");
+
+  /**
+   * An optional parameter.
+   */
+  static const ParameterKind OPTIONAL = const ParameterKind._("OPTIONAL");
+
+  /**
+   * A required parameter.
+   */
+  static const ParameterKind REQUIRED = const ParameterKind._("REQUIRED");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ParameterKind> VALUES = const <ParameterKind>[
+    NAMED,
+    OPTIONAL,
+    REQUIRED
+  ];
+
+  @override
+  final String name;
+
+  const ParameterKind._(this.name);
+
+  factory ParameterKind(String name) {
+    switch (name) {
+      case "NAMED":
+        return NAMED;
+      case "OPTIONAL":
+        return OPTIONAL;
+      case "REQUIRED":
+        return REQUIRED;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory ParameterKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new ParameterKind(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "ParameterKind", json);
+  }
+
+  @override
+  String toString() => "ParameterKind.$name";
+
+  String toJson() => name;
 }
 
 /**

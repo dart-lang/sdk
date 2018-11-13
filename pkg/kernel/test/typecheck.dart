@@ -27,7 +27,7 @@ main(List<String> args) {
 
 class TestTypeChecker extends TypeChecker {
   TestTypeChecker(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : super(coreTypes, hierarchy);
+      : super(coreTypes, hierarchy, legacyMode: true);
 
   @override
   void checkAssignable(TreeNode where, DartType from, DartType to) {

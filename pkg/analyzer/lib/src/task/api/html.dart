@@ -24,4 +24,4 @@ final ListResultDescriptor<AnalysisError> HTML_ERRORS =
  * The sources of the Dart libraries referenced by an HTML file.
  */
 final ListResultDescriptor<Source> REFERENCED_LIBRARIES =
-    new ListResultDescriptor<Source>('REFERENCED_LIBRARIES', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('REFERENCED_LIBRARIES', const <Source>[]);

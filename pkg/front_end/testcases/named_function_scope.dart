@@ -58,8 +58,8 @@ test() {
     // the function-type scope.
     var x =
         /*@error=NamedFunctionExpression*/
-        /*@error=DuplicatedName*/
-        T< /*@context=DuplicatedNameCause*/ T>() {};
+        /*@error=DuplicatedDeclaration*/
+        T< /*@context=DuplicatedDeclarationCause*/ T>() {};
   }
   {
     /*@context=DuplicatedNamePreviouslyUsedCause*/

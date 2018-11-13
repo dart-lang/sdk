@@ -18,18 +18,15 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
  */
 class Fix {
   /**
-   * An empty list of fixes.
-   */
-  static const List<Fix> EMPTY_LIST = const <Fix>[];
-
-  /**
    * A comparator that can be used to sort fixes by their relevance. The most
    * relevant fixes will be sorted before fixes with a lower relevance. Fixes
    * with the same relevance are sorted alphabetically.
    */
   static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix a, Fix b) {
     if (a.kind.priority != b.kind.priority) {
-      return a.kind.priority - b.kind.priority;
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
     }
     return a.change.message.compareTo(b.change.message);
   };

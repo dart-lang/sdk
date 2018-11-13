@@ -199,7 +199,7 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
   return false;
 }
 
-void Timeline::InitOnce() {
+void Timeline::Init() {
   ASSERT(recorder_ == NULL);
   recorder_ = CreateTimelineRecorder();
   ASSERT(recorder_ != NULL);
@@ -231,7 +231,7 @@ void Timeline::StreamStateChange(const char* stream_name,
   }
 }
 
-void Timeline::Shutdown() {
+void Timeline::Cleanup() {
   ASSERT(recorder_ != NULL);
 
   if (Timeline::stream_Embedder_.enabled() &&

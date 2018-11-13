@@ -14,12 +14,12 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationClosingLabelsTest);
+    defineReflectiveTests(AnalysisNotificationClosingLabelsTest);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
+class AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
   static const sampleCode = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(

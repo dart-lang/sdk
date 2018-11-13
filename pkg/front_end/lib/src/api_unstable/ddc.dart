@@ -4,19 +4,46 @@
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/kernel.dart' show Component;
+
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart';
-import 'compiler_state.dart';
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
-export 'compiler_state.dart';
+import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
-export '../api_prototype/compilation_message.dart';
+import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../kernel_generator_impl.dart' show generateKernel;
+
+import 'compiler_state.dart' show InitializedCompilerState;
+
+export '../api_prototype/compiler_options.dart' show CompilerOptions;
+
+export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../api_prototype/kernel_generator.dart' show kernelForComponent;
+
+export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
+export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
+
+export '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
+export '../fasta/kernel/redirecting_factory_body.dart'
+    show RedirectingFactoryBody;
+
+export '../fasta/severity.dart' show Severity;
+
+export '../fasta/type_inference/type_schema_environment.dart'
+    show TypeSchemaEnvironment;
+
+export 'compiler_state.dart' show InitializedCompilerState;
 
 class DdcResult {
   final Component component;
@@ -65,18 +92,17 @@ Future<InitializedCompilerState> initializeCompiler(
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
     ..target = target
-    ..fileSystem = fileSystem ?? StandardFileSystem.instance
-    ..reportMessages = true;
+    ..fileSystem = fileSystem ?? StandardFileSystem.instance;
 
-  ProcessedOptions processedOpts = new ProcessedOptions(options, []);
+  ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
   return new InitializedCompilerState(options, processedOpts);
 }
 
 Future<DdcResult> compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, ErrorHandler errorHandler) async {
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
   CompilerOptions options = compilerState.options;
-  options..onError = errorHandler;
+  options..onDiagnostic = diagnosticMessageHandler;
 
   ProcessedOptions processedOpts = compilerState.processedOpts;
   processedOpts.inputs.clear();

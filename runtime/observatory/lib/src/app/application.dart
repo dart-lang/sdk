@@ -65,7 +65,7 @@ class ObservatoryApplication {
       // On disconnect:
       newVM.onDisconnect.then((String reason) {
         if (this.vm != newVM) {
-          // This disconnect event occured *after* a new VM was installed.
+          // This disconnect event occurred *after* a new VM was installed.
           return;
         }
         // Let anyone looking at the targets know that we have disconnected

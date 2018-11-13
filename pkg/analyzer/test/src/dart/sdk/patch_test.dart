@@ -721,8 +721,8 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       };
       File file = provider.newFile(_p('/sdk/lib/test/test.dart'), '');
       Source source = file.createSource(Uri.parse('dart:test'));
-      CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(provider, true, patchPaths, listener, source, unit);
+      CompilationUnit unit = SdkPatcher.parse(source, listener);
+      patcher.patch(provider, patchPaths, listener, source, unit);
     }, throwsArgumentError);
   }
 
@@ -756,8 +756,8 @@ int newFunction() => 2;
     _createSdk();
 
     Source source = file.createSource(Uri.parse('dart:_internal'));
-    CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-    patcher.patch(provider, true, patchPaths, listener, source, unit);
+    CompilationUnit unit = SdkPatcher.parse(source, listener);
+    patcher.patch(provider, patchPaths, listener, source, unit);
     _assertUnitCode(
         unit,
         'library dart._internal; class A {} '
@@ -808,8 +808,8 @@ class _C {}
     {
       Uri uri = Uri.parse('dart:test');
       Source source = fileLib.createSource(uri);
-      CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(provider, true, patchPaths, listener, source, unit);
+      CompilationUnit unit = SdkPatcher.parse(source, listener);
+      patcher.patch(provider, patchPaths, listener, source, unit);
       _assertUnitCode(
           unit,
           "library test; part 'test_part.dart'; import 'foo.dart'; "
@@ -819,8 +819,8 @@ class _C {}
     {
       Uri uri = Uri.parse('dart:test/test_part.dart');
       Source source = filePart.createSource(uri);
-      CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(provider, true, patchPaths, listener, source, unit);
+      CompilationUnit unit = SdkPatcher.parse(source, listener);
+      patcher.patch(provider, patchPaths, listener, source, unit);
       _assertUnitCode(unit, "part of test; class B {int _b() => 1;}");
     }
   }
@@ -1072,8 +1072,8 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     _createSdk();
 
     Source source = file.createSource(Uri.parse('dart:test'));
-    CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-    patcher.patch(provider, true, patchPaths, listener, source, unit);
+    CompilationUnit unit = SdkPatcher.parse(source, listener);
+    patcher.patch(provider, patchPaths, listener, source, unit);
     return unit;
   }
 

@@ -4,24 +4,15 @@
 
 library front_end.compiler_options;
 
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../fasta/fasta_codes.dart' show FormattedMessage;
-import '../fasta/severity.dart' show Severity;
+import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
-import 'compilation_message.dart';
-import 'file_system.dart';
-import 'standard_file_system.dart';
+import 'file_system.dart' show FileSystem;
 
-export '../fasta/fasta_codes.dart' show FormattedMessage;
+import 'standard_file_system.dart' show StandardFileSystem;
 
-/// Callback used to report errors encountered during compilation.
-typedef void ErrorHandler(CompilationMessage error);
-
-typedef void ProblemHandler(FormattedMessage problem, Severity severity,
-    List<FormattedMessage> context);
+export 'diagnostic_message.dart' show DiagnosticMessage;
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -45,25 +36,7 @@ class CompilerOptions {
   /// `lib/libraries.json`.
   Uri librariesSpecificationUri;
 
-  /// Callback to which compilation errors should be delivered.
-  ///
-  /// By default, when no callback is provided, the compiler will report
-  /// messages on the console and will throw when fatal errors are discovered.
-  ErrorHandler onError;
-
-  ProblemHandler onProblem;
-
-  /// Whether messages should be reported using the compiler's internal
-  /// reporting mechanism.
-  ///
-  /// If no [onError] handler is provided, the default is true. If an [onError]
-  /// handler is provided, the default is false. Setting this to true will
-  /// ensure that error messages are printed in the console and that fatal
-  /// errors cause an exception.
-  // TODO(sigmund): add also an API for formatting errors and provide a default
-  // formatter. This way user can configure error style in the console and in
-  // generated code that contains error messages.
-  bool reportMessages;
+  DiagnosticMessageHandler onDiagnostic;
 
   /// URI of the ".packages" file (typically a "file:" URI).
   ///
@@ -119,12 +92,6 @@ class CompilerOptions {
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
 
-  /// The byte storage to access serialized data.
-  ByteStore byteStore = new NullByteStore();
-
-  /// The logger to report compilation progress.
-  PerformanceLog logger = new PerformanceLog(new StringBuffer());
-
   /// Whether to generate code for the SDK.
   ///
   /// By default the front end resolves components using a prebuilt SDK summary.
@@ -134,8 +101,8 @@ class CompilerOptions {
   @deprecated
   bool chaseDependencies;
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool strongMode = true;
+  /// True if enabling legacy mode (Dart 1 compatibility).
+  bool legacyMode = false;
 
   /// Patch files to apply on the core libraries for a specific target platform.
   ///
@@ -178,8 +145,7 @@ class CompilerOptions {
   /// Whether to run extra verification steps to validate that compiled
   /// components are well formed.
   ///
-  /// Errors are reported via the [onError] callback.
-  // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)
+  /// Errors are reported via the [onDiagnostic] callback.
   bool verify = false;
 
   /// Whether to dump generated components in a text format (also mainly for
@@ -212,4 +178,7 @@ class CompilerOptions {
   ///
   /// Typically used by developers to debug internals of the compiler.
   bool throwOnWarningsForDebugging = false;
+
+  /// Whether to generate bytecode.
+  bool bytecode = false;
 }

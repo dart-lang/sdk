@@ -21,10 +21,12 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -33,8 +35,6 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
@@ -42,7 +42,8 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
-export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
+export 'package:analyzer/src/generated/timestamped_data.dart'
+    show TimestampedData;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -93,6 +94,7 @@ abstract class AnalysisContext {
   /**
    * An empty list of contexts.
    */
+  @deprecated
   static const List<AnalysisContext> EMPTY_LIST = const <AnalysisContext>[];
 
   /**
@@ -103,8 +105,7 @@ abstract class AnalysisContext {
 
   /**
    * Return the set of analysis options controlling the behavior of this
-   * context. Clients should not modify the returned set of options. The options
-   * should only be set by invoking the method [setAnalysisOptions].
+   * context. Clients should not modify the returned set of options.
    */
   AnalysisOptions get analysisOptions;
 
@@ -1135,7 +1136,7 @@ class AnalysisNotScheduledError implements Exception {}
  */
 abstract class AnalysisOptions {
   /**
-   * The length of the list returned by [encodeCrossContextOptions].
+   * The length of the list returned by [signature].
    */
   static const int signatureLength = 4;
 
@@ -1224,6 +1225,7 @@ abstract class AnalysisOptions {
    * Return `true` if mixins are allowed to inherit from types other than
    * Object, and are allowed to reference `super`.
    */
+  @deprecated
   bool get enableSuperMixins;
 
   /**
@@ -1291,7 +1293,11 @@ abstract class AnalysisOptions {
 
   /**
    * Return `true` if analyzer should enable the use of Dart 2.0 features.
+   *
+   * This getter is deprecated, and is hard-coded to always return true.
    */
+  @Deprecated(
+      'This getter is deprecated and is hard-coded to always return true.')
   bool get previewDart2;
 
   /**
@@ -1304,10 +1310,10 @@ abstract class AnalysisOptions {
   /**
    * Return `true` if strong mode analysis should be used.
    *
-   * This field is deprecated, and is hard-coded to always return true.
+   * This getter is deprecated, and is hard-coded to always return true.
    */
   @Deprecated(
-      'This field is deprecated and is hard-coded to always return true.')
+      'This getter is deprecated and is hard-coded to always return true.')
   bool get strongMode;
 
   /**
@@ -1367,9 +1373,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int DEFAULT_CACHE_SIZE = 64;
 
   /**
-   * The default list of non-nullable type names.
+   * The length of the list returned by [unlinkedSignature].
    */
-  static const List<String> NONNULLABLE_TYPES = const <String>[];
+  static const int unlinkedSignatureLength = 4;
 
   /**
    * A predicate indicating whether analysis is to parse and analyze function
@@ -1377,6 +1383,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
       _analyzeAllFunctionBodies;
+
+  /**
+   * The cached [unlinkedSignature].
+   */
+  Uint32List _unlinkedSignature;
 
   /**
    * The cached [signature].
@@ -1403,9 +1414,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableLazyAssignmentOperators = false;
-
-  @override
-  bool enableSuperMixins = false;
 
   @override
   bool enableTiming = false;
@@ -1444,13 +1452,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  @override
-  bool get strongMode => true;
-
-  @Deprecated(
-      "The strongMode field is deprecated, and shouldn't be assigned to")
-  set strongMode(bool value) {}
-
   /**
    * A flag indicating whether strong-mode inference hints should be
    * used.  This flag is not exposed in the interface, and should be
@@ -1463,10 +1464,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool trackCacheDependencies = true;
 
   @override
-  bool useFastaParser = false;
-
-  @override
-  bool previewDart2 = true;
+  bool useFastaParser = true;
 
   @override
   bool disableCacheFlushing = false;
@@ -1480,12 +1478,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitCasts = true;
 
   /**
-   * A list of non-nullable type names, prefixed by the library URI they belong
-   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
-   */
-  List<String> nonnullableTypes = NONNULLABLE_TYPES;
-
-  /**
    * A flag indicating whether implicit dynamic type is allowed, on by default.
    *
    * This flag can be used without necessarily enabling [strongMode], but it is
@@ -1496,6 +1488,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * This option is experimental and subject to change.
    */
   bool implicitDynamic = true;
+
+  // A no-op setter.
+  /**
+   * Return `true` to enable mixin declarations.
+   * https://github.com/dart-lang/language/issues/12
+   */
+  bool isMixinSupportEnabled = false;
 
   /**
    * Initialize a newly created set of analysis options to have their default
@@ -1512,7 +1511,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enabledPluginNames = options.enabledPluginNames;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
@@ -1523,13 +1521,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lintRules = options.lintRules;
     preserveComments = options.preserveComments;
     useFastaParser = options.useFastaParser;
-    previewDart2 = options.previewDart2;
     if (options is AnalysisOptionsImpl) {
       declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
-      nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
+      isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1609,6 +1606,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   void set enableInitializingFormalAccess(bool enable) {}
 
+  @override
+  @deprecated
+  bool get enableSuperMixins => false;
+
+  @deprecated
+  void set enableSuperMixins(bool enable) {
+    // Ignored.
+  }
+
   @deprecated
   @override
   bool get enableUriInPartOf => true;
@@ -1651,6 +1657,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
+  bool get previewDart2 => true;
+
+  set previewDart2(bool value) {}
+
+  @override
   Uint32List get signature {
     if (_signature == null) {
       ApiSignature buffer = new ApiSignature();
@@ -1658,12 +1669,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       // Append boolean flags.
       buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
-      buffer.addBool(enableSuperMixins);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
       buffer.addBool(previewDart2);
+      buffer.addBool(isMixinSupportEnabled);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
@@ -1691,13 +1702,39 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
+  bool get strongMode => true;
+
+  @Deprecated(
+      "The strongMode field is deprecated, and shouldn't be assigned to")
+  set strongMode(bool value) {}
+
+  /**
+   * Return the opaque signature of the options that affect unlinked data.
+   *
+   * The length of the list is guaranteed to equal [unlinkedSignatureLength].
+   */
+  Uint32List get unlinkedSignature {
+    if (_unlinkedSignature == null) {
+      ApiSignature buffer = new ApiSignature();
+
+      // Append boolean flags.
+      buffer.addBool(enableLazyAssignmentOperators);
+      buffer.addBool(useFastaParser);
+
+      // Hash and convert to Uint32List.
+      List<int> bytes = buffer.toByteList();
+      _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
+    }
+    return _unlinkedSignature;
+  }
+
+  @override
   void resetToDefaults() {
     declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
-    enableSuperMixins = false;
     enableTiming = false;
     _errorProcessors = null;
     _excludePatterns = null;
@@ -1708,7 +1745,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     implicitDynamic = true;
     lint = false;
     _lintRules = null;
-    nonnullableTypes = NONNULLABLE_TYPES;
     patchPaths = {};
     preserveComments = true;
     strongModeHints = false;
@@ -1719,7 +1755,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableSuperMixins = options.enableSuperMixins;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -1971,6 +2006,7 @@ class ChangeNoticeImpl implements ChangeNotice {
   /**
    * An empty list of change notices.
    */
+  @deprecated
   static const List<ChangeNoticeImpl> EMPTY_LIST = const <ChangeNoticeImpl>[];
 
   /**
@@ -2660,14 +2696,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitAssignmentExpression(node);
   }
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitBinaryExpression(node);
   }
 
@@ -2716,7 +2750,6 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitExpression(Expression node) {
     node.staticType = null;
-    node.propagatedType = null;
     return super.visitExpression(node);
   }
 
@@ -2731,14 +2764,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitFunctionExpressionInvocation(node);
   }
 
   @override
   Object visitIndexExpression(IndexExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitIndexExpression(node);
   }
 
@@ -2751,14 +2782,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitPostfixExpression(PostfixExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitPostfixExpression(node);
   }
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitPrefixExpression(node);
   }
 
@@ -2774,7 +2803,6 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
     if (eraseDeclarations || !node.inDeclarationContext()) {
       node.staticElement = null;
     }
-    node.propagatedElement = null;
     return super.visitSimpleIdentifier(node);
   }
 

@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
     show
         Class,
         DartType,
+        DynamicType,
         Field,
         Library,
         ListLiteral,
@@ -19,7 +20,12 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         Typedef;
 
-import '../fasta_codes.dart' show templateUnspecified;
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateDuplicatedDeclaration,
+        templateTypeNotFound,
+        templateUnspecified;
 
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
@@ -67,14 +73,12 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   @override
   Library get target => library;
 
-  void becomeCoreLibrary(dynamicType) {
-    if (scope.local["dynamic"] == null) {
-      addBuilder(
-          "dynamic",
-          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
-              dynamicType, this, -1),
-          -1);
-    }
+  void addSyntheticDeclarationOfDynamic() {
+    addBuilder(
+        "dynamic",
+        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+            const DynamicType(), this, -1),
+        -1);
   }
 
   void addClass(Class cls) {
@@ -99,7 +103,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (name == "_exports#") {
       Field field = member;
       StringLiteral string = field.initializer;
-      unserializableExports = jsonDecode(string.value);
+      var json = jsonDecode(string.value);
+      unserializableExports =
+          json != null ? new Map<String, String>.from(json) : null;
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
@@ -146,7 +152,11 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     // mapping `k` to `d` is added to the exported namespace of `L` unless a
     // top-level declaration with the name `k` exists in `L`.
     if (builder.parent == this) return builder;
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
+    return new KernelInvalidTypeBuilder(
+        name,
+        templateDuplicatedDeclaration
+            .withArguments(name)
+            .withLocation(fileUri, charOffset, name.length));
   }
 
   @override
@@ -155,7 +165,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void finalizeExports() {
-    unserializableExports?.forEach((String name, String message) {
+    unserializableExports?.forEach((String name, String messageText) {
       Declaration declaration;
       switch (name) {
         case "dynamic":
@@ -166,13 +176,11 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
           break;
 
         default:
-          declaration = new KernelInvalidTypeBuilder(
-              name,
-              -1,
-              null,
-              message == null
-                  ? null
-                  : templateUnspecified.withArguments(message));
+          Message message = messageText == null
+              ? templateTypeNotFound.withArguments(name)
+              : templateUnspecified.withArguments(messageText);
+          declaration =
+              new KernelInvalidTypeBuilder(name, message.withoutLocation());
       }
       exportScopeBuilder.addMember(name, declaration);
     });

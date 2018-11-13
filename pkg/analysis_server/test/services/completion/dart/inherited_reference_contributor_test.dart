@@ -203,7 +203,7 @@ class B extends A1 with A2 {
     assertSuggestMethod('y2', 'A2', 'int');
   }
 
-  test_method_in_class() async {
+  test_method_inClass() async {
     addTestSource('''
 class A {
   void m(x, int y) {}
@@ -212,6 +212,30 @@ class A {
 ''');
     await computeSuggestions();
     assertNotSuggested('m');
+  }
+
+  test_method_inMixin() async {
+    addTestSource('''
+mixin A {
+  void m(x, int y) {}
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_inMixin_fromSuperclassConstraint() async {
+    addTestSource('''
+class C {
+  void c(x, int y) {}
+}
+mixin M on C {
+  m() {^}
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('c', 'C', 'void');
   }
 
   test_method_parameters_mixed_required_and_named() async {

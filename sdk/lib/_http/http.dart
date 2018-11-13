@@ -1761,9 +1761,16 @@ abstract class HttpClient {
    * [addCredentials] before completing the [Future] with the value
    * [:true:].
    *
-   * If the [Future] completes with true the request will be retried
-   * using the updated credentials. Otherwise response processing will
+   * If the [Future] completes with [:true:] the request will be retried
+   * using the updated credentials, however, the retried request will not
+   * carry the original request payload. Otherwise response processing will
    * continue normally.
+   *
+   * If it is known that the remote server requires authentication for all
+   * requests, it is advisable to use [addCredentials] directly, or manually
+   * set the `'authorization'` header on the request to avoid the overhead
+   * of a failed request, or issues due to missing request payload on retried
+   * request.
    */
   set authenticate(Future<bool> f(Uri url, String scheme, String realm));
 

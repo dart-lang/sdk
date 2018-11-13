@@ -35,7 +35,7 @@ class FreeListElement {
 
   static FreeListElement* AsElement(uword addr, intptr_t size);
 
-  static void InitOnce();
+  static void Init();
 
   static intptr_t HeaderSizeFor(intptr_t size);
 

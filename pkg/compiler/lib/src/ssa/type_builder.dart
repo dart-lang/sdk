@@ -128,11 +128,6 @@ abstract class TypeBuilder {
   HInstruction addTypeVariableReference(
       TypeVariableType type, MemberEntity member,
       {SourceInformation sourceInformation}) {
-    if (type.element.typeDeclaration is! ClassEntity &&
-        !builder.options.strongMode) {
-      // GENERIC_METHODS:  We currently don't reify method type variables.
-      return builder.graph.addConstantNull(builder.closedWorld);
-    }
     Local typeVariableLocal =
         builder.localsHandler.getTypeVariableAsLocal(type);
 
@@ -232,12 +227,9 @@ abstract class TypeBuilder {
 
     List<HInstruction> inputs = <HInstruction>[];
     argument.forEachTypeVariable((TypeVariableType variable) {
-      if (variable.element.typeDeclaration is ClassEntity ||
-          builder.options.strongMode) {
-        // TODO(johnniwinther): Also make this conditional on whether we have
-        // calculated we need that particular method signature.
-        inputs.add(analyzeTypeArgument(variable, sourceElement));
-      }
+      // TODO(johnniwinther): Also make this conditional on whether we have
+      // calculated we need that particular method signature.
+      inputs.add(analyzeTypeArgument(variable, sourceElement));
     });
     HInstruction result = new HTypeInfoExpression(
         TypeInfoExpressionKind.COMPLETE,
@@ -249,10 +241,7 @@ abstract class TypeBuilder {
     return result;
   }
 
-  bool get checkOrTrustTypes =>
-      builder.options.strongMode ||
-      builder.options.enableTypeAssertions ||
-      builder.options.trustTypeAnnotations;
+  bool get checkOrTrustTypes => true;
 
   /// Build a [HTypeConversion] for converting [original] to type [type].
   ///
@@ -262,14 +251,6 @@ abstract class TypeBuilder {
       HInstruction original, DartType type, int kind,
       {SourceInformation sourceInformation}) {
     if (type == null) return original;
-    if (type.isTypeVariable) {
-      TypeVariableType typeVariable = type;
-      // In Dart 1, method type variables are ignored.
-      if (!builder.options.strongMode &&
-          typeVariable.element.typeDeclaration is! ClassEntity) {
-        type = const DynamicType();
-      }
-    }
     type = type.unaliased;
     if (type.isInterfaceType && !type.treatAsRaw) {
       InterfaceType interfaceType = type;

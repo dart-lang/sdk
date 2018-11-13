@@ -363,8 +363,7 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new MockPackageMapProvider(),
-        new AnalysisServerOptions()..previewDart2 = true,
+        new AnalysisServerOptions(),
         new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
@@ -575,7 +574,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     expect(filesHighlights[testFile], isNotEmpty);
   }
 
-  test_afterAnalysis_noSuchFile() async {
+  Future<void> test_afterAnalysis_noSuchFile() async {
     String file = convertPath('/no-such-file.dart');
     addTestFile('// no matter');
     createProject();
@@ -626,9 +625,6 @@ main() {
   new A();
 }
 ''');
-    packageMapProvider.packageMap = {
-      'pkgA': [newFolder('$pkgA/lib'), newFolder('$pkgB/lib')]
-    };
     // add 'pkgA' and 'pkgB' as projects
     newFolder(projectPath);
     handleSuccessfulRequest(

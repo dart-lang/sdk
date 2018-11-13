@@ -12,29 +12,65 @@ part of masks;
  * [TypeGraphInferrer] has successfully identified such a usage. Otherwise,
  * the more general [MapTypeMask] is used.
  */
-class DictionaryTypeMask<T> extends MapTypeMask<T> {
+class DictionaryTypeMask extends MapTypeMask {
+  /// Tag used for identifying serialized [DictionaryTypeMask] objects in a
+  /// debugging data stream.
+  static const String tag = 'dictionary-type-mask';
+
   // The underlying key/value map of this dictionary.
   final Map<String, AbstractValue> _typeMap;
 
   DictionaryTypeMask(
       TypeMask forwardTo,
-      T allocationNode,
+      ir.TreeNode allocationNode,
       MemberEntity allocationElement,
       TypeMask keyType,
       TypeMask valueType,
       this._typeMap)
       : super(forwardTo, allocationNode, allocationElement, keyType, valueType);
 
+  /// Deserializes a [DictionaryTypeMask] object from [source].
+  factory DictionaryTypeMask.readFromDataSource(
+      DataSource source, JClosedWorld closedWorld) {
+    source.begin(tag);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    ir.TreeNode allocationNode = source.readTreeNode();
+    MemberEntity allocationElement = source.readMember();
+    TypeMask keyType = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask valueType = new TypeMask.readFromDataSource(source, closedWorld);
+    Map<String, AbstractValue> typeMap = source.readStringMap(
+        () => new TypeMask.readFromDataSource(source, closedWorld));
+    source.end(tag);
+    return new DictionaryTypeMask(forwardTo, allocationNode, allocationElement,
+        keyType, valueType, typeMap);
+  }
+
+  /// Serializes this [DictionaryTypeMask] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.writeEnum(TypeMaskKind.dictionary);
+    sink.begin(tag);
+    forwardTo.writeToDataSink(sink);
+    sink.writeTreeNode(allocationNode);
+    sink.writeMember(allocationElement);
+    valueType.writeToDataSink(sink);
+    keyType.writeToDataSink(sink);
+    sink.writeStringMap(_typeMap, (AbstractValue value) {
+      TypeMask typeMask = value;
+      typeMask.writeToDataSink(sink);
+    });
+    sink.end(tag);
+  }
+
   TypeMask nullable() {
     return isNullable
         ? this
-        : new DictionaryTypeMask<T>(forwardTo.nullable(), allocationNode,
+        : new DictionaryTypeMask(forwardTo.nullable(), allocationNode,
             allocationElement, keyType, valueType, _typeMap);
   }
 
   TypeMask nonNullable() {
     return isNullable
-        ? new DictionaryTypeMask<T>(forwardTo.nonNullable(), allocationNode,
+        ? new DictionaryTypeMask(forwardTo.nonNullable(), allocationNode,
             allocationElement, keyType, valueType, _typeMap)
         : this;
   }
@@ -86,7 +122,7 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
           mappings[k] = v.nullable();
         }
       });
-      return new DictionaryTypeMask<T>(
+      return new DictionaryTypeMask(
           newForwardTo, null, null, newKeyType, newValueType, mappings);
     } else if (other.isMap &&
         (other.keyType != null) &&

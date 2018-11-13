@@ -577,7 +577,7 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
   typedef intptr_t (*Semaphore32)() DART_UNUSED;
   // Lower word has been atomically switched from 40 to 42k, whereas upper word
   // is unchanged at 40.
-  EXPECT_EQ(42 + (40l << 32),
+  EXPECT_EQ(42 + (DART_INT64_C(40) << 32),
             EXECUTE_TEST_CODE_INT64(Semaphore32, test->entry()));
 }
 
@@ -604,7 +604,7 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
   typedef intptr_t (*FailedSemaphore32)() DART_UNUSED;
   // Lower word has had the failure code (1) added to it.  Upper word is
   // unchanged at 40.
-  EXPECT_EQ(41 + (40l << 32),
+  EXPECT_EQ(41 + (DART_INT64_C(40) << 32),
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
 }
 
@@ -2058,14 +2058,17 @@ static void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ Push(CODE_REG);
   __ Push(THR);
+  __ Push(BARRIER_MASK);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ mov(THR, R1);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ LoadPoolPointer(PP);
 }
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
@@ -4090,11 +4093,14 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ SetupDartSP();
   __ Push(CODE_REG);
   __ Push(THR);
+  __ Push(BARRIER_MASK);
   __ Push(LR);
   __ mov(THR, R2);
+  __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
                      R0);
   __ Pop(LR);
+  __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ RestoreCSP();

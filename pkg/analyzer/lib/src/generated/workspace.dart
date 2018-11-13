@@ -1,8 +1,6 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.workspace;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -14,13 +12,13 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class Workspace {
   /**
-   * Return `true` if this workspace defines a single "project"
-   * and that "project" depends upon flutter,
+   * Return `true` if this workspace defines a single "project" and that
+   * "project" depends upon flutter.
    */
-  bool get hasFlutterDependency => false;
+  bool get hasFlutterDependency => packageMap?.containsKey('flutter') ?? false;
 
   /**
-   * Return a map of package sources.
+   * Return a (possibly null) map of package sources.
    */
   Map<String, List<Folder>> get packageMap;
 

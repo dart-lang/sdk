@@ -14,22 +14,18 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:path/path.dart' as path;
-
 import 'package:front_end/src/api_prototype/front_end.dart';
-
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
-
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show writeComponentToFile;
-
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart' show VmTarget;
-import 'package:kernel/target/flutter.dart' show FlutterTarget;
-import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/target/flutter.dart' show FlutterTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
 /// We will dump it out into the depfile for ninja to use.
@@ -125,7 +121,7 @@ Future _main(List<String> argv) async {
   final Uri platform = outDirUri.resolve('platform.dill.tmp');
   final Uri librariesJson = outDirUri.resolve("lib/libraries.json");
   final Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
-  TargetFlags flags = new TargetFlags();
+  TargetFlags flags = new TargetFlags(legacyMode: true);
   Target target;
 
   switch (mode) {
@@ -146,7 +142,7 @@ Future _main(List<String> argv) async {
       throw "Unknown mode: $mode";
   }
 
-  await _writeSync(
+  _writeSync(
       librariesJson.toFilePath(),
       jsonEncode({
         mode: {"libraries": locations}
@@ -196,15 +192,17 @@ Future<List<Uri>> compilePlatform(
     Uri patchedSdk, Target target, Uri packages, Uri output) async {
   var options = new CompilerOptions()
     ..setExitCodeOnProblem = true
-    ..strongMode = false
+    ..legacyMode = true
     ..compileSdk = true
     ..sdkRoot = patchedSdk
     ..packagesFileUri = packages
     ..target = target;
 
   var inputs = [Uri.parse('dart:core')];
-  var result = await generateKernel(new ProcessedOptions(options, inputs),
-      buildSummary: true, buildComponent: true);
+  var result = await generateKernel(
+      new ProcessedOptions(options: options, inputs: inputs),
+      buildSummary: true,
+      buildComponent: true);
   await writeComponentToFile(result.component, output);
   return result.deps;
 }

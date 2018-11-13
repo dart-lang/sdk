@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class SourceFactoryImplTest extends AbstractContextTest {
   void test_restoreUri() {
-    String libPath = resourceProvider.convertPath('/pkgs/somepkg/lib/');
+    String libPath = resourceProvider.convertPath('/pkgs/somepkg/lib');
     Uri libUri = resourceProvider.getFolder(libPath).toUri();
     Map<String, Uri> packageUriMap = <String, Uri>{'foo': libUri};
     SourceFactoryImpl sourceFactory = new SourceFactoryImpl(

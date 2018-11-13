@@ -380,51 +380,51 @@ void ProgramVisitor::DedupDeoptEntries() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILER)
-void ProgramVisitor::DedupCatchEntryStateMaps() {
+void ProgramVisitor::DedupCatchEntryMovesMaps() {
   if (!FLAG_precompiled_mode) {
     return;
   }
-  class DedupCatchEntryStateMapsVisitor : public FunctionVisitor {
+  class DedupCatchEntryMovesMapsVisitor : public FunctionVisitor {
    public:
-    explicit DedupCatchEntryStateMapsVisitor(Zone* zone)
+    explicit DedupCatchEntryMovesMapsVisitor(Zone* zone)
         : zone_(zone),
-          canonical_catch_entry_state_maps_(),
+          canonical_catch_entry_moves_maps_(),
           code_(Code::Handle(zone)),
-          catch_entry_state_maps_(TypedData::Handle(zone)) {}
+          catch_entry_moves_maps_(TypedData::Handle(zone)) {}
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
       }
       code_ = function.CurrentCode();
-      catch_entry_state_maps_ = code_.catch_entry_state_maps();
-      catch_entry_state_maps_ =
-          DedupCatchEntryStateMaps(catch_entry_state_maps_);
-      code_.set_catch_entry_state_maps(catch_entry_state_maps_);
+      catch_entry_moves_maps_ = code_.catch_entry_moves_maps();
+      catch_entry_moves_maps_ =
+          DedupCatchEntryMovesMaps(catch_entry_moves_maps_);
+      code_.set_catch_entry_moves_maps(catch_entry_moves_maps_);
     }
 
-    RawTypedData* DedupCatchEntryStateMaps(
-        const TypedData& catch_entry_state_maps) {
-      const TypedData* canonical_catch_entry_state_maps =
-          canonical_catch_entry_state_maps_.LookupValue(
-              &catch_entry_state_maps);
-      if (canonical_catch_entry_state_maps == NULL) {
-        canonical_catch_entry_state_maps_.Insert(
-            &TypedData::ZoneHandle(zone_, catch_entry_state_maps.raw()));
-        return catch_entry_state_maps.raw();
+    RawTypedData* DedupCatchEntryMovesMaps(
+        const TypedData& catch_entry_moves_maps) {
+      const TypedData* canonical_catch_entry_moves_maps =
+          canonical_catch_entry_moves_maps_.LookupValue(
+              &catch_entry_moves_maps);
+      if (canonical_catch_entry_moves_maps == NULL) {
+        canonical_catch_entry_moves_maps_.Insert(
+            &TypedData::ZoneHandle(zone_, catch_entry_moves_maps.raw()));
+        return catch_entry_moves_maps.raw();
       } else {
-        return canonical_catch_entry_state_maps->raw();
+        return canonical_catch_entry_moves_maps->raw();
       }
     }
 
    private:
     Zone* zone_;
-    TypedDataSet canonical_catch_entry_state_maps_;
+    TypedDataSet canonical_catch_entry_moves_maps_;
     Code& code_;
-    TypedData& catch_entry_state_maps_;
+    TypedData& catch_entry_moves_maps_;
   };
 
-  DedupCatchEntryStateMapsVisitor visitor(Thread::Current()->zone());
+  DedupCatchEntryMovesMapsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
 #endif  // !defined(DART_PRECOMPILER)
@@ -724,7 +724,7 @@ void ProgramVisitor::Dedup() {
   DedupPcDescriptors();
   NOT_IN_PRECOMPILED(DedupDeoptEntries());
 #if defined(DART_PRECOMPILER)
-  DedupCatchEntryStateMaps();
+  DedupCatchEntryMovesMaps();
 #endif
   DedupCodeSourceMaps();
   DedupLists();

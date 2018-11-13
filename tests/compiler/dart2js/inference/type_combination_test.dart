@@ -4,14 +4,13 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart';
 import 'type_mask_test_helper.dart';
-import '../memory_compiler.dart';
+import '../helpers/memory_compiler.dart';
 
 TypeMask nullType;
 TypeMask objectType;
@@ -740,26 +739,24 @@ void testRegressions(JClosedWorld closedWorld) {
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await runTests();
   });
 }
 
 runTests() async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {
-        'main.dart': r'''
+  CompilationResult result = await runCompiler(memorySourceFiles: {
+    'main.dart': r'''
     import 'dart:collection';
-    class AList<E> extends ListBase<E> {}
+    class AList<E> extends ListBase<E> {
+      noSuchMethod(_) {}
+    }
     main() {
       print('${0}${true}${null}${0.5}${[]}${{}}');
       print('${"".split("")}${new RegExp('')}');
       print('${const []}${const {}}${(){}}${new AList()}');
     }
     '''
-      },
-      beforeRun: (compiler) => compiler.stopAfterTypeInference = true,
-      options: [Flags.noPreviewDart2]);
+  }, beforeRun: (compiler) => compiler.stopAfterTypeInference = true);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

@@ -48,6 +48,10 @@ void Deserializer::InitializeHeader(RawObject* raw,
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_isolate, tags);
   tags = RawObject::CanonicalObjectTag::update(is_canonical, tags);
+  tags = RawObject::OldBit::update(true, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+  tags = RawObject::NewBit::update(false, tags);
   raw->ptr()->tags_ = tags;
 #if defined(HASH_IN_OBJECT_HEADER)
   raw->ptr()->hash_ = 0;
@@ -156,7 +160,7 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
     s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
     s->Write<uint16_t>(cls->ptr()->num_type_arguments_);
-    s->Write<uint16_t>(cls->ptr()->num_own_type_arguments_);
+    s->Write<uint16_t>(cls->ptr()->has_pragma_and_num_own_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
     s->Write<uint16_t>(cls->ptr()->state_bits_);
@@ -224,7 +228,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint16_t>();
@@ -260,7 +264,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint16_t>();
@@ -554,6 +558,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Push(func->ptr()->code_);
     } else if (s->kind() == Snapshot::kFullJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->unoptimized_code_));
+      NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
       s->Push(func->ptr()->code_);
       s->Push(func->ptr()->ic_data_array_);
     }
@@ -583,6 +588,7 @@ class FunctionSerializationCluster : public SerializationCluster {
         s->WriteRef(func->ptr()->code_);
       } else if (s->kind() == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->unoptimized_code_));
+        NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->bytecode_));
         s->WriteRef(func->ptr()->code_);
         s->WriteRef(func->ptr()->ic_data_array_);
       }
@@ -642,12 +648,15 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       } else if (kind == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
                                reinterpret_cast<RawCode*>(d->ReadRef()));
+        NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
+                               reinterpret_cast<RawCode*>(d->ReadRef()));
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
         func->ptr()->ic_data_array_ = reinterpret_cast<RawArray*>(d->ReadRef());
       }
 
 #if defined(DEBUG)
       func->ptr()->entry_point_ = 0;
+      func->ptr()->unchecked_entry_point_ = 0;
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -686,6 +695,10 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         uword entry_point = func.raw()->ptr()->code_->ptr()->entry_point_;
         ASSERT(entry_point != 0);
         func.raw()->ptr()->entry_point_ = entry_point;
+        uword unchecked_entry_point =
+            func.raw()->ptr()->code_->ptr()->unchecked_entry_point_;
+        ASSERT(unchecked_entry_point != 0);
+        func.raw()->ptr()->unchecked_entry_point_ = unchecked_entry_point;
       }
     } else if (kind == Snapshot::kFullJIT) {
       Function& func = Function::Handle(zone);
@@ -696,6 +709,15 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        } else if (FLAG_enable_interpreter && func.HasBytecode()) {
+          // Set the code entry_point to InterpretCall stub.
+          func.SetInstructions(
+              Code::Handle(StubCode::InterpretCall_entry()->code()));
+        } else if (FLAG_use_bytecode_compiler && func.HasBytecode()) {
+          func.SetInstructions(
+              Code::Handle(StubCode::LazyCompile_entry()->code()));
+#endif                                 // !defined(DART_PRECOMPILED_RUNTIME)
         } else {
           func.ClearCode();  // Set code and entrypoint to lazy compile stub.
         }
@@ -1047,6 +1069,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteTokenPosition(field->ptr()->end_token_pos_);
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
+        s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
         s->Write<int32_t>(field->ptr()->kernel_offset_);
 #endif
@@ -1098,6 +1121,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->end_token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
         field->ptr()->is_nullable_ = d->ReadCid();
+        field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
         field->ptr()->kernel_offset_ = d->Read<int32_t>();
 #endif
@@ -1119,165 +1143,13 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.set_guarded_list_length(Field::kNoFixedLength);
         field.set_guarded_list_length_in_object_offset(
             Field::kUnknownLengthOffset);
+        field.set_static_type_exactness_state(
+            StaticTypeExactnessState::NotTracking());
       }
     } else {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
         field.InitializeGuardedListLengthInObjectOffset();
-      }
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class LiteralTokenSerializationCluster : public SerializationCluster {
- public:
-  LiteralTokenSerializationCluster() : SerializationCluster("LiteralToken") {}
-  virtual ~LiteralTokenSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawLiteralToken* token = LiteralToken::RawCast(object);
-    objects_.Add(token);
-
-    RawObject** from = token->from();
-    RawObject** to = token->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
-    }
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kLiteralTokenCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawLiteralToken* token = objects_[i];
-      s->AssignRef(token);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawLiteralToken* token = objects_[i];
-      RawObject** from = token->from();
-      RawObject** to = token->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
-      }
-      s->Write<int32_t>(token->ptr()->kind_);
-    }
-  }
-
- private:
-  GrowableArray<RawLiteralToken*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class LiteralTokenDeserializationCluster : public DeserializationCluster {
- public:
-  LiteralTokenDeserializationCluster() {}
-  virtual ~LiteralTokenDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, LiteralToken::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawLiteralToken* token = reinterpret_cast<RawLiteralToken*>(d->Ref(id));
-      Deserializer::InitializeHeader(
-          token, kLiteralTokenCid, LiteralToken::InstanceSize(), is_vm_object);
-      RawObject** from = token->from();
-      RawObject** to = token->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
-      }
-      token->ptr()->kind_ = static_cast<Token::Kind>(d->Read<int32_t>());
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class TokenStreamSerializationCluster : public SerializationCluster {
- public:
-  TokenStreamSerializationCluster() : SerializationCluster("TokenStream") {}
-  virtual ~TokenStreamSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawTokenStream* stream = TokenStream::RawCast(object);
-    objects_.Add(stream);
-
-    RawObject** from = stream->from();
-    RawObject** to = stream->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
-    }
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kTokenStreamCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawTokenStream* stream = objects_[i];
-      s->AssignRef(stream);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawTokenStream* stream = objects_[i];
-      RawObject** from = stream->from();
-      RawObject** to = stream->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
-      }
-    }
-  }
-
- private:
-  GrowableArray<RawTokenStream*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class TokenStreamDeserializationCluster : public DeserializationCluster {
- public:
-  TokenStreamDeserializationCluster() {}
-  virtual ~TokenStreamDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, TokenStream::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTokenStream* stream = reinterpret_cast<RawTokenStream*>(d->Ref(id));
-      Deserializer::InitializeHeader(stream, kTokenStreamCid,
-                                     TokenStream::InstanceSize(), is_vm_object);
-      RawObject** from = stream->from();
-      RawObject** to = stream->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
       }
     }
   }
@@ -1567,7 +1439,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     objects_.Add(info);
 
     RawObject** from = info->from();
-    RawObject** to = info->to();
+    RawObject** to = info->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -1588,7 +1460,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawKernelProgramInfo* info = objects_[i];
       RawObject** from = info->from();
-      RawObject** to = info->to();
+      RawObject** to = info->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
@@ -1627,10 +1499,26 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
                                      KernelProgramInfo::InstanceSize(),
                                      is_vm_object);
       RawObject** from = info->from();
-      RawObject** to = info->to();
+      RawObject** to = info->to_snapshot(d->kind());
+      RawObject** end = info->to();
       for (RawObject** p = from; p <= to; p++) {
         *p = d->ReadRef();
       }
+      for (RawObject** p = to + 1; p <= end; p++) {
+        *p = Object::null();
+      }
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    Array& array_ = Array::Handle(zone);
+    KernelProgramInfo& info_ = KernelProgramInfo::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      info_ ^= refs.At(id);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_libraries_cache(array_);
+      array_ = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
+      info_.set_classes_cache(array_);
     }
   }
 };
@@ -1649,7 +1537,7 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-    s->Push(code->ptr()->catch_entry_.catch_entry_state_maps_);
+    s->Push(code->ptr()->catch_entry_.catch_entry_moves_maps_);
 #else
     s->Push(code->ptr()->catch_entry_.variables_);
 #endif
@@ -1658,15 +1546,12 @@ class CodeSerializationCluster : public SerializationCluster {
       s->Push(code->ptr()->inlined_id_to_function_);
       s->Push(code->ptr()->code_source_map_);
     }
-    if (s->kind() != Snapshot::kFullAOT) {
-      s->Push(code->ptr()->await_token_positions_);
-    }
-
     if (s->kind() == Snapshot::kFullJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
+    NOT_IN_PRODUCT(s->Push(code->ptr()->await_token_positions_));
+    NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1710,7 +1595,7 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->exception_handlers_);
       s->WriteRef(code->ptr()->pc_descriptors_);
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-      s->WriteRef(code->ptr()->catch_entry_.catch_entry_state_maps_);
+      s->WriteRef(code->ptr()->catch_entry_.catch_entry_moves_maps_);
 #else
       s->WriteRef(code->ptr()->catch_entry_.variables_);
 #endif
@@ -1722,14 +1607,12 @@ class CodeSerializationCluster : public SerializationCluster {
         s->WriteRef(code->ptr()->inlined_id_to_function_);
         s->WriteRef(code->ptr()->code_source_map_);
       }
-      if (s->kind() != Snapshot::kFullAOT) {
-        s->WriteRef(code->ptr()->await_token_positions_);
-      }
       if (s->kind() == Snapshot::kFullJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
+      NOT_IN_PRODUCT(s->WriteRef(code->ptr()->await_token_positions_));
+      NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
 
       s->Write<int32_t>(code->ptr()->state_bits_);
     }
@@ -1765,19 +1648,23 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
       RawInstructions* instr = d->ReadInstructions();
 
-      code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
-      code->ptr()->checked_entry_point_ =
-          Instructions::CheckedEntryPoint(instr);
+      code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
+      code->ptr()->monomorphic_entry_point_ =
+          Instructions::MonomorphicEntryPoint(instr);
       NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
+      code->ptr()->unchecked_entry_point_ =
+          Instructions::UncheckedEntryPoint(instr);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
         RawInstructions* instr = d->ReadInstructions();
         code->ptr()->active_instructions_ = instr;
-        code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
-        code->ptr()->checked_entry_point_ =
-            Instructions::CheckedEntryPoint(instr);
+        code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
+        code->ptr()->monomorphic_entry_point_ =
+            Instructions::MonomorphicEntryPoint(instr);
+        code->ptr()->unchecked_entry_point_ =
+            Instructions::UncheckedEntryPoint(instr);
       }
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1789,7 +1676,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->pc_descriptors_ =
           reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-      code->ptr()->catch_entry_.catch_entry_state_maps_ =
+      code->ptr()->catch_entry_.catch_entry_moves_maps_ =
           reinterpret_cast<RawTypedData*>(d->ReadRef());
 #else
       code->ptr()->catch_entry_.variables_ =
@@ -1802,30 +1689,22 @@ class CodeDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      code->ptr()->await_token_positions_ =
-          reinterpret_cast<RawArray*>(d->ReadRef());
-
       if (d->kind() == Snapshot::kFullJIT) {
         code->ptr()->deopt_info_array_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
-#if defined(PRODUCT)
-        code->ptr()->return_address_metadata_ = Object::null();
-#else
-        code->ptr()->return_address_metadata_ = d->ReadRef();
-#endif
-      } else {
-        code->ptr()->deopt_info_array_ = Array::null();
-        code->ptr()->static_calls_target_table_ = Array::null();
-        code->ptr()->return_address_metadata_ = Object::null();
       }
+#endif  // !DART_PRECOMPILED_RUNTIME
 
+#if !defined(PRODUCT)
+      code->ptr()->await_token_positions_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->return_address_metadata_ = d->ReadRef();
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
       code->ptr()->comments_ = Array::null();
-
       code->ptr()->compile_timestamp_ = 0;
-#endif  // !DART_PRECOMPILED_RUNTIME
+#endif
 
       code->ptr()->state_bits_ = d->Read<int32_t>();
     }
@@ -1843,11 +1722,11 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     objects_.Add(pool);
 
     intptr_t length = pool->ptr()->length_;
-    uint8_t* entry_types = pool->ptr()->entry_types();
+    uint8_t* entry_bits = pool->ptr()->entry_bits();
     for (intptr_t i = 0; i < length; i++) {
-      ObjectPool::EntryType entry_type =
-          static_cast<ObjectPool::EntryType>(entry_types[i]);
-      if (entry_type == ObjectPool::kTaggedObject) {
+      auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
+      if ((entry_type == ObjectPool::kTaggedObject) ||
+          (entry_type == ObjectPool::kNativeEntryData)) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
     }
@@ -1871,13 +1750,11 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
       RawObjectPool* pool = objects_[i];
       intptr_t length = pool->ptr()->length_;
       s->WriteUnsigned(length);
-      uint8_t* entry_types = pool->ptr()->entry_types();
+      uint8_t* entry_bits = pool->ptr()->entry_bits();
       for (intptr_t j = 0; j < length; j++) {
-        ObjectPool::EntryType entry_type =
-            static_cast<ObjectPool::EntryType>(entry_types[j]);
-        s->Write<int8_t>(entry_type);
+        s->Write<uint8_t>(entry_bits[j]);
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
-        switch (entry_type) {
+        switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
           case ObjectPool::kTaggedObject: {
 #if !defined(TARGET_ARCH_DBC)
             if ((entry.raw_obj_ ==
@@ -1896,6 +1773,22 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
           }
           case ObjectPool::kImmediate: {
             s->Write<intptr_t>(entry.raw_value_);
+            break;
+          }
+          case ObjectPool::kNativeEntryData: {
+            RawObject* raw = entry.raw_obj_;
+            RawTypedData* raw_data = reinterpret_cast<RawTypedData*>(raw);
+            // kNativeEntryData object pool entries are for linking natives for
+            // the interpreter. Before writing these entries into the snapshot,
+            // we need to unlink them by nulling out the 'trampoline' and
+            // 'native_function' fields.
+            NativeEntryData::Payload* payload =
+                NativeEntryData::FromTypedArray(raw_data);
+            if (payload->kind == MethodRecognizer::kUnknown) {
+              payload->trampoline = NULL;
+              payload->native_function = NULL;
+            }
+            s->WriteRef(raw);
             break;
           }
           case ObjectPool::kNativeFunction:
@@ -1941,11 +1834,11 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           pool, kObjectPoolCid, ObjectPool::InstanceSize(length), is_vm_object);
       pool->ptr()->length_ = length;
       for (intptr_t j = 0; j < length; j++) {
-        ObjectPool::EntryType entry_type =
-            static_cast<ObjectPool::EntryType>(d->Read<int8_t>());
-        pool->ptr()->entry_types()[j] = entry_type;
+        const uint8_t entry_bits = d->Read<uint8_t>();
+        pool->ptr()->entry_bits()[j] = entry_bits;
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
-        switch (entry_type) {
+        switch (ObjectPool::TypeBits::decode(entry_bits)) {
+          case ObjectPool::kNativeEntryData:
           case ObjectPool::kTaggedObject:
             entry.raw_obj_ = d->ReadRef();
             break;
@@ -4680,10 +4573,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) RedirectionDataSerializationCluster();
     case kFieldCid:
       return new (Z) FieldSerializationCluster();
-    case kLiteralTokenCid:
-      return new (Z) LiteralTokenSerializationCluster();
-    case kTokenStreamCid:
-      return new (Z) TokenStreamSerializationCluster();
     case kScriptCid:
       return new (Z) ScriptSerializationCluster();
     case kLibraryCid:
@@ -5205,10 +5094,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) RedirectionDataDeserializationCluster();
     case kFieldCid:
       return new (Z) FieldDeserializationCluster();
-    case kLiteralTokenCid:
-      return new (Z) LiteralTokenDeserializationCluster();
-    case kTokenStreamCid:
-      return new (Z) TokenStreamDeserializationCluster();
     case kScriptCid:
       return new (Z) ScriptDeserializationCluster();
     case kLibraryCid:
@@ -5353,7 +5238,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
     const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+        Utils::StrNDup(features, buffer_len < 1024 ? buffer_len : 1024);
     Utils::SNPrint(message_buffer, kMessageBufferSize,
                    "Snapshot not compatible with the current VM configuration: "
                    "the snapshot requires '%s' but the VM has '%s'",
@@ -5525,7 +5410,7 @@ void Deserializer::ReadVMSnapshot() {
   // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
   heap_->old_space()->AbandonBumpAllocation();
 
-  Symbols::InitOnceFromSnapshot(isolate());
+  Symbols::InitFromSnapshot(isolate());
 
   Object::set_vm_isolate_snapshot_object_table(refs);
 
@@ -5567,6 +5452,7 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   }
 
   thread()->isolate()->class_table()->CopySizesFromClassObjects();
+  heap_->old_space()->EvaluateSnapshotLoad();
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();
@@ -5635,8 +5521,6 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
       AddSeed(kernel_program_info_.metadata_payloads());
       AddSeed(kernel_program_info_.metadata_mappings());
       AddSeed(kernel_program_info_.constants());
-    } else {
-      AddSeed(script_.tokens());
     }
   }
 
