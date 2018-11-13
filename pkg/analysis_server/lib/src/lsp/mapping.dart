@@ -7,6 +7,13 @@ import 'package:analyzer/src/generated/source.dart' as server;
 
 const languageSourceName = 'dart';
 
+lsp.MarkupContent asMarkdown(String content) =>
+    new lsp.MarkupContent(lsp.MarkupKind.Markdown, content);
+
+/// Returns the file system path for a TextDocumentIdentifier.
+String pathOf(lsp.TextDocumentIdentifier doc) =>
+    Uri.parse(doc.uri).toFilePath();
+
 lsp.Diagnostic toDiagnostic(
     server.LineInfo lineInfo, server.AnalysisError error,
     [server.ErrorSeverity errorSeverity]) {
@@ -29,21 +36,6 @@ lsp.Diagnostic toDiagnostic(
   );
 }
 
-lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
-  server.CharacterLocation start = lineInfo.getLocation(offset);
-  server.CharacterLocation end = lineInfo.getLocation(offset + length);
-
-  return new lsp.Range(
-    toPosition(start),
-    toPosition(end),
-  );
-}
-
-lsp.Position toPosition(server.CharacterLocation location) {
-  // LSP is zero-based, but analysis server is 1-based.
-  return new lsp.Position(location.lineNumber - 1, location.columnNumber - 1);
-}
-
 lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   switch (severity) {
     case server.ErrorSeverity.ERROR:
@@ -61,9 +53,17 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
-lsp.MarkupContent asMarkdown(String content) =>
-    new lsp.MarkupContent(lsp.MarkupKind.Markdown, content);
+lsp.Position toPosition(server.CharacterLocation location) {
+  // LSP is zero-based, but analysis server is 1-based.
+  return new lsp.Position(location.lineNumber - 1, location.columnNumber - 1);
+}
 
-/// Returns the file system path for a TextDocumentIdentifier.
-String pathOf(lsp.TextDocumentIdentifier doc) =>
-    Uri.parse(doc.uri).toFilePath();
+lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
+  server.CharacterLocation start = lineInfo.getLocation(offset);
+  server.CharacterLocation end = lineInfo.getLocation(offset + length);
+
+  return new lsp.Range(
+    toPosition(start),
+    toPosition(end),
+  );
+}

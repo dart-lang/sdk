@@ -13,6 +13,11 @@ class TextDocumentChangeHandler extends MessageHandler {
   final LspAnalysisServer server;
 
   /**
+   * Initialize a newly created handler to handle requests for the given [server].
+   */
+  TextDocumentChangeHandler(this.server);
+
+  /**
    * The messages that this handler can handle.
    */
   List<String> get handlesMessages => const [
@@ -21,10 +26,13 @@ class TextDocumentChangeHandler extends MessageHandler {
         'textDocument/didClose'
       ];
 
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
-  TextDocumentChangeHandler(this.server);
+  void handleChange(DidChangeTextDocumentParams params) {
+    server.changeTextDocument(params.textDocument, params.contentChanges);
+  }
+
+  void handleClose(DidCloseTextDocumentParams params) {
+    server.closeTextDocument(params.textDocument);
+  }
 
   @override
   Object handleMessage(IncomingMessage message) {
@@ -52,13 +60,5 @@ class TextDocumentChangeHandler extends MessageHandler {
 
   void handleOpen(DidOpenTextDocumentParams params) {
     server.openTextDocument(params.textDocument);
-  }
-
-  void handleChange(DidChangeTextDocumentParams params) {
-    server.changeTextDocument(params.textDocument, params.contentChanges);
-  }
-
-  void handleClose(DidCloseTextDocumentParams params) {
-    server.closeTextDocument(params.textDocument);
   }
 }

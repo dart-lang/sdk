@@ -36,6 +36,43 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(hover.contents.value, contains('Updated'));
   }
 
+  test_hover_missing() async {
+    final content = '''
+    String abc;
+
+    ^
+
+    int a;
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    var hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNull);
+  }
+
+  test_hover_no_doc_comment() async {
+    final content = '''
+    String [[a^bc]];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+String abc
+```
+    '''
+        .trim();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    expect(hover.contents.kind, equals(MarkupKind.Markdown));
+    expect(hover.contents.value, equals(expectedHoverContent));
+  }
+
   test_hover_simple() async {
     final content = '''
     /// This is a string.
@@ -75,42 +112,5 @@ print();
     expect(hover.contents, isNotNull);
     expect(hover.contents.kind, equals(MarkupKind.Markdown));
     expect(hover.contents.value, equals(expectedHoverContent));
-  }
-
-  test_hover_no_doc_comment() async {
-    final content = '''
-    String [[a^bc]];
-    ''';
-
-    final expectedHoverContent = '''
-```dart
-String abc
-```
-    '''
-        .trim();
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    expect(hover.contents.kind, equals(MarkupKind.Markdown));
-    expect(hover.contents.value, equals(expectedHoverContent));
-  }
-
-  test_hover_missing() async {
-    final content = '''
-    String abc;
-
-    ^
-
-    int a;
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    var hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNull);
   }
 }

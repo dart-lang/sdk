@@ -15,38 +15,14 @@ class InitializationHandler extends MessageHandler {
   final List<String> _openWorkspacePaths = [];
 
   /**
-   * The messages that this handler can handle.
-   */
-  List<String> get handlesMessages => const ['initialize', 'initialized'];
-
-  /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
   InitializationHandler(this.server);
 
-  @override
-  Object handleMessage(IncomingMessage message) {
-    if (message is RequestMessage && message.method == 'initialize') {
-      final params = convertParams(message, InitializeParams.fromJson);
-      return handleInitialize(params);
-    } else if (message is NotificationMessage &&
-        message.method == 'initialized') {
-      handleInitialized();
-      return null;
-    } else {
-      throw 'Unexpected message';
-    }
-  }
-
-  void handleInitialized() {
-    if (server.state != InitializationState.Initializing) {
-      throw new ResponseError(ServerErrorCodes.ServerAlreadyInitialized,
-          'Server already initialized', null);
-    }
-
-    server.state = InitializationState.Initialized;
-    server.setAnalysisRoots(_openWorkspacePaths, [], {});
-  }
+  /**
+   * The messages that this handler can handle.
+   */
+  List<String> get handlesMessages => const ['initialize', 'initialized'];
 
   InitializeResult handleInitialize(InitializeParams params) {
     if (server.state != InitializationState.Uninitialized) {
@@ -102,5 +78,29 @@ class InitializationHandler extends MessageHandler {
         null,
         null,
         null));
+  }
+
+  void handleInitialized() {
+    if (server.state != InitializationState.Initializing) {
+      throw new ResponseError(ServerErrorCodes.ServerAlreadyInitialized,
+          'Server already initialized', null);
+    }
+
+    server.state = InitializationState.Initialized;
+    server.setAnalysisRoots(_openWorkspacePaths, [], {});
+  }
+
+  @override
+  Object handleMessage(IncomingMessage message) {
+    if (message is RequestMessage && message.method == 'initialize') {
+      final params = convertParams(message, InitializeParams.fromJson);
+      return handleInitialize(params);
+    } else if (message is NotificationMessage &&
+        message.method == 'initialized') {
+      handleInitialized();
+      return null;
+    } else {
+      throw 'Unexpected message';
+    }
   }
 }

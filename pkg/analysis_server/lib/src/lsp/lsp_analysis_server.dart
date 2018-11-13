@@ -39,6 +39,19 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:watcher/watcher.dart';
 
+enum InitializationState {
+  /// The initialize request has not been received.
+  Uninitialized,
+
+  /// The initialize request has been recieved but the initialized notification
+  /// has not.
+  Initializing,
+
+  /// Both the initialize request and the initialized notification have been
+  /// recieved.
+  Initialized
+}
+
 /**
  * Instances of the class [LspAnalysisServer] implement an LSP-based server that
  * listens on a [CommunicationChannel] for analysis requests and process them.
@@ -211,6 +224,28 @@ class LspAnalysisServer {
    */
   Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
 
+  void changeTextDocument(VersionedTextDocumentIdentifier id,
+      List<TextDocumentContentChangeEvent> changes) {
+    final path = Uri.parse(id.uri).toFilePath();
+    // TODO(dantup): Should we be tracking the version?
+
+    final oldContents = fileContentOverlay[path];
+    final newContents = applyEdits(oldContents, changes);
+
+    fileContentOverlay[path] = newContents;
+
+    driverMap.values.forEach((driver) => driver.changeFile(path));
+  }
+
+  void closeTextDocument(TextDocumentIdentifier id) {
+    final path = Uri.parse(id.uri).toFilePath();
+    // TODO(dantup): Should we be tracking the version?
+
+    fileContentOverlay[path] = null;
+
+    driverMap.values.forEach((driver) => driver.changeFile(path));
+  }
+
   /**
    * The socket from which requests are being read has been closed.
    */
@@ -318,20 +353,17 @@ class LspAnalysisServer {
     });
   }
 
-  void _sendNotInitializedError(IncomingMessage message) {
-    sendErrorResponse(
-        message,
-        new ResponseError(
-            ErrorCodes.ServerNotInitialized,
-            'Unable to handle ${message.method} before server is initialized',
-            null));
-  }
+  void openTextDocument(TextDocumentItem doc) {
+    final path = Uri.parse(doc.uri).toFilePath();
+    // TODO(dantup): Should we be tracking the version?
 
-  void _sendUnknownMethodError(IncomingMessage message) {
-    sendErrorResponse(
-        message,
-        new ResponseError(ErrorCodes.MethodNotFound,
-            'Unknown method ${message.method}', null));
+    fileContentOverlay[path] = doc.text;
+
+    driverMap.values.forEach((driver) => driver.changeFile(path));
+
+    // If the file did not exist, and is "overlay only", it still should be
+    // analyzed. Add it to driver to which it should have been added.
+    contextManager.getDriverFor(path)?.addFile(path);
   }
 
   void sendErrorResponse(IncomingMessage message, ResponseError error) {
@@ -403,45 +435,26 @@ class LspAnalysisServer {
     return new Future.value();
   }
 
-  void changeTextDocument(VersionedTextDocumentIdentifier id,
-      List<TextDocumentContentChangeEvent> changes) {
-    final path = Uri.parse(id.uri).toFilePath();
-    // TODO(dantup): Should we be tracking the version?
-
-    final oldContents = fileContentOverlay[path];
-    final newContents = applyEdits(oldContents, changes);
-
-    fileContentOverlay[path] = newContents;
-
-    driverMap.values.forEach((driver) => driver.changeFile(path));
-  }
-
-  void openTextDocument(TextDocumentItem doc) {
-    final path = Uri.parse(doc.uri).toFilePath();
-    // TODO(dantup): Should we be tracking the version?
-
-    fileContentOverlay[path] = doc.text;
-
-    driverMap.values.forEach((driver) => driver.changeFile(path));
-
-    // If the file did not exist, and is "overlay only", it still should be
-    // analyzed. Add it to driver to which it should have been added.
-    contextManager.getDriverFor(path)?.addFile(path);
-  }
-
-  void closeTextDocument(TextDocumentIdentifier id) {
-    final path = Uri.parse(id.uri).toFilePath();
-    // TODO(dantup): Should we be tracking the version?
-
-    fileContentOverlay[path] = null;
-
-    driverMap.values.forEach((driver) => driver.changeFile(path));
-  }
-
   _registerHandler(MessageHandler handler) {
     for (final message in handler.handlesMessages) {
       handlers[message] = handler;
     }
+  }
+
+  void _sendNotInitializedError(IncomingMessage message) {
+    sendErrorResponse(
+        message,
+        new ResponseError(
+            ErrorCodes.ServerNotInitialized,
+            'Unable to handle ${message.method} before server is initialized',
+            null));
+  }
+
+  void _sendUnknownMethodError(IncomingMessage message) {
+    sendErrorResponse(
+        message,
+        new ResponseError(ErrorCodes.MethodNotFound,
+            'Unknown method ${message.method}', null));
   }
 }
 
@@ -581,13 +594,6 @@ abstract class MessageHandler {
    */
   List<String> get handlesMessages;
 
-  /**
-   * Handle the given [message]. If the [message] is a [RequestMessage], then the
-   * return value will be sent back in a [ResponseMessage].
-   * [NotificationMessage]s are not expected to return results.
-   */
-  FutureOr<Object> handleMessage(IncomingMessage message);
-
   T convertParams<T>(
       IncomingMessage message, T Function(Map<String, dynamic>) constructor) {
     return message.params.map(
@@ -603,22 +609,16 @@ abstract class MessageHandler {
       (_) => throw 'Expected List<dynamic>, got dynamic',
     );
   }
+
+  /**
+   * Handle the given [message]. If the [message] is a [RequestMessage], then the
+   * return value will be sent back in a [ResponseMessage].
+   * [NotificationMessage]s are not expected to return results.
+   */
+  FutureOr<Object> handleMessage(IncomingMessage message);
 }
 
 class NullNotificationManager implements NotificationManager {
   @override
   noSuchMethod(Invocation invocation) {}
-}
-
-enum InitializationState {
-  /// The initialize request has not been received.
-  Uninitialized,
-
-  /// The initialize request has been recieved but the initialized notification
-  /// has not.
-  Initializing,
-
-  /// Both the initialize request and the initialized notification have been
-  /// recieved.
-  Initialized
 }

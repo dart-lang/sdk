@@ -70,6 +70,29 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   @override
   void sendResponse(ResponseMessage response) => _sendLsp(response.toJson());
 
+  /**
+   * Read a request from the given [data] and use the given function to handle
+   * the message.
+   */
+  void _readMessage(String data, void onMessage(IncomingMessage request)) {
+    // Ignore any further requests after the communication channel is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
+      // TODO(dantup): This...
+      //_instrumentationService.logRequest(data);
+      final Map<String, Object> json = jsonDecode(data);
+      if (RequestMessage.canParse(json)) {
+        onMessage(RequestMessage.fromJson(json));
+      } else if (NotificationMessage.canParse(json)) {
+        onMessage(NotificationMessage.fromJson(json));
+      } else {
+        // TODO(dantup): Report error
+      }
+    });
+  }
+
   /// Sends a message prefixed with the required LSP headers.
   void _sendLsp(Map<String, Object> json) {
     // Don't send any further responses after the communication channel is
@@ -101,28 +124,5 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       () => _output.add(bytes),
       onError: (e) => close(),
     );
-  }
-
-  /**
-   * Read a request from the given [data] and use the given function to handle
-   * the message.
-   */
-  void _readMessage(String data, void onMessage(IncomingMessage request)) {
-    // Ignore any further requests after the communication channel is closed.
-    if (_closed.isCompleted) {
-      return;
-    }
-    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      // TODO(dantup): This...
-      //_instrumentationService.logRequest(data);
-      final Map<String, Object> json = jsonDecode(data);
-      if (RequestMessage.canParse(json)) {
-        onMessage(RequestMessage.fromJson(json));
-      } else if (NotificationMessage.canParse(json)) {
-        onMessage(NotificationMessage.fromJson(json));
-      } else {
-        // TODO(dantup): Report error
-      }
-    });
   }
 }

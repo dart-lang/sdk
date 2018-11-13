@@ -147,10 +147,6 @@ class Either4<T1, T2, T3, T4> {
       map((t) => t == o, (t) => t == o, (t) => t == o, (t) => t == o);
 }
 
-abstract class ToJsonable {
-  Object toJson();
-}
-
 /// A base class containing the fields common to RequestMessage and
 /// NotificationMessage to simplify handling.
 abstract class IncomingMessage {
@@ -164,4 +160,8 @@ abstract class ServerErrorCodes {
   static const UnhandledError = const ErrorCodes(-32001);
   static const ServerAlreadyInitialized = const ErrorCodes(-32002);
   static const InvalidFilePath = const ErrorCodes(-32003);
+}
+
+abstract class ToJsonable {
+  Object toJson();
 }

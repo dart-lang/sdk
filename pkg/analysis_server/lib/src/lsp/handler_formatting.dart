@@ -12,9 +12,9 @@ import 'package:dart_style/dart_style.dart';
 
 class FormattingHandler extends MessageHandler {
   final LspAnalysisServer server;
+  final DartFormatter formatter = new DartFormatter();
   FormattingHandler(this.server);
   List<String> get handlesMessages => const ['textDocument/formatting'];
-  final DartFormatter formatter = new DartFormatter();
 
   FutureOr<List<TextEdit>> handleFormatDocument(
       DocumentFormattingParams params) async {
