@@ -6,7 +6,6 @@ library dart2js.src.options;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler.dart' show PackagesDiscoveryProvider;
 import 'commandline_options.dart' show Flags;
 
 /// Options used for controlling diagnostic messages.
@@ -51,10 +50,6 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// If not null then [packageRoot] should be null.
   Uri packageConfig;
-
-  // TODO(sigmund): Move out of here, maybe to CompilerInput. Options should not
-  // hold code, just configuration options.
-  PackagesDiscoveryProvider packagesDiscoveryProvider;
 
   /// Location from which serialized inference data is read.
   ///

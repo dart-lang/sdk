@@ -15,7 +15,7 @@ import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
 import 'src/options.dart' show CompilerOptions;
 
-export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
+export 'compiler.dart' show Diagnostic;
 
 // Unless explicitly allowed, passing `null` for any argument to the
 // methods of library will result in an Error being thrown.

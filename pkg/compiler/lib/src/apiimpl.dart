@@ -9,11 +9,6 @@ import 'dart:convert' show utf8;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show LibrariesSpecification, TargetLibrariesSpecification, LibraryInfo;
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart' as pkgs;
-import 'package:package_config/src/packages_impl.dart'
-    show MapPackages, NonFilePackagesDirectoryPackages;
-import 'package:package_config/src/util.dart' show checkValidPackageUri;
 
 import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show GenericTask, Measurer;
@@ -30,11 +25,9 @@ class CompilerImpl extends Compiler {
   final Measurer measurer;
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
-  Packages packages;
 
   GenericTask userHandlerTask;
   GenericTask userProviderTask;
-  GenericTask userPackagesDiscoveryTask;
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
       CompilerOptions options,
@@ -50,67 +43,12 @@ class CompilerImpl extends Compiler {
     tasks.addAll([
       userHandlerTask = new GenericTask('Diagnostic handler', measurer),
       userProviderTask = new GenericTask('Input provider', measurer),
-      userPackagesDiscoveryTask =
-          new GenericTask('Package discovery', measurer),
     ]);
   }
 
   void log(message) {
     callUserHandler(
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
-  }
-
-  /**
-   * Translates a readable URI into a resource URI.
-   *
-   * See [LibraryLoader] for terminology on URIs.
-   */
-  Uri translateUri(Spannable node, Uri uri) =>
-      uri.scheme == 'package' ? translatePackageUri(node, uri) : uri;
-
-  Uri translatePackageUri(Spannable node, Uri uri) {
-    try {
-      checkValidPackageUri(uri);
-    } on ArgumentError catch (e) {
-      reporter.reportErrorMessage(node, MessageKind.INVALID_PACKAGE_URI,
-          {'uri': uri, 'exception': e.message});
-      return null;
-    }
-    return packages.resolve(uri, notFound: (Uri notFound) {
-      reporter.reportErrorMessage(
-          node, MessageKind.LIBRARY_NOT_FOUND, {'resolvedUri': uri});
-      return null;
-    });
-  }
-
-  Future setupPackages(Uri uri) {
-    if (options.packageRoot != null) {
-      // Use "non-file" packages because the file version requires a [Directory]
-      // and we can't depend on 'dart:io' classes.
-      packages = new NonFilePackagesDirectoryPackages(options.packageRoot);
-    } else if (options.packageConfig != null) {
-      Future<api.Input<List<int>>> future =
-          callUserProvider(options.packageConfig, api.InputKind.binary);
-      return future.then((api.Input<List<int>> binary) {
-        packages =
-            new MapPackages(pkgs.parse(binary.data, options.packageConfig));
-      }).catchError((error) {
-        reporter.reportErrorMessage(
-            NO_LOCATION_SPANNABLE,
-            MessageKind.INVALID_PACKAGE_CONFIG,
-            {'uri': options.packageConfig, 'exception': error});
-        packages = Packages.noPackages;
-      });
-    } else {
-      if (options.packagesDiscoveryProvider == null) {
-        packages = Packages.noPackages;
-      } else {
-        return callUserPackagesDiscovery(uri).then((p) {
-          packages = p;
-        });
-      }
-    }
-    return new Future.value();
   }
 
   Future setupSdk() {
@@ -147,8 +85,7 @@ class CompilerImpl extends Compiler {
   Future<bool> run(Uri uri) {
     Duration setupDuration = measurer.wallClock.elapsed;
     return selfTask.measureSubtask("CompilerImpl.run", () {
-      return setupSdk().then((_) => setupPackages(uri)).then((_) {
-        assert(packages != null);
+      return setupSdk().then((_) {
         return super.run(uri);
       }).then((bool success) {
         if (options.verbose) {
@@ -237,16 +174,6 @@ class CompilerImpl extends Compiler {
           .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
     } catch (ex, s) {
       reportCrashInUserCode('Uncaught exception in input provider', ex, s);
-      rethrow;
-    }
-  }
-
-  Future<Packages> callUserPackagesDiscovery(Uri uri) {
-    try {
-      return userPackagesDiscoveryTask
-          .measureIo(() => options.packagesDiscoveryProvider(uri));
-    } catch (ex, s) {
-      reportCrashInUserCode('Uncaught exception in package discovery', ex, s);
       rethrow;
     }
   }
