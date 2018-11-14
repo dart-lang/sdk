@@ -332,7 +332,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
-    if (library.loader.target.strongMode &&
+    if (!library.loader.target.legacyMode &&
         (isSetter || (isOperator && name == '[]=')) &&
         returnType == null) {
       procedure.function.returnType = const VoidType();

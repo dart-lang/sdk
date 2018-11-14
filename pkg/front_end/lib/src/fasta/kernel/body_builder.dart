@@ -728,8 +728,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // 2) the member [typeEnvironment] might be null when [strongMode] is false.
     // This particular behaviour can be observed when running the fasta perf
     // benchmarks.
-    bool strongMode = library.loader.target.strongMode;
-    if (strongMode && builder.returnType != null) {
+    if (!library.loader.target.legacyMode && builder.returnType != null) {
       DartType returnType = builder.function.returnType;
       // We use the same trick in each case below. For example to decide whether
       // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
@@ -847,7 +846,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression replacementNode;
 
       RedirectionTarget redirectionTarget = getRedirectionTarget(initialTarget,
-          strongMode: library.loader.target.strongMode);
+          strongMode: !library.loader.target.legacyMode);
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
@@ -1393,7 +1392,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             .withLocation(uri, charOffset, length);
       }
     }
-    if (!library.loader.target.strongMode &&
+    if (library.loader.target.legacyMode &&
         constantContext == ConstantContext.none) {
       addProblem(message.messageObject, message.charOffset, message.length,
           wasHandled: true, context: context);
@@ -1849,7 +1848,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     int value = int.tryParse(token.lexeme);
-    if (!library.loader.target.strongMode) {
+    if (library.loader.target.legacyMode) {
       if (value == null) {
         push(unhandled(
             'large integer', 'handleLiteralInt', token.charOffset, uri));
@@ -2252,7 +2251,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             lengthOfSpan(leftBracket, leftBracket.endGroup));
       } else {
         typeArgument = buildDartType(typeArguments.single);
-        if (library.loader.target.strongMode) {
+        if (!library.loader.target.legacyMode) {
           typeArgument =
               instantiateToBounds(typeArgument, coreTypes.objectClass);
         }
@@ -2308,7 +2307,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
-        if (library.loader.target.strongMode) {
+        if (!library.loader.target.legacyMode) {
           keyType = instantiateToBounds(keyType, coreTypes.objectClass);
           valueType = instantiateToBounds(valueType, coreTypes.objectClass);
         }
@@ -3017,7 +3016,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int charLength: noLength}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
-    if (library.loader.target.strongMode || !isRedirectingFactory(target)) {
+    if (!library.loader.target.legacyMode || !isRedirectingFactory(target)) {
       List<TypeParameter> typeParameters = target.function.typeParameters;
       if (target is Constructor) {
         assert(!target.enclosingClass.isAbstract);
@@ -3121,7 +3120,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         // Expected `typeParameters.length` type arguments, but none given, so
         // we fill in dynamic in legacy mode, and use type inference in strong
         // mode.
-        if (!library.loader.target.strongMode) {
+        if (library.loader.target.legacyMode) {
           for (int i = 0; i < typeParameters.length; i++) {
             types.add(const DynamicType());
           }
@@ -3319,7 +3318,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         Expression invocation;
 
-        if (!library.loader.target.strongMode && isRedirectingFactory(target)) {
+        if (library.loader.target.legacyMode && isRedirectingFactory(target)) {
           // In non-strong mode the checks that are done in
           // [buildStaticInvocation] on the initial target of a redirecting
           // factory invocation should be skipped.  So, we build the invocation
@@ -4133,7 +4132,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // Peek to leave type parameters on top of stack.
     List<KernelTypeVariableBuilder> typeVariables = peek();
 
-    if (library.loader.target.strongMode) {
+    if (!library.loader.target.legacyMode) {
       List<KernelTypeBuilder> calculatedBounds = calculateBounds(
           typeVariables,
           library.loader.target.dynamicType,
@@ -4207,7 +4206,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Severity severity = message.code.severity;
     if (severity == Severity.error ||
         severity == Severity.errorLegacyWarning &&
-            library.loader.target.strongMode) {
+            !library.loader.target.legacyMode) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, charOffset, length),
           context: context);
@@ -4391,7 +4390,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               ..fileOffset = assignmentOffset))
           ..fileOffset = assignmentOffset;
       } else {
-        if (library.loader.target.strongMode &&
+        if (!library.loader.target.legacyMode &&
             formalType != null &&
             !typeEnvironment.isSubtypeOf(formalType, builder.field.type)) {
           library.addProblem(
@@ -4504,7 +4503,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             typeParameter.name.length);
         if (!nonInstanceAccessIsError &&
             !isConstant &&
-            !library.loader.target.strongMode) {
+            library.loader.target.legacyMode) {
           // This is a warning in legacy mode.
           addProblem(message.messageObject, message.charOffset, message.length);
           suppressMessage = true;
