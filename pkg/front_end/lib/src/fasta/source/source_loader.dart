@@ -927,7 +927,7 @@ class SourceLoader<L> extends Loader<L> {
         typeInferenceEngine,
         typeInferenceEngine.typeSchemaEnvironment,
         instrumentation,
-        !target.legacyMode);
+        target.legacyMode);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         library.forEach((String name, Declaration member) {
