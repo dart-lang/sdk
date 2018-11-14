@@ -421,8 +421,8 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(element, name, null, _registerStaticStateHolder(),
+        code, isFinal, isLazy);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -447,14 +447,15 @@ class ProgramBuilder {
     if (code == null) return null;
 
     js.Name name = _namer.globalPropertyNameForMember(element);
+    js.Name getterName = _namer.lazyInitializerName(element);
     bool isFinal = !element.isAssignable;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(element, name, getterName,
+        _registerStaticStateHolder(), code, isFinal, isLazy);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {

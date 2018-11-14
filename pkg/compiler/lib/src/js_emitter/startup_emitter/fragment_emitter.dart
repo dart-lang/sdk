@@ -1562,7 +1562,7 @@ class FragmentEmitter {
         locals.find('_lazy', 'hunkHelpers.lazy'),
         field.holder.name,
         js.quoteName(field.name),
-        js.quoteName(namer.deriveLazyInitializerName(field.name)),
+        js.quoteName(field.getterName),
         field.code
       ]));
     }

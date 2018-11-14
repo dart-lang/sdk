@@ -213,7 +213,8 @@ class StaticField {
   /// Uses indicate missing information in the model.
   final FieldEntity element;
 
-  js.Name name;
+  final js.Name name;
+  final js.Name getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
   final Holder holder;
@@ -221,8 +222,8 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
 
-  StaticField(this.element, this.name, this.holder, this.code, this.isFinal,
-      this.isLazy);
+  StaticField(this.element, this.name, this.getterName, this.holder, this.code,
+      this.isFinal, this.isLazy);
 
   String toString() {
     return 'StaticField(name=${name.key},element=${element})';
