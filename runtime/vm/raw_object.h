@@ -34,6 +34,7 @@ typedef RawObject* RawCompressed;
   V(Namespace)                                                                 \
   V(KernelProgramInfo)                                                         \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
@@ -1078,7 +1079,7 @@ class RawFunction : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
   RawCode* code_;  // Currently active code. Accessed from generated code.
-  NOT_IN_PRECOMPILED(RawCode* bytecode_);
+  NOT_IN_PRECOMPILED(RawBytecode* bytecode_);
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1474,6 +1475,21 @@ class RawCode : public RawObject {
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
+};
+
+class RawBytecode : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
+
+  VISIT_FROM(RawObject*, object_pool_);
+  RawObjectPool* object_pool_;
+  RawExternalTypedData* instructions_;
+  RawFunction* function_;
+  RawExceptionHandlers* exception_handlers_;
+  RawPcDescriptors* pc_descriptors_;
+  VISIT_TO(RawObject*, pc_descriptors_);
+
+  friend class Function;
+  friend class StackFrame;
 };
 
 class RawObjectPool : public RawObject {

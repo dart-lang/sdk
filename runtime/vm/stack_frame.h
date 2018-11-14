@@ -165,6 +165,7 @@ class StackFrame : public ValueObject {
 
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
+  RawBytecode* LookupDartBytecode() const;
   bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
@@ -189,7 +190,7 @@ class StackFrame : public ValueObject {
 
  private:
   RawCode* GetCodeObject() const;
-  RawCode* UncheckedGetCodeObject() const;
+  RawBytecode* GetBytecodeObject() const;
 
   uword GetCallerSp() const {
     return fp() +

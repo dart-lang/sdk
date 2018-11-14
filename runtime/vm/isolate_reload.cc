@@ -895,12 +895,10 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   Function& func = Function::Handle();
   while (it.HasNextFrame()) {
     StackFrame* frame = it.NextFrame();
-    if (frame->IsDartFrame()) {
+    if (frame->IsDartFrame() && !frame->is_interpreted()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      if (!frame->is_interpreted()) {
-        func.EnsureHasCompiledUnoptimizedCode();
-      }
+      func.EnsureHasCompiledUnoptimizedCode();
     }
   }
 }
@@ -1834,22 +1832,28 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Zone* zone = stack_zone.GetZone();
 
   Code& code = Code::Handle(zone);
+  Bytecode& bytecode = Bytecode::Handle(zone);
   Function& function = Function::Handle(zone);
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
-    code = frame->LookupDartCode();
-    if (code.is_optimized()) {
-      // If this code is optimized, we need to reset the ICs in the
-      // corresponding unoptimized code, which will be executed when the stack
-      // unwinds to the optimized code.
-      function = code.function();
-      code = function.unoptimized_code();
-      ASSERT(!code.IsNull());
-      code.ResetICDatas(zone);
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      bytecode.ResetICDatas(zone);
     } else {
-      code.ResetICDatas(zone);
+      code = frame->LookupDartCode();
+      if (code.is_optimized()) {
+        // If this code is optimized, we need to reset the ICs in the
+        // corresponding unoptimized code, which will be executed when the stack
+        // unwinds to the optimized code.
+        function = code.function();
+        code = function.unoptimized_code();
+        ASSERT(!code.IsNull());
+        code.ResetICDatas(zone);
+      } else {
+        code.ResetICDatas(zone);
+      }
     }
     frame = iterator.NextFrame();
   }
@@ -1873,6 +1877,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
         owning_class_(Class::Handle(zone)),
         owning_lib_(Library::Handle(zone)),
         code_(Code::Handle(zone)),
+        bytecode_(Bytecode::Handle(zone)),
         reload_context_(reload_context),
         zone_(zone) {}
 
@@ -1894,19 +1899,25 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
       // Grab the current code.
       code_ = func.CurrentCode();
       ASSERT(!code_.IsNull());
+      bytecode_ = func.bytecode();
       const bool clear_code = IsFromDirtyLibrary(func);
       const bool stub_code = code_.IsStubCode();
 
       // Zero edge counters.
       func.ZeroEdgeCounters();
 
-      if (!stub_code) {
+      if (!stub_code || !bytecode_.IsNull()) {
         if (clear_code) {
-          VTIR_Print("Marking %s for recompilation, clearning code\n",
+          VTIR_Print("Marking %s for recompilation, clearing code\n",
                      func.ToCString());
           ClearAllCode(func);
         } else {
-          PreserveUnoptimizedCode();
+          if (!stub_code) {
+            PreserveUnoptimizedCode();
+          }
+          if (!bytecode_.IsNull()) {
+            PreserveBytecode();
+          }
         }
       }
 
@@ -1933,6 +1944,13 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     code_.ResetICDatas(zone_);
   }
 
+  void PreserveBytecode() {
+    ASSERT(!bytecode_.IsNull());
+    // We are preserving the bytecode, fill all ICData arrays with
+    // the sentinel values so that we have no stale type feedback.
+    bytecode_.ResetICDatas(zone_);
+  }
+
   bool IsFromDirtyLibrary(const Function& func) {
     owning_class_ = func.Owner();
     owning_lib_ = owning_class_.library();
@@ -1943,6 +1961,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Class& owning_class_;
   Library& owning_lib_;
   Code& code_;
+  Bytecode& bytecode_;
   IsolateReloadContext* reload_context_;
   Zone* zone_;
 };

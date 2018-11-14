@@ -546,6 +546,7 @@ class FunctionSerializationCluster : public SerializationCluster {
   ~FunctionSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
+    Snapshot::Kind kind = s->kind();
     RawFunction* func = Function::RawCast(object);
     objects_.Add(func);
 
@@ -554,9 +555,11 @@ class FunctionSerializationCluster : public SerializationCluster {
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
-    if (s->kind() == Snapshot::kFullAOT) {
+    if (kind == Snapshot::kFull) {
+      NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
+    } else if (kind == Snapshot::kFullAOT) {
       s->Push(func->ptr()->code_);
-    } else if (s->kind() == Snapshot::kFullJIT) {
+    } else if (kind == Snapshot::kFullJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->unoptimized_code_));
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
       s->Push(func->ptr()->code_);
@@ -584,7 +587,9 @@ class FunctionSerializationCluster : public SerializationCluster {
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
-      if (kind == Snapshot::kFullAOT) {
+      if (kind == Snapshot::kFull) {
+        NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->bytecode_));
+      } else if (kind == Snapshot::kFullAOT) {
         s->WriteRef(func->ptr()->code_);
       } else if (s->kind() == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->unoptimized_code_));
@@ -643,13 +648,16 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         *p = Object::null();
       }
 
-      if (kind == Snapshot::kFullAOT) {
+      if (kind == Snapshot::kFull) {
+        NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
+                               reinterpret_cast<RawBytecode*>(d->ReadRef()));
+      } else if (kind == Snapshot::kFullAOT) {
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
       } else if (kind == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
                                reinterpret_cast<RawCode*>(d->ReadRef()));
         NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
-                               reinterpret_cast<RawCode*>(d->ReadRef()));
+                               reinterpret_cast<RawBytecode*>(d->ReadRef()));
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
         func->ptr()->ic_data_array_ = reinterpret_cast<RawArray*>(d->ReadRef());
       }
@@ -1583,7 +1591,7 @@ class CodeSerializationCluster : public SerializationCluster {
       }
 
       s->WriteInstructions(code->ptr()->instructions_, code);
-      if (s->kind() == Snapshot::kFullJIT) {
+      if (kind == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
         // For now, we may write the FixCallersTarget or equivalent stub. This
         // will cause a fixup if this code is called.
@@ -1607,7 +1615,7 @@ class CodeSerializationCluster : public SerializationCluster {
         s->WriteRef(code->ptr()->inlined_id_to_function_);
         s->WriteRef(code->ptr()->code_source_map_);
       }
-      if (s->kind() == Snapshot::kFullJIT) {
+      if (kind == Snapshot::kFullJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
       }
@@ -1712,6 +1720,81 @@ class CodeDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class BytecodeSerializationCluster : public SerializationCluster {
+ public:
+  BytecodeSerializationCluster() : SerializationCluster("Bytecode") {}
+  virtual ~BytecodeSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawBytecode* bytecode = Bytecode::RawCast(object);
+    objects_.Add(bytecode);
+
+    RawObject** from = bytecode->from();
+    RawObject** to = bytecode->to();
+    for (RawObject** p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kBytecodeCid);
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawBytecode* bytecode = objects_[i];
+      s->AssignRef(bytecode);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    ASSERT(s->kind() == Snapshot::kFullJIT);
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawBytecode* bytecode = objects_[i];
+      RawObject** from = bytecode->from();
+      RawObject** to = bytecode->to();
+      for (RawObject** p = from; p <= to; p++) {
+        s->WriteRef(*p);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RawBytecode*> objects_;
+};
+
+class BytecodeDeserializationCluster : public DeserializationCluster {
+ public:
+  BytecodeDeserializationCluster() {}
+  virtual ~BytecodeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(AllocateUninitialized(old_space, Bytecode::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    ASSERT(d->kind() == Snapshot::kFullJIT);
+    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));
+      Deserializer::InitializeHeader(bytecode, kBytecodeCid,
+                                     Bytecode::InstanceSize(), is_vm_object);
+      RawObject** from = bytecode->from();
+      RawObject** to = bytecode->to();
+      for (RawObject** p = from; p <= to; p++) {
+        *p = d->ReadRef();
+      }
+    }
+  }
+};
+
 class ObjectPoolSerializationCluster : public SerializationCluster {
  public:
   ObjectPoolSerializationCluster() : SerializationCluster("ObjectPool") {}
@@ -4585,6 +4668,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) KernelProgramInfoSerializationCluster();
     case kCodeCid:
       return new (Z) CodeSerializationCluster();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    case kBytecodeCid:
+      return new (Z) BytecodeSerializationCluster();
+#endif  // !DART_PRECOMPILED_RUNTIME
     case kObjectPoolCid:
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
@@ -4715,6 +4802,11 @@ void Serializer::Push(RawObject* object) {
   if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
     return;  // Do not trace, will write null.
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+    return;  // Do not trace, will write null.
+  }
+#endif  // !DART_PRECOMPILED_RUNTIME
 
   if (object->IsSendPort()) {
     // TODO(rmacnak): Do a better job of resetting fields in precompilation
@@ -5110,6 +5202,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
 #endif  // !DART_PRECOMPILED_RUNTIME
     case kCodeCid:
       return new (Z) CodeDeserializationCluster();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    case kBytecodeCid:
+      return new (Z) BytecodeDeserializationCluster();
+#endif  // !DART_PRECOMPILED_RUNTIME
     case kObjectPoolCid:
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:

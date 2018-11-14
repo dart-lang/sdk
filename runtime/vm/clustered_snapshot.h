@@ -234,6 +234,12 @@ class Serializer : public StackResource {
         WriteRef(Object::null());
         return;
       }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+        WriteRef(Object::null());
+        return;
+      }
+#endif  // !DART_PRECOMPILED_RUNTIME
       if (object->IsSendPort()) {
         // TODO(rmacnak): Do a better job of resetting fields in precompilation
         // and assert this is unreachable.

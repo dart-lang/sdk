@@ -312,6 +312,12 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(this->bytecode());
+  if (!bytecode.IsNull()) {
+    jsobj.AddProperty("bytecode", bytecode);
+  }
+#endif  // !DART_PRECOMPILED_RUNTIME
   Array& ics = Array::Handle(ic_data_array());
   if (!ics.IsNull()) {
     jsobj.AddProperty("_icDataArray", ics);
@@ -851,6 +857,33 @@ void Code::set_await_token_positions(const Array& await_token_positions) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
 #endif
+}
+
+void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Bytecode", ref);
+  const char* qualified_name = QualifiedName();
+  const char* vm_name = Name();
+  AddNameProperties(&jsobj, qualified_name, vm_name);
+  if (ref) {
+    return;
+  }
+  const Function& fun = Function::Handle(function());
+  jsobj.AddProperty("function", fun);
+  jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
+  jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
+  const ObjectPool& obj_pool = ObjectPool::Handle(object_pool());
+  jsobj.AddProperty("_objectPool", obj_pool);
+  {
+    JSONArray jsarr(&jsobj, "_disassembly");
+    DisassembleToJSONStream formatter(jsarr);
+    Disassemble(&formatter);
+  }
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  if (!descriptors.IsNull()) {
+    JSONObject desc(&jsobj, "_descriptors");
+    descriptors.PrintToJSONObject(&desc, false);
+  }
 }
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {

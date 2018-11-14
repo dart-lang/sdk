@@ -13,17 +13,18 @@
 
 namespace dart {
 
-RawTypedData* KBCNativeCallPattern::GetNativeEntryDataAt(uword pc,
-                                                         const Code& bytecode) {
+RawTypedData* KBCNativeCallPattern::GetNativeEntryDataAt(
+    uword pc,
+    const Bytecode& bytecode) {
   ASSERT(bytecode.ContainsInstructionAt(pc));
   const uword call_pc = pc - sizeof(KBCInstr);
   KBCInstr call_instr = KernelBytecode::At(call_pc);
   ASSERT(KernelBytecode::DecodeOpcode(call_instr) ==
          KernelBytecode::kNativeCall);
   intptr_t native_entry_data_pool_index = KernelBytecode::DecodeD(call_instr);
-  const ObjectPool& object_pool = ObjectPool::Handle(bytecode.GetObjectPool());
+  const ObjectPool& obj_pool = ObjectPool::Handle(bytecode.object_pool());
   TypedData& native_entry_data = TypedData::Handle();
-  native_entry_data ^= object_pool.ObjectAt(native_entry_data_pool_index);
+  native_entry_data ^= obj_pool.ObjectAt(native_entry_data_pool_index);
   // Native calls to recognized functions should never be patched.
   ASSERT(NativeEntryData(native_entry_data).kind() ==
          MethodRecognizer::kUnknown);

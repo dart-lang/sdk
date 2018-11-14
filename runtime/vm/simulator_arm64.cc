@@ -299,6 +299,7 @@ void SimulatorDebugger::PrintBacktrace() {
   Code& unoptimized_code = Code::Handle();
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
+      ASSERT(!frame->is_interpreted());  // Not yet supported.
       code = frame->LookupDartCode();
       function = code.function();
       if (code.is_optimized()) {

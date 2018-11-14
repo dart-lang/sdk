@@ -100,7 +100,8 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   }
 
   // Read bytecode and attach to function.
-  const Code& bytecode = Code::Handle(helper_->zone_, ReadBytecode(pool));
+  const Bytecode& bytecode =
+      Bytecode::Handle(helper_->zone_, ReadBytecode(pool));
   function.AttachBytecode(bytecode);
 
   ReadExceptionsTable(bytecode, has_exceptions_table);
@@ -133,7 +134,7 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   // Read closures.
   if (has_closures) {
     Function& closure = Function::Handle(helper_->zone_);
-    Code& closure_bytecode = Code::Handle(helper_->zone_);
+    Bytecode& closure_bytecode = Bytecode::Handle(helper_->zone_);
     const intptr_t num_closures = helper_->ReadListLength();
     for (intptr_t i = 0; i < num_closures; i++) {
       intptr_t closure_index = helper_->ReadUInt();
@@ -637,7 +638,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
   return obj_count - 1;
 }
 
-RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
+RawBytecode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
                             "BytecodeMetadataHelper::ReadBytecode");
@@ -650,12 +651,16 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
   ASSERT(Utils::IsAligned(data, sizeof(KBCInstr)));
   helper_->reader_.set_offset(offset + size);
 
-  // Create and return code object.
-  return Code::FinalizeBytecode(reinterpret_cast<const void*>(data), size,
-                                pool);
+  const ExternalTypedData& instructions = ExternalTypedData::Handle(
+      helper_->zone_,
+      ExternalTypedData::New(kExternalTypedDataInt8ArrayCid,
+                             const_cast<uint8_t*>(data), size, Heap::kOld));
+
+  // Create and return bytecode object.
+  return Bytecode::New(instructions, pool);
 }
 
-void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode,
+void BytecodeMetadataHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                                  bool has_exceptions_table) {
 #if !defined(PRODUCT)
   TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
@@ -725,7 +730,7 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode,
   }
 }
 
-void BytecodeMetadataHelper::ReadSourcePositions(const Code& bytecode,
+void BytecodeMetadataHelper::ReadSourcePositions(const Bytecode& bytecode,
                                                  bool has_source_positions) {
   if (!has_source_positions) {
     return;

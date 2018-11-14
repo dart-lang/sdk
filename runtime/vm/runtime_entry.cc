@@ -165,6 +165,7 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame->IsDartFrame());
+  ASSERT(!caller_frame->is_interpreted());
   const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
@@ -845,6 +846,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       DartFrameIterator iterator(thread,
                                  StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* caller_frame = iterator.NextFrame();
+      ASSERT(!caller_frame->is_interpreted());
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
       const ObjectPool& pool =
@@ -882,6 +884,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       DartFrameIterator iterator(thread,
                                  StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* caller_frame = iterator.NextFrame();
+      ASSERT(!caller_frame->is_interpreted());
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
       const ObjectPool& pool =
@@ -983,6 +986,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
+  ASSERT(!caller_frame->is_interpreted());
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   ASSERT(caller_code.is_optimized());
@@ -1868,21 +1872,29 @@ static void HandleStackOverflowTestCases(Thread* thread) {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
-    const Code& code = Code::Handle(frame->LookupDartCode());
-    ASSERT(!code.IsNull());
-    const Function& function = Function::Handle(code.function());
+    Code& code = Code::Handle();
+    Function& function = Function::Handle();
+    if (frame->is_interpreted()) {
+      function = frame->LookupDartFunction();
+    } else {
+      code = frame->LookupDartCode();
+      ASSERT(!code.IsNull());
+      function = code.function();
+    }
     ASSERT(!function.IsNull());
     const char* function_name = function.ToFullyQualifiedCString();
     ASSERT(function_name != NULL);
-    if (!code.is_optimized() && FLAG_reload_every_optimized) {
-      // Don't do the reload if we aren't inside optimized code.
-      do_reload = false;
-    }
-    if (code.is_optimized() && FLAG_deoptimize_filter != NULL &&
-        strstr(function_name, FLAG_deoptimize_filter) != NULL) {
-      OS::PrintErr("*** Forcing deoptimization (%s)\n",
-                   function.ToFullyQualifiedCString());
-      do_deopt = true;
+    if (!code.IsNull()) {
+      if (!code.is_optimized() && FLAG_reload_every_optimized) {
+        // Don't do the reload if we aren't inside optimized code.
+        do_reload = false;
+      }
+      if (code.is_optimized() && FLAG_deoptimize_filter != NULL &&
+          strstr(function_name, FLAG_deoptimize_filter) != NULL) {
+        OS::PrintErr("*** Forcing deoptimization (%s)\n",
+                     function.ToFullyQualifiedCString());
+        do_deopt = true;
+      }
     }
     if (FLAG_stacktrace_filter != NULL &&
         strstr(function_name, FLAG_stacktrace_filter) != NULL) {
@@ -2360,9 +2372,11 @@ void DeoptimizeFunctionsOnStack() {
   StackFrame* frame = iterator.NextFrame();
   Code& optimized_code = Code::Handle();
   while (frame != NULL) {
-    optimized_code = frame->LookupDartCode();
-    if (optimized_code.is_optimized()) {
-      DeoptimizeAt(optimized_code, frame);
+    if (!frame->is_interpreted()) {
+      optimized_code = frame->LookupDartCode();
+      if (optimized_code.is_optimized()) {
+        DeoptimizeAt(optimized_code, frame);
+      }
     }
     frame = iterator.NextFrame();
   }

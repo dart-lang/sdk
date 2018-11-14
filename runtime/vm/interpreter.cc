@@ -467,14 +467,9 @@ class InterpreterHelpers {
     return true;
   }
 
-  DART_FORCE_INLINE static RawCode* FrameCode(RawObject** FP) {
-    ASSERT(GetClassId(FP[kKBCPcMarkerSlotFromFp]) == kCodeCid);
-    return static_cast<RawCode*>(FP[kKBCPcMarkerSlotFromFp]);
-  }
-
-  DART_FORCE_INLINE static void SetFrameCode(RawObject** FP, RawCode* code) {
-    ASSERT(GetClassId(code) == kCodeCid);
-    FP[kKBCPcMarkerSlotFromFp] = code;
+  DART_FORCE_INLINE static RawBytecode* FrameBytecode(RawObject** FP) {
+    ASSERT(GetClassId(FP[kKBCPcMarkerSlotFromFp]) == kBytecodeCid);
+    return static_cast<RawBytecode*>(FP[kKBCPcMarkerSlotFromFp]);
   }
 
   DART_FORCE_INLINE static uint8_t* GetTypedData(RawObject* obj,
@@ -616,7 +611,7 @@ void Interpreter::Exit(Thread* thread,
                        RawObject** frame,
                        uint32_t* pc) {
   frame[0] = Function::null();
-  frame[1] = Code::null();
+  frame[1] = Bytecode::null();
   frame[2] = reinterpret_cast<RawObject*>(pc);
   frame[3] = reinterpret_cast<RawObject*>(base);
   fp_ = frame + kKBCDartFrameFixedSize;
@@ -641,24 +636,6 @@ void Interpreter::CallRuntime(Thread* thread,
   Exit(thread, base, exit_frame, pc);
   NativeArguments native_args(thread, argc_tag, args, result);
   reinterpret_cast<RuntimeFunction>(target)(native_args);
-}
-
-DART_FORCE_INLINE static void EnterSyntheticFrame(RawObject*** FP,
-                                                  RawObject*** SP,
-                                                  uint32_t* pc) {
-  RawObject** fp = *SP + kKBCDartFrameFixedSize;
-  fp[kKBCPcMarkerSlotFromFp] = 0;
-  fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(pc);
-  fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
-  *FP = fp;
-  *SP = fp - 1;
-}
-
-DART_FORCE_INLINE static void LeaveSyntheticFrame(RawObject*** FP,
-                                                  RawObject*** SP) {
-  RawObject** fp = *FP;
-  *FP = reinterpret_cast<RawObject**>(fp[kKBCSavedCallerFpSlotFromFp]);
-  *SP = fp - kKBCDartFrameFixedSize;
 }
 
 // Calling into runtime may trigger garbage collection and relocate objects,
@@ -743,7 +720,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // Pop args and push result.
   *SP = call_base;
   **SP = result;
-  pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
+  pp_ = InterpreterHelpers::FrameBytecode(*FP)->ptr()->object_pool_;
 
   // If the result is an error (not a Dart instance), it must either be rethrown
   // (in the case of an unhandled exception) or it must be returned to the
@@ -922,7 +899,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         // Reload objects after the call which may trigger GC.
         function = reinterpret_cast<RawFunction*>(call_top[0]);
         field = reinterpret_cast<RawField*>(function->ptr()->data_);
-        pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
+        pp_ = InterpreterHelpers::FrameBytecode(*FP)->ptr()->object_pool_;
         // The field is initialized by the runtime call, but not returned.
         value = field->ptr()->value_.static_value_;
       }
@@ -1078,12 +1055,13 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
               Function::Handle(function).ToFullyQualifiedCString());
   }
 #endif
-  RawCode* bytecode = function->ptr()->bytecode_;
+  RawBytecode* bytecode = function->ptr()->bytecode_;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
   callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);
   callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   pp_ = bytecode->ptr()->object_pool_;
-  *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->entry_point_);
+  *pc =
+      reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_->ptr()->data_);
   pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
   fp_ = callee_fp;  // For the profiler.
@@ -1217,24 +1195,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   }
 
   return Invoke(thread, call_base, top, pc, FP, SP);
-}
-
-DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
-    RawCode* code,
-    RawImmutableArray* args_desc,
-    RawObject** FP,
-    RawObject*** SP,
-    uint32_t** pc) {
-  // Drop all stack locals.
-  *SP = FP - 1;
-
-  // Replace the callee with the new [code].
-  FP[kKBCFunctionSlotFromFp] = Object::null();
-  FP[kKBCPcMarkerSlotFromFp] = code;
-  *pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
-  pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
-  pp_ = code->ptr()->object_pool_;
-  argdesc_ = args_desc;
 }
 
 // Note:
@@ -1371,7 +1331,7 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
 
 #define HANDLE_RETURN                                                          \
   do {                                                                         \
-    pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;              \
+    pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;          \
     fp_ = FP; /* For the profiler. */                                          \
   } while (0)
 
@@ -1414,62 +1374,6 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
     HANDLE_EXCEPTION;                                                          \
   }                                                                            \
   ASSERT(Integer::GetInt64Value(RAW_CAST(Integer, SP[0])) == result);
-
-// Returns true if deoptimization succeeds.
-DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
-                                               uint32_t** pc,
-                                               RawObject*** FP,
-                                               RawObject*** SP,
-                                               bool is_lazy) {
-  // Note: frame translation will take care of preserving result at the
-  // top of the stack. See CompilerDeoptInfo::CreateDeoptInfo.
-
-  // Make sure we preserve SP[0] when entering synthetic frame below.
-  (*SP)++;
-
-  // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
-  // The code in this frame may not cause GC.
-  // DeoptimizeCopyFrame and DeoptimizeFillFrame are leaf runtime calls.
-  EnterSyntheticFrame(FP, SP, *pc - (is_lazy ? 1 : 0));
-  const intptr_t frame_size_in_bytes =
-      DLRT_DeoptimizeCopyFrame(reinterpret_cast<uword>(*FP), is_lazy ? 1 : 0);
-  LeaveSyntheticFrame(FP, SP);
-
-  *SP = *FP + (frame_size_in_bytes / kWordSize);
-  EnterSyntheticFrame(FP, SP, *pc - (is_lazy ? 1 : 0));
-  DLRT_DeoptimizeFillFrame(reinterpret_cast<uword>(*FP));
-
-  // We are now inside a valid frame.
-  {
-    *++(*SP) = 0;  // Space for the result: number of materialization args.
-    Exit(thread, *FP, *SP + 1, /*pc=*/0);
-    NativeArguments native_args(thread, 0, *SP, *SP);
-    if (!InvokeRuntime(thread, this, DRT_DeoptimizeMaterialize, native_args)) {
-      return false;
-    }
-  }
-  const intptr_t materialization_arg_count =
-      Smi::Value(RAW_CAST(Smi, *(*SP)--)) / kWordSize;
-
-  // Restore caller PC.
-  *pc = SavedCallerPC(*FP);
-  pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
-
-  // Check if it is a fake PC marking the entry frame.
-  ASSERT(!IsEntryFrameMarker(reinterpret_cast<uword>(*pc)));
-
-  // Restore SP, FP and PP.
-  // Unoptimized frame SP is one below FrameArguments(...) because
-  // FrameArguments(...) returns a pointer to the first argument.
-  *SP = FrameArguments(*FP, materialization_arg_count) - 1;
-  *FP = SavedCallerFP(*FP);
-  fp_ = *FP;  // For the profiler.
-
-  // Restore pp.
-  pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
-
-  return true;
-}
 
 bool Interpreter::AssertAssignable(Thread* thread,
                                    uint32_t* pc,
@@ -1674,7 +1578,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     fp_[kKBCEntrySavedSlots + i] = argv[argc < 0 ? -i : i];
   }
 
-  RawCode* bytecode = function->ptr()->bytecode_;
+  RawBytecode* bytecode = function->ptr()->bytecode_;
   FP[kKBCFunctionSlotFromFp] = function;
   FP[kKBCPcMarkerSlotFromFp] = bytecode;
   FP[kKBCSavedCallerPcSlotFromFp] =
@@ -1686,7 +1590,8 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->entry_point_);
+  pc =
+      reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_->ptr()->data_);
   pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
   fp_ = FP;                           // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;
@@ -2372,7 +2277,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     SP = FrameArguments(FP, argc);
     FP = SavedCallerFP(FP);
     fp_ = FP;  // For the profiler.
-    pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;
+    pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     *SP = result;
     DISPATCH();
   }
@@ -2927,7 +2832,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     FP = SavedCallerFP(FP);
     fp_ = FP;  // For the profiler.
     if (has_dart_caller) {
-      pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;
+      pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     }
 
     *++SP = null_value;
@@ -2999,7 +2904,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   // Single dispatch point used by exception handling macros.
   {
   DispatchAfterException:
-    pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;
+    pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     DISPATCH();
   }
 

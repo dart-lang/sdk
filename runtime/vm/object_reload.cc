@@ -82,14 +82,29 @@ void Code::ResetICDatas(Zone* zone) const {
   }
 #else
   const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
-  Object& object = Object::Handle(zone);
   ASSERT(!pool.IsNull());
-  for (intptr_t i = 0; i < pool.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool.TypeAt(i);
+  pool.ResetICDatas(zone);
+#endif
+}
+
+void Bytecode::ResetICDatas(Zone* zone) const {
+  // Iterate over the Bytecode's object pool and reset all ICDatas.
+  const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
+  ASSERT(!pool.IsNull());
+  pool.ResetICDatas(zone);
+}
+
+void ObjectPool::ResetICDatas(Zone* zone) const {
+#ifdef TARGET_ARCH_IA32
+  UNREACHABLE();
+#else
+  Object& object = Object::Handle(zone);
+  for (intptr_t i = 0; i < Length(); i++) {
+    ObjectPool::EntryType entry_type = TypeAt(i);
     if (entry_type != ObjectPool::kTaggedObject) {
       continue;
     }
-    object = pool.ObjectAt(i);
+    object = ObjectAt(i);
     if (object.IsICData()) {
       ICData::Cast(object).Reset(zone);
     }
