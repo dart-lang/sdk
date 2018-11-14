@@ -13,8 +13,8 @@ The source of truth for these configurations is the file [pkg/front_end/testing.
 
 ## Dart 1.0 Compilation
 
-* Status file: [compile.status](compile.status)
-* Standalone test: [pkg/front_end/test/fasta/compile_test.dart](../test/fasta/compile_test.dart)
+* Status file: [legacy.status](legacy.status)
+* Standalone test: [pkg/front_end/test/fasta/legacy_test.dart](../test/fasta/legacy_test.dart)
 * Expectation prefix: `.direct.expect`
 * How to update expectations:
 

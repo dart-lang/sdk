@@ -2,9 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Status file for the compile_test.dart (notice c, not k) test suite. This is
-# testing generating Kernel ASTs directly, that is, code in
-# pkg/fasta/lib/src/kernel/.
+# Status file for the legacy_test.dart test suite. This is testing generating
+# Kernel ASTs in legacy mode (Dart 1.0).
 
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
