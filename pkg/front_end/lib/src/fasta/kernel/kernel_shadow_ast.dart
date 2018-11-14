@@ -1558,8 +1558,8 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class ShadowTypeInferenceEngine extends TypeInferenceEngine {
-  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
-      : super(instrumentation, strongMode);
+  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool legacyMode)
+      : super(instrumentation, legacyMode);
 
   @override
   TypeInferrer createDisabledTypeInferrer() =>

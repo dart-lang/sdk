@@ -592,7 +592,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : strongMode = engine.strongMode,
+      : strongMode = !engine.legacyMode,
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
