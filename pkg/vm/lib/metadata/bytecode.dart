@@ -10,6 +10,7 @@ import '../bytecode/dbc.dart'
     show stableBytecodeFormatVersion, futureBytecodeFormatVersion;
 import '../bytecode/disassembler.dart' show BytecodeDisassembler;
 import '../bytecode/exceptions.dart' show ExceptionsTable;
+import '../bytecode/source_positions.dart' show SourcePositions;
 
 /// Metadata containing bytecode.
 ///
@@ -17,8 +18,8 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 ///
 /// type BytecodeMetadata {
 ///   UInt bytecodeFormatVersion
-///   UInt flags (HasExceptionsTable, HasNullableFields, HasClosures)
-///
+///   UInt flags (HasExceptionsTable, HasSourcePositions, HasNullableFields,
+///               HasClosures)
 ///   ConstantPool constantPool
 ///
 ///   UInt bytecodeSizeInBytes
@@ -29,6 +30,9 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 ///   (optional, present if HasExceptionsTable)
 ///   ExceptionsTable exceptionsTable
 ///
+///   (optional, present if HasSourcePositions)
+///   SourcePositions sourcePositionsTabe
+///
 ///   (optional, present if HasNullableFields)
 ///   List<CanonicalName> nullableFields
 ///
@@ -38,13 +42,18 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 ///
 /// type ClosureBytecode {
 ///   ConstantIndex closureFunction
+///   UInt flags (HasExceptionsTable, HasSourcePositions)
 ///
 ///   UInt bytecodeSizeInBytes
 ///   Byte paddingSizeInBytes
 ///   Byte[paddingSizeInBytes] padding
 ///   Byte[bytecodeSizeInBytes] bytecodes
 ///
+///   (optional, present if HasExceptionsTable)
 ///   ExceptionsTable exceptionsTable
+///
+///   (optional, present if HasSourcePositions)
+///   SourcePositions sourcePositionsTabe
 /// }
 ///
 /// Encoding of ExceptionsTable is described in
@@ -55,27 +64,37 @@ import '../bytecode/exceptions.dart' show ExceptionsTable;
 ///
 class BytecodeMetadata {
   static const hasExceptionsTableFlag = 1 << 0;
-  static const hasNullableFieldsFlag = 1 << 1;
-  static const hasClosuresFlag = 1 << 2;
+  static const hasSourcePositionsFlag = 1 << 1;
+  static const hasNullableFieldsFlag = 1 << 2;
+  static const hasClosuresFlag = 1 << 3;
 
   final int version;
   final ConstantPool constantPool;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
+  final SourcePositions sourcePositions;
   final List<Reference> nullableFields;
   final List<ClosureBytecode> closures;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
+  bool get hasSourcePositions => sourcePositions.mapping.isNotEmpty;
   bool get hasNullableFields => nullableFields.isNotEmpty;
   bool get hasClosures => closures.isNotEmpty;
 
   int get flags =>
       (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
+      (hasSourcePositions ? hasSourcePositionsFlag : 0) |
       (hasNullableFields ? hasNullableFieldsFlag : 0) |
       (hasClosures ? hasClosuresFlag : 0);
 
-  BytecodeMetadata(this.version, this.constantPool, this.bytecodes,
-      this.exceptionsTable, this.nullableFields, this.closures);
+  BytecodeMetadata(
+      this.version,
+      this.constantPool,
+      this.bytecodes,
+      this.exceptionsTable,
+      this.sourcePositions,
+      this.nullableFields,
+      this.closures);
 
   // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
@@ -84,7 +103,9 @@ class BytecodeMetadata {
       " (version: "
       "${version == stableBytecodeFormatVersion ? 'stable' : version == futureBytecodeFormatVersion ? 'future' : "v$version"}"
       ") {\n"
-      "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable)}}\n"
+      "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [
+        sourcePositions.getBytecodeAnnotations()
+      ])}}\n"
       "$exceptionsTable"
       "${nullableFields.isEmpty ? '' : 'Nullable fields: ${nullableFields.map((ref) => ref.asField).toList()}\n'}"
       "$constantPool"
@@ -97,30 +118,53 @@ class ClosureBytecode {
   final int closureFunctionConstantIndex;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
+  final SourcePositions sourcePositions;
 
-  ClosureBytecode(
-      this.closureFunctionConstantIndex, this.bytecodes, this.exceptionsTable);
+  bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
+  bool get hasSourcePositions => sourcePositions.mapping.isNotEmpty;
+
+  int get flags =>
+      (hasExceptionsTable ? BytecodeMetadata.hasExceptionsTableFlag : 0) |
+      (hasSourcePositions ? BytecodeMetadata.hasSourcePositionsFlag : 0);
+
+  ClosureBytecode(this.closureFunctionConstantIndex, this.bytecodes,
+      this.exceptionsTable, this.sourcePositions);
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(closureFunctionConstantIndex);
+    sink.writeUInt30(flags);
     _writeBytecodeInstructions(sink, bytecodes);
-    exceptionsTable.writeToBinary(sink);
+    if (hasExceptionsTable) {
+      exceptionsTable.writeToBinary(sink);
+    }
+    if (hasSourcePositions) {
+      sink.writeByteList(sourcePositions.toBytes());
+    }
   }
 
   factory ClosureBytecode.readFromBinary(BinarySource source) {
     final closureFunctionConstantIndex = source.readUInt();
+    final int flags = source.readUInt();
     final List<int> bytecodes = _readBytecodeInstructions(source);
-    final exceptionsTable = new ExceptionsTable.readFromBinary(source);
-    return new ClosureBytecode(
-        closureFunctionConstantIndex, bytecodes, exceptionsTable);
+    final exceptionsTable =
+        ((flags & BytecodeMetadata.hasExceptionsTableFlag) != 0)
+            ? new ExceptionsTable.readFromBinary(source)
+            : new ExceptionsTable();
+    final sourcePositions =
+        ((flags & BytecodeMetadata.hasSourcePositionsFlag) != 0)
+            ? new SourcePositions.fromBytes(source.readByteList())
+            : new SourcePositions();
+    return new ClosureBytecode(closureFunctionConstantIndex, bytecodes,
+        exceptionsTable, sourcePositions);
   }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.writeln('Closure CP#$closureFunctionConstantIndex {');
-    sb.writeln(
-        new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable));
+    sb.writeln(new BytecodeDisassembler().disassemble(
+        bytecodes, exceptionsTable,
+        annotations: [sourcePositions.getBytecodeAnnotations()]));
     sb.writeln('}');
     return sb.toString();
   }
@@ -144,6 +188,9 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
     if (metadata.hasExceptionsTable) {
       metadata.exceptionsTable.writeToBinary(sink);
     }
+    if (metadata.hasSourcePositions) {
+      sink.writeByteList(metadata.sourcePositions.toBytes());
+    }
     if (metadata.hasNullableFields) {
       sink.writeUInt30(metadata.nullableFields.length);
       metadata.nullableFields.forEach((ref) => sink
@@ -165,12 +212,15 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
     int flags = source.readUInt();
     final ConstantPool constantPool =
         new ConstantPool.readFromBinary(node, source);
-    _readBytecodePadding(source);
     final List<int> bytecodes = _readBytecodeInstructions(source);
     final exceptionsTable =
         ((flags & BytecodeMetadata.hasExceptionsTableFlag) != 0)
             ? new ExceptionsTable.readFromBinary(source)
             : new ExceptionsTable();
+    final sourcePositions =
+        ((flags & BytecodeMetadata.hasSourcePositionsFlag) != 0)
+            ? new SourcePositions.fromBytes(source.readByteList())
+            : new SourcePositions();
     final List<Reference> nullableFields =
         ((flags & BytecodeMetadata.hasNullableFieldsFlag) != 0)
             ? new List<Reference>.generate(source.readUInt(),
@@ -182,7 +232,7 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
                 (_) => new ClosureBytecode.readFromBinary(source))
             : const <ClosureBytecode>[];
     return new BytecodeMetadata(version, constantPool, bytecodes,
-        exceptionsTable, nullableFields, closures);
+        exceptionsTable, sourcePositions, nullableFields, closures);
   }
 }
 

@@ -50,6 +50,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
+    bool emitBytecodeSourcePositions: false,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
@@ -95,6 +96,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
           dropAST: dropAST,
+          emitSourcePositions: emitBytecodeSourcePositions,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
     });

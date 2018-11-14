@@ -33,8 +33,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
                            const ObjectPool& pool,
                            intptr_t from_index);
   RawCode* ReadBytecode(const ObjectPool& pool);
-  void ReadExceptionsTable(const Code& bytecode,
-                           bool has_exceptions_table = true);
+  void ReadExceptionsTable(const Code& bytecode, bool has_exceptions_table);
+  void ReadSourcePositions(const Code& bytecode, bool has_source_positions);
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
 

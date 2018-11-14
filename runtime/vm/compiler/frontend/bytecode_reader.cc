@@ -74,11 +74,13 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   }
 
   const int kHasExceptionsTableFlag = 1 << 0;
-  const int kHasNullableFieldsFlag = 1 << 1;
-  const int kHasClosuresFlag = 1 << 2;
+  const int kHasSourcePositionsFlag = 1 << 1;
+  const int kHasNullableFieldsFlag = 1 << 2;
+  const int kHasClosuresFlag = 1 << 3;
 
   const intptr_t flags = helper_->reader_.ReadUInt();
   const bool has_exceptions_table = (flags & kHasExceptionsTableFlag) != 0;
+  const bool has_source_positions = (flags & kHasSourcePositionsFlag) != 0;
   const bool has_nullable_fields = (flags & kHasNullableFieldsFlag) != 0;
   const bool has_closures = (flags & kHasClosuresFlag) != 0;
 
@@ -101,8 +103,9 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   const Code& bytecode = Code::Handle(helper_->zone_, ReadBytecode(pool));
   function.AttachBytecode(bytecode);
 
-  // Read exceptions table.
   ReadExceptionsTable(bytecode, has_exceptions_table);
+
+  ReadSourcePositions(bytecode, has_source_positions);
 
   if (FLAG_dump_kernel_bytecode) {
     KernelBytecodeDisassembler::Disassemble(function);
@@ -137,12 +140,18 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
       ASSERT(closure_index < obj_count);
       closure ^= pool.ObjectAt(closure_index);
 
+      const intptr_t flags = helper_->reader_.ReadUInt();
+      const bool has_exceptions_table = (flags & kHasExceptionsTableFlag) != 0;
+      const bool has_source_positions = (flags & kHasSourcePositionsFlag) != 0;
+
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
       closure.AttachBytecode(closure_bytecode);
 
       // Read closure exceptions table.
-      ReadExceptionsTable(closure_bytecode);
+      ReadExceptionsTable(closure_bytecode, has_exceptions_table);
+
+      ReadSourcePositions(closure_bytecode, has_source_positions);
 
       if (FLAG_dump_kernel_bytecode) {
         KernelBytecodeDisassembler::Disassemble(closure);
@@ -714,6 +723,16 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode,
     bytecode.set_pc_descriptors(Object::empty_descriptors());
     bytecode.set_exception_handlers(Object::empty_exception_handlers());
   }
+}
+
+void BytecodeMetadataHelper::ReadSourcePositions(const Code& bytecode,
+                                                 bool has_source_positions) {
+  if (!has_source_positions) {
+    return;
+  }
+
+  // TODO(alexmarkov): store offset of source positions into Bytecode object.
+  helper_->SkipBytes(helper_->reader_.ReadUInt());
 }
 
 RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,

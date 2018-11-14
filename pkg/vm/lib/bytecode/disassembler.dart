@@ -24,10 +24,14 @@ class BytecodeDisassembler {
   Map<int, String> _labels;
   Map<int, List<String>> _markers;
 
-  String disassemble(List<int> bytecode, ExceptionsTable exceptionsTable) {
+  String disassemble(List<int> bytecode, ExceptionsTable exceptionsTable,
+      {List<Map<int, String>> annotations}) {
     _init(bytecode);
     _scanForJumpTargets();
     _markTryBlocks(exceptionsTable);
+    if (annotations != null) {
+      _markAnnotations(annotations);
+    }
     return _disasm();
   }
 
@@ -113,6 +117,14 @@ class BytecodeDisassembler {
       _addMarker(tryBlock.startPC, 'Try #$tryIndex start:');
       _addMarker(tryBlock.endPC, 'Try #$tryIndex end:');
       _addMarker(tryBlock.handlerPC, 'Try #$tryIndex handler:');
+    }
+  }
+
+  void _markAnnotations(List<Map<int, String>> annotations) {
+    for (var map in annotations) {
+      map.forEach((int pc, String annotation) {
+        _addMarker(pc, '# $annotation');
+      });
     }
   }
 
