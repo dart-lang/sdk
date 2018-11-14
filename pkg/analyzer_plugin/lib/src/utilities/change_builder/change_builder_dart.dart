@@ -44,7 +44,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
       String path, void buildFileEdit(DartFileEditBuilder builder),
       {ImportPrefixGenerator importPrefixGenerator}) {
     return super.addFileEdit(path, (builder) {
-      DartFileEditBuilderImpl dartBuilder = builder;
+      DartFileEditBuilderImpl dartBuilder = builder as DartFileEditBuilderImpl;
       dartBuilder.importPrefixGenerator = importPrefixGenerator;
       buildFileEdit(dartBuilder);
     });
@@ -402,7 +402,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
 
-    ExecutableElement element = signature.element;
+    ExecutableElement element = signature.element as ExecutableElement;
     String prefix = getIndent(1);
     String prefix2 = getIndent(2);
     ElementKind elementKind = element.kind;

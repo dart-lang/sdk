@@ -36,7 +36,8 @@ class AnalyzerConverter {
     int startLine = -1;
     int startColumn = -1;
     if (lineInfo != null) {
-      analyzer.CharacterLocation lineLocation = lineInfo.getLocation(offset);
+      analyzer.CharacterLocation lineLocation =
+          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
         startColumn = lineLocation.columnNumber;
@@ -342,7 +343,7 @@ class AnalyzerConverter {
       analyzer.LineInfo lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
         analyzer.CharacterLocation offsetLocation =
-            lineInfo.getLocation(range.offset);
+            lineInfo.getLocation(range.offset) as analyzer.CharacterLocation;
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;
       }

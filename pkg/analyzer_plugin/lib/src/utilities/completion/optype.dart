@@ -561,7 +561,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     // Given f[], the parser drops the [] from the expression statement
     // but the [] token is the CompletionTarget entity
     if (entity is Token) {
-      Token token = entity;
+      Token token = entity as Token;
       if (token.lexeme == '[]' && offset == token.offset + 1) {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
@@ -989,7 +989,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (entity is Token) {
-      Token token = entity;
+      Token token = entity as Token;
       if (token.isSynthetic || token.lexeme == ';') {
         optype.includeVarNameSuggestions = true;
       }
