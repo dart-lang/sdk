@@ -1,3 +1,9 @@
+## 
+* Support for `declarations-casts` has been removed and the `implicit-casts`
+  option now has the combined semantics of both options. This means that users
+  that disable `implicit-casts` might now see errors that were not previously
+  being reported.
+
 ## 0.33.3
 * Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
 
