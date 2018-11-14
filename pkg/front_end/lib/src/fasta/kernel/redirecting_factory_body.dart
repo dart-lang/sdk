@@ -129,7 +129,7 @@ class RedirectionTarget {
   RedirectionTarget(this.target, this.typeArguments);
 }
 
-RedirectionTarget getRedirectionTarget(Procedure member, {bool strongMode}) {
+RedirectionTarget getRedirectionTarget(Procedure member, {bool legacyMode}) {
   List<DartType> typeArguments = <DartType>[]..length =
       member.function.typeParameters.length;
   for (int i = 0; i < typeArguments.length; i++) {
@@ -148,11 +148,11 @@ RedirectionTarget getRedirectionTarget(Procedure member, {bool strongMode}) {
       return new RedirectionTarget(tortoise, typeArguments);
     Member nextTortoise = tortoiseBody.target;
     List<DartType> nextTypeArguments = tortoiseBody.typeArguments;
-    if (strongMode && nextTypeArguments == null) {
+    if (!legacyMode && nextTypeArguments == null) {
       nextTypeArguments = <DartType>[];
     }
 
-    if (strongMode || nextTypeArguments != null) {
+    if (!legacyMode || nextTypeArguments != null) {
       Substitution sub = Substitution.fromPairs(
           tortoise.function.typeParameters, typeArguments);
       typeArguments = <DartType>[]..length = nextTypeArguments.length;

@@ -846,7 +846,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression replacementNode;
 
       RedirectionTarget redirectionTarget = getRedirectionTarget(initialTarget,
-          strongMode: !library.loader.target.legacyMode);
+          legacyMode: library.loader.target.legacyMode);
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
