@@ -44,6 +44,7 @@ class TestConfiguration {
       this.writeTestOutcomeLog,
       this.writeResultLog,
       this.writeResults,
+      this.writeLogs,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -95,6 +96,7 @@ class TestConfiguration {
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
   final bool writeResults;
+  final bool writeLogs;
   final bool printPassingStdout;
 
   Architecture get architecture => configuration.architecture;

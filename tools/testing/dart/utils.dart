@@ -469,21 +469,25 @@ class TestUtils {
   /// file can be made visible in the waterfall UI.
   static const flakyFileName = ".flaky.log";
 
-  /// If test.py was invoked with '--write-test-outcome-log it will write
+  /// If test.py was invoked with '--write-test-outcome-log' it will write
   /// test outcomes to this file.
   static const testOutcomeFileName = ".test-outcome.log";
 
-  /// If test.py was invoked with '--write-result-log it will write
+  /// If test.py was invoked with '--write-result-log' it will write
   /// test outcomes to this file in the '--output-directory'.
   static const resultLogFileName = "result.log";
 
-  /// If test.py was invoked with '--write-results it will write
+  /// If test.py was invoked with '--write-results' it will write
   /// test outcomes to this file in the '--output-directory'.
   static const resultsFileName = "results.json";
 
-  /// If test.py was invoked with '--write-results it will write
+  /// If test.py was invoked with '--write-results' it will write
   /// data about this run of test.py to this file in the '--output-directory'.
   static const resultsInstanceFileName = "run.json";
+
+  /// If test.py was invoked with '--write-results' and '--write-logs", save
+  /// the stdout and stderr to this file in the '--output-directory'.
+  static const logsFileName = "logs.json";
 
   static void ensureExists(String filename, TestConfiguration configuration) {
     if (!configuration.listTests && !existsCache.doesFileExist(filename)) {

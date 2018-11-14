@@ -684,7 +684,23 @@ List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
   var lines = <String>[];
   var output = new OutputWriter(formatter, lines);
+  _writeFailureStatus(test, formatter, output);
+  _writeFailureOutput(test, formatter, output);
+  _writeFailureReproductionCommands(test, formatter, output);
+  return lines;
+}
 
+List<String> _buildFailureLog(TestCase test) {
+  final formatter = Formatter.normal;
+  final lines = <String>[];
+  final output = new OutputWriter(formatter, lines);
+  _writeFailureOutput(test, formatter, output);
+  _writeFailureReproductionCommands(test, formatter, output);
+  return lines;
+}
+
+void _writeFailureStatus(
+    TestCase test, Formatter formatter, OutputWriter output) {
   output.write('');
   output.write(formatter
       .failed('FAILED: ${test.configurationString} ${test.displayName}'));
@@ -692,7 +708,7 @@ List<String> _buildFailureOutput(TestCase test,
   output.write('Expected: ${test.expectedOutcomes.join(" ")}');
   output.write('Actual: ${test.result}');
 
-  var ranAllCommands = test.commandOutputs.length == test.commands.length;
+  final ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (!test.lastCommandOutput.hasTimedOut) {
     if (!ranAllCommands && !test.expectCompileError) {
       output.write('Unexpected compile error.');
@@ -708,7 +724,10 @@ List<String> _buildFailureOutput(TestCase test,
       }
     }
   }
+}
 
+void _writeFailureOutput(
+    TestCase test, Formatter formatter, OutputWriter output) {
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
@@ -719,7 +738,11 @@ List<String> _buildFailureOutput(TestCase test,
     output.write(command.toString());
     commandOutput.describe(test.configuration.progress, output);
   }
+}
 
+void _writeFailureReproductionCommands(
+    TestCase test, Formatter formatter, OutputWriter output) {
+  final ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (test.configuration.runtime.isBrowser && ranAllCommands) {
     // Additional command for rerunning the steps locally after the fact.
     output.section('To debug locally, run');
@@ -737,7 +760,6 @@ List<String> _buildFailureOutput(TestCase test,
   arguments.add(test.displayName);
 
   output.write(arguments.map(escapeCommandLineArgument).join(' '));
-  return lines;
 }
 
 String _buildSummaryEnd(Formatter formatter, int failedTests) {
@@ -840,6 +862,7 @@ class ResultLogWriter extends EventListener {
 class ResultWriter extends EventListener {
   final TestConfiguration _configuration;
   final List<Map> _results = [];
+  final List<Map> _logs = [];
   final String _outputDirectory;
   final Stopwatch _startStopwatch;
   final DateTime _startTime;
@@ -850,8 +873,12 @@ class ResultWriter extends EventListener {
   void allTestsKnown() {
     // Write an empty result log file, that will be overwritten if any tests
     // are actually run, when the allDone event handler is invoked.
-    writeResultsFile([]);
+    writeOutputFile([], TestUtils.resultsFileName);
+    writeOutputFile([], TestUtils.logsFileName);
   }
+
+  String newlineTerminated(Iterable<String> lines) =>
+      lines.map((l) => l + '\n').join();
 
   void done(TestCase test) {
     if (_configuration != test.configuration) {
@@ -865,7 +892,7 @@ class ResultWriter extends EventListener {
     Duration time =
         test.commandOutputs.values.fold(Duration.zero, (d, o) => d + o.time);
 
-    var record = {
+    final record = {
       "name": name,
       "configuration": _configuration.configuration.name,
       "suite": suite,
@@ -876,19 +903,28 @@ class ResultWriter extends EventListener {
       "matches": test.realResult.canBeOutcomeOf(test.realExpected)
     };
     _results.add(record);
+    if (test.configuration.writeLogs && record['matches'] != true) {
+      final log = {
+        'name': name,
+        'configuration': record['configuration'],
+        'result': record['result'],
+        'log': newlineTerminated(_buildFailureLog(test))
+      };
+      _logs.add(log);
+    }
   }
 
   void allDone() {
-    writeResultsFile(_results);
+    writeOutputFile(_results, TestUtils.resultsFileName);
+    writeOutputFile(_logs, TestUtils.logsFileName);
     writeRunFile();
   }
 
-  void writeResultsFile(List<Map> results) {
+  void writeOutputFile(List<Map> results, String fileName) {
     if (_outputDirectory == null) return;
-    final path =
-        Uri.directory(_outputDirectory).resolve(TestUtils.resultsFileName);
-    String jsonLine(Map x) => jsonEncode(x) + '\n';
-    File.fromUri(path).writeAsStringSync(results.map(jsonLine).join());
+    final path = Uri.directory(_outputDirectory).resolve(fileName);
+    File.fromUri(path)
+        .writeAsStringSync(newlineTerminated(results.map(jsonEncode)));
   }
 
   void writeRunFile() {
