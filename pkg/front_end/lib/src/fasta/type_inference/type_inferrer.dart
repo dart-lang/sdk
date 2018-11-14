@@ -680,7 +680,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // is inferred (the kernel code is discarded).
     if (isTopLevel) return null;
 
-    // This logic is strong mode only; in legacy mode anything goes.
+    // In legacy mode, we don't check assignability.
     if (legacyMode) return null;
 
     // If an interface type is being assigned to a function type, see if we
@@ -790,9 +790,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool instrumented: true}) {
     assert(receiverType != null && isKnown(receiverType));
 
-    // Our non-strong golden files currently don't include interface
-    // targets, so we can't store the interface target without causing tests
-    // to fail.  TODO(paulberry): fix this.
+    // Our legacy golden files currently don't include interface targets, so we
+    // can't store the interface target without causing tests to fail.
+    // TODO(paulberry): fix this.
     if (legacyMode) return null;
 
     receiverType = resolveTypeParameter(receiverType);

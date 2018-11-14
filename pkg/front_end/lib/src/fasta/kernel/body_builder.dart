@@ -3119,8 +3119,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (typeParameters.length != types.length) {
       if (types.length == 0) {
         // Expected `typeParameters.length` type arguments, but none given, so
-        // we fill in dynamic in legacy mode, and use type inference in strong
-        // mode.
+        // we fill in dynamic in legacy mode, and use type inference otherwise.
         if (library.loader.target.legacyMode) {
           for (int i = 0; i < typeParameters.length; i++) {
             types.add(const DynamicType());
@@ -3320,10 +3319,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         Expression invocation;
 
         if (library.loader.target.legacyMode && isRedirectingFactory(target)) {
-          // In non-strong mode the checks that are done in
-          // [buildStaticInvocation] on the initial target of a redirecting
-          // factory invocation should be skipped.  So, we build the invocation
-          // nodes directly here without doing any checks.
+          // In legacy mode the checks that are done in [buildStaticInvocation]
+          // on the initial target of a redirecting factory invocation should
+          // be skipped. So we build the invocation nodes directly here without
+          // doing any checks.
           if (target.function.typeParameters != null &&
               target.function.typeParameters.length !=
                   forest.argumentsTypeArguments(arguments).length) {
@@ -4361,8 +4360,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       initializedFields[name] = assignmentOffset;
       if (builder.isFinal && builder.hasInitializer) {
-        // TODO(ahe): If CL 2843733002 is landed, this becomes a compile-time
-        // error. Also, this is a compile-time error in strong mode.
         addProblem(
             fasta.templateFinalInstanceVariableAlreadyInitialized
                 .withArguments(name),
