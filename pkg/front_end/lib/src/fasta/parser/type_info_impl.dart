@@ -533,6 +533,9 @@ class NoTypeParamOrArg extends TypeParamOrArgInfo {
   const NoTypeParamOrArg();
 
   @override
+  int get typeArgumentCount => 0;
+
+  @override
   Token parseArguments(Token token, Parser parser) {
     parser.listener.handleNoTypeArguments(token.next);
     return token;
@@ -553,6 +556,9 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
 
   @override
   bool get isSimpleTypeArgument => true;
+
+  @override
+  int get typeArgumentCount => 1;
 
   @override
   TypeInfo get typeInfo => simpleTypeWith1Argument;
@@ -664,6 +670,9 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// given unbalanced `<` `>` and invalid parameters or arguments.
   final bool inDeclaration;
 
+  @override
+  int typeArgumentCount;
+
   /// The `>` token which ends the type parameter or argument.
   /// This closer may be synthetic, points to the next token in the stream,
   /// is only used when skipping over the type parameters or arguments,
@@ -681,6 +690,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   TypeParamOrArgInfo compute() {
     Token token;
     Token next = start;
+    typeArgumentCount = 0;
     while (true) {
       TypeInfo typeInfo = computeType(next, true, inDeclaration);
       if (typeInfo == noType) {
@@ -701,6 +711,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         assert(typeInfo != noType || optional(',', next.next));
         // Fall through to process type (if any) and consume `,`
       }
+      ++typeArgumentCount;
       token = typeInfo.skipType(next);
       next = token.next;
       if (optional('extends', next)) {

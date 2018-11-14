@@ -64,6 +64,9 @@ abstract class TypeParamOrArgInfo {
   /// Return `true` if the receiver represents a single type argument
   bool get isSimpleTypeArgument => false;
 
+  /// Return the number of type arguments
+  int get typeArgumentCount;
+
   /// Return the simple type associated with this simple type argument
   /// or throw an exception if this is not a simple type argument.
   TypeInfo get typeInfo {
