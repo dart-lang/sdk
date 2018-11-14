@@ -14,6 +14,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_strategies.dart';
 
@@ -2835,6 +2836,117 @@ const int v = p.a.length;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_constExpr_makeTypedSet() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const <int>{11, 22, 33};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeTypedSet
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_constExpr_makeTypedSet_dynamic() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const <dynamic>{11, 22, 33};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeTypedSet
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], referenceValidators: [
+      (EntityRef r) => checkDynamicTypeRef(r)
+    ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_constExpr_makeTypedSet_functionType() {
+    UnlinkedVariable variable =
+        serializeVariableText('final v = <void Function(int)>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedSet],
+        ints: [
+          0 // Size of the list
+        ],
+        referenceValidators: [
+          (EntityRef reference) {
+            expect(reference, new TypeMatcher<EntityRef>());
+            expect(reference.entityKind, EntityRefKind.genericFunctionType);
+            expect(reference.syntheticParams, hasLength(1));
+            {
+              final param = reference.syntheticParams[0];
+              expect(param.name, ''); // no name for generic type parameters
+              checkTypeRef(param.type, 'dart:core', 'int',
+                  expectedKind: ReferenceKind.classOrEnum);
+            }
+            expect(reference.paramReference, 0);
+            expect(reference.typeParameters, hasLength(0));
+            // TODO(mfairhurst) check this references void
+            expect(reference.syntheticReturnType, isNotNull);
+          }
+        ],
+        forTypeInferenceOnly: true);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_constExpr_makeTypedSet_functionType_withTypeParameters() {
+    UnlinkedVariable variable = serializeVariableText(
+        'final v = <void Function<T>(Function<Q>(T, Q))>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedSet],
+        ints: [
+          0 // Size of the list
+        ],
+        referenceValidators: [
+          (EntityRef reference) {
+            expect(reference, new TypeMatcher<EntityRef>());
+            expect(reference.entityKind, EntityRefKind.genericFunctionType);
+            expect(reference.syntheticParams, hasLength(1));
+            {
+              final param = reference.syntheticParams[0];
+              expect(param.type, new TypeMatcher<EntityRef>());
+              expect(param.type.entityKind, EntityRefKind.genericFunctionType);
+              expect(param.type.syntheticParams, hasLength(2));
+              {
+                final subparam = param.type.syntheticParams[0];
+                expect(
+                    subparam.name, ''); // no name for generic type parameters
+                expect(subparam.type, new TypeMatcher<EntityRef>());
+                expect(subparam.type.paramReference, 2);
+              }
+              {
+                final subparam = param.type.syntheticParams[1];
+                expect(
+                    subparam.name, ''); // no name for generic type parameters
+                expect(subparam.type, new TypeMatcher<EntityRef>());
+                expect(subparam.type.paramReference, 1);
+              }
+            }
+            expect(reference.paramReference, 0);
+            expect(reference.typeParameters, hasLength(1));
+            // TODO(mfairhurst) check this references void
+            expect(reference.syntheticReturnType, isNotNull);
+          }
+        ],
+        forTypeInferenceOnly: true);
+  }
+
   test_constExpr_makeUntypedList() {
     UnlinkedVariable variable =
         serializeVariableText('const v = const [11, 22, 33];');
@@ -2871,6 +2983,23 @@ const int v = p.a.length;
       'aaa',
       'bbb',
       'ccc'
+    ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_constExpr_makeUntypedSet() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const {11, 22, 33};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeUntypedSet
+    ], ints: [
+      11,
+      22,
+      33,
+      3
     ]);
   }
 
@@ -7126,6 +7255,20 @@ final v = f<int, String>();
         forTypeInferenceOnly: true);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_expr_makeTypedSet() {
+    UnlinkedVariable variable =
+        serializeVariableText('var v = <int>{11, 22, 33};');
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.makeTypedSet],
+        ints: [0],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ],
+        forTypeInferenceOnly: true);
+  }
+
   test_expr_makeUntypedList() {
     UnlinkedVariable variable = serializeVariableText('var v = [11, 22, 33];');
     assertUnlinkedConst(variable.initializer.bodyExpr,
@@ -7154,6 +7297,20 @@ final v = f<int, String>();
         ],
         ints: [11, 22, 33, 3],
         strings: ['aaa', 'bbb', 'ccc'],
+        forTypeInferenceOnly: true);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
+  test_expr_makeUntypedSet() {
+    UnlinkedVariable variable = serializeVariableText('var v = {11, 22, 33};');
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [11, 22, 33, 3],
         forTypeInferenceOnly: true);
   }
 

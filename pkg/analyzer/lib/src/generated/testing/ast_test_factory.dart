@@ -1066,6 +1066,15 @@ class AstTestFactory {
   static ScriptTag scriptTag(String scriptTag) =>
       astFactory.scriptTag(TokenFactory.tokenFromString(scriptTag));
 
+  static SetLiteral setLiteral(Keyword keyword, TypeArgumentList typeArguments,
+          List<Expression> elements) =>
+      astFactory.setLiteral(
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          typeArguments,
+          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          elements,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
   static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) =>
       astFactory.showCombinator(
           TokenFactory.tokenFromString("show"), identifiers);

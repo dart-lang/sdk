@@ -1914,6 +1914,7 @@ abstract class ConstNode extends Node<ConstNode> {
           break;
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedSet:
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
@@ -1936,6 +1937,7 @@ abstract class ConstNode extends Node<ConstNode> {
           refPtr += numTypeArguments;
           break;
         case UnlinkedExprOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedSet:
           refPtr++;
           intPtr++;
           break;
@@ -5199,9 +5201,11 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           break;
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedSet:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedSet:
           refPtr++;
           intPtr++;
           break;

@@ -203,6 +203,14 @@ class ExprBuilder {
             _pushMap(AstTestFactory.typeArgumentList(
                 <TypeAnnotation>[keyType, valueType]));
             break;
+          case UnlinkedExprOperation.makeUntypedSet:
+            _pushSet(null);
+            break;
+          case UnlinkedExprOperation.makeTypedSet:
+            TypeAnnotation itemType = _newTypeName();
+            _pushSet(
+                AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+            break;
           case UnlinkedExprOperation.pushReference:
             _pushReference();
             break;
@@ -788,6 +796,15 @@ class ExprBuilder {
 
   void _pushReference() {
     _push(_createReference());
+  }
+
+  void _pushSet(TypeArgumentList typeArguments) {
+    int count = uc.ints[intPtr++];
+    List<Expression> elements = <Expression>[];
+    for (int i = 0; i < count; i++) {
+      elements.insert(0, _pop());
+    }
+    _push(AstTestFactory.setLiteral(Keyword.CONST, typeArguments, elements));
   }
 
   List<Expression> _removeTopItems(int count) {
