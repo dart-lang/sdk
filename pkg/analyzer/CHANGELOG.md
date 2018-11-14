@@ -1,3 +1,6 @@
+## 0.33.3+1
+* Fix missing import of dart:async. (#35158)
+
 ## 0.33.3
 * Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
 
