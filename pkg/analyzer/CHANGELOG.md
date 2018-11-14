@@ -4,6 +4,13 @@
   that disable `implicit-casts` might now see errors that were not previously
   being reported.
 
+## 0.33.3+2
+* Update SDK requirement to 2.1.0-dev.5.0.  From now on, the analyzer may import
+  Future from dart:core. (#35158)
+
+## 0.33.3+1
+* Fix missing import of dart:async. (#35158)
+
 ## 0.33.3
 * Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
 
