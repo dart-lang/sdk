@@ -3717,7 +3717,7 @@ class Script extends HeapObject implements M.Script {
       UnresolvedSourceLocation loc = bpt.location;
       line = loc.line;
     }
-    getLine(line).addBreakpoint(bpt);
+    getLine(line)?.addBreakpoint(bpt);
   }
 
   void _removeBreakpoint(Breakpoint bpt) {
@@ -3729,7 +3729,7 @@ class Script extends HeapObject implements M.Script {
       line = loc.line;
     }
     if (line != null) {
-      getLine(line).removeBreakpoint(bpt);
+      getLine(line)?.removeBreakpoint(bpt);
     }
   }
 
