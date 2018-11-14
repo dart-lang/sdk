@@ -1609,7 +1609,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType returnType = null;
       if (typeStr == '-dynamic') {
         returnType = _typeProvider.bottomType;
-      } else if (typeStr != null) {
+      } else {
         var components = typeStr.split('|');
         if (components.remove('Null')) {
           typeStr = components.join('|');
