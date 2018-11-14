@@ -1163,11 +1163,11 @@ class KernelLibraryBuilder
 
     int computeDefaultTypesForVariables(
         List<TypeVariableBuilder<TypeBuilder, Object>> variables,
-        bool strongMode) {
+        bool legacyMode) {
       if (variables == null) return 0;
 
       bool haveErroneousBounds = false;
-      if (strongMode) {
+      if (!legacyMode) {
         for (int i = 0; i < variables.length; ++i) {
           TypeVariableBuilder<TypeBuilder, Object> variable = variables[i];
           List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
@@ -1189,7 +1189,7 @@ class KernelLibraryBuilder
         }
       }
 
-      if (!strongMode || haveErroneousBounds) {
+      if (legacyMode || haveErroneousBounds) {
         // In Dart 1, put `dynamic` everywhere.
         for (int i = 0; i < variables.length; ++i) {
           variables[i].defaultType = dynamicType;
@@ -1220,9 +1220,9 @@ class KernelLibraryBuilder
               : getNonSimplicityIssuesForDeclaration(declaration,
                   performErrorRecovery: true);
           reportIssues(issues);
-          // In case of issues, use non-strong mode for error recovery.
+          // In case of issues, use legacy mode for error recovery.
           count += computeDefaultTypesForVariables(
-              declaration.typeVariables, !legacyMode && issues.length == 0);
+              declaration.typeVariables, legacyMode || issues.isNotEmpty);
         }
         declaration.forEach((String name, Declaration member) {
           if (member is KernelProcedureBuilder) {
@@ -1230,9 +1230,9 @@ class KernelLibraryBuilder
                 ? const <Object>[]
                 : getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             reportIssues(issues);
-            // In case of issues, use non-strong mode for error recovery.
+            // In case of issues, use legacy mode for error recovery.
             count += computeDefaultTypesForVariables(
-                member.typeVariables, !legacyMode && issues.length == 0);
+                member.typeVariables, legacyMode || issues.isNotEmpty);
           }
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
@@ -1241,17 +1241,17 @@ class KernelLibraryBuilder
             : getNonSimplicityIssuesForDeclaration(declaration,
                 performErrorRecovery: true);
         reportIssues(issues);
-        // In case of issues, use non-strong mode for error recovery.
+        // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
-            declaration.typeVariables, !legacyMode && issues.length == 0);
+            declaration.typeVariables, legacyMode || issues.isNotEmpty);
       } else if (declaration is KernelFunctionBuilder) {
         List<Object> issues = legacyMode
             ? const <Object>[]
             : getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         reportIssues(issues);
-        // In case of issues, use non-strong mode for error recovery.
+        // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
-            declaration.typeVariables, !legacyMode && issues.length == 0);
+            declaration.typeVariables, legacyMode || issues.isNotEmpty);
       }
     }
 
