@@ -24,14 +24,12 @@ Future<int> f3b() async {
   return await futureFuture; // OK
 }
 
-Future<dynamic> f4a() async => await future; // OK
-Future<dynamic> f4b() async {
-  return await future; // OK
-}
-
-Future<Object> f5a() async => await future; // OK
-Future<Object> f5b() async {
-  return await future; // OK
+Future<dynamic> f4() async {
+  try {
+    return await future; // OK
+  } catch (e) {
+    return await future; // LINT
+  }
 }
 
 class A {
@@ -50,13 +48,11 @@ class A {
     return await futureFuture; // OK
   }
 
-  Future<dynamic> f4a() async => await future; // OK
-  Future<dynamic> f4b() async {
-    return await future; // OK
-  }
-
-  Future<Object> f5a() async => await future; // OK
-  Future<Object> f5b() async {
-    return await future; // OK
+  Future<dynamic> f4() async {
+    try {
+      return await future; // OK
+    } catch (e) {
+      return await future; // LINT
+    }
   }
 }

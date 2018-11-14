@@ -78,8 +78,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node
-        .getAncestor((e) => e is FunctionExpression || e is MethodDeclaration);
+    final parent = node.getAncestor((e) =>
+        e is FunctionExpression ||
+        e is MethodDeclaration ||
+        e is Block && e.parent is TryStatement);
     if (parent == null) return;
 
     DartType returnType;
@@ -87,17 +89,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       returnType = parent.declaredElement?.returnType;
     } else if (parent is MethodDeclaration) {
       returnType = parent.declaredElement?.returnType;
+    } else if (parent is Block) {
+      // removing await in try block changes the behaviour
+      return;
     } else {
       throw StateError('unexpected type');
     }
     if (returnType != null &&
         returnType.isDartAsyncFuture &&
         type.isAssignableTo(returnType)) {
-      final returnTypeArgument =
-          (returnType as ParameterizedType).typeArguments.first;
-      if (!returnTypeArgument.isDynamic && !returnTypeArgument.isObject) {
-        rule.reportLintForToken((expression as AwaitExpression).awaitKeyword);
-      }
+      rule.reportLintForToken((expression as AwaitExpression).awaitKeyword);
     }
   }
 }
