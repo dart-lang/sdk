@@ -137,6 +137,19 @@ _setupHooks() {
   VMLibraryHooks.platformScript = _scriptUri;
 }
 
+class Stdin {}
+
+Stdin _stdin;
+
+class _StdIOUtils {
+  static Stdin _getStdioInputStream(int fd) => null;
+}
+
+Stdin get stdin {
+  _stdin ??= _StdIOUtils._getStdioInputStream(_stdinFD);
+  return _stdin;
+}
+
 // -----------------------------------------------------------------
 
 main() {}

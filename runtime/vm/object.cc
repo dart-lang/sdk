@@ -13,6 +13,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -127,6 +128,7 @@ RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::kernel_program_info_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::bytecode_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -594,6 +596,9 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<Code>();
   code_class_ = cls.raw();
 
+  cls = Class::New<Bytecode>();
+  bytecode_class_ = cls.raw();
+
   cls = Class::New<Instructions>();
   instructions_class_ = cls.raw();
 
@@ -955,6 +960,7 @@ void Object::Cleanup() {
   namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   kernel_program_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  bytecode_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1054,6 +1060,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
   SET_CLASS_NAME(code, Code);
+  SET_CLASS_NAME(bytecode, Bytecode);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(code_source_map, CodeSourceMap);
@@ -3932,6 +3939,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::KernelProgramInfo().raw();
     case kCodeCid:
       return Symbols::Code().raw();
+    case kBytecodeCid:
+      return Symbols::Bytecode().raw();
     case kInstructionsCid:
       return Symbols::Instructions().raw();
     case kObjectPoolCid:
@@ -6005,11 +6014,11 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
   }
 }
 
-void Function::AttachBytecode(const Code& value) const {
+void Function::AttachBytecode(const Bytecode& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
   // Finish setting up code before activating it.
-  value.set_owner(*this);
+  value.set_function(*this);
   StorePointer(&raw_ptr()->bytecode_, value.raw());
 
   // We should not have loaded the bytecode if the function had code.
@@ -6022,11 +6031,11 @@ void Function::AttachBytecode(const Code& value) const {
 }
 
 bool Function::HasBytecode() const {
-  return raw_ptr()->bytecode_ != Code::null();
+  return raw_ptr()->bytecode_ != Bytecode::null();
 }
 
 bool Function::HasBytecode(RawFunction* function) {
-  return function->ptr()->bytecode_ != Code::null();
+  return function->ptr()->bytecode_ != Bytecode::null();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -6048,7 +6057,7 @@ void Function::ClearCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  StorePointer(&raw_ptr()->bytecode_, Code::null());
+  StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -15010,60 +15019,6 @@ RawCode* Code::FinalizeCode(const Function& function,
                       stats);
 }
 
-RawCode* Code::FinalizeBytecode(const void* bytecode_data,
-                                intptr_t bytecode_size,
-                                const ObjectPool& object_pool,
-                                CodeStatistics* stats /* = nullptr */) {
-  // Allocate the Code and Instructions objects.  Code is allocated first
-  // because a GC during allocation of the code will leave the instruction
-  // pages read-only.
-  const intptr_t pointer_offset_count = 0;  // No fixups in bytecode.
-  Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
-  Instructions& instrs = Instructions::ZoneHandle(
-      Instructions::New(bytecode_size, true /* has_single_entry_point */, 0));
-
-  // Copy the bytecode data into the instruction area. No fixups to apply.
-  MemoryRegion instrs_region(reinterpret_cast<void*>(instrs.PayloadStart()),
-                             instrs.Size());
-  MemoryRegion bytecode_region(const_cast<void*>(bytecode_data), bytecode_size);
-  // TODO(regis): Avoid copying bytecode.
-  instrs_region.CopyFrom(0, bytecode_region);
-
-  // TODO(regis): Keep following lines or not?
-  // TODO(regis): Do we need to notify CodeObservers for bytecode too?
-  // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
-#ifndef PRODUCT
-  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-  CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
-                           0 /* prologue_offset */, instrs.Size(),
-                           false /* optimized */, nullptr);
-#endif
-  {
-    NoSafepointScope no_safepoint;
-
-    // Hook up Code and Instructions objects.
-    code.SetActiveInstructions(instrs);
-    code.set_instructions(instrs);
-    code.set_is_alive(true);
-
-    // Set object pool in Instructions object.
-    code.set_object_pool(object_pool.raw());
-
-    if (FLAG_write_protect_code) {
-      uword address = RawObject::ToAddr(instrs.raw());
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.raw()->Size(), VirtualMemory::kReadExecute);
-    }
-  }
-#ifndef PRODUCT
-  // No Code::Comments to set. Default is 0 length Comments.
-  // No prologue was ever entered, optimistically assume nothing was ever
-  // pushed onto the stack.
-  code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
-#endif
-  return code.raw();
-}
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
@@ -15337,6 +15292,92 @@ RawArray* Code::await_token_positions() const {
 #else
   return raw_ptr()->await_token_positions_;
 #endif
+}
+
+void Bytecode::set_instructions(const ExternalTypedData& instructions) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(Thread::Current()->IsMutatorThread());
+  // The interpreter requires the instructions to be aligned.
+  ASSERT(Utils::IsAligned(instructions.DataAddr(0), sizeof(KBCInstr)));
+  StorePointer(&raw_ptr()->instructions_, instructions.raw());
+#else
+  UNREACHABLE();
+#endif
+}
+
+uword Bytecode::PayloadStart() const {
+  const ExternalTypedData& instr = ExternalTypedData::Handle(instructions());
+  return reinterpret_cast<uword>(instr.DataAddr(0));
+}
+
+intptr_t Bytecode::Size() const {
+  const ExternalTypedData& instr = ExternalTypedData::Handle(instructions());
+  return instr.LengthInBytes();
+}
+
+bool Bytecode::ContainsInstructionAt(uword addr) const {
+  const ExternalTypedData& instr = ExternalTypedData::Handle(instructions());
+  const uword offset = addr - reinterpret_cast<uword>(instr.DataAddr(0));
+  return offset < static_cast<uword>(instr.LengthInBytes());
+}
+
+void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!FLAG_support_disassembler) {
+    return;
+  }
+  uword start = PayloadStart();
+  intptr_t size = Size();
+  if (formatter == NULL) {
+    KernelBytecodeDisassembler::Disassemble(start, start + size, *this);
+  } else {
+    KernelBytecodeDisassembler::Disassemble(start, start + size, formatter,
+                                            *this);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+RawBytecode* Bytecode::New(const ExternalTypedData& instructions,
+                           const ObjectPool& object_pool) {
+  ASSERT(Object::bytecode_class() != Class::null());
+  Bytecode& result = Bytecode::Handle();
+  {
+    uword size = Bytecode::InstanceSize();
+    RawObject* raw = Object::Allocate(Bytecode::kClassId, size, Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.set_pc_descriptors(Object::empty_descriptors());
+    result.set_instructions(instructions);
+    result.set_object_pool(object_pool);
+  }
+  return result.raw();
+}
+#endif
+
+const char* Bytecode::ToCString() const {
+  return Thread::Current()->zone()->PrintToString("Bytecode(%s)",
+                                                  QualifiedName());
+}
+
+const char* Bytecode::Name() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  ASSERT(!fun.IsNull());
+  const char* function_name =
+      String::Handle(zone, fun.UserVisibleName()).ToCString();
+  return zone->PrintToString("%s", function_name);
+}
+
+const char* Bytecode::QualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  ASSERT(!fun.IsNull());
+  const char* function_name =
+      String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  return zone->PrintToString("%s", function_name);
 }
 
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
@@ -16727,7 +16768,9 @@ const char* Instance::ToCString() const {
     if (IsClosure()) {
       return Closure::Cast(*this).ToCString();
     }
-    const AbstractType& type = AbstractType::Handle(GetType(Heap::kNew));
+    // Background compiler disassembly of instructions referring to pool objects
+    // calls this function and requires allocation of Type in old space.
+    const AbstractType& type = AbstractType::Handle(GetType(Heap::kOld));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(), "Instance of '%s'",
                        type_name.ToCString());
@@ -22304,12 +22347,13 @@ intptr_t StackTrace::Length() const {
   return code_array.Length();
 }
 
-RawCode* StackTrace::CodeAtFrame(intptr_t frame_index) const {
+RawObject* StackTrace::CodeAtFrame(intptr_t frame_index) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
-  return reinterpret_cast<RawCode*>(code_array.At(frame_index));
+  return code_array.At(frame_index);
 }
 
-void StackTrace::SetCodeAtFrame(intptr_t frame_index, const Code& code) const {
+void StackTrace::SetCodeAtFrame(intptr_t frame_index,
+                                const Object& code) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   code_array.SetAt(frame_index, code);
 }
@@ -22420,7 +22464,9 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
   Zone* zone = Thread::Current()->zone();
   StackTrace& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
   Function& function = Function::Handle(zone);
+  Object& code_object = Object::Handle(zone);
   Code& code = Code::Handle(zone);
+  Bytecode& bytecode = Bytecode::Handle(zone);
 
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
@@ -22431,8 +22477,8 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
   intptr_t frame_index = 0;
   do {
     for (intptr_t i = 0; i < stack_trace.Length(); i++) {
-      code = stack_trace.CodeAtFrame(i);
-      if (code.IsNull()) {
+      code_object = stack_trace.CodeAtFrame(i);
+      if (code_object.IsNull()) {
         // Check for a null function, which indicates a gap in a StackOverflow
         // or OutOfMemory trace.
         if ((i < (stack_trace.Length() - 1)) &&
@@ -22442,7 +22488,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code.raw() ==
+      } else if (code_object.raw() ==
                  StubCode::AsynchronousGapMarker_entry()->code()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
@@ -22450,25 +22496,39 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
         // the readability of the trace.
         i++;
       } else {
-        ASSERT(code.IsFunctionCode());
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        if (code.is_optimized() && stack_trace.expand_inlined()) {
-          code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
-                                                  &inlined_token_positions);
-          ASSERT(inlined_functions.length() >= 1);
-          for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
-            if (inlined_functions[j]->is_visible() ||
-                FLAG_show_invisible_frames) {
-              PrintStackTraceFrame(zone, &buffer, *inlined_functions[j],
-                                   inlined_token_positions[j], frame_index);
+        if (code_object.IsCode()) {
+          code ^= code_object.raw();
+          ASSERT(code.IsFunctionCode());
+          if (code.is_optimized() && stack_trace.expand_inlined()) {
+            code.GetInlinedFunctionsAtReturnAddress(
+                pc_offset, &inlined_functions, &inlined_token_positions);
+            ASSERT(inlined_functions.length() >= 1);
+            for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
+              if (inlined_functions[j]->is_visible() ||
+                  FLAG_show_invisible_frames) {
+                PrintStackTraceFrame(zone, &buffer, *inlined_functions[j],
+                                     inlined_token_positions[j], frame_index);
+                frame_index++;
+              }
+            }
+          } else {
+            function = code.function();
+            if (function.is_visible() || FLAG_show_invisible_frames) {
+              uword pc = code.PayloadStart() + pc_offset;
+              const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
+              PrintStackTraceFrame(zone, &buffer, function, token_pos,
+                                   frame_index);
               frame_index++;
             }
           }
         } else {
-          function = code.function();
+          ASSERT(code_object.IsBytecode());
+          bytecode ^= code_object.raw();
+          function = bytecode.function();
           if (function.is_visible() || FLAG_show_invisible_frames) {
-            uword pc = code.PayloadStart() + pc_offset;
-            const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
+            uword pc = bytecode.PayloadStart() + pc_offset;
+            const TokenPosition token_pos = bytecode.GetTokenIndexOfPC(pc);
             PrintStackTraceFrame(zone, &buffer, function, token_pos,
                                  frame_index);
             frame_index++;
@@ -22487,7 +22547,7 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
   Zone* zone = Thread::Current()->zone();
   StackTrace& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
-  Code& code = Code::Handle(zone);
+  Object& code = Object::Handle(zone);
   ZoneTextBuffer buffer(zone, 1024);
 
   // The Dart standard requires the output of StackTrace.toString to include
@@ -22528,7 +22588,9 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
         // This output is formatted like Android's debuggerd. Note debuggerd
         // prints call addresses instead of return addresses.
-        uword return_addr = code.PayloadStart() + pc_offset;
+        uword start = code.IsBytecode() ? Bytecode::Cast(code).PayloadStart()
+                                        : Code::Cast(code).PayloadStart();
+        uword return_addr = start + pc_offset;
         uword call_addr = return_addr - 1;
         uword dso_base;
         char* dso_name;

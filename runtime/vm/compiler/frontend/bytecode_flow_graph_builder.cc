@@ -1452,10 +1452,10 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   // Use default flow graph builder for native methods.
   ASSERT(!function().is_native());
 
-  const Code& bytecode = Code::Handle(Z, function().Bytecode());
+  const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
 
   object_pool_ = bytecode.object_pool();
-  raw_bytecode_ = reinterpret_cast<KBCInstr*>(bytecode.EntryPoint());
+  raw_bytecode_ = reinterpret_cast<KBCInstr*>(bytecode.PayloadStart());
   bytecode_length_ = bytecode.Size() / sizeof(KBCInstr);
 
   ProcessICDataInObjectPool(object_pool_);

@@ -124,7 +124,7 @@ class _Timer implements Timer {
 
   // Timers are ordered by wakeup time. Timers with a timeout value of > 0 do
   // end up on the TimerHeap. Timers with a timeout of 0 are queued in a list.
-  static _TimerHeap _heap = new _TimerHeap();
+  static final _heap = new _TimerHeap();
   static _Timer _firstZeroTimer;
   static _Timer _lastZeroTimer;
 

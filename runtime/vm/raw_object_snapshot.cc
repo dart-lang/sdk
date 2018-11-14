@@ -695,6 +695,22 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   UNREACHABLE();
 }
 
+RawBytecode* Bytecode::ReadFrom(SnapshotReader* reader,
+                                intptr_t object_id,
+                                intptr_t tags,
+                                Snapshot::Kind kind,
+                                bool as_reference) {
+  UNREACHABLE();
+  return Bytecode::null();
+}
+
+void RawBytecode::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind,
+                          bool as_reference) {
+  UNREACHABLE();
+}
+
 RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,

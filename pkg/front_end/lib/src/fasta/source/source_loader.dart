@@ -782,9 +782,9 @@ class SourceLoader<L> extends Loader<L> {
     if (hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(),
           onAmbiguousSupertypes: onAmbiguousSupertypes,
-          mixinInferrer: target.strongMode
-              ? new StrongModeMixinInferrer(this)
-              : new LegacyModeMixinInferrer());
+          mixinInferrer: target.legacyMode
+              ? new LegacyModeMixinInferrer()
+              : new StrongModeMixinInferrer(this));
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
@@ -832,7 +832,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void checkBounds() {
-    if (!target.strongMode) return;
+    if (target.legacyMode) return;
 
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
@@ -857,7 +857,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
-    if (!target.strongMode) return;
+    if (target.legacyMode) return;
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
@@ -869,7 +869,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
-    if (!target.strongMode) return;
+    if (target.legacyMode) return;
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
         builder.checkRedirectingFactories(
@@ -912,7 +912,7 @@ class SourceLoader<L> extends Loader<L> {
 
   void createTypeInferenceEngine() {
     typeInferenceEngine =
-        new ShadowTypeInferenceEngine(instrumentation, target.strongMode);
+        new ShadowTypeInferenceEngine(instrumentation, target.legacyMode);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
@@ -927,7 +927,7 @@ class SourceLoader<L> extends Loader<L> {
         typeInferenceEngine,
         typeInferenceEngine.typeSchemaEnvironment,
         instrumentation,
-        target.strongMode);
+        target.legacyMode);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         library.forEach((String name, Declaration member) {

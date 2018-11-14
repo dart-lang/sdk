@@ -25,6 +25,7 @@ class Array;
 class CompilerState;
 class Class;
 class Code;
+class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -65,6 +66,7 @@ class Zone;
   V(Array)                                                                     \
   V(Class)                                                                     \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \

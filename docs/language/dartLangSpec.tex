@@ -5289,7 +5289,7 @@ literal symbol or
 a constant invocation of a constructor of the \code{Symbol} class,
 or to an object implementing the built-in class \code{Type}
 which was originally obtained by evaluating a constant type literal
-(\ref{{dynamicTypeSystem}).
+(\ref{dynamicTypeSystem}).
 % Needs 'free': `const <int, Function(Function<X>(X))>{}` is OK, but
 % `X` is not free.
 It is a compile-time error if a type argument of a constant map literal
@@ -11624,7 +11624,7 @@ and any set of named arguments,
 of any type,
 without error.
 Note that the invocation will still cause a compile-time error
-if one or more arguments or other subterms has an error.
+if there is an error in one or more arguments or other subterms.
 }
 
 \LMHash{}%
@@ -11654,8 +11654,127 @@ even though \DYNAMIC{} is not a class.
 
 \commentary{
 This \code{Type} object must compare equal to the corresponding \code{Type}
-objects for \code{Object} and \VOID{}
+objects for \code{Object} and \VOID{} according to operator `\code{==}'
 (\ref{dynamicTypeSystem}).
+}
+
+\LMHash{}%
+To improve the precision of static types,
+member accesses on a receiver of type \DYNAMIC{} that refer to
+declarations of the built-in class \code{Object}
+are given the static type corresponding to those declarations
+whenever doing so is sound.
+
+\begin{itemize}
+\item
+  Let $e$ be an expression of the form \code{$d$.\id}, which is not followed by an
+  argument part, where the static type of $d$ is \DYNAMIC, and \id{} is the name of a
+  getter declared in \code{Object}; if the return type of \code{Object.\id} is $T$
+  then the static type of $e$ is $T$.
+  \commentary{
+  For instance, \code{d.hashCode} has type \code{int}
+  and \code{d.runtimeType} has type \code{Type}.
+  }
+
+\item
+  Let $e$ be an expression of the form \code{$d$.\id}, which is not followed by an
+  argument part, where the static type of $d$ is \DYNAMIC, and \id{} is the name of a
+  method declared in \code{Object} whose method signature has type $F$
+  (\commentary{which is a function type}). The static type of $e$ is then $F$.
+  \commentary{
+  For instance, \code{$d$.toString} has type \code{String \FUNCTION()}.
+  }
+
+\item
+  Let $e$ be an expression of the form \code{$d$.\id(\metavar{arguments})} or
+  \code{$d$.\id<\metavar{typeArguments}>(\metavar{arguments})}
+  where the static type of $d$ is \DYNAMIC,
+  \id{} is the name of a getter declared in \code{Object} with return type $F$,
+  \metavar{arguments} are derived from \synt{arguments}, and
+  \metavar{typeArguments} are derived from \synt{typeArguments}, if present.
+  Static analysis will then process $e$ as a function expression invocation
+  where an object of static type $F$ is applied to the given argument part.
+  \commentary{
+  So this is always a compile-time error.
+  For instance, \code{$d$.runtimeType(42)} is a compile-time error,
+  because it is checked as a
+  function expression invocation where an entity of static type \code{Type} is
+  invoked. Note that it could actually succeed: An overriding implementation
+  of \code{runtimeType} could return an instance whose dynamic type is a subtype
+  of \code{Type} that has a \code{call} method.
+  We decided to make it an error because it is likely to be a mistake,
+  especially in cases like \code{$d$.hashCode()}
+  where a developer might have forgotten that \code{hashCode} is a getter.
+  }
+
+\item
+  Let $e$ be an expression of the form \code{$d$.\id(\metavar{arguments})}
+  where the static type of $d$ is \DYNAMIC, \metavar{arguments} is
+  an actual argument list derived from \synt{arguments},
+  and \id{} is the name of a method declared in \code{Object}
+  whose method signature has type $F$.
+  If the number of positional actual arguments in \metavar{arguments} is less than the
+  number of required positional arguments of $F$ or greater than the number
+  of positional arguments in $F$, or if \metavar{arguments} includes any named
+  arguments with a name that is not declared in $F$, the type of $e$ is
+  \DYNAMIC. Otherwise, the type of $e$ is the return type in $F$.
+  \commentary{
+    So \code{$d$.toString(bazzle:\,42)} has type \DYNAMIC{} whereas
+    \code{$d$.toString()} has type \code{String}.
+    Note that invocations which "do not fit" the statically
+    known declaration are not errors, they just get return type \DYNAMIC.
+  }
+
+\item
+  Let $e$ be an expression of the form
+  \code{$d$.\id<\metavar{typeArguments}>(\metavar{arguments})} where
+  the static type of $d$ is \DYNAMIC, \metavar{typeArguments} is a list of actual
+  type arguments derived from \synt{typeArguments}, and
+  \metavar{arguments} is an actual argument list derived from \synt{arguments}.
+  It is a compile-time error if \id{} is the name of
+  a non-generic method declared in \code{Object}.
+  \commentary{
+  No generic methods are declared in \code{Object}.
+  Hence, we do not specify that there must be
+  the statically required number of actual type arguments, and
+  they must satisfy the bounds.
+  That would otherwise be the consistent approach,
+  because the invocation is guaranteed to fail when any of those
+  requirements are violated,
+  but generalizations of this mechanism would need to include such rules.
+  }
+
+\item
+  For an instance method invocation $e$ (including invocations of getters,
+  setters, and operators) where the receiver has static type \DYNAMIC{} and
+  $e$ does not match any of the above cases, the static type of $e$ is
+  \DYNAMIC.
+  When an expression derived from \synt{cascadeSection} performs
+  a getter or method invocation that corresponds to one of the cases above,
+  the corresponding static analysis and compile-time errors apply.
+  \commentary{
+  For instance, \code{$d$..foobar(16)..hashCode()} is an error.
+  }
+\end{itemize}
+
+\commentary{
+Note that only very few forms of instance method invocation with a
+receiver of type \DYNAMIC{} can be a compile-time error.
+Of course, some expressions like \code{x[1, 2]} are syntax errors
+even though they could also be considered "invocations",
+and subexpressions are checked separately so
+any given actual argument could be a compile-time error.
+But almost any given argument list shape could be handled via \code{noSuchMethod},
+and an argument of any type could be accepted because any
+formal parameter in an overriding declaration could have its type
+annotation contravariantly changed to \code{Object}.
+So it is a natural consequence of the principle of
+that
+a \DYNAMIC{} receiver admits almost all instance method invocations.
+The few cases where an instance method invocation with
+a receiver of type \DYNAMIC{} is an error
+are either guaranteed to fail at run time,
+or they are very, very likely to be developer mistakes.
 }
 
 

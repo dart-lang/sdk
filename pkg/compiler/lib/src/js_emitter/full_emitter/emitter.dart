@@ -559,7 +559,7 @@ class Emitter extends js_emitter.EmitterBase {
     List<jsAst.Expression> laziesInfo = <jsAst.Expression>[];
     for (StaticField field in lazies) {
       laziesInfo.add(js.quoteName(field.name));
-      laziesInfo.add(js.quoteName(namer.deriveLazyInitializerName(field.name)));
+      laziesInfo.add(js.quoteName(field.getterName));
       laziesInfo.add(field.code);
       if (!compiler.options.enableMinification) {
         laziesInfo.add(js.quoteName(field.name));

@@ -30,29 +30,33 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
       Class::Handle(Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!assert_error_class.IsNull());
   bool hit_assertion_error = false;
-  while (stack_frame != NULL) {
-    code ^= stack_frame->LookupDartCode();
-    if (code.is_optimized()) {
-      InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
-      while (!inlined_iterator.Done()) {
-        func ^= inlined_iterator.function();
-        if (hit_assertion_error) {
-          return func.script();
-        }
-        ASSERT(!hit_assertion_error);
-        hit_assertion_error = (func.Owner() == assert_error_class.raw());
-        inlined_iterator.Advance();
-      }
+  for (; stack_frame != NULL; stack_frame = iterator->NextFrame()) {
+    if (stack_frame->is_interpreted()) {
+      func = stack_frame->LookupDartFunction();
     } else {
-      func ^= code.function();
-      ASSERT(!func.IsNull());
-      if (hit_assertion_error) {
-        return func.script();
+      code ^= stack_frame->LookupDartCode();
+      if (code.is_optimized()) {
+        InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
+        while (!inlined_iterator.Done()) {
+          func ^= inlined_iterator.function();
+          if (hit_assertion_error) {
+            return func.script();
+          }
+          ASSERT(!hit_assertion_error);
+          hit_assertion_error = (func.Owner() == assert_error_class.raw());
+          inlined_iterator.Advance();
+        }
+        continue;
+      } else {
+        func = code.function();
       }
-      ASSERT(!hit_assertion_error);
-      hit_assertion_error = (func.Owner() == assert_error_class.raw());
     }
-    stack_frame = iterator->NextFrame();
+    ASSERT(!func.IsNull());
+    if (hit_assertion_error) {
+      return func.script();
+    }
+    ASSERT(!hit_assertion_error);
+    hit_assertion_error = (func.Owner() == assert_error_class.raw());
   }
   UNREACHABLE();
   return Script::null();

@@ -48,7 +48,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
 
   @override
   void resolveInternal() {
-    if (_typeInferenceEngine.strongMode) {
+    if (!_typeInferenceEngine.legacyMode) {
       var typeInferrer = _typeInferenceEngine.getFieldTypeInferrer(field);
       // Note: in the event that there is erroneous code, it's possible for
       // typeInferrer to be null.  If this happens, just skip type inference for
@@ -227,9 +227,9 @@ abstract class TypeInferenceEngine {
 
   final Instrumentation instrumentation;
 
-  final bool strongMode;
+  final bool legacyMode;
 
-  TypeInferenceEngine(this.instrumentation, this.strongMode);
+  TypeInferenceEngine(this.instrumentation, this.legacyMode);
 
   /// Creates a disabled type inferrer (intended for debugging and profiling
   /// only).
@@ -300,7 +300,7 @@ abstract class TypeInferenceEngine {
     this.coreTypes = coreTypes;
     this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
-        new TypeSchemaEnvironment(coreTypes, hierarchy, strongMode);
+        new TypeSchemaEnvironment(coreTypes, hierarchy, legacyMode);
   }
 
   /// Records that the given static [field] will need top level type inference.

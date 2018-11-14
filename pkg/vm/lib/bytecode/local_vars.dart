@@ -1126,8 +1126,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitStaticSet(StaticSet node) {
-    _allocateTemp(node);
-    super.visitStaticSet(node);
+    _visit(node, temps: 1);
   }
 
   @override

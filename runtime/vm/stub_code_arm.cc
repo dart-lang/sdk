@@ -967,10 +967,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(kWord, R9, THR, Thread::vm_tag_offset());
   __ Push(R9);
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R9, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(kWord, R9, THR, Thread::vm_tag_offset());
-
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ LoadFromOffset(kWord, R9, THR, Thread::top_exit_frame_info_offset());
@@ -987,6 +983,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(kExitLinkSlotFromEntryFp == -27);
 #endif
   __ Push(R9);
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ LoadImmediate(R9, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(kWord, R9, THR, Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ ldr(R4, Address(R1, VMHandles::kOffsetOfRawPtrInHandle));

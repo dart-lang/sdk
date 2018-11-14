@@ -152,12 +152,6 @@ class Interpreter {
                       RawObject*** FP,
                       RawObject*** SP);
 
-  bool Deoptimize(Thread* thread,
-                  uint32_t** pc,
-                  RawObject*** FP,
-                  RawObject*** SP,
-                  bool is_lazy);
-
   void InlineCacheMiss(int checked_args,
                        Thread* thread,
                        RawICData* icdata,
@@ -184,12 +178,6 @@ class Interpreter {
                      RawObject*** FP,
                      RawObject*** SP,
                      bool optimized);
-
-  void PrepareForTailCall(RawCode* code,
-                          RawImmutableArray* args_desc,
-                          RawObject** FP,
-                          RawObject*** SP,
-                          uint32_t** pc);
 
   bool AssertAssignable(Thread* thread,
                         uint32_t* pc,

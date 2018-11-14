@@ -1048,10 +1048,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
   __ Push(R4);
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
-
   // Save top resource and top exit frame info. Use R6 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ LoadFromOffset(R6, THR, Thread::top_resource_offset());
@@ -1062,6 +1058,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   ASSERT(kExitLinkSlotFromEntryFp == -22);
   __ Push(R6);
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ LoadFromOffset(R4, R1, VMHandles::kOffsetOfRawPtrInHandle);
@@ -1187,10 +1188,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
   __ Push(R4);
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
-
   // Save top resource and top exit frame info. Use R6 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ LoadFromOffset(R6, THR, Thread::top_resource_offset());
@@ -1201,6 +1198,11 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   ASSERT(kExitLinkSlotFromEntryFp == -22);
   __ Push(R6);
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ mov(R4, R1);

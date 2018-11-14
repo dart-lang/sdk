@@ -103,16 +103,16 @@ class ProcessedOptions {
   ///
   /// A summary, also referred to as "outline" internally, is a [Component]
   /// where all method bodies are left out. In essence, it contains just API
-  /// signatures and constants. When strong-mode is enabled, the summary
-  /// already includes inferred types.
+  /// signatures and constants. The summary should include inferred top-level
+  /// types unless legacy mode is enabled.
   Component _sdkSummaryComponent;
 
   /// The summary for each uri in `options.inputSummaries`.
   ///
   /// A summary, also referred to as "outline" internally, is a [Component]
   /// where all method bodies are left out. In essence, it contains just API
-  /// signatures and constants. When strong-mode is enabled, the summary
-  /// already includes inferred types.
+  /// signatures and constants. The summaries should include inferred top-level
+  /// types unless legacy mode is enabled.
   List<Component> _inputSummariesComponents;
 
   /// Other components that are meant to be linked and compiled with the input

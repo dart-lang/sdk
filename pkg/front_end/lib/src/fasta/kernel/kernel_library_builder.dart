@@ -1163,11 +1163,11 @@ class KernelLibraryBuilder
 
     int computeDefaultTypesForVariables(
         List<TypeVariableBuilder<TypeBuilder, Object>> variables,
-        bool strongMode) {
+        bool legacyMode) {
       if (variables == null) return 0;
 
       bool haveErroneousBounds = false;
-      if (strongMode) {
+      if (!legacyMode) {
         for (int i = 0; i < variables.length; ++i) {
           TypeVariableBuilder<TypeBuilder, Object> variable = variables[i];
           List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
@@ -1189,7 +1189,7 @@ class KernelLibraryBuilder
         }
       }
 
-      if (!strongMode || haveErroneousBounds) {
+      if (legacyMode || haveErroneousBounds) {
         // In Dart 1, put `dynamic` everywhere.
         for (int i = 0; i < variables.length; ++i) {
           variables[i].defaultType = dynamicType;
@@ -1211,47 +1211,47 @@ class KernelLibraryBuilder
       }
     }
 
-    bool strongMode = loader.target.strongMode;
+    bool legacyMode = loader.target.legacyMode;
     for (var declaration in libraryDeclaration.members.values) {
       if (declaration is KernelClassBuilder) {
         {
-          List<Object> issues = strongMode
-              ? getNonSimplicityIssuesForDeclaration(declaration,
-                  performErrorRecovery: true)
-              : const <Object>[];
+          List<Object> issues = legacyMode
+              ? const <Object>[]
+              : getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true);
           reportIssues(issues);
-          // In case of issues, use non-strong mode for error recovery.
+          // In case of issues, use legacy mode for error recovery.
           count += computeDefaultTypesForVariables(
-              declaration.typeVariables, strongMode && issues.length == 0);
+              declaration.typeVariables, legacyMode || issues.isNotEmpty);
         }
         declaration.forEach((String name, Declaration member) {
           if (member is KernelProcedureBuilder) {
-            List<Object> issues = strongMode
-                ? getNonSimplicityIssuesForTypeVariables(member.typeVariables)
-                : const <Object>[];
+            List<Object> issues = legacyMode
+                ? const <Object>[]
+                : getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             reportIssues(issues);
-            // In case of issues, use non-strong mode for error recovery.
+            // In case of issues, use legacy mode for error recovery.
             count += computeDefaultTypesForVariables(
-                member.typeVariables, strongMode && issues.length == 0);
+                member.typeVariables, legacyMode || issues.isNotEmpty);
           }
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
-        List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForDeclaration(declaration,
-                performErrorRecovery: true)
-            : const <Object>[];
+        List<Object> issues = legacyMode
+            ? const <Object>[]
+            : getNonSimplicityIssuesForDeclaration(declaration,
+                performErrorRecovery: true);
         reportIssues(issues);
-        // In case of issues, use non-strong mode for error recovery.
+        // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
-            declaration.typeVariables, strongMode && issues.length == 0);
+            declaration.typeVariables, legacyMode || issues.isNotEmpty);
       } else if (declaration is KernelFunctionBuilder) {
-        List<Object> issues = strongMode
-            ? getNonSimplicityIssuesForTypeVariables(declaration.typeVariables)
-            : const <Object>[];
+        List<Object> issues = legacyMode
+            ? const <Object>[]
+            : getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         reportIssues(issues);
-        // In case of issues, use non-strong mode for error recovery.
+        // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
-            declaration.typeVariables, strongMode && issues.length == 0);
+            declaration.typeVariables, legacyMode || issues.isNotEmpty);
       }
     }
 
@@ -1374,7 +1374,7 @@ class KernelLibraryBuilder
   }
 
   void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         field.type, typeEnvironment,
         allowSuperBounded: true);
@@ -1414,7 +1414,7 @@ class KernelLibraryBuilder
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       DartType returnType}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
         List<TypeArgumentIssue> issues = findTypeArgumentIssues(
@@ -1559,7 +1559,7 @@ class KernelLibraryBuilder
 
   void checkBoundsInFunctionNode(
       FunctionNode function, TypeEnvironment typeEnvironment) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     checkBoundsInFunctionNodeParts(typeEnvironment, function.fileOffset,
         typeParameters: function.typeParameters,
         positionalParameters: function.positionalParameters,
@@ -1570,14 +1570,14 @@ class KernelLibraryBuilder
   void checkBoundsInListLiteral(
       ListLiteral node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
   }
 
   void checkBoundsInMapLiteral(MapLiteral node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     checkBoundsInType(node.keyType, typeEnvironment, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
     checkBoundsInType(node.valueType, typeEnvironment, node.fileOffset,
@@ -1587,7 +1587,7 @@ class KernelLibraryBuilder
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, int offset,
       {bool inferred = false, bool allowSuperBounded = true}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         type, typeEnvironment,
         allowSuperBounded: allowSuperBounded);
@@ -1623,7 +1623,7 @@ class KernelLibraryBuilder
   void checkBoundsInVariableDeclaration(
       VariableDeclaration node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     if (node.type == null) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         node.type, typeEnvironment,
@@ -1660,7 +1660,7 @@ class KernelLibraryBuilder
   void checkBoundsInConstructorInvocation(
       ConstructorInvocation node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     if (node.arguments.types.isEmpty) return;
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
@@ -1704,7 +1704,7 @@ class KernelLibraryBuilder
   void checkBoundsInFactoryInvocation(
       StaticInvocation node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     if (node.arguments.types.isEmpty) return;
     Procedure factory = node.target;
     assert(factory.isFactory);
@@ -1749,7 +1749,7 @@ class KernelLibraryBuilder
   void checkBoundsInStaticInvocation(
       StaticInvocation node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     if (node.arguments.types.isEmpty) return;
     Class klass = node.target.enclosingClass;
     List<TypeParameter> parameters = node.target.function.typeParameters;
@@ -1805,7 +1805,7 @@ class KernelLibraryBuilder
       Arguments arguments,
       int offset,
       {bool inferred = false}) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     if (arguments.types.isEmpty) return;
     Class klass;
     List<DartType> klassArguments;
@@ -1884,7 +1884,7 @@ class KernelLibraryBuilder
   }
 
   void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
-    if (!loader.target.strongMode) return;
+    if (loader.target.legacyMode) return;
     forEach((String name, Declaration declaration) {
       if (declaration is KernelFieldBuilder) {
         checkBoundsInField(declaration.target, typeEnvironment);

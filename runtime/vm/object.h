@@ -430,6 +430,7 @@ class Object {
     return kernel_program_info_class_;
   }
   static RawClass* code_class() { return code_class_; }
+  static RawClass* bytecode_class() { return bytecode_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
@@ -679,6 +680,7 @@ class Object {
   static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
                                                 // object.
   static RawClass* code_class_;                 // Class of the Code vm object.
+  static RawClass* bytecode_class_;      // Class of the Bytecode vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
@@ -2360,8 +2362,8 @@ class Function : public Object {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool IsBytecodeAllowed(Zone* zone) const;
-  void AttachBytecode(const Code& bytecode) const;
-  RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
+  void AttachBytecode(const Bytecode& bytecode) const;
+  RawBytecode* bytecode() const { return raw_ptr()->bytecode_; }
   bool HasBytecode() const;
 #endif
 
@@ -4247,6 +4249,9 @@ class ObjectPool : public Object {
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
+  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas.
+  void ResetICDatas(Zone* zone) const;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawObjectPool) ==
            OFFSET_OF_RETURNED_VALUE(RawObjectPool, data));
@@ -4918,7 +4923,7 @@ class Code : public Object {
   void set_await_token_positions(const Array& await_token_positions) const;
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
-  // that are embedded inside the Code object.
+  // that are embedded inside the Code or ObjecPool objects.
   void ResetICDatas(Zone* zone) const;
 
   // Array of DeoptInfo objects.
@@ -5150,10 +5155,6 @@ class Code : public Object {
                                PoolAttachment pool_attachment,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
-  static RawCode* FinalizeBytecode(const void* bytecode_data,
-                                   intptr_t bytecode_size,
-                                   const ObjectPool& object_pool,
-                                   CodeStatistics* stats = nullptr);
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
@@ -5290,6 +5291,77 @@ class Code : public Object {
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
+};
+
+class Bytecode : public Object {
+ public:
+  RawExternalTypedData* instructions() const {
+    return raw_ptr()->instructions_;
+  }
+  uword PayloadStart() const;
+  intptr_t Size() const;
+
+  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
+  bool ContainsInstructionAt(uword addr) const;
+
+  RawPcDescriptors* pc_descriptors() const {
+    return raw_ptr()->pc_descriptors_;
+  }
+  void set_pc_descriptors(const PcDescriptors& descriptors) const {
+    ASSERT(descriptors.IsOld());
+    StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
+  }
+
+  void Disassemble(DisassemblyFormatter* formatter = NULL) const;
+
+  RawExceptionHandlers* exception_handlers() const {
+    return raw_ptr()->exception_handlers_;
+  }
+  void set_exception_handlers(const ExceptionHandlers& handlers) const {
+    ASSERT(handlers.IsOld());
+    StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
+  }
+
+  RawFunction* function() const { return raw_ptr()->function_; }
+
+  void set_function(const Function& function) const {
+    ASSERT(function.IsOld());
+    StorePointer(&raw_ptr()->function_, function.raw());
+  }
+
+  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
+  // that are embedded inside the Code or ObjecPool objects.
+  void ResetICDatas(Zone* zone) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawBytecode));
+  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static RawBytecode* New(const ExternalTypedData& instructions,
+                          const ObjectPool& object_pool);
+#endif
+
+  TokenPosition GetTokenIndexOfPC(uword pc) const {
+    // TODO(alexmarkov): implement.
+    return TokenPosition::kNoSource;
+  }
+
+  const char* Name() const;
+  const char* QualifiedName() const;
+
+ private:
+  void set_object_pool(const ObjectPool& object_pool) const {
+    StorePointer(&raw_ptr()->object_pool_, object_pool.raw());
+  }
+
+  friend class RawObject;  // For RawObject::SizeFromClass().
+  friend class RawBytecode;
+
+  void set_instructions(const ExternalTypedData& instructions) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bytecode, Object);
+  friend class Class;
+  friend class SnapshotWriter;
 };
 
 class Context : public Object {
@@ -9051,8 +9123,8 @@ class StackTrace : public Instance {
   void set_expand_inlined(bool value) const;
 
   RawArray* code_array() const { return raw_ptr()->code_array_; }
-  RawCode* CodeAtFrame(intptr_t frame_index) const;
-  void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
+  RawObject* CodeAtFrame(intptr_t frame_index) const;
+  void SetCodeAtFrame(intptr_t frame_index, const Object& code) const;
 
   RawArray* pc_offset_array() const { return raw_ptr()->pc_offset_array_; }
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;

@@ -37,7 +37,7 @@ class StackTraceBuilder : public ValueObject {
   StackTraceBuilder() {}
   virtual ~StackTraceBuilder() {}
 
-  virtual void AddFrame(const Code& code, const Smi& offset) = 0;
+  virtual void AddFrame(const Object& code, const Smi& offset) = 0;
 };
 
 class RegularStackTraceBuilder : public StackTraceBuilder {
@@ -52,7 +52,7 @@ class RegularStackTraceBuilder : public StackTraceBuilder {
   const GrowableObjectArray& code_list() const { return code_list_; }
   const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
 
-  virtual void AddFrame(const Code& code, const Smi& offset) {
+  virtual void AddFrame(const Object& code, const Smi& offset) {
     code_list_.Add(code);
     pc_offset_list_.Add(offset);
   }
@@ -75,7 +75,7 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   }
   ~PreallocatedStackTraceBuilder() {}
 
-  virtual void AddFrame(const Code& code, const Smi& offset);
+  virtual void AddFrame(const Object& code, const Smi& offset);
 
  private:
   static const int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
@@ -87,11 +87,11 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   DISALLOW_COPY_AND_ASSIGN(PreallocatedStackTraceBuilder);
 };
 
-void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
+void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
                                              const Smi& offset) {
   if (cur_index_ >= StackTrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
-    Code& frame_code = Code::Handle();
+    Object& frame_code = Object::Handle();
     Smi& frame_offset = Smi::Handle();
     intptr_t start = StackTrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
@@ -129,13 +129,21 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
+  Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
-      code = frame->LookupDartCode();
-      ASSERT(code.ContainsInstructionAt(frame->pc()));
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      builder->AddFrame(code, offset);
+      if (frame->is_interpreted()) {
+        bytecode = frame->LookupDartBytecode();
+        ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
+        offset = Smi::New(frame->pc() - bytecode.PayloadStart());
+        builder->AddFrame(bytecode, offset);
+      } else {
+        code = frame->LookupDartCode();
+        ASSERT(code.ContainsInstructionAt(frame->pc()));
+        offset = Smi::New(frame->pc() - code.PayloadStart());
+        builder->AddFrame(code, offset);
+      }
     }
     frame = frames.NextFrame();
   }

@@ -31,6 +31,7 @@ cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == optimization_counter_threshold ]
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
+dart/kernel_determinism_test: SkipSlow
 
 [ $compiler == app_jitk ]
 dart/data_uri_import_test/utf16: MissingRuntimeError
@@ -213,9 +214,11 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 dart/data_uri_spawn_test: Skip # Timeout
+dart/kernel_determinism_test: SkipSlow
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != none ]
 dart/appjit*: SkipByDesign # Test needs to run from source
+dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk

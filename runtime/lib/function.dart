@@ -9,9 +9,7 @@ class _Closure implements Function {
   bool operator ==(Object other) native "Closure_equals";
 
   int get hashCode {
-    if (_hash == null) {
-      _hash = _computeHash();
-    }
+    _hash ??= _computeHash();
     return _hash;
   }
 

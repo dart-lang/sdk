@@ -21,8 +21,7 @@ namespace dart {
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
 
-void DisassembleToStdout::ConsumeInstruction(const Code& code,
-                                             char* hex_buffer,
+void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              intptr_t hex_size,
                                              char* human_buffer,
                                              intptr_t human_size,
@@ -51,8 +50,7 @@ void DisassembleToStdout::Print(const char* format, ...) {
   va_end(args);
 }
 
-void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
-                                                 char* hex_buffer,
+void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
                                                  intptr_t hex_size,
                                                  char* human_buffer,
                                                  intptr_t human_size,
@@ -97,8 +95,7 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
-void DisassembleToMemory::ConsumeInstruction(const Code& code,
-                                             char* hex_buffer,
+void DisassembleToMemory::ConsumeInstruction(char* hex_buffer,
                                              intptr_t hex_size,
                                              char* human_buffer,
                                              intptr_t human_size,
@@ -203,9 +200,8 @@ void Disassembler::Disassemble(uword start,
     DecodeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
                       sizeof(human_buffer), &instruction_length, code, &object,
                       pc);
-    formatter->ConsumeInstruction(code, hex_buffer, sizeof(hex_buffer),
-                                  human_buffer, sizeof(human_buffer), object,
-                                  pc);
+    formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
+                                  sizeof(human_buffer), object, pc);
     pc += instruction_length;
   }
 }

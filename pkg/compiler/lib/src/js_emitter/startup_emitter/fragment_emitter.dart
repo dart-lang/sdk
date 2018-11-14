@@ -312,22 +312,62 @@ function updateHolder(holder, newHolder) {
   return holder;
 }
 
-// TODO(sra): Minify properties of 'hunkHelpers'.
-var #hunkHelpers = {
-  inherit: inherit,
-  inheritMany: inheritMany,
-  mixin: mixin,
-  installStaticTearOff: installStaticTearOff,
-  installInstanceTearOff: installInstanceTearOff,
-  makeConstList: makeConstList,
-  lazy: lazy,
-  updateHolder: updateHolder,
-  convertToFastObject: convertToFastObject,
-  setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
-  updateTypes: updateTypes,
-  setOrUpdateInterceptorsByTag: setOrUpdateInterceptorsByTag,
-  setOrUpdateLeafTags: setOrUpdateLeafTags,
-};
+var #hunkHelpers = (function(){
+  var mkInstance = function(
+      isIntercepted, requiredParameterCount, optionalParameterDefaultValues,
+      callNames, applyIndex) {
+    return function(container, getterName, name, funType) {
+      return installInstanceTearOff(
+          container, getterName, isIntercepted,
+          requiredParameterCount, optionalParameterDefaultValues,
+          callNames, [name], funType, applyIndex);
+    }
+  },
+
+  mkStatic = function(
+      requiredParameterCount, optionalParameterDefaultValues,
+      callNames, applyIndex) {
+    return function(container, getterName, name, funType) {
+      return installStaticTearOff(
+          container, getterName,
+          requiredParameterCount, optionalParameterDefaultValues,
+          callNames, [name], funType, applyIndex);
+    }
+  };
+
+  // TODO(sra): Minify properties of 'hunkHelpers'.
+  return {
+    inherit: inherit,
+    inheritMany: inheritMany,
+    mixin: mixin,
+    installStaticTearOff: installStaticTearOff,
+    installInstanceTearOff: installInstanceTearOff,
+
+        // Unintercepted methods.
+    _instance_0u: mkInstance(0, 0, null, [#call0selector], 0),
+    _instance_1u: mkInstance(0, 1, null, [#call1selector], 0),
+    _instance_2u: mkInstance(0, 2, null, [#call2selector], 0),
+
+        // Intercepted methods.
+    _instance_0i: mkInstance(1, 0, null, [#call0selector], 0),
+    _instance_1i: mkInstance(1, 1, null, [#call1selector], 0),
+    _instance_2i: mkInstance(1, 2, null, [#call2selector], 0),
+
+        // Static methods.
+    _static_0: mkStatic(0, null, [#call0selector], 0),
+    _static_1: mkStatic(1, null, [#call1selector], 0),
+    _static_2: mkStatic(2, null, [#call2selector], 0),
+
+    makeConstList: makeConstList,
+    lazy: lazy,
+    updateHolder: updateHolder,
+    convertToFastObject: convertToFastObject,
+    setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
+    updateTypes: updateTypes,
+    setOrUpdateInterceptorsByTag: setOrUpdateInterceptorsByTag,
+    setOrUpdateLeafTags: setOrUpdateLeafTags,
+  };
+})();
 
 // Every deferred hunk (i.e. fragment) is a function that we can invoke to
 // initialize it. At this moment it contributes its data to the main hunk.
@@ -535,6 +575,14 @@ class FragmentEmitter {
   final ModelEmitter modelEmitter;
   final JClosedWorld _closedWorld;
 
+  js.Name _call0Name, _call1Name, _call2Name;
+  js.Name get call0Name =>
+      _call0Name ??= namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX0);
+  js.Name get call1Name =>
+      _call1Name ??= namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX1);
+  js.Name get call2Name =>
+      _call2Name ??= namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX2);
+
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
       this.modelEmitter, this._closedWorld);
 
@@ -603,6 +651,10 @@ class FragmentEmitter {
               compiler.codegenWorldBuilder, _closedWorld.nativeData, namer) ??
           new js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
+
+      'call0selector': js.quoteName(call0Name),
+      'call1selector': js.quoteName(call1Name),
+      'call2selector': js.quoteName(call2Name),
     });
     if (program.hasSoftDeferredClasses) {
       return new js.Block([
@@ -998,9 +1050,7 @@ class FragmentEmitter {
 
       // Closures taking exactly one argument are common.
       properties.add(js.Property(
-          js.string(namer.callCatchAllName),
-          js.quoteName(
-              namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX1))));
+          js.string(namer.callCatchAllName), js.quoteName(call1Name)));
       properties.add(
           js.Property(js.string(namer.requiredParameterField), js.number(1)));
 
@@ -1126,7 +1176,7 @@ class FragmentEmitter {
     List<js.Statement> inheritCalls = [];
     List<js.Statement> mixinCalls = [];
     // local caches of functions to allow minifaction of function name in call.
-    Map<String, js.Expression> locals = {};
+    LocalAliases locals = LocalAliases();
 
     Set<Class> classesInFragment = Set();
     for (Library library in fragment.libraries) {
@@ -1154,11 +1204,12 @@ class FragmentEmitter {
       for (Class cls in library.classes) {
         if (cls.isSoftDeferred != softDeferred) continue;
         collect(cls);
-
         if (cls.mixinClass != null) {
-          locals['_mixin'] ??= js.js('hunkHelpers.mixin');
-          mixinCalls.add(js.js.statement('_mixin(#, #)',
-              [classReference(cls), classReference(cls.mixinClass)]));
+          mixinCalls.add(js.js.statement('#(#, #)', [
+            locals.find('_mixin', 'hunkHelpers.mixin'),
+            classReference(cls),
+            classReference(cls.mixinClass),
+          ]));
         }
       }
     }
@@ -1169,33 +1220,28 @@ class FragmentEmitter {
           ? new js.LiteralNull()
           : classReference(superclass);
       if (list.length == 1) {
-        locals['_inherit'] ??= js.js('hunkHelpers.inherit');
-        inheritCalls.add(js.js.statement('_inherit(#, #)',
-            [classReference(list.single), superclassReference]));
+        inheritCalls.add(js.js.statement('#(#, #)', [
+          locals.find('_inherit', 'hunkHelpers.inherit'),
+          classReference(list.single),
+          superclassReference
+        ]));
       } else {
-        locals['_inheritMany'] ??= js.js('hunkHelpers.inheritMany');
         var listElements = list.map(classReference).toList();
-        inheritCalls.add(js.js.statement('_inheritMany(#, #)',
-            [superclassReference, js.ArrayInitializer(listElements)]));
+        inheritCalls.add(js.js.statement('#(#, #)', [
+          locals.find('_inheritMany', 'hunkHelpers.inheritMany'),
+          superclassReference,
+          js.ArrayInitializer(listElements)
+        ]));
       }
     }
 
     List<js.Statement> statements = [];
     if (locals.isNotEmpty) {
-      statements.add(localAliasInitializations(locals));
+      statements.add(locals.toStatement());
     }
     statements.addAll(inheritCalls);
     statements.addAll(mixinCalls);
     return wrapPhase('inheritance', statements);
-  }
-
-  js.Statement localAliasInitializations(Map<String, js.Expression> locals) {
-    List<js.VariableInitialization> initializations = [];
-    locals.forEach((local, value) {
-      initializations
-          .add(js.VariableInitialization(js.VariableDeclaration(local), value));
-    });
-    return js.ExpressionStatement(js.VariableDeclarationList(initializations));
   }
 
   /// Emits the setup of method aliases.
@@ -1275,8 +1321,7 @@ class FragmentEmitter {
   /// Emits the section that installs tear-off getters.
   js.Statement emitInstallTearOffs(Fragment fragment,
       {bool softDeferred = false}) {
-    var aliasForInstallStaticTearOff;
-    var aliasForInstallInstanceTearOff;
+    LocalAliases locals = LocalAliases();
 
     /// Emits the statement that installs a tear off for a method.
     ///
@@ -1332,12 +1377,37 @@ class FragmentEmitter {
       var applyIndex = js.number(method.applyIndex);
 
       if (method.isStatic) {
-        aliasForInstallStaticTearOff ??= '_static';
+        if (requiredParameterCount <= 2 &&
+            callNames.length == 1 &&
+            optionalParameterDefaultValues is js.LiteralNull &&
+            method.applyIndex == 0) {
+          js.Statement finish(int arity) {
+            // Short form for exactly 0/1/2 arguments.
+            var install =
+                locals.find('_static_${arity}', 'hunkHelpers._static_${arity}');
+            return js.js.statement('''
+                #install(#container, #getterName, #name, #funType)''', {
+              "install": install,
+              "container": container,
+              "getterName": js.quoteName(method.tearOffName),
+              "name": funsOrNames.single,
+              "funType": method.functionType,
+            });
+          }
+
+          var installedName = callNames.single;
+          if (installedName == call0Name) return finish(0);
+          if (installedName == call1Name) return finish(1);
+          if (installedName == call2Name) return finish(2);
+        }
+
+        var install =
+            locals.find('_static', 'hunkHelpers.installStaticTearOff');
         return js.js.statement('''
             #install(#container, #getterName,
                      #requiredParameterCount, #optionalParameterDefaultValues,
-                     #callNames, #funsOrNames, #funType, #applyIndex)''', {
-          "install": aliasForInstallStaticTearOff,
+                      #callNames, #funsOrNames, #funType, #applyIndex)''', {
+          "install": install,
           "container": container,
           "getterName": js.quoteName(method.tearOffName),
           "requiredParameterCount": js.number(requiredParameterCount),
@@ -1348,12 +1418,38 @@ class FragmentEmitter {
           "applyIndex": applyIndex,
         });
       } else {
-        aliasForInstallInstanceTearOff ??= '_instance';
+        if (requiredParameterCount <= 2 &&
+            callNames.length == 1 &&
+            optionalParameterDefaultValues is js.LiteralNull &&
+            method.applyIndex == 0) {
+          js.Statement finish(int arity) {
+            // Short form for exactly 0/1/2 arguments.
+            String isInterceptedTag = isIntercepted ? 'i' : 'u';
+            var install = locals.find('_instance_${arity}_${isInterceptedTag}',
+                'hunkHelpers._instance_${arity}${isInterceptedTag}');
+            return js.js.statement('''
+                #install(#container, #getterName, #name, #funType)''', {
+              "install": install,
+              "container": container,
+              "getterName": js.quoteName(method.tearOffName),
+              "name": funsOrNames.single,
+              "funType": method.functionType,
+            });
+          }
+
+          var installedName = callNames.single;
+          if (installedName == call0Name) return finish(0);
+          if (installedName == call1Name) return finish(1);
+          if (installedName == call2Name) return finish(2);
+        }
+
+        var install =
+            locals.find('_instance', 'hunkHelpers.installInstanceTearOff');
         return js.js.statement('''
             #install(#container, #getterName, #isIntercepted,
                      #requiredParameterCount, #optionalParameterDefaultValues,
                      #callNames, #funsOrNames, #funType, #applyIndex)''', {
-          "install": aliasForInstallInstanceTearOff,
+          "install": install,
           "container": container,
           "getterName": js.quoteName(method.tearOffName),
           // 'Truthy' values are ok for `isIntercepted`.
@@ -1402,20 +1498,8 @@ class FragmentEmitter {
       }
     }
 
-    List<js.VariableInitialization> locals = [];
-    if (aliasForInstallStaticTearOff != null) {
-      locals.add(js.VariableInitialization(
-          js.VariableDeclaration(aliasForInstallStaticTearOff),
-          js.js('hunkHelpers.installStaticTearOff')));
-    }
-    if (aliasForInstallInstanceTearOff != null) {
-      locals.add(js.VariableInitialization(
-          js.VariableDeclaration(aliasForInstallInstanceTearOff),
-          js.js('hunkHelpers.installInstanceTearOff')));
-    }
     if (locals.isNotEmpty) {
-      inits.insert(
-          0, js.ExpressionStatement(js.VariableDeclarationList(locals)));
+      inits.insert(0, locals.toStatement());
     }
 
     return wrapPhase('installTearOffs', inits);
@@ -1471,20 +1555,20 @@ class FragmentEmitter {
   js.Statement emitLazilyInitializedStatics(Fragment fragment) {
     List<StaticField> fields = fragment.staticLazilyInitializedFields;
     List<js.Statement> statements = [];
-    Map<String, js.Expression> locals = {};
+    LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
-      locals['_lazy'] ??= js.js('hunkHelpers.lazy');
-      statements.add(js.js.statement("_lazy(#, #, #, #);", [
+      statements.add(js.js.statement("#(#, #, #, #);", [
+        locals.find('_lazy', 'hunkHelpers.lazy'),
         field.holder.name,
         js.quoteName(field.name),
-        js.quoteName(namer.deriveLazyInitializerName(field.name)),
+        js.quoteName(field.getterName),
         field.code
       ]));
     }
 
     if (locals.isNotEmpty) {
-      statements.insert(0, localAliasInitializations(locals));
+      statements.insert(0, locals.toStatement());
     }
 
     return wrapPhase('lazyInitializers', statements);
@@ -1757,6 +1841,27 @@ class FragmentEmitter {
     statements.addAll(subclassAssignments);
 
     return wrapPhase('nativeSupport', statements);
+  }
+}
+
+class LocalAliases {
+  final Map<String, js.Expression> _locals = {};
+
+  bool get isEmpty => _locals.isEmpty;
+  bool get isNotEmpty => !isEmpty;
+
+  String find(String alias, String expression) {
+    _locals[alias] ??= js.js(expression);
+    return alias;
+  }
+
+  js.Statement toStatement() {
+    List<js.VariableInitialization> initializations = [];
+    _locals.forEach((local, value) {
+      initializations
+          .add(js.VariableInitialization(js.VariableDeclaration(local), value));
+    });
+    return js.ExpressionStatement(js.VariableDeclarationList(initializations));
   }
 }
 

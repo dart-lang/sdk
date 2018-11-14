@@ -190,6 +190,7 @@ class ObjectPointerVisitor;
   V(Namespace, "Namespace")                                                    \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(Code, "Code")                                                              \
+  V(Bytecode, "Bytecode")                                                      \
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
