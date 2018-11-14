@@ -119,6 +119,7 @@
       "out/ReleaseIA32/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
+      "out/ReleaseARM64/",
       "out/ReleaseSIMDBC64/",
       "out/ReleaseX64/",
       "xcodebuild/DebugIA32/",
@@ -299,7 +300,7 @@
     "dartk-win-(debug|release)-(ia32|x64)": { },
     "dartk-(linux|mac|win)-product-x64": { },
     "dartk-(linux|mac)-(debug|release)-simdbc64": { },
-    "dartk-linux-release-(simarm|simarm64)": { },
+    "dartk-linux-release-(arm64|simarm|simarm64)": { },
     "dartk-optcounter-linux-release-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
@@ -662,6 +663,40 @@
             "-ndartk-checked-linux-release-x64"],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "cross-vm-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the cross arm builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "trigger target arm builder",
+          "fileset": "vm-kernel",
+          "trigger": ["target-vm-linux-release-arm64"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "target-vm-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the target arm builders."
+      },
+      "steps": [
+        {
+          "name": "vm tests",
+          "arguments": ["-ndartk-${system}-${mode}-${arch}"]
         }
       ]
     },
