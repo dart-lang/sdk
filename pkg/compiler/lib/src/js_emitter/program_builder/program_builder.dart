@@ -919,7 +919,7 @@ class ProgramBuilder {
     int applyIndex = 0;
     if (canBeApplied) {
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
-      if (element.parameterStructure.typeParameters > 0) {
+      if (parameterStructure.typeParameters > 0) {
         applyIndex = 1;
       }
     }

@@ -447,8 +447,9 @@ abstract class DartMethod extends Method {
   // this field holds a function computing the function signature.
   final js.Expression functionType;
 
-  // Signature information for this method. This is only required and stored
-  // here if the method [canBeApplied].
+  // Signature information for this method. [optionalParameterDefaultValues] is
+  // only required and stored here if the method [canBeApplied]. The count is
+  // always stored to help select specialized tear-off paths.
   final int requiredParameterCount;
   final /* Map | List */ optionalParameterDefaultValues;
 
