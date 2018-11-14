@@ -101,6 +101,8 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowClass,
         ShadowField,
         ShadowMember,
+        ShadowTypeInferenceEngine,
+        ShadowTypeInferrer,
         VariableDeclarationJudgment,
         getExplicitTypeArguments,
         getInferredType;
@@ -122,7 +124,7 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_inference_engine.dart'
     show IncludesTypeParametersCovariantly, TypeInferenceEngine;
 
-import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
+import 'type_promotion.dart' show TypePromoter;
 
 import 'type_schema.dart' show isKnown, UnknownType;
 
@@ -444,7 +446,17 @@ enum MethodContravarianceCheckKind {
 abstract class TypeInferrer {
   final CoreTypes coreTypes;
 
-  TypeInferrer(this.coreTypes);
+  TypeInferrer.private(this.coreTypes);
+
+  factory TypeInferrer(
+      ShadowTypeInferenceEngine engine,
+      Uri uri,
+      bool topLevel,
+      InterfaceType thisType,
+      KernelLibraryBuilder library) = ShadowTypeInferrer.private;
+
+  factory TypeInferrer.disabled(TypeSchemaEnvironment typeSchemaEnvironment) =
+      TypeInferrerDisabled.private;
 
   KernelLibraryBuilder get library;
 
@@ -490,12 +502,13 @@ abstract class TypeInferrer {
 /// promotion do not slow down compilation too much.
 class TypeInferrerDisabled extends TypeInferrer {
   @override
-  final typePromoter = new TypePromoterDisabled();
+  final typePromoter = new TypePromoter.disabled();
 
   @override
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
-  TypeInferrerDisabled(this.typeSchemaEnvironment) : super(null);
+  TypeInferrerDisabled.private(this.typeSchemaEnvironment)
+      : super.private(null);
 
   @override
   KernelLibraryBuilder get library => null;
@@ -577,14 +590,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl(
+  TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
       : strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        super(engine.coreTypes);
+        super.private(engine.coreTypes);
 
   DartType storeInferredType(TreeNode node, DartType type) {
     if (node is ExpressionJudgment) {
