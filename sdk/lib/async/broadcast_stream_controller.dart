@@ -202,7 +202,7 @@ abstract class _BroadcastStreamController<T>
   StreamSubscription<T> _subscribe(void onData(T data), Function onError,
       void onDone(), bool cancelOnError) {
     if (isClosed) {
-      if (onDone == null) onDone = _nullDoneHandler;
+      onDone ??= _nullDoneHandler;
       return new _DoneStreamSubscription<T>(onDone);
     }
     StreamSubscription<T> subscription = new _BroadcastSubscription<T>(
@@ -462,9 +462,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   bool get _hasPending => _pending != null && !_pending.isEmpty;
 
   void _addPendingEvent(_DelayedEvent event) {
-    if (_pending == null) {
-      _pending = new _StreamImplEvents<T>();
-    }
+    _pending ??= new _StreamImplEvents<T>();
     _pending.add(event);
   }
 

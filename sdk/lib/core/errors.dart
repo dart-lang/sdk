@@ -297,7 +297,7 @@ class RangeError extends ArgumentError {
     length ??= indexable.length;
     // Comparing with `0` as receiver produces better dart2js type inference.
     if (0 > index || index >= length) {
-      if (name == null) name = "index";
+      name ??= "index";
       throw new RangeError.index(index, indexable, name, message, length);
     }
   }
@@ -323,12 +323,12 @@ class RangeError extends ArgumentError {
     // Comparing with `0` as receiver produces better dart2js type inference.
     // Ditto `start > end` below.
     if (0 > start || start > length) {
-      if (startName == null) startName = "start";
+      startName ??= "start";
       throw new RangeError.range(start, 0, length, startName, message);
     }
     if (end != null) {
       if (start > end || end > length) {
-        if (endName == null) endName = "end";
+        endName ??= "end";
         throw new RangeError.range(end, start, length, endName, message);
       }
       return end;
@@ -483,7 +483,7 @@ class NoSuchMethodError extends Error {
   @Deprecated("Use NoSuchMethod.withInvocation instead")
   external NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [@deprecated List existingArgumentNames = null]);
+      [@deprecated List existingArgumentNames]);
 
   external String toString();
 }

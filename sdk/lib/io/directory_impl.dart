@@ -145,7 +145,7 @@ class _Directory extends FileSystemEntity implements Directory {
       new Directory(_systemTemp(_Namespace._namespace));
 
   Future<Directory> createTemp([String prefix]) {
-    if (prefix == null) prefix = '';
+    prefix ??= '';
     if (path == '') {
       throw new ArgumentError("Directory.createTemp called with an empty path. "
           "To use the system temp directory, use Directory.systemTemp");
@@ -169,7 +169,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Directory createTempSync([String prefix]) {
-    if (prefix == null) prefix = '';
+    prefix ??= '';
     if (path == '') {
       throw new ArgumentError("Directory.createTemp called with an empty path. "
           "To use the system temp directory, use Directory.systemTemp");

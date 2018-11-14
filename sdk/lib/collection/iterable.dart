@@ -168,7 +168,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E lastWhere(bool test(E value), {E orElse()}) {
-    E result = null;
+    E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -182,7 +182,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E singleWhere(bool test(E element), {E orElse()}) {
-    E result = null;
+    E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -337,8 +337,8 @@ void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
 
   // Find last two elements. One or more of them may already be in the
   // parts array. Include their length in `length`.
-  Object penultimate = null;
-  Object ultimate = null;
+  Object penultimate;
+  Object ultimate;
   if (!it.moveNext()) {
     if (count <= headCount + tailCount) return;
     ultimateString = parts.removeLast();
@@ -388,7 +388,7 @@ void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
 
   // If there is a gap between the initial run and the last two,
   // prepare to add an ellipsis.
-  String elision = null;
+  String elision;
   if (count > parts.length + tailCount) {
     elision = "...";
     length += ellipsisSize + overhead;

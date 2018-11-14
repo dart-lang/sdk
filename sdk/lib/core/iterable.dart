@@ -587,7 +587,7 @@ abstract class Iterable<E> {
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
   E lastWhere(bool test(E element), {E orElse()}) {
-    E result = null;
+    E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -610,7 +610,7 @@ abstract class Iterable<E> {
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
   E singleWhere(bool test(E element), {E orElse()}) {
-    E result = null;
+    E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
