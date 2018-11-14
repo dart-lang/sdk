@@ -300,7 +300,7 @@ abstract class TypeInferenceEngine {
     this.coreTypes = coreTypes;
     this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
-        new TypeSchemaEnvironment(coreTypes, hierarchy, !legacyMode);
+        new TypeSchemaEnvironment(coreTypes, hierarchy, legacyMode);
   }
 
   /// Records that the given static [field] will need top level type inference.

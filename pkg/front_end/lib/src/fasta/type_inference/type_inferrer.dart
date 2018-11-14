@@ -2105,7 +2105,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
       Class mixinClass = mixedInType.classNode;
       Supertype mixinSupertype = mixinClass.supertype;
       gatherer = new TypeConstraintGatherer(
-          new TypeSchemaEnvironment(loader.coreTypes, hierarchy, true),
+          new TypeSchemaEnvironment(loader.coreTypes, hierarchy, false),
           mixinClass.typeParameters);
       // Generate constraints based on the mixin's supertype.
       generateConstraints(hierarchy, mixinClass, baseType, mixinSupertype);
