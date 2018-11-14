@@ -125,6 +125,7 @@ compiler_sources_tests = [
   "assembler/disassembler_test.cc",
   "backend/il_test.cc",
   "backend/locations_helpers_test.cc",
+  "backend/loops_test.cc",
   "backend/range_analysis_test.cc",
   "cha_test.cc",
 ]
