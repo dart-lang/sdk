@@ -487,7 +487,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
             ? rhsType
             : inferrer.typeSchemaEnvironment
                 .getStandardUpperBound(readType, rhsType);
-        if (inferrer.strongMode) {
+        if (!inferrer.legacyMode) {
           nullAwareCombiner.staticType = combinedType;
         }
       } else {
@@ -1483,7 +1483,7 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   /// fact that [expression] has the given [type].
   void _storeLetType(
       TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    if (!inferrer.strongMode) return;
+    if (inferrer.legacyMode) return;
     Expression desugared = this.desugared;
     while (true) {
       if (desugared is Let) {

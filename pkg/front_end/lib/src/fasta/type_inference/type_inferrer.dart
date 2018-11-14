@@ -561,7 +561,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// should apply.
   final bool isTopLevel;
 
-  final bool strongMode;
+  final bool legacyMode;
 
   final ClassHierarchy classHierarchy;
 
@@ -592,7 +592,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : strongMode = !engine.legacyMode,
+      : legacyMode = engine.legacyMode,
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
@@ -681,7 +681,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (isTopLevel) return null;
 
     // This logic is strong mode only; in legacy mode anything goes.
-    if (!strongMode) return null;
+    if (legacyMode) return null;
 
     // If an interface type is being assigned to a function type, see if we
     // should tear off `.call`.
@@ -793,7 +793,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Our non-strong golden files currently don't include interface
     // targets, so we can't store the interface target without causing tests
     // to fail.  TODO(paulberry): fix this.
-    if (!strongMode) return null;
+    if (legacyMode) return null;
 
     receiverType = resolveTypeParameter(receiverType);
 
@@ -872,7 +872,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               new InstrumentationValueForMember(interfaceMember));
         }
         methodInvocation.interfaceTarget = interfaceMember;
-      } else if (strongMode && interfaceMember is Member) {
+      } else if (!legacyMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -881,7 +881,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (!legacyMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -904,7 +904,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           expression: propertyGet,
           receiver: propertyGet.receiver,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (!legacyMode && interfaceMember is Member) {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
@@ -919,7 +919,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (!legacyMode && interfaceMember is Member) {
         propertyGet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -941,7 +941,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiver: propertySet.receiver,
           setter: true,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (!legacyMode && interfaceMember is Member) {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
@@ -956,7 +956,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (!legacyMode && interfaceMember is Member) {
         propertySet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -1267,7 +1267,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
         explicitTypeArguments == null &&
-        strongMode &&
+        !legacyMode &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
     List<DartType> inferredTypes;
@@ -1466,7 +1466,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Substitution substitution;
     List<DartType> formalTypesFromContext =
         new List<DartType>.filled(formals.length, null);
-    if (strongMode && typeContext is FunctionType) {
+    if (!legacyMode && typeContext is FunctionType) {
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
@@ -1526,7 +1526,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
-    bool needToSetReturnType = hasImplicitReturnType && strongMode;
+    bool needToSetReturnType = hasImplicitReturnType && !legacyMode;
     ClosureContext oldClosureContext = this.closureContext;
     ClosureContext closureContext = new ClosureContext(
         this, function.asyncMarker, returnContext, needToSetReturnType);
@@ -1550,7 +1550,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       instrumentation?.record(uri, fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
-    } else if (!strongMode && hasImplicitReturnType) {
+    } else if (legacyMode && hasImplicitReturnType) {
       function.returnType =
           closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
@@ -1602,7 +1602,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var receiverType = receiver == null
         ? thisType
         : inferExpression(receiver, const UnknownType(), true);
-    if (strongMode) {
+    if (!legacyMode) {
       receiverVariable?.type = receiverType;
     }
     if (desugaredInvocation != null) {
@@ -1640,7 +1640,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, functionType, fileOffset);
     if (!identical(interfaceMember, 'call')) {
-      if (strongMode &&
+      if (!legacyMode &&
           isImplicitCall &&
           interfaceMember != null &&
           !(interfaceMember is Procedure &&
@@ -1719,7 +1719,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       inferExpression(receiver, const UnknownType(), true);
       receiverType = getInferredType(receiver, this);
     }
-    if (strongMode) {
+    if (!legacyMode) {
       receiverVariable?.type = receiverType;
     }
     propertyName ??= desugaredGet.name;
@@ -1729,7 +1729,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           errorTemplate: templateUndefinedGetter,
           expression: expression,
           receiver: receiver);
-      if (strongMode && interfaceMember is Member) {
+      if (!legacyMode && interfaceMember is Member) {
         if (instrumentation != null && receiverType == const DynamicType()) {
           instrumentation.record(uri, desugaredGet.fileOffset, 'target',
               new InstrumentationValueForMember(interfaceMember));
@@ -1768,7 +1768,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// (if necessary).
   DartType instantiateTearOff(
       DartType tearoffType, DartType context, Expression expression) {
-    if (strongMode &&
+    if (!legacyMode &&
         tearoffType is FunctionType &&
         context is FunctionType &&
         context.typeParameters.isEmpty) {
