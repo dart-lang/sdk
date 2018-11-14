@@ -719,13 +719,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     _typeInferrer.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
 
-    // For async, async*, and sync* functions with declared return types, we need
-    // to determine whether those types are valid.
-    // TODO(hillerstrom): currently, we need to check whether [strongMode] is
+    // For async, async*, and sync* functions with declared return types, we
+    // need to determine whether those types are valid.
+    // TODO(hillerstrom): currently, we need to check whether [legacyMode] is
     // enabled for two reasons:
-    // 1) the [isSubtypeOf] predicate produces false-negatives when [strongMode]
-    // is false.
-    // 2) the member [typeEnvironment] might be null when [strongMode] is false.
+    // 1) the [isSubtypeOf] predicate produces false-negatives when
+    // [legacyMode] is enabled.
+    // 2) the member [typeEnvironment] might be null when [legacyMode] is
+    // enabled.
     // This particular behaviour can be observed when running the fasta perf
     // benchmarks.
     if (!library.loader.target.legacyMode && builder.returnType != null) {
