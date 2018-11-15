@@ -886,8 +886,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-${system}-${mode}-${arch}"]
-        }
+            "-ndartk-reload-${system}-${mode}-${arch}"],
+            "fileset": "vm-kernel",
+            "shards": 10
+          }
       ]
     },
     {
@@ -907,8 +909,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-rollback-linux-${mode}-x64"]
-        }
+            "-ndartk-reload-rollback-linux-${mode}-x64"],
+            "fileset": "vm-kernel",
+            "shards": 10
+          }
       ]
     },
     {
