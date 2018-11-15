@@ -48,7 +48,7 @@ class AotCallSpecializer : public CallSpecializer {
   bool IsSupportedIntOperandForStaticDoubleOp(CompileType* operand_type);
   Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
 
-  void StrengthenReachingType(Value* input, intptr_t cid);
+  CompileType BuildStrengthenedReceiverType(Value* input, intptr_t cid);
 
   bool TryOptimizeInstanceCallUsingStaticTypes(InstanceCallInstr* instr);
 

@@ -204,6 +204,17 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
+  // Returns true if value of this type is either Smi or null.
+  bool IsNullableSmi() {
+    if (cid_ == kSmiCid) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return type_ != nullptr && type_->IsSmiType();
+    }
+    return false;
+  }
+
   // Returns true if value of this type is either double or null.
   bool IsNullableDouble() {
     if (cid_ == kDoubleCid) {

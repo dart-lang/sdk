@@ -320,7 +320,8 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
   return input;
 }
 
-void AotCallSpecializer::StrengthenReachingType(Value* input, intptr_t cid) {
+CompileType AotCallSpecializer::BuildStrengthenedReceiverType(Value* input,
+                                                              intptr_t cid) {
   CompileType* old_type = input->Type();
   CompileType* refined_type = old_type;
 
@@ -340,8 +341,9 @@ void AotCallSpecializer::StrengthenReachingType(Value* input, intptr_t cid) {
   }
 
   if (refined_type != old_type) {
-    input->SetReachingType(new (Z) CompileType(*refined_type));
+    return *refined_type;
   }
+  return CompileType::None();
 }
 
 // After replacing a call with a specialized instruction, make sure to
@@ -393,9 +395,19 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
     // tighten it (this is safe since it was proven that te receiver is either
     // null or will end up with that target).
     const intptr_t receiver_index = instr->FirstArgIndex();
-    if (instr->ArgumentCountWithoutTypeArgs() >= 1) {
-      StrengthenReachingType(instr->PushArgumentAt(receiver_index)->value(),
-                             cid);
+    const intptr_t argument_count = instr->ArgumentCountWithoutTypeArgs();
+    if (argument_count >= 1) {
+      auto push_receiver = instr->PushArgumentAt(receiver_index);
+      auto receiver_value = push_receiver->value();
+      auto receiver = receiver_value->definition();
+      auto type = BuildStrengthenedReceiverType(receiver_value, cid);
+      if (!type.IsNone()) {
+        auto redefinition = flow_graph()->EnsureRedefinition(
+            push_receiver->previous(), receiver, type);
+        if (redefinition != nullptr) {
+          RefineUseTypes(redefinition);
+        }
+      }
     }
   }
 
@@ -419,8 +431,16 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
-    // We only support binary operations on nullable integers.
-    if (!left_type->IsNullableInt() || !right_type->IsNullableInt()) {
+    const bool is_equality_op = Token::IsEqualityOperator(op_kind);
+    const bool can_use_strict_compare =
+        is_equality_op &&
+        (left_type->IsNullableSmi() || right_type->IsNullableSmi());
+    const bool has_nullable_int_args =
+        left_type->IsNullableInt() && right_type->IsNullableInt();
+
+    // We only support binary operations if both operands are nullable integers
+    // or when we can use a cheap strict comparison operation.
+    if (!has_nullable_int_args && !can_use_strict_compare) {
       return false;
     }
 
@@ -431,9 +451,15 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       case Token::kLTE:
       case Token::kGT:
       case Token::kGTE: {
-        const bool is_equality_op = Token::IsEqualityOperator(op_kind);
-        if (is_equality_op && (left_type->ToNullableCid() == kSmiCid ||
-                               right_type->ToNullableCid() == kSmiCid)) {
+        const bool supports_unboxed_int =
+            FlowGraphCompiler::SupportsUnboxedInt64();
+        const bool can_use_equality_compare =
+            supports_unboxed_int && is_equality_op && left_type->IsInt() &&
+            right_type->IsInt();
+
+        // We prefer equality compare, since it doesn't require boxing.
+        if (is_equality_op && !can_use_equality_compare &&
+            (left_type->IsNullableSmi() || right_type->IsNullableSmi())) {
           replacement = new (Z) StrictCompareInstr(
               instr->token_pos(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
@@ -442,8 +468,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
           break;
         }
 
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          if (is_equality_op && left_type->IsInt() && right_type->IsInt()) {
+        if (supports_unboxed_int) {
+          if (can_use_equality_compare) {
             replacement = new (Z) EqualityCompareInstr(
                 instr->token_pos(), op_kind, left_value->CopyWithType(Z),
                 right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
