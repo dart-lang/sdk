@@ -651,12 +651,20 @@ CompileType CompileType::Int() {
   return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
 }
 
+CompileType CompileType::NullableInt() {
+  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNullable);
+}
+
 CompileType CompileType::Smi() {
   return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
 }
 
 CompileType CompileType::Double() {
   return Create(kDoubleCid, Type::ZoneHandle(Type::Double()));
+}
+
+CompileType CompileType::NullableDouble() {
+  return FromAbstractType(Type::ZoneHandle(Type::Double()), kNullable);
 }
 
 CompileType CompileType::String() {

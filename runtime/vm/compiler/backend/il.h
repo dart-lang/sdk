@@ -144,11 +144,27 @@ class CompileType : public ZoneAllocated {
   // Create non-nullable Int type.
   static CompileType Int();
 
+  // Create nullable Int type.
+  static CompileType NullableInt();
+
   // Create non-nullable Smi type.
   static CompileType Smi();
 
+  // Create nullable Smi type.
+  static CompileType NullableSmi() {
+    return CreateNullable(kNullable, kSmiCid);
+  }
+
+  // Create nullable Mint type.
+  static CompileType NullableMint() {
+    return CreateNullable(kNullable, kMintCid);
+  }
+
   // Create non-nullable Double type.
   static CompileType Double();
+
+  // Create nullable Double type.
+  static CompileType NullableDouble();
 
   // Create non-nullable String type.
   static CompileType String();
@@ -172,10 +188,10 @@ class CompileType : public ZoneAllocated {
   bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == NULL); }
 
   // Returns true if value of this type is a non-nullable int.
-  bool IsInt() {
-    // A nullable int that isn't nullable is an int.
-    return !is_nullable() && IsNullableInt();
-  }
+  bool IsInt() { return !is_nullable() && IsNullableInt(); }
+
+  // Returns true if value of this type is a non-nullable double.
+  bool IsDouble() { return !is_nullable() && IsNullableDouble(); }
 
   // Returns true if value of this type is either int or null.
   bool IsNullableInt() {
@@ -3269,6 +3285,18 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
+  RawString* Selector() {
+    // The Token::Kind we have does unfortunately not encode whether the call is
+    // a dyn: call or not.
+    if (auto static_call = this->AsStaticCall()) {
+      return static_call->ic_data()->target_name();
+    } else if (auto instance_call = this->AsInstanceCall()) {
+      return instance_call->ic_data()->target_name();
+    } else {
+      UNREACHABLE();
+    }
+  }
+
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
   Value* Receiver() const {
     return this->PushArgumentAt(FirstArgIndex())->value();
@@ -6332,14 +6360,14 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   CheckedSmiOpInstr(Token::Kind op_kind,
                     Value* left,
                     Value* right,
-                    InstanceCallInstr* call)
+                    TemplateDartCall<0>* call)
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
     ASSERT(call->type_args_len() == 0);
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
 
-  InstanceCallInstr* call() const { return call_; }
+  TemplateDartCall<0>* call() const { return call_; }
   Token::Kind op_kind() const { return op_kind_; }
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
@@ -6357,7 +6385,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   DECLARE_INSTRUCTION(CheckedSmiOp)
 
  private:
-  InstanceCallInstr* call_;
+  TemplateDartCall<0>* call_;
   const Token::Kind op_kind_;
   DISALLOW_COPY_AND_ASSIGN(CheckedSmiOpInstr);
 };
@@ -6367,7 +6395,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   CheckedSmiComparisonInstr(Token::Kind op_kind,
                             Value* left,
                             Value* right,
-                            InstanceCallInstr* call)
+                            TemplateDartCall<0>* call)
       : TemplateComparison(call->token_pos(), op_kind, call->deopt_id()),
         call_(call),
         is_negated_(false) {
@@ -6376,7 +6404,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
     SetInputAt(1, right);
   }
 
-  InstanceCallInstr* call() const { return call_; }
+  TemplateDartCall<0>* call() const { return call_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -6413,7 +6441,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
  private:
-  InstanceCallInstr* call_;
+  TemplateDartCall<0>* call_;
   bool is_negated_;
   DISALLOW_COPY_AND_ASSIGN(CheckedSmiComparisonInstr);
 };
