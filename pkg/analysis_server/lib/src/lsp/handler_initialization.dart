@@ -57,7 +57,15 @@ class InitializationHandler extends MessageHandler {
           null,
         )),
         true, // hoverProvider
-        null,
+        new CompletionOptions(
+          false,
+          // Set the characters that will cause the editor to automatically
+          // trigger completion.
+          // TODO(dantup): This is quite eager and may need filtering in the
+          // completion handler.
+          // See https://github.com/Dart-Code/Dart-Code/blob/c616c93c87972713454eb0518f97c0278201a99a/src/providers/dart_completion_item_provider.ts#L36
+          r'''.: =(${'"/\'''.split(''),
+        ),
         null,
         null,
         null,

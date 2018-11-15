@@ -39,6 +39,29 @@ abstract class AbstractLspAnalysisServerTest extends Object
   String projectFolderPath, mainFilePath;
   Uri mainFileUri;
 
+  final emptyTextDocumentClientCapabilities =
+      new TextDocumentClientCapabilities(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null);
+
   String applyEdits(String oldContent, List<TextEdit> changes) {
     String newContent = oldContent;
     // Complex text manipulations are described with an array of TextEdit's,
@@ -111,6 +134,19 @@ abstract class AbstractLspAnalysisServerTest extends Object
     return expectSuccessfulResponseTo(request);
   }
 
+  Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
+      {CompletionContext context}) async {
+    var request = makeRequest(
+      'textDocument/completion',
+      new CompletionParams(
+        context,
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<CompletionItem>>(request);
+  }
+
   Future<Hover> getHover(Uri uri, Position pos) async {
     var request = makeRequest(
       'textDocument/hover', // TODO(dantup): Code-gen constants for all these from the spec to avoid mistakes.
@@ -122,12 +158,26 @@ abstract class AbstractLspAnalysisServerTest extends Object
 
   /// A helper that initializes the server with common values, since the server
   /// will reject any other requests until it is initialized.
-  Future<ResponseMessage> initialize([String rootPath]) async {
+  /// Capabilities are overridden by providing JSON to avoid having to construct
+  /// full objects just to change one value (the types are immutable) so must
+  /// match the spec exactly and are not verified.
+  Future<ResponseMessage> initialize({
+    String rootPath,
+    Map<String, dynamic> textDocumentCapabilities,
+  }) async {
     final rootUri = Uri.file(rootPath ?? projectFolderPath).toString();
+    final newTextDocumentCapabilities =
+        overrideTextDocumentCapabilities(textDocumentCapabilities);
     final request = makeRequest(
         'initialize',
-        new InitializeParams(null, null, rootUri, null,
-            new ClientCapabilities(null, null, null), null, null));
+        new InitializeParams(
+            null,
+            null,
+            rootUri,
+            null,
+            new ClientCapabilities(null, newTextDocumentCapabilities, null),
+            null,
+            null));
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
@@ -158,6 +208,19 @@ abstract class AbstractLspAnalysisServerTest extends Object
     );
     channel.sendNotificationToServer(notification);
     await pumpEventQueue();
+  }
+
+  TextDocumentClientCapabilities overrideTextDocumentCapabilities(
+      Map<String, dynamic> textDocumentCapabilities) {
+    final json = emptyTextDocumentClientCapabilities.toJson();
+    if (textDocumentCapabilities != null) {
+      textDocumentCapabilities.keys.forEach((key) {
+        json[key] = textDocumentCapabilities[key];
+      });
+    }
+    final newTextDocumentCapabilities =
+        TextDocumentClientCapabilities.fromJson(json);
+    return newTextDocumentCapabilities;
   }
 
   Position positionFromMarker(String contents) =>
@@ -202,6 +265,9 @@ abstract class AbstractLspAnalysisServerTest extends Object
     projectFolderPath = convertPath('/project');
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
+    // Create a folder and file to aid testing that includes imports/completion.
+    newFolder(join(projectFolderPath, 'lib', 'folder'));
+    newFile(join(projectFolderPath, 'lib', 'file.dart'));
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
   }

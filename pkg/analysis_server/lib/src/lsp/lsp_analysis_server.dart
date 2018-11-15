@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handler_initialization.dart';
@@ -60,7 +61,7 @@ class LspAnalysisServer {
   InitializationState state = InitializationState.Uninitialized;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  ClientCapabilities _clientCapabilities; // ignore: unused_field
+  ClientCapabilities _clientCapabilities;
 
   /**
    * The options of this server instance.
@@ -142,6 +143,7 @@ class LspAnalysisServer {
   ByteStore byteStore;
 
   nd.AnalysisDriverScheduler analysisDriverScheduler;
+
   /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
@@ -195,10 +197,10 @@ class LspAnalysisServer {
     _registerHandler(new InitializationHandler(this));
     _registerHandler(new TextDocumentChangeHandler(this));
     _registerHandler(new HoverHandler(this));
+    _registerHandler(new CompletionHandler(this));
     _registerHandler(new FormattingHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }
-
   /**
    * Return a list of the globs used to determine which files should be analyzed.
    */
@@ -218,6 +220,9 @@ class LspAnalysisServer {
     }
     return _analyzedFilesGlobs;
   }
+
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  ClientCapabilities get clientCapabilities => _clientCapabilities;
 
   /**
    * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.

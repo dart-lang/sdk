@@ -8,15 +8,12 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
-
-final _dartDocCodeBlockSections = new RegExp(r'(```\w+) +\w+');
-final _dartDocDirectives =
-    new RegExp(r'(\n *{@.*?}$)|(^{@.*?}\n)', multiLine: true);
 
 class HoverHandler extends MessageHandler {
   final LspAnalysisServer server;
@@ -29,6 +26,7 @@ class HoverHandler extends MessageHandler {
 
     final path = pathOf(params.textDocument);
     ResolvedUnitResult result = await server.getResolvedUnit(path);
+    // TODO(dantup): Handle bad paths/offsets.
     CompilationUnit unit = result?.unit;
 
     if (unit == null) {
@@ -87,26 +85,12 @@ class HoverHandler extends MessageHandler {
 
     // Doc comments.
     if (hover.dartdoc != null) {
-      content.writeln(_cleanDartdoc(hover.dartdoc));
+      content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
     return new Hover(
       asMarkdown(content.toString().trimRight()),
       toRange(lineInfo, hover.offset, hover.length),
     );
-  }
-
-  String _cleanDartdoc(String doc) {
-    // Remove any dartdoc directives like {@template xxx}
-    doc = doc.replaceAll(_dartDocDirectives, '');
-
-    // Remove any code block section names like ```dart preamble that Flutter
-    // docs contain.
-    doc = doc.replaceAllMapped(
-      _dartDocCodeBlockSections,
-      (match) => match.group(1),
-    );
-
-    return doc;
   }
 }
