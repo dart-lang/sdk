@@ -432,8 +432,9 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* right_type = right_value->Type();
 
     const bool is_equality_op = Token::IsEqualityOperator(op_kind);
+    const bool receiver_is_nullable_numeric = left_type->IsNullableNumeric();
     const bool can_use_strict_compare =
-        is_equality_op &&
+        is_equality_op && receiver_is_nullable_numeric &&
         (left_type->IsNullableSmi() || right_type->IsNullableSmi());
     const bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
@@ -458,8 +459,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
             right_type->IsInt();
 
         // We prefer equality compare, since it doesn't require boxing.
-        if (is_equality_op && !can_use_equality_compare &&
-            (left_type->IsNullableSmi() || right_type->IsNullableSmi())) {
+        if (!can_use_equality_compare && can_use_strict_compare) {
           replacement = new (Z) StrictCompareInstr(
               instr->token_pos(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
