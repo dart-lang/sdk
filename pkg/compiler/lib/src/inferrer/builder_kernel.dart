@@ -82,9 +82,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_locals != null) return;
 
     FieldInitializationScope fieldScope =
-        _inGenerativeConstructor ? new FieldInitializationScope(_types) : null;
-    _locals = new LocalsHandler(
-        _inferrer, _types, _options, _analyzedNode, fieldScope);
+        _inGenerativeConstructor ? new FieldInitializationScope() : null;
+    _locals = new LocalsHandler(_analyzedNode, fieldScope);
   }
 
   JsToElementMap get _elementMap => _closedWorld.elementMap;
@@ -226,7 +225,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   void handleParameter(ir.VariableDeclaration node, {bool isOptional}) {
     Local local = _localsMap.getLocalVariable(node);
     DartType type = _localsMap.getLocalType(_elementMap, local);
-    _locals.update(local, _inferrer.typeOfParameter(local), node, type);
+    _locals.update(
+        _inferrer, local, _inferrer.typeOfParameter(local), node, type);
     if (isOptional) {
       TypeInformation type;
       if (node.initializer != null) {
@@ -460,7 +460,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
     visit(node.message);
     _locals.seenReturnOrThrow = true;
-    saved.mergeDiamondFlow(thenLocals, _locals);
+    saved.mergeDiamondFlow(_inferrer, thenLocals, _locals);
     _locals = saved;
     return null;
   }
@@ -489,7 +489,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       JumpTarget jumpTarget = _localsMap.getJumpTargetForLabel(node);
       _setupBreaksAndContinues(jumpTarget);
       visit(body);
-      _locals.mergeAfterBreaks(_getBreaks(jumpTarget));
+      _locals.mergeAfterBreaks(_inferrer, _getBreaks(jumpTarget));
       _clearBreaksAndContinues(jumpTarget);
     }
     return null;
@@ -517,18 +517,18 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       // visit all cases and update [locals] until we have reached a
       // fixed point.
       bool changed;
-      _locals.startLoop(node);
+      _locals.startLoop(_inferrer, node);
       do {
         changed = false;
         for (ir.SwitchCase switchCase in node.cases) {
           LocalsHandler saved = _locals;
           _locals = new LocalsHandler.from(_locals, switchCase);
           visit(switchCase);
-          changed = saved.mergeAll([_locals]) || changed;
+          changed = saved.mergeAll(_inferrer, [_locals]) || changed;
           _locals = saved;
         }
       } while (changed);
-      _locals.endLoop(node);
+      _locals.endLoop(_inferrer, node);
 
       continueTargets.forEach(_clearBreaksAndContinues);
     } else {
@@ -544,7 +544,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         visit(switchCase);
         localsToMerge.add(_locals);
       }
-      saved.mergeAfterBreaks(localsToMerge, keepOwnLocals: !hasDefaultCase);
+      saved.mergeAfterBreaks(_inferrer, localsToMerge,
+          keepOwnLocals: !hasDefaultCase);
       _locals = saved;
     }
     _clearBreaksAndContinues(jumpTarget);
@@ -682,9 +683,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Local local = _localsMap.getLocalVariable(node);
     DartType type = _localsMap.getLocalType(_elementMap, local);
     if (node.initializer == null) {
-      _locals.update(local, _types.nullType, node, type);
+      _locals.update(_inferrer, local, _types.nullType, node, type);
     } else {
-      _locals.update(local, visit(node.initializer), node, type);
+      _locals.update(_inferrer, local, visit(node.initializer), node, type);
     }
     if (node.initializer is ir.ThisExpression) {
       _markThisAsExposed();
@@ -695,7 +696,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitVariableGet(ir.VariableGet node) {
     Local local = _localsMap.getLocalVariable(node.variable);
-    TypeInformation type = _locals.use(local);
+    TypeInformation type = _locals.use(_inferrer, local);
     assert(type != null, "Missing type information for $local.");
     return type;
   }
@@ -708,7 +709,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
     Local local = _localsMap.getLocalVariable(node.variable);
     DartType type = _localsMap.getLocalType(_elementMap, local);
-    _locals.update(local, rhsType, node, type);
+    _locals.update(_inferrer, local, rhsType, node, type);
     return rhsType;
   }
 
@@ -820,7 +821,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         TypeInformation refinedType = _types
             .refineReceiver(selector, mask, receiverType, isConditional: false);
         DartType type = _localsMap.getLocalType(_elementMap, local);
-        _locals.update(local, refinedType, node, type);
+        _locals.update(_inferrer, local, refinedType, node, type);
         List<Refinement> refinements = _localRefinementMap[variable];
         if (refinements != null) {
           refinements.add(new Refinement(selector, mask));
@@ -903,12 +904,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       if (refinements.isNotEmpty) {
         Local local = _localsMap.getLocalVariable(alias);
         DartType type = _localsMap.getLocalType(_elementMap, local);
-        TypeInformation localType = _locals.use(local);
+        TypeInformation localType = _locals.use(_inferrer, local);
         for (Refinement refinement in refinements) {
           localType = _types.refineReceiver(
               refinement.selector, refinement.mask, localType,
               isConditional: true);
-          _locals.update(local, localType, node, type);
+          _locals.update(_inferrer, local, localType, node, type);
         }
       }
     }
@@ -961,7 +962,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     Local variable = _localsMap.getLocalVariable(node.variable);
     DartType variableType = _localsMap.getLocalType(_elementMap, variable);
-    _locals.update(variable, currentType, node.variable, variableType);
+    _locals.update(
+        _inferrer, variable, currentType, node.variable, variableType);
 
     JumpTarget target = _localsMap.getJumpTargetForForIn(node);
     return handleLoop(node, target, () {
@@ -1002,19 +1004,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _loopLevel++;
     bool changed = false;
     LocalsHandler saved = _locals;
-    saved.startLoop(node);
+    saved.startLoop(_inferrer, node);
     do {
       // Setup (and clear in case of multiple iterations of the loop)
       // the lists of breaks and continues seen in the loop.
       _setupBreaksAndContinues(target);
       _locals = new LocalsHandler.from(saved, node);
       logic();
-      changed = saved.mergeAll(_getLoopBackEdges(target));
+      changed = saved.mergeAll(_inferrer, _getLoopBackEdges(target));
     } while (changed);
     _loopLevel--;
-    saved.endLoop(node);
+    saved.endLoop(_inferrer, node);
     bool keepOwnLocals = node is! ir.DoStatement;
-    saved.mergeAfterBreaks(_getBreaks(target), keepOwnLocals: keepOwnLocals);
+    saved.mergeAfterBreaks(_inferrer, _getBreaks(target),
+        keepOwnLocals: keepOwnLocals);
     _locals = saved;
     _clearBreaksAndContinues(target);
     return null;
@@ -1342,18 +1345,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       List<IsCheck> positiveTests, List<IsCheck> negativeTests) {
     for (IsCheck check in positiveTests) {
       if (check.type != null) {
-        _locals.narrow(check.local, check.type, check.node);
+        _locals.narrow(_inferrer, check.local, check.type, check.node);
       } else {
         DartType localType = _localsMap.getLocalType(_elementMap, check.local);
-        _locals.update(check.local, _types.nullType, check.node, localType);
+        _locals.update(
+            _inferrer, check.local, _types.nullType, check.node, localType);
       }
     }
     for (IsCheck check in negativeTests) {
       if (check.type != null) {
         // TODO(johnniwinther): Use negative type knowledge.
       } else {
-        _locals.narrow(
-            check.local, _closedWorld.commonElements.objectType, check.node);
+        _locals.narrow(_inferrer, check.local,
+            _closedWorld.commonElements.objectType, check.node);
       }
     }
   }
@@ -1374,7 +1378,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _updateIsChecks(negativeTests, positiveTests);
     }
     visit(node.otherwise);
-    saved.mergeDiamondFlow(thenLocals, _locals);
+    saved.mergeDiamondFlow(_inferrer, thenLocals, _locals);
     _locals = saved;
     return null;
   }
@@ -1431,7 +1435,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _positiveIsChecks.removeWhere(invalidatedInRightHandSide);
         _negativeIsChecks.removeWhere(invalidatedInRightHandSide);
       }
-      saved.mergeDiamondFlow(_locals, null);
+      saved.mergeDiamondFlow(_inferrer, _locals, null);
       _locals = saved;
       return _types.boolType;
     } else if (node.operator == '||') {
@@ -1446,7 +1450,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _updateIsChecks(negativeIsChecks, positiveIsChecks);
       }
       visit(node.right, conditionContext: false);
-      saved.mergeDiamondFlow(_locals, null);
+      saved.mergeDiamondFlow(_inferrer, _locals, null);
       _locals = saved;
       return _types.boolType;
     }
@@ -1469,7 +1473,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals = new LocalsHandler.from(saved, node);
     if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
     TypeInformation secondType = visit(node.otherwise);
-    saved.mergeDiamondFlow(thenLocals, _locals);
+    saved.mergeDiamondFlow(_inferrer, thenLocals, _locals);
     _locals = saved;
     return _types.allocateDiamondPhi(firstType, secondType);
   }
@@ -1508,7 +1512,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       Local local = _localsMap.getLocalVariable(variable);
       DartType type = _localsMap.getLocalType(_elementMap, local);
-      _locals.update(local, localFunctionType, node, type);
+      _locals.update(_inferrer, local, localFunctionType, node, type);
     }
 
     // We don't put the closure in the work queue of the
@@ -1590,13 +1594,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.body);
-    saved.mergeDiamondFlow(_locals, null);
+    saved.mergeDiamondFlow(_inferrer, _locals, null);
     _locals = saved;
     for (ir.Catch catchBlock in node.catches) {
       saved = _locals;
       _locals = new LocalsHandler.from(_locals, catchBlock);
       visit(catchBlock);
-      saved.mergeDiamondFlow(_locals, null);
+      saved.mergeDiamondFlow(_inferrer, _locals, null);
       _locals = saved;
     }
     return null;
@@ -1609,7 +1613,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.body);
-    saved.mergeDiamondFlow(_locals, null);
+    saved.mergeDiamondFlow(_inferrer, _locals, null);
     _locals = saved;
     visit(node.finalizer);
     return null;
@@ -1630,13 +1634,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         mask = _types.dynamicType;
       }
       Local local = _localsMap.getLocalVariable(exception);
-      _locals.update(local, mask, node, const DynamicType());
+      _locals.update(_inferrer, local, mask, node, const DynamicType());
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
     if (stackTrace != null) {
       Local local = _localsMap.getLocalVariable(stackTrace);
       // TODO(johnniwinther): Use a mask based on [StackTrace].
-      _locals.update(local, _types.dynamicType, node, const DynamicType());
+      _locals.update(
+          _inferrer, local, _types.dynamicType, node, const DynamicType());
     }
     visit(node.body);
     return null;
