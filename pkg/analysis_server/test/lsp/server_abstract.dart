@@ -156,6 +156,17 @@ abstract class AbstractLspAnalysisServerTest extends Object
     return expectSuccessfulResponseTo<Hover>(request);
   }
 
+  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) async {
+    var request = makeRequest(
+      'textDocument/signatureHelp',
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<SignatureHelp>(request);
+  }
+
   /// A helper that initializes the server with common values, since the server
   /// will reject any other requests until it is initialized.
   /// Capabilities are overridden by providing JSON to avoid having to construct

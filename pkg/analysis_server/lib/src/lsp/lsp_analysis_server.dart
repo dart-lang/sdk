@@ -15,6 +15,7 @@ import 'package:analysis_server/src/lsp/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handler_initialization.dart';
+import 'package:analysis_server/src/lsp/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -198,6 +199,7 @@ class LspAnalysisServer {
     _registerHandler(new TextDocumentChangeHandler(this));
     _registerHandler(new HoverHandler(this));
     _registerHandler(new CompletionHandler(this));
+    _registerHandler(new SignatureHelpHandler(this));
     _registerHandler(new FormattingHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }

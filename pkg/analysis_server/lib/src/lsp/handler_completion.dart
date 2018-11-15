@@ -43,8 +43,7 @@ class CompletionHandler extends MessageHandler {
   CompletionHandler(this.server);
   List<String> get handlesMessages => const ['textDocument/completion'];
 
-  Future<List<CompletionItem>> handleCompletion(
-      TextDocumentPositionParams params) async {
+  Future<List<CompletionItem>> handleCompletion(CompletionParams params) async {
     final path = pathOf(params.textDocument);
     ResolvedUnitResult result = await server.getResolvedUnit(path);
     // TODO(dantup): Handle bad paths/offsets.

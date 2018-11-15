@@ -66,7 +66,12 @@ class InitializationHandler extends MessageHandler {
           // See https://github.com/Dart-Code/Dart-Code/blob/c616c93c87972713454eb0518f97c0278201a99a/src/providers/dart_completion_item_provider.ts#L36
           r'''.: =(${'"/\'''.split(''),
         ),
-        null,
+        new SignatureHelpOptions(
+          // TODO(dantup): Signature help triggering is even more sensitive to
+          // bad chars, so we'll need to implement the logic described here:
+          // https://github.com/dart-lang/sdk/issues/34241
+          [],
+        ),
         null,
         null,
         null,

@@ -1,7 +1,9 @@
 import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
@@ -281,5 +283,60 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   return new lsp.Range(
     toPosition(start),
     toPosition(end),
+  );
+}
+
+lsp.SignatureHelp toSignatureHelp(server.AnalysisGetSignatureResult signature) {
+  // For now, we only support returning one (though we may wish to use named
+  // args. etc. to provide one for each possible "next" option when the cursor
+  // is at the end ready to provide another argument).
+
+  /// Gets the label for an individual parameter in the form
+  ///     String s = 'foo'
+  String getParamLabel(server.ParameterInfo p) {
+    final def = p.defaultValue != null ? ' = ${p.defaultValue}' : '';
+    return '${p.type} ${p.name}$def';
+  }
+
+  /// Gets the full signature label in the form
+  ///     foo(String s, int i, bool a = true)
+  String getSignatureLabel(server.AnalysisGetSignatureResult resp) {
+    final req = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.REQUIRED)
+        .toList();
+    final opt = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.OPTIONAL)
+        .toList();
+    final named = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.NAMED)
+        .toList();
+    final params = [];
+    if (req.isNotEmpty) {
+      params.add(req.map(getParamLabel).join(", "));
+    }
+    if (opt.isNotEmpty) {
+      params.add("[" + opt.map(getParamLabel).join(", ") + "]");
+    }
+    if (named.isNotEmpty) {
+      params.add("{" + named.map(getParamLabel).join(", ") + "}");
+    }
+    return '${resp.name}(${params.join(", ")})';
+  }
+
+  lsp.ParameterInformation toParameterInfo(server.ParameterInfo param) {
+    return new ParameterInformation(getParamLabel(param), null);
+  }
+
+  return new lsp.SignatureHelp(
+    [
+      new lsp.SignatureInformation(
+        getSignatureLabel(signature),
+        Either2<String, lsp.MarkupContent>.t2(
+            asMarkdown(cleanDartdoc(signature.dartdoc))),
+        signature.parameters.map(toParameterInfo).toList(),
+      ),
+    ],
+    0, // activeSignature
+    null, // activeParamter
   );
 }
