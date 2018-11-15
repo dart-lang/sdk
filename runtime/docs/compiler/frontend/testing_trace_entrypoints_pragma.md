@@ -1,4 +1,6 @@
-# Pragma for testing multiple entrypoints
+# `vm:testing.unsafe.trace-entrypoints-fn` pragma
+
+This pragma is used for testing purposes in the test suite.
 
 Example:
 
@@ -8,7 +10,7 @@ void hook(String functionName, int entryPointId) {
 }
 
 class C<T> {
-  @pragma("vm:testing.unsafe.trace-entrypoints-fn", hook)
+  @pragma('vm:testing.unsafe.trace-entrypoints-fn', hook)
   void foo(T x) {
     // ...
   }
@@ -16,8 +18,9 @@ class C<T> {
 ```
 
 When `foo` is invoked, `hook` will be called in `foo`'s prologue if `foo` was
-compiled with multiple entrypoints. `hook` will be passed the name of the
-function it was called for and the ID of the entrypoint used for the invocation:
+compiled with multiple entry points. `hook` will be passed the name of the
+function it was called for and the ID of the entry point used for the
+invocation:
 
 - 0: Normal entry.
 

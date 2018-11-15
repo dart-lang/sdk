@@ -5042,7 +5042,16 @@ static void CheckIsEntryPoint(const Class& klass) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // This is not a completely thorough check that the class is an entry-point,
   // but it catches most missing annotations.
-  RELEASE_ASSERT(klass.has_pragma());
+  if (!klass.has_pragma()) {
+    OS::PrintErr(
+        "ERROR: It is illegal to access class %s through Dart C API "
+        "because it was not annotated with @pragma('vm:entry-point').\n"
+        "ERROR: See "
+        "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+        "aot/entry_point_pragma.md",
+        String::Handle(klass.UserVisibleName()).ToCString());
+    UNREACHABLE();
+  }
 #endif
 }
 
