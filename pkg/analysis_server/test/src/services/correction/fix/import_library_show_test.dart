@@ -44,18 +44,18 @@ main() {
 
   test_sdk() async {
     await resolveTestUnit('''
-import 'dart:async' show Stream;
+import 'dart:collection' show HashMap;
 main() {
-  Stream s = null;
-  Future f = null;
+  HashMap s = null;
+  LinkedHashMap f = null;
   print('\$s \$f');
 }
 ''');
     await assertHasFix('''
-import 'dart:async' show Future, Stream;
+import 'dart:collection' show HashMap, LinkedHashMap;
 main() {
-  Stream s = null;
-  Future f = null;
+  HashMap s = null;
+  LinkedHashMap f = null;
   print('\$s \$f');
 }
 ''');

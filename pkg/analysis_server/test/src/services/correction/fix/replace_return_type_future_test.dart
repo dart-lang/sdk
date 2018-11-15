@@ -38,8 +38,6 @@ var v;Future<int> main() async => 0;
 var v;int main() async => 0;
 ''');
     await assertHasFix('''
-import 'dart:async';
-
 var v;Future<int> main() async => 0;
 ''', errorFilter: (error) {
       return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
@@ -144,9 +142,6 @@ int main() async {
 ''');
     await assertHasFix('''
 library main;
-
-import 'dart:async';
-
 Future<int> main() async {
 }
 ''', errorFilter: (error) {

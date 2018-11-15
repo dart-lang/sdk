@@ -70,22 +70,22 @@ main(List<String> items) {
 
   test_declaredIdentifier_addImport_dartUri() async {
     addSource('/home/test/lib/my_lib.dart', r'''
-import 'dart:async';
-List<Future<int>> getFutures() => null;
+import 'dart:collection';
+List<HashMap<String, int>> getMap() => null;
 ''');
     await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
-  for (var future in getFutures()) {
+  for (var map in getMap()) {
   }
 }
 ''');
-    await assertHasAssistAt('future in', '''
-import 'dart:async';
+    await assertHasAssistAt('map in', '''
+import 'dart:collection';
 
 import 'my_lib.dart';
 main() {
-  for (Future<int> future in getFutures()) {
+  for (HashMap<String, int> map in getMap()) {
   }
 }
 ''');
@@ -159,29 +159,29 @@ main() {
 
   test_local_addImport_dartUri() async {
     addSource('/home/test/lib/my_lib.dart', r'''
-import 'dart:async';
-Future<int> getFutureInt() => null;
+import 'dart:collection';
+HashMap<String, int> getMap() => null;
 ''');
     await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
-  var v = getFutureInt();
+  var v = getMap();
 }
 ''');
     await assertHasAssistAt('v =', '''
-import 'dart:async';
+import 'dart:collection';
 
 import 'my_lib.dart';
 main() {
-  Future<int> v = getFutureInt();
+  HashMap<String, int> v = getMap();
 }
 ''');
   }
 
   test_local_addImport_notLibraryUnit() async {
     addSource('/home/test/lib/my_lib.dart', r'''
-import 'dart:async';
-Future<int> getFutureInt() => null;
+import 'dart:collection';
+HashMap<String, int> getMap() => null;
 ''');
 
     var appCode = r'''
@@ -192,7 +192,7 @@ part 'test.dart';
     var partCode = r'''
 part of my_app;
 main() {
-  var /*caret*/v = getFutureInt();
+  var /*caret*/v = getMap();
 }
 ''';
 
@@ -204,14 +204,14 @@ main() {
     await assertHasAssist('''
 part of my_app;
 main() {
-  Future<int> /*caret*/v = getFutureInt();
+  HashMap<String, int> /*caret*/v = getMap();
 }
 ''', additionallyChangedFiles: {
       appPath: [
         appCode,
         '''
 library my_app;
-import 'dart:async';
+import 'dart:collection';
 
 import 'my_lib.dart';
 part 'test.dart';

@@ -22,10 +22,10 @@ class ImportLibrarySdkTest extends FixProcessorTest {
 
   test_alreadyImported_sdk() async {
     await resolveTestUnit('''
-import 'dart:async' show Stream;
+import 'dart:collection' show HashMap;
 main() {
-  Stream s = null;
-  Future f = null;
+  HashMap s = null;
+  LinkedHashMap f = null;
   print('\$s \$f');
 }
 ''');
@@ -35,14 +35,14 @@ main() {
   test_withClass_asExpression() async {
     await resolveTestUnit('''
 main(p) {
-  p as Future;
+  p as HashMap;
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
+import 'dart:collection';
 
 main(p) {
-  p as Future;
+  p as HashMap;
 }
 ''');
   }
@@ -51,16 +51,16 @@ main(p) {
     await resolveTestUnit('''
 class C {
   foo() {
-    new Future();
+    new HashMap();
   }
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
+import 'dart:collection';
 
 class C {
   foo() {
-    new Future();
+    new HashMap();
   }
 }
 ''');
@@ -70,7 +70,7 @@ class C {
     await resolveTestUnit('''
 class C {
   foo() {
-    new Future.value(0);
+    new Completer.sync(0);
   }
 }
 ''');
@@ -79,7 +79,7 @@ import 'dart:async';
 
 class C {
   foo() {
-    new Future.value(0);
+    new Completer.sync(0);
   }
 }
 ''');
@@ -89,16 +89,16 @@ class C {
     await resolveTestUnit('''
 class C {
   foo() {
-    Future();
+    HashMap();
   }
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
+import 'dart:collection';
 
 class C {
   foo() {
-    Future();
+    HashMap();
   }
 }
 ''');
@@ -108,7 +108,7 @@ class C {
     await resolveTestUnit('''
 class C {
   foo() {
-    Future.value(0);
+    Completer.sync(0);
   }
 }
 ''');
@@ -117,7 +117,7 @@ import 'dart:async';
 
 class C {
   foo() {
-    Future.value(0);
+    Completer.sync(0);
   }
 }
 ''');
@@ -126,14 +126,14 @@ class C {
   test_withClass_invocationTarget() async {
     await resolveTestUnit('''
 main() {
-  Future.wait(null);
+  Timer.run(null);
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
 main() {
-  Future.wait(null);
+  Timer.run(null);
 }
 ''');
   }
@@ -141,14 +141,14 @@ main() {
   test_withClass_IsExpression() async {
     await resolveTestUnit('''
 main(p) {
-  p is Future;
+  p is Completer;
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
 main(p) {
-  p is Future;
+  p is Completer;
 }
 ''');
   }
@@ -156,7 +156,7 @@ main(p) {
   test_withClass_itemOfList() async {
     await resolveTestUnit('''
 main() {
-  var a = [Future];
+  var a = [Completer];
   print(a);
 }
 ''');
@@ -164,7 +164,7 @@ main() {
 import 'dart:async';
 
 main() {
-  var a = [Future];
+  var a = [Completer];
   print(a);
 }
 ''');
@@ -175,7 +175,7 @@ main() {
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
-@MyAnnotation(int, const [Future])
+@MyAnnotation(int, const [Completer])
 main() {}
 ''');
     await assertHasFix('''
@@ -184,7 +184,7 @@ import 'dart:async';
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
-@MyAnnotation(int, const [Future])
+@MyAnnotation(int, const [Completer])
 main() {}
 ''', errorFilter: (error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
@@ -194,7 +194,7 @@ main() {}
   test_withClass_typeAnnotation() async {
     await resolveTestUnit('''
 main() {
-  Future f = null;
+  Completer f = null;
   print(f);
 }
 ''');
@@ -202,7 +202,7 @@ main() {
 import 'dart:async';
 
 main() {
-  Future f = null;
+  Completer f = null;
   print(f);
 }
 ''');
@@ -211,14 +211,14 @@ main() {
   test_withClass_typeAnnotation_PrefixedIdentifier() async {
     await resolveTestUnit('''
 main() {
-  Future.wait;
+  Timer.run;
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
 main() {
-  Future.wait;
+  Timer.run;
 }
 ''');
   }
@@ -226,16 +226,16 @@ main() {
   test_withClass_typeArgument() async {
     await resolveTestUnit('''
 main() {
-  List<Future> futures = [];
-  print(futures);
+  List<Completer> completers = [];
+  print(completers);
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
 main() {
-  List<Future> futures = [];
-  print(futures);
+  List<Completer> completers = [];
+  print(completers);
 }
 ''');
   }

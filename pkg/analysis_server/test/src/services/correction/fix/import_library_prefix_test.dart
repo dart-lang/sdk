@@ -21,18 +21,18 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
 
   test_withClass() async {
     await resolveTestUnit('''
-import 'dart:async' as pref;
+import 'dart:collection' as pref;
 main() {
-  pref.Stream s = null;
-  Future f = null;
+  pref.HashMap s = null;
+  LinkedHashMap f = null;
   print('\$s \$f');
 }
 ''');
     await assertHasFix('''
-import 'dart:async' as pref;
+import 'dart:collection' as pref;
 main() {
-  pref.Stream s = null;
-  pref.Future f = null;
+  pref.HashMap s = null;
+  pref.LinkedHashMap f = null;
   print('\$s \$f');
 }
 ''');

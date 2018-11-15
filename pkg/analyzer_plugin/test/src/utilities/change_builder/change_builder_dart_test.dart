@@ -2380,11 +2380,9 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
           .convertFunctionFromSyncToAsync(body, typeProvider);
     });
     List<SourceEdit> edits = getEdits(builder);
-    expect(edits, hasLength(3));
+    expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
-    expect(
-        edits[1].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
-    expect(edits[2].replacement, equalsIgnoringWhitespace('Future<String>'));
+    expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
 
   test_createEditBuilder() async {
@@ -2418,10 +2416,8 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
           .replaceTypeWithFuture(type, typeProvider);
     });
     List<SourceEdit> edits = getEdits(builder);
-    expect(edits, hasLength(2));
-    expect(
-        edits[0].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
-    expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
 }
 

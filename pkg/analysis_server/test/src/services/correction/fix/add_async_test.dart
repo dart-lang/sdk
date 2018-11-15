@@ -67,8 +67,6 @@ int f() {
 }
 ''');
     await assertHasFix('''
-import \'dart:async\';
-
 int get foo => null;
 Future<int> f() async {
   await foo;
@@ -168,8 +166,6 @@ int main() {
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
-
 foo() {}
 Future<int> main() async {
   await foo();

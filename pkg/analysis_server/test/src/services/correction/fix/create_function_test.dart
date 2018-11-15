@@ -362,8 +362,6 @@ main() {
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
-
 import 'lib.dart';
 main() {
   test(getFuture());

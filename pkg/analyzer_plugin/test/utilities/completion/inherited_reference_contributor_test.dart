@@ -71,7 +71,7 @@ class B extends A {
     assertNotSuggested('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertSuggestMethod('y', 'A', 'dynamic');
+    assertSuggestMethod('y', 'A', 'Future<dynamic>');
   }
 
   test_Block_inherited_imported() async {

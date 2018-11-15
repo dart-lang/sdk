@@ -59,6 +59,10 @@ abstract class Completer<T> {
   void completeError(Object error, [StackTrace stackTrace]);
   bool get isCompleted;
 }
+
+abstract class Timer {
+  static void run(void callback()) {}
+}
 ''', const <String, String>{
   '$sdkRoot/lib/async/stream.dart': r'''
 part of dart.async;
@@ -119,6 +123,8 @@ const _MockSdkLibrary _LIB_CORE =
 library dart.core;
 
 import 'dart:async'; // ignore: unused_import
+
+export 'dart:async' show Future, Stream;
 
 const deprecated = const Deprecated("next release");
 

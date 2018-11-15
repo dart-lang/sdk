@@ -60,17 +60,10 @@ class C {
   }
 
   test_function() async {
-    // TODO(brianwilkerson) Remove the "class C {}" when the bug in the builder
-    // is fixed that causes the import to be incorrectly inserted when the first
-    // character in the file is also being modified.
     await resolveTestUnit('''
-class C {}
 String f() => '';
 ''');
     await assertHasAssistAt('=>', '''
-import 'dart:async';
-
-class C {}
 Future<String> f() async => '';
 ''');
   }
@@ -82,8 +75,6 @@ class C {
 }
 ''');
     await assertHasAssistAt('get g', '''
-import 'dart:async';
-
 class C {
   Future<int> get g async =>0;
 }
@@ -117,8 +108,6 @@ class C {
 }
 ''');
     await assertHasAssistAt('{ return', '''
-import 'dart:async';
-
 class C {
   Future<int> m() async { return 0; }
 }
@@ -132,8 +121,6 @@ abstract class C {
 }
 ''');
     await assertHasAssistAt('m()', '''
-import 'dart:async';
-
 abstract class C {
   Future<int> m();
 }
