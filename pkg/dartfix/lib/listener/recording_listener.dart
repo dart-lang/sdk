@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server_client/server.dart';
-import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/listener/timed_listener.dart';
 
@@ -11,7 +11,7 @@ import 'package:dartfix/listener/timed_listener.dart';
 /// and print them if a problem occurs.
 ///
 /// This is primarily used when testing and debugging the analysis server.
-class RecordingListener with ClientListener, BadMessageListener, TimedListener {
+class RecordingListener with ServerListener, BadMessageListener, TimedListener {
   /// True if we are currently printing out messages exchanged with the server.
   bool _echoMessages = false;
 

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart';
 
@@ -20,7 +20,7 @@ typedef void NotificationProcessor(Notification notification);
 class Server {
   /// If not `null`, [_listener] will be sent information
   /// about interactions with the server.
-  ClientListener _listener;
+  ServerListener _listener;
 
   /// Server process object, or `null` if server hasn't been started yet
   /// or if the server has already been stopped.
@@ -43,7 +43,7 @@ class Server {
   /// [listenToOutput] has not been called or [stop] has been called.
   StreamSubscription<String> _stdoutSubscription;
 
-  Server({ClientListener listener, Process process})
+  Server({ServerListener listener, Process process})
       : this._listener = listener,
         this._process = process;
 
