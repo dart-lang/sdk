@@ -347,11 +347,9 @@ compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
-vm/bool_check_stack_traces_test/01: RuntimeError # No support for line numbers in stacktraces
-vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers in stacktraces
-vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
-vm/causal_async_exception_stack_test: RuntimeError # No support for line numbers in stacktraces
-vm/regress_28325_test: RuntimeError # No support for line numbers in stacktraces
+vm/bool_check_stack_traces_test/02: Pass
+vm/causal_async_exception_stack2_test: RuntimeError # Please triage
+vm/causal_async_exception_stack_test: RuntimeError # Please triage
 
 [ $compiler != dartkb && $compiler != dartkp && $fasta ]
 vm/symbols_test/01: MissingCompileTimeError

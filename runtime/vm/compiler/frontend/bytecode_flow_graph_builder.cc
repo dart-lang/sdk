@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/object_store.h"
@@ -1473,6 +1474,9 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   CollectControlFlow(descriptors, handlers, graph_entry);
 
+  kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
+  bool update_position = source_pos_iter.MoveNext();
+
   code_ = Fragment(normal_entry);
 
   for (pc_ = 0; pc_ < bytecode_length_; ++pc_) {
@@ -1493,6 +1497,12 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     } else {
       // Unreachable bytecode is not allowed.
       ASSERT(!code_.is_closed());
+    }
+
+    while (update_position &&
+           pc_ >= source_pos_iter.BytecodeInstructionIndex()) {
+      position_ = source_pos_iter.TokenPos();
+      update_position = source_pos_iter.MoveNext();
     }
 
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));

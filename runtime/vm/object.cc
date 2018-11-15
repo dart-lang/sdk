@@ -12722,26 +12722,6 @@ static void EncodeSLEB128(GrowableArray<uint8_t>* data, intptr_t value) {
   }
 }
 
-// Decode integer in SLEB128 format from |data| and update |byte_index|.
-static intptr_t DecodeSLEB128(const uint8_t* data,
-                              const intptr_t data_length,
-                              intptr_t* byte_index) {
-  ASSERT(*byte_index < data_length);
-  uword shift = 0;
-  intptr_t value = 0;
-  uint8_t part = 0;
-  do {
-    part = data[(*byte_index)++];
-    value |= static_cast<intptr_t>(part & 0x7f) << shift;
-    shift += 7;
-  } while ((part & 0x80) != 0);
-
-  if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
-    value |= static_cast<intptr_t>(kUwordMax << shift);
-  }
-  return value;
-}
-
 // Encode integer in SLEB128 format.
 void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
                                   intptr_t value) {
@@ -12752,7 +12732,7 @@ void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
 intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
   NoSafepointScope no_safepoint;
   const uint8_t* data = raw_ptr()->data();
-  return DecodeSLEB128(data, Length(), byte_index);
+  return Utils::DecodeSLEB128(data, Length(), byte_index);
 }
 
 RawObjectPool* ObjectPool::New(intptr_t len) {
@@ -15361,10 +15341,42 @@ RawBytecode* Bytecode::New(const ExternalTypedData& instructions,
     result.set_pc_descriptors(Object::empty_descriptors());
     result.set_instructions(instructions);
     result.set_object_pool(object_pool);
+    result.set_source_positions_binary_offset(0);
   }
   return result.raw();
 }
 #endif
+
+RawExternalTypedData* Bytecode::GetBinary(Zone* zone) const {
+  const Function& func = Function::Handle(zone, function());
+  const Script& script = Script::Handle(zone, func.script());
+  const KernelProgramInfo& info =
+      KernelProgramInfo::Handle(zone, script.kernel_program_info());
+  return info.metadata_payloads();
+}
+
+TokenPosition Bytecode::GetTokenIndexOfPC(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  if (!HasSourcePositions()) {
+    return TokenPosition::kNoSource;
+  }
+  uword pc_offset = pc - PayloadStart();
+  // PC could equal to bytecode size if the last instruction is Throw.
+  ASSERT(pc_offset <= static_cast<uword>(Size()));
+  kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
+                                               *this);
+  TokenPosition token_pos = TokenPosition::kNoSource;
+  while (iter.MoveNext()) {
+    if (pc_offset < iter.PcOffset()) {
+      break;
+    }
+    token_pos = iter.TokenPos();
+  }
+  return token_pos;
+#endif
+}
 
 const char* Bytecode::ToCString() const {
   return Thread::Current()->zone()->PrintToString("Bytecode(%s)",

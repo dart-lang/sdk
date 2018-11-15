@@ -5341,9 +5341,18 @@ class Bytecode : public Object {
                           const ObjectPool& object_pool);
 #endif
 
-  TokenPosition GetTokenIndexOfPC(uword pc) const {
-    // TODO(alexmarkov): implement.
-    return TokenPosition::kNoSource;
+  RawExternalTypedData* GetBinary(Zone* zone) const;
+
+  TokenPosition GetTokenIndexOfPC(uword pc) const;
+
+  intptr_t source_positions_binary_offset() const {
+    return raw_ptr()->source_positions_binary_offset_;
+  }
+  void set_source_positions_binary_offset(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->source_positions_binary_offset_, value);
+  }
+  bool HasSourcePositions() const {
+    return (source_positions_binary_offset() != 0);
   }
 
   const char* Name() const;

@@ -103,6 +103,8 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   const Bytecode& bytecode =
       Bytecode::Handle(helper_->zone_, ReadBytecode(pool));
   function.AttachBytecode(bytecode);
+  ASSERT(bytecode.GetBinary(helper_->zone_) ==
+         helper_->reader_.typed_data()->raw());
 
   ReadExceptionsTable(bytecode, has_exceptions_table);
 
@@ -148,8 +150,9 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
       closure.AttachBytecode(closure_bytecode);
+      ASSERT(bytecode.GetBinary(helper_->zone_) ==
+             helper_->reader_.typed_data()->raw());
 
-      // Read closure exceptions table.
       ReadExceptionsTable(closure_bytecode, has_exceptions_table);
 
       ReadSourcePositions(closure_bytecode, has_source_positions);
@@ -736,8 +739,9 @@ void BytecodeMetadataHelper::ReadSourcePositions(const Bytecode& bytecode,
     return;
   }
 
-  // TODO(alexmarkov): store offset of source positions into Bytecode object.
-  helper_->SkipBytes(helper_->reader_.ReadUInt());
+  intptr_t length = helper_->reader_.ReadUInt();
+  bytecode.set_source_positions_binary_offset(helper_->reader_.offset());
+  helper_->SkipBytes(length);
 }
 
 RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
