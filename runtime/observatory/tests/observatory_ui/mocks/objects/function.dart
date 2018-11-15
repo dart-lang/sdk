@@ -33,6 +33,7 @@ class FunctionMock implements M.ServiceFunction {
   final M.SourceLocation location;
   final M.CodeRef code;
   final M.CodeRef unoptimizedCode;
+  final M.CodeRef bytecode;
   final M.FieldRef field;
   final int usageCounter;
   final M.InstanceRef icDataArray;
@@ -55,6 +56,7 @@ class FunctionMock implements M.ServiceFunction {
     this.location,
     this.code,
     this.unoptimizedCode,
+    this.bytecode,
     this.field,
     this.usageCounter: 0,
     this.icDataArray: const InstanceRefMock(),

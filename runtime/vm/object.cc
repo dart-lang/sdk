@@ -15103,7 +15103,7 @@ const char* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     if (name == NULL) {
-      return zone->PrintToString("[this stub]");  // Not yet recorded.
+      return zone->PrintToString("[unknown stub]");  // Not yet recorded.
     }
     return zone->PrintToString("[Stub] %s", name);
   } else if (obj.IsClass()) {
@@ -15114,10 +15114,10 @@ const char* Code::Name() const {
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    const char* opt = is_optimized() ? "*" : "";
+    const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
     const char* function_name =
         String::Handle(zone, Function::Cast(obj).UserVisibleName()).ToCString();
-    return zone->PrintToString("%s%s", opt, function_name);
+    return zone->PrintToString("%s %s", opt, function_name);
   }
 }
 
@@ -15125,11 +15125,11 @@ const char* Code::QualifiedName() const {
   Zone* zone = Thread::Current()->zone();
   const Object& obj = Object::Handle(zone, owner());
   if (obj.IsFunction()) {
-    const char* opt = is_optimized() ? "*" : "";
+    const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
     const char* function_name =
         String::Handle(zone, Function::Cast(obj).QualifiedScrubbedName())
             .ToCString();
-    return zone->PrintToString("%s%s", opt, function_name);
+    return zone->PrintToString("%s %s", opt, function_name);
   }
   return Name();
 }
@@ -15304,12 +15304,6 @@ intptr_t Bytecode::Size() const {
   return instr.LengthInBytes();
 }
 
-bool Bytecode::ContainsInstructionAt(uword addr) const {
-  const ExternalTypedData& instr = ExternalTypedData::Handle(instructions());
-  const uword offset = addr - reinterpret_cast<uword>(instr.DataAddr(0));
-  return offset < static_cast<uword>(instr.LengthInBytes());
-}
-
 void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -15389,7 +15383,7 @@ const char* Bytecode::Name() const {
   ASSERT(!fun.IsNull());
   const char* function_name =
       String::Handle(zone, fun.UserVisibleName()).ToCString();
-  return zone->PrintToString("%s", function_name);
+  return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
 const char* Bytecode::QualifiedName() const {
@@ -15398,7 +15392,23 @@ const char* Bytecode::QualifiedName() const {
   ASSERT(!fun.IsNull());
   const char* function_name =
       String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
-  return zone->PrintToString("%s", function_name);
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+bool Bytecode::SlowFindRawBytecodeVisitor::FindObject(
+    RawObject* raw_obj) const {
+  return RawBytecode::ContainsPC(raw_obj, pc_);
+}
+
+RawBytecode* Bytecode::FindCode(uword pc) {
+  Thread* thread = Thread::Current();
+  HeapIterationScope heap_iteration_scope(thread);
+  SlowFindRawBytecodeVisitor visitor(pc);
+  RawObject* needle = thread->heap()->FindOldObject(&visitor);
+  if (needle != Bytecode::null()) {
+    return static_cast<RawBytecode*>(needle);
+  }
+  return Bytecode::null();
 }
 
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {

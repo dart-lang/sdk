@@ -5302,7 +5302,10 @@ class Bytecode : public Object {
   intptr_t Size() const;
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
-  bool ContainsInstructionAt(uword addr) const;
+
+  bool ContainsInstructionAt(uword addr) const {
+    return RawBytecode::ContainsPC(raw(), addr);
+  }
 
   RawPcDescriptors* pc_descriptors() const {
     return raw_ptr()->pc_descriptors_;
@@ -5357,6 +5360,22 @@ class Bytecode : public Object {
 
   const char* Name() const;
   const char* QualifiedName() const;
+
+  class SlowFindRawBytecodeVisitor : public FindObjectVisitor {
+   public:
+    explicit SlowFindRawBytecodeVisitor(uword pc) : pc_(pc) {}
+    virtual ~SlowFindRawBytecodeVisitor() {}
+
+    // Check if object matches find condition.
+    virtual bool FindObject(RawObject* obj) const;
+
+   private:
+    const uword pc_;
+
+    DISALLOW_COPY_AND_ASSIGN(SlowFindRawBytecodeVisitor);
+  };
+
+  static RawBytecode* FindCode(uword pc);
 
  private:
   void set_object_pool(const ObjectPool& object_pool) const {

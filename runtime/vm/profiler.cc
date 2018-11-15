@@ -1409,9 +1409,7 @@ void Profiler::SampleThread(Thread* thread,
                 &counters_);
 }
 
-CodeDescriptor::CodeDescriptor(const Code& code) : code_(code) {
-  ASSERT(!code_.IsNull());
-}
+CodeDescriptor::CodeDescriptor(const AbstractCode code) : code_(code) {}
 
 uword CodeDescriptor::Start() const {
   return code_.PayloadStart();
@@ -1438,15 +1436,10 @@ class CodeLookupTableBuilder : public ObjectVisitor {
   ~CodeLookupTableBuilder() {}
 
   void VisitObject(RawObject* raw_obj) {
-    uint32_t tags = raw_obj->ptr()->tags_;
-    if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
-      RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
-      const Code& code = Code::Handle(raw_code);
-      ASSERT(!code.IsNull());
-      const Instructions& instructions =
-          Instructions::Handle(code.instructions());
-      ASSERT(!instructions.IsNull());
-      table_->Add(code);
+    if (raw_obj->IsCode()) {
+      table_->Add(Code::Handle(Code::RawCast(raw_obj)));
+    } else if (raw_obj->IsBytecode()) {
+      table_->Add(Bytecode::Handle(Bytecode::RawCast(raw_obj)));
     }
   }
 
@@ -1495,9 +1488,10 @@ void CodeLookupTable::Build(Thread* thread) {
 #endif
 }
 
-void CodeLookupTable::Add(const Code& code) {
+void CodeLookupTable::Add(const Object& code) {
   ASSERT(!code.IsNull());
-  CodeDescriptor* cd = new CodeDescriptor(code);
+  ASSERT(code.IsCode() || code.IsBytecode());
+  CodeDescriptor* cd = new CodeDescriptor(AbstractCode(code.raw()));
   code_objects_.Add(cd);
 }
 
@@ -1672,7 +1666,12 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
                                                uword pc_marker,
                                                uword* stack_buffer) {
   ASSERT(cd != NULL);
-  const Code& code = Code::Handle(cd->code());
+  if (cd->code().IsBytecode()) {
+    // Bytecode frame build is atomic from the profiler's perspective: no
+    // missing frame.
+    return;
+  }
+  const Code& code = Code::Handle(Code::RawCast(cd->code().raw()));
   ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving
   // the frame pointer in the caller.
