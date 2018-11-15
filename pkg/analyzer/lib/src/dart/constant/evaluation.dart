@@ -255,7 +255,7 @@ class ConstantEvaluationEngine {
           // ignore it here.
           constant.evaluationResult = new EvaluationResultImpl(null);
         }
-      } else if (element is ConstructorElementImpl &&
+      } else if (element is ConstructorElement &&
           element.isConst &&
           constNode.arguments != null) {
         RecordingErrorListener errorListener = new RecordingErrorListener();
