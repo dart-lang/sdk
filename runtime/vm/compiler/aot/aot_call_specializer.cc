@@ -432,16 +432,18 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* right_type = right_value->Type();
 
     const bool is_equality_op = Token::IsEqualityOperator(op_kind);
-    const bool receiver_is_nullable_numeric = left_type->IsNullableNumeric();
-    const bool can_use_strict_compare =
-        is_equality_op && receiver_is_nullable_numeric &&
-        (left_type->IsNullableSmi() || right_type->IsNullableSmi());
     const bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
+    // NOTE: We cannot use strict comparisons if the receiver has an overridden
+    // == operator or if either side can be a double, since 1.0 == 1.
+    const bool can_use_strict_compare =
+        is_equality_op && has_nullable_int_args &&
+        (left_type->IsNullableSmi() || right_type->IsNullableSmi());
+
     // We only support binary operations if both operands are nullable integers
     // or when we can use a cheap strict comparison operation.
-    if (!has_nullable_int_args && !can_use_strict_compare) {
+    if (!has_nullable_int_args) {
       return false;
     }
 

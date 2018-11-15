@@ -226,18 +226,6 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
-  // Returns true if value of this type is either Smi, Mint, Double or null.
-  bool IsNullableNumeric() {
-    if (cid_ == kSmiCid || cid_ == kMintCid || cid_ == kDoubleCid) {
-      return true;
-    }
-    if (cid_ == kIllegalCid || cid_ == kDynamicCid) {
-      return type_ != NULL && (type_->IsIntType() || type_->IsDoubleType() ||
-                               type_->IsNumberType());
-    }
-    return false;
-  }
-
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
