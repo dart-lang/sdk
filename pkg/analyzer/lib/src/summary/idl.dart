@@ -1690,12 +1690,6 @@ enum UnlinkedExprOperation {
   /// `dynamic`.
   makeUntypedList,
 
-  /// Pop the top n values from the stack (where n is obtained from
-  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
-  /// onto the stack.  The type parameter for the [Set] is implicitly
-  /// `dynamic`.
-  makeUntypedSet,
-
   /// Pop the top 2*n values from the stack (where n is obtained from
   /// [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
   /// [Map], and push the result back onto the stack.  The two type parameters
@@ -1707,12 +1701,6 @@ enum UnlinkedExprOperation {
   /// onto the stack.  The type parameter for the [List] is obtained from
   /// [UnlinkedExpr.references].
   makeTypedList,
-
-  /// Pop the top n values from the stack (where n is obtained from
-  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
-  /// onto the stack.  The type parameter for the [Set] is obtained from
-  /// [UnlinkedExpr.references].
-  makeTypedSet,
 
   /// Pop the top 2*n values from the stack (where n is obtained from
   /// [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
@@ -1966,6 +1954,18 @@ enum UnlinkedExprOperation {
 
   /// Push `super` expression onto the stack.
   pushSuper,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
+  /// onto the stack.  The type parameter for the [Set] is implicitly
+  /// `dynamic`.
+  makeUntypedSet,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
+  /// onto the stack.  The type parameter for the [Set] is obtained from
+  /// [UnlinkedExpr.references].
+  makeTypedSet,
 }
 
 /// Unlinked summary information about an import declaration.
