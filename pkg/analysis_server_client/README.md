@@ -7,8 +7,8 @@ analysis_server_client is a client wrapper over Analysis Server.
  * Instances of [__Server__](lib/server.dart) manage a connection to an analysis server process,
    and facilitate communication to and from the server.
 
- * The [__Protocol__](lib/protocol.dart) library provides consts and classes
-   to build requests for the server and decode reponses and notifications from the server.
+ * The [__Protocol__](lib/protocol.dart) library provides constants and classes
+   to build requests for the server and decode responses and notifications from the server.
 
 ## Example
 
