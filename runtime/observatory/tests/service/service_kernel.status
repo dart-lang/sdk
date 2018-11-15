@@ -5,26 +5,13 @@
 [ $compiler == app_jitk ]
 add_breakpoint_rpc_test: RuntimeError
 async_generator_breakpoint_test: Skip # No incremental compiler available.
-async_next_regession_18877_test: RuntimeError
-async_next_test: RuntimeError
-async_scope_test: RuntimeError
 async_single_step_exception_test: RuntimeError
-async_single_step_into_test: RuntimeError
 async_single_step_out_test: RuntimeError
-async_star_single_step_into_test: RuntimeError
-async_star_step_out_test: RuntimeError
-async_step_out_test: RuntimeError
 bad_reload_test: RuntimeError
 break_on_activation_test: Skip # No incremental compiler available.
-break_on_function_test: RuntimeError
-breakpoint_in_parts_class_test: RuntimeError
-breakpoint_two_args_checked_test: RuntimeError
-code_test: RuntimeError # Issue 34143
 complex_reload_test: RuntimeError
 debugger_inspect_test: Skip # No incremental compiler available.
 debugger_location_second_test: RuntimeError
-debugging_inlined_finally_test: RuntimeError
-debugging_test: RuntimeError
 developer_service_get_isolate_id_test: Skip #  No incremental compiler available.
 eval_internal_class_test: Skip # No incremental compiler available.
 eval_regression_flutter20255_test: Skip # No incremental compiler available.
@@ -48,59 +35,15 @@ get_user_level_retaining_path_rpc_test: Skip # No incremental compiler available
 get_vm_rpc_test: RuntimeError
 get_vm_timeline_rpc_test: RuntimeError
 instance_field_order_rpc_test: Skip # No incremental compiler available.
-issue_25465_test: RuntimeError
-issue_27238_test: RuntimeError
 local_variable_declaration_test: RuntimeError
-mixin_break_test: RuntimeError
-next_through_assign_call_test: RuntimeError
-next_through_assign_int_test: RuntimeError
-next_through_call_on_field_in_class_test: RuntimeError
-next_through_call_on_field_test: RuntimeError
-next_through_call_on_static_field_in_class_test: RuntimeError
-next_through_catch_test: RuntimeError
-next_through_closure_test: RuntimeError
-next_through_create_list_and_map_test: RuntimeError
-next_through_for_each_loop_test: RuntimeError
-next_through_for_loop_with_break_and_continue_test: RuntimeError
-next_through_function_expression_test: RuntimeError
-next_through_implicit_call_test: RuntimeError
-next_through_is_and_as_test: RuntimeError
-next_through_multi_catch_test: RuntimeError
-next_through_new_test: RuntimeError
-next_through_operator_bracket_on_super_test: RuntimeError
-next_through_operator_bracket_on_this_test: RuntimeError
-next_through_operator_bracket_test: RuntimeError
-next_through_simple_async_test: RuntimeError
-next_through_simple_async_with_returns_test: RuntimeError
-next_through_simple_linear_2_test: RuntimeError
-next_through_simple_linear_test: RuntimeError
 pause_on_exceptions_test: Skip # No incremental compiler available.
 positive_token_pos_test: RuntimeError
-regress_28443_test: RuntimeError
-regress_28980_test: RuntimeError
 rewind_optimized_out_test: RuntimeError
 rewind_test: RuntimeError
 set_name_rpc_test: RuntimeError
 set_vm_name_rpc_test: RuntimeError
 simple_reload_test: RuntimeError
-steal_breakpoint_test: RuntimeError
-step_into_async_no_await_test: RuntimeError
-step_over_await_test: RuntimeError
-step_test: RuntimeError # Issue 34143
 step_through_arithmetic_test: RuntimeError
-step_through_constructor_calls_test: RuntimeError
-step_through_constructor_test: RuntimeError
-step_through_for_each_sync_star_2_test: RuntimeError
-step_through_for_each_sync_star_test: RuntimeError
-step_through_function_2_test: RuntimeError
-step_through_function_test: RuntimeError
-step_through_getter_test: RuntimeError
-step_through_mixin_from_sdk_test: RuntimeError
-step_through_property_get_test: RuntimeError
-step_through_property_set_test: RuntimeError
-step_through_setter_test: RuntimeError
-step_through_switch_test: RuntimeError
-step_through_switch_with_continue_test: RuntimeError
 unused_changes_in_last_reload_test: RuntimeError
 valid_source_locations_test: RuntimeError
 
@@ -154,10 +97,6 @@ eval_test: Pass, Slow
 code_test: RuntimeError
 get_object_rpc_test: RuntimeError
 get_stack_rpc_test: RuntimeError
-
-[ $compiler == app_jitk && $mode == debug ]
-code_test: RuntimeError
-step_test: RuntimeError
 
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.

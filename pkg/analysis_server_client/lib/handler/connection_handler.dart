@@ -13,12 +13,14 @@ import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// [ServerConnectionHandler] listens to analysis server notifications
+/// [ConnectionHandler] listens to analysis server notifications
 /// and detects when a connection has been established with the server.
 ///
-/// Clients may override [handleFailedToConnect], [handleProtocolNotSupported],
-/// and [handleServerError] to display connection failure information.
-mixin ServerConnectionHandler on NotificationHandler {
+/// Clients may override [onFailedToConnect], [onProtocolNotSupported],
+/// and [onServerError] to display connection failure information.
+///
+/// Clients may mix-in this class, but may not extend or implement it.
+mixin ConnectionHandler on NotificationHandler {
   Completer<bool> _connected = new Completer();
 
   /// Clients should implement this method to return the server being managed.
@@ -26,11 +28,9 @@ mixin ServerConnectionHandler on NotificationHandler {
   /// established or if a server error occurs after connecting.
   Server get server;
 
-  void handleFailedToConnect() {}
+  void onFailedToConnect() {}
 
-  void handleProtocolNotSupported(Version version) {}
-
-  void handleServerError(String error, String trace) {}
+  void onProtocolNotSupported(Version version) {}
 
   @override
   void onServerConnected(ServerConnectedParams params) {
@@ -40,7 +40,7 @@ mixin ServerConnectionHandler on NotificationHandler {
     if (minVersion <= version && version < maxVersion) {
       _connected.complete(true);
     } else {
-      handleProtocolNotSupported(version);
+      onProtocolNotSupported(version);
       _connected.complete(false);
       server.stop();
     }
@@ -48,7 +48,6 @@ mixin ServerConnectionHandler on NotificationHandler {
 
   @override
   void onServerError(ServerErrorParams params) {
-    handleServerError(params.message, params.stackTrace);
     server.stop();
   }
 
@@ -57,14 +56,11 @@ mixin ServerConnectionHandler on NotificationHandler {
   Future<bool> serverConnected({Duration timeLimit}) {
     Future<bool> future = _connected.future;
     if (timeLimit != null) {
-      future = future.timeout(
-        timeLimit ?? const Duration(seconds: 15),
-        onTimeout: () {
-          handleFailedToConnect();
-          server.stop();
-          return false;
-        },
-      );
+      future = future.timeout(timeLimit, onTimeout: () {
+        onFailedToConnect();
+        server.stop();
+        return false;
+      });
     }
     return future;
   }

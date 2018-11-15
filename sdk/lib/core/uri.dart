@@ -1256,7 +1256,7 @@ abstract class Uri {
    *  * 2010:836B:4179::836B:4179
    */
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
-    if (end == null) end = host.length;
+    end ??= host.length;
     // An IPv6 address consists of exactly 8 parts of 1-4 hex digits, separated
     // by `:`'s, with the following exceptions:
     //
@@ -1623,8 +1623,8 @@ class _Uri implements Uri {
   static Uri _makeHttpUri(String scheme, String authority, String unencodedPath,
       Map<String, String> queryParameters) {
     var userInfo = "";
-    var host = null;
-    var port = null;
+    String host;
+    int port;
 
     if (authority != null && authority.isNotEmpty) {
       var hostStart = 0;
@@ -1914,10 +1914,8 @@ class _Uri implements Uri {
   }
 
   Map<String, String> get queryParameters {
-    if (_queryParameters == null) {
-      _queryParameters =
-          new UnmodifiableMapView<String, String>(Uri.splitQueryString(query));
-    }
+    _queryParameters ??=
+        new UnmodifiableMapView<String, String>(Uri.splitQueryString(query));
     return _queryParameters;
   }
 
@@ -2009,7 +2007,7 @@ class _Uri implements Uri {
           index += 3;
           continue;
         }
-        if (buffer == null) buffer = new StringBuffer();
+        buffer ??= new StringBuffer();
         String slice = host.substring(sectionStart, index);
         if (!isNormalized) slice = slice.toLowerCase();
         buffer.write(slice);
@@ -2027,7 +2025,7 @@ class _Uri implements Uri {
       } else if (_isRegNameChar(char)) {
         if (isNormalized && _UPPER_CASE_A <= char && _UPPER_CASE_Z >= char) {
           // Put initial slice in buffer and continue in non-normalized mode
-          if (buffer == null) buffer = new StringBuffer();
+          buffer ??= new StringBuffer();
           if (sectionStart < index) {
             buffer.write(host.substring(sectionStart, index));
             sectionStart = index;
@@ -2046,7 +2044,7 @@ class _Uri implements Uri {
             sourceLength = 2;
           }
         }
-        if (buffer == null) buffer = new StringBuffer();
+        buffer ??= new StringBuffer();
         String slice = host.substring(sectionStart, index);
         if (!isNormalized) slice = slice.toLowerCase();
         buffer.write(slice);
@@ -2333,7 +2331,7 @@ class _Uri implements Uri {
           }
           replacement = _escapeChar(char);
         }
-        if (buffer == null) buffer = new StringBuffer();
+        buffer ??= new StringBuffer();
         buffer.write(component.substring(sectionStart, index));
         buffer.write(replacement);
         index += sourceLength;
@@ -2625,7 +2623,7 @@ class _Uri implements Uri {
       throw new UnsupportedError(
           "Cannot extract a file path from a URI with a fragment component");
     }
-    if (windows == null) windows = _isWindows;
+    windows ??= _isWindows;
     return windows ? _toWindowsFilePath(this) : _toFilePath();
   }
 
@@ -3408,7 +3406,7 @@ class UriData {
   Uri get uri {
     if (_uriCache != null) return _uriCache;
     String path = _text;
-    String query = null;
+    String query;
     int colonIndex = _separatorIndices[0];
     int queryIndex = _text.indexOf('?', colonIndex + 1);
     int end = _text.length;
@@ -4597,7 +4595,7 @@ class _SimpleUri implements Uri {
       throw new UnsupportedError(
           "Cannot extract a file path from a URI with a fragment component");
     }
-    if (windows == null) windows = _Uri._isWindows;
+    windows ??= _Uri._isWindows;
     return windows ? _Uri._toWindowsFilePath(this) : _toFilePath();
   }
 

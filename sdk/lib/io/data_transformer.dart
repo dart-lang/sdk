@@ -160,7 +160,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
       this.windowBits: ZLibOption.defaultWindowBits,
       this.memLevel: ZLibOption.defaultMemLevel,
       this.strategy: ZLibOption.strategyDefault,
-      this.dictionary: null,
+      this.dictionary,
       this.raw: false,
       this.gzip: false}) {
     _validateZLibeLevel(level);
@@ -277,7 +277,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
       this.windowBits: ZLibOption.defaultWindowBits,
       this.memLevel: ZLibOption.defaultMemLevel,
       this.strategy: ZLibOption.strategyDefault,
-      this.dictionary: null,
+      this.dictionary,
       this.raw: false,
       this.gzip: true}) {
     _validateZLibeLevel(level);
@@ -385,7 +385,7 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
       this.windowBits: ZLibOption.defaultWindowBits,
       this.memLevel: ZLibOption.defaultMemLevel,
       this.strategy: ZLibOption.strategyDefault,
-      this.dictionary: null,
+      this.dictionary,
       this.raw: false}) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
@@ -450,7 +450,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
 
   ZLibDecoder(
       {this.windowBits: ZLibOption.defaultWindowBits,
-      this.dictionary: null,
+      this.dictionary,
       this.raw: false}) {
     _validateZLibWindowBits(windowBits);
   }
@@ -629,6 +629,7 @@ class _FilterSink extends ByteConversionSink {
         _sink.add(out);
       }
     } catch (e) {
+      // TODO(kevmoo): not sure why this isn't a try/finally
       _closed = true;
       throw e;
     }

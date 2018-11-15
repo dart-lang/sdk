@@ -1756,6 +1756,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
+      s->Write<int32_t>(bytecode->ptr()->source_positions_binary_offset_);
     }
   }
 
@@ -1791,6 +1792,7 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
       for (RawObject** p = from; p <= to; p++) {
         *p = d->ReadRef();
       }
+      bytecode->ptr()->source_positions_binary_offset_ = d->Read<int32_t>();
     }
   }
 };

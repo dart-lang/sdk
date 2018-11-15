@@ -28,7 +28,7 @@ class _FileStream extends Stream<List<int>> {
   bool _atEnd = false;
 
   _FileStream(this._path, this._position, this._end) {
-    if (_position == null) _position = 0;
+    _position ??= 0;
   }
 
   _FileStream.forStdin() : _position = 0;

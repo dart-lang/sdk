@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server_client/server.dart';
+import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:dartfix/listener/bad_message_listener.dart';
+import 'package:dartfix/listener/timed_listener.dart';
 
-/// A subclass of [Server] that caches all messages exchanged with the server.
+/// [RecordingListener] caches all messages exchanged with the server
+/// and print them if a problem occurs.
+///
 /// This is primarily used when testing and debugging the analysis server.
-/// Most clients will want to use [Server] rather than this class.
-class RecordingServer extends Server {
+class RecordingListener with ClientListener, BadMessageListener, TimedListener {
   /// True if we are currently printing out messages exchanged with the server.
   bool _echoMessages = false;
 
@@ -30,26 +32,25 @@ class RecordingServer extends Server {
     }
   }
 
-  @override
-  Future<int> kill([String reason = 'none']) {
+  /// Called when the [Server] is terminating the server process
+  /// rather than requesting that the server stop itself.
+  void killingServerProcess(String reason) {
     echoMessages();
-    return super.kill(reason);
+    super.killingServerProcess(reason);
   }
 
-  @override
-  void logBadDataFromServer(String details, {bool silent: false}) {
-    echoMessages();
-    super.logBadDataFromServer(details, silent: silent);
-  }
-
-  /// Record a message that was exchanged with the server,
-  /// and print it out if [echoMessages] has been called.
-  @override
-  void logMessage(String prefix, String details) {
-    String line = '$currentElapseTime: $prefix $details';
+  /// Log a timed message about interaction with the server.
+  void logTimed(double elapseTime, String prefix, String details) {
+    String line = '$elapseTime: $prefix $details';
     if (_echoMessages) {
       print(line);
     }
     _messages.add(line);
+  }
+
+  @override
+  void throwDelayedException(String prefix, String details) {
+    echoMessages();
+    super.throwDelayedException(prefix, details);
   }
 }

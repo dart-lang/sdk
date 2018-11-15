@@ -245,7 +245,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E lastWhere(bool test(E value), {E orElse()}) {
-    E result = null;
+    E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -259,7 +259,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E singleWhere(bool test(E value), {E orElse()}) {
-    E result = null;
+    E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {

@@ -971,6 +971,7 @@ class TypeInfoTest {
 class NoTypeParamOrArgTest {
   void test_basic() {
     expect(noTypeParamOrArg.isSimpleTypeArgument, isFalse);
+    expect(noTypeParamOrArg.typeArgumentCount, 0);
 
     final Token start = scanString('before after').tokens;
     expect(noTypeParamOrArg.skip(start), start);
@@ -1013,6 +1014,7 @@ class NoTypeParamOrArgTest {
 class SimpleTypeParamOrArgTest {
   void test_basic_gt() {
     expect(simpleTypeArgument1.isSimpleTypeArgument, isTrue);
+    expect(simpleTypeArgument1.typeArgumentCount, 1);
     expect(simpleTypeArgument1.typeInfo, simpleTypeWith1Argument);
 
     final Token start = scanString('before <T> after').tokens;
@@ -1026,6 +1028,7 @@ class SimpleTypeParamOrArgTest {
 
   void test_basic_gt_eq() {
     expect(simpleTypeArgument1GtEq.isSimpleTypeArgument, isTrue);
+    expect(simpleTypeArgument1GtEq.typeArgumentCount, 1);
     expect(simpleTypeArgument1GtEq.typeInfo, simpleTypeWith1ArgumentGtEq);
 
     final Token start = scanString('before <T>= after').tokens;
@@ -1041,6 +1044,7 @@ class SimpleTypeParamOrArgTest {
 
   void test_basic_gt_gt() {
     expect(simpleTypeArgument1GtGt.isSimpleTypeArgument, isTrue);
+    expect(simpleTypeArgument1GtGt.typeArgumentCount, 1);
     expect(simpleTypeArgument1GtGt.typeInfo, simpleTypeWith1ArgumentGtGt);
 
     final Token start = scanString('before <S<T>> after').tokens.next.next;
@@ -1159,7 +1163,7 @@ class SimpleTypeParamOrArgTest {
 @reflectiveTest
 class TypeParamOrArgInfoTest {
   void test_computeTypeArg_complex() {
-    expectComplexTypeArg('<S,T>', expectedCalls: [
+    expectComplexTypeArg('<S,T>', typeArgumentCount: 2, expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
@@ -1169,49 +1173,59 @@ class TypeParamOrArgInfoTest {
       'handleType T',
       'endTypeArguments 2 < >'
     ]);
-    expectComplexTypeArg('<S,T>=', expectedAfter: '=', expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments ,',
-      'handleType S',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >=',
-      'handleType T',
-      'endTypeArguments 2 < >'
-    ]);
-    expectComplexTypeArg('<S,T>>=', expectedAfter: '>=', expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments ,',
-      'handleType S',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >>=',
-      'handleType T',
-      'endTypeArguments 2 < >'
-    ]);
-    expectComplexTypeArg('<S Function()>', expectedCalls: [
-      'beginTypeArguments <',
-      'handleNoTypeVariables (',
-      'beginFunctionType S',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments Function',
-      'handleType S',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
-      'endTypeArguments 1 < >'
-    ]);
-    expectComplexTypeArg('<void Function()>', expectedCalls: [
-      'beginTypeArguments <',
-      'handleNoTypeVariables (',
-      'beginFunctionType void',
-      'handleVoidKeyword void',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
-      'endTypeArguments 1 < >'
-    ]);
-    expectComplexTypeArg('<S<T>>', expectedCalls: [
+    expectComplexTypeArg('<S,T>=',
+        typeArgumentCount: 2,
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments ,',
+          'handleType S',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >=',
+          'handleType T',
+          'endTypeArguments 2 < >'
+        ]);
+    expectComplexTypeArg('<S,T>>=',
+        typeArgumentCount: 2,
+        expectedAfter: '>=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments ,',
+          'handleType S',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >>=',
+          'handleType T',
+          'endTypeArguments 2 < >'
+        ]);
+    expectComplexTypeArg('<S Function()>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType S',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments Function',
+          'handleType S',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >'
+        ]);
+    expectComplexTypeArg('<void Function()>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType void',
+          'handleVoidKeyword void',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >'
+        ]);
+    expectComplexTypeArg('<S<T>>', typeArgumentCount: 1, expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'beginTypeArguments <',
@@ -1222,32 +1236,38 @@ class TypeParamOrArgInfoTest {
       'handleType S',
       'endTypeArguments 1 < >'
     ]);
-    expectComplexTypeArg('<S<T>>=', expectedAfter: '=', expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >>=',
-      'handleType T',
-      'endTypeArguments 1 < >',
-      'handleType S',
-      'endTypeArguments 1 < >'
-    ]);
-    expectComplexTypeArg('<S<Function()>>', expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleNoTypeVariables (',
-      'beginFunctionType Function',
-      'handleNoType <',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
-      'endTypeArguments 1 < >',
-      'handleType S',
-      'endTypeArguments 1 < >'
-    ]);
+    expectComplexTypeArg('<S<T>>=',
+        typeArgumentCount: 1,
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >>=',
+          'handleType T',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
+    expectComplexTypeArg('<S<Function()>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType Function',
+          'handleNoType <',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
     expectComplexTypeArg('<S<Function()>>=',
+        typeArgumentCount: 1,
         expectedAfter: '=',
         expectedCalls: [
           'beginTypeArguments <',
@@ -1263,42 +1283,50 @@ class TypeParamOrArgInfoTest {
           'handleType S',
           'endTypeArguments 1 < >'
         ]);
-    expectComplexTypeArg('<S<void Function()>>', expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleNoTypeVariables (',
-      'beginFunctionType void', // was 'beginFunctionType Function'
-      'handleVoidKeyword void', // was 'handleNoType <'
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
-      'endTypeArguments 1 < >',
-      'handleType S',
-      'endTypeArguments 1 < >'
-    ]);
+    expectComplexTypeArg('<S<void Function()>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleVoidKeyword void', // was 'handleNoType <'
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
   }
 
   void test_computeTypeArg_complex_recovery() {
-    expectComplexTypeArg('<S extends T>', expectedErrors: [
-      error(codeExpectedAfterButGot, 1, 1)
-    ], expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments extends',
-      'handleType S',
-      'endTypeArguments 1 < >',
-    ]);
-    expectComplexTypeArg('<S extends List<T>>', expectedErrors: [
-      error(codeExpectedAfterButGot, 1, 1)
-    ], expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments extends',
-      'handleType S',
-      'endTypeArguments 1 < >',
-    ]);
-    expectComplexTypeArg('<@A S,T>', expectedErrors: [
+    expectComplexTypeArg('<S extends T>',
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1)
+        ],
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments extends',
+          'handleType S',
+          'endTypeArguments 1 < >',
+        ]);
+    expectComplexTypeArg('<S extends List<T>>',
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1)
+        ],
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments extends',
+          'handleType S',
+          'endTypeArguments 1 < >',
+        ]);
+    expectComplexTypeArg('<@A S,T>', typeArgumentCount: 2, expectedErrors: [
       error(codeUnexpectedToken, 1, 1)
     ], expectedCalls: [
       'beginTypeArguments <',
@@ -1310,7 +1338,7 @@ class TypeParamOrArgInfoTest {
       'handleType T',
       'endTypeArguments 2 < >'
     ]);
-    expectComplexTypeArg('<@A() S,T>', expectedErrors: [
+    expectComplexTypeArg('<@A() S,T>', typeArgumentCount: 2, expectedErrors: [
       error(codeUnexpectedToken, 1, 1)
     ], expectedCalls: [
       'beginTypeArguments <',
@@ -1322,45 +1350,58 @@ class TypeParamOrArgInfoTest {
       'handleType T',
       'endTypeArguments 2 < >'
     ]);
-    expectComplexTypeArg('<@A() @B S,T>', expectedErrors: [
-      error(codeUnexpectedToken, 1, 1),
-      error(codeUnexpectedToken, 6, 1),
-    ], expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments ,',
-      'handleType S',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeArguments 2 < >'
-    ]);
+    expectComplexTypeArg('<@A() @B S,T>',
+        typeArgumentCount: 2,
+        expectedErrors: [
+          error(codeUnexpectedToken, 1, 1),
+          error(codeUnexpectedToken, 6, 1),
+        ],
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments ,',
+          'handleType S',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T',
+          'endTypeArguments 2 < >'
+        ]);
     expectComplexTypeArg('<S T>',
-        inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 3, 1)]);
+        inDeclaration: true,
+        typeArgumentCount: 2,
+        expectedErrors: [error(codeExpectedButGot, 3, 1)]);
     expectComplexTypeArg('<S',
         inDeclaration: true,
+        typeArgumentCount: 1,
         expectedErrors: [error(codeExpectedAfterButGot, 1, 1)]);
-    expectComplexTypeArg('<@Foo S', inDeclaration: true, expectedErrors: [
-      error(codeUnexpectedToken, 1, 1),
-      error(codeExpectedAfterButGot, 6, 1)
-    ]);
-    expectComplexTypeArg('<S<T', inDeclaration: true, expectedErrors: [
-      error(codeExpectedAfterButGot, 3, 1)
-    ], expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments ',
-      'handleType T',
-      'endTypeArguments 1 < >',
-      'handleType S',
-      'endTypeArguments 1 < >'
-    ]);
+    expectComplexTypeArg('<@Foo S',
+        inDeclaration: true,
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeUnexpectedToken, 1, 1),
+          error(codeExpectedAfterButGot, 6, 1)
+        ]);
+    expectComplexTypeArg('<S<T',
+        inDeclaration: true,
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 3, 1)
+        ],
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments ',
+          'handleType T',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
   }
 
   void test_computeTypeParam_complex() {
-    expectComplexTypeParam('<S,T>', expectedCalls: [
+    expectComplexTypeParam('<S,T>', typeArgumentCount: 2, expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar S',
       'endMetadataStar 0',
@@ -1377,59 +1418,65 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable , 0 null',
       'endTypeVariables < >',
     ]);
-    expectComplexTypeParam('<S extends T>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined T 1',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeVariable > 0 extends',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<S extends List<T>>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined > 1',
-      'handleIdentifier List typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeArguments 1 < >',
-      'handleType List',
-      'endTypeVariable > 0 extends',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<R, S extends void Function()>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar R',
-      'endMetadataStar 0',
-      'handleIdentifier R typeVariableDeclaration',
-      'beginTypeVariable R',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined ) 2',
-      'handleNoTypeVariables (',
-      'beginFunctionType void',
-      'handleVoidKeyword void',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
-      'endTypeVariable > 1 extends',
-      'handleNoType R',
-      'endTypeVariable , 0 null',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<@A S,T>', expectedCalls: [
+    expectComplexTypeParam('<S extends T>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined T 1',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >',
+        ]);
+    expectComplexTypeParam('<S extends List<T>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined > 1',
+          'handleIdentifier List typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T',
+          'endTypeArguments 1 < >',
+          'handleType List',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >',
+        ]);
+    expectComplexTypeParam('<R, S extends void Function()>',
+        typeArgumentCount: 2,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar R',
+          'endMetadataStar 0',
+          'handleIdentifier R typeVariableDeclaration',
+          'beginTypeVariable R',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined ) 2',
+          'handleNoTypeVariables (',
+          'beginFunctionType void',
+          'handleVoidKeyword void',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeVariable > 1 extends',
+          'handleNoType R',
+          'endTypeVariable , 0 null',
+          'endTypeVariables < >',
+        ]);
+    expectComplexTypeParam('<@A S,T>', typeArgumentCount: 2, expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar @',
       'beginMetadata @',
@@ -1451,7 +1498,7 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable , 0 null',
       'endTypeVariables < >',
     ]);
-    expectComplexTypeParam('<@A() S,T>', expectedCalls: [
+    expectComplexTypeParam('<@A() S,T>', typeArgumentCount: 2, expectedCalls: [
       'beginTypeVariables <',
       'beginMetadataStar @',
       'beginMetadata @',
@@ -1474,82 +1521,93 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable , 0 null',
       'endTypeVariables < >',
     ]);
-    expectComplexTypeParam('<@A() @B S,T>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar @',
-      'beginMetadata @',
-      'handleIdentifier A metadataReference',
-      'handleNoTypeArguments (',
-      'beginArguments (',
-      'endArguments 0 ( )',
-      'endMetadata @ null @',
-      'beginMetadata @',
-      'handleIdentifier B metadataReference',
-      'handleNoTypeArguments S',
-      'handleNoArguments S',
-      'endMetadata @ null S',
-      'endMetadataStar 2',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'beginTypeVariable T',
-      'handleTypeVariablesDefined T 2',
-      'handleNoType T',
-      'endTypeVariable > 1 null',
-      'handleNoType S',
-      'endTypeVariable , 0 null',
-      'endTypeVariables < >',
-    ]);
+    expectComplexTypeParam('<@A() @B S,T>',
+        typeArgumentCount: 2,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar @',
+          'beginMetadata @',
+          'handleIdentifier A metadataReference',
+          'handleNoTypeArguments (',
+          'beginArguments (',
+          'endArguments 0 ( )',
+          'endMetadata @ null @',
+          'beginMetadata @',
+          'handleIdentifier B metadataReference',
+          'handleNoTypeArguments S',
+          'handleNoArguments S',
+          'endMetadata @ null S',
+          'endMetadataStar 2',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined T 2',
+          'handleNoType T',
+          'endTypeVariable > 1 null',
+          'handleNoType S',
+          'endTypeVariable , 0 null',
+          'endTypeVariables < >',
+        ]);
   }
 
   void test_computeTypeParam_complex_extends_void() {
-    expectComplexTypeParam('<T extends void>', expectedErrors: [
-      error(codeInvalidVoid, 11, 4),
-    ], expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'beginTypeVariable T',
-      'handleTypeVariablesDefined void 1',
-      'handleIdentifier void typeReference',
-      'handleNoTypeArguments >',
-      'handleType void',
-      'endTypeVariable > 0 extends',
-      'endTypeVariables < >'
-    ]);
+    expectComplexTypeParam('<T extends void>',
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeInvalidVoid, 11, 4),
+        ],
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined void 1',
+          'handleIdentifier void typeReference',
+          'handleNoTypeArguments >',
+          'handleType void',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >'
+        ]);
   }
 
   void test_computeTypeParam_complex_recovery() {
-    expectComplexTypeParam('<S Function()>', expectedErrors: [
-      error(codeExpectedAfterButGot, 1, 1),
-    ], expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined S 1',
-      'handleNoType S',
-      'endTypeVariable Function 0 null',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<void Function()>', expectedErrors: [
-      error(codeExpectedIdentifier, 1, 4),
-    ], expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar void',
-      'endMetadataStar 0',
-      'handleIdentifier  typeVariableDeclaration',
-      'beginTypeVariable ',
-      'handleTypeVariablesDefined  1',
-      'handleNoType ',
-      'endTypeVariable void 0 null',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<S<T>>', expectedErrors: [
+    expectComplexTypeParam('<S Function()>',
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1),
+        ],
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined S 1',
+          'handleNoType S',
+          'endTypeVariable Function 0 null',
+          'endTypeVariables < >',
+        ]);
+    expectComplexTypeParam('<void Function()>',
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeExpectedIdentifier, 1, 4),
+        ],
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar void',
+          'endMetadataStar 0',
+          'handleIdentifier  typeVariableDeclaration',
+          'beginTypeVariable ',
+          'handleTypeVariablesDefined  1',
+          'handleNoType ',
+          'endTypeVariable void 0 null',
+          'endTypeVariables < >',
+        ]);
+    expectComplexTypeParam('<S<T>>', typeArgumentCount: 1, expectedErrors: [
       error(codeExpectedAfterButGot, 1, 1),
     ], expectedCalls: [
       'beginTypeVariables <',
@@ -1562,21 +1620,30 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable < 0 null',
       'endTypeVariables < >',
     ]);
-    expectComplexTypeParam('<S T>', inDeclaration: true, expectedErrors: [
-      error(codeExpectedButGot, 3, 1),
-    ]);
-    expectComplexTypeParam('<S', inDeclaration: true, expectedErrors: [
-      error(codeExpectedAfterButGot, 1, 1),
-    ]);
+    expectComplexTypeParam('<S T>',
+        inDeclaration: true,
+        typeArgumentCount: 2,
+        expectedErrors: [
+          error(codeExpectedButGot, 3, 1),
+        ]);
+    expectComplexTypeParam('<S',
+        inDeclaration: true,
+        typeArgumentCount: 1,
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1),
+        ]);
     expectComplexTypeParam('<@Foo S',
         inDeclaration: true,
+        typeArgumentCount: 1,
         expectedErrors: [error(codeExpectedAfterButGot, 6, 1)]);
     expectComplexTypeParam('<@Foo }',
         inDeclaration: true,
+        typeArgumentCount: 0,
         expectedAfter: '}',
         expectedErrors: [error(codeExpectedIdentifier, 6, 1)]);
     expectComplexTypeParam('<S extends List<T fieldName;',
         inDeclaration: true,
+        typeArgumentCount: 1,
         expectedErrors: [error(codeExpectedAfterButGot, 16, 1)],
         expectedAfter: 'fieldName',
         expectedCalls: [
@@ -1599,110 +1666,123 @@ class TypeParamOrArgInfoTest {
   }
 
   void test_computeTypeParam_31846() {
-    expectComplexTypeParam('<T extends Comparable<T>>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'beginTypeVariable T',
-      'handleTypeVariablesDefined > 1',
-      'handleIdentifier Comparable typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeArguments 1 < >',
-      'handleType Comparable',
-      'endTypeVariable > 0 extends',
-      'endTypeVariables < >',
-    ]);
-    expectComplexTypeParam('<T extends Comparable<S>, S>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'beginTypeVariable T',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined S 2',
-      'handleNoType S',
-      'endTypeVariable > 1 null',
-      'handleIdentifier Comparable typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments >',
-      'handleType S',
-      'endTypeArguments 1 < >',
-      'handleType Comparable',
-      'endTypeVariable , 0 extends',
-      'endTypeVariables < >'
-    ]);
-    expectComplexTypeParam('<T extends Function(T)>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'beginTypeVariable T',
-      'handleTypeVariablesDefined ) 1',
-      'handleNoTypeVariables (',
-      'beginFunctionType Function',
-      'handleNoType extends',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'beginFormalParameter T MemberKind.GeneralizedFunctionType',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments )',
-      'handleType T',
-      'handleNoName )',
-      'handleFormalParameterWithoutValue )',
-      'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
-      'endTypeVariable > 0 extends',
-      'endTypeVariables < >'
-    ]);
-    expectComplexTypeParam('<T extends List<List<T>>>', expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'beginTypeVariable T',
-      'handleTypeVariablesDefined > 1',
-      'handleIdentifier List typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier List typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T',
-      'endTypeArguments 1 < >',
-      'handleType List',
-      'endTypeArguments 1 < >',
-      'handleType List',
-      'endTypeVariable > 0 extends',
-      'endTypeVariables < >'
-    ]);
+    expectComplexTypeParam('<T extends Comparable<T>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined > 1',
+          'handleIdentifier Comparable typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T',
+          'endTypeArguments 1 < >',
+          'handleType Comparable',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >',
+        ]);
+    expectComplexTypeParam('<T extends Comparable<S>, S>',
+        typeArgumentCount: 2,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined S 2',
+          'handleNoType S',
+          'endTypeVariable > 1 null',
+          'handleIdentifier Comparable typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments >',
+          'handleType S',
+          'endTypeArguments 1 < >',
+          'handleType Comparable',
+          'endTypeVariable , 0 extends',
+          'endTypeVariables < >'
+        ]);
+    expectComplexTypeParam('<T extends Function(T)>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined ) 1',
+          'handleNoTypeVariables (',
+          'beginFunctionType Function',
+          'handleNoType extends',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'beginFormalParameter T MemberKind.GeneralizedFunctionType',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments )',
+          'handleType T',
+          'handleNoName )',
+          'handleFormalParameterWithoutValue )',
+          'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >'
+        ]);
+    expectComplexTypeParam('<T extends List<List<T>>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined > 1',
+          'handleIdentifier List typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier List typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T',
+          'endTypeArguments 1 < >',
+          'handleType List',
+          'endTypeArguments 1 < >',
+          'handleType List',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >'
+        ]);
   }
 
   void test_computeTypeParam_34850() {
-    expectComplexTypeParam('<S<T>> A', expectedAfter: 'A', expectedErrors: [
-      error(codeExpectedAfterButGot, 1, 1),
-    ], expectedCalls: [
-      'beginTypeVariables <',
-      'beginMetadataStar S',
-      'endMetadataStar 0',
-      'handleIdentifier S typeVariableDeclaration',
-      'beginTypeVariable S',
-      'handleTypeVariablesDefined S 1',
-      'handleNoType S',
-      'endTypeVariable < 0 null',
-      'endTypeVariables < >',
-    ]);
+    expectComplexTypeParam('<S<T>> A',
+        typeArgumentCount: 1,
+        expectedAfter: 'A',
+        expectedErrors: [
+          error(codeExpectedAfterButGot, 1, 1),
+        ],
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar S',
+          'endMetadataStar 0',
+          'handleIdentifier S typeVariableDeclaration',
+          'beginTypeVariable S',
+          'handleTypeVariablesDefined S 1',
+          'handleNoType S',
+          'endTypeVariable < 0 null',
+          'endTypeVariables < >',
+        ]);
     expectComplexTypeParam('<S();> A',
         inDeclaration: true,
+        typeArgumentCount: 1,
         expectedAfter: 'A',
         expectedErrors: [
           error(codeExpectedAfterButGot, 1, 1),
@@ -1798,6 +1878,7 @@ ComplexTypeInfo computeComplex(
 
 void expectComplexTypeArg(String source,
     {bool inDeclaration = false,
+    int typeArgumentCount = -1,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
@@ -1815,6 +1896,7 @@ void expectComplexTypeArg(String source,
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'TypeParamOrArgInfo.skipType'
           ' should not modify the token stream');
+  expect(typeVarInfo.typeArgumentCount, typeArgumentCount);
 
   TypeInfoListener listener = new TypeInfoListener();
   Parser parser = new Parser(listener);
@@ -1830,6 +1912,7 @@ void expectComplexTypeArg(String source,
 
 void expectComplexTypeParam(String source,
     {bool inDeclaration = false,
+    int typeArgumentCount = -1,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
@@ -1847,6 +1930,7 @@ void expectComplexTypeParam(String source,
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'TypeParamOrArgInfo.skipType'
           ' should not modify the token stream');
+  expect(typeVarInfo.typeArgumentCount, typeArgumentCount);
 
   TypeInfoListener listener =
       new TypeInfoListener(firstToken: start, metadataAllowed: true);

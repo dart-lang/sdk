@@ -6,15 +6,22 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server_client/listener/client_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart';
 
 /// Type of callbacks used to process notifications.
-typedef void NotificationProcessor(String event, Map<String, dynamic> params);
+typedef void NotificationProcessor(Notification notification);
 
 /// Instances of the class [Server] manage a server process,
 /// and facilitate communication to and from the server.
+///
+/// Clients may not extend, implement or mix-in this class.
 class Server {
+  /// If not `null`, [_listener] will be sent information
+  /// about interactions with the server.
+  ClientListener _listener;
+
   /// Server process object, or `null` if server hasn't been started yet
   /// or if the server has already been stopped.
   Process _process;
@@ -28,39 +35,21 @@ class Server {
   /// to send in the next command sent to the server.
   int _nextId = 0;
 
-  /// True if we've received bad data from the server.
-  bool _receivedBadDataFromServer = false;
-
   /// The stderr subscription or `null` if either
   /// [listenToOutput] has not been called or [stop] has been called.
-  StreamSubscription<String> stderrSubscription;
+  StreamSubscription<String> _stderrSubscription;
 
   /// The stdout subscription or `null` if either
   /// [listenToOutput] has not been called or [stop] has been called.
-  StreamSubscription<String> stdoutSubscription;
+  StreamSubscription<String> _stdoutSubscription;
 
-  /// Stopwatch that we use to generate timing information for debug output.
-  Stopwatch _time = new Stopwatch();
-
-  /// The [currentElapseTime] at which the last communication was received from
-  /// the server or `null` if no communication has been received.
-  double lastCommunicationTime;
-
-  Server([Process process]) : this._process = process;
-
-  /// The current elapse time (seconds) since the server was started.
-  double get currentElapseTime => _time.elapsedTicks / _time.frequency;
-
-  /// Future that completes when the server process exits.
-  Future<int> get exitCode => _process.exitCode;
-
-  /// Return a future that will complete when all commands that have been sent
-  /// to the server so far have been flushed to the OS buffer.
-  Future<void> flushCommands() => _process.stdin.flush();
+  Server({ClientListener listener, Process process})
+      : this._listener = listener,
+        this._process = process;
 
   /// Force kill the server. Returns exit code future.
-  Future<int> kill([String reason = 'none']) {
-    logMessage('FORCIBLY TERMINATING SERVER: ', reason);
+  Future<int> kill({String reason = 'none'}) {
+    _listener?.killingServerProcess(reason);
     final process = _process;
     _process = null;
     process.kill();
@@ -70,11 +59,10 @@ class Server {
   /// Start listening to output from the server,
   /// and deliver notifications to [notificationProcessor].
   void listenToOutput({NotificationProcessor notificationProcessor}) {
-    stdoutSubscription = _process.stdout
+    _stdoutSubscription = _process.stdout
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
-      lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
 
       // Guard against lines like:
@@ -89,70 +77,48 @@ class Server {
         return;
       }
 
-      logMessage('<== ', trimmedLine);
+      _listener?.messageReceived(trimmedLine);
       Map<String, dynamic> message;
       try {
         message = json.decoder.convert(trimmedLine);
       } catch (exception) {
-        logBadDataFromServer('JSON decode failure: $exception');
+        _listener?.badMessage(trimmedLine, exception);
         return;
       }
 
-      final id = message['id'];
+      final id = message[Response.ID];
       if (id != null) {
         // Handle response
         final completer = _pendingCommands.remove(id);
         if (completer == null) {
-          throw 'Unexpected response from server: id=$id';
+          _listener?.unexpectedResponse(message, id);
         }
-        if (message.containsKey('error')) {
-          completer.completeError(new ServerErrorMessage(message));
+        if (message.containsKey(Response.ERROR)) {
+          completer.completeError(new RequestError.fromJson(
+              new ResponseDecoder(null), '.error', message[Response.ERROR]));
         } else {
-          completer.complete(message['result']);
+          completer.complete(message[Response.RESULT]);
         }
       } else {
         // Handle notification
-        final String event = message['event'];
+        final String event = message[Notification.EVENT];
         if (event != null) {
           if (notificationProcessor != null) {
-            notificationProcessor(event, message['params']);
+            notificationProcessor(
+                new Notification(event, message[Notification.PARAMS]));
           }
         } else {
-          logBadDataFromServer('Unexpected message from server');
+          _listener?.unexpectedMessage(message);
         }
       }
     });
-    stderrSubscription = _process.stderr
+    _stderrSubscription = _process.stderr
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
       String trimmedLine = line.trim();
-      logMessage('ERR: ', trimmedLine);
-      logBadDataFromServer('Message received on stderr', silent: true);
+      _listener?.errorMessage(trimmedLine);
     });
-  }
-
-  /// Deal with bad data received from the server.
-  void logBadDataFromServer(String details, {bool silent: false}) {
-    if (!silent) {
-      logMessage('BAD DATA FROM SERVER: ', details);
-    }
-    if (_receivedBadDataFromServer) {
-      // We're already dealing with it.
-      return;
-    }
-    _receivedBadDataFromServer = true;
-    // Give the server 1 second to continue outputting bad data
-    // such as outputting a stacktrace.
-    new Future.delayed(new Duration(seconds: 1), () {
-      throw 'Bad data received from server: $details';
-    });
-  }
-
-  /// Log a message that was exchanged with the server.
-  /// Subclasses may override as needed.
-  void logMessage(String prefix, String details) {
-    // no-op
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
@@ -166,16 +132,16 @@ class Server {
       String method, Map<String, dynamic> params) {
     String id = '${_nextId++}';
     Map<String, dynamic> command = <String, dynamic>{
-      'id': id,
-      'method': method
+      Request.ID: id,
+      Request.METHOD: method
     };
     if (params != null) {
-      command['params'] = params;
+      command[Request.PARAMS] = params;
     }
     final completer = new Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
     String line = json.encode(command);
-    logMessage('==> ', line);
+    _listener?.requestSent(line);
     _process.stdin.add(utf8.encoder.convert("$line\n"));
     return completer.future;
   }
@@ -203,7 +169,6 @@ class Server {
     if (_process != null) {
       throw new Exception('Process already started');
     }
-    _time.start();
     String dartBinary = Platform.executable;
 
     // The integration tests run 3x faster when run from snapshots
@@ -270,13 +235,12 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    logMessage(
-        'Starting analysis server: ', '$dartBinary ${arguments.join(' ')}');
+    _listener?.startingServer(dartBinary, arguments);
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0 && _process != null) {
         // Report an error if server abruptly terminated
-        logBadDataFromServer('server terminated with exit code $code');
+        _listener?.unexpectedStop(code);
       }
     });
   }
@@ -297,32 +261,18 @@ class Server {
         .timeout(timeLimit, onTimeout: () {
       return null;
     }).whenComplete(() async {
-      await stderrSubscription?.cancel();
-      stderrSubscription = null;
-      await stdoutSubscription?.cancel();
-      stdoutSubscription = null;
+      await _stderrSubscription?.cancel();
+      _stderrSubscription = null;
+      await _stdoutSubscription?.cancel();
+      _stdoutSubscription = null;
     });
-    return await process.exitCode.timeout(
+    return process.exitCode.timeout(
       timeLimit,
       onTimeout: () {
-        logMessage('FORCIBLY TERMINATING SERVER: ', 'server failed to exit');
+        _listener?.killingServerProcess('server failed to exit');
         process.kill();
         return process.exitCode;
       },
     );
   }
-}
-
-/// An error result from a server request.
-class ServerErrorMessage {
-  final Map<String, dynamic> message;
-
-  ServerErrorMessage(this.message);
-
-  Map<String, dynamic> get error => message['error'];
-  get errorCode => error['code'];
-  get errorMessage => error['message'];
-  get stackTrace => error['stackTrace'];
-
-  String toString() => message.toString();
 }

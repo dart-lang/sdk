@@ -1279,10 +1279,8 @@ void KernelLoader::LoadClass(const Library& library,
   if (!out_class->is_cycle_free()) {
     LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
-    for (intptr_t i = 0; i < type_parameter_counts; ++i) {
-      helper_.SkipStringReference();  // read ith name index.
-      helper_.SkipDartType();         // read ith bound.
-    }
+    // do not use type parameters with cycle_free
+    ASSERT(type_parameter_counts == 0);
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 

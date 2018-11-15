@@ -12,10 +12,13 @@ import 'package:analysis_server_client/protocol.dart';
 /// and dispatches those notifications to different methods based upon
 /// the type of notification. Clients may override
 /// any of the "on<EventName>" methods that are of interest.
+///
+/// Clients may mix-in this class, but may not implement it.
 mixin NotificationHandler {
-  void handleEvent(String event, params) {
+  void handleEvent(Notification notification) {
+    Map<String, Object> params = notification.params;
     ResponseDecoder decoder = new ResponseDecoder(null);
-    switch (event) {
+    switch (notification.event) {
       case ANALYSIS_NOTIFICATION_ANALYZED_FILES:
         onAnalysisAnalyzedFiles(new AnalysisAnalyzedFilesParams.fromJson(
             decoder, 'params', params));
@@ -93,7 +96,7 @@ mixin NotificationHandler {
             new ServerStatusParams.fromJson(decoder, 'params', params));
         break;
       default:
-        onUnknownNotification(event, params);
+        onUnknownNotification(notification.event, params);
         break;
     }
   }

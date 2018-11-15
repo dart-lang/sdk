@@ -456,8 +456,11 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 
 TokenPosition StackFrame::GetTokenPos() const {
   if (is_interpreted()) {
-    // TODO(alexmarkov): Support source information in bytecode.
-    return TokenPosition::kNoSource;
+    const Bytecode& bytecode = Bytecode::Handle(LookupDartBytecode());
+    if (bytecode.IsNull()) {
+      return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
+    }
+    return bytecode.GetTokenIndexOfPC(pc());
   }
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {

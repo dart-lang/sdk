@@ -6,13 +6,11 @@ library locals_handler;
 
 import 'dart:collection' show IterableMixin;
 import 'package:kernel/ast.dart' as ir;
-import '../options.dart' show CompilerOptions;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../util/util.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
-import 'type_system.dart';
 
 /**
  * A variable scope holds types for variables. It has a link to a
@@ -111,7 +109,6 @@ class VariableScope {
 
 /// Tracks initializers via initializations and assignments.
 class FieldInitializationScope {
-  final TypeSystem types;
   Map<FieldEntity, TypeInformation> fields;
   bool isThisExposed;
 
@@ -119,13 +116,12 @@ class FieldInitializationScope {
   /// e.g. an early return or caught exception.
   bool isIndefinite;
 
-  FieldInitializationScope(this.types)
+  FieldInitializationScope()
       : isThisExposed = false,
         isIndefinite = false;
 
   FieldInitializationScope.internalFrom(FieldInitializationScope other)
-      : types = other.types,
-        isThisExposed = other.isThisExposed,
+      : isThisExposed = other.isThisExposed,
         isIndefinite = other.isIndefinite;
 
   factory FieldInitializationScope.from(FieldInitializationScope other) {
@@ -148,7 +144,7 @@ class FieldInitializationScope {
     fields?.forEach(f);
   }
 
-  void mergeDiamondFlow(
+  void mergeDiamondFlow(InferrerEngine inferrer,
       FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
     // know the code following won'TypeInformation do anything.
@@ -161,7 +157,7 @@ class FieldInitializationScope {
     thenScope.forEach((FieldEntity field, TypeInformation type) {
       TypeInformation otherType = otherScope.readField(field);
       if (otherType == null) return;
-      updateField(field, types.allocateDiamondPhi(type, otherType));
+      updateField(field, inferrer.types.allocateDiamondPhi(type, otherType));
     });
 
     isThisExposed = thenScope.isThisExposed || elseScope.isThisExposed;
@@ -249,9 +245,6 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler {
-  final CompilerOptions options;
-  final TypeSystem types;
-  final InferrerEngine inferrer;
   final VariableScope locals;
   final Map<Local, FieldEntity> _capturedAndBoxed;
   final FieldInitializationScope fieldScope;
@@ -265,8 +258,10 @@ class LocalsHandler {
 
   bool get inTryBlock => tryBlock != null;
 
-  LocalsHandler(this.inferrer, this.types, this.options, ir.Node block,
-      [this.fieldScope])
+  LocalsHandler.internal(ir.Node block, this.fieldScope, this.locals,
+      this._capturedAndBoxed, this.tryBlock);
+
+  LocalsHandler(ir.Node block, [this.fieldScope])
       : locals = new VariableScope(block, isTry: false),
         _capturedAndBoxed = new Map<Local, FieldEntity>(),
         tryBlock = null;
@@ -275,10 +270,7 @@ class LocalsHandler {
       {bool isTry: false, bool useOtherTryBlock: true})
       : locals = new VariableScope(block, isTry: isTry, parent: other.locals),
         fieldScope = new FieldInitializationScope.from(other.fieldScope),
-        _capturedAndBoxed = other._capturedAndBoxed,
-        types = other.types,
-        inferrer = other.inferrer,
-        options = other.options {
+        _capturedAndBoxed = other._capturedAndBoxed {
     tryBlock = useOtherTryBlock ? other.tryBlock : this;
   }
 
@@ -286,21 +278,15 @@ class LocalsHandler {
       : locals = new VariableScope.deepCopyOf(other.locals),
         fieldScope = new FieldInitializationScope.from(other.fieldScope),
         _capturedAndBoxed = other._capturedAndBoxed,
-        tryBlock = other.tryBlock,
-        types = other.types,
-        inferrer = other.inferrer,
-        options = other.options;
+        tryBlock = other.tryBlock;
 
   LocalsHandler.topLevelCopyOf(LocalsHandler other)
       : locals = new VariableScope.topLevelCopyOf(other.locals),
         fieldScope = new FieldInitializationScope.from(other.fieldScope),
         _capturedAndBoxed = other._capturedAndBoxed,
-        tryBlock = other.tryBlock,
-        types = other.types,
-        inferrer = other.inferrer,
-        options = other.options;
+        tryBlock = other.tryBlock;
 
-  TypeInformation use(Local local) {
+  TypeInformation use(InferrerEngine inferrer, Local local) {
     if (_capturedAndBoxed.containsKey(local)) {
       FieldEntity field = _capturedAndBoxed[local];
       return inferrer.typeOfMember(field);
@@ -309,12 +295,12 @@ class LocalsHandler {
     }
   }
 
-  void update(
-      Local local, TypeInformation type, ir.Node node, DartType staticType,
+  void update(InferrerEngine inferrer, Local local, TypeInformation type,
+      ir.Node node, DartType staticType,
       {bool isSetIfNull: false}) {
     assert(type != null);
-    if (!options.assignmentCheckPolicy.isIgnored) {
-      type = types.narrowType(type, staticType);
+    if (!inferrer.options.assignmentCheckPolicy.isIgnored) {
+      type = inferrer.types.narrowType(type, staticType);
     }
     updateLocal() {
       TypeInformation currentType = locals[local];
@@ -322,10 +308,10 @@ class LocalsHandler {
       if (isSetIfNull && currentType != null) {
         // If-null assignments may return either the new or the original value
         // narrowed to non-null.
-        type = types.addPhiInput(
+        type = inferrer.types.addPhiInput(
             local,
-            types.allocatePhi(
-                locals.block, local, types.narrowNotNull(currentType),
+            inferrer.types.allocatePhi(
+                locals.block, local, inferrer.types.narrowNotNull(currentType),
                 isTry: locals.isTry),
             type);
       }
@@ -342,10 +328,11 @@ class LocalsHandler {
       // the right phi for it.
       TypeInformation existing = tryBlock.locals.parent[local];
       if (existing != null) {
-        TypeInformation phiType = types.allocatePhi(
+        TypeInformation phiType = inferrer.types.allocatePhi(
             tryBlock.locals.block, local, existing,
             isTry: tryBlock.locals.isTry);
-        TypeInformation inputType = types.addPhiInput(local, phiType, type);
+        TypeInformation inputType =
+            inferrer.types.addPhiInput(local, phiType, type);
         tryBlock.locals.parent[local] = inputType;
       }
       // Update the current handler unconditionally with the new
@@ -356,21 +343,23 @@ class LocalsHandler {
     }
   }
 
-  void narrow(Local local, DartType type, ir.Node node,
+  void narrow(InferrerEngine inferrer, Local local, DartType type, ir.Node node,
       {bool isSetIfNull: false}) {
-    TypeInformation existing = use(local);
+    TypeInformation existing = use(inferrer, local);
     TypeInformation newType =
-        types.narrowType(existing, type, isNullable: false);
-    update(local, newType, node, type, isSetIfNull: isSetIfNull);
+        inferrer.types.narrowType(existing, type, isNullable: false);
+    update(inferrer, local, newType, node, type, isSetIfNull: isSetIfNull);
   }
 
   void setCapturedAndBoxed(Local local, FieldEntity field) {
     _capturedAndBoxed[local] = field;
   }
 
-  void mergeDiamondFlow(LocalsHandler thenBranch, LocalsHandler elseBranch) {
+  void mergeDiamondFlow(InferrerEngine inferrer, LocalsHandler thenBranch,
+      LocalsHandler elseBranch) {
     if (fieldScope != null && elseBranch != null) {
-      fieldScope.mergeDiamondFlow(thenBranch.fieldScope, elseBranch.fieldScope);
+      fieldScope.mergeDiamondFlow(
+          inferrer, thenBranch.fieldScope, elseBranch.fieldScope);
     }
     seenReturnOrThrow = thenBranch.seenReturnOrThrow &&
         elseBranch != null &&
@@ -385,7 +374,7 @@ class LocalsHandler {
         TypeInformation myType = locals[local];
         if (myType == null) return; // Variable is only defined in [other].
         if (type == myType) return;
-        locals[local] = types.allocateDiamondPhi(myType, type);
+        locals[local] = inferrer.types.allocateDiamondPhi(myType, type);
       });
     }
 
@@ -414,7 +403,7 @@ class LocalsHandler {
         if (thenType == elseType) {
           locals[local] = thenType;
         } else {
-          locals[local] = types.allocateDiamondPhi(thenType, elseType);
+          locals[local] = inferrer.types.allocateDiamondPhi(thenType, elseType);
         }
       }
 
@@ -459,7 +448,7 @@ class LocalsHandler {
    * where [:this:] is the [LocalsHandler] for the paths through the
    * labeled statement that do not break out.
    */
-  void mergeAfterBreaks(List<LocalsHandler> handlers,
+  void mergeAfterBreaks(InferrerEngine inferrer, List<LocalsHandler> handlers,
       {bool keepOwnLocals: true}) {
     ir.Node level = locals.block;
     // Use a separate locals handler to perform the merge in, so that Phi
@@ -472,7 +461,7 @@ class LocalsHandler {
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
-      merged.mergeHandler(handler, seenLocals);
+      merged.mergeHandler(inferrer, handler, seenLocals);
     }
     // If we want to keep own locals, we merge [seenLocals] from [this] into
     // [merged] to update the Phi nodes with original values.
@@ -480,15 +469,15 @@ class LocalsHandler {
       for (Local variable in seenLocals) {
         TypeInformation originalType = locals[variable];
         if (originalType != null) {
-          merged.locals[variable] = types.addPhiInput(
-              variable, merged.locals[variable], originalType);
+          merged.locals[variable] = inferrer.types
+              .addPhiInput(variable, merged.locals[variable], originalType);
         }
       }
     }
     // Clean up Phi nodes with single input and store back result into
     // actual locals handler.
     merged.locals.forEachOwnLocal((Local variable, TypeInformation type) {
-      locals[variable] = types.simplifyPhi(level, variable, type);
+      locals[variable] = inferrer.types.simplifyPhi(level, variable, type);
     });
     seenReturnOrThrow =
         allBranchesAbort && (!keepOwnLocals || seenReturnOrThrow);
@@ -500,7 +489,8 @@ class LocalsHandler {
    * unless the local is already present in the set [seen]. This effectively
    * overwrites the current type knowledge in this handler.
    */
-  bool mergeHandler(LocalsHandler other, [Set<Local> seen]) {
+  bool mergeHandler(InferrerEngine inferrer, LocalsHandler other,
+      [Set<Local> seen]) {
     if (other.seenReturnOrThrow) return false;
     bool changed = false;
     other.locals.forEachLocalUntilNode(locals.block, (local, otherType) {
@@ -508,11 +498,11 @@ class LocalsHandler {
       if (myType == null) return;
       TypeInformation newType;
       if (seen != null && !seen.contains(local)) {
-        newType = types.allocatePhi(locals.block, local, otherType,
-            isTry: locals.isTry);
+        newType = inferrer.types
+            .allocatePhi(locals.block, local, otherType, isTry: locals.isTry);
         seen.add(local);
       } else {
-        newType = types.addPhiInput(local, myType, otherType);
+        newType = inferrer.types.addPhiInput(local, myType, otherType);
       }
       if (newType != myType) {
         changed = true;
@@ -526,28 +516,29 @@ class LocalsHandler {
    * Merge all [LocalsHandler] in [handlers] into this handler.
    * Returns whether a local in this handler has changed.
    */
-  bool mergeAll(List<LocalsHandler> handlers) {
+  bool mergeAll(InferrerEngine inferrer, List<LocalsHandler> handlers) {
     bool changed = false;
     assert(!seenReturnOrThrow);
     handlers.forEach((other) {
-      changed = mergeHandler(other) || changed;
+      changed = mergeHandler(inferrer, other) || changed;
     });
     return changed;
   }
 
-  void startLoop(ir.Node loop) {
+  void startLoop(InferrerEngine inferrer, ir.Node loop) {
     locals.forEachLocal((Local variable, TypeInformation type) {
       TypeInformation newType =
-          types.allocateLoopPhi(loop, variable, type, isTry: false);
+          inferrer.types.allocateLoopPhi(loop, variable, type, isTry: false);
       if (newType != type) {
         locals[variable] = newType;
       }
     });
   }
 
-  void endLoop(ir.Node loop) {
+  void endLoop(InferrerEngine inferrer, ir.Node loop) {
     locals.forEachLocal((Local variable, TypeInformation type) {
-      TypeInformation newType = types.simplifyPhi(loop, variable, type);
+      TypeInformation newType =
+          inferrer.types.simplifyPhi(loop, variable, type);
       if (newType != type) {
         locals[variable] = newType;
       }

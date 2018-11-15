@@ -238,6 +238,11 @@ class Reader : public ValueObject {
     }
   }
 
+  intptr_t ReadSLEB128() {
+    const uint8_t* buffer = this->buffer();
+    return Utils::DecodeSLEB128(buffer, size_, &offset_);
+  }
+
   /**
    * Read and return a TokenPosition from this reader.
    */

@@ -8,12 +8,7 @@ import 'dart:async';
 
 import 'package:compiler/compiler.dart' show DiagnosticHandler;
 import 'package:compiler/compiler_new.dart'
-    show
-        CompilationResult,
-        CompilerDiagnostics,
-        CompilerOutput,
-        Diagnostic,
-        PackagesDiscoveryProvider;
+    show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
@@ -80,7 +75,6 @@ Future<CompilationResult> runCompiler(
     Uri librariesSpecificationUri,
     Uri packageRoot,
     Uri packageConfig,
-    PackagesDiscoveryProvider packagesDiscoveryProvider,
     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
@@ -94,8 +88,7 @@ Future<CompilationResult> runCompiler(
       showDiagnostics: showDiagnostics,
       librariesSpecificationUri: librariesSpecificationUri,
       packageRoot: packageRoot,
-      packageConfig: packageConfig,
-      packagesDiscoveryProvider: packagesDiscoveryProvider);
+      packageConfig: packageConfig);
   if (beforeRun != null) {
     beforeRun(compiler);
   }
@@ -115,15 +108,12 @@ CompilerImpl compilerFor(
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
     Uri packageRoot,
-    Uri packageConfig,
-    PackagesDiscoveryProvider packagesDiscoveryProvider}) {
+    Uri packageConfig}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= Uri.base.resolve('sdk/lib/libraries.json');
   Uri platformBinaries = computePlatformBinariesLocation();
 
-  if (packageRoot == null &&
-      packageConfig == null &&
-      packagesDiscoveryProvider == null) {
+  if (packageRoot == null && packageConfig == null) {
     if (Platform.packageRoot != null) {
       packageRoot = Uri.base.resolve(Platform.packageRoot);
     } else if (Platform.packageConfig != null) {
@@ -151,8 +141,7 @@ CompilerImpl compilerFor(
     ..entryPoint = entryPoint
     ..packageRoot = packageRoot
     ..environment = {}
-    ..packageConfig = packageConfig
-    ..packagesDiscoveryProvider = packagesDiscoveryProvider;
+    ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
   CompilerImpl compiler = new CompilerImpl(

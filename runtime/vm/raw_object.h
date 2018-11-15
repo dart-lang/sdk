@@ -1488,6 +1488,8 @@ class RawBytecode : public RawObject {
   RawPcDescriptors* pc_descriptors_;
   VISIT_TO(RawObject*, pc_descriptors_);
 
+  intptr_t source_positions_binary_offset_;
+
   friend class Function;
   friend class StackFrame;
 };

@@ -444,7 +444,6 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   }
 
   bool containsValue(Object value) {
-    bool found = false;
     int initialSplayCount = _splayCount;
     bool visit(_SplayTreeMapNode node) {
       while (node != null) {
@@ -593,14 +592,14 @@ abstract class _SplayTreeIterator<K, T> implements Iterator<T> {
    * only the tree that has been reordered.
    */
   void _rebuildWorkList(_SplayTreeNode<K> currentNode) {
-    assert(!_workList.isEmpty);
+    assert(_workList.isNotEmpty);
     _workList.clear();
     if (currentNode == null) {
       _findLeftMostDescendent(_tree._root);
     } else {
       _tree._splay(currentNode.key);
       _findLeftMostDescendent(_tree._root.right);
-      assert(!_workList.isEmpty);
+      assert(_workList.isNotEmpty);
     }
   }
 

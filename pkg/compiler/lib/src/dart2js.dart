@@ -10,7 +10,6 @@ import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'dart:isolate' show Isolate;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
@@ -599,7 +598,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     ..packageRoot = packageRoot
     ..packageConfig = packageConfig
     ..environment = environment
-    ..packagesDiscoveryProvider = findPackages
     ..kernelInitializedCompilerState = kernelInitializedCompilerState
     ..optimizationLevel = optimizationLevel;
   return compileFunc(

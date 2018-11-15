@@ -823,7 +823,7 @@ class SocketException implements IOException {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("SocketException");
-    if (!message.isEmpty) {
+    if (message.isNotEmpty) {
       sb.write(": $message");
       if (osError != null) {
         sb.write(" ($osError)");

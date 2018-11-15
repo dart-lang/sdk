@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server_client/server.dart';
+import 'package:analysis_server_client/protocol.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,7 +16,7 @@ void main() {
 
   setUp(() async {
     process = new MockProcess();
-    server = new Server(process);
+    server = new Server(process: process);
   });
 
   group('listenToOutput', () {
@@ -36,10 +37,10 @@ void main() {
 
       final future = server.send('blahMethod', null);
       future.catchError((e) {
-        expect(e, const TypeMatcher<ServerErrorMessage>());
-        final error = e as ServerErrorMessage;
-        expect(error.errorCode, 'someErrorCode');
-        expect(error.errorMessage, 'something went wrong');
+        expect(e, const TypeMatcher<RequestError>());
+        final error = e as RequestError;
+        expect(error.code, RequestErrorCode.UNKNOWN_REQUEST);
+        expect(error.message, 'something went wrong');
         expect(error.stackTrace, 'some long stack trace');
       });
       server.listenToOutput();
@@ -50,11 +51,11 @@ void main() {
       process.stderr = _noMessage();
 
       final completer = new Completer();
-      void eventHandler(String event, Map<String, Object> params) {
-        expect(event, 'fooEvent');
-        expect(params.length, 2);
-        expect(params['foo'] as String, 'bar');
-        expect(params['baz'] as String, 'bang');
+      void eventHandler(Notification notification) {
+        expect(notification.event, 'fooEvent');
+        expect(notification.params.length, 2);
+        expect(notification.params['foo'] as String, 'bar');
+        expect(notification.params['baz'] as String, 'bang');
         completer.complete();
       }
 
@@ -93,17 +94,17 @@ void main() {
       final mockout = new StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
-      process.exitCode = new Future.delayed(const Duration(milliseconds: 20));
+      process.exitCode = new Future.delayed(const Duration(seconds: 1));
 
       server.listenToOutput();
-      await server.stop(timeLimit: const Duration(milliseconds: 1));
+      await server.stop(timeLimit: const Duration(milliseconds: 10));
       expect(process.killed, isTrue);
     });
   });
 }
 
 final _badErrorMessage = {
-  'code': 'someErrorCode',
+  'code': 'UNKNOWN_REQUEST',
   'message': 'something went wrong',
   'stackTrace': 'some long stack trace'
 };
