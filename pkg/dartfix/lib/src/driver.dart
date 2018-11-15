@@ -5,16 +5,17 @@
 import 'dart:async';
 import 'dart:io' show File, Platform;
 
-import 'package:analysis_server_client/handler/notification_handler.dart';
-import 'package:analysis_server_client/handler/server_connection_handler.dart';
-import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
+import 'package:analysis_server_client/handler/connection_handler.dart';
+import 'package:analysis_server_client/handler/notification_handler.dart';
+import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/protocol.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/handler/analysis_complete_handler.dart';
+import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';
 import 'package:dartfix/src/util.dart';
-import 'package:dartfix/src/verbose_server.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
@@ -37,7 +38,7 @@ class Driver {
     targets = options.targets;
     context = options.context;
     logger = options.logger;
-    server = logger.isVerbose ? new VerboseServer(logger) : new Server();
+    server = new Server(listener: new _Listener(logger));
     handler = new _Handler(this);
 
     if (!await startServer(options)) {
@@ -184,8 +185,22 @@ class Driver {
   }
 }
 
+class _Listener with ClientListener, BadMessageListener {
+  final Logger logger;
+  final bool verbose;
+
+  _Listener(this.logger) : verbose = logger.isVerbose;
+
+  @override
+  void log(String prefix, String details) {
+    if (verbose) {
+      logger.trace('$prefix $details');
+    }
+  }
+}
+
 class _Handler
-    with NotificationHandler, ServerConnectionHandler, AnalysisCompleteHandler {
+    with NotificationHandler, ConnectionHandler, AnalysisCompleteHandler {
   final Driver driver;
   final Logger logger;
   final Server server;
@@ -195,22 +210,27 @@ class _Handler
         server = driver.server;
 
   @override
-  void handleFailedToConnect() {
+  void onFailedToConnect() {
     logger.stderr('Failed to connect to server');
   }
 
   @override
-  void handleProtocolNotSupported(Version version) {
+  void onProtocolNotSupported(Version version) {
     logger.stderr('Expected protocol version $PROTOCOL_VERSION,'
         ' but found $version');
   }
 
   @override
-  void handleServerError(String error, String trace) {
-    logger.stderr('Server Error: $error');
-    if (trace != null) {
-      logger.stderr(trace);
+  void onServerError(ServerErrorParams params) {
+    if (params.isFatal) {
+      logger.stderr('Fatal Server Error: ${params.message}');
+    } else {
+      logger.stderr('Server Error: ${params.message}');
     }
+    if (params.stackTrace != null) {
+      logger.stderr(params.stackTrace);
+    }
+    super.onServerError(params);
   }
 
   @override

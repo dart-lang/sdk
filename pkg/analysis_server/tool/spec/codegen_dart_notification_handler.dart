@@ -44,10 +44,13 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
 /// and dispatches those notifications to different methods based upon
 /// the type of notification. Clients may override
 /// any of the "on<EventName>" methods that are of interest.
+///
+/// Clients may mix-in this class, but may not implement it.
 mixin NotificationHandler {
-  void handleEvent(String event, params) {
+  void handleEvent(Notification notification) {
+    Map<String, Object> params = notification.params;
     ResponseDecoder decoder = new ResponseDecoder(null);
-    switch (event) {
+    switch (notification.event) {
 ''');
     for (_Notification notification in notifications) {
       writeln('      case ${notification.constName}:');
@@ -57,7 +60,7 @@ mixin NotificationHandler {
       writeln('        break;');
     }
     writeln('      default:');
-    writeln('        onUnknownNotification(event, params);');
+    writeln('        onUnknownNotification(notification.event, params);');
     writeln('        break;');
     writeln('    }');
     writeln('  }');

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io' show Directory, Platform, ProcessSignal, exit;
 
 import 'package:analysis_server_client/handler/notification_handler.dart';
-import 'package:analysis_server_client/handler/server_connection_handler.dart';
+import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:path/path.dart' as path;
@@ -43,29 +43,11 @@ main(List<String> args) async {
   });
 }
 
-class _Handler with NotificationHandler, ServerConnectionHandler {
+class _Handler with NotificationHandler, ConnectionHandler {
   final Server server;
   int errorCount = 0;
 
   _Handler(this.server);
-
-  @override
-  void handleFailedToConnect() {
-    print('Failed to connect to server');
-  }
-
-  @override
-  void handleProtocolNotSupported(Version version) {
-    print('Expected protocol version $PROTOCOL_VERSION, but found $version');
-  }
-
-  @override
-  void handleServerError(String error, String trace) {
-    print('Server Error: $error');
-    if (trace != null) {
-      print(trace);
-    }
-  }
 
   @override
   void onAnalysisErrors(AnalysisErrorsParams params) {
@@ -84,6 +66,29 @@ class _Handler with NotificationHandler, ServerConnectionHandler {
       print('  ${error.message} • ${loc.startLine}:${loc.startColumn}');
       ++errorCount;
     }
+  }
+
+  @override
+  void onFailedToConnect() {
+    print('Failed to connect to server');
+  }
+
+  @override
+  void onProtocolNotSupported(Version version) {
+    print('Expected protocol version $PROTOCOL_VERSION, but found $version');
+  }
+
+  @override
+  void onServerError(ServerErrorParams params) {
+    if (params.isFatal) {
+      print('Fatal Server Error: ${params.message}');
+    } else {
+      print('Server Error: ${params.message}');
+    }
+    if (params.stackTrace != null) {
+      print(params.stackTrace);
+    }
+    super.onServerError(params);
   }
 
   @override
