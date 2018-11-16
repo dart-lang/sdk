@@ -159,9 +159,9 @@ namespace dart {
 //
 //    Allocate Context object assuming for D context variables.
 //
-//  - CloneContext
+//  - CloneContext D
 //
-//    Clone context stored in TOS.
+//    Clone Context object stored in TOS assuming it has D context variables.
 //
 //  - LoadContextParent
 //
@@ -403,7 +403,7 @@ namespace dart {
   V(AllocateT,                             0, ___, ___, ___)                   \
   V(CreateArrayTOS,                        0, ___, ___, ___)                   \
   V(AllocateContext,                       D, num, ___, ___)                   \
-  V(CloneContext,                          0, ___, ___, ___)                   \
+  V(CloneContext,                          D, num, ___, ___)                   \
   V(LoadContextParent,                     0, ___, ___, ___)                   \
   V(StoreContextParent,                    0, ___, ___, ___)                   \
   V(LoadContextVar,                        D, num, ___, ___)                   \

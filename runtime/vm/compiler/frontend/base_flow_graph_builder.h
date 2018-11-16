@@ -133,8 +133,7 @@ class BaseFlowGraphBuilder {
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
   Fragment LoadField(const Field& field);
-  Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
-  Fragment LoadNativeField(const NativeFieldDesc* native_field);
+  Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
 
   void SetTempIndex(Definition* definition);
@@ -148,7 +147,7 @@ class BaseFlowGraphBuilder {
   const Field& MayCloneField(const Field& field);
   Fragment StoreInstanceField(
       TokenPosition position,
-      intptr_t offset,
+      const Slot& field,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       const Field& field,
@@ -262,7 +261,7 @@ class BaseFlowGraphBuilder {
 
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
-  Fragment AllocateContext(intptr_t size);
+  Fragment AllocateContext(const GrowableArray<LocalVariable*>& scope);
   Fragment CreateArray();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);

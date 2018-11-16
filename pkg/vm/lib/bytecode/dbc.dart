@@ -175,7 +175,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kAllocateContext: const Format(
       Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kCloneContext: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kLoadContextParent: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kStoreContextParent: const Format(

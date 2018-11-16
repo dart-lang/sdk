@@ -630,9 +630,9 @@ void RegisterTypeArgumentsUse(const Function& function,
     if (cid != kDynamicCid) {
       const Class& instance_klass =
           Class::Handle(Isolate::Current()->class_table()->At(cid));
-      if (instance_klass.IsGeneric() &&
+      if (load_field->slot().IsTypeArguments() && instance_klass.IsGeneric() &&
           instance_klass.type_arguments_field_offset() ==
-              load_field->offset_in_bytes()) {
+              load_field->slot().offset_in_bytes()) {
         // This is a subset of Case c) above, namely forwarding the type
         // argument vector.
         //

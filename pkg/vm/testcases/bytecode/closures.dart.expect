@@ -874,7 +874,7 @@ L2:
   InstanceCall         2, CP#24
   Drop1
   Push                 r0
-  CloneContext
+  CloneContext         1
   PopLocal             r0
   Push                 r0
   Push                 r0

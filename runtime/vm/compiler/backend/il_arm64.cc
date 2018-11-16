@@ -1641,7 +1641,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
   if (emit_full_guard) {
-    __ LoadObject(field_reg, Field::ZoneHandle(field().Original()));
+    __ LoadObject(field_reg, Field::ZoneHandle((field().Original())));
 
     FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset(),
                                    kUnsignedHalfword);
@@ -1936,12 +1936,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_store;
 
   const Register instance_reg = locs()->in(0).reg();
+  const intptr_t offset_in_bytes = OffsetInBytes();
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
     const VRegister value = locs()->in(1).fpu_reg();
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
-    const intptr_t cid = field().UnboxedFieldCid();
+    const intptr_t cid = slot().field().UnboxedFieldCid();
 
     if (is_initialization()) {
       const Class* cls = NULL;
@@ -1961,11 +1962,11 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2,
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, temp2,
                                Assembler::kValueIsNotSmi,
                                /*lr_reserved=*/!compiler->intrinsic_mode());
     } else {
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes_);
+      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes);
     }
     switch (cid) {
       case kDoubleCid:
@@ -2003,7 +2004,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_float32x4;
     Label store_float64x2;
 
-    __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
+    __ LoadObject(temp, Field::ZoneHandle(Z, slot().field().Original()));
 
     __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(),
                            kUnsignedHalfword);
@@ -2041,7 +2042,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     {
       __ Bind(&store_double);
       EnsureMutableBox(compiler, this, temp, compiler->double_class(),
-                       instance_reg, offset_in_bytes_, temp2);
+                       instance_reg, offset_in_bytes, temp2);
       __ LoadDFieldFromOffset(VTMP, value_reg, Double::value_offset());
       __ StoreDFieldToOffset(VTMP, temp, Double::value_offset());
       __ b(&skip_store);
@@ -2050,7 +2051,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     {
       __ Bind(&store_float32x4);
       EnsureMutableBox(compiler, this, temp, compiler->float32x4_class(),
-                       instance_reg, offset_in_bytes_, temp2);
+                       instance_reg, offset_in_bytes, temp2);
       __ LoadQFieldFromOffset(VTMP, value_reg, Float32x4::value_offset());
       __ StoreQFieldToOffset(VTMP, temp, Float32x4::value_offset());
       __ b(&skip_store);
@@ -2059,7 +2060,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     {
       __ Bind(&store_float64x2);
       EnsureMutableBox(compiler, this, temp, compiler->float64x2_class(),
-                       instance_reg, offset_in_bytes_, temp2);
+                       instance_reg, offset_in_bytes, temp2);
       __ LoadQFieldFromOffset(VTMP, value_reg, Float64x2::value_offset());
       __ StoreQFieldToOffset(VTMP, temp, Float64x2::value_offset());
       __ b(&skip_store);
@@ -2074,16 +2075,16 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // by executing 'ret LR' directly. Therefore we cannot overwrite LR. (see
     // ReturnInstr::EmitNativeCode).
     ASSERT((kDartAvailableCpuRegs & (1 << LR)) == 0);
-    __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, value_reg,
+    __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
                              CanValueBeSmi(),
                              /*lr_reserved=*/!compiler->intrinsic_mode());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes_,
+      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
                                         locs()->in(1).constant());
     } else {
       const Register value_reg = locs()->in(1).reg();
-      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes_,
+      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
                                         value_reg);
     }
   }
@@ -2294,8 +2295,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const VRegister result = locs()->out(0).fpu_reg();
     const Register temp = locs()->temp(0).reg();
-    __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
-    const intptr_t cid = field()->UnboxedFieldCid();
+    __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
+    const intptr_t cid = slot().field().UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -2323,7 +2324,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_float32x4;
     Label load_float64x2;
 
-    __ LoadObject(result_reg, Field::ZoneHandle(field()->Original()));
+    __ LoadObject(result_reg, Field::ZoneHandle(slot().field().Original()));
 
     FieldAddress field_cid_operand(result_reg, Field::guarded_cid_offset(),
                                    kUnsignedHalfword);
@@ -2357,7 +2358,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_double);
       BoxAllocationSlowPath::Allocate(compiler, this, compiler->double_class(),
                                       result_reg, temp);
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
+      __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
       __ LoadDFieldFromOffset(VTMP, temp, Double::value_offset());
       __ StoreDFieldToOffset(VTMP, result_reg, Double::value_offset());
       __ b(&done);
@@ -2367,7 +2368,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_float32x4);
       BoxAllocationSlowPath::Allocate(
           compiler, this, compiler->float32x4_class(), result_reg, temp);
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
+      __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
       __ LoadQFieldFromOffset(VTMP, temp, Float32x4::value_offset());
       __ StoreQFieldToOffset(VTMP, result_reg, Float32x4::value_offset());
       __ b(&done);
@@ -2377,7 +2378,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_float64x2);
       BoxAllocationSlowPath::Allocate(
           compiler, this, compiler->float64x2_class(), result_reg, temp);
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
+      __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
       __ LoadQFieldFromOffset(VTMP, temp, Float64x2::value_offset());
       __ StoreQFieldToOffset(VTMP, result_reg, Float64x2::value_offset());
       __ b(&done);
@@ -2385,7 +2386,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ LoadFieldFromOffset(result_reg, instance_reg, offset_in_bytes());
+  __ LoadFieldFromOffset(result_reg, instance_reg, OffsetInBytes());
   __ Bind(&done);
 }
 

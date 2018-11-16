@@ -2461,7 +2461,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
       if (locals.currentContextSize > 0) {
         asm.emitPush(locals.contextVarIndexInFrame);
-        asm.emitCloneContext();
+        asm.emitCloneContext(locals.currentContextSize);
         asm.emitPopLocal(locals.contextVarIndexInFrame);
       }
 

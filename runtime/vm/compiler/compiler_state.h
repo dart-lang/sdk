@@ -10,6 +10,10 @@
 
 namespace dart {
 
+class LocalScope;
+class LocalVariable;
+class SlotCache;
+
 // Deoptimization Id logic.
 //
 // Deoptimization ids are used to refer to deoptimization points, at which
@@ -79,9 +83,40 @@ class CompilerState : public StackResource {
     return Thread::Current()->compiler_state();
   }
 
+  SlotCache* slot_cache() const { return slot_cache_; }
+  void set_slot_cache(SlotCache* cache) { slot_cache_ = cache; }
+
+  // Create a dummy list of local variables representing a context object
+  // with the given number of captured variables.
+  //
+  // Used during bytecode to IL translation because AllocateContext and
+  // CloneContext IL instructions need a list of local varaibles and bytecode
+  // does not record this information.
+  const GrowableArray<LocalVariable*>& GetDummyContextVariables(
+      intptr_t num_context_variables);
+
+  // Create a dummy LocalVariable that represents a captured local variable
+  // at the given index.
+  //
+  // Used during bytecode to IL translation because StoreInstanceField and
+  // LoadField IL instructions need Slot, which can only be created from a
+  // LocalVariable.
+  //
+  // This function returns the same variable when it is called with the
+  // same index.
+  LocalVariable* GetDummyCapturedVariable(intptr_t index);
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
+
+  // Cache for Slot objects created during compilation (see slot.h).
+  SlotCache* slot_cache_ = nullptr;
+
+  // Caches for dummy LocalVariables and LocalScopes created during
+  // bytecode to IL translation.
+  ZoneGrowableArray<LocalScope*>* dummy_scopes_ = nullptr;
+  ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
 
   CompilerState* previous_;
 };
