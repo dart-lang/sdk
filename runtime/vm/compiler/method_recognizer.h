@@ -560,15 +560,7 @@ class MethodRecognizer : public AllStatic {
   static bool AlwaysInline(const Function& function);
   static bool PolymorphicTarget(const Function& function);
   static intptr_t NumArgsCheckedForStaticCall(const Function& function);
-
-  // Try to find an annotation of the form
-  //   @pragma("vm:exact-result-type", int)
-  //   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  // and return the exact cid if found or kDynamicCid otherwise.
-  //
-  // See [result_type_pragma.md].
-  static intptr_t ResultCidFromPragma(const Object& function_or_field);
-
+  static intptr_t ResultCid(const Function& function);
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
 

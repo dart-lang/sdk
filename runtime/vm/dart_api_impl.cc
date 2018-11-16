@@ -5048,7 +5048,7 @@ static void CheckIsEntryPoint(const Class& klass) {
         "because it was not annotated with @pragma('vm:entry-point').\n"
         "ERROR: See "
         "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
-        "aot/entry_point_pragma.md\n",
+        "aot/entry_point_pragma.md",
         String::Handle(klass.UserVisibleName()).ToCString());
     UNREACHABLE();
   }

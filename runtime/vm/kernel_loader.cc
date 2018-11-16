@@ -953,6 +953,9 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
       ReadVMAnnotations(annotation_count, &native_name_unused,
                         &is_potential_native_unused, &has_pragma_annotation);
     }
+    if (has_pragma_annotation) {
+      toplevel_class.set_has_pragma(true);
+    }
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
     field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -966,7 +969,6 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
         Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
                            field_helper.position_, field_helper.end_position_));
     field.set_kernel_offset(field_offset);
-    field.set_has_pragma(has_pragma_annotation);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1342,6 +1344,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
         ReadVMAnnotations(annotation_count, &native_name_unused,
                           &is_potential_native_unused, &has_pragma_annotation);
       }
+      if (has_pragma_annotation) {
+        klass.set_has_pragma(true);
+      }
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
       field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1361,7 +1366,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.IsConst(), is_reflectable, script_class, type,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
-      field.set_has_pragma(has_pragma_annotation);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);

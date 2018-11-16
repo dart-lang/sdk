@@ -1188,11 +1188,8 @@ CompileType InstanceCallInstr::ComputeType() const {
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   if (IsSureToCallSingleRecognizedTarget()) {
     const Function& target = *targets_.TargetAt(0)->target;
-    if (target.has_pragma()) {
-      const intptr_t cid = MethodRecognizer::ResultCidFromPragma(target);
-      if (cid != kDynamicCid) {
-        return CompileType::FromCid(cid);
-      }
+    if (target.recognized_kind() != MethodRecognizer::kUnknown) {
+      return CompileType::FromCid(MethodRecognizer::ResultCid(target));
     }
   }
 
@@ -1214,11 +1211,8 @@ CompileType StaticCallInstr::ComputeType() const {
     return *inferred_type;
   }
 
-  if (function_.has_pragma()) {
-    const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
-    if (cid != kDynamicCid) {
-      return CompileType::FromCid(cid);
-    }
+  if (function_.recognized_kind() != MethodRecognizer::kUnknown) {
+    return CompileType::FromCid(MethodRecognizer::ResultCid(function_));
   }
 
   const Isolate* isolate = Isolate::Current();
@@ -1332,15 +1326,8 @@ CompileType LoadFieldInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  bool is_nullable = CompileType::kNullable;
-  if (field_ != nullptr && field_->has_pragma()) {
-    const intptr_t cid = MethodRecognizer::ResultCidFromPragma(*field_);
-    if (cid != kDynamicCid) {
-      return CompileType::FromCid(cid);
-    }
-  }
-
   const Isolate* isolate = Isolate::Current();
+  bool is_nullable = CompileType::kNullable;
   intptr_t cid = kDynamicCid;
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
@@ -1353,7 +1340,7 @@ CompileType LoadFieldInstr::ComputeType() const {
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid) &&
       (field_->guarded_cid() != kDynamicCid)) {
     cid = field_->guarded_cid();
-    is_nullable = is_nullable && field_->is_nullable();
+    is_nullable = field_->is_nullable();
     abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
   } else {
     cid = result_cid_;

@@ -1019,22 +1019,20 @@ void Precompiler::AddAnnotatedRoots() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
 
-      // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
+        // Check for @pragma on the class itself.
         metadata ^= lib.GetMetadata(cls);
         if (metadata_defines_entrypoint() == EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
-      }
 
-      // Check for @pragma on any fields in the class.
-      members = cls.fields();
-      implicit_getters = GrowableObjectArray::New(members.Length());
-      implicit_setters = GrowableObjectArray::New(members.Length());
-      implicit_static_getters = GrowableObjectArray::New(members.Length());
-      for (intptr_t k = 0; k < members.Length(); ++k) {
-        field ^= members.At(k);
-        if (field.has_pragma()) {
+        // Check for @pragma on any fields in the class.
+        members = cls.fields();
+        implicit_getters = GrowableObjectArray::New(members.Length());
+        implicit_setters = GrowableObjectArray::New(members.Length());
+        implicit_static_getters = GrowableObjectArray::New(members.Length());
+        for (intptr_t k = 0; k < members.Length(); ++k) {
+          field ^= members.At(k);
           metadata ^= lib.GetMetadata(field);
           if (metadata.IsNull()) continue;
           EntryPointPragma pragma = metadata_defines_entrypoint();

@@ -1642,30 +1642,25 @@ Fragment StreamingFlowGraphBuilder::BuildFirstTimePrologue(
 Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
   if (!FLAG_enable_testing_pragmas) return Drop();
 
-  auto& function = Function::Handle(Z, parsed_function()->function().raw());
+  Function& function = Function::Handle(parsed_function()->function().raw());
 
   if (function.IsImplicitClosureFunction()) {
-    const auto& parent = Function::Handle(Z, function.parent_function());
-    const auto& func_name = String::Handle(Z, parent.name());
-    const auto& owner = Class::Handle(Z, parent.Owner());
+    const Function& parent =
+        Function::ZoneHandle(Z, function.parent_function());
+    const String& func_name = String::ZoneHandle(Z, parent.name());
+    const Class& owner = Class::ZoneHandle(Z, parent.Owner());
     function = owner.LookupFunction(func_name);
   }
 
-  auto& tmp = Object::Handle(Z);
-  tmp = function.Owner();
-  tmp = Class::Cast(tmp).library();
-  auto& library = Library::Cast(tmp);
-
-  Object& options = Object::Handle(Z);
-  if (!library.FindPragma(H.thread(), function, Symbols::vm_trace_entrypoints(),
-                          &options) ||
+  Object& options = Object::Handle();
+  if (!function.FindPragma(I, Symbols::vm_trace_entrypoints(), &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
-  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  Closure& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
   LocalVariable* entry_point_num = MakeTemporary();
 
-  auto& function_name = String::ZoneHandle(
+  String& function_name = String::ZoneHandle(
       Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
   if (parsed_function()->function().IsImplicitClosureFunction()) {
     function_name = String::Concat(
@@ -1683,7 +1678,7 @@ Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
   call_hook += B->ClosureCall(TokenPosition::kNoSource,
                               /*type_args_len=*/0, /*argument_count=*/3,
-                              /*argument_names=*/Array::ZoneHandle(Z));
+                              /*argument_names=*/Array::Handle());
   call_hook += Drop();  // result of closure call
   call_hook += Drop();  // entrypoint number
   return call_hook;

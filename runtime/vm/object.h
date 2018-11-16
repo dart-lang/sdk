@@ -2274,6 +2274,8 @@ class Function : public Object {
   // Return true if any parent function of this function is generic.
   bool HasGenericParent() const;
 
+  bool FindPragma(Isolate* I, const String& pragma_name, Object* options) const;
+
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
   void InstallOptimizedCode(const Code& code) const;
@@ -3216,13 +3218,6 @@ class Field : public Object {
         value, raw_ptr()->kind_bits_));
   }
 
-  bool has_pragma() const {
-    return HasPragmaBit::decode(raw_ptr()->kind_bits_);
-  }
-  void set_has_pragma(bool value) const {
-    set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
-  }
-
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -3480,24 +3475,22 @@ class Field : public Object {
     kReflectableBit,
     kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
-    kHasPragmaBit,
   };
-  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
-  class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
-  class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
+  class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
+  class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<uint8_t, bool, kFinalBit, 1> {};
   class HasInitializerBit
-      : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
+      : public BitField<uint8_t, bool, kHasInitializerBit, 1> {};
   class UnboxingCandidateBit
-      : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
-  class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
+      : public BitField<uint8_t, bool, kUnboxingCandidateBit, 1> {};
+  class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
-      : public BitField<uint16_t, bool, kDoubleInitializedBit, 1> {};
+      : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
   class InitializerChangedAfterInitializatonBit
-      : public BitField<uint16_t,
+      : public BitField<uint8_t,
                         bool,
                         kInitializerChangedAfterInitializatonBit,
                         1> {};
-  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3530,7 +3523,7 @@ class Field : public Object {
   void set_end_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
   }
-  void set_kind_bits(uint16_t value) const {
+  void set_kind_bits(uint8_t value) const {
     StoreNonPointer(&raw_ptr()->kind_bits_, value);
   }
 
@@ -3819,11 +3812,6 @@ class Library : public Object {
                          const Function& from_fun,
                          const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
-
-  bool FindPragma(Thread* T,
-                  const Object& object,
-                  const String& pragma_name,
-                  Object* options) const;
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;

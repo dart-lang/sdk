@@ -5,7 +5,6 @@
 // part of "common_patch.dart";
 
 @patch
-@pragma("vm:entry-point")
 class _Platform {
   @patch
   static int _numberOfProcessors() native "Platform_NumberOfProcessors";
