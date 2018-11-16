@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -757,7 +757,7 @@ class Uint8Reader extends Reader<int> {
 /**
  * List of booleans backed by 8-bit unsigned integers.
  */
-class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
+class _FbBoolList with ListMixin<bool> implements List<bool> {
   final BufferContext bc;
   final int offset;
   int _length;
@@ -829,7 +829,7 @@ class _FbGenericList<E> extends _FbList<E> {
 /**
  * The base class for immutable lists read from flat buffers.
  */
-abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
+abstract class _FbList<E> with ListMixin<E> implements List<E> {
   final BufferContext bc;
   final int offset;
   int _length;

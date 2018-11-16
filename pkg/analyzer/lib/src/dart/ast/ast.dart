@@ -1600,7 +1600,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /**
  * Helper class to allow iteration of child entities of an AST node.
  */
-class ChildEntities extends Object
+class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
   /**
@@ -8259,9 +8259,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /**
  * A list of AST nodes that have a common parent.
  */
-class NodeListImpl<E extends AstNode> extends Object
-    with ListMixin<E>
-    implements NodeList<E> {
+class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /**
    * The node that is the parent of each of the elements in the list.
    */

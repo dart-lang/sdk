@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class BazelFileUriResolverTest extends Object with ResourceProviderMixin {
+class BazelFileUriResolverTest with ResourceProviderMixin {
   BazelWorkspace workspace;
   BazelFileUriResolver resolver;
 
@@ -97,7 +97,7 @@ class BazelFileUriResolverTest extends Object with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class BazelPackageUriResolverTest extends Object with ResourceProviderMixin {
+class BazelPackageUriResolverTest with ResourceProviderMixin {
   BazelWorkspace workspace;
   BazelPackageUriResolver resolver;
 
@@ -482,7 +482,7 @@ class BazelPackageUriResolverTest extends Object with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class BazelWorkspaceTest extends Object with ResourceProviderMixin {
+class BazelWorkspaceTest with ResourceProviderMixin {
   void test_find_fail_notAbsolute() {
     expect(
         () =>

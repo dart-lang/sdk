@@ -20,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisSessionImplTest extends Object with ResourceProviderMixin {
+class AnalysisSessionImplTest with ResourceProviderMixin {
   AnalysisContextCollection contextCollection;
   AnalysisContext context;
   AnalysisSessionImpl session;

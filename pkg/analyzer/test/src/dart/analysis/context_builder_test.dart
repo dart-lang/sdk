@@ -22,7 +22,7 @@ main() {
 }
 
 @reflectiveTest
-class ContextBuilderImplTest extends Object with ResourceProviderMixin {
+class ContextBuilderImplTest with ResourceProviderMixin {
   ContextBuilderImpl contextBuilder;
   ContextRoot contextRoot;
 

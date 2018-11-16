@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisContextCollectionTest extends Object with ResourceProviderMixin {
+class AnalysisContextCollectionTest with ResourceProviderMixin {
   void setUp() {
     new MockSdk(resourceProvider: resourceProvider);
   }

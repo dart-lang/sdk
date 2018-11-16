@@ -2050,7 +2050,7 @@ class UriKindTest {
   }
 }
 
-class _SimpleDartSdkTest extends Object with ResourceProviderMixin {
+class _SimpleDartSdkTest with ResourceProviderMixin {
   DartSdk sdk;
 
   void setUp() {

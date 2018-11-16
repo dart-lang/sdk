@@ -20,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class DriverBasedUriConverterTest extends Object with ResourceProviderMixin {
+class DriverBasedUriConverterTest with ResourceProviderMixin {
   DriverBasedUriConverter uriConverter;
 
   void setUp() {

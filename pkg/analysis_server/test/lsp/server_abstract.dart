@@ -24,8 +24,7 @@ const dartLanguageId = 'dart';
 /// communication to be printed to stdout.
 const debugPrintCommunication = false;
 
-abstract class AbstractLspAnalysisServerTest extends Object
-    with ResourceProviderMixin {
+abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';

@@ -439,7 +439,7 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
 
 /// Element representing a class or enum resynthesized from a summary
 /// during linking.
-abstract class ClassElementForLink extends Object
+abstract class ClassElementForLink
     with ReferenceableElementForLink
     implements AbstractClassElementImpl {
   Map<String, ReferenceableElementForLink> _containedNames;
@@ -2229,7 +2229,7 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
 
 /// Base class for executable elements resynthesized from a summary during
 /// linking.
-abstract class ExecutableElementForLink extends Object
+abstract class ExecutableElementForLink
     with TypeParameterizedElementMixin, ParameterParentElementForLink
     implements ExecutableElementImpl {
   /// The unlinked representation of the method in the summary.
@@ -2733,7 +2733,7 @@ class FieldFormalParameterElementForLink extends ParameterElementForLink
 
 /// Element representing a function-typed parameter resynthesied from a summary
 /// during linking.
-class FunctionElementForLink_FunctionTypedParam extends Object
+class FunctionElementForLink_FunctionTypedParam
     with ParameterParentElementForLink
     implements FunctionElement {
   @override
@@ -2786,7 +2786,7 @@ class FunctionElementForLink_FunctionTypedParam extends Object
 }
 
 /// Element representing the initializer expression of a variable.
-class FunctionElementForLink_Initializer extends Object
+class FunctionElementForLink_Initializer
     with ReferenceableElementForLink, TypeParameterizedElementMixin
     implements FunctionElementForLink_Local {
   /// The variable for which this element is the initializer.
@@ -3097,7 +3097,7 @@ class FunctionElementForLink_Synthetic extends ExecutableElementForLink
 }
 
 /// Element representing a typedef resynthesized from a summary during linking.
-class FunctionTypeAliasElementForLink extends Object
+class FunctionTypeAliasElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -3212,7 +3212,7 @@ class FunctionTypeAliasElementForLink extends Object
 
 /// Element representing a generic function resynthesized from a summary during
 /// linking.
-class GenericFunctionTypeElementForLink extends Object
+class GenericFunctionTypeElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -3295,7 +3295,7 @@ class GenericFunctionTypeElementForLink extends Object
 
 /// Element representing a generic typedef resynthesized from a summary during
 /// linking.
-class GenericTypeAliasElementForLink extends Object
+class GenericTypeAliasElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -4095,8 +4095,7 @@ abstract class Node<NodeType> {
 /// Accesses to a chain of non-static members separated by '.' are handled by
 /// creating a [NonstaticMemberElementForLink] that points to another
 /// [NonstaticMemberElementForLink], to whatever nesting level is necessary.
-class NonstaticMemberElementForLink extends Object
-    with ReferenceableElementForLink {
+class NonstaticMemberElementForLink with ReferenceableElementForLink {
   /// The [ReferenceableElementForLink] which is the target of the non-static
   /// reference.
   final ReferenceableElementForLink _target;
@@ -4475,7 +4474,7 @@ abstract class PropertyAccessorElementForLink
 
 /// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
 /// implied by the synthetic fields of an enum declaration.
-class PropertyAccessorElementForLink_EnumField extends Object
+class PropertyAccessorElementForLink_EnumField
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -4615,7 +4614,7 @@ class PropertyAccessorElementForLink_Executable
 
 /// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
 /// implied by a field or variable declaration.
-class PropertyAccessorElementForLink_Variable extends Object
+class PropertyAccessorElementForLink_Variable
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -5012,8 +5011,7 @@ class SimplyBoundedNode extends Node<SimplyBoundedNode> {
 }
 
 /// Element used for references to special types such as `void`.
-class SpecialTypeElementForLink extends Object
-    with ReferenceableElementForLink {
+class SpecialTypeElementForLink with ReferenceableElementForLink {
   final Linker linker;
   final DartType type;
 
@@ -5464,7 +5462,7 @@ class TypeProviderForLink extends TypeProviderBase {
 }
 
 /// Singleton element used for unresolved references.
-class UndefinedElementForLink extends Object with ReferenceableElementForLink {
+class UndefinedElementForLink with ReferenceableElementForLink {
   static final UndefinedElementForLink instance =
       new UndefinedElementForLink._();
 

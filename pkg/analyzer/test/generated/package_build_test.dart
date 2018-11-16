@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -46,8 +46,7 @@ class MockUriResolver implements UriResolver {
 }
 
 @reflectiveTest
-class PackageBuildFileUriResolverTest extends Object
-    with ResourceProviderMixin {
+class PackageBuildFileUriResolverTest with ResourceProviderMixin {
   PackageBuildWorkspace workspace;
   PackageBuildFileUriResolver resolver;
 
@@ -123,8 +122,7 @@ class PackageBuildFileUriResolverTest extends Object
 }
 
 @reflectiveTest
-class PackageBuildPackageUriResolverTest extends Object
-    with ResourceProviderMixin {
+class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
   PackageBuildWorkspace workspace;
   PackageBuildPackageUriResolver resolver;
   MockUriResolver packageUriResolver;
@@ -229,7 +227,7 @@ class PackageBuildPackageUriResolverTest extends Object
 }
 
 @reflectiveTest
-class PackageBuildWorkspaceTest extends Object with ResourceProviderMixin {
+class PackageBuildWorkspaceTest with ResourceProviderMixin {
   void test_builtFile_currentProject() {
     newFolder('/workspace/.dart_tool/build');
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);

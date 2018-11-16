@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,9 +14,9 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show ScannerResult, scanString;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
@@ -147,7 +147,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * Fasta parser.
  */
-class FastaParserTestCase extends Object
+class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
@@ -851,6 +851,15 @@ class ParserProxy extends analyzer.ParserAdapter {
 @reflectiveTest
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
+  @override
+  void test_equalityExpression_precedence_relational_right() {
+    parseExpression("== is", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+  }
+
   void test_invalidTypeParameters_super() {
     parseCompilationUnit('class C<X super Y> {}', errors: [
       // TODO(danrubel): Improve recovery.
@@ -863,15 +872,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
-    ]);
-  }
-
-  @override
-  void test_equalityExpression_precedence_relational_right() {
-    parseExpression("== is", codes: [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
     ]);
   }
 

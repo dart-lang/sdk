@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,8 +19,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'resolution.dart';
 
 /// [AnalysisDriver] based implementation of [ResolutionTest].
-class DriverResolutionTest extends Object
-    with ResourceProviderMixin, ResolutionTest {
+class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   final ByteStore byteStore = new MemoryByteStore();
 
   final StringBuffer logBuffer = new StringBuffer();

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -175,7 +175,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 /**
  * Analyzer used when the "--build-mode" option is supplied.
  */
-class BuildMode extends Object with HasContextMixin {
+class BuildMode with HasContextMixin {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;

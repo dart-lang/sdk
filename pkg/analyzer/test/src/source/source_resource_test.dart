@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,7 +22,7 @@ main() {
 }
 
 @reflectiveTest
-class FileSourceTest extends Object with ResourceProviderMixin {
+class FileSourceTest with ResourceProviderMixin {
   void test_equals_false_differentFiles() {
     File file1 = getFile("/does/not/exist1.dart");
     File file2 = getFile("/does/not/exist2.dart");
