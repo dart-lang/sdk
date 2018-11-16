@@ -304,6 +304,39 @@ enum SpecialIndex {
 
 bool isJump(Opcode opcode) => BytecodeFormats[opcode].encoding == Encoding.kT;
 
+bool isThrow(Opcode opcode) => opcode == Opcode.kThrow;
+
+bool isCall(Opcode opcode) {
+  switch (opcode) {
+    case Opcode.kIndirectStaticCall:
+    case Opcode.kInstanceCall:
+    case Opcode.kNativeCall:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool isReturn(Opcode opcode) => opcode == Opcode.kReturnTOS;
+
+bool isControlFlow(Opcode opcode) =>
+    isJump(opcode) || isThrow(opcode) || isCall(opcode) || isReturn(opcode);
+
+bool isPush(Opcode opcode) {
+  switch (opcode) {
+    case Opcode.kPush:
+    case Opcode.kPushConstant:
+    case Opcode.kPushNull:
+    case Opcode.kPushTrue:
+    case Opcode.kPushFalse:
+    case Opcode.kPushInt:
+    case Opcode.kPushStatic:
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Bytecode instructions reference constant pool indices using
 // unsigned 16-bit operands.
 const int constantPoolIndexLimit = 1 << 16;
