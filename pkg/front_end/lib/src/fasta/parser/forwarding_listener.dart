@@ -996,6 +996,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    listener?.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
+  }
+
+  @override
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     listener?.handleExpressionFunctionBody(arrowToken, endToken);
   }
@@ -1125,6 +1131,12 @@ class ForwardingListener implements Listener {
   @override
   void handleLiteralNull(Token token) {
     listener?.handleLiteralNull(token);
+  }
+
+  @override
+  void handleLiteralSet(
+      int count, Token beginToken, Token constKeyword, Token token) {
+    listener?.handleLiteralSet(count, beginToken, constKeyword, token);
   }
 
   @override
