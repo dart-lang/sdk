@@ -2914,27 +2914,40 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   return result.raw();
 }
 
-bool Function::FindPragma(Isolate* I,
-                          const String& pragma_name,
-                          Object* options) const {
-  if (!has_pragma()) return false;
+bool Library::FindPragma(Thread* T,
+                         const Object& obj,
+                         const String& pragma_name,
+                         Object* options) const {
+  auto I = T->isolate();
+  auto Z = T->zone();
+  auto& lib = Library::Handle(Z);
+  if (obj.IsClass()) {
+    auto& klass = Class::Cast(obj);
+    if (!klass.has_pragma()) return false;
+    lib = klass.library();
+  } else if (obj.IsFunction()) {
+    auto& function = Function::Cast(obj);
+    if (!function.has_pragma()) return false;
+    lib = Class::Handle(Z, function.Owner()).library();
+  } else if (obj.IsField()) {
+    auto& field = Field::Cast(obj);
+    if (!field.has_pragma()) return false;
+    lib = Class::Handle(Z, field.Owner()).library();
+  } else {
+    UNREACHABLE();
+  }
 
-  auto& klass = Class::Handle(Owner());
-  auto& lib = Library::Handle(klass.library());
+  Object& metadata_obj = Object::Handle(Z, lib.GetMetadata(obj));
+  if (metadata_obj.IsNull() || !metadata_obj.IsArray()) return false;
 
-  auto& pragma_class =
-      Class::Handle(Isolate::Current()->object_store()->pragma_class());
+  auto& metadata = Array::Cast(metadata_obj);
+  auto& pragma_class = Class::Handle(Z, I->object_store()->pragma_class());
   auto& pragma_name_field =
-      Field::Handle(pragma_class.LookupField(Symbols::name()));
+      Field::Handle(Z, pragma_class.LookupField(Symbols::name()));
   auto& pragma_options_field =
-      Field::Handle(pragma_class.LookupField(Symbols::options()));
+      Field::Handle(Z, pragma_class.LookupField(Symbols::options()));
 
-  Array& metadata = Array::Handle();
-  metadata ^= lib.GetMetadata(Function::Handle(raw()));
-
-  if (metadata.IsNull()) return false;
-
-  auto& pragma = Object::Handle();
+  auto& pragma = Object::Handle(Z);
   for (intptr_t i = 0; i < metadata.Length(); ++i) {
     pragma = metadata.At(i);
     if (pragma.clazz() != pragma_class.raw() ||
@@ -8693,6 +8706,7 @@ void Field::InitializeNew(const Field& result,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
+  result.set_kind_bits(0);
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
@@ -8709,6 +8723,7 @@ void Field::InitializeNew(const Field& result,
   result.set_is_unboxing_candidate(true);
   result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
+  result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
   Isolate* isolate = Isolate::Current();

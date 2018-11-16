@@ -6,6 +6,7 @@
 
 #include "vm/compiler/frontend/constant_evaluator.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"  // For Parser::kParameter* constants.
@@ -452,6 +453,11 @@ class MetadataEvaluator : public KernelReaderHelper {
 
 RawObject* EvaluateMetadata(const Field& metadata_field,
                             bool is_annotations_offset) {
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(
+        DeoptId::kNone, "Cannot evaluate annotations in background compiler.");
+  }
+
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();

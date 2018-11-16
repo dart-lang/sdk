@@ -551,8 +551,8 @@ void FlowGraphBuilder::SetResultTypeForStaticCall(
     call->set_is_known_list_constructor(true);
     return;
   }
-  if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-    intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
+  if (target.has_pragma()) {
+    intptr_t recognized_cid = MethodRecognizer::ResultCidFromPragma(target);
     if (recognized_cid != kDynamicCid) {
       ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
              (result_type->cid == recognized_cid));

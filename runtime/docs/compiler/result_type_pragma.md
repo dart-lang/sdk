@@ -5,6 +5,9 @@ the pragma `vm:exact-result-type` to declare an exact return type different than
 the return type in the signature of the method. There are three limitations on
 this pragma:
 
+Similarly if a field is marked with the same annotation it must be guaranteed
+that a load from the field returns in the specified exact result type.
+
 0. The Dart object returned by the method at runtime must have exactly the type
 specified in the annotation (not a subtype).
 
@@ -32,6 +35,11 @@ class B extends A {}
 
 @pragma('vm:exact-result-type', B)
 A foo() native 'foo_impl';
+
+class C {
+  @pragma('vm:exact-result-type', int)
+  final int value;
+}
 ```
 
 ### Reference to type via path
@@ -39,4 +47,10 @@ A foo() native 'foo_impl';
 ```dart
 @pragma('vm:exact-result-type', 'dart:core#_Smi');
 int foo() native 'foo_impl';
+
+class C {
+  @pragma('vm:exact-result-type', 'dart:core#_Smi')
+  final int value;
+}
+
 ```
