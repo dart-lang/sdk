@@ -232,6 +232,12 @@ class FileState {
   bool get isPart => _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
 
   /**
+   * Return `true` if the file is the "unresolved" file, which does not have
+   * neither a valid URI, nor a path.
+   */
+  bool get isUnresolved => uri == null;
+
+  /**
    * If the file [isPart], return a currently know library the file is a part
    * of. Return `null` if a library is not known, for example because we have
    * not processed a library file yet.
@@ -845,9 +851,10 @@ class FileSystemState {
   }
 
   /**
-   * Return the [FileState] for the given absolute [uri]. May return `null` if
-   * the [uri] is invalid, e.g. a `package:` URI without a package name. The
-   * returned file has the last known state since if was last refreshed.
+   * Return the [FileState] for the given absolute [uri]. May return the
+   * "unresolved" file if the [uri] is invalid, e.g. a `package:` URI without
+   * a package name. The returned file has the last known state since if was
+   * last refreshed.
    */
   FileState getFileForUri(Uri uri) {
     FileState file = _uriToFile[uri];

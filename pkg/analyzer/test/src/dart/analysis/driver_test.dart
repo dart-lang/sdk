@@ -2259,6 +2259,51 @@ class B<T extends A<B>> {}
     await waitForIdleWithoutExceptions();
   }
 
+  test_isLibraryByUri() async {
+    var a1 = '/aaa/lib/a1.dart';
+    var a2 = '/aaa/lib/a2.dart';
+    var b1 = '/bbb/lib/b1.dart';
+    var b2 = '/bbb/lib/b2.dart';
+
+    String a1UriStr = 'package:aaa/a1.dart';
+    String a2UriStr = 'package:aaa/a2.dart';
+    String b1UriStr = 'package:bbb/b1.dart';
+    String b2UriStr = 'package:bbb/b2.dart';
+
+    newFile(a1, content: "part 'a2.dart';");
+    newFile(a2, content: "part of 'a1.dart';");
+    newFile(b1, content: "part 'b2.dart';");
+    newFile(b2, content: "part of 'b1.dart';");
+
+    // Build the store with the library.
+    var store =
+        await createAnalysisDriver().test.getSummaryStore(convertPath(a1));
+    expect(store.unlinkedMap.keys, contains(a1UriStr));
+    expect(store.unlinkedMap.keys, contains(a2UriStr));
+    expect(store.linkedMap.keys, contains(a1UriStr));
+
+    // Remove the stored files from the file system.
+    deleteFile(a1);
+    deleteFile(a2);
+
+    // We can ask isLibraryByUri() for both external and local units.
+    AnalysisDriver driver = createAnalysisDriver(externalSummaries: store);
+    expect(driver.isLibraryByUri(Uri.parse(a1UriStr)), isTrue);
+    expect(driver.isLibraryByUri(Uri.parse(a2UriStr)), isFalse);
+    expect(driver.isLibraryByUri(Uri.parse(b1UriStr)), isTrue);
+    expect(driver.isLibraryByUri(Uri.parse(b2UriStr)), isFalse);
+  }
+
+  test_isLibraryByUri_doesNotExist() async {
+    var uri = Uri.parse('file:///test.dart');
+    expect(driver.isLibraryByUri(uri), isTrue);
+  }
+
+  test_isLibraryByUri_invalidUri() async {
+    var uri = Uri.parse('package:aaa');
+    expect(driver.isLibraryByUri(uri), isTrue);
+  }
+
   test_issue34619() async {
     var a = convertPath('/test/lib/a.dart');
     newFile(a, content: r'''

@@ -566,6 +566,15 @@ part 'not-a2.dart';
     expect(file2, same(file1));
   }
 
+  test_getFileForUri_invalidUri() {
+    var uri = Uri.parse('package:x');
+    var file = fileSystemState.getFileForUri(uri);
+    expect(file.isUnresolved, isTrue);
+    expect(file.uri, isNull);
+    expect(file.path, isNull);
+    expect(file.isPart, isFalse);
+  }
+
   test_getFileForUri_packageVsFileUri() {
     String path = convertPath('/aaa/lib/a.dart');
     var packageUri = Uri.parse('package:aaa/a.dart');
