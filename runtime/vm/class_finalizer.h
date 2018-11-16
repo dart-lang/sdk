@@ -118,8 +118,6 @@ class ClassFinalizer : public AllStatic {
   static bool IsMixinCycleFree(const Class& cls,
                                GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
-  static RawClass* ResolveClass(const Class& cls,
-                                const UnresolvedClass& unresolved_class);
   static void ResolveType(const Class& cls, const AbstractType& type);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,

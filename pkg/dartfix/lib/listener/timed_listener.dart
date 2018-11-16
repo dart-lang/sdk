@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 
 /// [TimedListener] appends a timestamp (seconds since server startup)
 /// to each logged interaction with the server.
-mixin TimedListener on ClientListener {
+mixin TimedListener on ServerListener {
   /// Stopwatch that we use to generate timing information for debug output.
   Stopwatch _time = new Stopwatch();
 

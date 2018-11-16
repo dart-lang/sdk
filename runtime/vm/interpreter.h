@@ -198,6 +198,19 @@ class Interpreter {
 
   // Prints bytecode instruction at given pc for instruction tracing.
   void TraceInstruction(uint32_t* pc) const;
+
+  bool IsWritingTraceFile() const;
+  void FlushTraceBuffer();
+  void WriteInstructionToTrace(uint32_t* pc);
+
+  void* trace_file_;
+  uint64_t trace_file_bytes_written_;
+
+  static const intptr_t kTraceBufferSizeInBytes = 10 * KB;
+  static const intptr_t kTraceBufferInstrs =
+      kTraceBufferSizeInBytes / sizeof(KBCInstr);
+  KBCInstr* trace_buffer_;
+  intptr_t trace_buffer_idx_;
 #endif  // defined(DEBUG)
 
   // Longjmp support for exceptions.

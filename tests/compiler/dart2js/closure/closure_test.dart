@@ -215,7 +215,7 @@ class ClosureIrChecker extends IrDataExtractor {
     } else {
       //Expect.isFalse(capturedScope.localIsUsedInTryOrSync(local));
     }
-    if (capturedScope.isBoxed(local)) {
+    if (capturedScope.isBoxedVariable(local)) {
       features.add('boxed');
     }
     if (capturedScope.context == local) {

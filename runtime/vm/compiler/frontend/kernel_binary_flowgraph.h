@@ -56,6 +56,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
  private:
   bool optimizing();
 
+  Thread* thread() const { return flow_graph_builder_->thread_; }
+
   FlowGraph* BuildGraphOfFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
   void SetupDefaultParameterValues();
@@ -273,11 +275,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                           const Class& klass,
                           intptr_t argument_count);
   Fragment AllocateObject(const Class& klass, const Function& closure_function);
-  Fragment AllocateContext(intptr_t size);
-  Fragment LoadField(intptr_t offset);
+  Fragment AllocateContext(
+      const GrowableArray<LocalVariable*>& context_variables);
+  Fragment LoadNativeField(const Slot& field);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
-  Fragment StoreInstanceField(TokenPosition position, intptr_t offset);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
@@ -287,7 +289,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
   Fragment CheckStackOverflow(TokenPosition position);
-  Fragment CloneContext(intptr_t num_context_variables);
+  Fragment CloneContext(const GrowableArray<LocalVariable*>& context_variables);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
@@ -326,7 +328,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment EnterScope(intptr_t kernel_offset,
-                      intptr_t* num_context_variables = NULL);
+                      const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);
 
   TestFragment TranslateConditionForControl();

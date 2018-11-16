@@ -202,7 +202,7 @@ class LocalsHandler {
 
     parameters.forEach((Local local, AbstractValue typeMask) {
       if (isGenerativeConstructorBody) {
-        if (scopeData.isBoxed(local)) {
+        if (scopeData.isBoxedVariable(local)) {
           // The parameter will be a field in the box passed as the
           // last parameter. So no need to have it.
           return;

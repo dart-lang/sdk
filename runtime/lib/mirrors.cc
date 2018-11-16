@@ -523,7 +523,7 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       return CreateFunctionTypeMirror(type);
     }
   }
-  if (type.HasResolvedTypeClass()) {
+  if (type.HasTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
     if (cls.IsVoidClass()) {
@@ -730,7 +730,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
   if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsTypedefClass()) {
@@ -751,7 +751,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
 
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   const Class& clz = Class::Handle(type.type_class());
   if (!clz.IsGeneric()) {
     const Array& error_args = Array::Handle(Array::New(3));

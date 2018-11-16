@@ -340,6 +340,21 @@ class C {
     verify([source]);
   }
 
+  test_deprecatedMemberUse_inDeprecatedField() async {
+    Source source = addSource(r'''
+@deprecated
+class C {}
+
+class X {
+  @deprecated
+  C f;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_deprecatedMemberUse_inDeprecatedFunction() async {
     Source source = addSource(r'''
 @deprecated
@@ -403,6 +418,36 @@ class C {
     f();
   }
 }
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedMemberUse_inDeprecatedMixin() async {
+    Source source = addSource(r'''
+@deprecated
+f() {}
+
+@deprecated
+mixin M {
+  m() {
+    f();
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedMemberUse_inDeprecatedTopLevelVariable() async {
+    Source source = addSource(r'''
+@deprecated
+class C {}
+
+@deprecated
+C v;
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);

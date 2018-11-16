@@ -8,7 +8,7 @@ import 'dart:io' show File, Platform;
 import 'package:analysis_server_client/server.dart';
 import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/handler/notification_handler.dart';
-import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/handler/analysis_complete_handler.dart';
@@ -185,7 +185,7 @@ class Driver {
   }
 }
 
-class _Listener with ClientListener, BadMessageListener {
+class _Listener with ServerListener, BadMessageListener {
   final Logger logger;
   final bool verbose;
 

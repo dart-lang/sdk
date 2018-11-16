@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 
 /// [BadMessageListener] throws an exception if the [Client] receives bad data.
-mixin BadMessageListener on ClientListener {
+mixin BadMessageListener on ServerListener {
   /// True if we've received bad data from the server.
   bool _receivedBadDataFromServer = false;
 

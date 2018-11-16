@@ -246,7 +246,6 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
  */
 class LocalsHandler {
   final VariableScope locals;
-  final Map<Local, FieldEntity> _capturedAndBoxed;
   final FieldInitializationScope fieldScope;
   LocalsHandler tryBlock;
   bool seenReturnOrThrow = false;
@@ -258,45 +257,42 @@ class LocalsHandler {
 
   bool get inTryBlock => tryBlock != null;
 
-  LocalsHandler.internal(ir.Node block, this.fieldScope, this.locals,
-      this._capturedAndBoxed, this.tryBlock);
+  LocalsHandler.internal(
+      ir.Node block, this.fieldScope, this.locals, this.tryBlock);
 
   LocalsHandler(ir.Node block, [this.fieldScope])
       : locals = new VariableScope(block, isTry: false),
-        _capturedAndBoxed = new Map<Local, FieldEntity>(),
         tryBlock = null;
 
   LocalsHandler.from(LocalsHandler other, ir.Node block,
       {bool isTry: false, bool useOtherTryBlock: true})
       : locals = new VariableScope(block, isTry: isTry, parent: other.locals),
-        fieldScope = new FieldInitializationScope.from(other.fieldScope),
-        _capturedAndBoxed = other._capturedAndBoxed {
+        fieldScope = new FieldInitializationScope.from(other.fieldScope) {
     tryBlock = useOtherTryBlock ? other.tryBlock : this;
   }
 
   LocalsHandler.deepCopyOf(LocalsHandler other)
       : locals = new VariableScope.deepCopyOf(other.locals),
         fieldScope = new FieldInitializationScope.from(other.fieldScope),
-        _capturedAndBoxed = other._capturedAndBoxed,
         tryBlock = other.tryBlock;
 
   LocalsHandler.topLevelCopyOf(LocalsHandler other)
       : locals = new VariableScope.topLevelCopyOf(other.locals),
         fieldScope = new FieldInitializationScope.from(other.fieldScope),
-        _capturedAndBoxed = other._capturedAndBoxed,
         tryBlock = other.tryBlock;
 
-  TypeInformation use(InferrerEngine inferrer, Local local) {
-    if (_capturedAndBoxed.containsKey(local)) {
-      FieldEntity field = _capturedAndBoxed[local];
+  TypeInformation use(InferrerEngine inferrer,
+      Map<Local, FieldEntity> capturedAndBoxed, Local local) {
+    FieldEntity field = capturedAndBoxed[local];
+    if (field != null) {
       return inferrer.typeOfMember(field);
     } else {
       return locals[local];
     }
   }
 
-  void update(InferrerEngine inferrer, Local local, TypeInformation type,
-      ir.Node node, DartType staticType,
+  void update(InferrerEngine inferrer, Map<Local, FieldEntity> capturedAndBoxed,
+      Local local, TypeInformation type, ir.Node node, DartType staticType,
       {bool isSetIfNull: false}) {
     assert(type != null);
     if (!inferrer.options.assignmentCheckPolicy.isIgnored) {
@@ -318,8 +314,9 @@ class LocalsHandler {
       locals[local] = type;
     }
 
-    if (_capturedAndBoxed.containsKey(local)) {
-      inferrer.recordTypeOfField(_capturedAndBoxed[local], type);
+    FieldEntity field = capturedAndBoxed[local];
+    if (field != null) {
+      inferrer.recordTypeOfField(field, type);
     } else if (inTryBlock) {
       // We don't know if an assignment in a try block
       // will be executed, so all assignments in that block are
@@ -343,16 +340,14 @@ class LocalsHandler {
     }
   }
 
-  void narrow(InferrerEngine inferrer, Local local, DartType type, ir.Node node,
+  void narrow(InferrerEngine inferrer, Map<Local, FieldEntity> capturedAndBoxed,
+      Local local, DartType type, ir.Node node,
       {bool isSetIfNull: false}) {
-    TypeInformation existing = use(inferrer, local);
+    TypeInformation existing = use(inferrer, capturedAndBoxed, local);
     TypeInformation newType =
         inferrer.types.narrowType(existing, type, isNullable: false);
-    update(inferrer, local, newType, node, type, isSetIfNull: isSetIfNull);
-  }
-
-  void setCapturedAndBoxed(Local local, FieldEntity field) {
-    _capturedAndBoxed[local] = field;
+    update(inferrer, capturedAndBoxed, local, newType, node, type,
+        isSetIfNull: isSetIfNull);
   }
 
   void mergeDiamondFlow(InferrerEngine inferrer, LocalsHandler thenBranch,

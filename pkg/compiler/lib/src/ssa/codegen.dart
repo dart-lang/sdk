@@ -1710,25 +1710,49 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateIf(HIf node, HIfBlockInformation info) {
-    use(node.inputs[0]);
-    js.Expression test = pop();
-
     HStatementInformation thenGraph = info.thenGraph;
     HStatementInformation elseGraph = info.elseGraph;
-    js.Statement thenPart =
-        unwrapStatement(generateStatementsInNewBlock(thenGraph));
-    js.Statement elsePart =
-        unwrapStatement(generateStatementsInNewBlock(elseGraph));
+    HInstruction condition = node.inputs.single;
 
-    js.Statement code;
+    js.Expression test;
+    js.Statement thenPart;
+    js.Statement elsePart;
+
+    HBasicBlock thenBlock = node.block.successors[0];
+    // If we believe we will generate S1 as empty, try to generate
+    //
+    //     if (e) S1; else S2;
+    // as
+    //     if (!e) S2; else S1;
+    //
+    // It is better to generate `!e` rather than try and negate it later.
+    // Recognize a single then-block with no code and no controlled phis.
+    if (isGenerateAtUseSite(condition) &&
+        thenBlock.successors.length == 1 &&
+        thenBlock.successors.single == node.joinBlock &&
+        node.joinBlock.phis.isEmpty &&
+        thenBlock.first is HGoto) {
+      generateNot(condition, condition.sourceInformation);
+      test = pop();
+      // Swap branches but visit in same order as register allocator.
+      elsePart = unwrapStatement(generateStatementsInNewBlock(thenGraph));
+      thenPart = unwrapStatement(generateStatementsInNewBlock(elseGraph));
+      assert(elsePart is js.EmptyStatement);
+    } else {
+      use(condition);
+      test = pop();
+      thenPart = unwrapStatement(generateStatementsInNewBlock(thenGraph));
+      elsePart = unwrapStatement(generateStatementsInNewBlock(elseGraph));
+    }
+
     // Peephole rewrites:
     //
     //     if (e); else S;   -->   if(!e) S;
     //
     //     if (e);   -->   e;
     //
-    // TODO(sra): This peephole optimization would be better done as an SSA
-    // optimization.
+    // TODO(sra): We might be able to do better with reshaping the CFG.
+    js.Statement code;
     if (thenPart is js.EmptyStatement) {
       if (elsePart is js.EmptyStatement) {
         code = new js.ExpressionStatement(test);

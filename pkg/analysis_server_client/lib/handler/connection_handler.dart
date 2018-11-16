@@ -20,7 +20,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// and [onServerError] to display connection failure information.
 ///
 /// Clients may mix-in this class, but may not extend or implement it.
-mixin ConnectionHandler on NotificationHandler {
+mixin ConnectionHandler implements NotificationHandler {
   Completer<bool> _connected = new Completer();
 
   /// Clients should implement this method to return the server being managed.

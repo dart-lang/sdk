@@ -674,10 +674,7 @@ static void ReplaceParameterStubs(Zone* zone,
           ASSERT(call_data->call->IsClosureCall());
           LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
               new Value((*arguments)[first_arg_index]->definition()),
-              Closure::context_offset(),
-              AbstractType::ZoneHandle(zone, AbstractType::null()),
-              call_data->call->token_pos());
-          context_load->set_is_immutable(true);
+              Slot::Closure_context(), call_data->call->token_pos());
           context_load->set_ssa_temp_index(
               caller_graph->alloc_ssa_temp_index());
           context_load->InsertBefore(callee_entry->next());
@@ -2366,8 +2363,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        bool can_speculate) {
   // Insert array length load and bounds check.
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(*array),
-      NativeFieldDesc::GetLengthFieldForArrayCid(array_cid), call->token_pos());
+      new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
+      call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   Instruction* bounds_check = NULL;
@@ -2383,10 +2380,9 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
-    LoadFieldInstr* elements = new (Z) LoadFieldInstr(
-        new (Z) Value(*array), GrowableObjectArray::data_offset(),
-        Object::dynamic_type(), call->token_pos());
-    elements->set_result_cid(kArrayCid);
+    LoadFieldInstr* elements = new (Z)
+        LoadFieldInstr(new (Z) Value(*array), Slot::GrowableObjectArray_data(),
+                       call->token_pos());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
@@ -2482,10 +2478,11 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       case kArrayCid:
       case kGrowableObjectArrayCid: {
         const Class& instantiator_class = Class::Handle(Z, target.Owner());
-        LoadFieldInstr* load_type_args = new (Z) LoadFieldInstr(
-            new (Z) Value(array),
-            NativeFieldDesc::GetTypeArgumentsFieldFor(Z, instantiator_class),
-            call->token_pos());
+        LoadFieldInstr* load_type_args = new (Z)
+            LoadFieldInstr(new (Z) Value(array),
+                           Slot::GetTypeArgumentsSlotFor(flow_graph->thread(),
+                                                         instantiator_class),
+                           call->token_pos());
         cursor = flow_graph->AppendTo(cursor, load_type_args, NULL,
                                       FlowGraph::kValue);
         type_args = load_type_args;
@@ -2671,7 +2668,7 @@ static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
 }
 
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
-                                      intptr_t offset,
+                                      const Slot& field,
                                       StoreBarrierType store_barrier_type,
                                       Instruction* call,
                                       Definition* receiver,
@@ -2687,9 +2684,9 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
 
   // This is an internal method, no need to check argument types.
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      offset, new (Z) Value(array), new (Z) Value(value), store_barrier_type,
-      call->token_pos());
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
+                              store_barrier_type, call->token_pos());
   flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
   *last = store;
 
@@ -2707,8 +2704,8 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
   ASSERT(array_cid != kDynamicCid);
 
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(array),
-      NativeFieldDesc::GetLengthFieldForArrayCid(array_cid), call->token_pos());
+      new (Z) Value(array), Slot::GetLengthFieldForArrayCid(array_cid),
+      call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   intptr_t element_size = Instance::ElementSizeFor(array_cid);
@@ -3119,9 +3116,9 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Definition* str,
                                               Definition* index,
                                               Instruction* cursor) {
-  LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(str), NativeFieldDesc::GetLengthFieldForArrayCid(cid),
-      str->token_pos());
+  LoadFieldInstr* length = new (Z)
+      LoadFieldInstr(new (Z) Value(str), Slot::GetLengthFieldForArrayCid(cid),
+                     str->token_pos());
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
 
   // Bounds check.
@@ -3858,16 +3855,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       ASSERT(call->IsStaticCall() ||
              (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
-          flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
-          call, receiver, graph_entry, entry, last);
+          flow_graph, Slot::GrowableObjectArray_data(), kEmitStoreBarrier, call,
+          receiver, graph_entry, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
       ASSERT(call->IsStaticCall() ||
              (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
-          flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
-          call, receiver, graph_entry, entry, last);
+          flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
+          receiver, graph_entry, entry, last);
     case MethodRecognizer::kSmi_bitAndFromSmi:
       return InlineSmiBitAndFromSmi(flow_graph, call, receiver, graph_entry,
                                     entry, last);

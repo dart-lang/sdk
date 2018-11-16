@@ -67,12 +67,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                               LocalVariable* first_parameter);
 
   Fragment EnterScope(intptr_t kernel_offset,
-                      intptr_t* num_context_variables = NULL);
+                      const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment AdjustContextTo(int depth);
 
-  Fragment PushContext(int size);
+  Fragment PushContext(const LocalScope* scope);
   Fragment PopContext();
 
   Fragment LoadInstantiatorTypeArguments();
@@ -90,7 +90,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                            bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment CloneContext(intptr_t num_context_variables);
+  Fragment CloneContext(const GrowableArray<LocalVariable*>& context_variables);
 
   Fragment InstanceCall(
       TokenPosition position,

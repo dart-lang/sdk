@@ -280,87 +280,6 @@ class ClassDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class UnresolvedClassSerializationCluster : public SerializationCluster {
- public:
-  UnresolvedClassSerializationCluster()
-      : SerializationCluster("UnresolvedClass") {}
-  ~UnresolvedClassSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawUnresolvedClass* cls = UnresolvedClass::RawCast(object);
-    objects_.Add(cls);
-
-    RawObject** from = cls->from();
-    RawObject** to = cls->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
-    }
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kUnresolvedClassCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawUnresolvedClass* cls = objects_[i];
-      s->AssignRef(cls);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawUnresolvedClass* cls = objects_[i];
-      RawObject** from = cls->from();
-      RawObject** to = cls->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
-      }
-      s->WriteTokenPosition(cls->ptr()->token_pos_);
-    }
-  }
-
- private:
-  GrowableArray<RawUnresolvedClass*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class UnresolvedClassDeserializationCluster : public DeserializationCluster {
- public:
-  UnresolvedClassDeserializationCluster() {}
-  ~UnresolvedClassDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, UnresolvedClass::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawUnresolvedClass* cls =
-          reinterpret_cast<RawUnresolvedClass*>(d->Ref(id));
-      Deserializer::InitializeHeader(cls, kUnresolvedClassCid,
-                                     UnresolvedClass::InstanceSize(),
-                                     is_vm_object);
-      RawObject** from = cls->from();
-      RawObject** to = cls->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
-      }
-      cls->ptr()->token_pos_ = d->ReadTokenPosition();
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeArgumentsSerializationCluster : public SerializationCluster {
  public:
   TypeArgumentsSerializationCluster() : SerializationCluster("TypeArguments") {}
@@ -4644,8 +4563,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   switch (cid) {
     case kClassCid:
       return new (Z) ClassSerializationCluster(num_cids_);
-    case kUnresolvedClassCid:
-      return new (Z) UnresolvedClassSerializationCluster();
     case kTypeArgumentsCid:
       return new (Z) TypeArgumentsSerializationCluster();
     case kPatchClassCid:
@@ -5176,8 +5093,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
   switch (cid) {
     case kClassCid:
       return new (Z) ClassDeserializationCluster();
-    case kUnresolvedClassCid:
-      return new (Z) UnresolvedClassDeserializationCluster();
     case kTypeArgumentsCid:
       return new (Z) TypeArgumentsDeserializationCluster();
     case kPatchClassCid:

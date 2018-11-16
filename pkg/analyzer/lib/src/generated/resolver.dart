@@ -396,6 +396,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    bool wasInDeprecatedMember = _inDeprecatedMember;
+    if (_hasDeprecatedAnnotation(node.metadata)) {
+      _inDeprecatedMember = true;
+    }
+
+    try {
+      return super.visitFieldDeclaration(node);
+    } finally {
+      _inDeprecatedMember = wasInDeprecatedMember;
+    }
+  }
+
+  @override
   Object visitFormalParameterList(FormalParameterList node) {
     _checkRequiredParameter(node);
     return super.visitFormalParameterList(node);
@@ -479,11 +493,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMixinDeclaration(MixinDeclaration node) {
     _enclosingClass = node.declaredElement;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
+
+    bool wasInDeprecatedMember = _inDeprecatedMember;
+    if (_hasDeprecatedAnnotation(node.metadata)) {
+      _inDeprecatedMember = true;
+    }
+
     try {
       return super.visitMixinDeclaration(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
+      _inDeprecatedMember = wasInDeprecatedMember;
     }
   }
 
@@ -523,6 +544,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    bool wasInDeprecatedMember = _inDeprecatedMember;
+    if (_hasDeprecatedAnnotation(node.metadata)) {
+      _inDeprecatedMember = true;
+    }
+
+    try {
+      return super.visitTopLevelVariableDeclaration(node);
+    } finally {
+      _inDeprecatedMember = wasInDeprecatedMember;
+    }
   }
 
   @override
@@ -1188,6 +1223,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (type.isDartAsyncFuture) {
       List<DartType> typeArgs = (type as InterfaceType).typeArguments;
       if (typeArgs.length == 1 && typeArgs[0].isVoid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _hasDeprecatedAnnotation(List<Annotation> annotations) {
+    for (var i = 0; i < annotations.length; i++) {
+      if (annotations[i].elementAnnotation.isDeprecated) {
         return true;
       }
     }

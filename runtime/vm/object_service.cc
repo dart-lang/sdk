@@ -173,10 +173,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void UnresolvedClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
 void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   // The index in the canonical_type_arguments table cannot be used as part of
@@ -1106,18 +1102,14 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
-  if (HasResolvedTypeClass()) {
-    const Class& type_cls = Class::Handle(type_class());
-    if (type_cls.CanonicalType() == raw()) {
-      intptr_t cid = type_cls.id();
-      jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
-    } else {
-      jsobj.AddServiceId(*this);
-    }
-    jsobj.AddProperty("typeClass", type_cls);
+  const Class& type_cls = Class::Handle(type_class());
+  if (type_cls.CanonicalType() == raw()) {
+    intptr_t cid = type_cls.id();
+    jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
   } else {
     jsobj.AddServiceId(*this);
   }
+  jsobj.AddProperty("typeClass", type_cls);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());

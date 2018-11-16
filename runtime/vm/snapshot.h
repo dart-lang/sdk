@@ -90,7 +90,6 @@ class RawTypedData;
 class RawTypeParameter;
 class RawTypeRef;
 class RawUnhandledException;
-class RawUnresolvedClass;
 class RawWeakProperty;
 class String;
 class TypeArguments;
@@ -479,7 +478,6 @@ class SnapshotReader : public BaseReader {
   friend class TypeParameter;
   friend class TypeRef;
   friend class UnhandledException;
-  friend class UnresolvedClass;
   friend class WeakProperty;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };

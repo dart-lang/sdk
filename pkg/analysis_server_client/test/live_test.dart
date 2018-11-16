@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server_client/listener/client_listener.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/protocol.dart';
@@ -39,7 +39,7 @@ class TestHandler with NotificationHandler, ConnectionHandler {
   TestHandler(this.server);
 }
 
-class TestListener with ClientListener {
+class TestListener with ServerListener {
   @override
   void log(String prefix, String details) {
     print('$prefix $details');

@@ -363,8 +363,8 @@ class BytecodeAssembler {
     emitWord(_encodeD(Opcode.kAllocateContext, rd));
   }
 
-  void emitCloneContext() {
-    emitWord(_encode0(Opcode.kCloneContext));
+  void emitCloneContext(int rd) {
+    emitWord(_encodeD(Opcode.kCloneContext, rd));
   }
 
   void emitMoveSpecial(SpecialIndex ra, int rx) {

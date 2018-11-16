@@ -133,7 +133,7 @@ config("dart_config") {
     defines += [ "NDEBUG" ]
   }
 
-  include_dirs = []
+  include_dirs = [ "include" ]
   if (dart_use_tcmalloc) {
     defines += [ "DART_USE_TCMALLOC" ]
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]

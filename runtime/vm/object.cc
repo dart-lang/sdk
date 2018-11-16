@@ -112,8 +112,6 @@ RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::unresolved_class_class_ =
-    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -557,9 +555,6 @@ void Object::Init(Isolate* isolate) {
   }
 
   // Allocate the remaining VM internal classes.
-  cls = Class::New<UnresolvedClass>();
-  unresolved_class_class_ = cls.raw();
-
   cls = Class::New<TypeArguments>();
   type_arguments_class_ = cls.raw();
 
@@ -947,7 +942,6 @@ void Object::Cleanup() {
   class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-  unresolved_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1047,7 +1041,6 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
-  SET_CLASS_NAME(unresolved_class, UnresolvedClass);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
@@ -1413,7 +1406,7 @@ RawError* Object::Init(Isolate* isolate,
     // declared number of type parameters is still 0. It will become 1 after
     // patching. The array type allocated below represents the raw type _List
     // and not _List<E> as we could expect. Use with caution.
-    type ^= Type::New(Object::Handle(zone, cls.raw()),
+    type ^= Type::New(Class::Handle(zone, cls.raw()),
                       TypeArguments::Handle(zone), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
@@ -3911,8 +3904,6 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Void().raw();
     case kClassCid:
       return Symbols::Class().raw();
-    case kUnresolvedClassCid:
-      return Symbols::UnresolvedClass().raw();
     case kTypeArgumentsCid:
       return Symbols::TypeArguments().raw();
     case kPatchClassCid:
@@ -4500,7 +4491,7 @@ bool Class::FutureOrTypeTest(Zone* zone,
         return true;
       }
     }
-    if (other_type_arg.HasResolvedTypeClass() &&
+    if (other_type_arg.HasTypeClass() &&
         TypeTest(Class::kIsSubtypeOf, type_arguments,
                  Class::Handle(zone, other_type_arg.type_class()),
                  TypeArguments::Handle(other_type_arg.arguments()), bound_error,
@@ -5103,64 +5094,6 @@ void Class::RehashConstants(Zone* zone) const {
   set.Release();
 }
 
-RawUnresolvedClass* UnresolvedClass::New(const Object& library_prefix,
-                                         const String& ident,
-                                         TokenPosition token_pos) {
-  const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
-  type.set_library_or_library_prefix(library_prefix);
-  type.set_ident(ident);
-  type.set_token_pos(token_pos);
-  return type.raw();
-}
-
-RawUnresolvedClass* UnresolvedClass::New() {
-  ASSERT(Object::unresolved_class_class() != Class::null());
-  RawObject* raw = Object::Allocate(
-      UnresolvedClass::kClassId, UnresolvedClass::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawUnresolvedClass*>(raw);
-}
-
-void UnresolvedClass::set_token_pos(TokenPosition token_pos) const {
-  ASSERT(!token_pos.IsClassifying());
-  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
-}
-
-void UnresolvedClass::set_ident(const String& ident) const {
-  StorePointer(&raw_ptr()->ident_, ident.raw());
-}
-
-void UnresolvedClass::set_library_or_library_prefix(
-    const Object& library_prefix) const {
-  StorePointer(&raw_ptr()->library_or_library_prefix_, library_prefix.raw());
-}
-
-RawString* UnresolvedClass::Name() const {
-  if (library_or_library_prefix() != Object::null()) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const Object& lib_prefix =
-        Object::Handle(zone, library_or_library_prefix());
-    String& name = String::Handle(zone);  // Qualifier.
-    if (lib_prefix.IsLibraryPrefix()) {
-      name = LibraryPrefix::Cast(lib_prefix).name();
-    } else {
-      name = Library::Cast(lib_prefix).name();
-    }
-    GrowableHandlePtrArray<const String> strs(zone, 3);
-    strs.Add(name);
-    strs.Add(Symbols::Dot());
-    strs.Add(String::Handle(zone, ident()));
-    return Symbols::FromConcatAll(thread, strs);
-  } else {
-    return ident();
-  }
-}
-
-const char* UnresolvedClass::ToCString() const {
-  const char* cname = String::Handle(Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "unresolved class '%s'", cname);
-}
-
 intptr_t TypeArguments::ComputeHash() const {
   if (IsNull()) return 0;
   const intptr_t num_types = Length();
@@ -5299,7 +5232,7 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
     if (type.IsNull()) {
       return false;
     }
-    if (!type.HasResolvedTypeClass()) {
+    if (!type.HasTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
         // An uninstantiated type parameter is equivalent to dynamic (even in
         // the presence of a malformed bound in checked mode).
@@ -16819,12 +16752,6 @@ void AbstractType::SetIsResolved() const {
   UNREACHABLE();
 }
 
-bool AbstractType::HasResolvedTypeClass() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
 classid_t AbstractType::type_class_id() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -16835,12 +16762,6 @@ RawClass* AbstractType::type_class() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return Class::null();
-}
-
-RawUnresolvedClass* AbstractType::unresolved_class() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return UnresolvedClass::null();
 }
 
 RawTypeArguments* AbstractType::arguments() const {
@@ -17131,9 +17052,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   String& class_name = String::Handle(zone);
   intptr_t first_type_param_index;
   intptr_t num_type_params;  // Number of type parameters to print.
-  Class& cls = Class::Handle(zone);
+  Class& cls = Class::Handle(zone, type_class());
   if (IsFunctionType()) {
-    cls = type_class();
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
     if (!cls.IsTypedefClass()) {
@@ -17148,10 +17068,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       return class_name.raw();
     }
     // Print the name of a typedef as a regular, possibly parameterized, class.
-  } else if (HasResolvedTypeClass()) {
-    cls = type_class();
   }
-  if (!cls.IsNull()) {
     if (IsResolved() || !cls.IsMixinApplication()) {
       // Do not print the full vector, but only the declared type parameters.
       num_type_params = cls.NumTypeParameters();
@@ -17188,11 +17105,6 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       } else {
         first_type_param_index = num_args - num_type_params;
       }
-    }
-  } else {
-    class_name = UnresolvedClass::Handle(zone, unresolved_class()).Name();
-    num_type_params = num_args;
-    first_type_param_index = 0;
   }
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
@@ -17213,11 +17125,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
 
 RawString* AbstractType::ClassName() const {
   ASSERT(!IsFunctionType());
-  if (HasResolvedTypeClass()) {
-    return Class::Handle(type_class()).Name();
-  } else {
-    return UnresolvedClass::Handle(unresolved_class()).Name();
-  }
+  return Class::Handle(type_class()).Name();
 }
 
 bool AbstractType::IsNullTypeRef() const {
@@ -17228,7 +17136,7 @@ bool AbstractType::IsDynamicType() const {
   if (IsCanonical()) {
     return raw() == Object::dynamic_type().raw();
   }
-  return HasResolvedTypeClass() && (type_class_id() == kDynamicCid);
+  return type_class_id() == kDynamicCid;
 }
 
 bool AbstractType::IsVoidType() const {
@@ -17237,17 +17145,17 @@ bool AbstractType::IsVoidType() const {
 }
 
 bool AbstractType::IsObjectType() const {
-  return HasResolvedTypeClass() && (type_class_id() == kInstanceCid);
+  return type_class_id() == kInstanceCid;
 }
 
 bool AbstractType::IsTopType() const {
   if (IsVoidType()) {
     return true;
   }
-  if (!HasResolvedTypeClass()) {
+  const classid_t cid = type_class_id();
+  if (cid == kIllegalCid) {
     return false;
   }
-  classid_t cid = type_class_id();
   if ((cid == kDynamicCid) || (cid == kInstanceCid)) {
     return true;
   }
@@ -17272,64 +17180,63 @@ bool AbstractType::IsTopType() const {
 }
 
 bool AbstractType::IsNullType() const {
-  return HasResolvedTypeClass() && (type_class_id() == kNullCid);
+  return type_class_id() == kNullCid;
 }
 
 bool AbstractType::IsBoolType() const {
-  return HasResolvedTypeClass() && (type_class_id() == kBoolCid);
+  return type_class_id() == kBoolCid;
 }
 
 bool AbstractType::IsIntType() const {
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::IntType()).type_class());
 }
 
 bool AbstractType::IsDoubleType() const {
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::Double()).type_class());
 }
 
 bool AbstractType::IsFloat32x4Type() const {
   // kFloat32x4Cid refers to the private class and cannot be used here.
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::Float32x4()).type_class());
 }
 
 bool AbstractType::IsFloat64x2Type() const {
   // kFloat64x2Cid refers to the private class and cannot be used here.
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::Float64x2()).type_class());
 }
 
 bool AbstractType::IsInt32x4Type() const {
   // kInt32x4Cid refers to the private class and cannot be used here.
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::Int32x4()).type_class());
 }
 
 bool AbstractType::IsNumberType() const {
-  return HasResolvedTypeClass() && (type_class_id() == kNumberCid);
+  return type_class_id() == kNumberCid;
 }
 
 bool AbstractType::IsSmiType() const {
-  return HasResolvedTypeClass() && (type_class_id() == kSmiCid);
+  return type_class_id() == kSmiCid;
 }
 
 bool AbstractType::IsStringType() const {
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::StringType()).type_class());
 }
 
 bool AbstractType::IsDartFunctionType() const {
-  return HasResolvedTypeClass() &&
+  return HasTypeClass() &&
          (type_class() == Type::Handle(Type::DartFunctionType()).type_class());
 }
 
 bool AbstractType::IsDartClosureType() const {
   // Non-typedef function types have '_Closure' class as type class, but are not
   // the Dart '_Closure' type.
-  return !IsFunctionType() && HasResolvedTypeClass() &&
-         (type_class_id() == kClosureCid);
+  return !IsFunctionType() && (type_class_id() == kClosureCid);
 }
 
 bool AbstractType::TypeTest(TypeTestKind test_kind,
@@ -17663,7 +17570,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
   Type& type = Type::Handle(type_class.CanonicalType());
   if (type.IsNull()) {
-    type ^= Type::New(Object::Handle(type_class.raw()),
+    type ^= Type::New(Class::Handle(type_class.raw()),
                       Object::null_type_arguments(), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
@@ -17675,7 +17582,6 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
 void Type::SetIsFinalized() const {
   ASSERT(!IsFinalized());
   if (IsInstantiated()) {
-    ASSERT(HasResolvedTypeClass());
     set_type_state(RawType::kFinalizedInstantiated);
   } else {
     set_type_state(RawType::kFinalizedUninstantiated);
@@ -17767,31 +17673,12 @@ void Type::SetIsResolved() const {
   set_type_state(RawType::kResolved);
 }
 
-bool Type::HasResolvedTypeClass() const {
-  return !raw_ptr()->type_class_id_->IsHeapObject();
-}
-
 classid_t Type::type_class_id() const {
-  ASSERT(HasResolvedTypeClass());
-  return Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->type_class_id_));
+  return Smi::Value(raw_ptr()->type_class_id_);
 }
 
 RawClass* Type::type_class() const {
   return Isolate::Current()->class_table()->At(type_class_id());
-}
-
-RawUnresolvedClass* Type::unresolved_class() const {
-#ifdef DEBUG
-  ASSERT(!HasResolvedTypeClass());
-  UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
-  unresolved_class ^= raw_ptr()->type_class_id_;
-  ASSERT(!unresolved_class.IsNull());
-  return unresolved_class.raw();
-#else
-  ASSERT(!Object::Handle(raw_ptr()->type_class_id_).IsNull());
-  ASSERT(Object::Handle(raw_ptr()->type_class_id_).IsUnresolvedClass());
-  return reinterpret_cast<RawUnresolvedClass*>(raw_ptr()->type_class_id_);
-#endif
 }
 
 bool Type::IsInstantiated(Genericity genericity,
@@ -17822,19 +17709,13 @@ bool Type::IsInstantiated(Genericity genericity,
   intptr_t len = num_type_args;  // Check the full vector of type args.
   ASSERT(num_type_args > 0);
   // This type is not instantiated if it refers to type parameters.
-  // Although this type may still be unresolved, the type parameters it may
-  // refer to are resolved by definition. We can therefore return the correct
-  // result even for an unresolved type. We just need to look at all type
-  // arguments and not just at the type parameters.
-  if (HasResolvedTypeClass()) {
-    const Class& cls = Class::Handle(type_class());
-    len = cls.NumTypeParameters();  // Check the type parameters only.
-    if (len > num_type_args) {
-      // This type has the wrong number of arguments and is not finalized yet.
-      // Type arguments are reset to null when finalizing such a type.
-      ASSERT(!IsFinalized());
-      len = num_type_args;
-    }
+  const Class& cls = Class::Handle(type_class());
+  len = cls.NumTypeParameters();  // Check the type parameters only.
+  if (len > num_type_args) {
+    // This type has the wrong number of arguments and is not finalized yet.
+    // Type arguments are reset to null when finalizing such a type.
+    ASSERT(!IsFinalized());
+    len = num_type_args;
   }
   return (len == 0) ||
          args.IsSubvectorInstantiated(num_type_args - len, len, genericity,
@@ -18461,13 +18342,7 @@ intptr_t Type::ComputeHash() const {
 
 void Type::set_type_class(const Class& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->type_class_id_,
-               reinterpret_cast<RawObject*>(Smi::New(value.id())));
-}
-
-void Type::set_unresolved_class(const Object& value) const {
-  ASSERT(!value.IsNull() && value.IsUnresolvedClass());
-  StorePointer(&raw_ptr()->type_class_id_, value.raw());
+  StorePointer(&raw_ptr()->type_class_id_, Smi::New(value.id()));
 }
 
 void Type::set_arguments(const TypeArguments& value) const {
@@ -18481,17 +18356,13 @@ RawType* Type::New(Heap::Space space) {
   return reinterpret_cast<RawType*>(raw);
 }
 
-RawType* Type::New(const Object& clazz,
+RawType* Type::New(const Class& clazz,
                    const TypeArguments& arguments,
                    TokenPosition token_pos,
                    Heap::Space space) {
   Zone* Z = Thread::Current()->zone();
   const Type& result = Type::Handle(Z, Type::New(space));
-  if (clazz.IsClass()) {
-    result.set_type_class(Class::Cast(clazz));
-  } else {
-    result.set_unresolved_class(clazz);
-  }
+  result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.SetHash(0);
   result.set_token_pos(token_pos);
@@ -18518,38 +18389,31 @@ const char* Type::ToCString() const {
     return "Type: null";
   }
   Zone* zone = Thread::Current()->zone();
-  const char* unresolved = IsResolved() ? "" : "Unresolved ";
   const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
   const char* args_cstr = type_args.IsNull() ? "null" : type_args.ToCString();
-  Class& cls = Class::Handle(zone);
+  const Class& cls = Class::Handle(zone, type_class());
   const char* class_name;
-  if (HasResolvedTypeClass()) {
-    cls = type_class();
-    const String& name = String::Handle(zone, cls.Name());
-    class_name = name.IsNull() ? "<null>" : name.ToCString();
-  } else {
-    class_name = UnresolvedClass::Handle(zone, unresolved_class()).ToCString();
-  }
+  const String& name = String::Handle(zone, cls.Name());
+  class_name = name.IsNull() ? "<null>" : name.ToCString();
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(zone, signature());
     const String& sig = String::Handle(zone, sig_fun.Signature());
     if (cls.IsClosureClass()) {
       ASSERT(type_args.IsNull());
-      return OS::SCreate(zone, "%sFunction Type: %s", unresolved,
-                         sig.ToCString());
+      return OS::SCreate(zone, "Function Type: %s", sig.ToCString());
     }
-    return OS::SCreate(zone, "%s Function Type: %s (class: %s, args: %s)",
-                       unresolved, sig.ToCString(), class_name, args_cstr);
+    return OS::SCreate(zone, "Function Type: %s (class: %s, args: %s)",
+                       sig.ToCString(), class_name, args_cstr);
   }
   if (type_args.IsNull()) {
-    return OS::SCreate(zone, "%sType: class '%s'", unresolved, class_name);
-  } else if (IsResolved() && IsFinalized() && IsRecursive()) {
+    return OS::SCreate(zone, "Type: class '%s'", class_name);
+  } else if (IsFinalized() && IsRecursive()) {
     const intptr_t hash = Hash();
     return OS::SCreate(zone, "Type: (@%p H%" Px ") class '%s', args:[%s]",
                        raw(), hash, class_name, args_cstr);
   } else {
-    return OS::SCreate(zone, "%sType: class '%s', args:[%s]", unresolved,
-                       class_name, args_cstr);
+    return OS::SCreate(zone, "Type: class '%s', args:[%s]", class_name,
+                       args_cstr);
   }
 }
 
@@ -18636,7 +18500,7 @@ RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
 }
 
 void TypeRef::set_type(const AbstractType& value) const {
-  ASSERT(value.IsFunctionType() || value.HasResolvedTypeClass());
+  ASSERT(value.IsFunctionType() || value.HasTypeClass());
   ASSERT(!value.IsTypeRef());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -18885,7 +18749,7 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
       // is not and its class is not compiled yet, i.e. we cannot look for
       // a call method yet.
       if (!bounded_type.IsFunctionType() && upper_bound.IsFunctionType() &&
-          bounded_type.HasResolvedTypeClass() &&
+          bounded_type.HasTypeClass() &&
           !Class::Handle(bounded_type.type_class()).is_finalized()) {
         return false;  // Not a subtype yet, but no bound error yet.
       }
@@ -19213,7 +19077,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
                !instantiated_upper_bound.IsInstantiated() ||
                (!instantiated_bounded_type.IsFunctionType() &&
                 instantiated_upper_bound.IsFunctionType() &&
-                instantiated_bounded_type.HasResolvedTypeClass() &&
+                instantiated_bounded_type.HasTypeClass() &&
                 !Class::Handle(instantiated_bounded_type.type_class())
                      .is_finalized()));
         // Postpone bound check by returning a new BoundedType with unfinalized

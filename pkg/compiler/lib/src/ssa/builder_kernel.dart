@@ -1149,7 +1149,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void _handleParameter(ir.VariableDeclaration variable) {
       Local local = localsMap.getLocalVariable(variable);
       if (nodeIsConstructorBody &&
-          closureDataLookup.getCapturedScope(targetElement).isBoxed(local)) {
+          closureDataLookup
+              .getCapturedScope(targetElement)
+              .isBoxedVariable(local)) {
         // If local is boxed, then `variable` will be a field inside the box
         // passed as the last parameter, so no need to update our locals
         // handler or check types at this point.
@@ -5319,7 +5321,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     bool hasBox = false;
     forEachOrderedParameter(closedWorld.globalLocalsMap, _elementMap, function,
         (Local parameter) {
-      if (forGenerativeConstructorBody && scopeData.isBoxed(parameter)) {
+      if (forGenerativeConstructorBody &&
+          scopeData.isBoxedVariable(parameter)) {
         // The parameter will be a field in the box passed as the last
         // parameter. So no need to have it.
         hasBox = true;

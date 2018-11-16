@@ -1015,7 +1015,7 @@ L4:
   Jump                 L5
 L3:
   Push                 r4
-  CloneContext
+  CloneContext         2
   PopLocal             r4
   Push                 r4
   Push                 r4

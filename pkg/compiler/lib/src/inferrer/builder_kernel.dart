@@ -56,6 +56,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
   final Set<Local> _capturedVariables = new Set<Local>();
+  final Map<Local, FieldEntity> _capturedAndBoxed;
 
   /// Whether we currently collect [IsCheck]s.
   bool _accumulateIsChecks = false;
@@ -69,7 +70,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   KernelTypeGraphBuilder(this._options, this._closedWorld, this._inferrer,
       this._analyzedMember, this._analyzedNode, this._localsMap,
-      [this._locals])
+      [this._locals, Map<Local, FieldEntity> capturedAndBoxed])
       : this._types = _inferrer.types,
         this._memberData = _inferrer.dataOfMember(_analyzedMember),
         // TODO(johnniwinther): Should side effects also be tracked for field
@@ -78,7 +79,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             ? _inferrer.inferredDataBuilder
                 .getSideEffectsBuilder(_analyzedMember)
             : new SideEffectsBuilder.free(_analyzedMember),
-        this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
+        this._inGenerativeConstructor = _analyzedNode is ir.Constructor,
+        this._capturedAndBoxed = capturedAndBoxed != null
+            ? new Map<Local, FieldEntity>.from(capturedAndBoxed)
+            : <Local, FieldEntity>{} {
     if (_locals != null) return;
 
     FieldInitializationScope fieldScope =
@@ -170,7 +174,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // previous analysis of [outermostElement].
     ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
     scopeInfo.forEachBoxedVariable((variable, field) {
-      _locals.setCapturedAndBoxed(variable, field);
+      _capturedAndBoxed[variable] = field;
     });
 
     return visit(_analyzedNode);
@@ -225,8 +229,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   void handleParameter(ir.VariableDeclaration node, {bool isOptional}) {
     Local local = _localsMap.getLocalVariable(node);
     DartType type = _localsMap.getLocalType(_elementMap, local);
-    _locals.update(
-        _inferrer, local, _inferrer.typeOfParameter(local), node, type);
+    _locals.update(_inferrer, _capturedAndBoxed, local,
+        _inferrer.typeOfParameter(local), node, type);
     if (isOptional) {
       TypeInformation type;
       if (node.initializer != null) {
@@ -683,9 +687,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Local local = _localsMap.getLocalVariable(node);
     DartType type = _localsMap.getLocalType(_elementMap, local);
     if (node.initializer == null) {
-      _locals.update(_inferrer, local, _types.nullType, node, type);
+      _locals.update(
+          _inferrer, _capturedAndBoxed, local, _types.nullType, node, type);
     } else {
-      _locals.update(_inferrer, local, visit(node.initializer), node, type);
+      _locals.update(_inferrer, _capturedAndBoxed, local,
+          visit(node.initializer), node, type);
     }
     if (node.initializer is ir.ThisExpression) {
       _markThisAsExposed();
@@ -696,7 +702,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitVariableGet(ir.VariableGet node) {
     Local local = _localsMap.getLocalVariable(node.variable);
-    TypeInformation type = _locals.use(_inferrer, local);
+    TypeInformation type = _locals.use(_inferrer, _capturedAndBoxed, local);
     assert(type != null, "Missing type information for $local.");
     return type;
   }
@@ -709,7 +715,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
     Local local = _localsMap.getLocalVariable(node.variable);
     DartType type = _localsMap.getLocalType(_elementMap, local);
-    _locals.update(_inferrer, local, rhsType, node, type);
+    _locals.update(_inferrer, _capturedAndBoxed, local, rhsType, node, type);
     return rhsType;
   }
 
@@ -821,7 +827,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         TypeInformation refinedType = _types
             .refineReceiver(selector, mask, receiverType, isConditional: false);
         DartType type = _localsMap.getLocalType(_elementMap, local);
-        _locals.update(_inferrer, local, refinedType, node, type);
+        _locals.update(
+            _inferrer, _capturedAndBoxed, local, refinedType, node, type);
         List<Refinement> refinements = _localRefinementMap[variable];
         if (refinements != null) {
           refinements.add(new Refinement(selector, mask));
@@ -904,12 +911,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       if (refinements.isNotEmpty) {
         Local local = _localsMap.getLocalVariable(alias);
         DartType type = _localsMap.getLocalType(_elementMap, local);
-        TypeInformation localType = _locals.use(_inferrer, local);
+        TypeInformation localType =
+            _locals.use(_inferrer, _capturedAndBoxed, local);
         for (Refinement refinement in refinements) {
           localType = _types.refineReceiver(
               refinement.selector, refinement.mask, localType,
               isConditional: true);
-          _locals.update(_inferrer, local, localType, node, type);
+          _locals.update(
+              _inferrer, _capturedAndBoxed, local, localType, node, type);
         }
       }
     }
@@ -962,8 +971,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     Local variable = _localsMap.getLocalVariable(node.variable);
     DartType variableType = _localsMap.getLocalType(_elementMap, variable);
-    _locals.update(
-        _inferrer, variable, currentType, node.variable, variableType);
+    _locals.update(_inferrer, _capturedAndBoxed, variable, currentType,
+        node.variable, variableType);
 
     JumpTarget target = _localsMap.getJumpTargetForForIn(node);
     return handleLoop(node, target, () {
@@ -1345,18 +1354,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       List<IsCheck> positiveTests, List<IsCheck> negativeTests) {
     for (IsCheck check in positiveTests) {
       if (check.type != null) {
-        _locals.narrow(_inferrer, check.local, check.type, check.node);
+        _locals.narrow(
+            _inferrer, _capturedAndBoxed, check.local, check.type, check.node);
       } else {
         DartType localType = _localsMap.getLocalType(_elementMap, check.local);
-        _locals.update(
-            _inferrer, check.local, _types.nullType, check.node, localType);
+        _locals.update(_inferrer, _capturedAndBoxed, check.local,
+            _types.nullType, check.node, localType);
       }
     }
     for (IsCheck check in negativeTests) {
       if (check.type != null) {
         // TODO(johnniwinther): Use negative type knowledge.
       } else {
-        _locals.narrow(_inferrer, check.local,
+        _locals.narrow(_inferrer, _capturedAndBoxed, check.local,
             _closedWorld.commonElements.objectType, check.node);
       }
     }
@@ -1493,8 +1503,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    info.forEachFreeVariable((variable, field) {
-      if (!info.isVariableBoxed(variable)) {
+    info.forEachFreeVariable((Local variable, FieldEntity field) {
+      if (!info.isBoxedVariable(variable)) {
         if (variable == info.thisLocal) {
           _inferrer.recordTypeOfField(field, thisType);
         }
@@ -1512,7 +1522,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       Local local = _localsMap.getLocalVariable(variable);
       DartType type = _localsMap.getLocalType(_elementMap, local);
-      _locals.update(_inferrer, local, localFunctionType, node, type);
+      _locals.update(
+          _inferrer, _capturedAndBoxed, local, localFunctionType, node, type);
     }
 
     // We don't put the closure in the work queue of the
@@ -1527,7 +1538,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         info.callMethod,
         functionNode,
         _localsMap,
-        closureLocals);
+        closureLocals,
+        _capturedAndBoxed);
     visitor.run();
     _inferrer.recordReturnType(info.callMethod, visitor._returnType);
 
@@ -1634,14 +1646,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         mask = _types.dynamicType;
       }
       Local local = _localsMap.getLocalVariable(exception);
-      _locals.update(_inferrer, local, mask, node, const DynamicType());
+      _locals.update(
+          _inferrer, _capturedAndBoxed, local, mask, node, const DynamicType());
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
     if (stackTrace != null) {
       Local local = _localsMap.getLocalVariable(stackTrace);
       // TODO(johnniwinther): Use a mask based on [StackTrace].
-      _locals.update(
-          _inferrer, local, _types.dynamicType, node, const DynamicType());
+      _locals.update(_inferrer, _capturedAndBoxed, local, _types.dynamicType,
+          node, const DynamicType());
     }
     visit(node.body);
     return null;

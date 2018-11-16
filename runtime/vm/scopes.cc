@@ -29,11 +29,11 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       function_level_(function_level),
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel),
-      num_context_variables_(0),
       begin_token_pos_(TokenPosition::kNoSourcePos),
       end_token_pos_(TokenPosition::kNoSourcePos),
       variables_(),
       labels_(),
+      context_variables_(),
       referenced_() {
   // Hook this node into the children of the parent, unless the parent has a
   // different function_level, since the local scope of a nested function can
@@ -149,7 +149,7 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
   // code generation time how far to walk up the context chain in order to
   // access the variable from the current context level.
   if ((*context_owner) == NULL) {
-    ASSERT(num_context_variables_ == 0);
+    ASSERT(num_context_variables() == 0);
     // This scope becomes the current context owner.
     set_context_level(1);
     *context_owner = this;
@@ -157,7 +157,7 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
     // The captured variable is in a child scope of the context owner and we do
     // not share contexts.
     // This scope will allocate and chain a new context.
-    ASSERT(num_context_variables_ == 0);
+    ASSERT(num_context_variables() == 0);
     // This scope becomes the current context owner.
     set_context_level((*context_owner)->context_level() + 1);
     *context_owner = this;
@@ -165,7 +165,7 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
     ASSERT(FLAG_share_enclosing_context);
     // The captured variable is at a deeper loop level than the current context.
     // This scope will allocate and chain a new context.
-    ASSERT(num_context_variables_ == 0);
+    ASSERT(num_context_variables() == 0);
     // This scope becomes the current context owner.
     set_context_level((*context_owner)->context_level() + 1);
     *context_owner = this;
@@ -178,8 +178,13 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
       ASSERT(context_level() == (*context_owner)->context_level());
     }
   }
-  variable->set_index(
-      VariableIndex((*context_owner)->num_context_variables_++));
+
+  (*context_owner)->AddContextVariable(variable);
+}
+
+void LocalScope::AddContextVariable(LocalVariable* variable) {
+  variable->set_index(VariableIndex(context_variables_.length()));
+  context_variables_.Add(variable);
 }
 
 VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,

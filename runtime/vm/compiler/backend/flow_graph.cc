@@ -450,7 +450,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     // a null check rather than the more elaborate class check
     CompileType* type = receiver->Type();
     const AbstractType* atype = type->ToAbstractType();
-    if (atype->IsInstantiated() && atype->HasResolvedTypeClass() &&
+    if (atype->IsInstantiated() && atype->HasTypeClass() &&
         !atype->IsDynamicType()) {
       if (type->is_nullable()) {
         receiver_maybe_null = true;
@@ -549,10 +549,9 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
   const Class& cls = Class::Handle(
       zone(), Isolate::Current()->class_table()->At(receiver_cid));
 
-  Definition* load_type_args = new (zone())
-      LoadFieldInstr(call->Receiver()->CopyWithType(),
-                     NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), cls),
-                     call->token_pos());
+  Definition* load_type_args = new (zone()) LoadFieldInstr(
+      call->Receiver()->CopyWithType(),
+      Slot::GetTypeArgumentsSlotFor(thread(), cls), call->token_pos());
   InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
 
   const AbstractType& type =

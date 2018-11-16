@@ -894,19 +894,17 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
                                                    const Field& field) {
+  const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(call->ArgumentAt(0)), &field,
-      AbstractType::ZoneHandle(Z, field.type()), call->token_pos(),
-      isolate()->use_field_guards() ? &flow_graph()->parsed_function() : NULL);
-  load->set_is_immutable(field.is_final());
+      new (Z) Value(call->ArgumentAt(0)), slot, call->token_pos());
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
   call->RemoveEnvironment();
   ReplaceCall(call, load);
 
-  if (load->result_cid() != kDynamicCid) {
-    // Reset value types if guarded_cid was used.
+  if (load->slot().nullable_cid() != kDynamicCid) {
+    // Reset value types if we know concrete cid.
     for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
       it.Current()->SetReachingType(NULL);
     }
@@ -1034,10 +1032,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       if (!dst_type.IsInstantiated()) {
         const Class& owner = Class::Handle(Z, field.Owner());
         if (owner.NumTypeArguments() > 0) {
-          instantiator_type_args = new (Z) LoadFieldInstr(
-              new (Z) Value(instr->ArgumentAt(0)),
-              NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), owner),
-              instr->token_pos());
+          instantiator_type_args = new (Z)
+              LoadFieldInstr(new (Z) Value(instr->ArgumentAt(0)),
+                             Slot::GetTypeArgumentsSlotFor(thread(), owner),
+                             instr->token_pos());
           InsertBefore(instr, instantiator_type_args, instr->env(),
                        FlowGraph::kValue);
         }
@@ -1056,15 +1054,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 
   // Field guard was detached.
   ASSERT(instr->FirstArgIndex() == 0);
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
-                              new (Z) Value(instr->ArgumentAt(1)),
-                              kEmitStoreBarrier, instr->token_pos());
-
-  ASSERT(I->use_field_guards() || !store->IsUnboxedStore());
-  if (I->use_field_guards() && store->IsUnboxedStore()) {
-    flow_graph()->parsed_function().AddToGuardedFields(&field);
-  }
+  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
+      field, new (Z) Value(instr->ArgumentAt(0)),
+      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier,
+      instr->token_pos(), &flow_graph()->parsed_function());
 
   // Discard the environment from the original instruction because the store
   // can't deoptimize.

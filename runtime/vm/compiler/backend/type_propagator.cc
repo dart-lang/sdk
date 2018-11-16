@@ -700,7 +700,7 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kNullCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
-    } else if (type_->HasResolvedTypeClass()) {
+    } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();
       CHA& cha = thread->compiler_state().cha();
@@ -973,7 +973,7 @@ CompileType ParameterInstr::ComputeType() const {
     // Receiver can't be null but can be an instance of a subclass.
     intptr_t cid = kDynamicCid;
 
-    if (type.HasResolvedTypeClass()) {
+    if (type.type_class_id() != kIllegalCid) {
       Thread* thread = Thread::Current();
       const Class& type_class = Class::Handle(type.type_class());
       if (!CHA::HasSubclasses(type_class)) {
@@ -1319,36 +1319,29 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
-  // Type may be null if the field is a VM field, e.g. context parent.
-  // Keep it as null for debug purposes and do not return dynamic in production
-  // mode, since misuse of the type would remain undetected.
-  if (type().IsNull()) {
-    return CompileType::Dynamic();
+  const AbstractType& field_type = slot().static_type();
+  CompileType compile_type_cid = slot().ComputeCompileType();
+  if (field_type.raw() == AbstractType::null()) {
+    return compile_type_cid;
   }
 
   const Isolate* isolate = Isolate::Current();
-  bool is_nullable = CompileType::kNullable;
   intptr_t cid = kDynamicCid;
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
       (isolate->type_checks() &&
-       (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
+       (field_type.IsFunctionType() || field_type.HasTypeClass()))) {
     cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
-    abstract_type = &type();
+    abstract_type = &field_type;
     TraceStrongModeType(this, *abstract_type);
   }
-  if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid) &&
-      (field_->guarded_cid() != kDynamicCid)) {
-    cid = field_->guarded_cid();
-    is_nullable = field_->is_nullable();
-    abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
-  } else {
-    cid = result_cid_;
-    if ((cid != kIllegalCid) && (cid != kDynamicCid)) {
-      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
-    }
+
+  if (compile_type_cid.ToNullableCid() != kDynamicCid) {
+    abstract_type = nullptr;
   }
-  return CompileType(is_nullable, cid, abstract_type);
+
+  return CompileType(compile_type_cid.is_nullable(),
+                     compile_type_cid.ToNullableCid(), abstract_type);
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {

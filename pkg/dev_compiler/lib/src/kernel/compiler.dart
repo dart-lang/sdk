@@ -235,16 +235,15 @@ class ProgramCompiler extends Object
   bool get emitMetadata => options.emitMetadata;
 
   JS.Program emitModule(Component component, List<Component> summaries,
-      Map<Uri, String> summaryModules) {
+      List<Uri> summaryUris, Map<Uri, String> moduleImportForSummary) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
     _component = component;
 
-    var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
-      var moduleImport = moduleImports[i];
+      var moduleImport = moduleImportForSummary[summaryUris[i]];
       for (var l in summary.libraries) {
         assert(!_importToSummary.containsKey(l));
         _importToSummary[l] = summary;

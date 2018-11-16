@@ -287,7 +287,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
         AbstractType::ZoneHandle(zone(), type_arguments.TypeAt(0));
     ASSERT(!tp_argument.IsMalformed());
     if (tp_argument.IsType()) {
-      ASSERT(tp_argument.HasResolvedTypeClass());
+      ASSERT(tp_argument.HasTypeClass());
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
       if (object_type.IsSubtypeOf(tp_argument, NULL, NULL, Heap::kOld)) {

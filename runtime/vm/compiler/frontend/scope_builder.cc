@@ -99,11 +99,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     result_->this_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
-    result_->this_variable->set_index(VariableIndex(0));
     result_->this_variable->set_is_captured();
     enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
     enclosing_scope->set_context_level(0);
     enclosing_scope->AddVariable(result_->this_variable);
+    enclosing_scope->AddContextVariable(result_->this_variable);
   } else if (function.IsLocalFunction()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));

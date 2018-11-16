@@ -32,6 +32,15 @@ DEFINE_FLAG(uint64_t,
             ULLONG_MAX,
             "Trace interpreter execution after instruction count reached.");
 
+DEFINE_FLAG(charp,
+            interpreter_trace_file,
+            NULL,
+            "File to write a dynamic instruction trace to.");
+DEFINE_FLAG(uint64_t,
+            interpreter_trace_file_max_bytes,
+            100 * MB,
+            "Maximum size in bytes of the interpreter trace file");
+
 #define LIKELY(cond) __builtin_expect((cond), 1)
 #define UNLIKELY(cond) __builtin_expect((cond), 0)
 
@@ -559,10 +568,36 @@ Interpreter::Interpreter()
   last_setjmp_buffer_ = NULL;
 
   DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
+
+#if defined(DEBUG)
+  trace_file_bytes_written_ = 0;
+  trace_file_ = NULL;
+  if (FLAG_interpreter_trace_file != NULL) {
+    Dart_FileOpenCallback file_open = Dart::file_open_callback();
+    if (file_open != NULL) {
+      trace_file_ = file_open(FLAG_interpreter_trace_file, /* write */ true);
+      trace_buffer_ = new KBCInstr[kTraceBufferInstrs];
+      trace_buffer_idx_ = 0;
+    }
+  }
+#endif
 }
 
 Interpreter::~Interpreter() {
   delete[] stack_;
+#if defined(DEBUG)
+  if (trace_file_ != NULL) {
+    FlushTraceBuffer();
+    // Close the file.
+    Dart_FileCloseCallback file_close = Dart::file_close_callback();
+    if (file_close != NULL) {
+      file_close(trace_file_);
+      trace_file_ = NULL;
+      delete[] trace_buffer_;
+      trace_buffer_ = NULL;
+    }
+  }
+#endif
 }
 
 // Get the active Interpreter for the current isolate.
@@ -592,6 +627,44 @@ DART_NOINLINE void Interpreter::TraceInstruction(uint32_t* pc) const {
     THR_Print("Disassembler not supported in this mode.\n");
   }
 }
+
+DART_FORCE_INLINE bool Interpreter::IsWritingTraceFile() const {
+  return (trace_file_ != NULL) &&
+         (trace_file_bytes_written_ < FLAG_interpreter_trace_file_max_bytes);
+}
+
+void Interpreter::FlushTraceBuffer() {
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  if (file_write == NULL) {
+    return;
+  }
+  if (trace_file_bytes_written_ >= FLAG_interpreter_trace_file_max_bytes) {
+    return;
+  }
+  const intptr_t bytes_to_write = Utils::Minimum(
+      static_cast<uint64_t>(trace_buffer_idx_ * sizeof(KBCInstr)),
+      FLAG_interpreter_trace_file_max_bytes - trace_file_bytes_written_);
+  if (bytes_to_write == 0) {
+    return;
+  }
+  file_write(trace_buffer_, bytes_to_write, trace_file_);
+  trace_file_bytes_written_ += bytes_to_write;
+  trace_buffer_idx_ = 0;
+}
+
+DART_NOINLINE void Interpreter::WriteInstructionToTrace(uint32_t* pc) {
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  if (file_write == NULL) {
+    return;
+  }
+  if (trace_buffer_idx_ < kTraceBufferInstrs) {
+    trace_buffer_[trace_buffer_idx_++] = static_cast<KBCInstr>(*pc);
+  }
+  if (trace_buffer_idx_ == kTraceBufferInstrs) {
+    FlushTraceBuffer();
+  }
+}
+
 #endif  // defined(DEBUG)
 
 // Calls into the Dart runtime are based on this interface.
@@ -1204,6 +1277,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define TRACE_INSTRUCTION                                                      \
   if (IsTracingExecution()) {                                                  \
     TraceInstruction(pc - 1);                                                  \
+  }                                                                            \
+  if (IsWritingTraceFile()) {                                                  \
+    WriteInstructionToTrace(pc - 1);                                           \
   }                                                                            \
   icount_++;
 #else
