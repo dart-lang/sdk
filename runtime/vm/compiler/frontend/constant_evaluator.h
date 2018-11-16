@@ -57,6 +57,8 @@ class ConstantEvaluator {
   RawObject* EvaluateAnnotations();
 
  private:
+  void BailoutIfBackgroundCompilation();
+
   bool IsBuildingFlowGraph() const;
   bool IsAllowedToEvaluate() const;
   void EvaluateAsExpression();
