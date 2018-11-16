@@ -22,7 +22,6 @@ typedef RawObject* RawCompressed;
 // Macrobatics to define the Object hierarchy of VM implementation classes.
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
-  V(UnresolvedClass)                                                           \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
@@ -958,17 +957,6 @@ class RawClass : public RawObject {
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
   friend class CidRewriteVisitor;
-};
-
-class RawUnresolvedClass : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
-
-  VISIT_FROM(RawObject*, library_or_library_prefix_);
-  RawObject* library_or_library_prefix_;  // Library or library prefix qualifier
-                                          // for the ident.
-  RawString* ident_;                      // Name of the unresolved identifier.
-  VISIT_TO(RawObject*, ident_);
-  TokenPosition token_pos_;
 };
 
 class RawPatchClass : public RawObject {
@@ -2026,8 +2014,7 @@ class RawType : public RawAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   VISIT_FROM(RawObject*, type_class_id_)
-  // Either the id of the resolved class as a Smi or an UnresolvedClass.
-  RawObject* type_class_id_;
+  RawSmi* type_class_id_;
   RawTypeArguments* arguments_;
   RawSmi* hash_;
   // This type object represents a function type if its signature field is a

@@ -4060,7 +4060,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // static receiver type on the ICData.
     if (checked_argument_count() == 1) {
       if (static_receiver_type_ != nullptr &&
-          static_receiver_type_->HasResolvedTypeClass()) {
+          static_receiver_type_->HasTypeClass()) {
         const Class& cls =
             Class::Handle(zone, static_receiver_type_->type_class());
         if (cls.IsGeneric() && !cls.IsFutureOrClass()) {

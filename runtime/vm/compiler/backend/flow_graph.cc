@@ -450,7 +450,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     // a null check rather than the more elaborate class check
     CompileType* type = receiver->Type();
     const AbstractType* atype = type->ToAbstractType();
-    if (atype->IsInstantiated() && atype->HasResolvedTypeClass() &&
+    if (atype->IsInstantiated() && atype->HasTypeClass() &&
         !atype->IsDynamicType()) {
       if (type->is_nullable()) {
         receiver_maybe_null = true;

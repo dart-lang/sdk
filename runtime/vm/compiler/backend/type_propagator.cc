@@ -700,7 +700,7 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kNullCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
-    } else if (type_->HasResolvedTypeClass()) {
+    } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();
       CHA& cha = thread->compiler_state().cha();
@@ -973,7 +973,7 @@ CompileType ParameterInstr::ComputeType() const {
     // Receiver can't be null but can be an instance of a subclass.
     intptr_t cid = kDynamicCid;
 
-    if (type.HasResolvedTypeClass()) {
+    if (type.type_class_id() != kIllegalCid) {
       Thread* thread = Thread::Current();
       const Class& type_class = Class::Handle(type.type_class());
       if (!CHA::HasSubclasses(type_class)) {
@@ -1332,7 +1332,7 @@ CompileType LoadFieldInstr::ComputeType() const {
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
       (isolate->type_checks() &&
-       (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
+       (type().IsFunctionType() || type().HasTypeClass()))) {
     cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &type();
     TraceStrongModeType(this, *abstract_type);

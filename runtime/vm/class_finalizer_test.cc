@@ -70,33 +70,4 @@ ISOLATE_UNIT_TEST_CASE(ClassFinalize_Cycles) {
   EXPECT(!ClassFinalizer::ProcessPendingClasses());
 }
 
-static RawLibrary* NewLib(const char* url_chars) {
-  String& url = String::ZoneHandle(Symbols::New(Thread::Current(), url_chars));
-  return Library::New(url);
-}
-
-ISOLATE_UNIT_TEST_CASE(ClassFinalize_Resolve) {
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
-  const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(zone, object_store->pending_classes());
-  Class& rhb = Class::Handle(CreateTestClass("RhB"));
-  pending_classes.Add(rhb);
-  Class& sbb = Class::Handle(CreateTestClass("SBB"));
-  pending_classes.Add(sbb);
-  Library& lib = Library::Handle(NewLib("TestLib"));
-  lib.AddClass(rhb);
-  lib.AddClass(sbb);
-  const String& superclass_name = String::Handle(sbb.Name());
-  const UnresolvedClass& unresolved =
-      UnresolvedClass::Handle(UnresolvedClass::New(
-          LibraryPrefix::Handle(), superclass_name, TokenPosition::kNoSource));
-  const TypeArguments& type_arguments = TypeArguments::Handle();
-  rhb.set_super_type(
-      Type::Handle(Type::New(Object::Handle(unresolved.raw()), type_arguments,
-                             TokenPosition::kNoSource)));
-  EXPECT(ClassFinalizer::ProcessPendingClasses());
-}
-
 }  // namespace dart

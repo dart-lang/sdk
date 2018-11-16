@@ -356,7 +356,7 @@ bool SimpleInstanceOfType(const AbstractType& type) {
   // Bail if the type is a function or a Dart Function type.
   if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
 
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   const Class& type_class = Class::Handle(type.type_class());
   // Bail if the type has any type parameters.
   if (type_class.IsGeneric()) return false;

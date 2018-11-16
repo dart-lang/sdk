@@ -3068,7 +3068,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   bool is_unchecked_call = false;
 #ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr &&
-      call_site_attributes.receiver_type->HasResolvedTypeClass() &&
+      call_site_attributes.receiver_type->HasTypeClass() &&
       !Class::Handle(call_site_attributes.receiver_type->type_class())
            .IsGeneric()) {
     is_unchecked_call = true;
@@ -3608,7 +3608,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       SkipExpression();  // skip receiver
       is_unchecked_closure_call =
           ReadNameAsMethodName().Equals(Symbols::Call());
-    } else if (call_site_attributes.receiver_type->HasResolvedTypeClass() &&
+    } else if (call_site_attributes.receiver_type->HasTypeClass() &&
                !Class::Handle(call_site_attributes.receiver_type->type_class())
                     .IsGeneric()) {
       is_unchecked_call = true;

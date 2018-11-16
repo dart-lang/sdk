@@ -415,7 +415,6 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
-  static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
@@ -666,7 +665,6 @@ class Object {
   static RawClass* class_class_;             // Class of the Class vm object.
   static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
   static RawClass* void_class_;              // Class of the 'void' type.
-  static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
@@ -1504,37 +1502,6 @@ class Class : public Object {
   friend class Type;
   friend class Intrinsifier;
   friend class ClassFunctionVisitor;
-};
-
-// Unresolved class is used for storing unresolved names which will be resolved
-// to a class after all classes have been loaded and finalized.
-class UnresolvedClass : public Object {
- public:
-  RawObject* library_or_library_prefix() const {
-    return raw_ptr()->library_or_library_prefix_;
-  }
-  RawString* ident() const { return raw_ptr()->ident_; }
-  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
-
-  RawString* Name() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawUnresolvedClass));
-  }
-
-  static RawUnresolvedClass* New(const Object& library_prefix,
-                                 const String& ident,
-                                 TokenPosition token_pos);
-
- private:
-  void set_library_or_library_prefix(const Object& library_prefix) const;
-  void set_ident(const String& ident) const;
-  void set_token_pos(TokenPosition token_pos) const;
-
-  static RawUnresolvedClass* New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
-  friend class Class;
 };
 
 // Classification of type genericity according to type parameter owners.
@@ -6287,10 +6254,9 @@ class AbstractType : public Instance {
   virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;
   virtual void SetIsResolved() const;
-  virtual bool HasResolvedTypeClass() const;
+  virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
-  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
@@ -6526,7 +6492,6 @@ class AbstractType : public Instance {
 
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
-// An unresolved class is a String specifying the class name.
 //
 // Caution: 'RawType*' denotes a 'raw' pointer to a VM object of class Type, as
 // opposed to 'Type' denoting a 'handle' to the same object. 'RawType' does not
@@ -6560,12 +6525,13 @@ class Type : public AbstractType {
     return raw_ptr()->type_state_ >= RawType::kResolved;
   }
   virtual void SetIsResolved() const;
-  virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
+  virtual bool HasTypeClass() const {
+    ASSERT(type_class_id() != kIllegalCid);
+    return true;
+  }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
   void set_type_class(const Class& value) const;
-  void set_unresolved_class(const Object& value) const;
-  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
@@ -6664,7 +6630,7 @@ class Type : public AbstractType {
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
 
-  static RawType* New(const Object& clazz,
+  static RawType* New(const Class& clazz,
                       const TypeArguments& arguments,
                       TokenPosition token_pos,
                       Heap::Space space = Heap::kOld);
@@ -6713,9 +6679,9 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).error();
   }
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const {
+  virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
-           AbstractType::Handle(type()).HasResolvedTypeClass();
+           AbstractType::Handle(type()).HasTypeClass();
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
@@ -6791,7 +6757,8 @@ class TypeParameter : public AbstractType {
   virtual bool IsMalbounded() const { return false; }
   virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const { return false; }
+  virtual bool HasTypeClass() const { return false; }
+  virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
   RawClass* parameterized_class() const;
   RawFunction* parameterized_function() const {
@@ -6894,17 +6861,14 @@ class BoundedType : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const;
   virtual RawLanguageError* error() const;
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const {
-    return AbstractType::Handle(type()).HasResolvedTypeClass();
+  virtual bool HasTypeClass() const {
+    return AbstractType::Handle(type()).HasTypeClass();
   }
   virtual classid_t type_class_id() const {
     return AbstractType::Handle(type()).type_class_id();
   }
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();
-  }
-  virtual RawUnresolvedClass* unresolved_class() const {
-    return AbstractType::Handle(type()).unresolved_class();
   }
   virtual RawTypeArguments* arguments() const {
     return AbstractType::Handle(type()).arguments();
@@ -6991,7 +6955,7 @@ class MixinAppType : public AbstractType {
   virtual bool IsMalbounded() const { return false; }
   virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return false; }
-  virtual bool HasResolvedTypeClass() const { return false; }
+  virtual bool HasTypeClass() const { return false; }
   virtual RawString* Name() const;
   virtual TokenPosition token_pos() const;
 

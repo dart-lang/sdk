@@ -153,7 +153,6 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
   }
 
   if (type.IsCanonical()) {
-    ASSERT(type.IsResolved());
     if (type.IsType()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       // Lazily create the type testing stubs array.
@@ -996,7 +995,7 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
   if (type.IsTypeRef()) {
     dereferenced_type = &AbstractType::Handle(TypeRef::Cast(type).type());
   }
-  if (dereferenced_type->IsResolved() && dereferenced_type->IsFinalized()) {
+  if (dereferenced_type->IsFinalized()) {
     return assert_assignable_types_.HasKey(dereferenced_type);
   }
   return false;
