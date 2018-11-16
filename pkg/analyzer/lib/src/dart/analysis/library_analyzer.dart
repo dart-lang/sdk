@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -25,40 +26,53 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
+import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /**
  * Analyzer of a single library.
  */
 class LibraryAnalyzer {
+  /// A marker object used to prevent the initialization of
+  /// [_versionConstraintFromPubspec] when the previous initialization attempt
+  /// failed.
+  static final VersionRange noSpecifiedRange = new VersionRange();
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
-  final InheritanceManager2 _inheritance;
 
+  final InheritanceManager2 _inheritance;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
   final TypeProvider _typeProvider;
+
   final TypeSystem _typeSystem;
-
   LibraryElement _libraryElement;
+
   LibraryScope _libraryScope;
-
   final Map<FileState, LineInfo> _fileToLineInfo = {};
-  final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
 
+  final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
+
   final Set<ConstantEvaluationTarget> _constants = new Set();
+
+  /// The cached version range for the SDK specified in `pubspec.yaml`, or
+  /// [noSpecifiedRange] if there is no `pubspec.yaml` or if it does not contain
+  /// an SDK range. Use [versionConstraintFromPubspec] to access this field.
+  VersionConstraint _versionConstraintFromPubspec;
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -159,6 +173,20 @@ class LibraryAnalyzer {
     return results;
   }
 
+  VersionConstraint versionConstraintFromPubspec() {
+    if (_versionConstraintFromPubspec == null) {
+      _versionConstraintFromPubspec = noSpecifiedRange;
+      File pubspecFile = _findPubspecFile(_library);
+      if (pubspecFile != null) {
+        SdkConstraintExtractor extractor =
+            new SdkConstraintExtractor(pubspecFile);
+        _versionConstraintFromPubspec =
+            extractor.constraint() ?? noSpecifiedRange;
+      }
+    }
+    return _versionConstraintFromPubspec;
+  }
+
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
@@ -232,6 +260,16 @@ class LibraryAnalyzer {
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
       unit.accept(visitor);
+    }
+    //
+    // Find code that uses features from an SDK that is newer than the minimum
+    // version allowed in the pubspec.yaml file.
+    //
+    VersionRange versionRange = versionConstraintFromPubspec();
+    if (versionRange != noSpecifiedRange) {
+      SdkConstraintVerifier verifier = new SdkConstraintVerifier(
+          errorReporter, _libraryElement, _typeProvider, versionRange);
+      unit.accept(verifier);
     }
   }
 
@@ -362,6 +400,20 @@ class LibraryAnalyzer {
     var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
     unit.accept(dependenciesFinder);
     _constants.addAll(dependenciesFinder.dependencies);
+  }
+
+  File _findPubspecFile(FileState file) {
+    ResourceProvider resourceProvider =
+        _libraryElement.session?.resourceProvider;
+    Folder folder = resourceProvider?.getFile(file.path)?.parent;
+    while (folder != null) {
+      File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+      if (pubspecFile.exists) {
+        return pubspecFile;
+      }
+      folder = folder.parent;
+    }
+    return null;
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>

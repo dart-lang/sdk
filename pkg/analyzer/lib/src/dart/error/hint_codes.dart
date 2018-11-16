@@ -520,6 +520,18 @@ class HintCode extends ErrorCode {
       "A package import shouldn't contain '..'.");
 
   /**
+   * A class defined in `dart:async` that was not exported from `dart:core`
+   * before version 2.1 is being referenced via `dart:core` in code that is
+   * expected to run on earlier versions.
+   */
+  static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = const HintCode(
+      'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
+      "The class '{0}' was not exported from 'dart:core' until version 2.1, "
+      "but this code is required to be able to run on earlier versions.",
+      correction:
+          "Try either importing 'dart:async' or updating the SDK constraints.");
+
+  /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
   static const HintCode TYPE_CHECK_IS_NOT_NULL = const HintCode(

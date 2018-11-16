@@ -8,6 +8,7 @@ import 'command_line/test_all.dart' as command_line;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'fasta/test_all.dart' as fasta;
+import 'hint/test_all.dart' as hint;
 import 'lint/test_all.dart' as lint;
 import 'pubspec/test_all.dart' as pubspec;
 import 'source/test_all.dart' as source;
@@ -22,6 +23,7 @@ main() {
     context.main();
     dart.main();
     fasta.main();
+    hint.main();
     lint.main();
     pubspec.main();
     source.main();
