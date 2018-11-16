@@ -119,7 +119,6 @@ Bytecode (version: stable) {
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   Allocate             CP#1
   StoreLocal           r1
@@ -294,12 +293,10 @@ Bytecode (version: stable) {
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#1
   PushStatic           CP#1
   EqualsNull
-  AssertBoolean        0
   BooleanNegateTOS
   PopLocal             r0
   Jump                 L2
@@ -308,7 +305,6 @@ L1:
   PopLocal             r0
 L2:
   Push                 r0
-  AssertBoolean        0
   JumpIfFalse          L3
   PushConstant         CP#1
   PushStatic           CP#1
@@ -493,7 +489,6 @@ L1:
   PopLocal             r1
 L2:
   Push                 r1
-  AssertBoolean        0
   JumpIfTrue           L3
   PushConstant         CP#0
   PushStatic           CP#0
@@ -507,7 +502,6 @@ L3:
   PopLocal             r0
 L4:
   Push                 r0
-  AssertBoolean        0
   JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
@@ -575,7 +569,6 @@ Bytecode (version: stable) {
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#1
   PushStatic           CP#1

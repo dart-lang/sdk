@@ -16,7 +16,6 @@ L2:
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
@@ -60,13 +59,11 @@ L3:
   Push                 r1
   PushInt              0
   CompareIntGe
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntGe
-  AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L1
 L2:
@@ -118,12 +115,10 @@ L4:
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   PushInt              0
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L3
 L2:
@@ -176,7 +171,6 @@ L2:
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
@@ -234,7 +228,6 @@ L1:
   Push                 FP[-5]
   InstanceCall         1, CP#3
   CompareIntLt
-  AssertBoolean        0
   JumpIfTrue           L1
   Push                 r0
   ReturnTOS

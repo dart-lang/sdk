@@ -903,7 +903,6 @@ L6:
   LoadContextVar       0
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L2
   Push                 r4
   LoadContextParent
@@ -1038,7 +1037,6 @@ L8:
   Push                 r8
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L7
   Push                 r4
   Push                 r4
@@ -1405,7 +1403,6 @@ Try #2 handler:
   LoadContextVar       1
   PushConstant         CP#12
   InstanceCall         2, CP#13
-  AssertBoolean        0
   JumpIfFalse          L4
   Push                 r4
   LoadContextParent

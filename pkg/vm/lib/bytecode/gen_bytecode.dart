@@ -27,6 +27,7 @@ import 'constant_pool.dart';
 import 'dbc.dart';
 import 'exceptions.dart';
 import 'local_vars.dart' show LocalVariables;
+import 'nullability_detector.dart' show NullabilityDetector;
 import 'recognized_methods.dart' show RecognizedMethods;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
@@ -80,6 +81,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
+  NullabilityDetector nullabilityDetector;
 
   Class enclosingClass;
   Member enclosingMember;
@@ -119,6 +121,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.useFutureBytecodeFormat,
       this.errorReporter)
       : recognizedMethods = new RecognizedMethods(typeEnvironment) {
+    nullabilityDetector = new NullabilityDetector(recognizedMethods);
     component.addMetadataRepository(metadata);
   }
 
@@ -661,7 +664,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       negated = true;
     }
     _generateNode(condition);
-    asm.emitAssertBoolean(0);
+    if (nullabilityDetector.isNullable(condition)) {
+      asm.emitAssertBoolean(0);
+    }
     return negated;
   }
 

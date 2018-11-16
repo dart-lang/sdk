@@ -683,7 +683,6 @@ Closure CP#0 {
   LoadContextVar       1
   PushInt              5
   CompareIntGt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
   PushInt              4
@@ -831,7 +830,6 @@ L2:
   LoadContextVar       0
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r2
   Allocate             CP#8

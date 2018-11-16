@@ -623,13 +623,11 @@ L5:
   Push                 r0
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
 Try #0 start:
   Push                 r0
   PushInt              5
   CompareIntGt
-  AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L3
 L2:
@@ -668,7 +666,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 10, end 17, handler 17, needs-stack-trace, types [CP#0]
+  try-index 0, outer -1, start 9, end 15, handler 15, needs-stack-trace, types [CP#0]
 }
 ConstantPool {
   [0] = Type dynamic

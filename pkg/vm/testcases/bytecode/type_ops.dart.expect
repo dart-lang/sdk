@@ -107,7 +107,6 @@ Bytecode (version: stable) {
   PushNull
   PushConstant         CP#1
   InstanceCall         4, CP#3
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#4
   PushConstant         CP#6
@@ -120,7 +119,6 @@ L1:
   PushNull
   PushConstant         CP#7
   InstanceCall         4, CP#8
-  AssertBoolean        0
   JumpIfFalse          L2
   PushConstant         CP#9
   PushConstant         CP#10
@@ -177,7 +175,6 @@ Bytecode (version: stable) {
   Push                 r0
   PushConstant         CP#0
   InstanceCall         4, CP#2
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#3
   PushConstant         CP#5
@@ -190,7 +187,6 @@ L1:
   Push                 r0
   PushConstant         CP#7
   InstanceCall         4, CP#8
-  AssertBoolean        0
   JumpIfFalse          L2
   PushConstant         CP#9
   PushConstant         CP#10
@@ -334,7 +330,6 @@ Bytecode (version: stable) {
   Push                 FP[-5]
   PushConstant         CP#0
   InstanceCall         2, CP#2
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#3
   PushConstant         CP#5
@@ -346,7 +341,6 @@ L1:
   PushNull
   PushConstant         CP#6
   InstanceCall         4, CP#8
-  AssertBoolean        0
   JumpIfFalse          L2
   PushConstant         CP#9
   PushConstant         CP#10
