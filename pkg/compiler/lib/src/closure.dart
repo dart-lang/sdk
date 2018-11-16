@@ -113,7 +113,7 @@ class ScopeInfo {
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
-  bool isBoxed(Local variable) => false;
+  bool isBoxedVariable(Local variable) => false;
 }
 
 /// Class representing the usage of a scope that has been captured in the
@@ -298,10 +298,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
   void forEachFreeVariable(f(Local variable, FieldEntity field)) {}
-
-  /// Return true if [variable] has been captured and mutated (all other
-  /// variables do not require boxing).
-  bool isVariableBoxed(Local variable) => false;
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's
