@@ -3135,6 +3135,7 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
   SourceLocation location;
   Code code;
   Code unoptimizedCode;
+  Code bytecode;
   bool isOptimizable;
   bool isInlinable;
   bool hasIntrinsic;
@@ -3193,6 +3194,7 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
     isInlinable = map['_inlinable'];
     isRecognized = map['_recognized'];
     unoptimizedCode = map['_unoptimizedCode'];
+    bytecode = map['_bytecode'];
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
     icDataArray = map['_icDataArray'];

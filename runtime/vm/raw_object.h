@@ -1490,6 +1490,8 @@ class RawBytecode : public RawObject {
 
   intptr_t source_positions_binary_offset_;
 
+  static bool ContainsPC(RawObject* raw_obj, uword pc);
+
   friend class Function;
   friend class StackFrame;
 };
@@ -2395,6 +2397,8 @@ class RawExternalTypedData : public RawInstance {
   VISIT_TO(RawCompressed, length_)
 
   uint8_t* data_;
+
+  friend class RawBytecode;
 };
 
 // VM implementations of the basic types in the isolate.

@@ -282,18 +282,18 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT(!walker.Down());
 
     // Inclusive code: main -> B.boo.
     walker.Reset(Profile::kInclusiveCode);
     // Move down from the root.
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
@@ -618,18 +618,18 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT(!walker.Down());
 
     // Inclusive code: main -> B.boo.
     walker.Reset(Profile::kInclusiveCode);
     // Move down from the root.
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
@@ -747,11 +747,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
@@ -761,12 +761,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     walker.Reset(Profile::kInclusiveCode);
     // Move down from the root.
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT(walker.Down());
@@ -923,11 +923,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("Double_add", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_Double._add", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] _Double._add", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_Double.+", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] _Double.+", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -990,9 +990,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("new _List", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1080,7 +1080,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] AllocateContext", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1212,9 +1212,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("TypedData_Float32Array_new", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("new Float32List", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] new Float32List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1294,10 +1294,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     EXPECT_STREQ("String_concat", walker.CurrentName());
     EXPECT(walker.Down());
 #if 1
-    EXPECT_STREQ("_StringBase.+", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] _StringBase.+", walker.CurrentName());
     EXPECT(walker.Down());
 #endif
-    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1376,13 +1376,16 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("OneByteString_allocate", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_OneByteString._allocate", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] _OneByteString._allocate",
+                 walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_OneByteString._concatAll", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] _OneByteString._concatAll",
+                 walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_StringBase._interpolate", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] _StringBase._interpolate",
+                 walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1493,12 +1496,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("*B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
@@ -1507,13 +1510,13 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     // We have two code objects: mainA and B.boo.
     walker.Reset(Profile::kInclusiveCode);
     EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("*B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
@@ -1613,11 +1616,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("*B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1626,11 +1629,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("*B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1889,45 +1892,45 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("orange", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] orange", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("napkin", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] napkin", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("mayo", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] mayo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("lemon", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] lemon", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("kindle", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] kindle", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("jeep", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] jeep", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("ice", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] ice", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("haystack", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] haystack", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("granola", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] granola", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("fred", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] fred", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("elephant", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] elephant", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("dog", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] dog", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("cantaloupe", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] cantaloupe", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("banana", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] banana", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("apple", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] apple", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("secondInit", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] secondInit", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("init", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] init", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("go", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] go", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -2718,7 +2721,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
   EXPECT_EQ(table->FindCodeForPC(42), static_cast<ProfileCode*>(NULL));
 
   int64_t timestamp = 0;
-  Code& null_code = Code::Handle(Z);
+  const AbstractCode null_code(Code::null());
 
   ProfileCode* code1 = new (Z)
       ProfileCode(ProfileCode::kNativeCode, 50, 60, timestamp, null_code);

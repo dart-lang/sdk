@@ -708,10 +708,9 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   {
     InterpreterSetjmpBuffer buffer(this);
     if (!setjmp(buffer.buffer_)) {
-      thread->set_vm_tag(reinterpret_cast<uword>(entrypoint));
       result = entrypoint(code, argdesc_, call_base, thread);
-      thread->set_vm_tag(VMTag::kDartInterpretedTagId);
       thread->set_top_exit_frame_info(0);
+      ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
     } else {
       return false;

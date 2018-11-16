@@ -315,7 +315,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Bytecode& bytecode = Bytecode::Handle(this->bytecode());
   if (!bytecode.IsNull()) {
-    jsobj.AddProperty("bytecode", bytecode);
+    jsobj.AddProperty("_bytecode", bytecode);
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
   Array& ics = Array::Handle(ic_data_array());
@@ -794,6 +794,8 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 }
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // N.B. This is polymorphic with Bytecode.
+
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp(),
@@ -860,11 +862,21 @@ void Code::set_await_token_positions(const Array& await_token_positions) const {
 }
 
 void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // N.B. This is polymorphic with Code.
+
   JSONObject jsobj(stream);
-  AddCommonObjectProperties(&jsobj, "Bytecode", ref);
+  AddCommonObjectProperties(&jsobj, "Code", ref);
+  int64_t compile_timestamp = 0;
+  jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp,
+                          PayloadStart());
   const char* qualified_name = QualifiedName();
   const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
+
+  jsobj.AddProperty("kind", "Dart");
+  jsobj.AddProperty("_optimized", false);
+  jsobj.AddProperty("_intrinsic", false);
+  jsobj.AddProperty("_native", false);
   if (ref) {
     return;
   }
@@ -872,6 +884,7 @@ void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("function", fun);
   jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
   jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
+  jsobj.AddProperty("_alive", true);
   const ObjectPool& obj_pool = ObjectPool::Handle(object_pool());
   jsobj.AddProperty("_objectPool", obj_pool);
   {
@@ -884,6 +897,9 @@ void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONObject desc(&jsobj, "_descriptors");
     descriptors.PrintToJSONObject(&desc, false);
   }
+
+  { JSONArray inlined_functions(&jsobj, "_inlinedFunctions"); }
+  { JSONArray inline_intervals(&jsobj, "_inlinedIntervals"); }
 }
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
