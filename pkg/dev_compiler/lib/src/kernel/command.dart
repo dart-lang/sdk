@@ -217,8 +217,9 @@ Future<CompilerResult> _compile(List<String> args,
   var target = compilerState.options.target as DevCompilerTarget;
   var compiler =
       ProgramCompiler(component, target.hierarchy, options, declaredVariables);
-  var jsModule =
-      compiler.emitModule(component, result.inputSummaries, summaryModules);
+
+  var jsModule = compiler.emitModule(component, result.inputSummaries,
+      compilerState.options.inputSummaries, summaryModules);
 
   // TODO(jmesserly): support for multiple output formats?
   //
