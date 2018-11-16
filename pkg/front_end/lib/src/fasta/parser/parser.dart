@@ -3941,6 +3941,7 @@ class Parser {
           listener.handleNoTypeArguments(next);
         }
         token = parseArguments(token);
+        listener.handleSend(beginToken, token);
         typeArg = computeMethodTypeArguments(token);
         if (typeArg != noTypeParamOrArg) {
           // For example a(b)<T>(c), where token is before '<'.
@@ -3948,7 +3949,6 @@ class Parser {
           assert(optional('(', token.next));
         }
         next = token.next;
-        listener.handleSend(beginToken, next);
       } else {
         break;
       }
