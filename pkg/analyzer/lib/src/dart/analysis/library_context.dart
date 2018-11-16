@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -43,7 +44,7 @@ class LibraryContext {
   int _linkedDataInBytes = 0;
 
   AnalysisContextImpl analysisContext;
-  ElementResynthesizer resynthesizer;
+  SummaryResynthesizer resynthesizer;
   InheritanceManager2 inheritanceManager;
 
   LibraryContext({
@@ -91,6 +92,13 @@ class LibraryContext {
       library.uriStr,
       unit.uriStr,
     ]));
+  }
+
+  /**
+   * Get the [LibraryElement] for the given library.
+   */
+  LibraryElement getLibraryElement(FileState library) {
+    return resynthesizer.getLibraryElement(library.uriStr);
   }
 
   /**

@@ -732,12 +732,26 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Return a [Future] that completes with the [LibraryElement] for the given
    * [uri], which is either resynthesized from the provided external summary
    * store, or built for a file to which the given [uri] is resolved.
+   *
+   * Throw [ArgumentError] if the [uri] corresponds to a part.
    */
   Future<LibraryElement> getLibraryByUri(String uri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    Source source = sourceFactory.resolveUri(null, uri);
-    UnitElementResult unitResult = await getUnitElement(source.fullName);
+    var uriObj = Uri.parse(uri);
+    var file = _fsState.getFileForUri(uriObj);
+
+    if (_externalSummaries != null &&
+        _externalSummaries.unlinkedMap.containsKey(uri)) {
+      if (!_externalSummaries.linkedMap.containsKey(uri)) {
+        throw ArgumentError('$uri is not a library.');
+      }
+      return _createLibraryContext(file).getLibraryElement(file);
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('$uri is not a library.');
+    }
+
+    UnitElementResult unitResult = await getUnitElement(file.path);
     return unitResult.element.library;
   }
 

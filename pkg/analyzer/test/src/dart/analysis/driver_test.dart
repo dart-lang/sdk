@@ -1412,28 +1412,86 @@ main() {
     } on ArgumentError {}
   }
 
-  test_getLibraryByUri_external_resynthesize() async {
-    newFile(testFile, content: r'''
-class Test {}
+  test_getLibraryByUri() async {
+    var a = '/test/lib/a.dart';
+    var b = '/test/lib/b.dart';
+
+    String aUriStr = 'package:test/a.dart';
+    String bUriStr = 'package:test/b.dart';
+
+    newFile(a, content: r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+
+class B {}
+''');
+
+    var library = await driver.getLibraryByUri(aUriStr);
+    expect(library.getType('A'), isNotNull);
+    expect(library.getType('B'), isNotNull);
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(() async {
+      await driver.getLibraryByUri(bUriStr);
+    }, throwsArgumentError);
+  }
+
+  test_getLibraryByUri_external() async {
+    var a = '/test/lib/a.dart';
+    var b = '/test/lib/b.dart';
+
+    String aUriStr = 'package:test/a.dart';
+    String bUriStr = 'package:test/b.dart';
+
+    newFile(a, content: r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+
+class B {}
 ''');
 
     // Prepare the store with package:test/test.dart URI.
-    SummaryDataStore summaryStore =
-        await createAnalysisDriver().test.getSummaryStore(testFile);
+    var store = await createAnalysisDriver().test.getSummaryStore(a);
 
     // package:test/test.dart is in the store.
-    String uri = 'package:test/test.dart';
-    expect(summaryStore.unlinkedMap.keys, contains(uri));
-    expect(summaryStore.linkedMap.keys, contains(uri));
+    expect(store.unlinkedMap.keys, contains(aUriStr));
+    expect(store.unlinkedMap.keys, contains(bUriStr));
+    expect(store.linkedMap.keys, contains(aUriStr));
+    expect(store.linkedMap.keys, isNot(contains(bUriStr)));
 
-    // Remove the file from the file system.
-    deleteFile(testFile);
+    // Remove the files from the file system.
+    deleteFile(a);
+    deleteFile(b);
 
-    // We can resynthesize the library from the store without reading the file.
-    AnalysisDriver driver =
-        createAnalysisDriver(externalSummaries: summaryStore);
-    LibraryElement library = await driver.getLibraryByUri(uri);
-    expect(library.getType('Test'), isNotNull);
+    // We can resynthesize the library from the store.
+    var driver = createAnalysisDriver(externalSummaries: store);
+
+    // Ask by URI, so we get the "external" FileState.
+    var aUri = Uri.parse(aUriStr);
+    var aFile = driver.fsState.getFileForUri(aUri);
+    expect(aFile.uri, aUri);
+    expect(aFile.path, isNull);
+
+    // We still can resynthesize the library.
+    // The URI is known to be external, so we don't talk to the file.
+    var library = await driver.getLibraryByUri(aUriStr);
+    expect(library.getType('A'), isNotNull);
+    expect(library.getType('B'), isNotNull);
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(() async {
+      await driver.getLibraryByUri(bUriStr);
+    }, throwsArgumentError);
   }
 
   test_getLibraryByUri_sdk_analyze() async {
