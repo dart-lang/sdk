@@ -1,6 +1,6 @@
 language: dart
 dart:
-  - dev
+  - stable
 sudo: false
 script: ./tool/travis.sh
 env:
