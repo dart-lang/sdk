@@ -141,6 +141,24 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
+
+  void test_setLiteral() {
+    SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(1));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_typeArgument() {
+    SetLiteral set = parseExpression('<int>{3}', parseSetLiterals: true);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
 }
 
 /**
@@ -397,8 +415,10 @@ class FastaParserTestCase
   Expression parseExpression(String source,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      int expectedEndOffset}) {
+      int expectedEndOffset,
+      bool parseSetLiterals = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
+    _parserProxy.fastaParser.parseSetLiterals = parseSetLiterals;
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;

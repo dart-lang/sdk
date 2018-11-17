@@ -879,6 +879,29 @@ class AstBuilder extends StackListener {
     push(ast.nullLiteral(token));
   }
 
+  @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    // TODO(danrubel): From a type resolution standpoint, this could be either
+    // a set literal or a map literal depending upon the context
+    // in which this expression occurs.
+    // For now, generate a map literal.
+    handleLiteralMap(0, leftBrace, constKeyword, rightBrace);
+  }
+
+  void handleLiteralSet(
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+    assert(optional('{', leftBracket));
+    assert(optionalOrNull('const', constKeyword));
+    assert(optional('}', rightBracket));
+    debugEvent("LiteralSet");
+
+    List<Expression> entries = popTypedList(count) ?? <Expression>[];
+    TypeArgumentList typeArguments = pop();
+    push(ast.setLiteral(
+        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+  }
+
   void handleLiteralMap(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     assert(optional('{', leftBracket));
