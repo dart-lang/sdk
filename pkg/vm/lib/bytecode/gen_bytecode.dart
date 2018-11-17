@@ -634,7 +634,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _genLoadVar(VariableDeclaration v, {int currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
-      asm.emitLoadContextVar(locals.getVarIndexInContext(v));
+      asm.emitLoadContextVar(
+          locals.getVarContextId(v), locals.getVarIndexInContext(v));
     } else {
       asm.emitPush(locals.getVarIndexInFrame(v));
     }
@@ -650,7 +651,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   // If variable is captured, context should be pushed before value.
   void _genStoreVar(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
-      asm.emitStoreContextVar(locals.getVarIndexInContext(variable));
+      asm.emitStoreContextVar(locals.getVarContextId(variable),
+          locals.getVarIndexInContext(variable));
     } else {
       asm.emitPopLocal(locals.getVarIndexInFrame(variable));
     }
@@ -1426,7 +1428,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _allocateContextIfNeeded() {
     final int contextSize = locals.currentContextSize;
     if (contextSize > 0) {
-      asm.emitAllocateContext(contextSize);
+      asm.emitAllocateContext(locals.currentContextId, contextSize);
 
       if (locals.currentContextLevel > 0) {
         _genDupTOS(locals.scratchVarIndexInFrame);
@@ -2466,7 +2468,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
       if (locals.currentContextSize > 0) {
         asm.emitPush(locals.contextVarIndexInFrame);
-        asm.emitCloneContext(locals.currentContextSize);
+        asm.emitCloneContext(
+            locals.currentContextId, locals.currentContextSize);
         asm.emitPopLocal(locals.contextVarIndexInFrame);
       }
 
@@ -2849,11 +2852,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else {
         asm.emitPushNull();
       }
-      if (isCaptured) {
-        asm.emitStoreContextVar(locals.getVarIndexInContext(node));
-      } else {
-        asm.emitPopLocal(locals.getVarIndexInFrame(node));
-      }
+      _genStoreVar(node);
     }
   }
 

@@ -173,17 +173,17 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kCreateArrayTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocateContext: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kCloneContext: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kLoadContextParent: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kStoreContextParent: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kLoadContextVar: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kStoreContextVar: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kPushConstant: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kPushNull: const Format(
@@ -346,6 +346,9 @@ const int localVariableIndexLimit = 1 << 15;
 
 // Captured variables are referenced using 16-bit unsigned operands.
 const int capturedVariableIndexLimit = 1 << 16;
+
+// Context IDs are referenced using 8-bit unsigned operands.
+const int contextIdLimit = 1 << 8;
 
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.

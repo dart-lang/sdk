@@ -34,7 +34,8 @@ T* PutIfAbsent(Thread* thread,
   return array->At(index);
 }
 
-LocalVariable* CompilerState::GetDummyCapturedVariable(intptr_t index) {
+LocalVariable* CompilerState::GetDummyCapturedVariable(intptr_t context_id,
+                                                       intptr_t index) {
   return PutIfAbsent<LocalVariable>(
       thread(), &dummy_captured_vars_, index, [&]() {
         Zone* const Z = thread()->zone();
@@ -52,6 +53,7 @@ LocalVariable* CompilerState::GetDummyCapturedVariable(intptr_t index) {
 }
 
 const GrowableArray<LocalVariable*>& CompilerState::GetDummyContextVariables(
+    intptr_t context_id,
     intptr_t num_context_variables) {
   return PutIfAbsent<LocalScope>(
              thread(), &dummy_scopes_, num_context_variables,
@@ -63,7 +65,7 @@ const GrowableArray<LocalVariable*>& CompilerState::GetDummyContextVariables(
                scope->set_context_level(0);
 
                for (intptr_t i = 0; i < num_context_variables; i++) {
-                 LocalVariable* var = GetDummyCapturedVariable(i);
+                 LocalVariable* var = GetDummyCapturedVariable(context_id, i);
                  scope->AddVariable(var);
                  scope->AddContextVariable(var);
                }

@@ -781,8 +781,11 @@ void BytecodeFlowGraphBuilder::BuildAllocateContext() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  const intptr_t context_id = DecodeOperandA().value();
+  const intptr_t num_context_vars = DecodeOperandD().value();
+
   auto& context_variables = CompilerState::Current().GetDummyContextVariables(
-      DecodeOperandD().value());
+      context_id, num_context_vars);
   code_ += B->AllocateContext(context_variables);
 }
 
@@ -792,8 +795,11 @@ void BytecodeFlowGraphBuilder::BuildCloneContext() {
   }
 
   LoadStackSlots(1);
+  const intptr_t context_id = DecodeOperandA().value();
+  const intptr_t num_context_vars = DecodeOperandD().value();
+
   auto& context_variables = CompilerState::Current().GetDummyContextVariables(
-      DecodeOperandD().value());
+      context_id, num_context_vars);
   CloneContextInstr* clone_instruction = new (Z) CloneContextInstr(
       TokenPosition::kNoSource, Pop(), context_variables, B->GetNextDeoptId());
   code_ <<= clone_instruction;
@@ -885,12 +891,11 @@ void BytecodeFlowGraphBuilder::BuildStoreContextVar() {
   }
 
   LoadStackSlots(2);
-  Operand var_index = DecodeOperandD();
+  const intptr_t context_id = DecodeOperandA().value();
+  const intptr_t var_index = DecodeOperandD().value();
 
-  // TODO(alexmarkov) provide context_id in bytecode to disambiguate variables
-  // in different contexts
   auto var =
-      CompilerState::Current().GetDummyCapturedVariable(var_index.value());
+      CompilerState::Current().GetDummyCapturedVariable(context_id, var_index);
   code_ += B->StoreInstanceField(
       position_, Slot::GetContextVariableSlotFor(thread(), *var));
 }
@@ -901,12 +906,11 @@ void BytecodeFlowGraphBuilder::BuildLoadContextVar() {
   }
 
   LoadStackSlots(1);
-  Operand var_index = DecodeOperandD();
+  const intptr_t context_id = DecodeOperandA().value();
+  const intptr_t var_index = DecodeOperandD().value();
 
-  // TODO(alexmarkov) provide context_id in bytecode to disambiguate variables
-  // in different contexts
   auto var =
-      CompilerState::Current().GetDummyCapturedVariable(var_index.value());
+      CompilerState::Current().GetDummyCapturedVariable(context_id, var_index);
   code_ += B->LoadNativeField(Slot::GetContextVariableSlotFor(thread(), *var));
 }
 

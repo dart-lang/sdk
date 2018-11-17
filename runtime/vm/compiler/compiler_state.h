@@ -87,16 +87,20 @@ class CompilerState : public StackResource {
   void set_slot_cache(SlotCache* cache) { slot_cache_ = cache; }
 
   // Create a dummy list of local variables representing a context object
-  // with the given number of captured variables.
+  // with the given number of captured variables and given ID.
   //
   // Used during bytecode to IL translation because AllocateContext and
   // CloneContext IL instructions need a list of local varaibles and bytecode
   // does not record this information.
+  //
+  // TODO(vegorov): create context classes for distinct context IDs and
+  // populate them with slots without creating variables.
   const GrowableArray<LocalVariable*>& GetDummyContextVariables(
+      intptr_t context_id,
       intptr_t num_context_variables);
 
   // Create a dummy LocalVariable that represents a captured local variable
-  // at the given index.
+  // at the given index in the context with given ID.
   //
   // Used during bytecode to IL translation because StoreInstanceField and
   // LoadField IL instructions need Slot, which can only be created from a
@@ -104,7 +108,9 @@ class CompilerState : public StackResource {
   //
   // This function returns the same variable when it is called with the
   // same index.
-  LocalVariable* GetDummyCapturedVariable(intptr_t index);
+  //
+  // TODO(vegorov): disambiguate slots for different context IDs.
+  LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
  private:
   CHA cha_;

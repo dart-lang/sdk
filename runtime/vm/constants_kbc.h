@@ -155,13 +155,18 @@ namespace dart {
 //
 //    Allocate array of length SP[0] with type arguments SP[-1].
 //
-//  - AllocateContext D
+//  - AllocateContext A, D
 //
-//    Allocate Context object assuming for D context variables.
+//    Allocate Context object holding D context variables.
+//    A is a static ID of the context. Static ID of a context may be used to
+//    disambiguate accesses to different context objects.
+//    Context objects with the same ID should have the same number of
+//    context variables.
 //
-//  - CloneContext D
+//  - CloneContext A, D
 //
-//    Clone Context object stored in TOS assuming it has D context variables.
+//    Clone Context object SP[0] holding D context variables.
+//    A is a static ID of the context. Cloned context has the same ID.
 //
 //  - LoadContextParent
 //
@@ -171,13 +176,15 @@ namespace dart {
 //
 //    Store context SP[0] into `parent` field of context SP[-1].
 //
-//  - LoadContextVar D
+//  - LoadContextVar A, D
 //
 //    Load value from context SP[0] at index D.
+//    A is a static ID of the context.
 //
-//  - StoreContextVar D
+//  - StoreContextVar A, D
 //
 //    Store value SP[0] into context SP[-1] at index D.
+//    A is a static ID of the context.
 //
 //  - PushConstant D
 //
