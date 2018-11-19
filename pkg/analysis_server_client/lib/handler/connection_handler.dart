@@ -28,16 +28,21 @@ mixin ConnectionHandler implements NotificationHandler {
   /// established or if a server error occurs after connecting.
   Server get server;
 
+  /// Return `true` if the server's protocol is compatible.
+  bool checkServerProtocolVersion(Version version) {
+    final minVersion = new Version.parse(PROTOCOL_VERSION);
+    final maxVersion = minVersion.nextBreaking;
+    return minVersion <= version && version < maxVersion;
+  }
+
   void onFailedToConnect() {}
 
   void onProtocolNotSupported(Version version) {}
 
   @override
   void onServerConnected(ServerConnectedParams params) {
-    final minVersion = new Version.parse(PROTOCOL_VERSION);
-    final maxVersion = minVersion.nextBreaking;
-    final version = new Version.parse(params.version);
-    if (minVersion <= version && version < maxVersion) {
+    Version version = new Version.parse(params.version);
+    if (checkServerProtocolVersion(version)) {
       _connected.complete(true);
     } else {
       onProtocolNotSupported(version);
