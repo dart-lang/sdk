@@ -24,7 +24,7 @@
   for testing and it is no longer supported. `--categories=Server` continues to
   work at this time but it is deprecated, please use `--server-mode` instead.
 
-## 2.1.0 - 2018-10-31
+## 2.1.0 - 2018-11-15
 
 This is a minor version release. The team's focus was mostly on improving
 performance and stability after the large changes in Dart 2.0.0. Notable
