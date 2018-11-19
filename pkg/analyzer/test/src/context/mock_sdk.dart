@@ -60,6 +60,10 @@ abstract class Completer<T> {
   bool get isCompleted;
 }
 
+abstract class Timer {
+  static void run(void callback()) {}
+}
+
 class _StreamIterator<T> implements StreamIterator<T> {}
 class _AsyncStarStreamController {}
 Function _asyncThenWrapperHelper(continuation) {}
@@ -126,6 +130,8 @@ library dart.core;
 
 import 'dart:async';
 import 'dart:_internal';
+
+export 'dart:async' show Future, Stream;
 
 class Object {
   const Object();

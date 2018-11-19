@@ -699,7 +699,7 @@ class FileStateTestView {
  */
 class FileSystemState {
   final PerformanceLog _logger;
-  final ResourceProvider _resourceProvider;
+  final ResourceProvider resourceProvider;
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
@@ -780,7 +780,7 @@ class FileSystemState {
     this._logger,
     this._byteStore,
     this._contentOverlay,
-    this._resourceProvider,
+    this.resourceProvider,
     this._sourceFactory,
     this._analysisOptions,
     this._unlinkedSalt,
@@ -788,7 +788,7 @@ class FileSystemState {
     this.externalSummaries,
   }) {
     _fileContentCache = _FileContentCache.getInstance(
-      _resourceProvider,
+      resourceProvider,
       _contentOverlay,
     );
     _testView = new FileSystemStateTestView(this);
@@ -818,7 +818,7 @@ class FileSystemState {
   FileState getFileForPath(String path) {
     FileState file = _pathToCanonicalFile[path];
     if (file == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       // Try to get the existing instance.
@@ -869,7 +869,7 @@ class FileSystemState {
       }
 
       String path = uriSource.fullName;
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
@@ -912,7 +912,7 @@ class FileSystemState {
   bool hasUri(String path) {
     bool flag = _hasUriForPath[path];
     if (flag == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       Source uriSource = _sourceFactory.forUri2(uri);

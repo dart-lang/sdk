@@ -1265,7 +1265,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.isLibraryUri,
               libraryContext.analysisContext,
               libraryContext.resynthesizer,
-              library);
+              library,
+              _resourceProvider);
           Map<FileState, UnitAnalysisResult> results = await analyzer.analyze();
 
           List<int> bytes;
