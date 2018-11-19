@@ -152,12 +152,6 @@ class Interpreter {
                       RawObject*** FP,
                       RawObject*** SP);
 
-  bool Deoptimize(Thread* thread,
-                  uint32_t** pc,
-                  RawObject*** FP,
-                  RawObject*** SP,
-                  bool is_lazy);
-
   void InlineCacheMiss(int checked_args,
                        Thread* thread,
                        RawICData* icdata,
@@ -185,12 +179,6 @@ class Interpreter {
                      RawObject*** SP,
                      bool optimized);
 
-  void PrepareForTailCall(RawCode* code,
-                          RawImmutableArray* args_desc,
-                          RawObject** FP,
-                          RawObject*** SP,
-                          uint32_t** pc);
-
   bool AssertAssignable(Thread* thread,
                         uint32_t* pc,
                         RawObject** FP,
@@ -210,6 +198,19 @@ class Interpreter {
 
   // Prints bytecode instruction at given pc for instruction tracing.
   void TraceInstruction(uint32_t* pc) const;
+
+  bool IsWritingTraceFile() const;
+  void FlushTraceBuffer();
+  void WriteInstructionToTrace(uint32_t* pc);
+
+  void* trace_file_;
+  uint64_t trace_file_bytes_written_;
+
+  static const intptr_t kTraceBufferSizeInBytes = 10 * KB;
+  static const intptr_t kTraceBufferInstrs =
+      kTraceBufferSizeInBytes / sizeof(KBCInstr);
+  KBCInstr* trace_buffer_;
+  intptr_t trace_buffer_idx_;
 #endif  // defined(DEBUG)
 
   // Longjmp support for exceptions.

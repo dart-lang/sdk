@@ -61,7 +61,10 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
     __ ldr(TMP, Address(THR, Thread::OffsetFromThread(this)));
+    __ str(TMP, Address(THR, Thread::vm_tag_offset()));
     __ blr(TMP);
+    __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
+    __ str(TMP, Address(THR, Thread::vm_tag_offset()));
     __ mov(SP, R25);
     __ mov(CSP, R23);
   } else {

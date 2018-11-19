@@ -64,8 +64,10 @@
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
+    TransitionNativeToVM transition1(__thread__);                              \
     StackZone __zone__(__thread__);                                            \
     HandleScope __hs__(__thread__);                                            \
+    TransitionVMToNative transition2(__thread__);                              \
     Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
   static void Dart_TestHelper##name(Thread* thread)

@@ -18,6 +18,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
+        JsGetName,
         LEAF_TAGS,
         MANGLED_GLOBAL_NAMES,
         MANGLED_NAMES,
@@ -41,6 +42,7 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
+import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
@@ -405,7 +407,8 @@ class ModelEmitter {
     // data.
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
-    mapping.addAll(compiler.deferredLoadTask.computeDeferredMap(
+    mapping.addAll(_closedWorld.outputUnitData.computeDeferredMap(
+        compiler.options, _closedWorld.elementEnvironment,
         omittedUnits:
             omittedFragments.map((fragemnt) => fragemnt.outputUnit).toSet()));
     compiler.outputProvider.createOutputSink(

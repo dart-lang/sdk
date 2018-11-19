@@ -937,7 +937,7 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
 }
 
 int main(int argc, char** argv) {
-  const int EXTRA_VM_ARGUMENTS = 4;
+  const int EXTRA_VM_ARGUMENTS = 7;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
 
   // Initialize the URL mapping array.
@@ -953,6 +953,7 @@ int main(int argc, char** argv) {
     vm_options.AddArgument("--new_gen_semi_max_size=32");
   }
   vm_options.AddArgument("--new_gen_growth_factor=4");
+  vm_options.AddArgument("--deterministic");
 
   // Parse command line arguments.
   if (ParseArguments(argc, argv, &vm_options, &app_script_name) < 0) {
@@ -979,7 +980,6 @@ int main(int argc, char** argv) {
     return kErrorExitCode;
   }
   Console::SaveConfig();
-  Thread::InitOnce();
   Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.
@@ -993,9 +993,8 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
-  }
-  if ((snapshot_kind == kCoreJITAll) || (snapshot_kind == kCoreJIT) ||
-      (snapshot_kind == kAppJIT)) {
+  } else if ((snapshot_kind == kCoreJITAll) || (snapshot_kind == kCoreJIT) ||
+             (snapshot_kind == kAppJIT)) {
     vm_options.AddArgument("--fields_may_be_reset");
     vm_options.AddArgument("--link_natives_lazily");
 #if !defined(PRODUCT)

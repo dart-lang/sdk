@@ -928,6 +928,25 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
+  void test_35177() {
+    ExpressionStatement statement = parseStatement('(f)()<int>();');
+
+    FunctionExpressionInvocation funct1 = statement.expression;
+    NodeList<TypeAnnotation> typeArgs = funct1.typeArguments.arguments;
+    expect(typeArgs, hasLength(1));
+    TypeName typeName = typeArgs[0];
+    expect(typeName.name.name, 'int');
+    expect(funct1.argumentList.arguments, hasLength(0));
+
+    FunctionExpressionInvocation funct2 = funct1.function;
+    expect(funct2.typeArguments, isNull);
+    expect(funct2.argumentList.arguments, hasLength(0));
+
+    ParenthesizedExpression expression = funct2.function;
+    SimpleIdentifier identifier = expression.expression;
+    expect(identifier.name, 'f');
+  }
+
   void test_invalid_typeArg_34850() {
     var unit = parseCompilationUnit('foo Future<List<int>> bar() {}', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 4),

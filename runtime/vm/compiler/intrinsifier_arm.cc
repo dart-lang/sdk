@@ -53,31 +53,6 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->mov(LR, Operand(CALLEE_SAVED_TEMP));
 }
 
-// Intrinsify only for Smi index.
-void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler,
-                                                  Label* normal_ir_body) {
-  __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
-  __ tst(R1, Operand(kSmiTagMask));
-  // Index not Smi.
-  __ b(normal_ir_body, NE);
-  __ ldr(R0, Address(SP, 2 * kWordSize));  // Array.
-
-  // Range check.
-  __ ldr(R3, FieldAddress(R0, Array::length_offset()));  // Array length.
-  __ cmp(R1, Operand(R3));
-  // Runtime throws exception.
-  __ b(normal_ir_body, CS);
-
-  // Note that R1 is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
-  __ add(R1, R0, Operand(R1, LSL, 1));     // R1 is Smi.
-  __ StoreIntoObject(R0, FieldAddress(R1, Array::data_offset()), R2);
-  // Caller is responsible for preserving the value if necessary.
-  __ Ret();
-  __ Bind(normal_ir_body);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -109,40 +84,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
       R0, FieldAddress(R0, GrowableObjectArray::length_offset()), R1);
   __ Ret();  // Returns the newly allocated object in R0.
 
-  __ Bind(normal_ir_body);
-}
-
-// Add an element to growable array if it doesn't need to grow, otherwise
-// call into regular code.
-// On stack: growable array (+1), value (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->argument_type_checks()) {
-    return;
-  }
-  // R0: Array.
-  __ ldr(R0, Address(SP, 1 * kWordSize));
-  // R1: length.
-  __ ldr(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
-  // R2: data.
-  __ ldr(R2, FieldAddress(R0, GrowableObjectArray::data_offset()));
-  // R3: capacity.
-  __ ldr(R3, FieldAddress(R2, Array::length_offset()));
-  // Compare length with capacity.
-  __ cmp(R1, Operand(R3));
-  __ b(normal_ir_body, EQ);  // Must grow data.
-  const int32_t value_one = reinterpret_cast<int32_t>(Smi::New(1));
-  // len = len + 1;
-  __ add(R3, R1, Operand(value_one));
-  __ StoreIntoSmiField(FieldAddress(R0, GrowableObjectArray::length_offset()),
-                       R3);
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Value.
-  ASSERT(kSmiTagShift == 1);
-  __ add(R1, R2, Operand(R1, LSL, 1));
-  __ StoreIntoObject(R2, FieldAddress(R1, Array::data_offset()), R0);
-  __ LoadObject(R0, Object::null_object());
-  __ Ret();
   __ Bind(normal_ir_body);
 }
 

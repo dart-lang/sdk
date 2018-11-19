@@ -31,7 +31,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
@@ -55,7 +56,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
     return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
@@ -73,7 +75,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {

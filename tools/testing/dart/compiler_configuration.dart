@@ -1108,6 +1108,7 @@ abstract class VMKernelCompilerMixin {
     if (_configuration.useKernelBytecode) {
       args.add('--gen-bytecode');
       args.add('--drop-ast');
+      args.add('--emit-bytecode-source-positions');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
@@ -1166,7 +1167,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
         Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
     var outputFileName = output.toFilePath();
 
-    var compilerArguments = <String>[];
+    var compilerArguments = <String>['--verify'];
     if (_isLegacy) {
       compilerArguments.add("--legacy-mode");
     }

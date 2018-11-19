@@ -35,9 +35,11 @@ main() {
 }
 """);
   String executable = new File(Platform.executable).resolveSymbolicLinksSync();
-  Process
-      .run(executable, ['script.dart'], workingDirectory: temp.path)
-      .then((result) {
+  // Note: we prevent this child process from using Crashpad handler because
+  // this introduces an issue with deleting the temporary directory.
+  Process.run(executable, ['script.dart'],
+      workingDirectory: temp.path,
+      environment: {'DART_CRASHPAD_HANDLER': ''}).then((result) {
     temp.deleteSync(recursive: true);
     Expect.equals(0, result.exitCode);
   });

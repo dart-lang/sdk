@@ -11,7 +11,8 @@ import 'package:kernel/ast.dart'
         FunctionType,
         NamedType,
         Supertype,
-        TypeParameter;
+        TypeParameter,
+        TypedefType;
 
 import '../fasta_codes.dart'
     show LocatedMessage, messageSupertypeIsFunction, noLength;
@@ -37,7 +38,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       List<FormalParameterBuilder> formals)
       : super(returnType, typeVariables, formals);
 
-  FunctionType build(LibraryBuilder library) {
+  FunctionType build(LibraryBuilder library, [TypedefType origin]) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
@@ -68,7 +69,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     return new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount);
+        requiredParameterCount: requiredParameterCount,
+        typedefType: origin);
   }
 
   Supertype buildSupertype(

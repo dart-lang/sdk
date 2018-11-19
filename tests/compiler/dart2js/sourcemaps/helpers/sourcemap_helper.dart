@@ -64,6 +64,10 @@ class OutputProvider implements CompilerOutput {
   OutputSink createOutputSink(String name, String extension, OutputType type) {
     return createSourceFileSink(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) =>
+      throw new UnsupportedError("OutputProvider.createBinarySink");
 }
 
 class CloningOutputProvider extends OutputProvider {
@@ -78,6 +82,10 @@ class CloningOutputProvider extends OutputProvider {
     return new CloningOutputSink(
         [output, createSourceFileSink(name, extension, type)]);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) =>
+      throw new UnsupportedError("CloningOutputProvider.createBinarySink");
 }
 
 abstract class SourceFileManager {

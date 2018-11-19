@@ -369,9 +369,6 @@ void Precompiler::Iterate() {
     }
 
     CheckForNewDynamicFunctions();
-    if (!changed_) {
-      TraceConstFunctions();
-    }
     CollectCallbackFields();
   }
 }
@@ -477,14 +474,21 @@ void Precompiler::AddCalleesOf(const Function& function) {
 
   const Code& code = Code::Handle(Z, function.CurrentCode());
 
-  const Array& table = Array::Handle(Z, code.static_calls_target_table());
   Object& entry = Object::Handle(Z);
+  Class& cls = Class::Handle(Z);
   Function& target = Function::Handle(Z);
-  for (intptr_t i = 0; i < table.Length(); i++) {
-    entry = table.At(i);
+
+  const Array& table = Array::Handle(Z, code.static_calls_target_table());
+  StaticCallsTable static_calls(table);
+  for (auto& view : static_calls) {
+    entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
-      target ^= entry.raw();
-      AddFunction(target);
+      AddFunction(Function::Cast(entry));
+    }
+    entry = view.Get<Code::kSCallTableCodeTarget>();
+    if (entry.IsCode() && Code::Cast(entry).IsAllocationStubCode()) {
+      cls ^= Code::Cast(entry).owner();
+      AddInstantiatedClass(cls);
     }
   }
 
@@ -493,58 +497,11 @@ void Precompiler::AddCalleesOf(const Function& function) {
 #endif
 
   const ObjectPool& pool = ObjectPool::Handle(Z, code.GetObjectPool());
-  ICData& call_site = ICData::Handle(Z);
-  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
   String& selector = String::Handle(Z);
-  Field& field = Field::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Instance& instance = Instance::Handle(Z);
-  Code& target_code = Code::Handle(Z);
   for (intptr_t i = 0; i < pool.Length(); i++) {
     if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
       entry = pool.ObjectAt(i);
-      if (entry.IsICData()) {
-        // A dynamic call.
-        call_site ^= entry.raw();
-        ASSERT(!call_site.is_static_call());
-        selector = call_site.target_name();
-        AddSelector(selector);
-        if (selector.raw() == Symbols::Call().raw()) {
-          // Potential closure call.
-          const Array& arguments_descriptor =
-              Array::Handle(Z, call_site.arguments_descriptor());
-          AddClosureCall(arguments_descriptor);
-        }
-      } else if (entry.IsMegamorphicCache()) {
-        // A dynamic call.
-        cache ^= entry.raw();
-        selector = cache.target_name();
-        AddSelector(selector);
-        if (selector.raw() == Symbols::Call().raw()) {
-          // Potential closure call.
-          const Array& arguments_descriptor =
-              Array::Handle(Z, cache.arguments_descriptor());
-          AddClosureCall(arguments_descriptor);
-        }
-      } else if (entry.IsField()) {
-        // Potential need for field initializer.
-        field ^= entry.raw();
-        AddField(field);
-      } else if (entry.IsInstance()) {
-        // Const object, literal or args descriptor.
-        instance ^= entry.raw();
-        AddConstObject(instance);
-      } else if (entry.IsFunction()) {
-        // Local closure function.
-        target ^= entry.raw();
-        AddFunction(target);
-      } else if (entry.IsCode()) {
-        target_code ^= entry.raw();
-        if (target_code.IsAllocationStubCode()) {
-          cls ^= target_code.owner();
-          AddInstantiatedClass(cls);
-        }
-      }
+      AddCalleesOfHelper(entry, &selector, &cls);
     }
   }
 
@@ -553,6 +510,53 @@ void Precompiler::AddCalleesOf(const Function& function) {
   for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
     target ^= inlined_functions.At(i);
     AddTypesOf(target);
+  }
+}
+
+void Precompiler::AddCalleesOfHelper(const Object& entry,
+                                     String* temp_selector,
+                                     Class* temp_cls) {
+  if (entry.IsICData()) {
+    const auto& call_site = ICData::Cast(entry);
+    // A dynamic call.
+    ASSERT(!call_site.is_static_call());
+    *temp_selector = call_site.target_name();
+    AddSelector(*temp_selector);
+    if (temp_selector->raw() == Symbols::Call().raw()) {
+      // Potential closure call.
+      const Array& arguments_descriptor =
+          Array::Handle(Z, call_site.arguments_descriptor());
+      AddClosureCall(arguments_descriptor);
+    }
+  } else if (entry.IsMegamorphicCache()) {
+    // A dynamic call.
+    const auto& cache = MegamorphicCache::Cast(entry);
+    *temp_selector = cache.target_name();
+    AddSelector(*temp_selector);
+    if (temp_selector->raw() == Symbols::Call().raw()) {
+      // Potential closure call.
+      const Array& arguments_descriptor =
+          Array::Handle(Z, cache.arguments_descriptor());
+      AddClosureCall(arguments_descriptor);
+    }
+  } else if (entry.IsField()) {
+    // Potential need for field initializer.
+    const auto& field = Field::Cast(entry);
+    AddField(field);
+  } else if (entry.IsInstance()) {
+    // Const object, literal or args descriptor.
+    const auto& instance = Instance::Cast(entry);
+    AddConstObject(instance);
+  } else if (entry.IsFunction()) {
+    // Local closure function.
+    const auto& target = Function::Cast(entry);
+    AddFunction(target);
+  } else if (entry.IsCode()) {
+    const auto& target_code = Code::Cast(entry);
+    if (target_code.IsAllocationStubCode()) {
+      *temp_cls ^= target_code.owner();
+      AddInstantiatedClass(*temp_cls);
+    }
   }
 }
 
@@ -1304,35 +1308,6 @@ void Precompiler::CollectDynamicFunctionNames() {
   table.Release();
 }
 
-void Precompiler::TraceConstFunctions() {
-  // Compilation of const accessors happens outside of the treeshakers
-  // queue, so we haven't previously scanned its literal pool.
-
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Array& functions = Array::Handle(Z);
-  Function& function = Function::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
-      functions = cls.functions();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        function ^= functions.At(j);
-        if (function.is_const() && function.HasCode()) {
-          AddCalleesOf(function);
-        }
-      }
-    }
-  }
-}
-
 void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -1954,8 +1929,8 @@ void Precompiler::BindStaticCalls() {
     explicit BindStaticCallsVisitor(Zone* zone)
         : code_(Code::Handle(zone)),
           table_(Array::Handle(zone)),
-          pc_offset_(Smi::Handle(zone)),
-          target_(Function::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          target_(Object::Handle(zone)),
           target_code_(Code::Handle(zone)) {}
 
     void Visit(const Function& function) {
@@ -1964,15 +1939,16 @@ void Precompiler::BindStaticCalls() {
       }
       code_ = function.CurrentCode();
       table_ = code_.static_calls_target_table();
-
-      for (intptr_t i = 0; i < table_.Length();
-           i += Code::kSCallTableEntryLength) {
-        pc_offset_ ^= table_.At(i + Code::kSCallTableOffsetEntry);
-        target_ ^= table_.At(i + Code::kSCallTableFunctionEntry);
+      StaticCallsTable static_calls(table_);
+      for (auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        auto kind = Code::KindField::decode(kind_and_offset_.Value());
+        ASSERT(kind == Code::kCallViaCode);
+        auto pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
+        target_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_.IsNull()) {
-          target_code_ ^= table_.At(i + Code::kSCallTableCodeEntry);
-          ASSERT(!target_code_.IsNull());
-          ASSERT(!target_code_.IsFunctionCode());
+          target_ = view.Get<Code::kSCallTableCodeTarget>();
+          ASSERT(!Code::Cast(target_).IsFunctionCode());
           // Allocation stub or AllocateContext or AllocateArray or ...
         } else {
           // Static calls initially call the CallStaticFunction stub because
@@ -1980,9 +1956,10 @@ void Precompiler::BindStaticCalls() {
           // static call targets are compiled.
           // Cf. runtime entry PatchStaticCall called from CallStaticFunction
           // stub.
-          ASSERT(target_.HasCode());
-          target_code_ ^= target_.CurrentCode();
-          uword pc = pc_offset_.Value() + code_.PayloadStart();
+          const auto& fun = Function::Cast(target_);
+          ASSERT(fun.HasCode());
+          target_code_ ^= fun.CurrentCode();
+          uword pc = pc_offset + code_.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
         }
       }
@@ -1995,8 +1972,8 @@ void Precompiler::BindStaticCalls() {
    private:
     Code& code_;
     Array& table_;
-    Smi& pc_offset_;
-    Function& target_;
+    Smi& kind_and_offset_;
+    Object& target_;
     Code& target_code_;
   };
 
@@ -2022,13 +1999,10 @@ void Precompiler::SwitchICCalls() {
   // array. Iterate all the object pools and rewrite the ic data from
   // (cid, target function, count) to (cid, target code, entry point), and
   // replace the ICCallThroughFunction stub with ICCallThroughCode.
-
-  class SwitchICCallsVisitor : public FunctionVisitor {
+  class ICCallSwitcher {
    public:
-    explicit SwitchICCallsVisitor(Zone* zone)
+    explicit ICCallSwitcher(Zone* zone)
         : zone_(zone),
-          code_(Code::Handle(zone)),
-          pool_(ObjectPool::Handle(zone)),
           entry_(Object::Handle(zone)),
           ic_(ICData::Handle(zone)),
           target_name_(String::Handle(zone)),
@@ -2037,16 +2011,10 @@ void Precompiler::SwitchICCalls() {
           target_code_(Code::Handle(zone)),
           canonical_unlinked_calls_() {}
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-
-      code_ = function.CurrentCode();
-      pool_ = code_.object_pool();
-      for (intptr_t i = 0; i < pool_.Length(); i++) {
-        if (pool_.TypeAt(i) != ObjectPool::kTaggedObject) continue;
-        entry_ = pool_.ObjectAt(i);
+    void SwitchPool(const ObjectPool& pool) {
+      for (intptr_t i = 0; i < pool.Length(); i++) {
+        if (pool.TypeAt(i) != ObjectPool::kTaggedObject) continue;
+        entry_ = pool.ObjectAt(i);
         if (entry_.IsICData()) {
           // The only IC calls generated by precompilation are for switchable
           // calls.
@@ -2059,11 +2027,11 @@ void Precompiler::SwitchICCalls() {
           args_descriptor_ = ic_.arguments_descriptor();
           unlinked_.set_args_descriptor(args_descriptor_);
           unlinked_ = DedupUnlinkedCall(unlinked_);
-          pool_.SetObjectAt(i, unlinked_);
+          pool.SetObjectAt(i, unlinked_);
         } else if (entry_.raw() ==
                    StubCode::ICCallThroughFunction_entry()->code()) {
           target_code_ = StubCode::UnlinkedCall_entry()->code();
-          pool_.SetObjectAt(i, target_code_);
+          pool.SetObjectAt(i, target_code_);
         }
       }
     }
@@ -2082,8 +2050,6 @@ void Precompiler::SwitchICCalls() {
 
    private:
     Zone* zone_;
-    Code& code_;
-    ObjectPool& pool_;
     Object& entry_;
     ICData& ic_;
     String& target_name_;
@@ -2093,8 +2059,30 @@ void Precompiler::SwitchICCalls() {
     UnlinkedCallSet canonical_unlinked_calls_;
   };
 
-  ASSERT(!I->compilation_allowed());
-  SwitchICCallsVisitor visitor(Z);
+  class SwitchICCallsVisitor : public FunctionVisitor {
+   public:
+    SwitchICCallsVisitor(ICCallSwitcher* ic_call_switcher, Zone* zone)
+        : ic_call_switcher_(*ic_call_switcher),
+          code_(Code::Handle(zone)),
+          pool_(ObjectPool::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      pool_ = code_.object_pool();
+      ic_call_switcher_.SwitchPool(pool_);
+    }
+
+   private:
+    ICCallSwitcher& ic_call_switcher_;
+    Code& code_;
+    ObjectPool& pool_;
+  };
+
+  ICCallSwitcher switcher(Z);
+  SwitchICCallsVisitor visitor(&switcher, Z);
 
   // We need both iterations to ensure we visit all the functions that might end
   // up in the snapshot. The ProgramVisitor will miss closures from duplicated
@@ -2232,7 +2220,8 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   const Code& code = Code::Handle(Code::FinalizeCode(
-      function, graph_compiler, assembler, optimized(), stats));
+      function, graph_compiler, assembler, Code::PoolAttachment::kAttachPool,
+      optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {

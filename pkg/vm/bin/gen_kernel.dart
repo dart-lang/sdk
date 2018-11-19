@@ -44,6 +44,8 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Whether kernel constant evaluation will be enabled.',
       defaultsTo: true)
   ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
+  ..addFlag('emit-bytecode-source-positions',
+      help: 'Emit source positions in bytecode', defaultsTo: false)
   ..addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false)
   ..addFlag('use-future-bytecode-format',
@@ -83,6 +85,8 @@ Future<int> compile(List<String> arguments) async {
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
+  final bool emitBytecodeSourcePositions =
+      options['emit-bytecode-source-positions'];
   final bool dropAST = options['drop-ast'];
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
@@ -104,7 +108,6 @@ Future<int> compile(List<String> arguments) async {
     ..packagesFileUri =
         packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
     ..onDiagnostic = (DiagnosticMessage m) {
-      printDiagnosticMessage(m, stderr.writeln);
       errorDetector(m);
     }
     ..embedSourceText = options['embed-sources'];
@@ -116,6 +119,7 @@ Future<int> compile(List<String> arguments) async {
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
+      emitBytecodeSourcePositions: emitBytecodeSourcePositions,
       dropAST: dropAST,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,

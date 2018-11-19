@@ -17,7 +17,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 12;
+static const uint32_t kBinaryFormatVersion = 13;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -236,6 +236,11 @@ class Reader : public ValueObject {
       offset_ += 4;
       return value;
     }
+  }
+
+  intptr_t ReadSLEB128() {
+    const uint8_t* buffer = this->buffer();
+    return Utils::DecodeSLEB128(buffer, size_, &offset_);
   }
 
   /**

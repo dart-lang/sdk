@@ -11,11 +11,624 @@
 
 namespace dart {
 
+// Private class to perform induction variable analysis on a single loop
+// or a full loop hierarchy. The analysis implementation is based on the
+// paper by M. Gerlek et al. "Beyond Induction Variables: Detecting and
+// Classifying Sequences Using a Demand-Driven SSA Form" (ACM Transactions
+// on Programming Languages and Systems, Volume 17 Issue 1, Jan. 1995).
+//
+// The algorithm discovers and classifies definitions within loops that
+// behave like induction variables, and attaches an InductionVar record
+// to it (this mapping is stored in the loop data structure). The algorithm
+// first finds strongly connected components in the flow graph and classifies
+// each component as an induction when possible. Due to the descendant-first
+// nature, classification happens "on-demand" (e.g. basic induction is
+// classified before derived induction).
+class InductionVarAnalysis : public ValueObject {
+ public:
+  // Constructor to set up analysis phase.
+  explicit InductionVarAnalysis(const GrowableArray<BlockEntryInstr*>& preorder)
+      : preorder_(preorder),
+        stack_(),
+        scc_(),
+        cycle_(),
+        map_(),
+        current_index_(0),
+        zone_(Thread::Current()->zone()) {}
+
+  // Detects induction variables on the full loop hierarchy.
+  void VisitHierarchy(LoopInfo* loop);
+
+  // Detects induction variables on a single loop.
+  void VisitLoop(LoopInfo* loop);
+
+ private:
+  // An information node needed during SCC traversal that can
+  // reside in a map without any explicit memory allocation.
+  struct SCCInfo {
+    SCCInfo() : depth(-1), done(false) {}
+    explicit SCCInfo(intptr_t d) : depth(d), done(false) {}
+    intptr_t depth;
+    bool done;
+    bool operator!=(const SCCInfo& other) const {
+      return depth != other.depth || done != other.done;
+    }
+    bool operator==(const SCCInfo& other) const {
+      return depth == other.depth && done == other.done;
+    }
+  };
+  typedef RawPointerKeyValueTrait<Definition, SCCInfo> VisitKV;
+
+  // Traversal methods.
+  bool Visit(LoopInfo* loop, Definition* def);
+  intptr_t VisitDescendant(LoopInfo* loop, Definition* def);
+  void Classify(LoopInfo* loop, Definition* def);
+  void ClassifySCC(LoopInfo* loop);
+
+  // Transfer methods. Computes how induction of the operands, if any,
+  // tranfers over the operation performed by the given definition.
+  InductionVar* TransferPhi(LoopInfo* loop, Definition* def, intptr_t idx = -1);
+  InductionVar* TransferBinary(LoopInfo* loop, Definition* def);
+  InductionVar* TransferUnary(LoopInfo* loop, Definition* def);
+
+  // Solver methods. Computes how temporary meaning given to the
+  // definitions in a cycle transfer over the operation performed
+  // by the given definition.
+  InductionVar* SolvePhi(LoopInfo* loop, Definition* def, intptr_t idx = -1);
+  InductionVar* SolveBinary(LoopInfo* loop,
+                            Definition* def,
+                            InductionVar* init);
+  InductionVar* SolveUnary(LoopInfo* loop, Definition* def, InductionVar* init);
+
+  // Lookup.
+  InductionVar* Lookup(LoopInfo* loop, Definition* def);
+  InductionVar* LookupCycle(Definition* def);
+
+  // Arithmetic.
+  InductionVar* Add(InductionVar* x, InductionVar* y);
+  InductionVar* Sub(InductionVar* x, InductionVar* y);
+  InductionVar* Mul(InductionVar* x, InductionVar* y);
+
+  // Bookkeeping data (released when analysis goes out of scope).
+  const GrowableArray<BlockEntryInstr*>& preorder_;
+  GrowableArray<Definition*> stack_;
+  GrowableArray<Definition*> scc_;
+  DirectChainedHashMap<LoopInfo::InductionKV> cycle_;
+  DirectChainedHashMap<VisitKV> map_;
+  intptr_t current_index_;
+  Zone* zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(InductionVarAnalysis);
+};
+
+// Helper method that finds phi-index of the initial value
+// that comes from a block outside the loop. Note that the
+// algorithm still works if there are several of these.
+static intptr_t InitIndex(LoopInfo* loop) {
+  BlockEntryInstr* header = loop->header();
+  for (intptr_t i = 0; i < header->PredecessorCount(); ++i) {
+    if (!loop->Contains(header->PredecessorAt(i))) {  // pick first
+      return i;
+    }
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+// Helper method that determines if a definition is a constant.
+static bool IsConstant(Definition* def, int64_t* val) {
+  if (def->IsConstant()) {
+    const Object& value = def->AsConstant()->value();
+    if (value.IsInteger()) {
+      *val = Integer::Cast(value).AsInt64Value();  // smi and mint
+      return true;
+    }
+  }
+  return false;
+}
+
+void InductionVarAnalysis::VisitHierarchy(LoopInfo* loop) {
+  for (; loop != nullptr; loop = loop->next_) {
+    VisitLoop(loop);
+    VisitHierarchy(loop->inner_);
+  }
+}
+
+void InductionVarAnalysis::VisitLoop(LoopInfo* loop) {
+  loop->ResetInduction();
+  // Find strongly connected components (SSCs) in the SSA graph of this
+  // loop using Tarjan's algorithm. Due to the descendant-first nature,
+  // classification happens "on-demand".
+  current_index_ = 0;
+  ASSERT(stack_.is_empty());
+  ASSERT(map_.IsEmpty());
+  for (BitVector::Iterator it(loop->blocks_); !it.Done(); it.Advance()) {
+    BlockEntryInstr* block = preorder_[it.Current()];
+    ASSERT(block->loop_info() != nullptr);
+    if (block->loop_info() != loop) {
+      continue;  // inner loop
+    }
+    // Visit phi-operations.
+    if (block->IsJoinEntry()) {
+      for (PhiIterator it(block->AsJoinEntry()); !it.Done(); it.Advance()) {
+        Visit(loop, it.Current());
+      }
+    }
+    // Visit instructions.
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Visit(loop, it.Current()->AsDefinition());
+    }
+  }
+  ASSERT(stack_.is_empty());
+  map_.Clear();
+}
+
+bool InductionVarAnalysis::Visit(LoopInfo* loop, Definition* def) {
+  if (def == nullptr || map_.HasKey(def)) {
+    return false;  // no def, or already visited
+  }
+  intptr_t d = ++current_index_;
+  map_.Insert(VisitKV::Pair(def, SCCInfo(d)));
+  stack_.Add(def);
+
+  // Visit all descendants.
+  intptr_t low = d;
+  for (intptr_t i = 0, n = def->InputCount(); i < n; i++) {
+    Value* input = def->InputAt(i);
+    if (input != nullptr) {
+      low = Utils::Minimum(low, VisitDescendant(loop, input->definition()));
+    }
+  }
+
+  // Lower or found SCC?
+  if (low < d) {
+    map_.Lookup(def)->value.depth = low;
+  } else {
+    // Pop the stack to build the SCC for classification.
+    ASSERT(scc_.is_empty());
+    while (!stack_.is_empty()) {
+      Definition* top = stack_.RemoveLast();
+      scc_.Add(top);
+      map_.Lookup(top)->value.done = true;
+      if (top == def) {
+        break;
+      }
+    }
+    // Classify.
+    if (scc_.length() == 1) {
+      Classify(loop, scc_[0]);
+    } else {
+      ASSERT(scc_.length() > 1);
+      ASSERT(cycle_.IsEmpty());
+      ClassifySCC(loop);
+      cycle_.Clear();
+    }
+    scc_.Clear();
+  }
+  return true;
+}
+
+intptr_t InductionVarAnalysis::VisitDescendant(LoopInfo* loop,
+                                               Definition* def) {
+  // The traversal stops at anything not defined in this loop
+  // (either a loop invariant entry value defined outside the
+  // loop or an inner exit value defined by an inner loop).
+  if (def->GetBlock()->loop_info() != loop) {
+    return current_index_;
+  }
+  // Inspect descendant node.
+  if (!Visit(loop, def) && map_.Lookup(def)->value.done) {
+    return current_index_;
+  }
+  return map_.Lookup(def)->value.depth;
+}
+
+void InductionVarAnalysis::Classify(LoopInfo* loop, Definition* def) {
+  // Classify different kind of instructions.
+  InductionVar* induc = nullptr;
+  if (loop->IsHeaderPhi(def)) {
+    intptr_t idx = InitIndex(loop);
+    induc = TransferPhi(loop, def, idx);
+    if (induc != nullptr) {
+      InductionVar* init = Lookup(loop, def->InputAt(idx)->definition());
+      // Wrap-around (except for unusual header phi(x,..,x) = x).
+      if (!init->IsEqual(induc)) {
+        induc =
+            new (zone_) InductionVar(InductionVar::kWrapAround, init, induc);
+      }
+    }
+  } else if (def->IsPhi()) {
+    induc = TransferPhi(loop, def);
+  } else if (def->IsRedefinition() || def->IsConstraint() || def->IsBox() ||
+             def->IsUnbox()) {
+    induc = Lookup(loop, def->InputAt(0)->definition());  // pass-through
+  } else if (def->IsBinaryIntegerOp()) {
+    induc = TransferBinary(loop, def);
+  } else if (def->IsUnaryIntegerOp()) {
+    induc = TransferUnary(loop, def);
+  }
+  // Successfully classified?
+  if (induc != nullptr) {
+    loop->AddInduction(def, induc);
+  }
+}
+
+void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
+  intptr_t size = scc_.length();
+  // Find a header phi, usually at the end.
+  intptr_t p = -1;
+  for (intptr_t i = size - 1; i >= 0; i--) {
+    if (loop->IsHeaderPhi(scc_[i])) {
+      p = i;
+      break;
+    }
+  }
+  // Rotate header phi up front.
+  if (p >= 0) {
+    Definition* phi = scc_[p];
+    intptr_t idx = InitIndex(loop);
+    InductionVar* init = Lookup(loop, phi->InputAt(idx)->definition());
+    // Inspect remainder of the cycle. The cycle mapping assigns temporary
+    // meaning to instructions, seeded from the phi instruction and back.
+    // The init of the phi is passed as marker token to detect first use.
+    cycle_.Insert(LoopInfo::InductionKV::Pair(phi, init));
+    for (intptr_t i = 1, j = p; i < size; i++) {
+      if (++j >= size) j = 0;
+      Definition* def = scc_[j];
+      InductionVar* update = nullptr;
+      if (def->IsPhi()) {
+        update = SolvePhi(loop, def);
+      } else if (def->IsRedefinition() || def->IsConstraint() || def->IsBox() ||
+                 def->IsUnbox()) {
+        update = LookupCycle(def->InputAt(0)->definition());  // pass-through
+      } else if (def->IsBinaryIntegerOp()) {
+        update = SolveBinary(loop, def, init);
+      } else if (def->IsUnaryIntegerOp()) {
+        update = SolveUnary(loop, def, init);
+      }
+      // Continue cycle?
+      if (update == nullptr) {
+        return;
+      }
+      cycle_.Insert(LoopInfo::InductionKV::Pair(def, update));
+    }
+    // Success if all internal links (inputs to the phi that are along
+    // back-edges) received the same temporary meaning. The external
+    // link (initial value coming from outside the loop) is excluded
+    // while taking this join.
+    InductionVar* induc = SolvePhi(loop, phi, idx);
+    if (induc != nullptr) {
+      // Invariant means linear induction.
+      if (induc->kind_ == InductionVar::kInvariant) {
+        induc = new (zone_) InductionVar(InductionVar::kLinear, init, induc);
+      } else {
+        ASSERT(induc->kind_ == InductionVar::kPeriodic);
+      }
+      // Classify first phi and then the rest of the cycle "on-demand".
+      loop->AddInduction(phi, induc);
+      for (intptr_t i = 1, j = p; i < size; i++) {
+        if (++j >= size) j = 0;
+        Classify(loop, scc_[j]);
+      }
+    }
+  }
+}
+
+InductionVar* InductionVarAnalysis::TransferPhi(LoopInfo* loop,
+                                                Definition* def,
+                                                intptr_t idx) {
+  InductionVar* induc = nullptr;
+  for (intptr_t i = 0, n = def->InputCount(); i < n; i++) {
+    if (i != idx) {
+      InductionVar* x = Lookup(loop, def->InputAt(i)->definition());
+      if (x == nullptr) {
+        return nullptr;
+      } else if (induc == nullptr) {
+        induc = x;
+      } else if (!induc->IsEqual(x)) {
+        return nullptr;
+      }
+    }
+  }
+  return induc;
+}
+
+InductionVar* InductionVarAnalysis::TransferBinary(LoopInfo* loop,
+                                                   Definition* def) {
+  InductionVar* x = Lookup(loop, def->InputAt(0)->definition());
+  InductionVar* y = Lookup(loop, def->InputAt(1)->definition());
+  switch (def->AsBinaryIntegerOp()->op_kind()) {
+    case Token::kADD:
+      return Add(x, y);
+    case Token::kSUB:
+      return Sub(x, y);
+    case Token::kMUL:
+      return Mul(x, y);
+    default:
+      return nullptr;
+  }
+}
+
+InductionVar* InductionVarAnalysis::TransferUnary(LoopInfo* loop,
+                                                  Definition* def) {
+  InductionVar* x = Lookup(loop, def->InputAt(0)->definition());
+  switch (def->AsUnaryIntegerOp()->op_kind()) {
+    case Token::kNEGATE: {
+      InductionVar* zero = new (zone_) InductionVar(0);
+      return Sub(zero, x);
+    }
+    default:
+      return nullptr;
+  }
+}
+
+InductionVar* InductionVarAnalysis::SolvePhi(LoopInfo* loop,
+                                             Definition* def,
+                                             intptr_t idx) {
+  InductionVar* induc = nullptr;
+  for (intptr_t i = 0, n = def->InputCount(); i < n; i++) {
+    if (i != idx) {
+      InductionVar* c = LookupCycle(def->InputAt(i)->definition());
+      if (c == nullptr) {
+        return nullptr;
+      } else if (induc == nullptr) {
+        induc = c;
+      } else if (!induc->IsEqual(c)) {
+        return nullptr;
+      }
+    }
+  }
+  return induc;
+}
+
+InductionVar* InductionVarAnalysis::SolveBinary(LoopInfo* loop,
+                                                Definition* def,
+                                                InductionVar* init) {
+  InductionVar* x = Lookup(loop, def->InputAt(0)->definition());
+  InductionVar* y = Lookup(loop, def->InputAt(1)->definition());
+  switch (def->AsBinaryIntegerOp()->op_kind()) {
+    case Token::kADD:
+      if (InductionVar::IsInvariant(x)) {
+        InductionVar* c = LookupCycle(def->InputAt(1)->definition());
+        // The init marker denotes first use, otherwise aggregate.
+        if (c == init) {
+          return x;
+        } else if (InductionVar::IsInvariant(c)) {
+          return Add(x, c);
+        }
+      }
+      if (InductionVar::IsInvariant(y)) {
+        InductionVar* c = LookupCycle(def->InputAt(0)->definition());
+        // The init marker denotes first use, otherwise aggregate.
+        if (c == init) {
+          return y;
+        } else if (InductionVar::IsInvariant(c)) {
+          return Add(c, y);
+        }
+      }
+      break;
+    case Token::kSUB:
+      if (InductionVar::IsInvariant(x)) {
+        InductionVar* c = LookupCycle(def->InputAt(1)->definition());
+        // Note that i = x - i is periodic. The temporary
+        // meaning is expressed in terms of the header phi.
+        if (c == init) {
+          InductionVar* next = Sub(x, init);
+          if (InductionVar::IsInvariant(next)) {
+            return new (zone_)
+                InductionVar(InductionVar::kPeriodic, init, next);
+          }
+        }
+      }
+      if (InductionVar::IsInvariant(y)) {
+        InductionVar* c = LookupCycle(def->InputAt(0)->definition());
+        // The init marker denotes first use, otherwise aggregate.
+        if (c == init) {
+          InductionVar* zero = new (zone_) InductionVar(0);
+          return Sub(zero, y);
+        } else if (InductionVar::IsInvariant(c)) {
+          return Sub(c, y);
+        }
+      }
+      break;
+    default:
+      break;
+  }
+  return nullptr;
+}
+
+InductionVar* InductionVarAnalysis::SolveUnary(LoopInfo* loop,
+                                               Definition* def,
+                                               InductionVar* init) {
+  switch (def->AsUnaryIntegerOp()->op_kind()) {
+    case Token::kNEGATE: {
+      InductionVar* c = LookupCycle(def->InputAt(0)->definition());
+      // Note that i = - i is periodic. The temporary
+      // meaning is expressed in terms of the header phi.
+      if (c == init) {
+        InductionVar* zero = new (zone_) InductionVar(0);
+        InductionVar* next = Sub(zero, init);
+        if (InductionVar::IsInvariant(next)) {
+          return new (zone_) InductionVar(InductionVar::kPeriodic, init, next);
+        }
+      }
+      return nullptr;
+    }
+    default:
+      return nullptr;
+  }
+}
+
+InductionVar* InductionVarAnalysis::Lookup(LoopInfo* loop, Definition* def) {
+  InductionVar* induc = loop->LookupInduction(def);
+  if (induc == nullptr) {
+    // Loop-invariants are added lazily.
+    if (!loop->Contains(def->GetBlock())) {
+      int64_t val = 0;
+      if (IsConstant(def, &val)) {
+        induc = new (zone_) InductionVar(val);
+      } else {
+        induc = new (zone_) InductionVar(0, 1, def);
+      }
+      loop->AddInduction(def, induc);
+    }
+  }
+  return induc;
+}
+
+InductionVar* InductionVarAnalysis::LookupCycle(Definition* def) {
+  LoopInfo::InductionKV::Pair* pair = cycle_.Lookup(def);
+  if (pair != nullptr) {
+    return pair->value;
+  }
+  return nullptr;
+}
+
+InductionVar* InductionVarAnalysis::Add(InductionVar* x, InductionVar* y) {
+  if (InductionVar::IsInvariant(x)) {
+    if (InductionVar::IsInvariant(y)) {
+      // Invariant + Invariant : only for same or just one instruction.
+      if (x->def_ == y->def_) {
+        return new (zone_)
+            InductionVar(x->offset_ + y->offset_, x->mult_ + y->mult_, x->def_);
+      } else if (y->mult_ == 0) {
+        return new (zone_)
+            InductionVar(x->offset_ + y->offset_, x->mult_, x->def_);
+      } else if (x->mult_ == 0) {
+        return new (zone_)
+            InductionVar(x->offset_ + y->offset_, y->mult_, y->def_);
+      }
+    } else if (y != nullptr) {
+      // Invariant + Induction.
+      InductionVar* i = Add(x, y->initial_);
+      InductionVar* n =
+          y->kind_ == InductionVar::kLinear ? y->next_ : Add(x, y->next_);
+      if (i != nullptr && n != nullptr) {
+        return new (zone_) InductionVar(y->kind_, i, n);
+      }
+    }
+  } else if (InductionVar::IsInvariant(y)) {
+    if (x != nullptr) {
+      // Induction + Invariant.
+      ASSERT(!InductionVar::IsInvariant(x));
+      InductionVar* i = Add(x->initial_, y);
+      InductionVar* n =
+          x->kind_ == InductionVar::kLinear ? x->next_ : Add(x->next_, y);
+      if (i != nullptr && n != nullptr) {
+        return new (zone_) InductionVar(x->kind_, i, n);
+      }
+    }
+  } else if (InductionVar::IsLinear(x) && InductionVar::IsLinear(y)) {
+    // Linear + Linear.
+    InductionVar* i = Add(x->initial_, y->initial_);
+    InductionVar* n = Add(x->next_, y->next_);
+    if (i != nullptr && n != nullptr) {
+      return new (zone_) InductionVar(InductionVar::kLinear, i, n);
+    }
+  }
+  return nullptr;
+}
+
+InductionVar* InductionVarAnalysis::Sub(InductionVar* x, InductionVar* y) {
+  if (InductionVar::IsInvariant(x)) {
+    if (InductionVar::IsInvariant(y)) {
+      // Invariant + Invariant : only for same or just one instruction.
+      if (x->def_ == y->def_) {
+        return new (zone_)
+            InductionVar(x->offset_ - y->offset_, x->mult_ - y->mult_, x->def_);
+      } else if (y->mult_ == 0) {
+        return new (zone_)
+            InductionVar(x->offset_ - y->offset_, x->mult_, x->def_);
+      } else if (x->mult_ == 0) {
+        return new (zone_)
+            InductionVar(x->offset_ - y->offset_, -y->mult_, y->def_);
+      }
+    } else if (y != nullptr) {
+      // Invariant - Induction.
+      InductionVar* i = Sub(x, y->initial_);
+      InductionVar* n;
+      if (y->kind_ == InductionVar::kLinear) {
+        InductionVar* zero = new (zone_) InductionVar(0, 0, nullptr);
+        n = Sub(zero, y->next_);
+      } else {
+        n = Sub(x, y->next_);
+      }
+      if (i != nullptr && n != nullptr) {
+        return new (zone_) InductionVar(y->kind_, i, n);
+      }
+    }
+  } else if (InductionVar::IsInvariant(y)) {
+    if (x != nullptr) {
+      // Induction - Invariant.
+      ASSERT(!InductionVar::IsInvariant(x));
+      InductionVar* i = Sub(x->initial_, y);
+      InductionVar* n =
+          x->kind_ == InductionVar::kLinear ? x->next_ : Sub(x->next_, y);
+      if (i != nullptr && n != nullptr) {
+        return new (zone_) InductionVar(x->kind_, i, n);
+      }
+    }
+  } else if (InductionVar::IsLinear(x) && InductionVar::IsLinear(y)) {
+    // Linear - Linear.
+    InductionVar* i = Sub(x->initial_, y->initial_);
+    InductionVar* n = Sub(x->next_, y->next_);
+    if (i != nullptr && n != nullptr) {
+      return new (zone_) InductionVar(InductionVar::kLinear, i, n);
+    }
+  }
+  return nullptr;
+}
+
+InductionVar* InductionVarAnalysis::Mul(InductionVar* x, InductionVar* y) {
+  // Swap constant left.
+  if (!InductionVar::IsConstant(x)) {
+    InductionVar* tmp = x;
+    x = y;
+    y = tmp;
+  }
+  // Apply constant to any induction.
+  if (InductionVar::IsConstant(x) && y != nullptr) {
+    if (y->kind_ == InductionVar::kInvariant) {
+      return new (zone_)
+          InductionVar(x->offset_ * y->offset_, x->offset_ * y->mult_, y->def_);
+    }
+    return new (zone_)
+        InductionVar(y->kind_, Mul(x, y->initial_), Mul(x, y->next_));
+  }
+  return nullptr;
+}
+
+const char* InductionVar::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  switch (kind_) {
+    case kInvariant:
+      if (mult_ != 0) {
+        f.Print("(%" Pd64 " + %" Pd64 " x %.4s)", offset_, mult_,
+                def_->ToCString());
+      } else {
+        f.Print("%" Pd64, offset_);
+      }
+      break;
+    case kLinear:
+      f.Print("LIN(%s + %s * i)", initial_->ToCString(), next_->ToCString());
+      break;
+    case kWrapAround:
+      f.Print("WRAP(%s, %s)", initial_->ToCString(), next_->ToCString());
+      break;
+    case kPeriodic:
+      f.Print("PERIOD(%s, %s)", initial_->ToCString(), next_->ToCString());
+      break;
+  }
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
 LoopInfo::LoopInfo(intptr_t id, BlockEntryInstr* header, BitVector* blocks)
     : id_(id),
       header_(header),
       blocks_(blocks),
       back_edges_(),
+      induction_(),
       outer_(nullptr),
       inner_(nullptr),
       next_(nullptr) {}
@@ -37,11 +650,20 @@ bool LoopInfo::IsBackEdge(BlockEntryInstr* block) const {
   return false;
 }
 
-bool LoopInfo::IsIn(LoopInfo* other) const {
-  if (other != nullptr) {
-    return other->blocks_->Contains(header_->preorder_number());
+bool LoopInfo::IsHeaderPhi(Instruction* instr) const {
+  return instr->IsPhi() && instr->GetBlock() == header_ &&
+         !instr->AsPhi()->IsRedundant();  // phi(x,..,x) = x
+}
+
+bool LoopInfo::IsIn(LoopInfo* loop) const {
+  if (loop != nullptr) {
+    return loop->Contains(header_);
   }
   return false;
+}
+
+bool LoopInfo::Contains(BlockEntryInstr* block) const {
+  return blocks_->Contains(block->preorder_number());
 }
 
 intptr_t LoopInfo::NestingDepth() const {
@@ -50,6 +672,22 @@ intptr_t LoopInfo::NestingDepth() const {
     nesting_depth++;
   }
   return nesting_depth;
+}
+
+void LoopInfo::ResetInduction() {
+  induction_.Clear();
+}
+
+void LoopInfo::AddInduction(Definition* def, InductionVar* induc) {
+  induction_.Insert(InductionKV::Pair(def, induc));
+}
+
+InductionVar* LoopInfo::LookupInduction(Definition* def) const {
+  InductionKV::Pair* pair = induction_.Lookup(def);
+  if (pair != nullptr) {
+    return pair->value;
+  }
+  return nullptr;
 }
 
 const char* LoopInfo::ToCString() const {
@@ -83,7 +721,7 @@ void LoopHierarchy::Build() {
   // Link every entry block to the closest enveloping loop.
   for (intptr_t i = 0, n = headers_->length(); i < n; ++i) {
     LoopInfo* loop = (*headers_)[i]->loop_info();
-    for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
+    for (BitVector::Iterator it(loop->blocks_); !it.Done(); it.Advance()) {
       BlockEntryInstr* block = preorder_[it.Current()];
       if (block->loop_info() == nullptr) {
         block->set_loop_info(loop);
@@ -110,19 +748,23 @@ void LoopHierarchy::Build() {
   }
   // If tracing is requested, print the loop hierarchy.
   if (FLAG_trace_optimization) {
-    Print(top());
+    Print(top_);
   }
 }
 
 void LoopHierarchy::Print(LoopInfo* loop) {
   for (; loop != nullptr; loop = loop->next_) {
     THR_Print("%s {", loop->ToCString());
-    for (BitVector::Iterator it(loop->blocks()); !it.Done(); it.Advance()) {
+    for (BitVector::Iterator it(loop->blocks_); !it.Done(); it.Advance()) {
       THR_Print(" B%" Pd, preorder_[it.Current()]->block_id());
     }
     THR_Print(" }\n");
     Print(loop->inner_);
   }
+}
+
+void LoopHierarchy::ComputeInduction() const {
+  InductionVarAnalysis(preorder_).VisitHierarchy(top_);
 }
 
 }  // namespace dart

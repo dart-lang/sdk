@@ -86,6 +86,18 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
   return NULL;
 }
 
+const uint8_t* VmServiceIONativeSymbol(Dart_NativeFunction nf) {
+  intptr_t n =
+      sizeof(_VmServiceIONativeEntries) / sizeof(_VmServiceIONativeEntries[0]);
+  for (intptr_t i = 0; i < n; i++) {
+    VmServiceIONativeEntry entry = _VmServiceIONativeEntries[i];
+    if (reinterpret_cast<Dart_NativeFunction>(entry.function) == nf) {
+      return reinterpret_cast<const uint8_t*>(entry.name);
+    }
+  }
+  return NULL;
+}
+
 const char* VmService::error_msg_ = NULL;
 char VmService::server_uri_[kServerUriStringBufferSize];
 
@@ -93,7 +105,8 @@ void VmService::SetNativeResolver() {
   Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (!Dart_IsError(library)) {
-    Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+    Dart_SetNativeResolver(library, VmServiceIONativeResolver,
+                           VmServiceIONativeSymbol);
   }
 }
 
@@ -120,7 +133,8 @@ bool VmService::Setup(const char* server_ip,
   SHUTDOWN_ON_ERROR(library);
   result = Dart_SetRootLibrary(library);
   SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver,
+                                  VmServiceIONativeSymbol);
   SHUTDOWN_ON_ERROR(result);
 
   // Make runnable.

@@ -115,12 +115,13 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   }
 
   void reuse() {
-    _onProgress =
+    final onProgress =
         new StreamController<SampleProfileLoadingProgressEvent>.broadcast();
-    (() async {
-      _triggerOnProgress();
-      _onProgress.close();
-    }());
+    Timer.run(() {
+      onProgress.add(new SampleProfileLoadingProgressEvent(this));
+      onProgress.close();
+    });
+    _onProgress = onProgress;
   }
 }
 

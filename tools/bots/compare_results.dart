@@ -15,21 +15,26 @@ import 'package:args/args.dart';
 import 'results.dart';
 
 class Result {
+  final String configuration;
   final String name;
   final String outcome;
   final String expectation;
   final bool matches;
   final bool flaked;
 
-  Result(this.name, this.outcome, this.expectation, this.matches, this.flaked);
+  Result(this.configuration, this.name, this.outcome, this.expectation,
+      this.matches, this.flaked);
 
   Result.fromMap(Map<String, dynamic> map, Map<String, dynamic> flakinessData)
-      : name = map["name"],
+      : configuration = map["configuration"],
+        name = map["name"],
         outcome = map["result"],
         expectation = map["expected"],
         matches = map["matches"],
         flaked = flakinessData != null &&
             flakinessData["outcomes"].contains(map["result"]);
+
+  String get key => "$name:$configuration";
 }
 
 class Event {
@@ -75,7 +80,8 @@ bool search(String description, String searchFor, List<Event> events,
   bool judgement = false;
   bool beganSection = false;
   int count = options["count"] != null ? int.parse(options["count"]) : null;
-
+  final configurations =
+      events.map((event) => event.after.configuration).toSet();
   for (final event in events) {
     if (searchFor == "passing" &&
         (event.after.flaked || !event.after.matches)) {
@@ -101,7 +107,12 @@ bool search(String description, String searchFor, List<Event> events,
     beganSection = true;
     final before = event.before;
     final after = event.after;
-    final name = event.after.name;
+    // The --flaky option is used to get a list of tests to deflake within a
+    // single named configuration. Therefore we can't right now always emit
+    // the configuration name, so only do it if there's more than one in the
+    // results being compared (that won't happen during deflaking.
+    final name =
+        configurations.length == 1 ? event.after.name : event.after.key;
     if (!after.flaked && !after.matches) {
       judgement = true;
     }
@@ -135,7 +146,7 @@ bool search(String description, String searchFor, List<Event> events,
             "${before?.matches} ${after.matches} "
             "${before?.flaked} ${after.flaked}");
       } else {
-        print(event.after.name);
+        print(name);
       }
     }
   }

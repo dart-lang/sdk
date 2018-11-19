@@ -516,20 +516,23 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 
   if (!compiler->is_optimizing()) {
-    const Bytecode::Opcode eq_op = needs_number_check()
-                                       ? Bytecode::kIfEqStrictNumTOS
-                                       : Bytecode::kIfEqStrictTOS;
-    const Bytecode::Opcode ne_op = needs_number_check()
-                                       ? Bytecode::kIfNeStrictNumTOS
-                                       : Bytecode::kIfNeStrictTOS;
+    const SimulatorBytecode::Opcode eq_op =
+        needs_number_check() ? SimulatorBytecode::kIfEqStrictNumTOS
+                             : SimulatorBytecode::kIfEqStrictTOS;
+    const SimulatorBytecode::Opcode ne_op =
+        needs_number_check() ? SimulatorBytecode::kIfNeStrictNumTOS
+                             : SimulatorBytecode::kIfNeStrictTOS;
     __ Emit(comparison == Token::kEQ_STRICT ? eq_op : ne_op);
   } else {
-    const Bytecode::Opcode eq_op =
-        needs_number_check() ? Bytecode::kIfEqStrictNum : Bytecode::kIfEqStrict;
-    const Bytecode::Opcode ne_op =
-        needs_number_check() ? Bytecode::kIfNeStrictNum : Bytecode::kIfNeStrict;
-    __ Emit(Bytecode::Encode((comparison == Token::kEQ_STRICT) ? eq_op : ne_op,
-                             locs()->in(0).reg(), locs()->in(1).reg()));
+    const SimulatorBytecode::Opcode eq_op =
+        needs_number_check() ? SimulatorBytecode::kIfEqStrictNum
+                             : SimulatorBytecode::kIfEqStrict;
+    const SimulatorBytecode::Opcode ne_op =
+        needs_number_check() ? SimulatorBytecode::kIfNeStrictNum
+                             : SimulatorBytecode::kIfNeStrict;
+    __ Emit(SimulatorBytecode::Encode(
+        (comparison == Token::kEQ_STRICT) ? eq_op : ne_op, locs()->in(0).reg(),
+        locs()->in(1).reg()));
   }
 
   if (needs_number_check() && token_pos().IsReal()) {
@@ -1084,34 +1087,34 @@ EMIT_NATIVE_CODE(AllocateObject,
 
 EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   ASSERT(!HasTemp());
-  ASSERT(offset_in_bytes() % kWordSize == 0);
+  ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();
     const Register instance = locs()->in(0).reg();
-    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
-      __ StoreField(instance, offset_in_bytes() / kWordSize, value);
+    if (Utils::IsInt(8, OffsetInBytes() / kWordSize)) {
+      __ StoreField(instance, OffsetInBytes() / kWordSize, value);
     } else {
       __ StoreFieldExt(instance, value);
-      __ Nop(offset_in_bytes() / kWordSize);
+      __ Nop(OffsetInBytes() / kWordSize);
     }
   } else {
-    __ StoreFieldTOS(offset_in_bytes() / kWordSize);
+    __ StoreFieldTOS(OffsetInBytes() / kWordSize);
   }
 }
 
 EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
-  ASSERT(offset_in_bytes() % kWordSize == 0);
+  ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register result = locs()->out(0).reg();
     const Register instance = locs()->in(0).reg();
-    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
-      __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+    if (Utils::IsInt(8, OffsetInBytes() / kWordSize)) {
+      __ LoadField(result, instance, OffsetInBytes() / kWordSize);
     } else {
       __ LoadFieldExt(result, instance);
-      __ Nop(offset_in_bytes() / kWordSize);
+      __ Nop(OffsetInBytes() / kWordSize);
     }
   } else {
-    __ LoadFieldTOS(offset_in_bytes() / kWordSize);
+    __ LoadFieldTOS(OffsetInBytes() / kWordSize);
   }
 }
 
@@ -1868,43 +1871,43 @@ static Token::Kind FlipCondition(Token::Kind kind) {
   }
 }
 
-static Bytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
+static SimulatorBytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
-      return Bytecode::kIfEqStrict;
+      return SimulatorBytecode::kIfEqStrict;
     case Token::kNE:
-      return Bytecode::kIfNeStrict;
+      return SimulatorBytecode::kIfNeStrict;
     case Token::kLT:
-      return Bytecode::kIfLt;
+      return SimulatorBytecode::kIfLt;
     case Token::kGT:
-      return Bytecode::kIfGt;
+      return SimulatorBytecode::kIfGt;
     case Token::kLTE:
-      return Bytecode::kIfLe;
+      return SimulatorBytecode::kIfLe;
     case Token::kGTE:
-      return Bytecode::kIfGe;
+      return SimulatorBytecode::kIfGe;
     default:
       UNREACHABLE();
-      return Bytecode::kTrap;
+      return SimulatorBytecode::kTrap;
   }
 }
 
-static Bytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
+static SimulatorBytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
-      return Bytecode::kIfDEq;
+      return SimulatorBytecode::kIfDEq;
     case Token::kNE:
-      return Bytecode::kIfDNe;
+      return SimulatorBytecode::kIfDNe;
     case Token::kLT:
-      return Bytecode::kIfDLt;
+      return SimulatorBytecode::kIfDLt;
     case Token::kGT:
-      return Bytecode::kIfDGt;
+      return SimulatorBytecode::kIfDGt;
     case Token::kLTE:
-      return Bytecode::kIfDLe;
+      return SimulatorBytecode::kIfDLe;
     case Token::kGTE:
-      return Bytecode::kIfDGe;
+      return SimulatorBytecode::kIfDGe;
     default:
       UNREACHABLE();
-      return Bytecode::kTrap;
+      return SimulatorBytecode::kTrap;
   }
 }
 
@@ -1926,7 +1929,8 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   if (compiler->is_optimizing()) {
     const Register left = locs->in(0).reg();
     const Register right = locs->in(1).reg();
-    __ Emit(Bytecode::Encode(OpcodeForSmiCondition(comparison), left, right));
+    __ Emit(SimulatorBytecode::Encode(OpcodeForSmiCondition(comparison), left,
+                                      right));
     return condition;
   } else {
     switch (kind) {
@@ -1967,7 +1971,8 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   // TODO(fschneider): Change the block order instead in DBC so that the
   // false block in always the fall-through block.
   Condition condition = NEXT_IS_TRUE;
-  __ Emit(Bytecode::Encode(OpcodeForDoubleCondition(comparison), left, right));
+  __ Emit(SimulatorBytecode::Encode(OpcodeForDoubleCondition(comparison), left,
+                                    right));
   return condition;
 }
 

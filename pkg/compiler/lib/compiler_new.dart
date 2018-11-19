@@ -15,7 +15,7 @@ import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
 import 'src/options.dart' show CompilerOptions;
 
-export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
+export 'compiler.dart' show Diagnostic;
 
 // Unless explicitly allowed, passing `null` for any argument to the
 // methods of library will result in an Error being thrown.
@@ -89,6 +89,15 @@ abstract class OutputSink {
   void close();
 }
 
+/// Sink interface used for generating binary data from the compiler.
+abstract class BinaryOutputSink {
+  /// Writes indices [start] to [end] of [buffer] to the sink.
+  void write(List<int> buffer, [int start = 0, int end]);
+
+  /// Closes the sink.
+  void close();
+}
+
 /// Interface for producing output from the compiler. That is, JavaScript target
 /// files, source map files, dump info files, etc.
 abstract class CompilerOutput {
@@ -101,6 +110,10 @@ abstract class CompilerOutput {
   // TODO(johnniwinther): Replace [name] and [extension] with something like
   // [id] and [uri].
   OutputSink createOutputSink(String name, String extension, OutputType type);
+
+  /// Returns an [BinaryOutputSink] that will serve as compiler output for the
+  /// given URI.
+  BinaryOutputSink createBinarySink(Uri uri);
 }
 
 /// Interface for receiving diagnostic message from the compiler. That is,

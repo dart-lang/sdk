@@ -32,7 +32,6 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(bool, enable_interpreter);
 
 // Input parameters:
@@ -60,7 +59,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(RAX, Immediate(VMTag::kDartTagId));
+    __ movq(RAX, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(RAX, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -94,7 +93,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ CallCFunction(RBX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -315,7 +314,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ movq(R8, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -350,7 +349,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ CallCFunction(RAX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -398,7 +397,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ movq(R8, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -429,7 +428,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ CallCFunction(RBX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -965,9 +964,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
-
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movq(RAX, Address(THR, Thread::top_resource_offset()));
@@ -990,6 +986,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #endif
 
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
@@ -1106,9 +1106,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
-
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movq(RAX, Address(THR, Thread::top_resource_offset()));
@@ -1130,6 +1127,10 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, kArgDescReg);
@@ -1344,31 +1345,37 @@ void StubCode::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
   }
 }
 
-// Helper stub to implement Assembler::StoreIntoObject.
+// Helper stub to implement Assembler::StoreIntoObject/Array.
 // Input parameters:
 //   RDX: Object (old)
 //   RAX: Value (old or new)
+//   R13: Slot
 // If RAX is new, add RDX to the store buffer. Otherwise RAX is old, mark RAX
 // and add it to the mark list.
 COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
-void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
-#if defined(CONCURRENT_MARKING)
-  Label add_to_mark_stack;
+COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
+static void GenerateWriteBarrierStubHelper(Assembler* assembler,
+                                           Address stub_code,
+                                           bool cards) {
+  Label add_to_mark_stack, remember_card;
   __ testq(RAX, Immediate(1 << kNewObjectBitPosition));
   __ j(ZERO, &add_to_mark_stack);
-#else
-  Label add_to_buffer;
-  // Check whether this object has already been remembered. Skip adding to the
-  // store buffer if the object is in the store buffer already.
-  // RDX: Address being stored
-  __ movl(TMP, FieldAddress(RDX, Object::tags_offset()));
-  __ testl(TMP, Immediate(1 << RawObject::kOldAndNotRememberedBit));
-  __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
-  __ ret();
 
-  __ Bind(&add_to_buffer);
+  if (cards) {
+    __ movl(TMP, FieldAddress(RDX, Object::tags_offset()));
+    __ testl(TMP, Immediate(1 << RawObject::kCardRememberedBit));
+    __ j(NOT_ZERO, &remember_card, Assembler::kFarJump);
+  } else {
+#if defined(DEBUG)
+    Label ok;
+    __ movl(TMP, FieldAddress(RDX, Object::tags_offset()));
+    __ testl(TMP, Immediate(1 << RawObject::kCardRememberedBit));
+    __ j(ZERO, &ok, Assembler::kFarJump);
+    __ Stop("Wrong barrier");
+    __ Bind(&ok);
 #endif
+  }
 
   // Update the tags that this object has been remembered.
   // Note that we use 32 bit operations here to match the size of the
@@ -1408,7 +1415,7 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
   __ pushq(CODE_REG);
-  __ movq(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ movq(CODE_REG, stub_code);
   __ EnterCallRuntimeFrame(0);
   __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
@@ -1416,7 +1423,6 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ popq(CODE_REG);
   __ ret();
 
-#if defined(CONCURRENT_MARKING)
   __ Bind(&add_to_mark_stack);
   __ pushq(RAX);  // Spill.
   __ pushq(RCX);  // Spill.
@@ -1449,7 +1455,7 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
 
   __ Bind(&marking_overflow);
   __ pushq(CODE_REG);
-  __ movq(CODE_REG, Address(THR, Thread::write_barrier_code_offset()));
+  __ movq(CODE_REG, stub_code);
   __ EnterCallRuntimeFrame(0);
   __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
@@ -1461,7 +1467,47 @@ void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
   __ popq(RCX);  // Unspill.
   __ popq(RAX);  // Unspill.
   __ ret();
-#endif
+
+  if (cards) {
+    Label remember_card_slow;
+
+    // Get card table.
+    __ Bind(&remember_card);
+    __ movq(TMP, RDX);                   // Object.
+    __ andq(TMP, Immediate(kPageMask));  // HeapPage.
+    __ cmpq(Address(TMP, HeapPage::card_table_offset()), Immediate(0));
+    __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
+
+    // Dirty the card.
+    __ subq(R13, TMP);  // Offset in page.
+    __ movq(TMP, Address(TMP, HeapPage::card_table_offset()));  // Card table.
+    __ shrq(R13,
+            Immediate(HeapPage::kBytesPerCardLog2));  // Index in card table.
+    __ movb(Address(TMP, R13, TIMES_1, 0), Immediate(1));
+    __ ret();
+
+    // Card table not yet allocated.
+    __ Bind(&remember_card_slow);
+    __ pushq(CODE_REG);
+    __ movq(CODE_REG, stub_code);
+    __ EnterCallRuntimeFrame(0);
+    __ movq(CallingConventions::kArg1Reg, RDX);
+    __ movq(CallingConventions::kArg2Reg, R13);
+    __ CallRuntime(kRememberCardRuntimeEntry, 2);
+    __ LeaveCallRuntimeFrame();
+    __ popq(CODE_REG);
+    __ ret();
+  }
+}
+
+void StubCode::GenerateWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::write_barrier_code_offset()), false);
+}
+
+void StubCode::GenerateArrayWriteBarrierStub(Assembler* assembler) {
+  GenerateWriteBarrierStubHelper(
+      assembler, Address(THR, Thread::array_write_barrier_code_offset()), true);
 }
 
 // Called for inline allocation of objects.
@@ -2143,7 +2189,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ movq(R8, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -2194,7 +2240,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ call(RAX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -2685,7 +2731,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   // Set the tag.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   // Restore the pool pointer.

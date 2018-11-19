@@ -33,15 +33,17 @@ import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
-import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
+import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
+import 'serialization/task.dart';
+import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
 import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'types/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
-import 'universe/world_builder.dart'
-    show ResolutionWorldBuilder, CodegenWorldBuilder;
+import 'universe/codegen_world_builder.dart';
+import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld, KClosedWorld;
@@ -115,6 +117,7 @@ abstract class Compiler {
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   DumpInfoTask dumpInfoTask;
+  SerializationTask serializationTask;
 
   bool get hasCrashed => _reporter.hasCrashed;
 
@@ -157,8 +160,8 @@ abstract class Compiler {
     _impactCache = <Entity, WorldImpact>{};
     _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
 
-    if (options.verbose) {
-      progress = new ProgressImpl(_reporter);
+    if (options.showInternalProgress) {
+      progress = new InteractiveProgress();
     }
 
     backend = createBackend();
@@ -176,6 +179,7 @@ abstract class Compiler {
       enqueuer,
       dumpInfoTask = new DumpInfoTask(this),
       selfTask,
+      serializationTask = new SerializationTask(this, measurer),
     ];
 
     tasks.addAll(backend.tasks);
@@ -264,16 +268,23 @@ abstract class Compiler {
     assert(uri != null);
     // As far as I can tell, this branch is only used by test code.
     reporter.log('Compiling $uri (${options.buildId})');
-    LoadedLibraries loadedLibraries = await libraryLoader.loadLibraries(uri);
-    // Note: libraries may be null because of errors trying to find files or
-    // parse-time errors (when using `package:front_end` as a loader).
-    if (loadedLibraries == null) return;
-    if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
-      return;
+
+    if (options.readDataUri != null) {
+      GlobalTypeInferenceResults results =
+          await serializationTask.deserialize();
+      generateJavaScriptCode(results);
+    } else {
+      LoadedLibraries loadedLibraries = await libraryLoader.loadLibraries(uri);
+      // Note: libraries may be null because of errors trying to find files or
+      // parse-time errors (when using `package:front_end` as a loader).
+      if (loadedLibraries == null) return;
+      if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
+        return;
+      }
+      _mainLibraryUri = loadedLibraries.rootLibraryUri;
+      processLoadedLibraries(loadedLibraries);
+      await compileLoadedLibraries(loadedLibraries);
     }
-    _mainLibraryUri = loadedLibraries.rootLibraryUri;
-    processLoadedLibraries(loadedLibraries);
-    compileLoadedLibraries(loadedLibraries);
   }
 
   /// Starts the resolution phase, creating the [ResolutionEnqueuer] if not
@@ -317,7 +328,7 @@ abstract class Compiler {
 
     phase = PHASE_RESOLVING;
     resolutionEnqueuer.applyImpact(mainImpact);
-    reporter.log('Resolving...');
+    if (options.showInternalProgress) reporter.log('Resolving...');
 
     processQueue(
         frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
@@ -350,7 +361,7 @@ abstract class Compiler {
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
-    reporter.log('Inferring types...');
+    if (options.showInternalProgress) reporter.log('Inferring types...');
     InferredDataBuilder inferredDataBuilder =
         new InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
@@ -362,7 +373,7 @@ abstract class Compiler {
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
-    reporter.log('Compiling...');
+    if (options.showInternalProgress) reporter.log('Compiling...');
     phase = PHASE_COMPILING;
 
     Enqueuer codegenEnqueuer =
@@ -391,6 +402,24 @@ abstract class Compiler {
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);
+        if (options.writeDataUri != null) {
+          serializationTask.serialize(globalInferenceResults);
+          return;
+        }
+        if (options.testMode) {
+          SerializationStrategy strategy =
+              const BytesInMemorySerializationStrategy();
+          List<int> irData =
+              strategy.serializeComponent(globalInferenceResults);
+          List worldData = strategy.serializeData(globalInferenceResults);
+          globalInferenceResults = strategy.deserializeData(
+              options,
+              reporter,
+              environment,
+              abstractValueStrategy,
+              strategy.deserializeComponent(irData),
+              worldData);
+        }
         if (stopAfterTypeInference) return;
         generateJavaScriptCode(globalInferenceResults);
       }
@@ -625,10 +654,16 @@ class _CompilerOutput implements api.CompilerOutput {
         // Disable output in test mode: The build bot currently uses the time
         // stamp of the generated file to determine whether the output is
         // up-to-date.
-        return NullSink.outputProvider(name, extension, type);
+        return const NullCompilerOutput()
+            .createOutputSink(name, extension, type);
       }
     }
     return _userOutput.createOutputSink(name, extension, type);
+  }
+
+  @override
+  api.BinaryOutputSink createBinarySink(Uri uri) {
+    return _userOutput.createBinarySink(uri);
   }
 }
 
@@ -968,5 +1003,35 @@ class ProgressImpl implements Progress {
 
   void startPhase() {
     _stopwatch.reset();
+  }
+}
+
+/// Progress implementations that prints progress to the [DiagnosticReporter]
+/// with 500ms intervals using escape sequences to keep the progress data on a
+/// single line.
+class InteractiveProgress implements Progress {
+  final Stopwatch _stopwatchPhase = new Stopwatch()..start();
+  final Stopwatch _stopwatchInterval = new Stopwatch()..start();
+  void startPhase() {
+    print('');
+    _stopwatchPhase.reset();
+    _stopwatchInterval.reset();
+  }
+
+  void showProgress(String prefix, int count, String suffix) {
+    if (_stopwatchInterval.elapsedMilliseconds > 500) {
+      var time = _stopwatchPhase.elapsedMilliseconds / 1000;
+      var rate = count / _stopwatchPhase.elapsedMilliseconds;
+      var s = new StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
+        ..write('\x1b[48;5;40m\x1b[30m==>\x1b[0m $prefix')
+        ..write(count)
+        ..write('$suffix Elapsed time: ')
+        ..write(time.toStringAsFixed(2))
+        ..write(' s. Rate: ')
+        ..write(rate.toStringAsFixed(2))
+        ..write(' units/ms');
+      print('$s');
+      _stopwatchInterval.reset();
+    }
   }
 }

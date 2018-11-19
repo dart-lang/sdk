@@ -29,6 +29,7 @@ import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
+import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import 'deferred_load.dart';

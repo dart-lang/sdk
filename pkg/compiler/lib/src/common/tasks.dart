@@ -180,9 +180,25 @@ abstract class CompilerTask {
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
     // calls work correctly. The subtasks will never themselves have nested
     // subtasks because they are not accessible outside.
-    GenericTask subtask =
-        _subtasks.putIfAbsent(name, () => new GenericTask(name, measurer));
+    GenericTask subtask = _subtasks[name] ??= new GenericTask(name, measurer);
     return subtask.measure(action);
+  }
+
+  /// Asynchronous version of [measureSubtask]. Use this when action returns a
+  /// future that's truly asynchronous, such I/O. Only one task can use this
+  /// concurrently.
+  ///
+  /// Note: we assume that this method is used only by the compiler input
+  /// provider, but it could be used by other tasks as long as the input
+  /// provider will not be called by those tasks.
+  Future<T> measureIoSubtask<T>(String name, Future<T> action()) {
+    if (_isDisabled) return action();
+
+    // Use a nested CompilerTask for the measurement to ensure nested [measure]
+    // calls work correctly. The subtasks will never themselves have nested
+    // subtasks because they are not accessible outside.
+    GenericTask subtask = _subtasks[name] ??= new GenericTask(name, measurer);
+    return subtask.measureIo(action);
   }
 
   Iterable<String> get subtasks => _subtasks.keys;

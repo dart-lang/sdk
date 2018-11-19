@@ -11,7 +11,7 @@ class A extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   PushInt              42
   StoreFieldTOS        CP#0
@@ -48,7 +48,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-7]
   PushInt              42
   StoreFieldTOS        CP#0
@@ -87,7 +87,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushInt              45
   PushConstant         CP#1
@@ -106,7 +106,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-8]
   Push                 FP[-7]
   Push                 FP[-6]
@@ -133,7 +133,7 @@ class B extends self::A {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushInt              46
   StoreFieldTOS        CP#0
@@ -157,7 +157,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-7]
   PushInt              46
   StoreFieldTOS        CP#0
@@ -187,7 +187,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

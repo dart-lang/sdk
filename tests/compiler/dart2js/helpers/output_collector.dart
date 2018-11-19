@@ -26,6 +26,24 @@ class BufferedOutputSink implements OutputSink {
   }
 }
 
+class BufferedBinaryOutputSink implements BinaryOutputSink {
+  final Uri uri;
+
+  List<int> list = <int>[];
+
+  BufferedBinaryOutputSink(this.uri);
+
+  void write(List<int> buffer, [int start = 0, int end]) {
+    list.addAll(buffer.sublist(start, end));
+  }
+
+  void close() {}
+
+  String toString() {
+    return 'BufferedBinaryOutputSink($uri)';
+  }
+}
+
 class CloningOutputSink implements OutputSink {
   final List<OutputSink> sinks;
 
@@ -44,6 +62,7 @@ class CloningOutputSink implements OutputSink {
 
 class OutputCollector implements CompilerOutput {
   Map<OutputType, Map<String, BufferedOutputSink>> outputMap = {};
+  Map<Uri, BufferedBinaryOutputSink> binaryOutputMap = {};
 
   String getOutput(String name, OutputType type) {
     Map<String, BufferedOutputSink> sinkMap = outputMap[type];
@@ -60,8 +79,13 @@ class OutputCollector implements CompilerOutput {
     }
   }
 
+  BinaryOutputSink createBinarySink(Uri uri) {
+    return binaryOutputMap.putIfAbsent(
+        uri, () => new BufferedBinaryOutputSink(uri));
+  }
+
   /// `true` if any output has been collected.
-  bool get hasOutput => !outputMap.isEmpty;
+  bool get hasOutput => outputMap.isNotEmpty || binaryOutputMap.isNotEmpty;
 
   /// `true` if any output other than main output has been collected.
   bool get hasExtraOutput {
@@ -70,7 +94,7 @@ class OutputCollector implements CompilerOutput {
         if (name != '') return true;
       }
     }
-    return false;
+    return binaryOutputMap.isNotEmpty;
   }
 
   @override
@@ -78,5 +102,19 @@ class OutputCollector implements CompilerOutput {
     Map<String, BufferedOutputSink> sinkMap =
         outputMap.putIfAbsent(type, () => {});
     return sinkMap.putIfAbsent(name, () => new BufferedOutputSink());
+  }
+
+  Map<OutputType, Map<String, String>> clear() {
+    Map<OutputType, Map<String, String>> outputMapResult = {};
+    outputMap.forEach(
+        (OutputType outputType, Map<String, BufferedOutputSink> sinkMap) {
+      Map<String, String> sinkMapResult = outputMapResult[outputType] = {};
+      sinkMap.forEach((String name, BufferedOutputSink sink) {
+        sinkMapResult[name] = sink.toString();
+      });
+    });
+    outputMap.clear();
+    binaryOutputMap.clear();
+    return outputMapResult;
   }
 }

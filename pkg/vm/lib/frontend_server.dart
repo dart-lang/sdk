@@ -69,7 +69,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: '.packages file to use for compilation', defaultsTo: null)
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
-      allowed: <String>['vm', 'flutter'],
+      allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
       defaultsTo: 'vm')
   ..addMultiOption('filesystem-root',
       help: 'File path that is used as a root in virtual filesystem used in'

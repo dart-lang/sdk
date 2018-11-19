@@ -31,7 +31,7 @@ runTestCase(Uri source) async {
   await runWithFrontEndCompilerContext(source, options, component, () {
     // Need to omit source positions from bytecode as they are different on
     // Linux and Windows (due to differences in newline characters).
-    generateBytecode(component, omitSourcePositions: true);
+    generateBytecode(component, omitAssertSourcePositions: true);
   });
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);

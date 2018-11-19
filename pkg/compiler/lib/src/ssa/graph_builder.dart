@@ -17,7 +17,6 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types.dart';
@@ -83,8 +82,6 @@ abstract class GraphBuilder {
   ConstantSystem get constantSystem => constants.constantSystem;
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
-
-  JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
   InferredData get inferredData => globalInferenceResults.inferredData;
 

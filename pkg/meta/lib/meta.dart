@@ -203,6 +203,11 @@ const Required required = const Required();
 const _Sealed sealed = const _Sealed();
 
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
+///
+/// Deprecated: Most of strong mode is now the default in 2.0, but the notion of
+/// virtual fields was dropped, so this annotation no longer has any meaning.
+/// Uses of the annotation should be removed.
+@deprecated
 const _Virtual virtual = const _Virtual();
 
 /// Used to annotate an instance member that was made public so that it could be
@@ -302,6 +307,7 @@ class _Sealed {
   const _Sealed();
 }
 
+@deprecated
 class _Virtual {
   const _Virtual();
 }

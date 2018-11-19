@@ -4,10 +4,6 @@
 
 // part of "core_patch.dart";
 
-// This marker interface represents 64-bit integers in the compiler for type
-// propagation and range analysis.  It is implemented by _Smi and _Mint.
-abstract class _int64 implements int {}
-
 abstract class _IntegerImplementation implements int {
   num operator +(num other) => other._addFromInteger(this);
   num operator -(num other) => other._subFromInteger(this);
@@ -460,7 +456,7 @@ abstract class _IntegerImplementation implements int {
 }
 
 @pragma("vm:entry-point")
-class _Smi extends _IntegerImplementation implements _int64 {
+class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
   }
@@ -662,7 +658,7 @@ class _Smi extends _IntegerImplementation implements _int64 {
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 @pragma("vm:entry-point")
-class _Mint extends _IntegerImplementation implements _int64 {
+class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");
   }

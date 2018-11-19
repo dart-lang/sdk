@@ -129,13 +129,11 @@ class BaseFlowGraphBuilder {
         next_used_try_index_(0),
         stack_(NULL),
         pending_argument_count_(0),
-        loop_depth_(0),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
   Fragment LoadField(const Field& field);
-  Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
-  Fragment LoadNativeField(const NativeFieldDesc* native_field);
+  Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
 
   void SetTempIndex(Definition* definition);
@@ -149,7 +147,7 @@ class BaseFlowGraphBuilder {
   const Field& MayCloneField(const Field& field);
   Fragment StoreInstanceField(
       TokenPosition position,
-      intptr_t offset,
+      const Slot& field,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       const Field& field,
@@ -158,6 +156,7 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
   Fragment LoadStaticField();
+  Fragment RedefinitionWithType(const AbstractType& type);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreIndexed(intptr_t class_id);
 
@@ -219,7 +218,7 @@ class BaseFlowGraphBuilder {
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(TokenPosition position);
-  Fragment CheckStackOverflow(TokenPosition position);
+  Fragment CheckStackOverflow(TokenPosition position, intptr_t loop_depth);
   Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
@@ -262,7 +261,7 @@ class BaseFlowGraphBuilder {
 
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
-  Fragment AllocateContext(intptr_t size);
+  Fragment AllocateContext(const GrowableArray<LocalVariable*>& scope);
   Fragment CreateArray();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
@@ -289,7 +288,6 @@ class BaseFlowGraphBuilder {
 
   Value* stack_;
   intptr_t pending_argument_count_;
-  intptr_t loop_depth_;
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;

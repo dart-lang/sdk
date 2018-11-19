@@ -98,78 +98,81 @@ class FormatException implements Exception {
       report = "$report: $message";
     }
     int offset = this.offset;
-    if (source is! String) {
+    Object objectSource = this.source;
+    if (objectSource is String) {
+      String source = objectSource;
+      if (offset != null && (offset < 0 || offset > source.length)) {
+        offset = null;
+      }
+      // Source is string and offset is null or valid.
+      if (offset == null) {
+        if (source.length > 78) {
+          source = source.substring(0, 75) + "...";
+        }
+        return "$report\n$source";
+      }
+      int lineNum = 1;
+      int lineStart = 0;
+      bool previousCharWasCR = false;
+      for (int i = 0; i < offset; i++) {
+        int char = source.codeUnitAt(i);
+        if (char == 0x0a) {
+          if (lineStart != i || !previousCharWasCR) {
+            lineNum++;
+          }
+          lineStart = i + 1;
+          previousCharWasCR = false;
+        } else if (char == 0x0d) {
+          lineNum++;
+          lineStart = i + 1;
+          previousCharWasCR = true;
+        }
+      }
+      if (lineNum > 1) {
+        report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
+      } else {
+        report += " (at character ${offset + 1})\n";
+      }
+      int lineEnd = source.length;
+      for (int i = offset; i < source.length; i++) {
+        int char = source.codeUnitAt(i);
+        if (char == 0x0a || char == 0x0d) {
+          lineEnd = i;
+          break;
+        }
+      }
+      int length = lineEnd - lineStart;
+      int start = lineStart;
+      int end = lineEnd;
+      String prefix = "";
+      String postfix = "";
+      if (length > 78) {
+        // Can't show entire line. Try to anchor at the nearest end, if
+        // one is within reach.
+        int index = offset - lineStart;
+        if (index < 75) {
+          end = start + 75;
+          postfix = "...";
+        } else if (end - offset < 75) {
+          start = end - 75;
+          prefix = "...";
+        } else {
+          // Neither end is near, just pick an area around the offset.
+          start = offset - 36;
+          end = offset + 36;
+          prefix = postfix = "...";
+        }
+      }
+      String slice = source.substring(start, end);
+      int markOffset = offset - start + prefix.length;
+      return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
+    } else {
+      // The source is not a string.
       if (offset != null) {
         report += " (at offset $offset)";
       }
       return report;
     }
-    if (offset != null && (offset < 0 || offset > source.length)) {
-      offset = null;
-    }
-    // Source is string and offset is null or valid.
-    if (offset == null) {
-      String source = this.source;
-      if (source.length > 78) {
-        source = source.substring(0, 75) + "...";
-      }
-      return "$report\n$source";
-    }
-    int lineNum = 1;
-    int lineStart = 0;
-    bool previousCharWasCR = false;
-    for (int i = 0; i < offset; i++) {
-      int char = source.codeUnitAt(i);
-      if (char == 0x0a) {
-        if (lineStart != i || !previousCharWasCR) {
-          lineNum++;
-        }
-        lineStart = i + 1;
-        previousCharWasCR = false;
-      } else if (char == 0x0d) {
-        lineNum++;
-        lineStart = i + 1;
-        previousCharWasCR = true;
-      }
-    }
-    if (lineNum > 1) {
-      report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
-    } else {
-      report += " (at character ${offset + 1})\n";
-    }
-    int lineEnd = source.length;
-    for (int i = offset; i < source.length; i++) {
-      int char = source.codeUnitAt(i);
-      if (char == 0x0a || char == 0x0d) {
-        lineEnd = i;
-        break;
-      }
-    }
-    int length = lineEnd - lineStart;
-    int start = lineStart;
-    int end = lineEnd;
-    String prefix = "";
-    String postfix = "";
-    if (length > 78) {
-      // Can't show entire line. Try to anchor at the nearest end, if
-      // one is within reach.
-      int index = offset - lineStart;
-      if (index < 75) {
-        end = start + 75;
-        postfix = "...";
-      } else if (end - offset < 75) {
-        start = end - 75;
-        prefix = "...";
-      } else {
-        // Neither end is near, just pick an area around the offset.
-        start = offset - 36;
-        end = offset + 36;
-        prefix = postfix = "...";
-      }
-    }
-    String slice = source.substring(start, end);
-    int markOffset = offset - start + prefix.length;
-    return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
   }
 }
 

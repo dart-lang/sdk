@@ -123,7 +123,7 @@ class KernelTarget extends TargetImplementation {
 
   final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
-  bool get strongMode => !backendTarget.legacyMode;
+  bool get legacyMode => backendTarget.legacyMode;
 
   bool get disableTypeInference => backendTarget.disableTypeInference;
 
@@ -413,7 +413,7 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
       if (builder.target != objectClass) {
-        if (builder.isPatch) continue;
+        if (builder.isPatch || builder.isMixinDeclaration) continue;
         if (builder.isMixinApplication) {
           installForwardingConstructors(builder);
         } else {
@@ -727,7 +727,8 @@ class KernelTarget extends TargetImplementation {
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
         field.initializer = new NullLiteral()..parent = field;
-        if (field.isFinal && cls.constructors.isNotEmpty) {
+        if (field.isFinal &&
+            (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
           builder.library.addProblem(
               templateFinalFieldNotInitialized.withArguments(field.name.name),
               field.fileOffset,
@@ -809,7 +810,7 @@ class KernelTarget extends TargetImplementation {
           KernelLibraryBuilder part =
               library.loader.read(patch, -1, fileUri: patch, accessor: first);
           first.parts.add(part);
-          part.addPartOf(null, null, "${first.uri}", -1);
+          part.partOfUri = first.uri;
         }
       }
     }

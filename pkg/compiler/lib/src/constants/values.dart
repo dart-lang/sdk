@@ -24,7 +24,7 @@ enum ConstantValueKind {
   TYPE,
   INTERCEPTOR,
   SYNTHETIC,
-  DEFERRED,
+  INSTANTIATION,
   DEFERRED_GLOBAL,
   NON_CONSTANT,
 }
@@ -46,7 +46,6 @@ abstract class ConstantValueVisitor<R, A> {
   R visitInterceptor(
       covariant InterceptorConstantValue constant, covariant A arg);
   R visitSynthetic(covariant SyntheticConstantValue constant, covariant A arg);
-  R visitDeferred(covariant DeferredConstantValue constant, covariant A arg);
   R visitDeferredGlobal(
       covariant DeferredGlobalConstantValue constant, covariant A arg);
   R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
@@ -676,6 +675,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
         hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
         super(type) {
     assert(type != null);
+    assert(!fields.containsKey(null));
     assert(!fields.containsValue(null));
   }
 
@@ -743,40 +743,6 @@ class ConstructedConstantValue extends ObjectConstantValue {
   }
 }
 
-/// A reference to a constant in another output unit.
-///
-/// Used for referring to deferred constants when evaluating constant values.
-class DeferredConstantValue extends ConstantValue {
-  DeferredConstantValue(this.referenced, this.import);
-
-  final ConstantValue referenced;
-  final ImportEntity import;
-
-  bool get isReference => true;
-
-  bool operator ==(other) {
-    return other is DeferredConstantValue &&
-        referenced == other.referenced &&
-        import == other.import;
-  }
-
-  int get hashCode => (referenced.hashCode * 17 + import.hashCode) & 0x3fffffff;
-
-  List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
-
-  accept(ConstantValueVisitor visitor, arg) => visitor.visitDeferred(this, arg);
-
-  DartType getType(CommonElements types) => referenced.getType(types);
-
-  ConstantValueKind get kind => ConstantValueKind.DEFERRED;
-
-  String toDartText() => 'deferred(${referenced.toDartText()})';
-
-  String toStructuredText() {
-    return 'DeferredConstant(${referenced.toStructuredText()})';
-  }
-}
-
 class InstantiationConstantValue extends ConstantValue {
   final List<DartType> typeArguments;
   final FunctionConstantValue function;
@@ -805,7 +771,7 @@ class InstantiationConstantValue extends ConstantValue {
     return type.instantiate(typeArguments);
   }
 
-  ConstantValueKind get kind => ConstantValueKind.DEFERRED;
+  ConstantValueKind get kind => ConstantValueKind.INSTANTIATION;
 
   String toDartText() =>
       '<${typeArguments.join(', ')}>(${function.toDartText()})';

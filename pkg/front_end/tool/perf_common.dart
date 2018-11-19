@@ -48,12 +48,12 @@ final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   fastaCodes.codeUndefinedMethod,
 ]);
 
-DiagnosticMessageHandler onDiagnosticMessageHandler(bool isStrong) {
+DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
   bool messageReported = false;
   return (DiagnosticMessage m) {
     if (m.severity == Severity.internalProblem ||
         m.severity == Severity.error) {
-      if (!isStrong ||
+      if (legacyMode ||
           !whitelistMessageCode.contains(getMessageCodeObject(m))) {
         printDiagnosticMessage(m, stderr.writeln);
         exitCode = 1;
@@ -65,19 +65,19 @@ DiagnosticMessageHandler onDiagnosticMessageHandler(bool isStrong) {
   };
 }
 
-/// Creates a [VmTarget] or [FlutterTarget] with strong-mode enabled or
+/// Creates a [VmTarget] or [FlutterTarget] with legacy mode enabled or
 /// disabled.
 // TODO(sigmund): delete as soon as the disableTypeInference flag and the
-// strongMode flag get merged, and we have a single way of specifying the
-// strong-mode flag to the FE.
-Target createTarget({bool isFlutter: false, bool strongMode: true}) {
-  var flags = new TargetFlags(legacyMode: !strongMode);
+// legacyMode flag get merged, and we have a single way of specifying the
+// legacy-mode flag to the FE.
+Target createTarget({bool isFlutter: false, bool legacyMode: false}) {
+  var flags = new TargetFlags(legacyMode: legacyMode);
   if (isFlutter) {
-    return strongMode
-        ? new FlutterTarget(flags)
-        : new LegacyFlutterTarget(flags);
+    return legacyMode
+        ? new LegacyFlutterTarget(flags)
+        : new FlutterTarget(flags);
   } else {
-    return strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags);
+    return legacyMode ? new LegacyVmTarget(flags) : new VmTarget(flags);
   }
 }
 

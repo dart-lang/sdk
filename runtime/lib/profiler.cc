@@ -13,27 +13,26 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_intrinsified_natives);
-
 // Native implementations of the profiler parts of the dart:developer library.
 
 DEFINE_NATIVE_ENTRY(UserTag_new, 2) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, tag_label, arguments->NativeArgAt(1));
   return UserTag::New(tag_label);
 }
 
 DEFINE_NATIVE_ENTRY(UserTag_label, 1) {
-  const UserTag& self = UserTag::CheckedHandle(arguments->NativeArgAt(0));
+  const UserTag& self = UserTag::CheckedHandle(zone, arguments->NativeArgAt(0));
   return self.label();
 }
 
 DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 1) {
-  const UserTag& self = UserTag::CheckedHandle(arguments->NativeArgAt(0));
+  const UserTag& self = UserTag::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("UserTag_makeCurrent: %s\n", self.ToCString());
   }
-  const UserTag& old = UserTag::Handle(isolate->current_tag());
+  const UserTag& old = UserTag::Handle(zone, isolate->current_tag());
   self.MakeActive();
   return old.raw();
 }

@@ -12,7 +12,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
 import 'allocator_analysis.dart' show JAllocatorAnalysis;
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
@@ -382,11 +382,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }
     return new jsAst.ArrayInitializer(arguments);
-  }
-
-  @override
-  jsAst.Expression visitDeferred(DeferredConstantValue constant, [_]) {
-    return constantReferenceGenerator(constant.referenced);
   }
 
   @override

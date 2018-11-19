@@ -404,10 +404,7 @@ class DateTime implements Comparable<DateTime> {
    * See [isAtSameMomentAs] for a comparison that compares moments in time
    * independently of their zones.
    */
-  bool operator ==(other) {
-    if (!(other is DateTime)) return false;
-    return (_value == other._value && isUtc == other.isUtc);
-  }
+  external bool operator ==(dynamic other);
 
   /**
    * Returns true if [this] occurs before [other].
@@ -429,9 +426,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(!now.isBefore(now.toUtc()));
    * ```
    */
-  bool isBefore(DateTime other) {
-    return _value < other._value;
-  }
+  external bool isBefore(DateTime other);
 
   /**
    * Returns true if [this] occurs after [other].
@@ -453,9 +448,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(!now.isBefore(now.toUtc()));
    * ```
    */
-  bool isAfter(DateTime other) {
-    return _value > other._value;
-  }
+  external bool isAfter(DateTime other);
 
   /**
    * Returns true if [this] occurs at the same moment as [other].
@@ -477,9 +470,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(now.isAtSameMomentAs(now.toUtc()));
    * ```
    */
-  bool isAtSameMomentAs(DateTime other) {
-    return _value == other._value;
-  }
+  external bool isAtSameMomentAs(DateTime other);
 
   /**
    * Compares this DateTime object to [other],
@@ -489,7 +480,7 @@ class DateTime implements Comparable<DateTime> {
    * if it [isAtSameMomentAs] [other], and returns a positive value otherwise
    * (when this [isAfter] [other]).
    */
-  int compareTo(DateTime other) => _value.compareTo(other._value);
+  external int compareTo(DateTime other);
 
   int get hashCode => (_value ^ (_value >> 30)) & 0x3FFFFFFF;
 

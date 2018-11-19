@@ -130,7 +130,7 @@ abstract class TestSuite {
     };
     if (configuration.copyCoreDumps && Platform.isWindows) {
       _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-          new Path(buildDir + '/crashpad_handler.exe').toNativePath();
+          new Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
     }
   }
 
@@ -446,12 +446,13 @@ class VMTestSuite extends TestSuite {
   VMTestSuite(TestConfiguration configuration)
       : dartDir = Repository.dir.toNativePath(),
         super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
+    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+
     // For running the tests we use the given '$runnerName' binary
-    targetRunnerPath = '$buildDir/run_vm_tests';
+    targetRunnerPath = '$buildDir/run_vm_tests$binarySuffix';
 
     // For listing the tests we use the '$runnerName.host' binary if it exists
     // and use '$runnerName' if it doesn't.
-    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
     var hostBinary = '$targetRunnerPath.host$binarySuffix';
     if (new File(hostBinary).existsSync()) {
       hostRunnerPath = hostBinary;
@@ -484,8 +485,11 @@ class VMTestSuite extends TestSuite {
   void _addTest(ExpectationSet testExpectations, String testName) {
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
+      final dfePath = new Path("$buildDir/gen/kernel-service.dart.snapshot")
+          .absolute
+          .toNativePath();
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
-      args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
+      args.insert(0, '--dfe=$dfePath');
     }
 
     args.add(testName);
@@ -710,6 +714,11 @@ class StandardTestSuite extends TestSuite {
     // TestSuite.enqueueNewTestCase().
     if (_testListPossibleFilenames?.contains(filename) == false) return;
     bool match = false;
+    // Note: have to use Path instead of a filename for matching because
+    // on Windows we need to convert backward slashes to forward slashes.
+    // Our display test names (and filters) are given using forward slashes
+    // while filenames on Windows use backwards slashes.
+    final Path filePath = new Path(filename);
     for (var regex in configuration.selectors.values) {
       String pattern = regex.pattern;
       if (pattern.contains("/")) {
@@ -722,13 +731,12 @@ class StandardTestSuite extends TestSuite {
       if (pattern != regex.pattern) {
         regex = new RegExp(pattern);
       }
-      if (regex.hasMatch(filename)) match = true;
+      if (regex.hasMatch(filePath.toString())) match = true;
       if (match) break;
     }
     if (!match) return;
 
     if (!isTestFile(filename)) return;
-    Path filePath = new Path(filename);
 
     var optionsFromFile = readOptionsFromFile(new Uri.file(filename));
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);

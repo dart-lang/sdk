@@ -365,49 +365,51 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
     return Object::null();
   }
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
-  TransitionVMToNative transition(thread);
   Api::Scope scope(thread);
-
   Dart_Handle data_handle = Api::NewHandle(thread, data.raw());
+  Dart_Handle result_list;
+  {
+    TransitionVMToNative transition(thread);
 
-  Dart_TypedData_Type typ;
-  void* bytes;
-  intptr_t length;
-  Dart_Handle err =
-      Dart_TypedDataAcquireData(data_handle, &typ, &bytes, &length);
-  ASSERT(!Dart_IsError(err));
+    Dart_TypedData_Type typ;
+    void* bytes;
+    intptr_t length;
+    Dart_Handle err =
+        Dart_TypedDataAcquireData(data_handle, &typ, &bytes, &length);
+    ASSERT(!Dart_IsError(err));
 
-  TarArchive archive(reinterpret_cast<uint8_t*>(bytes), length);
-  archive.Read();
+    TarArchive archive(reinterpret_cast<uint8_t*>(bytes), length);
+    archive.Read();
 
-  err = Dart_TypedDataReleaseData(data_handle);
-  ASSERT(!Dart_IsError(err));
+    err = Dart_TypedDataReleaseData(data_handle);
+    ASSERT(!Dart_IsError(err));
 
-  intptr_t archive_size = archive.Length();
+    intptr_t archive_size = archive.Length();
 
-  Dart_Handle result_list = Dart_NewList(2 * archive_size);
-  ASSERT(!Dart_IsError(result_list));
+    result_list = Dart_NewList(2 * archive_size);
+    ASSERT(!Dart_IsError(result_list));
 
-  intptr_t idx = 0;
-  while (archive.HasMore()) {
-    char* filename = archive.NextFilename();
-    intptr_t filename_length = strlen(filename);
-    uint8_t* contents = archive.NextContent();
-    intptr_t contents_length = archive.NextContentLength();
+    intptr_t idx = 0;
+    while (archive.HasMore()) {
+      char* filename = archive.NextFilename();
+      intptr_t filename_length = strlen(filename);
+      uint8_t* contents = archive.NextContent();
+      intptr_t contents_length = archive.NextContentLength();
 
-    Dart_Handle dart_filename = Dart_NewExternalLatin1String(
-        reinterpret_cast<uint8_t*>(filename), filename_length, filename,
-        filename_length, FilenameFinalizer);
-    ASSERT(!Dart_IsError(dart_filename));
+      Dart_Handle dart_filename = Dart_NewExternalLatin1String(
+          reinterpret_cast<uint8_t*>(filename), filename_length, filename,
+          filename_length, FilenameFinalizer);
+      ASSERT(!Dart_IsError(dart_filename));
 
-    Dart_Handle dart_contents = Dart_NewExternalTypedDataWithFinalizer(
-        Dart_TypedData_kUint8, contents, contents_length, contents,
-        contents_length, ContentsFinalizer);
-    ASSERT(!Dart_IsError(dart_contents));
+      Dart_Handle dart_contents = Dart_NewExternalTypedDataWithFinalizer(
+          Dart_TypedData_kUint8, contents, contents_length, contents,
+          contents_length, ContentsFinalizer);
+      ASSERT(!Dart_IsError(dart_contents));
 
-    Dart_ListSetAt(result_list, idx, dart_filename);
-    Dart_ListSetAt(result_list, (idx + 1), dart_contents);
-    idx += 2;
+      Dart_ListSetAt(result_list, idx, dart_filename);
+      Dart_ListSetAt(result_list, (idx + 1), dart_contents);
+      idx += 2;
+    }
   }
   return Api::UnwrapArrayHandle(thread->zone(), result_list).raw();
 #else

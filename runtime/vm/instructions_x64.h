@@ -112,6 +112,56 @@ class SetFramePointerPattern
   static const int kLengthInBytes = 3;
 };
 
+// callq *[rip+offset]
+class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
+ public:
+  explicit PcRelativeCallPattern(uword pc) : InstructionPattern(pc) {}
+
+  int32_t distance() {
+    return *reinterpret_cast<int32_t*>(start() + 1) + kLengthInBytes;
+  }
+
+  void set_distance(int32_t distance) {
+    // [distance] is relative to the start of the instruction, x64 considers the
+    // offset relative to next PC.
+    *reinterpret_cast<int32_t*>(start() + 1) = distance - kLengthInBytes;
+  }
+
+  static const int* pattern() {
+    static const int kPattern[kLengthInBytes] = {0xe8, -1, -1, -1, -1};
+    return kPattern;
+  }
+
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
+
+  static const int kLengthInBytes = 5;
+};
+
+// jmpq *[rip+offset]
+class PcRelativeJumpPattern : public InstructionPattern<PcRelativeJumpPattern> {
+ public:
+  explicit PcRelativeJumpPattern(uword pc) : InstructionPattern(pc) {}
+
+  int32_t distance() {
+    return *reinterpret_cast<int32_t*>(start() + 2) + kLengthInBytes;
+  }
+
+  void set_distance(int32_t distance) {
+    // [distance] is relative to the start of the instruction, x64 considers the
+    // offset relative to next PC.
+    *reinterpret_cast<int32_t*>(start() + 2) = distance - kLengthInBytes;
+  }
+
+  static const int* pattern() {
+    static const int kPattern[kLengthInBytes] = {0xff, 0x25, -1, -1, -1, -1};
+    return kPattern;
+  }
+
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
+
+  static const int kLengthInBytes = 6;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_INSTRUCTIONS_X64_H_

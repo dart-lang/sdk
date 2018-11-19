@@ -46,8 +46,6 @@ namespace dart {
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \
-  V(TraceFunctionEntry)                                                        \
-  V(TraceFunctionExit)                                                         \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
@@ -63,6 +61,7 @@ namespace dart {
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(void, MarkingStackBlockProcess, Thread*)                                   \
+  V(void, RememberCard, RawObject*, RawObject**)                               \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \

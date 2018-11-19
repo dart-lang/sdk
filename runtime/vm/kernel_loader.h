@@ -255,7 +255,7 @@ class KernelLoader : public ValueObject {
   void LoadClass(const Library& library,
                  const Class& toplevel_class,
                  intptr_t class_end,
-                 Class* klass);
+                 Class* out_class);
 
   void FinishClassLoading(const Class& klass,
                           const Library& library,

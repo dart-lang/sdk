@@ -19,8 +19,8 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;

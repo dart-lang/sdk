@@ -63,6 +63,7 @@ class LocalVariables {
 
   int get currentContextSize => _currentScope.contextSize;
   int get currentContextLevel => _currentScope.contextLevel;
+  int get currentContextId => _currentScope.contextId;
 
   int get contextLevelAtEntry =>
       _currentFrame.contextLevelAtEntry ??
@@ -72,6 +73,12 @@ class LocalVariables {
     final v = _getVarDesc(variable);
     assert(v.isCaptured);
     return v.scope.contextLevel;
+  }
+
+  int getVarContextId(VariableDeclaration variable) {
+    final v = _getVarDesc(variable);
+    assert(v.isCaptured);
+    return v.scope.contextId;
   }
 
   int get closureVarIndexInFrame => getVarIndexInFrame(_currentFrame
@@ -257,6 +264,7 @@ class Scope {
   int contextUsed = 0;
   int contextSize = 0;
   int contextLevel;
+  int contextId;
 
   Scope(this.parent, this.frame, this.loopDepth);
 
@@ -699,6 +707,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   Scope _currentScope;
   Frame _currentFrame;
+  int _contextIdCounter = 0;
 
   _Allocator(this.locals);
 
@@ -738,6 +747,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     assert(_currentScope.contextOwner == null);
     assert(_currentScope.contextLevel == null);
+    assert(_currentScope.contextId == null);
 
     final int parentContextLevel =
         _currentScope.parent != null ? _currentScope.parent.contextLevel : -1;
@@ -763,8 +773,13 @@ class _Allocator extends RecursiveVisitor<Null> {
 
       if (_currentScope.contextOwner == _currentScope) {
         _currentScope.contextLevel = parentContextLevel + 1;
+        _currentScope.contextId = _contextIdCounter++;
+        if (_currentScope.contextId >= contextIdLimit) {
+          throw new ContextIdOverflowException();
+        }
       } else {
         _currentScope.contextLevel = _currentScope.contextOwner.contextLevel;
+        _currentScope.contextId = _currentScope.contextOwner.contextId;
       }
     } else {
       _currentScope.contextLevel = parentContextLevel;
@@ -1126,8 +1141,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitStaticSet(StaticSet node) {
-    _allocateTemp(node);
-    super.visitStaticSet(node);
+    _visit(node, temps: 1);
   }
 
   @override
@@ -1148,3 +1162,5 @@ class _Allocator extends RecursiveVisitor<Null> {
 
 class LocalVariableIndexOverflowException
     extends BytecodeLimitExceededException {}
+
+class ContextIdOverflowException extends BytecodeLimitExceededException {}

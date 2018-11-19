@@ -23,8 +23,8 @@ import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
-import 'js_strategy.dart' show JsClosedWorldBuilder;
 
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to
@@ -744,7 +744,7 @@ class JsScopeInfo extends ScopeInfo {
     return sb.toString();
   }
 
-  bool isBoxed(Local variable) => boxedVariables.containsKey(variable);
+  bool isBoxedVariable(Local variable) => boxedVariables.containsKey(variable);
 
   factory JsScopeInfo.readFromDataSource(DataSource source) {
     source.begin(tag);
@@ -1045,18 +1045,10 @@ class KernelClosureClassInfo extends JsScopeInfo
 
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
-  @override
-  void forEachBoxedVariable(f(Local local, JField field)) {
-    boxedVariables.forEach(f);
-  }
-
   void forEachFreeVariable(f(Local variable, JField field)) {
     localToFieldMap.forEach(f);
     boxedVariables.forEach(f);
   }
-
-  bool isVariableBoxed(Local variable) =>
-      boxedVariables.keys.contains(variable);
 
   bool get isClosure => true;
 }

@@ -86,6 +86,15 @@ const char* StackFrame::ToCString() const {
   ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
   if (IsDartFrame()) {
+    if (is_interpreted()) {
+      const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
+      ASSERT(!bytecode.IsNull());
+      const Function& function = Function::Handle(zone, bytecode.function());
+      ASSERT(!function.IsNull());
+      return zone->PrintToString(
+          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") bytecode %s ]",
+          GetName(), sp(), fp(), pc(), function.ToFullyQualifiedCString());
+    }
     const Code& code = Code::Handle(zone, LookupDartCode());
     ASSERT(!code.IsNull());
     const Object& owner = Object::Handle(zone, code.owner());
@@ -163,12 +172,21 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
-  Code code;
-  RawCode* raw_code = UncheckedGetCodeObject();
-  // May forward raw_code. Note we don't just visit the pc marker slot first
+  RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+      fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                : runtime_frame_layout.code_from_fp) *
+              kWordSize)));
+  // May forward raw code. Note we don't just visit the pc marker slot first
   // because the visitor's forwarding might not be idempotent.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&raw_code));
-  code ^= raw_code;
+  visitor->VisitPointer(&pc_marker);
+  Code code;
+  if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
+    code ^= pc_marker;
+  } else {
+    ASSERT(pc_marker == Object::null() ||
+           (is_interpreted() && (!pc_marker->IsHeapObject() ||
+                                 (pc_marker->GetClassId() == kBytecodeCid))));
+  }
   if (!code.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
@@ -289,6 +307,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 RawFunction* StackFrame::LookupDartFunction() const {
+  if (is_interpreted()) {
+    const Bytecode& bytecode = Bytecode::Handle(LookupDartBytecode());
+    ASSERT(!bytecode.IsNull());
+    return bytecode.function();
+  }
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
     return code.function();
@@ -314,17 +337,33 @@ RawCode* StackFrame::LookupDartCode() const {
 }
 
 RawCode* StackFrame::GetCodeObject() const {
-  RawCode* pc_marker = UncheckedGetCodeObject();
+  ASSERT(!is_interpreted());
+  RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+      fp() + runtime_frame_layout.code_from_fp * kWordSize));
   ASSERT((pc_marker == Object::null()) ||
          (pc_marker->GetClassId() == kCodeCid));
-  return pc_marker;
+  return reinterpret_cast<RawCode*>(pc_marker);
 }
 
-RawCode* StackFrame::UncheckedGetCodeObject() const {
-  return *(reinterpret_cast<RawCode**>(
-      fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
-                                : runtime_frame_layout.code_from_fp) *
-              kWordSize)));
+RawBytecode* StackFrame::LookupDartBytecode() const {
+// We add a no gc scope to ensure that the code below does not trigger
+// a GC as we are handling raw object references here. It is possible
+// that the code is called while a GC is in progress, that is ok.
+#if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
+  // On Windows and Fuchsia, the profiler calls this from a separate thread
+  // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+  NoSafepointScope no_safepoint;
+#endif
+  return GetBytecodeObject();
+}
+
+RawBytecode* StackFrame::GetBytecodeObject() const {
+  ASSERT(is_interpreted());
+  RawObject* pc_marker = *(
+      reinterpret_cast<RawObject**>(fp() + kKBCPcMarkerSlotFromFp * kWordSize));
+  ASSERT((pc_marker == Object::null()) ||
+         (pc_marker->GetClassId() == kBytecodeCid));
+  return reinterpret_cast<RawBytecode*>(pc_marker);
 }
 
 bool StackFrame::FindExceptionHandler(Thread* thread,
@@ -334,32 +373,46 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
                                       bool* is_optimized) const {
   REUSABLE_CODE_HANDLESCOPE(thread);
   Code& code = reused_code_handle.Handle();
-  code = LookupDartCode();
-  if (code.IsNull()) {
-    return false;  // Stub frames do not have exception handlers.
+  REUSABLE_BYTECODE_HANDLESCOPE(thread);
+  Bytecode& bytecode = reused_bytecode_handle.Handle();
+  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread);
+  ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
+  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread);
+  PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
+  uword start;
+  intptr_t size;
+  if (is_interpreted()) {
+    bytecode = LookupDartBytecode();
+    ASSERT(!bytecode.IsNull());
+    start = bytecode.PayloadStart();
+    size = bytecode.Size();
+    handlers = bytecode.exception_handlers();
+    descriptors = bytecode.pc_descriptors();
+  } else {
+    code = LookupDartCode();
+    if (code.IsNull()) {
+      return false;  // Stub frames do not have exception handlers.
+    }
+    start = code.PayloadStart();
+    size = code.Size();
+    handlers = code.exception_handlers();
+    descriptors = code.pc_descriptors();
+    *is_optimized = code.is_optimized();
   }
-  *is_optimized = code.is_optimized();
   HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
   ExceptionHandlerInfo* info = cache->Lookup(pc());
   if (info != NULL) {
-    *handler_pc = code.PayloadStart() + info->handler_pc_offset;
+    *handler_pc = start + info->handler_pc_offset;
     *needs_stacktrace = info->needs_stacktrace;
     *has_catch_all = info->has_catch_all;
     return true;
   }
-  uword pc_offset = pc() - code.PayloadStart();
+  uword pc_offset = pc() - start;
 
-  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread);
-  ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
-  handlers = code.exception_handlers();
   if (handlers.num_entries() == 0) {
     return false;
   }
 
-  // Find pc descriptor for the current pc.
-  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread);
-  PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
-  descriptors = code.pc_descriptors();
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   intptr_t try_index = -1;
   if (is_interpreted()) {
@@ -394,7 +447,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   }
   ExceptionHandlerInfo handler_info;
   handlers.GetHandlerInfo(try_index, &handler_info);
-  *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
+  *handler_pc = start + handler_info.handler_pc_offset;
   *needs_stacktrace = handler_info.needs_stacktrace;
   *has_catch_all = handler_info.has_catch_all;
   cache->Insert(pc(), handler_info);
@@ -402,6 +455,13 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 }
 
 TokenPosition StackFrame::GetTokenPos() const {
+  if (is_interpreted()) {
+    const Bytecode& bytecode = Bytecode::Handle(LookupDartBytecode());
+    if (bytecode.IsNull()) {
+      return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
+    }
+    return bytecode.GetTokenIndexOfPC(pc());
+  }
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {
     return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
@@ -422,6 +482,9 @@ TokenPosition StackFrame::GetTokenPos() const {
 bool StackFrame::IsValid() const {
   if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
+  }
+  if (is_interpreted()) {
+    return (LookupDartBytecode() != Bytecode::null());
   }
   return (LookupDartCode() != Code::null());
 }

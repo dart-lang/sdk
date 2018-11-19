@@ -68,6 +68,8 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(compilation_counter_threshold, int, 10,                                    \
     "Function's usage-counter value before interpreted function is compiled, " \
     "-1 means never")                                                          \
+  P(concurrent_mark, bool, USING_MULTICORE,                                    \
+    "Concurrent mark for old generation.")                                     \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
@@ -170,16 +172,27 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
+  D(trace_ic, bool, false, "Trace IC handling")                                \
+  D(trace_ic_miss_in_optimized, bool, false,                                   \
+    "Trace IC miss in optimized code")                                         \
   C(trace_irregexp, false, false, bool, false, "Trace irregexps.")             \
+  D(trace_intrinsified_natives, bool, false,                                   \
+    "Report if any of the intrinsified natives are called")                    \
   D(trace_isolates, bool, false, "Trace isolate creation and shut down.")      \
   D(trace_handles, bool, false, "Traces allocation of handles.")               \
   D(trace_kernel_binary, bool, false, "Trace Kernel reader/writer.")           \
+  D(trace_natives, bool, false, "Trace invocation of natives")                 \
   D(trace_optimization, bool, false, "Print optimization details.")            \
   R(trace_profiler, false, bool, false, "Profiler trace")                      \
   D(trace_profiler_verbose, bool, false, "Verbose profiler trace")             \
+  D(trace_runtime_calls, bool, false, "Trace runtime calls.")                  \
   D(trace_ssa_allocator, bool, false, "Trace register allocation over SSA.")   \
   P(trace_strong_mode_types, bool, false,                                      \
     "Trace optimizations based on strong mode types.")                         \
+  D(trace_type_checks, bool, false, "Trace runtime type checks.")              \
+  D(trace_patching, bool, false, "Trace patching of code.")                    \
+  D(trace_optimized_ic_calls, bool, false,                                     \
+    "Trace IC calls in optimized code.")                                       \
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \

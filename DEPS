@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "77825446f59893bb2b20f2e9517a4567e0371193",
+  "co19_2_rev": "740cb9e9b3fc8e1da2f55e10554ffeac90461b73",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -81,7 +81,7 @@ vars = {
 
   "dartdoc_tag" : "v0.24.1",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
-  "fixnum_tag": "0.10.8",
+  "fixnum_tag": "0.10.9",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.7",
   "html_tag" : "0.13.3+2",
@@ -139,7 +139,7 @@ vars = {
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+5",
-  "watcher_rev": "0.9.7+10",
+  "watcher_rev": "0.9.7+12",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",

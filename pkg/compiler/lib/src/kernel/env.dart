@@ -10,7 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as ir
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:collection/algorithms.dart' show mergeSort; // a stable sort.
+import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
 import '../constants/constructors.dart';
@@ -200,11 +200,11 @@ class KLibraryData {
 
   KLibraryData(this.library);
 
-  Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
+  Iterable<ConstantValue> getMetadata(KernelToElementMapImpl elementMap) {
     return _metadata ??= elementMap.getMetadata(library.annotations);
   }
 
-  Iterable<ImportEntity> getImports(KernelToElementMapBase elementMap) {
+  Iterable<ImportEntity> getImports(KernelToElementMapImpl elementMap) {
     if (imports == null) {
       List<ir.LibraryDependency> dependencies = library.dependencies;
       if (dependencies.isEmpty) {
@@ -244,7 +244,7 @@ abstract class KClassEnv {
   bool get isSuperMixinApplication;
 
   /// Ensures that all members have been computed for [cls].
-  void ensureMembers(KernelToElementMapBase elementMap);
+  void ensureMembers(KernelToElementMapImpl elementMap);
 
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]
   /// is `true`, the setter or assignable field corresponding to [name] is
@@ -353,11 +353,11 @@ class KClassEnvImpl implements KClassEnv {
         initializers: <ir.Initializer>[superInitializer]);
   }
 
-  void ensureMembers(KernelToElementMapBase elementMap) {
+  void ensureMembers(KernelToElementMapImpl elementMap) {
     _ensureMaps(elementMap);
   }
 
-  void _ensureMaps(KernelToElementMapBase elementMap) {
+  void _ensureMaps(KernelToElementMapImpl elementMap) {
     if (_memberMap != null) return;
 
     _memberMap = <String, ir.Member>{};
@@ -640,7 +640,7 @@ class KClassDataImpl implements KClassData {
   DartType get callType => null;
 
   Iterable<ConstantValue> getMetadata(
-      covariant KernelToElementMapBase elementMap) {
+      covariant KernelToElementMapImpl elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
@@ -670,7 +670,7 @@ abstract class KMemberDataImpl implements KMemberData {
   KMemberDataImpl(this.node);
 
   Iterable<ConstantValue> getMetadata(
-      covariant KernelToElementMapBase elementMap) {
+      covariant KernelToElementMapImpl elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
@@ -698,7 +698,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
   List<TypeVariableType> _typeVariables;
 
   List<TypeVariableType> getFunctionTypeVariables(
-      covariant KernelToElementMapBase elementMap) {
+      covariant KernelToElementMapImpl elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {
         _typeVariables = const <TypeVariableType>[];
@@ -729,7 +729,7 @@ class KFunctionDataImpl extends KMemberDataImpl
 
   KFunctionDataImpl(ir.Member node, this.functionNode) : super(node);
 
-  FunctionType getFunctionType(covariant KernelToElementMapBase elementMap) {
+  FunctionType getFunctionType(covariant KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
@@ -773,7 +773,7 @@ class KFunctionDataImpl extends KMemberDataImpl
 
 abstract class KConstructorData extends KFunctionData {
   ConstantConstructor getConstructorConstant(
-      KernelToElementMapBase elementMap, ConstructorEntity constructor);
+      KernelToElementMapImpl elementMap, ConstructorEntity constructor);
 }
 
 class KConstructorDataImpl extends KFunctionDataImpl
@@ -785,7 +785,7 @@ class KConstructorDataImpl extends KFunctionDataImpl
       : super(node, functionNode);
 
   ConstantConstructor getConstructorConstant(
-      KernelToElementMapBase elementMap, ConstructorEntity constructor) {
+      KernelToElementMapImpl elementMap, ConstructorEntity constructor) {
     if (_constantConstructor == null) {
       if (node is ir.Constructor && constructor.isConst) {
         _constantConstructor =
@@ -820,15 +820,15 @@ abstract class KFieldData extends KMemberData {
   DartType getFieldType(IrToElementMap elementMap);
 
   ConstantExpression getFieldConstantExpression(
-      KernelToElementMapBase elementMap);
+      KernelToElementMapImpl elementMap);
 
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(KernelToElementMapBase elementMap);
+  ConstantValue getFieldConstantValue(KernelToElementMapImpl elementMap);
 
-  bool hasConstantFieldInitializer(KernelToElementMapBase elementMap);
+  bool hasConstantFieldInitializer(KernelToElementMapImpl elementMap);
 
-  ConstantValue getConstantFieldInitializer(KernelToElementMapBase elementMap);
+  ConstantValue getConstantFieldInitializer(KernelToElementMapImpl elementMap);
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
@@ -841,12 +841,12 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
 
   ir.Field get node => super.node;
 
-  DartType getFieldType(covariant KernelToElementMapBase elementMap) {
+  DartType getFieldType(covariant KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getDartType(node.type);
   }
 
   ConstantExpression getFieldConstantExpression(
-      KernelToElementMapBase elementMap) {
+      KernelToElementMapImpl elementMap) {
     if (_constantExpression == null) {
       if (node.isConst) {
         _constantExpression =
@@ -862,7 +862,7 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   }
 
   @override
-  ConstantValue getFieldConstantValue(KernelToElementMapBase elementMap) {
+  ConstantValue getFieldConstantValue(KernelToElementMapImpl elementMap) {
     if (!_isConstantComputed) {
       _constantValue = elementMap.getConstantValue(node.initializer,
           requireConstant: node.isConst, implicitNull: !node.isConst);
@@ -872,12 +872,12 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   }
 
   @override
-  bool hasConstantFieldInitializer(KernelToElementMapBase elementMap) {
+  bool hasConstantFieldInitializer(KernelToElementMapImpl elementMap) {
     return getFieldConstantValue(elementMap) != null;
   }
 
   @override
-  ConstantValue getConstantFieldInitializer(KernelToElementMapBase elementMap) {
+  ConstantValue getConstantFieldInitializer(KernelToElementMapImpl elementMap) {
     ConstantValue value = getFieldConstantValue(elementMap);
     assert(
         value != null,

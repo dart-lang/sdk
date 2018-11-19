@@ -23,12 +23,8 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : buffer_(),
-      object_pool_wrapper_(object_pool_wrapper),
-      prologue_offset_(-1),
-      has_single_entry_point_(true),
+    : AssemblerBase(object_pool_wrapper),
       use_far_branches_(use_far_branches),
-      comments_(),
       constant_pool_allowed_(false) {}
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
@@ -979,8 +975,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   ASSERT(object != LR);
   ASSERT(value != LR);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
@@ -1032,20 +1026,53 @@ void Assembler::StoreIntoObject(Register object,
   }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#else
-  ASSERT(object != value);
-  ASSERT(object != LR);
-  ASSERT(value != LR);
+}
 
-  str(value, dest);
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi,
+                               bool lr_reserved) {
+  ASSERT(object != TMP);
+  ASSERT(object != TMP2);
+  ASSERT(value != TMP);
+  ASSERT(value != TMP2);
+  ASSERT(slot != TMP);
+  ASSERT(slot != TMP2);
+
+  str(value, Address(slot, 0));
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
+  }
+  ldr(TMP, FieldAddress(object, Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, Object::tags_offset()), kUnsignedByte);
+  and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  tst(TMP, Operand(BARRIER_MASK));
+  b(&done, ZERO);
   if (!lr_reserved) Push(LR);
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
+  }
+
+  ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()));
   blr(LR);
+
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
@@ -1517,6 +1544,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "bl <offset>".
+  EmitUnconditionalBranchOp(BL, 0x686868);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

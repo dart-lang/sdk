@@ -1990,8 +1990,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'address': address,
       'ref': ref,
     };
-    return invokeRpc('_getObjectByAddress', params)
-        .then((result) => result as ServiceObject);
+    return invokeRpc('_getObjectByAddress', params);
   }
 
   final Map<String, ServiceMetric> dartMetrics = <String, ServiceMetric>{};
@@ -3136,6 +3135,7 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
   SourceLocation location;
   Code code;
   Code unoptimizedCode;
+  Code bytecode;
   bool isOptimizable;
   bool isInlinable;
   bool hasIntrinsic;
@@ -3194,6 +3194,7 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
     isInlinable = map['_inlinable'];
     isRecognized = map['_recognized'];
     unoptimizedCode = map['_unoptimizedCode'];
+    bytecode = map['_bytecode'];
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
     icDataArray = map['_icDataArray'];
@@ -3718,7 +3719,7 @@ class Script extends HeapObject implements M.Script {
       UnresolvedSourceLocation loc = bpt.location;
       line = loc.line;
     }
-    getLine(line).addBreakpoint(bpt);
+    getLine(line)?.addBreakpoint(bpt);
   }
 
   void _removeBreakpoint(Breakpoint bpt) {
@@ -3730,7 +3731,7 @@ class Script extends HeapObject implements M.Script {
       line = loc.line;
     }
     if (line != null) {
-      getLine(line).removeBreakpoint(bpt);
+      getLine(line)?.removeBreakpoint(bpt);
     }
   }
 

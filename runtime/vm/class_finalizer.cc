@@ -58,7 +58,7 @@ static void RemoveCHAOptimizedCode(
 
 void AddSuperType(const AbstractType& type,
                   GrowableArray<intptr_t>* finalized_super_classes) {
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   ASSERT(!type.IsDynamicType());
   if (type.IsObjectType()) {
     return;
@@ -86,7 +86,7 @@ static void CollectFinalizedSuperClasses(
   AbstractType& super_type = Type::Handle();
   super_type = cls.super_type();
   if (!super_type.IsNull()) {
-    if (!super_type.IsMalformed() && super_type.HasResolvedTypeClass()) {
+    if (!super_type.IsMalformed() && super_type.HasTypeClass()) {
       cls ^= super_type.type_class();
       if (cls.is_finalized()) {
         AddSuperType(super_type, finalized_super_classes);
@@ -157,7 +157,7 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
   for (intptr_t i = 0; i < interfaces.Length(); ++i) {
     type ^= interfaces.At(i);
     if (type.IsMalformed()) continue;
-    if (!type.HasResolvedTypeClass()) continue;
+    if (!type.HasTypeClass()) continue;
     ifc ^= type.type_class();
     for (intptr_t j = 0; j < cids->length(); ++j) {
       if ((*cids)[j] == ifc.id()) {
@@ -309,53 +309,12 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-static bool IsLoaded(const Type& type) {
-  if (type.HasResolvedTypeClass()) {
-    return true;
-  }
-  const UnresolvedClass& unresolved_class =
-      UnresolvedClass::Handle(type.unresolved_class());
-  const Object& prefix =
-      Object::Handle(unresolved_class.library_or_library_prefix());
-  if (prefix.IsNull()) {
-    return true;
-  } else if (prefix.IsLibraryPrefix()) {
-    return LibraryPrefix::Cast(prefix).is_loaded();
-  } else {
-    return true;
-  }
-}
-
-// Resolve unresolved_class in the library of cls, or return null.
-RawClass* ClassFinalizer::ResolveClass(
-    const Class& cls,
-    const UnresolvedClass& unresolved_class) {
-  const String& class_name = String::Handle(unresolved_class.ident());
-  Library& lib = Library::Handle();
-  Class& resolved_class = Class::Handle();
-  if (unresolved_class.library_or_library_prefix() == Object::null()) {
-    lib = cls.library();
-    ASSERT(!lib.IsNull());
-    resolved_class = lib.LookupClass(class_name);
-  } else {
-    const Object& prefix =
-        Object::Handle(unresolved_class.library_or_library_prefix());
-
-    if (prefix.IsLibraryPrefix()) {
-      resolved_class = LibraryPrefix::Cast(prefix).LookupClass(class_name);
-    } else {
-      resolved_class = Library::Cast(prefix).LookupClass(class_name);
-    }
-  }
-  return resolved_class.raw();
-}
-
 void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
                                                const Function& factory) {
   const Function& target = Function::Handle(factory.RedirectionTarget());
   if (target.IsNull()) {
     Type& type = Type::Handle(factory.RedirectionType());
-    if (!type.IsMalformed() && IsLoaded(type)) {
+    if (!type.IsMalformed()) {
       const GrowableObjectArray& visited_factories =
           GrowableObjectArray::Handle(GrowableObjectArray::New());
       ResolveRedirectingFactoryTarget(cls, factory, visited_factories);
@@ -516,25 +475,7 @@ void ClassFinalizer::ResolveTypeClass(const Class& cls, const Type& type) {
   // unresolved is the correct thing to do.
 
   // Lookup the type class if necessary.
-  Class& type_class = Class::Handle();
-  if (type.HasResolvedTypeClass()) {
-    type_class = type.type_class();
-  } else {
-    const UnresolvedClass& unresolved_class =
-        UnresolvedClass::Handle(type.unresolved_class());
-    type_class = ResolveClass(cls, unresolved_class);
-    if (type_class.IsNull()) {
-      // The type class could not be resolved. The type is malformed.
-      FinalizeMalformedType(Error::Handle(),  // No previous error.
-                            Script::Handle(cls.script()), type,
-                            "cannot resolve class '%s' from '%s'",
-                            String::Handle(unresolved_class.Name()).ToCString(),
-                            String::Handle(cls.Name()).ToCString());
-      return;
-    }
-    // Replace unresolved class with resolved type class.
-    type.set_type_class(type_class);
-  }
+  Class& type_class = Class::Handle(type.type_class());
   // Promote the type to a function type in case its type class is a typedef.
   // Note that the type may already be a function type if it was parsed as a
   // formal parameter function type.
@@ -1596,10 +1537,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         // If the redirection type is from a deferred library and is not
         // yet loaded, do not attempt to resolve.
         Type& type = Type::Handle(zone, function.RedirectionType());
-        if (IsLoaded(type)) {
-          type ^= FinalizeType(cls, type);
-          function.SetRedirectionType(type);
-        }
+        type ^= FinalizeType(cls, type);
+        function.SetRedirectionType(type);
       }
     }
   }
@@ -2072,7 +2011,7 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
   }
   Type& mixin_type = Type::Handle(mixin_app_class.mixin());
   ASSERT(!mixin_type.IsNull());
-  ASSERT(mixin_type.HasResolvedTypeClass());
+  ASSERT(mixin_type.HasTypeClass());
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
@@ -2189,7 +2128,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   Zone* zone = Thread::Current()->zone();
   const Type& mixin_type = Type::Handle(zone, cls.mixin());
   ASSERT(!mixin_type.IsNull());
-  ASSERT(mixin_type.HasResolvedTypeClass());
+  ASSERT(mixin_type.HasTypeClass());
   const Class& mixin_cls = Class::Handle(zone, mixin_type.type_class());
   FinalizeClass(mixin_cls);
   // If the mixin is a mixin application alias class, there are no members to
@@ -2775,7 +2714,7 @@ bool ClassFinalizer::IsMixinCycleFree(const Class& cls,
     if (super_class.IsMixinApplication()) {
       const Type& mixin_type = Type::Handle(super_class.mixin());
       ASSERT(!mixin_type.IsNull());
-      ASSERT(mixin_type.HasResolvedTypeClass());
+      ASSERT(mixin_type.HasTypeClass());
       const Class& mixin_class = Class::Handle(mixin_type.type_class());
       if (!IsMixinCycleFree(mixin_class, visited)) {
         return false;
@@ -2791,7 +2730,7 @@ void ClassFinalizer::CollectTypeArguments(
     const Class& cls,
     const Type& type,
     const GrowableObjectArray& collected_args) {
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   Class& type_class = Class::Handle(type.type_class());
   TypeArguments& type_args = TypeArguments::Handle(type.arguments());
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
@@ -2839,7 +2778,7 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   AbstractType& mixin_super_type =
       AbstractType::Handle(zone, mixin_app_type.super_type());
   ResolveType(cls, mixin_super_type);
-  ASSERT(mixin_super_type.HasResolvedTypeClass());  // Even if malformed.
+  ASSERT(mixin_super_type.HasTypeClass());  // Even if malformed.
   if (mixin_super_type.IsMalformedOrMalbounded()) {
     ReportError(Error::Handle(zone, mixin_super_type.error()));
   }
@@ -2867,7 +2806,7 @@ RawType* ClassFinalizer::ResolveMixinAppType(
     mixin_type = mixin_app_type.MixinTypeAt(i);
     ASSERT(!mixin_type.IsNull());
     ResolveType(cls, mixin_type);
-    ASSERT(mixin_type.HasResolvedTypeClass());  // Even if malformed.
+    ASSERT(mixin_type.HasTypeClass());  // Even if malformed.
     ASSERT(mixin_type.IsType());
     if (mixin_type.IsMalformedOrMalbounded()) {
       ReportError(Error::Handle(zone, mixin_type.error()));
@@ -3302,11 +3241,10 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
                                                    ...) {
   va_list args;
   va_start(args, format);
-  const UnresolvedClass& unresolved_class =
-      UnresolvedClass::Handle(UnresolvedClass::New(LibraryPrefix::Handle(),
-                                                   Symbols::Empty(), type_pos));
-  const Type& type = Type::Handle(
-      Type::New(unresolved_class, Object::null_type_arguments(), type_pos));
+  // TODO(regis): Are malformed types still used in strong mode? Probably not.
+  const Type& type =
+      Type::Handle(Type::New(Class::Handle(Object::dynamic_class()),
+                             Object::null_type_arguments(), type_pos));
   MarkTypeMalformed(prev_error, script, type, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());

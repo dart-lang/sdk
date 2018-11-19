@@ -35,14 +35,8 @@ ResolutionImpact buildKernelImpact(
     CompilerOptions options) {
   KernelImpactBuilder builder = new KernelImpactBuilder(
       elementMap, elementMap.getMember(member), reporter, options);
-  if (member is ir.Procedure) {
-    return builder.buildProcedure(member);
-  } else if (member is ir.Constructor) {
-    return builder.buildConstructor(member);
-  } else if (member is ir.Field) {
-    return builder.buildField(member);
-  }
-  throw new UnsupportedError("Unsupported member: $member");
+  member.accept(builder);
+  return builder.impactBuilder;
 }
 
 class KernelImpactBuilder extends StaticTypeVisitor {
@@ -80,28 +74,31 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     return type;
   }
 
+  List<DartType> _getTypeArguments(ir.Arguments arguments) {
+    if (arguments.types.isEmpty) return null;
+    return arguments.types.map(elementMap.getDartType).toList();
+  }
+
   /// Add checked-mode type use for the parameter type and constant for the
   /// default value of [parameter].
+  @override
   void handleParameter(ir.VariableDeclaration parameter) {
     checkType(parameter.type, TypeUseKind.PARAMETER_CHECK);
-    visitNode(parameter.initializer);
   }
 
   /// Add checked-mode type use for parameter and return types, and add
   /// constants for default values.
+  @override
   void handleSignature(ir.FunctionNode node) {
-    node.positionalParameters.forEach(handleParameter);
-    node.namedParameters.forEach(handleParameter);
     for (ir.TypeParameter parameter in node.typeParameters) {
       checkType(parameter.bound, TypeUseKind.PARAMETER_CHECK);
     }
   }
 
-  ResolutionImpact buildField(ir.Field field) {
-    typeEnvironment.thisType = field.enclosingClass?.thisType;
+  @override
+  void handleField(ir.Field field) {
     checkType(field.type, TypeUseKind.PARAMETER_CHECK);
     if (field.initializer != null) {
-      visitNode(field.initializer);
       if (!field.isInstanceMember &&
           !field.isConst &&
           field.initializer is! ir.NullLiteral) {
@@ -120,23 +117,16 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       impactBuilder
           .registerNativeData(elementMap.getNativeBehaviorForFieldStore(field));
     }
-    typeEnvironment.thisType = null;
-    return impactBuilder;
   }
 
-  ResolutionImpact buildConstructor(ir.Constructor constructor) {
-    typeEnvironment.thisType = constructor.enclosingClass.thisType;
-    handleSignature(constructor.function);
-    visitNodes(constructor.initializers);
-    visitNode(constructor.function.body);
+  @override
+  void handleConstructor(ir.Constructor constructor) {
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
     }
-    typeEnvironment.thisType = null;
-    return impactBuilder;
   }
 
   void handleAsyncMarker(ir.FunctionNode function) {
@@ -181,10 +171,8 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     }
   }
 
-  ResolutionImpact buildProcedure(ir.Procedure procedure) {
-    typeEnvironment.thisType = procedure.enclosingClass?.thisType;
-    handleSignature(procedure.function);
-    visitNode(procedure.function.body);
+  @override
+  void handleProcedure(ir.Procedure procedure) {
     handleAsyncMarker(procedure.function);
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
@@ -192,124 +180,70 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
     }
-    typeEnvironment.thisType = null;
-    return impactBuilder;
   }
 
   @override
-  Null visitBlock(ir.Block node) => visitNodes(node.statements);
-
-  @override
-  Null visitExpressionStatement(ir.ExpressionStatement node) {
-    visitNode(node.expression);
-  }
-
-  @override
-  Null visitReturnStatement(ir.ReturnStatement node) {
-    visitNode(node.expression);
-  }
-
-  @override
-  Null visitIfStatement(ir.IfStatement node) {
-    visitNode(node.condition);
-    visitNode(node.then);
-    visitNode(node.otherwise);
-  }
-
-  @override
-  ir.DartType visitIntLiteral(ir.IntLiteral node) {
+  void handleIntLiteral(ir.IntLiteral node) {
     impactBuilder.registerConstantLiteral(
         new IntConstantExpression(new BigInt.from(node.value).toUnsigned(64)));
-    return super.visitIntLiteral(node);
   }
 
   @override
-  ir.DartType visitDoubleLiteral(ir.DoubleLiteral node) {
+  void handleDoubleLiteral(ir.DoubleLiteral node) {
     impactBuilder
         .registerConstantLiteral(new DoubleConstantExpression(node.value));
-    return super.visitDoubleLiteral(node);
   }
 
   @override
-  ir.DartType visitBoolLiteral(ir.BoolLiteral node) {
+  void handleBoolLiteral(ir.BoolLiteral node) {
     impactBuilder
         .registerConstantLiteral(new BoolConstantExpression(node.value));
-    return super.visitBoolLiteral(node);
   }
 
   @override
-  ir.DartType visitStringLiteral(ir.StringLiteral node) {
+  void handleStringLiteral(ir.StringLiteral node) {
     impactBuilder
         .registerConstantLiteral(new StringConstantExpression(node.value));
-    return super.visitStringLiteral(node);
   }
 
   @override
-  ir.DartType visitSymbolLiteral(ir.SymbolLiteral node) {
+  void handleSymbolLiteral(ir.SymbolLiteral node) {
     impactBuilder.registerConstSymbolName(node.value);
-    return super.visitSymbolLiteral(node);
   }
 
   @override
-  ir.DartType visitNullLiteral(ir.NullLiteral node) {
+  void handleNullLiteral(ir.NullLiteral node) {
     impactBuilder.registerConstantLiteral(new NullConstantExpression());
-    return super.visitNullLiteral(node);
   }
 
   @override
-  ir.DartType visitListLiteral(ir.ListLiteral node) {
-    visitNodes(node.expressions);
+  void handleListLiteral(ir.ListLiteral node) {
     DartType elementType = elementMap.getDartType(node.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
         commonElements.listType(elementType),
         isConstant: node.isConst,
         isEmpty: node.expressions.isEmpty));
-    return super.visitListLiteral(node);
   }
 
   @override
-  ir.DartType visitMapLiteral(ir.MapLiteral node) {
-    visitNodes(node.entries);
+  void handleMapLiteral(ir.MapLiteral node) {
     DartType keyType = elementMap.getDartType(node.keyType);
     DartType valueType = elementMap.getDartType(node.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
         commonElements.mapType(keyType, valueType),
         isConstant: node.isConst,
         isEmpty: node.entries.isEmpty));
-    return super.visitMapLiteral(node);
   }
 
   @override
-  Null visitMapEntry(ir.MapEntry entry) {
-    visitNode(entry.key);
-    visitNode(entry.value);
-  }
-
-  @override
-  ir.DartType visitConditionalExpression(ir.ConditionalExpression node) {
-    visitNode(node.condition);
-    visitNode(node.then);
-    visitNode(node.otherwise);
-    return super.visitConditionalExpression(node);
-  }
-
-  List<DartType> _visitArguments(ir.Arguments arguments) {
-    visitNodes(arguments.positional);
-    visitNodes(arguments.named);
-    if (arguments.types.isEmpty) return null;
-    return arguments.types.map(elementMap.getDartType).toList();
-  }
-
-  @override
-  ir.DartType visitConstructorInvocation(ir.ConstructorInvocation node) {
+  void handleConstructorInvocation(ir.ConstructorInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType resultType) {
     handleNew(node, node.target, isConst: node.isConst);
-    return super.visitConstructorInvocation(node);
   }
 
   void handleNew(ir.InvocationExpression node, ir.Member target,
       {bool isConst: false}) {
-    _visitArguments(node.arguments);
     ConstructorEntity constructor = elementMap.getConstructor(target);
     if (commonElements.isSymbolConstructor(constructor)) {
       impactBuilder.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
@@ -350,20 +284,20 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  Null visitSuperInitializer(ir.SuperInitializer node) {
+  Null handleSuperInitializer(
+      ir.SuperInitializer node, ArgumentTypes argumentTypes) {
     // TODO(johnniwinther): Maybe rewrite `node.target` to point to a
     // synthesized unnamed mixin constructor when needed. This would require us
     // to consider impact building a required pre-step for inference and
     // ssa-building.
     ConstructorEntity target =
         elementMap.getSuperConstructor(node.parent, node.target);
-    _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementMap.getCallStructure(node.arguments)));
   }
 
-  @override
-  ir.DartType visitStaticInvocation(ir.StaticInvocation node) {
+  void handleStaticInvocation(ir.StaticInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType returnType) {
     if (node.target.kind == ir.ProcedureKind.Factory) {
       // TODO(johnniwinther): We should not mark the type as instantiated but
       // rather follow the type arguments directly.
@@ -390,10 +324,10 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       handleNew(node, node.target, isConst: node.isConst);
     } else {
       FunctionEntity target = elementMap.getMethod(node.target);
-      List<DartType> typeArguments = _visitArguments(node.arguments);
+      List<DartType> typeArguments = _getTypeArguments(node.arguments);
       if (commonElements.isExtractTypeArguments(target)) {
         _handleExtractTypeArguments(node, target, typeArguments);
-        return super.visitStaticInvocation(node);
+        return;
       }
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           target, elementMap.getCallStructure(node.arguments), typeArguments));
@@ -421,7 +355,6 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       case ForeignKind.NONE:
         break;
     }
-    return super.visitStaticInvocation(node);
   }
 
   void _handleExtractTypeArguments(ir.StaticInvocation node,
@@ -453,7 +386,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  ir.DartType visitStaticGet(ir.StaticGet node) {
+  void handleStaticGet(ir.StaticGet node, ir.DartType resultType) {
     ir.Member target = node.target;
     if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
       FunctionEntity method = elementMap.getMethod(target);
@@ -462,20 +395,18 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       MemberEntity member = elementMap.getMember(target);
       impactBuilder.registerStaticUse(new StaticUse.staticGet(member));
     }
-    return super.visitStaticGet(node);
   }
 
   @override
-  ir.DartType visitStaticSet(ir.StaticSet node) {
+  void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
     MemberEntity member = elementMap.getMember(node.target);
     impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
-    return super.visitStaticSet(node);
   }
 
   void handleSuperInvocation(ir.Name name, ir.Node arguments) {
     FunctionEntity method =
         elementMap.getSuperMember(currentMember, name, setter: false);
-    List<DartType> typeArguments = _visitArguments(arguments);
+    List<DartType> typeArguments = _getTypeArguments(arguments);
     if (method != null) {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           method, elementMap.getCallStructure(arguments), typeArguments));
@@ -488,8 +419,12 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  ir.DartType visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    List<DartType> typeArguments = _visitArguments(node.arguments);
+  void handleDirectMethodInvocation(
+      ir.DirectMethodInvocation node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    List<DartType> typeArguments = _getTypeArguments(node.arguments);
     MemberEntity member = elementMap.getMember(node.target);
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
@@ -501,15 +436,14 @@ class KernelImpactBuilder extends StaticTypeVisitor {
             member.memberName, elementMap.getCallStructure(node.arguments)),
         constraint,
         typeArguments));
-    return super.visitDirectMethodInvocation(node);
   }
 
   @override
-  ir.DartType visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+  void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
+      ArgumentTypes argumentTypes, ir.DartType returnType) {
     // TODO(johnniwinther): Should we support this or always use the
     // [MixinFullResolution] transformer?
     handleSuperInvocation(node.name, node.arguments);
-    return super.visitSuperMethodInvocation(node);
   }
 
   void handleSuperGet(ir.Name name, ir.Member target) {
@@ -530,18 +464,18 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  ir.DartType visitDirectPropertyGet(ir.DirectPropertyGet node) {
+  void handleDirectPropertyGet(ir.DirectPropertyGet node,
+      ir.DartType receiverType, ir.DartType resultType) {
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
     impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.getter(elementMap.getMember(node.target).memberName)));
-    return super.visitDirectPropertyGet(node);
   }
 
   @override
-  ir.DartType visitSuperPropertyGet(ir.SuperPropertyGet node) {
+  void handleSuperPropertyGet(
+      ir.SuperPropertyGet node, ir.DartType resultType) {
     handleSuperGet(node.name, node.interfaceTarget);
-    return super.visitSuperPropertyGet(node);
   }
 
   void handleSuperSet(ir.Name name, ir.Node target, ir.Node value) {
@@ -562,32 +496,27 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  ir.DartType visitDirectPropertySet(ir.DirectPropertySet node) {
+  void handleDirectPropertySet(ir.DirectPropertySet node,
+      ir.DartType receiverType, ir.DartType valueType) {
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
     impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.setter(elementMap.getMember(node.target).memberName)));
-    return super.visitDirectPropertySet(node);
   }
 
   @override
-  ir.DartType visitSuperPropertySet(ir.SuperPropertySet node) {
+  void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
     handleSuperSet(node.name, node.interfaceTarget, node.value);
-    return super.visitSuperPropertySet(node);
   }
 
   @override
-  ir.DartType visitMethodInvocation(ir.MethodInvocation node) {
+  void handleMethodInvocation(
+      ir.MethodInvocation node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
     Selector selector = elementMap.getSelector(node);
-    List<DartType> typeArguments;
-    if (isSpecialCasedBinaryOperator(node.interfaceTarget)) {
-      typeArguments = <DartType>[];
-    } else {
-      typeArguments = _visitArguments(node.arguments);
-    }
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType returnType = computeMethodInvocationType(node, receiverType);
-    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    List<DartType> typeArguments = _getTypeArguments(node.arguments);
     var receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.isFinal &&
@@ -648,16 +577,12 @@ class KernelImpactBuilder extends StaticTypeVisitor {
         }
       }
     }
-    return returnType;
   }
 
   @override
-  ir.DartType visitPropertyGet(ir.PropertyGet node) {
+  void handlePropertyGet(
+      ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
     Object constraint;
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType resultType = computePropertyGetType(node, receiverType);
-    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
-
     DartType receiverDartType = elementMap.getDartType(receiverType);
     if (receiverDartType is InterfaceType) {
       constraint = new StrongModeConstraint(
@@ -691,14 +616,12 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       }
       impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
     }
-    return resultType;
   }
 
   @override
-  ir.DartType visitPropertySet(ir.PropertySet node) {
+  void handlePropertySet(
+      ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
     Object constraint;
-    ir.DartType receiverType = visitNode(node.receiver);
-    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
     DartType receiverDartType = elementMap.getDartType(receiverType);
     if (receiverDartType is InterfaceType) {
       constraint = new StrongModeConstraint(
@@ -707,95 +630,73 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.setter(elementMap.getName(node.name)),
         constraint, const <DartType>[]));
-    return super.visitPropertySet(node);
   }
 
   @override
-  Null visitAssertStatement(ir.AssertStatement node) {
+  void handleAssertStatement(ir.AssertStatement node) {
     impactBuilder.registerFeature(
         node.message != null ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
-    visitNode(node.condition);
-    visitNode(node.message);
   }
 
   @override
-  ir.DartType visitInstantiation(ir.Instantiation node) {
+  void handleInstantiation(ir.Instantiation node,
+      ir.FunctionType expressionType, ir.DartType resultType) {
     // TODO(johnniwinther): Track which arities are used in instantiation.
-    ir.FunctionType expressionType = visitNode(node.expression);
     impactBuilder.registerInstantiation(new GenericInstantiation(
         elementMap.getDartType(expressionType),
         node.typeArguments.map(elementMap.getDartType).toList()));
-    return computeInstantiationType(node, expressionType);
   }
 
   @override
-  ir.DartType visitStringConcatenation(ir.StringConcatenation node) {
+  void handleStringConcatenation(ir.StringConcatenation node) {
     impactBuilder.registerFeature(Feature.STRING_INTERPOLATION);
     impactBuilder.registerFeature(Feature.STRING_JUXTAPOSITION);
-    visitNodes(node.expressions);
-    return super.visitStringConcatenation(node);
   }
 
   @override
-  Null visitFunctionDeclaration(ir.FunctionDeclaration node) {
+  Null handleFunctionDeclaration(ir.FunctionDeclaration node) {
     Local function = elementMap.getLocalFunction(node);
     impactBuilder.registerStaticUse(new StaticUse.closure(function));
-    handleSignature(node.function);
     handleAsyncMarker(node.function);
-    visitNode(node.function.body);
   }
 
   @override
-  ir.DartType visitFunctionExpression(ir.FunctionExpression node) {
+  void handleFunctionExpression(ir.FunctionExpression node) {
     Local function = elementMap.getLocalFunction(node);
     impactBuilder.registerStaticUse(new StaticUse.closure(function));
-    handleSignature(node.function);
     handleAsyncMarker(node.function);
-    visitNode(node.function.body);
-    return super.visitFunctionExpression(node);
   }
 
   @override
-  Null visitVariableDeclaration(ir.VariableDeclaration node) {
-    if (node.initializer != null) {
-      visitNode(node.initializer);
-    } else {
+  void handleVariableDeclaration(ir.VariableDeclaration node) {
+    if (node.initializer == null) {
       impactBuilder.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
     }
   }
 
   @override
-  ir.DartType visitIsExpression(ir.IsExpression node) {
+  void handleIsExpression(ir.IsExpression node) {
     impactBuilder.registerTypeUse(
         new TypeUse.isCheck(elementMap.getDartType(node.type)));
-    visitNode(node.operand);
-    return super.visitIsExpression(node);
   }
 
   @override
-  ir.DartType visitAsExpression(ir.AsExpression node) {
+  void handleAsExpression(ir.AsExpression node) {
     DartType type = elementMap.getDartType(node.type);
     if (node.isTypeError) {
       impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
     } else {
       impactBuilder.registerTypeUse(new TypeUse.asCast(type));
     }
-    visitNode(node.operand);
-    return super.visitAsExpression(node);
   }
 
   @override
-  ir.DartType visitThrow(ir.Throw node) {
+  void handleThrow(ir.Throw node) {
     impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
-    visitNode(node.expression);
-    return super.visitThrow(node);
   }
 
   @override
-  Null visitForInStatement(ir.ForInStatement node) {
-    visitNode(node.variable);
-    visitNode(node.iterable);
-    visitNode(node.body);
+  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType) {
     // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
     // strong mode.
     if (node.isAsync) {
@@ -810,13 +711,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  Null visitTryCatch(ir.TryCatch node) {
-    visitNode(node.body);
-    visitNodes(node.catches);
-  }
-
-  @override
-  Null visitCatch(ir.Catch node) {
+  void handleCatch(ir.Catch node) {
     impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
     if (node.stackTrace != null) {
       impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
@@ -825,17 +720,10 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       impactBuilder.registerTypeUse(
           new TypeUse.catchType(elementMap.getDartType(node.guard)));
     }
-    visitNode(node.body);
   }
 
   @override
-  Null visitTryFinally(ir.TryFinally node) {
-    visitNode(node.body);
-    visitNode(node.finalizer);
-  }
-
-  @override
-  ir.DartType visitTypeLiteral(ir.TypeLiteral node) {
+  void handleTypeLiteral(ir.TypeLiteral node) {
     impactBuilder.registerTypeUse(
         new TypeUse.typeLiteral(elementMap.getDartType(node.type)));
     if (node.type is ir.FunctionType) {
@@ -845,72 +733,31 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       // We need to ensure that the typedef is live.
       elementMap.getTypedefType(functionType.typedef);
     }
-    return super.visitTypeLiteral(node);
   }
 
   @override
-  Null visitFieldInitializer(ir.FieldInitializer node) {
+  void handleFieldInitializer(ir.FieldInitializer node) {
     impactBuilder.registerStaticUse(
         new StaticUse.fieldInit(elementMap.getField(node.field)));
-    visitNode(node.value);
   }
 
   @override
-  Null visitRedirectingInitializer(ir.RedirectingInitializer node) {
-    _visitArguments(node.arguments);
+  void handleRedirectingInitializer(
+      ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
     ConstructorEntity target = elementMap.getConstructor(node.target);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementMap.getCallStructure(node.arguments)));
   }
 
   @override
-  ir.DartType visitLogicalExpression(ir.LogicalExpression node) {
-    visitNode(node.left);
-    visitNode(node.right);
-    return super.visitLogicalExpression(node);
-  }
-
-  ir.DartType visitNot(ir.Not node) {
-    visitNode(node.operand);
-    return super.visitNot(node);
-  }
-
-  @override
-  ir.DartType visitLoadLibrary(ir.LoadLibrary node) {
+  void handleLoadLibrary(ir.LoadLibrary node) {
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
     impactBuilder.registerFeature(Feature.LOAD_LIBRARY);
-    return super.visitLoadLibrary(node);
   }
 
   @override
-  Null visitEmptyStatement(ir.EmptyStatement node) {}
-
-  @override
-  Null visitForStatement(ir.ForStatement node) {
-    visitNodes(node.variables);
-    visitNode(node.condition);
-    visitNodes(node.updates);
-    visitNode(node.body);
-  }
-
-  @override
-  Null visitDoStatement(ir.DoStatement node) {
-    visitNode(node.body);
-    visitNode(node.condition);
-  }
-
-  @override
-  Null visitWhileStatement(ir.WhileStatement node) {
-    visitNode(node.condition);
-    visitNode(node.body);
-  }
-
-  @override
-  Null visitSwitchStatement(ir.SwitchStatement node) {
-    visitNode(node.expression);
-    visitNodes(node.cases);
-
+  void handleSwitchStatement(ir.SwitchStatement node) {
     // TODO(32557): Remove this when issue 32557 is fixed.
     ir.TreeNode firstCase;
     DartType firstCaseType;
@@ -985,47 +832,4 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       reporter.reportError(error, infos);
     }
   }
-
-  @override
-  Null visitSwitchCase(ir.SwitchCase node) {
-    visitNodes(node.expressions);
-    visitNode(node.body);
-  }
-
-  @override
-  Null visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {}
-
-  @override
-  Null visitLabeledStatement(ir.LabeledStatement node) {
-    visitNode(node.body);
-  }
-
-  @override
-  Null visitBreakStatement(ir.BreakStatement node) {}
-
-  @override
-  Null visitYieldStatement(ir.YieldStatement node) {
-    visitNode(node.expression);
-  }
-
-  @override
-  ir.DartType visitLet(ir.Let node) {
-    visitNode(node.variable);
-    return super.visitLet(node);
-  }
-
-  @override
-  Null visitAssertInitializer(ir.AssertInitializer node) {
-    visitNode(node.statement);
-  }
-
-  @override
-  ir.DartType visitNamedExpression(ir.NamedExpression node) =>
-      visitNode(node.value);
-
-  // TODO(johnniwinther): Make this throw and visit child nodes explicitly
-  // instead to ensure that we don't visit unwanted parts of the ir.
-  @override
-  ir.DartType defaultNode(ir.Node node) =>
-      throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
 }

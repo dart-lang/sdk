@@ -163,9 +163,9 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kFrame: const Format(
       Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kCheckFunctionTypeArgs: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kAllocateT: const Format(
@@ -173,17 +173,17 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kCreateArrayTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocateContext: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kCloneContext: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kLoadContextParent: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kStoreContextParent: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kLoadContextVar: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kStoreContextVar: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kPushConstant: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kPushNull: const Format(
@@ -253,7 +253,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kThrow: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kMoveSpecial: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.spe, Operand.none]),
+      Encoding.kAX, const [Operand.spe, Operand.xeg, Operand.none]),
   Opcode.kSetFrame: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kBooleanNegateTOS: const Format(
@@ -304,6 +304,39 @@ enum SpecialIndex {
 
 bool isJump(Opcode opcode) => BytecodeFormats[opcode].encoding == Encoding.kT;
 
+bool isThrow(Opcode opcode) => opcode == Opcode.kThrow;
+
+bool isCall(Opcode opcode) {
+  switch (opcode) {
+    case Opcode.kIndirectStaticCall:
+    case Opcode.kInstanceCall:
+    case Opcode.kNativeCall:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool isReturn(Opcode opcode) => opcode == Opcode.kReturnTOS;
+
+bool isControlFlow(Opcode opcode) =>
+    isJump(opcode) || isThrow(opcode) || isCall(opcode) || isReturn(opcode);
+
+bool isPush(Opcode opcode) {
+  switch (opcode) {
+    case Opcode.kPush:
+    case Opcode.kPushConstant:
+    case Opcode.kPushNull:
+    case Opcode.kPushTrue:
+    case Opcode.kPushFalse:
+    case Opcode.kPushInt:
+    case Opcode.kPushStatic:
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Bytecode instructions reference constant pool indices using
 // unsigned 16-bit operands.
 const int constantPoolIndexLimit = 1 << 16;
@@ -313,6 +346,9 @@ const int localVariableIndexLimit = 1 << 15;
 
 // Captured variables are referenced using 16-bit unsigned operands.
 const int capturedVariableIndexLimit = 1 << 16;
+
+// Context IDs are referenced using 8-bit unsigned operands.
+const int contextIdLimit = 1 << 8;
 
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.

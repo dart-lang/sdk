@@ -1,0 +1,9 @@
+pkg/front_end/testcases/rasta/issue_000070.dart:11:21: Context: Possible promotion of n@306
+    Expect.isTrue(n is N);
+                    ^^
+pkg/front_end/testcases/rasta/issue_000070.dart:12:21: Context: Possible promotion of s@311
+    Expect.isTrue(s is S);
+                    ^^
+pkg/front_end/testcases/rasta/issue_000070.dart:18:21: Context: Possible promotion of s@311
+    Expect.isTrue(s is S);
+                    ^^

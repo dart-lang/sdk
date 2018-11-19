@@ -1098,6 +1098,37 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        DartType
+            _type)> templateConstEvalFreeTypeParameter = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
+    withArguments: _withArgumentsConstEvalFreeTypeParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeConstEvalFreeTypeParameter =
+    const Code<Message Function(DartType _type)>(
+  "ConstEvalFreeTypeParameter",
+  templateConstEvalFreeTypeParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalFreeTypeParameter(DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeConstEvalFreeTypeParameter,
+      message:
+          """The type '${type}' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         Constant _constant,
         DartType _type,
@@ -1239,6 +1270,37 @@ Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
   return new Message(codeConstEvalInvalidStringInterpolationOperand,
       message:
           """The '${constant}' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
+            _constant)> templateConstEvalInvalidSymbolName = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
+    withArguments: _withArgumentsConstEvalInvalidSymbolName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalInvalidSymbolName =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalInvalidSymbolName", templateConstEvalInvalidSymbolName,
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidSymbolName(Constant _constant) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
+  String constant = '$buffer';
+
+  return new Message(codeConstEvalInvalidSymbolName,
+      message:
+          """The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '${constant}'.""",
       arguments: {'constant': _constant});
 }
 
@@ -4527,9 +4589,9 @@ const Template<
             _type2)> templateInitializingFormalTypeMismatch = const Template<
         Message Function(String name, DartType _type, DartType _type2)>(
     messageTemplate:
-        r"""The type of parameter '#name' (#type) is not a subtype of the corresponding field's type (#type2).""",
+        r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
     tipTemplate:
-        r"""Try changing the type of parameter '#name' to a subtype of #type2.""",
+        r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
     withArguments: _withArgumentsInitializingFormalTypeMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4558,8 +4620,8 @@ Message _withArgumentsInitializingFormalTypeMismatch(
 
   return new Message(codeInitializingFormalTypeMismatch,
       message:
-          """The type of parameter '${name}' (${type}) is not a subtype of the corresponding field's type (${type2}).""",
-      tip: """Try changing the type of parameter '${name}' to a subtype of ${type2}.""",
+          """The type of parameter '${name}', '${type}' is not a subtype of the corresponding field's type, '${type2}'.""",
+      tip: """Try changing the type of parameter '${name}' to a subtype of '${type2}'.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }
 
@@ -4752,6 +4814,17 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
         message: r"""Can't extend an unmodifiable scope.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemLabelUsageInVariablesDeclaration =
+    messageInternalProblemLabelUsageInVariablesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
+    const MessageCode("InternalProblemLabelUsageInVariablesDeclaration",
+        severity: Severity.internalProblem,
+        message:
+            r"""Unexpected usage of label inside declaration of variables.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemMissingContext =
     messageInternalProblemMissingContext;
 
@@ -4906,7 +4979,7 @@ const Template<Message Function(DartType _type, String name)>
     templateInternalProblemStoringMultipleInferredTypes =
     const Template<Message Function(DartType _type, String name)>(
         messageTemplate:
-            r"""There's already an inferred type (#type) for '#name'.""",
+            r"""There's already an inferred type, '#type', for '#name'.""",
         withArguments:
             _withArgumentsInternalProblemStoringMultipleInferredTypes);
 
@@ -4930,7 +5003,8 @@ Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeInternalProblemStoringMultipleInferredTypes,
-      message: """There's already an inferred type (${type}) for '${name}'.""",
+      message:
+          """There's already an inferred type, '${type}', for '${name}'.""",
       arguments: {'type': _type, 'name': name});
 }
 
@@ -6797,9 +6871,9 @@ const Template<
         Message Function(String name, String name2, DartType _type,
             DartType _type2)>(
     messageTemplate:
-        r"""The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2).""",
+        r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type in the overridden method, '#type2'.""",
     tipTemplate:
-        r"""Change to a supertype of #type2 (or, for a covariant parameter, a subtype).""",
+        r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
     withArguments: _withArgumentsOverrideTypeMismatchParameter);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6831,8 +6905,8 @@ Message _withArgumentsOverrideTypeMismatchParameter(
 
   return new Message(codeOverrideTypeMismatchParameter,
       message:
-          """The parameter '${name}' of the method '${name2}' has type ${type}, which does not match the corresponding type in the overridden method (${type2}).""",
-      tip: """Change to a supertype of ${type2} (or, for a covariant parameter, a subtype).""",
+          """The parameter '${name}' of the method '${name2}' has type '${type}', which does not match the corresponding type in the overridden method, '${type2}'.""",
+      tip: """Change to a supertype of '${type2}', or, for a covariant parameter, a subtype.""",
       arguments: {
         'name': name,
         'name2': name2,
@@ -6850,8 +6924,8 @@ const Template<
             _type2)> templateOverrideTypeMismatchReturnType = const Template<
         Message Function(String name, DartType _type, DartType _type2)>(
     messageTemplate:
-        r"""The return type of the method '#name' is #type, which does not match the return type of the overridden method (#type2).""",
-    tipTemplate: r"""Change to a subtype of #type2.""",
+        r"""The return type of the method '#name' is '#type', which does not match the return type of the overridden method, '#type2'.""",
+    tipTemplate: r"""Change to a subtype of '#type2'.""",
     withArguments: _withArgumentsOverrideTypeMismatchReturnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6879,8 +6953,8 @@ Message _withArgumentsOverrideTypeMismatchReturnType(
 
   return new Message(codeOverrideTypeMismatchReturnType,
       message:
-          """The return type of the method '${name}' is ${type}, which does not match the return type of the overridden method (${type2}).""",
-      tip: """Change to a subtype of ${type2}.""",
+          """The return type of the method '${name}' is '${type}', which does not match the return type of the overridden method, '${type2}'.""",
+      tip: """Change to a subtype of '${type2}'.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }
 
@@ -7368,7 +7442,7 @@ const Template<Message Function(String name, DartType _type, DartType _type2)>
     templateRedirectingFactoryInvalidNamedParameterType = const Template<
             Message Function(String name, DartType _type, DartType _type2)>(
         messageTemplate:
-            r"""The type of the named parameter '#name' (#type) is not a subtype of the redirection target's corresponding named parameter type (#type2).""",
+            r"""The type of the named parameter '#name', '#type' is not a subtype of the redirection target's corresponding named parameter type, '#type2'.""",
         tipTemplate:
             r"""Try changing either the type of the parameter or the redirection target.""",
         withArguments:
@@ -7399,7 +7473,7 @@ Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
 
   return new Message(codeRedirectingFactoryInvalidNamedParameterType,
       message:
-          """The type of the named parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding named parameter type (${type2}).""",
+          """The type of the named parameter '${name}', '${type}' is not a subtype of the redirection target's corresponding named parameter type, '${type2}'.""",
       tip: """Try changing either the type of the parameter or the redirection target.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }
@@ -7409,7 +7483,7 @@ const Template<Message Function(String name, DartType _type, DartType _type2)>
     templateRedirectingFactoryInvalidPositionalParameterType = const Template<
             Message Function(String name, DartType _type, DartType _type2)>(
         messageTemplate:
-            r"""The type of parameter '#name' (#type) is not a subtype of the redirection target's corresponding parameter type (#type2).""",
+            r"""The type of parameter '#name', '#type' is not a subtype of the redirection target's corresponding parameter type, '#type2'.""",
         tipTemplate:
             r"""Try changing either the type of the parameter or the redirection target.""",
         withArguments:
@@ -7440,7 +7514,7 @@ Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
 
   return new Message(codeRedirectingFactoryInvalidPositionalParameterType,
       message:
-          """The type of parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding parameter type (${type2}).""",
+          """The type of parameter '${name}', '${type}' is not a subtype of the redirection target's corresponding parameter type, '${type2}'.""",
       tip: """Try changing either the type of the parameter or the redirection target.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }

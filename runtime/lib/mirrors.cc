@@ -523,7 +523,7 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       return CreateFunctionTypeMirror(type);
     }
   }
-  if (type.HasResolvedTypeClass()) {
+  if (type.HasTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
     if (cls.IsVoidClass()) {
@@ -650,8 +650,7 @@ static void ThrowLanguageError(const char* message) {
 DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
 
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler == NULL) {
+  if (!isolate->HasTagHandler()) {
     ThrowLanguageError("no library handler registered");
   }
 
@@ -663,16 +662,12 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
     canonical_uri = uri.raw();
   } else {
     isolate->BlockClassFinalization();
-    Object& result = Object::Handle(zone);
-    {
-      TransitionVMToNative transition(thread);
-      Api::Scope api_scope(thread);
-      Dart_Handle retval = handler(
-          Dart_kCanonicalizeUrl,
-          Api::NewHandle(thread, isolate->object_store()->root_library()),
-          Api::NewHandle(thread, uri.raw()));
-      result = Api::UnwrapHandle(retval);
-    }
+    const Object& result = Object::Handle(
+        zone,
+        isolate->CallTagHandler(
+            Dart_kCanonicalizeUrl,
+            Library::Handle(zone, isolate->object_store()->root_library()),
+            uri));
     isolate->UnblockClassFinalization();
     if (result.IsError()) {
       if (result.IsLanguageError()) {
@@ -695,16 +690,11 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
 
   // Request the embedder to load the library.
   isolate->BlockClassFinalization();
-  Object& result = Object::Handle(zone);
-  {
-    TransitionVMToNative transition(thread);
-    Api::Scope api_scope(thread);
-    Dart_Handle retval =
-        handler(Dart_kImportTag,
-                Api::NewHandle(thread, isolate->object_store()->root_library()),
-                Api::NewHandle(thread, canonical_uri.raw()));
-    result = Api::UnwrapHandle(retval);
-  }
+  Object& result = Object::Handle(
+      zone, isolate->CallTagHandler(
+                Dart_kImportTag,
+                Library::Handle(zone, isolate->object_store()->root_library()),
+                canonical_uri));
   isolate->UnblockClassFinalization();
   if (result.IsError()) {
     if (result.IsLanguageError()) {
@@ -740,7 +730,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
   if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsTypedefClass()) {
@@ -761,7 +751,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
 
-  ASSERT(type.HasResolvedTypeClass());
+  ASSERT(type.HasTypeClass());
   const Class& clz = Class::Handle(type.type_class());
   if (!clz.IsGeneric()) {
     const Array& error_args = Array::Handle(Array::New(3));
@@ -1442,6 +1432,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
                       external_constructor_name, explicit_args, arg_names,
                       InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
+    UNREACHABLE();
+  }
+  const Object& type_error =
+      Object::Handle(redirected_constructor.DoArgumentTypesMatch(
+          args, args_descriptor, type_arguments));
+  if (!type_error.IsNull()) {
+    Exceptions::PropagateError(Error::Cast(type_error));
     UNREACHABLE();
   }
 

@@ -157,6 +157,7 @@ abstract class Loader<L> {
     } else {
       builder.recordAccess(charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
+          !accessor.isPart &&
           !target.backendTarget
               .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
         accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,

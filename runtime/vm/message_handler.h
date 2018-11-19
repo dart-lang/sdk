@@ -50,10 +50,6 @@ class MessageHandler {
            EndCallback end_callback,
            CallbackData data);
 
-  // Starts a task for the message handler if it runs on the thread pool and a
-  // task is not already running.
-  void EnsureTaskForIdleCheck();
-
   // Handles the next message for this message handler.  Should only
   // be used when not running the handler on the thread pool (via Run
   // or RunBlocking).
@@ -74,6 +70,10 @@ class MessageHandler {
   // Returns true if there are pending OOB messages for this message
   // handler.
   bool HasOOBMessages();
+
+  // Returns true if there are pending normal messages for this message
+  // handler.
+  bool HasMessages();
 
   // A message handler tracks how many live ports it has.
   bool HasLivePorts() const { return live_ports_ > 0; }
@@ -211,9 +211,16 @@ class MessageHandler {
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
 
-  // Returns true if the monitor was exited and there may be new OOB messages
-  // to process.
-  bool CheckAndRunIdleLocked(MonitorLocker* ml);
+  // Checks if we have a slot for idle task execution, if we have a slot
+  // for idle task execution it is scheduled immediately or we wait for
+  // idle expiration and then attempt to schedule the idle task.
+  // Returns true if their is scope for idle task execution so that we
+  // can loop back to handle more messages or false if idle tasks are not
+  // scheduled.
+  bool CheckIfIdleLocked(MonitorLocker* ml);
+
+  // Triggers a run of the idle task.
+  void RunIdleTaskLocked(MonitorLocker* ml);
 
   // NOTE: These two functions release and reacquire the monitor, you may
   // need to call HandleMessages to ensure all pending messages are handled.
@@ -256,28 +263,6 @@ class MessageHandler {
   CallbackData callback_data_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageHandler);
-};
-
-class IdleNotifier : public AllStatic {
- public:
-  static void Init();
-  static void Stop();
-  static void Cleanup();
-  static void Update(MessageHandler* handler, int64_t expirary);
-  static void Remove(MessageHandler* handler) { Update(handler, 0); }
-
- private:
-  class Task;
-
-  struct Timer {
-    MessageHandler* handler;
-    int64_t expirary;
-    Timer* next;
-  };
-
-  static Monitor* monitor_;
-  static bool task_running_;
-  static Timer* queue_;
 };
 
 }  // namespace dart

@@ -100,6 +100,7 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 void TranslationHelper::SetMetadataPayloads(
     const ExternalTypedData& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
+  ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
   metadata_payloads_ = metadata_payloads.raw();
 }
 
@@ -1937,6 +1938,10 @@ void KernelReaderHelper::SkipDartType() {
     case kSimpleFunctionType:
       SkipFunctionType(true);
       return;
+    case kTypedefType:
+      ReadUInt();             // read index for canonical name.
+      SkipListOfDartTypes();  // read list of types.
+      return;
     case kTypeParameterType:
       ReadUInt();              // read index for parameter.
       SkipOptionalDartType();  // read bound bound.
@@ -1984,7 +1989,7 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
   }
 
   if (!simple) {
-    SkipCanonicalNameReference();  // read typedef reference.
+    SkipOptionalDartType();  // read typedef type.
   }
 
   SkipDartType();  // read return type.
@@ -2868,7 +2873,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   }
 
   if (!simple) {
-    helper_->SkipCanonicalNameReference();  // read typedef reference.
+    helper_->SkipOptionalDartType();  // read typedef type.
   }
 
   BuildTypeInternal();  // read return type.

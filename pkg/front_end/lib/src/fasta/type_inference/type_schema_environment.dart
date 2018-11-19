@@ -46,7 +46,9 @@ FunctionType substituteTypeParams(
           .toList(),
       typeParameters: newTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
-      typedefReference: type.typedefReference);
+      typedefType: type.typedefType == null
+          ? null
+          : substitution.substituteType(type.typedefType));
 }
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
@@ -89,8 +91,8 @@ class TypeConstraint {
 
 class TypeSchemaEnvironment extends TypeEnvironment {
   TypeSchemaEnvironment(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, bool strongMode)
-      : super(coreTypes, hierarchy, strongMode: strongMode);
+      CoreTypes coreTypes, ClassHierarchy hierarchy, bool legacyMode)
+      : super(coreTypes, hierarchy, strongMode: !legacyMode);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
   void addLowerBound(TypeConstraint constraint, DartType lower) {

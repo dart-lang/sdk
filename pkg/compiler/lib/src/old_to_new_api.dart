@@ -83,6 +83,11 @@ class LegacyCompilerOutput implements CompilerOutput {
     }
     return NullSink.outputProvider(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) {
+    throw new UnsupportedError("LegacyCompilerOutput.createBinarySink");
+  }
 }
 
 class LegacyOutputSink implements OutputSink {

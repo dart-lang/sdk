@@ -17,7 +17,7 @@ import '../elements/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
@@ -388,7 +388,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.Node node, Selector selector, AbstractValue mask) {
-    GlobalTypeInferenceElementData data = dataOfMember(owner);
+    KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
     assert(validCallType(callType, node));
     switch (callType) {
       case CallType.access:
@@ -473,10 +473,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void runOverAllElements() {
-    progress.startPhase();
-
     analyzeAllElements();
-
     TypeGraphDump dump =
         debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
@@ -648,6 +645,7 @@ class InferrerEngineImpl extends InferrerEngine {
     Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
         .where((MemberEntity member) => !member.isAbstract);
 
+    progress.startPhase();
     processedMembers.forEach((MemberEntity member) {
       progress.showProgress(
           'Added ', addedInGraph, ' elements in inferencing graph.');
@@ -847,6 +845,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void refine() {
+    progress.startPhase();
     while (!workQueue.isEmpty) {
       progress.showProgress('Inferred ', overallRefineCount, ' types.');
       TypeInformation info = workQueue.remove();
@@ -1426,7 +1425,7 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void compress() {
+  GlobalTypeInferenceElementData compress() {
     if (_sendMap != null) {
       _sendMap.removeWhere(_mapsToNull);
       if (_sendMap.isEmpty) {
@@ -1451,6 +1450,13 @@ class KernelGlobalTypeInferenceElementData
         _moveNextMap = null;
       }
     }
+    if (_sendMap == null &&
+        _iteratorMap == null &&
+        _currentMap == null &&
+        _moveNextMap == null) {
+      return null;
+    }
+    return this;
   }
 
   @override
@@ -1459,23 +1465,17 @@ class KernelGlobalTypeInferenceElementData
     return _sendMap[node];
   }
 
-  @override
-  void setCurrentTypeMask(
-      covariant ir.ForInStatement node, AbstractValue mask) {
+  void setCurrentTypeMask(ir.ForInStatement node, AbstractValue mask) {
     _currentMap ??= <ir.ForInStatement, AbstractValue>{};
     _currentMap[node] = mask;
   }
 
-  @override
-  void setMoveNextTypeMask(
-      covariant ir.ForInStatement node, AbstractValue mask) {
+  void setMoveNextTypeMask(ir.ForInStatement node, AbstractValue mask) {
     _moveNextMap ??= <ir.ForInStatement, AbstractValue>{};
     _moveNextMap[node] = mask;
   }
 
-  @override
-  void setIteratorTypeMask(
-      covariant ir.ForInStatement node, AbstractValue mask) {
+  void setIteratorTypeMask(ir.ForInStatement node, AbstractValue mask) {
     _iteratorMap ??= <ir.ForInStatement, AbstractValue>{};
     _iteratorMap[node] = mask;
   }
@@ -1498,7 +1498,6 @@ class KernelGlobalTypeInferenceElementData
     return _iteratorMap[node];
   }
 
-  @override
   void setTypeMask(ir.TreeNode node, AbstractValue mask) {
     _sendMap ??= <ir.TreeNode, AbstractValue>{};
     _sendMap[node] = mask;

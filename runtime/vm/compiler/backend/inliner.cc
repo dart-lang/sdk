@@ -254,7 +254,7 @@ struct InlinedInfo {
 // A collection of call sites to consider for inlining.
 class CallSites : public ValueObject {
  public:
-  explicit CallSites(FlowGraph* flow_graph, intptr_t threshold)
+  explicit CallSites(intptr_t threshold)
       : inlining_depth_threshold_(threshold),
         static_calls_(),
         closure_calls_(),
@@ -264,9 +264,14 @@ class CallSites : public ValueObject {
     PolymorphicInstanceCallInstr* call;
     double ratio;
     const FlowGraph* caller_graph;
+    intptr_t nesting_depth;
     InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg,
-                     FlowGraph* flow_graph)
-        : call(call_arg), ratio(0.0), caller_graph(flow_graph) {}
+                     FlowGraph* flow_graph,
+                     intptr_t depth)
+        : call(call_arg),
+          ratio(0.0),
+          caller_graph(flow_graph),
+          nesting_depth(depth) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -274,8 +279,14 @@ class CallSites : public ValueObject {
     StaticCallInstr* call;
     double ratio;
     FlowGraph* caller_graph;
-    StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
-        : call(value), ratio(0.0), caller_graph(flow_graph) {}
+    intptr_t nesting_depth;
+    StaticCallInfo(StaticCallInstr* value,
+                   FlowGraph* flow_graph,
+                   intptr_t depth)
+        : call(value),
+          ratio(0.0),
+          caller_graph(flow_graph),
+          nesting_depth(depth) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -315,6 +326,32 @@ class CallSites : public ValueObject {
     instance_calls_.Clear();
   }
 
+  // Heuristic that maps the loop nesting depth to a static estimate of number
+  // of times code at that depth is executed (code at each higher nesting
+  // depth is assumed to execute 10x more often up to depth 3).
+  static intptr_t AotCallCountApproximation(intptr_t nesting_depth) {
+    switch (nesting_depth) {
+      case 0:
+        // Note that we use value 0, and not 1, i.e. any straightline code
+        // outside a loop is assumed to be very cold. With value 1, inlining
+        // inside loops is still favored over inlining inside straightline
+        // code, but for a method without loops, *all* call sites are inlined
+        // (potentially more performance, at the expense of larger code size).
+        // TODO(ajcbik): use 1 and fine tune other heuristics
+        return 0;
+      case 1:
+        return 10;
+      case 2:
+        return 100;
+      default:
+        return 1000;
+    }
+  }
+
+  // Computes the ratio for each call site in a method, defined as the
+  // number of times a call site is executed over the maximum number of
+  // times any call site is executed in the method. JIT uses actual call
+  // counts whereas AOT uses a static estimate based on nesting depth.
   void ComputeCallSiteRatio(intptr_t static_call_start_ix,
                             intptr_t instance_call_start_ix) {
     const intptr_t num_static_calls =
@@ -325,21 +362,26 @@ class CallSites : public ValueObject {
     intptr_t max_count = 0;
     GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const intptr_t aggregate_count =
-          instance_calls_[i + instance_call_start_ix].call->CallCount();
+      const InstanceCallInfo& info =
+          instance_calls_[i + instance_call_start_ix];
+      intptr_t aggregate_count =
+          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
+                                : info.call->CallCount();
       instance_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
 
     GrowableArray<intptr_t> static_call_counts(num_static_calls);
     for (intptr_t i = 0; i < num_static_calls; ++i) {
+      const StaticCallInfo& info = static_calls_[i + static_call_start_ix];
       intptr_t aggregate_count =
-          static_calls_[i + static_call_start_ix].call->CallCount();
+          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
+                                : info.call->CallCount();
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
 
-    // max_count can be 0 if none of the calls was executed.
+    // Note that max_count can be 0 if none of the calls was executed.
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
       const double ratio =
           (max_count == 0)
@@ -404,12 +446,18 @@ class CallSites : public ValueObject {
     const bool inline_only_recognized_methods =
         (depth == inlining_depth_threshold_);
 
+    // In AOT, compute loop hierarchy.
+    if (FLAG_precompiled_mode) {
+      graph->GetLoopHierarchy();
+    }
+
     const intptr_t instance_call_start_ix = instance_calls_.length();
     const intptr_t static_call_start_ix = static_calls_.length();
     for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
-      for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
-           it.Advance()) {
+      BlockEntryInstr* entry = block_it.Current();
+      const intptr_t depth = entry->NestingDepth();
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
@@ -417,7 +465,7 @@ class CallSites : public ValueObject {
           if (!inline_only_recognized_methods ||
               instance_call->IsSureToCallSingleRecognizedTarget() ||
               instance_call->HasOnlyDispatcherOrImplicitAccessorTargets()) {
-            instance_calls_.Add(InstanceCallInfo(instance_call, graph));
+            instance_calls_.Add(InstanceCallInfo(instance_call, graph, depth));
           } else {
             // Method not inlined because inlining too deep and method
             // not recognized.
@@ -433,7 +481,7 @@ class CallSites : public ValueObject {
           if (!inline_only_recognized_methods ||
               static_call->function().IsRecognized() ||
               static_call->function().IsDispatcherOrImplicitAccessor()) {
-            static_calls_.Add(StaticCallInfo(static_call, graph));
+            static_calls_.Add(StaticCallInfo(static_call, graph, depth));
           } else {
             // Method not inlined because inlining too deep and method
             // not recognized.
@@ -626,10 +674,7 @@ static void ReplaceParameterStubs(Zone* zone,
           ASSERT(call_data->call->IsClosureCall());
           LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
               new Value((*arguments)[first_arg_index]->definition()),
-              Closure::context_offset(),
-              AbstractType::ZoneHandle(zone, AbstractType::null()),
-              call_data->call->token_pos());
-          context_load->set_is_immutable(true);
+              Slot::Closure_context(), call_data->call->token_pos());
           context_load->set_ssa_temp_index(
               caller_graph->alloc_ssa_temp_index());
           context_load->InsertBefore(callee_entry->next());
@@ -751,8 +796,8 @@ class CallSiteInliner : public ValueObject {
       return;
     }
     // Create two call site collections to swap between.
-    CallSites sites1(caller_graph_, inlining_depth_threshold_);
-    CallSites sites2(caller_graph_, inlining_depth_threshold_);
+    CallSites sites1(inlining_depth_threshold_);
+    CallSites sites2(inlining_depth_threshold_);
     CallSites* call_sites_temp = NULL;
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;
@@ -924,8 +969,7 @@ class CallSiteInliner : public ValueObject {
             isolate->loading_invalidation_gen();
 
         if (Compiler::IsBackgroundCompilation()) {
-          if (isolate->IsTopLevelParsing() ||
-              (loading_invalidation_gen_at_start !=
+          if ((loading_invalidation_gen_at_start !=
                isolate->loading_invalidation_gen())) {
             // Loading occured while parsing. We need to abort here because
             // state changed while compiling.
@@ -2319,8 +2363,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        bool can_speculate) {
   // Insert array length load and bounds check.
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(*array),
-      NativeFieldDesc::GetLengthFieldForArrayCid(array_cid), call->token_pos());
+      new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
+      call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   Instruction* bounds_check = NULL;
@@ -2336,10 +2380,9 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
-    LoadFieldInstr* elements = new (Z) LoadFieldInstr(
-        new (Z) Value(*array), GrowableObjectArray::data_offset(),
-        Object::dynamic_type(), call->token_pos());
-    elements->set_result_cid(kArrayCid);
+    LoadFieldInstr* elements = new (Z)
+        LoadFieldInstr(new (Z) Value(*array), Slot::GrowableObjectArray_data(),
+                       call->token_pos());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
@@ -2435,10 +2478,11 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       case kArrayCid:
       case kGrowableObjectArrayCid: {
         const Class& instantiator_class = Class::Handle(Z, target.Owner());
-        LoadFieldInstr* load_type_args = new (Z) LoadFieldInstr(
-            new (Z) Value(array),
-            NativeFieldDesc::GetTypeArgumentsFieldFor(Z, instantiator_class),
-            call->token_pos());
+        LoadFieldInstr* load_type_args = new (Z)
+            LoadFieldInstr(new (Z) Value(array),
+                           Slot::GetTypeArgumentsSlotFor(flow_graph->thread(),
+                                                         instantiator_class),
+                           call->token_pos());
         cursor = flow_graph->AppendTo(cursor, load_type_args, NULL,
                                       FlowGraph::kValue);
         type_args = load_type_args;
@@ -2624,7 +2668,7 @@ static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
 }
 
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
-                                      intptr_t offset,
+                                      const Slot& field,
                                       StoreBarrierType store_barrier_type,
                                       Instruction* call,
                                       Definition* receiver,
@@ -2640,9 +2684,9 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
 
   // This is an internal method, no need to check argument types.
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      offset, new (Z) Value(array), new (Z) Value(value), store_barrier_type,
-      call->token_pos());
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
+                              store_barrier_type, call->token_pos());
   flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
   *last = store;
 
@@ -2660,8 +2704,8 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
   ASSERT(array_cid != kDynamicCid);
 
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(array),
-      NativeFieldDesc::GetLengthFieldForArrayCid(array_cid), call->token_pos());
+      new (Z) Value(array), Slot::GetLengthFieldForArrayCid(array_cid),
+      call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   intptr_t element_size = Instance::ElementSizeFor(array_cid);
@@ -3072,9 +3116,9 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Definition* str,
                                               Definition* index,
                                               Instruction* cursor) {
-  LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(str), NativeFieldDesc::GetLengthFieldForArrayCid(cid),
-      str->token_pos());
+  LoadFieldInstr* length = new (Z)
+      LoadFieldInstr(new (Z) Value(str), Slot::GetLengthFieldForArrayCid(cid),
+                     str->token_pos());
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
 
   // Bounds check.
@@ -3811,16 +3855,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       ASSERT(call->IsStaticCall() ||
              (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
-          flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
-          call, receiver, graph_entry, entry, last);
+          flow_graph, Slot::GrowableObjectArray_data(), kEmitStoreBarrier, call,
+          receiver, graph_entry, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
       ASSERT(call->IsStaticCall() ||
              (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
-          flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
-          call, receiver, graph_entry, entry, last);
+          flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
+          receiver, graph_entry, entry, last);
     case MethodRecognizer::kSmi_bitAndFromSmi:
       return InlineSmiBitAndFromSmi(flow_graph, call, receiver, graph_entry,
                                     entry, last);

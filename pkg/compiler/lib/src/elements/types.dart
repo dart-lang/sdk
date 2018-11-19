@@ -571,7 +571,17 @@ class FunctionType extends DartType {
       this.optionalParameterTypes,
       this.namedParameters,
       this.namedParameterTypes,
-      this.typeVariables);
+      this.typeVariables) {
+    assert(returnType != null, "Invalid return type in $this.");
+    assert(!parameterTypes.contains(null), "Invalid parameter types in $this.");
+    assert(!optionalParameterTypes.contains(null),
+        "Invalid optional parameter types in $this.");
+    assert(
+        !namedParameters.contains(null), "Invalid named parameters in $this.");
+    assert(!namedParameterTypes.contains(null),
+        "Invalid named parameter types in $this.");
+    assert(!typeVariables.contains(null), "Invalid type variables in $this.");
+  }
 
   bool get containsTypeVariables {
     return typeVariables.any((type) => type.bound.containsTypeVariables) ||

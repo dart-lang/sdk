@@ -24,7 +24,6 @@ enum ConstantExpressionKind {
   CONCATENATE,
   CONDITIONAL,
   CONSTRUCTED,
-  DEFERRED,
   DOUBLE,
   ERRONEOUS,
   FUNCTION,
@@ -39,7 +38,6 @@ enum ConstantExpressionKind {
   STRING_FROM_ENVIRONMENT,
   STRING_LENGTH,
   SYMBOL,
-  SYNTHETIC,
   TYPE,
   UNARY,
   LOCAL_VARIABLE,
@@ -160,41 +158,6 @@ class ErroneousConstantExpression extends ConstantExpression {
 
   @override
   bool _equals(ErroneousConstantExpression other) => true;
-}
-
-// TODO(johnniwinther): Avoid the need for this class.
-class SyntheticConstantExpression extends ConstantExpression {
-  final SyntheticConstantValue value;
-
-  SyntheticConstantExpression(this.value);
-
-  @override
-  ConstantValue evaluate(
-      EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return value;
-  }
-
-  @override
-  void _createStructuredText(StringBuffer sb) {
-    sb.write('Synthetic(value=${value.toStructuredText()})');
-  }
-
-  @override
-  int _computeHashCode() => 13 * value.hashCode;
-
-  accept(ConstantExpressionVisitor visitor, [context]) {
-    throw "unsupported";
-  }
-
-  @override
-  bool _equals(SyntheticConstantExpression other) {
-    return value == other.value;
-  }
-
-  ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
-
-  @override
-  bool get isImplicit => false;
 }
 
 /// Boolean literal constant.
@@ -865,6 +828,8 @@ class AsConstantExpression extends ConstantExpression {
     // The expression value is `0`.
     ConstantValue expressionValue =
         expression.evaluate(environment, constantSystem);
+
+    if (!environment.checkCasts) return expressionValue;
 
     // The expression type is `int`.
     DartType expressionType =
@@ -2112,55 +2077,6 @@ class AssertConstantExpression extends ConstantExpression {
   }
 }
 
-/// A constant expression referenced with a deferred prefix.
-/// For example `lib.C`.
-class DeferredConstantExpression extends ConstantExpression {
-  final ConstantExpression expression;
-  final ImportEntity import;
-
-  DeferredConstantExpression(this.expression, this.import);
-
-  ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
-
-  @override
-  void _createStructuredText(StringBuffer sb) {
-    sb.write('Deferred(import=$import,expression=');
-    expression._createStructuredText(sb);
-    sb.write(')');
-  }
-
-  @override
-  ConstantValue evaluate(
-      EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return new DeferredConstantValue(
-        expression.evaluate(environment, constantSystem), import);
-  }
-
-  @override
-  int _computeHashCode() {
-    return 13 * expression.hashCode;
-  }
-
-  ConstantExpression apply(NormalizedArguments arguments) {
-    return new DeferredConstantExpression(expression.apply(arguments), import);
-  }
-
-  @override
-  bool _equals(DeferredConstantExpression other) {
-    return expression == other.expression;
-  }
-
-  @override
-  accept(ConstantExpressionVisitor visitor, [context]) {
-    return visitor.visitDeferred(this, context);
-  }
-
-  @override
-  bool get isPotential {
-    return expression.isPotential;
-  }
-}
-
 class InstantiationConstantExpression extends ConstantExpression {
   final List<DartType> typeArguments;
   final ConstantExpression expression;
@@ -2245,7 +2161,6 @@ abstract class ConstantExpressionVisitor<R, A> {
       IntFromEnvironmentConstantExpression exp, A context);
   R visitStringFromEnvironment(
       StringFromEnvironmentConstantExpression exp, A context);
-  R visitDeferred(DeferredConstantExpression exp, A context);
   R visitAssert(AssertConstantExpression exp, A context);
   R visitInstantiation(InstantiationConstantExpression exp, A context);
 
@@ -2484,13 +2399,6 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   void visitNamed(NamedArgumentReference exp, [_]) {
     // TODO(johnniwinther): Maybe this should throw.
     sb.write('args[${exp.name}]');
-  }
-
-  @override
-  void visitDeferred(DeferredConstantExpression exp, context) {
-    sb.write(exp.import.name);
-    sb.write('.');
-    write(exp, exp.expression);
   }
 
   @override

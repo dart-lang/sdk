@@ -72,6 +72,7 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
   result->next_ = NULL;
   result->used_in_bytes_ = 0;
   result->forwarding_page_ = NULL;
+  result->card_table_ = NULL;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
@@ -81,6 +82,11 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
 
 void HeapPage::Deallocate() {
   ASSERT(forwarding_page_ == NULL);
+
+  if (card_table_ != NULL) {
+    free(card_table_);
+    card_table_ = NULL;
+  }
 
   bool image_page = is_image_page();
 
@@ -123,6 +129,66 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     obj_addr += raw_obj->VisitPointers(visitor);
   }
   ASSERT(obj_addr == end_addr);
+}
+
+void HeapPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
+  ASSERT(Thread::Current()->IsAtSafepoint());
+  NoSafepointScope no_safepoint;
+
+  if (card_table_ == NULL) {
+    return;
+  }
+
+  bool table_is_empty = false;
+
+  RawArray* obj = static_cast<RawArray*>(RawObject::FromAddr(object_start()));
+  ASSERT(obj->IsArray());
+  ASSERT(obj->IsCardRemembered());
+  RawObject** obj_from = obj->from();
+  RawObject** obj_to = obj->to(Smi::Value(obj->ptr()->length_));
+
+  const intptr_t size = card_table_size();
+  for (intptr_t i = 0; i < size; i++) {
+    if (card_table_[i] != 0) {
+      RawObject** card_from =
+          reinterpret_cast<RawObject**>(this) + (i << kSlotsPerCardLog2);
+      RawObject** card_to = reinterpret_cast<RawObject**>(card_from) +
+                            (1 << kSlotsPerCardLog2) - 1;
+      // Minus 1 because to is inclusive.
+
+      if (card_from < obj_from) {
+        // First card overlaps with header.
+        card_from = obj_from;
+      }
+      if (card_to > obj_to) {
+        // Last card(s) may extend past the object. Array truncation can make
+        // this happen for more than one card.
+        card_to = obj_to;
+      }
+
+      visitor->VisitPointers(card_from, card_to);
+
+      bool has_new_target = false;
+      for (RawObject** slot = card_from; slot <= card_to; slot++) {
+        if ((*slot)->IsNewObjectMayBeSmi()) {
+          has_new_target = true;
+          break;
+        }
+      }
+
+      if (has_new_target) {
+        // Card remains remembered.
+        table_is_empty = false;
+      } else {
+        card_table_[i] = 0;
+      }
+    }
+  }
+
+  if (table_is_empty) {
+    free(card_table_);
+    card_table_ = NULL;
+  }
 }
 
 RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
@@ -694,6 +760,12 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   }
 }
 
+void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
+  for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
+    page->VisitRememberedCards(visitor);
+  }
+}
+
 RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
                                  HeapPage::PageType type) const {
   if (type == HeapPage::kExecutable) {
@@ -929,10 +1001,9 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
-#elif !defined(CONCURRENT_MARKING)
-    return;  // Barrier generation disabled.
 #else
-    if (FLAG_marker_tasks == 0) return;   // Concurrent marking disabled.
+    if (!FLAG_concurrent_mark) return;    // Disabled.
+    if (FLAG_marker_tasks == 0) return;   // Disabled.
     if (FLAG_write_protect_code) return;  // Not implemented.
 #endif
   }
@@ -1280,6 +1351,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->object_end_ = memory->end();
   page->used_in_bytes_ = page->object_end_ - page->object_start();
   page->forwarding_page_ = NULL;
+  page->card_table_ = NULL;
   if (is_executable) {
     ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;

@@ -411,6 +411,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void _writeMetadataSection(Component component) {
+    // Make sure metadata payloads section is 8-byte aligned,
+    // so certain kinds of metadata can contain aligned data.
+    const int metadataPayloadsAlignment = 8;
+    int padding = ((getBufferOffset() + metadataPayloadsAlignment - 1) &
+            -metadataPayloadsAlignment) -
+        getBufferOffset();
+    for (int i = 0; i < padding; ++i) {
+      writeByte(0);
+    }
+
     _binaryOffsetForMetadataPayloads = getBufferOffset();
 
     if (_metadataSubsections == null) {
@@ -1647,7 +1657,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
         node.namedParameters.isEmpty &&
-        node.typedefReference == null) {
+        node.typedefType == null) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
       writeNode(node.returnType);
@@ -1660,7 +1670,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
-      writeReference(node.typedefReference);
+      writeOptionalNode(node.typedefType);
       writeNode(node.returnType);
       leaveScope(typeParameters: node.typeParameters);
     }

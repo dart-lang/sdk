@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 12;
+  UInt32 formatVersion = 13;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -198,6 +198,11 @@ type ConstructorReference {
 
 type ProcedureReference {
   // Must be populated by a procedure (possibly later in the file).
+  CanonicalNameReference canonicalName;
+}
+
+type TypedefReference {
+  // Must be populated by a typedef (possibly later in the file).
   CanonicalNameReference canonicalName;
 }
 
@@ -1141,7 +1146,7 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  CanonicalNameReference typedefReference;
+  Option<TypedefType> typedef;
   DartType returnType;
 }
 
@@ -1181,6 +1186,12 @@ type TypeParameterType extends DartType {
   // class.
   UInt index;
   Option<DartType> bound;
+}
+
+type TypedefType {
+  Byte tag = 87;
+  TypedefReference typedefReference;
+  List<DartType> typeArguments;
 }
 
 type TypeParameter {

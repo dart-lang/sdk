@@ -11,17 +11,17 @@ class EvilMatch implements Match {
   bool noSuchMethod(Invocation im) => false; // To appease dartanalyzer.
 }
 
-class EvilIterator implements Iterator {
+class EvilIterator implements Iterator<Match> {
   bool moveNext() => true;
   EvilMatch get current => new EvilMatch();
 }
 
-class EvilIterable extends Iterable {
-  Iterator get iterator => new EvilIterator();
+class EvilIterable extends Iterable<Match> {
+  get iterator => new EvilIterator();
 }
 
 class EvilPattern implements Pattern {
-  Iterable allMatches(String s, [int start = 0]) => new EvilIterable();
+  allMatches(String s, [int start = 0]) => new EvilIterable();
   bool noSuchMethod(Invocation im) => false; // To appease dartanalyzer.
 }
 

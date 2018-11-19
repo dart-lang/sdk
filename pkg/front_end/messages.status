@@ -62,11 +62,14 @@ ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
+ConstEvalFreeTypeParameter/analyzerCode: Fail
+ConstEvalFreeTypeParameter/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
 ConstEvalInvalidMethodInvocation/example: Fail
 ConstEvalInvalidStaticInvocation/example: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
+ConstEvalInvalidSymbolName/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
@@ -277,7 +280,6 @@ PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
 PartOfLibraryNameMismatch/example: Fail
-PartOfTwice/script2: Fail # TODO(ahe): Investigate why this fails.
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
 PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation

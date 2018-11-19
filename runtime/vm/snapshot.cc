@@ -1079,7 +1079,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (cid == kCodeCid) {
+  if ((cid == kCodeCid) || (cid == kBytecodeCid)) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }

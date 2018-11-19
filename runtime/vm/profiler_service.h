@@ -10,6 +10,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
+#include "vm/profiler.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 #include "vm/token_position.h"
@@ -158,7 +159,7 @@ class ProfileCode : public ZoneAllocated {
               uword start,
               uword end,
               int64_t timestamp,
-              const Code& code);
+              const AbstractCode code);
 
   Kind kind() const { return kind_; }
 
@@ -195,7 +196,7 @@ class ProfileCode : public ZoneAllocated {
   void IncInclusiveTicks() { inclusive_ticks_++; }
 
   bool IsOptimizedDart() const;
-  RawCode* code() const { return code_.raw(); }
+  const AbstractCode code() const { return code_; }
 
   const char* name() const { return name_; }
   void SetName(const char* name);
@@ -228,7 +229,7 @@ class ProfileCode : public ZoneAllocated {
   intptr_t inclusive_ticks_;
   intptr_t inclusive_serial_;
 
-  const Code& code_;
+  const AbstractCode code_;
   char* name_;
   int64_t compile_timestamp_;
   ProfileFunction* function_;

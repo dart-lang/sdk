@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/type_promotion_stopped_by_mutation_in_a_closure.dart:10:9: Context: Possible promotion of n@279
+  if (n is int) {
+        ^^
+pkg/front_end/testcases/inference/type_promotion_stopped_by_mutation_in_a_closure.dart:14:7: Context: Write to n@279
+    n = null;
+      ^

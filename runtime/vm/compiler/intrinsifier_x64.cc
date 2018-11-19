@@ -52,27 +52,6 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->movq(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
-void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler,
-                                                  Label* normal_ir_body) {
-  __ movq(RDX, Address(RSP, +1 * kWordSize));  // Value.
-  __ movq(RCX, Address(RSP, +2 * kWordSize));  // Index.
-  __ movq(RAX, Address(RSP, +3 * kWordSize));  // Array.
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, normal_ir_body);
-  // Range check.
-  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, normal_ir_body);
-  // Note that RBX is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  // Destroy RCX (ic data) as we will not continue in the function.
-  __ StoreIntoObject(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
-                     RDX);
-  // Caller is responsible of preserving the value if necessary.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -105,34 +84,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ ZeroInitSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in RAX.
 
-  __ Bind(normal_ir_body);
-}
-
-// Add an element to growable array if it doesn't need to grow, otherwise
-// call into regular code.
-// On stack: growable array (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->argument_type_checks()) return;
-
-  __ movq(RAX, Address(RSP, +2 * kWordSize));  // Array.
-  __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
-  // RCX: length.
-  __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
-  // RDX: data.
-  // Compare length with capacity.
-  __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
-  __ j(EQUAL, normal_ir_body);  // Must grow data.
-  // len = len + 1;
-  __ IncrementSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()),
-                       1);
-  __ movq(RAX, Address(RSP, +1 * kWordSize));  // Value
-  ASSERT(kSmiTagShift == 1);
-  __ StoreIntoObject(RDX, FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
-                     RAX);
-  __ LoadObject(RAX, Object::null_object());
-  __ ret();
   __ Bind(normal_ir_body);
 }
 

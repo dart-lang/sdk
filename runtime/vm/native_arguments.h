@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_natives);
-
 // Forward declarations.
 class BootstrapNatives;
 class Object;

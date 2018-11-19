@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/console.h"
+#include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/eventhandler.h"
@@ -220,6 +221,8 @@ static int Main(int argc, const char** argv) {
     return 1;
   }
 
+  dart::bin::InitializeCrashpadClient();
+
   // Save the console state so we can restore it later.
   dart::bin::Console::SaveConfig();
 
@@ -273,7 +276,6 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
-  bin::Thread::InitOnce();
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 

@@ -72,7 +72,7 @@ ${argParser.usage}""";
       parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
   bool verbose = options["verbose"];
   bool verboseCompilation = options["verbose-compilation"];
-  bool strongMode = options["mode"] == "strong";
+  bool legacyMode = options["mode"] == "legacy";
   bool isFlutter = options["target"] == "flutter";
   bool useMinimalGenerator = options["implementation"] == "minimal";
   TimingsCollector collector = new TimingsCollector(verbose);
@@ -81,7 +81,7 @@ ${argParser.usage}""";
     await benchmark(
         collector,
         entryUri,
-        strongMode,
+        legacyMode,
         isFlutter,
         useMinimalGenerator,
         verbose,
@@ -98,7 +98,7 @@ ${argParser.usage}""";
 Future benchmark(
     TimingsCollector collector,
     Uri entryUri,
-    bool strongMode,
+    bool legacyMode,
     bool isFlutter,
     bool useMinimalGenerator,
     bool verbose,
@@ -111,9 +111,9 @@ Future benchmark(
   var compilerOptions = new CompilerOptions()
     ..verbose = verboseCompilation
     ..fileSystem = overlayFs
-    ..legacyMode = !strongMode
-    ..onDiagnostic = onDiagnosticMessageHandler(strongMode)
-    ..target = createTarget(isFlutter: isFlutter, strongMode: strongMode);
+    ..legacyMode = legacyMode
+    ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: legacyMode)
+    ..target = createTarget(isFlutter: isFlutter, legacyMode: legacyMode);
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
   }

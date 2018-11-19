@@ -54,7 +54,6 @@ stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $fasta ]
-mixin_declaration/mixin_declaration_invalid_syntax_test/none: CompileTimeError # because mixin declarations get (invalid) forwarding constructors
 partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327

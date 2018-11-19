@@ -337,6 +337,26 @@ class Utils {
     return bit << n;
   }
 
+  // Decode integer in SLEB128 format from |data| and update |byte_index|.
+  static intptr_t DecodeSLEB128(const uint8_t* data,
+                                const intptr_t data_length,
+                                intptr_t* byte_index) {
+    ASSERT(*byte_index < data_length);
+    uword shift = 0;
+    intptr_t value = 0;
+    uint8_t part = 0;
+    do {
+      part = data[(*byte_index)++];
+      value |= static_cast<intptr_t>(part & 0x7f) << shift;
+      shift += 7;
+    } while ((part & 0x80) != 0);
+
+    if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
+      value |= static_cast<intptr_t>(kUwordMax << shift);
+    }
+    return value;
+  }
+
   static char* StrError(int err, char* buffer, size_t bufsize);
 
   // Not all platforms support strndup.

@@ -5,18 +5,17 @@ import "dart:core" as core;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   PushInt              0
   PopLocal             r1
 L2:
-  CheckStack
+  CheckStack           1
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
@@ -50,23 +49,21 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   PushInt              0
   PopLocal             r1
 L3:
-  CheckStack
+  CheckStack           1
   Push                 r1
   PushInt              0
   CompareIntGe
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntGe
-  AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L1
 L2:
@@ -106,24 +103,22 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   PushInt              100
   NegateInt
   PopLocal             r1
 L4:
-  CheckStack
+  CheckStack           1
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   PushInt              0
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L3
 L2:
@@ -165,18 +160,17 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   PushInt              0
   PopLocal             r1
 L2:
-  CheckStack
+  CheckStack           1
   Push                 r1
   Push                 FP[-5]
   InstanceCall         1, CP#1
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
@@ -213,13 +207,13 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   PushInt              0
   PopLocal             r1
 L1:
-  CheckStack
+  CheckStack           1
   Push                 r0
   Push                 FP[-5]
   Push                 r1
@@ -234,7 +228,6 @@ L1:
   Push                 FP[-5]
   InstanceCall         1, CP#3
   CompareIntLt
-  AssertBoolean        0
   JumpIfTrue           L1
   Push                 r0
   ReturnTOS
@@ -258,14 +251,14 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                3
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   Push                 FP[-5]
   InstanceCall         1, CP#1
   PopLocal             r1
 L2:
-  CheckStack
+  CheckStack           1
   Push                 r1
   InstanceCall         1, CP#2
   JumpIfFalse          L1
@@ -297,7 +290,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
+  CheckStack           0
   PushInt              0
   PopLocal             r0
   PushInt              42
@@ -306,7 +299,7 @@ Bytecode (version: stable) {
   InstanceCall         1, CP#1
   PopLocal             r2
 L2:
-  CheckStack
+  CheckStack           1
   Push                 r2
   InstanceCall         1, CP#2
   JumpIfFalse          L1
@@ -342,7 +335,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

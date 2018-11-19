@@ -78,7 +78,7 @@
 
 % Used as line break in the right hand side of a grammar
 % alternative, that is, when starting a "continuation line".
-\newcommand{\gnewline}{\\\mbox{}\qquad{}}
+\newcommand{\gnewline}{\leavevmode\\}
 
 % Metavariables for argument lists.
 \newcommand{\argumentList}[1]{\metavar{{#1}s}}
@@ -110,6 +110,17 @@
 % A commonly used name for an identifier
 \newcommand{\id}{\metavar{id}}
 
+% Used for defining occurrence of phrase, with customized index entry.
+\newcommand{\IndexCustom}[2]{%
+  \leavevmode\marginpar{\ensuremath{\diamond}}\emph{#1}\index{#2}}
+
+% Used for a defining occurrence of a phrase, adding it to the index.
+\newcommand{\Index}[1]{\IndexCustom{#1}{#1}}
+
+% Same appearance, but not adding an entry to the index.
+\newcommand{\NoIndex}[1]{
+  \leavevmode\marginpar{\ensuremath{\diamond}}\emph{#1}}
+
 % ----------------------------------------------------------------------
 % Support for hash valued Location Markers
 
@@ -128,14 +139,14 @@
 \definecolor{LMdim}{gray}{1.0}
 
 % insert location marker showing hash value of following paragraph
-\newcommand{\LMHash}[1]{%
-  \hspace{0pt}\marginpar{\raisebox{0.5ex}{\miniscule{\color{LMdim}#1}}}}
+\newcommand{\LMHash}[1]{\leavevmode\marginpar{\quad%
+    \raisebox{0.5ex}{\miniscule{\color{LMdim}#1}}\vspace{-2\baselineskip}}}
 
 % support convenient renewcommand
 \let\OriginalLMHash\LMHash
 
 % define a label, and show the associated logical location marker
 \newcommand{\LMLabel}[1]{%
-  \vspace{-\baselineskip}\hspace{0pt}\OriginalLMHash{\raisebox{10ex}{#1}}%
+  \vspace{-\baselineskip}\leavevmode\OriginalLMHash{\raisebox{10ex}{#1}}%
   \label{#1}}
 % ----------------------------------------------------------------------

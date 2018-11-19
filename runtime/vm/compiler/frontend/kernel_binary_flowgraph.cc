@@ -530,7 +530,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // static methods they forward to don't do it themselves.
       AlternativeReadingScope _(&reader_);
       BuildArgumentTypeChecks(kCheckAllTypeParameterBounds,
-                              &explicit_checks_unused, &implicit_checks);
+                              &explicit_checks_unused, &implicit_checks,
+                              nullptr);
     } else {
       // Check if parent function was annotated with no-dynamic-invocations.
       const ProcedureAttributesMetadata attrs =
@@ -541,7 +542,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
         // tear-off.
         AlternativeReadingScope _(&reader_);
         BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds,
-                                &explicit_checks_unused, &implicit_checks);
+                                &explicit_checks_unused, &implicit_checks,
+                                nullptr);
       }
     }
   }
@@ -565,8 +567,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     // closed-over receiver.
     body +=
         LoadLocal(parsed_function()->node_sequence()->scope()->VariableAt(0));
-    body += LoadField(Closure::context_offset());
-    body += flow_graph_builder_->LoadField(Context::variable_offset(0));
+    body += LoadNativeField(Slot::Closure_context());
+    body += LoadNativeField(
+        Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
     body += PushArgument();
   }
 
@@ -633,6 +636,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       extra_entry = BuildSharedUncheckedEntryPoint(
           /*shared_prologue_linked_in=*/shared_prologue,
           /*skippable_checks=*/default_type_handling + implicit_checks,
+          /*redefinitions_if_skipped=*/Fragment(),
           /*body=*/body);
     }
     RecordUncheckedEntryPoint(extra_entry);
@@ -678,15 +682,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   if (is_implicit_closure_function && !function.is_static()) {
     if (parsed_function()->has_arg_desc_var()) {
       body += B->LoadArgDescriptor();
-      body += LoadField(ArgumentsDescriptor::count_offset());
+      body += LoadNativeField(Slot::ArgumentsDescriptor_count());
       body += LoadLocal(parsed_function()->current_context_var());
-      body += B->LoadField(Context::variable_offset(0));
+      body += B->LoadNativeField(
+          Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
       body += B->StoreFpRelativeSlot(kWordSize *
                                      compiler_frame_layout.param_end_from_fp);
       body += Drop();
     } else {
       body += LoadLocal(parsed_function()->current_context_var());
-      body += B->LoadField(Context::variable_offset(0));
+      body += B->LoadNativeField(
+          Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
       body += B->StoreFpRelativeSlot(
           kWordSize *
           (compiler_frame_layout.param_end_from_fp + function.NumParameters()));
@@ -699,7 +705,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   if (function.NeedsArgumentTypeChecks(I)) {
     AlternativeReadingScope _(&reader_);
-    BuildArgumentTypeChecks(kCheckAllTypeParameterBounds, &body, &body);
+    BuildArgumentTypeChecks(kCheckAllTypeParameterBounds, &body, &body,
+                            nullptr);
   }
 
   function_node_helper.ReadUntilExcluding(
@@ -724,7 +731,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   if (function.HasOptionalParameters()) {
     body += B->LoadArgDescriptor();
-    body += LoadField(ArgumentsDescriptor::count_offset());
+    body += LoadNativeField(Slot::ArgumentsDescriptor_count());
   } else {
     body += IntConstant(function.NumParameters());
   }
@@ -837,7 +844,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function()->current_context_var());
-      body += B->LoadField(Context::variable_offset(0));
+      body += B->LoadNativeField(
+          Slot::GetContextVariableSlotFor(thread(), *scopes()->this_variable));
     }
   } else {
     LocalScope* scope = parsed_function()->node_sequence()->scope();
@@ -949,7 +957,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     TypeChecksToBuild mode,
     Fragment* explicit_checks,
-    Fragment* implicit_checks) {
+    Fragment* implicit_checks,
+    Fragment* implicit_redefinitions) {
   if (!I->should_emit_strong_mode_checks()) return;
 
   FunctionNodeHelper function_node_helper(this);
@@ -1071,6 +1080,18 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     *checks += LoadLocal(param);
     *checks += CheckArgumentType(param, *target_type);
     *checks += Drop();
+
+    if (!helper.IsCovariant() && implicit_redefinitions != nullptr &&
+        B->optimizing_) {
+      // We generate slightly different code in optimized vs. un-optimized code,
+      // which is ok since we don't allocate any deopt ids.
+      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(H.thread());
+
+      *implicit_redefinitions += LoadLocal(param);
+      *implicit_redefinitions += RedefinitionWithType(*target_type);
+      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
+      *implicit_redefinitions += Drop();
+    }
   }
 
   // Named.
@@ -1100,6 +1121,18 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     *checks += LoadLocal(param);
     *checks += CheckArgumentType(param, *target_type);
     *checks += Drop();
+
+    if (!helper.IsCovariant() && implicit_redefinitions != nullptr &&
+        B->optimizing_) {
+      // We generate slightly different code in optimized vs. un-optimized code,
+      // which is ok since we don't allocate any deopt ids.
+      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(H.thread());
+
+      *implicit_redefinitions += LoadLocal(param);
+      *implicit_redefinitions += RedefinitionWithType(*target_type);
+      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
+      *implicit_redefinitions += Drop();
+    }
   }
 }
 
@@ -1222,8 +1255,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
   {
     AlternativeReadingScope alt(&reader_);
     SetOffset(type_parameters_offset);
-    BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds, &body,
-                            &body);
+    BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds, &body, &body,
+                            nullptr);
   }
 
   // Push all arguments and invoke the original method.
@@ -1343,7 +1376,7 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
       prologue += LoadLocal(fn_type_args);
       prologue += PushArgument();
       prologue += LoadLocal(closure);
-      prologue += LoadField(Closure::function_type_arguments_offset());
+      prologue += LoadNativeField(Slot::Closure_function_type_arguments());
       prologue += PushArgument();
       prologue += IntConstant(dart_function.NumParentTypeParameters());
       prologue += PushArgument();
@@ -1364,7 +1397,7 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
       prologue += Drop();
     } else {
       prologue += LoadLocal(closure);
-      prologue += LoadField(Closure::function_type_arguments_offset());
+      prologue += LoadNativeField(Slot::Closure_function_type_arguments());
       prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
       prologue += Drop();
     }
@@ -1448,10 +1481,9 @@ Fragment StreamingFlowGraphBuilder::CheckStackOverflowInPrologue(
 Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
     const Function& dart_function) {
   Fragment body;
-  intptr_t context_size =
-      parsed_function()->node_sequence()->scope()->num_context_variables();
-  if (context_size > 0) {
-    body += flow_graph_builder_->PushContext(context_size);
+  const LocalScope* scope = parsed_function()->node_sequence()->scope();
+  if (scope->num_context_variables() > 0) {
+    body += flow_graph_builder_->PushContext(scope);
     LocalVariable* context = MakeTemporary();
 
     // Copy captured parameters from the stack into the context.
@@ -1477,7 +1509,7 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
-            Context::variable_offset(variable->index().value()));
+            Slot::GetContextVariableSlotFor(thread(), *variable));
         body += NullConstant();
         body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();
@@ -1498,7 +1530,8 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
     const Function& dart_function,
     intptr_t type_parameters_offset,
     Fragment* explicit_checks,
-    Fragment* implicit_checks) {
+    Fragment* implicit_checks,
+    Fragment* implicit_redefinitions) {
   if (!dart_function.NeedsArgumentTypeChecks(I)) return;
 
   // Check if parent function was annotated with no-dynamic-invocations.
@@ -1512,7 +1545,7 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
       MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
           ? kCheckCovariantTypeParameterBounds
           : kCheckAllTypeParameterBounds,
-      explicit_checks, implicit_checks);
+      explicit_checks, implicit_checks, implicit_redefinitions);
 }
 
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
@@ -1657,6 +1690,7 @@ Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
 FunctionEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
     Fragment shared_prologue_linked_in,
     Fragment skippable_checks,
+    Fragment redefinitions_if_skipped,
     Fragment body) {
   ASSERT(shared_prologue_linked_in.entry == B->graph_entry_->normal_entry());
   ASSERT(parsed_function()->has_entry_points_temp_var());
@@ -1695,7 +1729,7 @@ FunctionEntryInstr* StreamingFlowGraphBuilder::BuildSharedUncheckedEntryPoint(
   JoinEntryInstr* rest_entry = B->BuildJoinEntry();
 
   Fragment(do_checks) + skippable_checks + Goto(rest_entry);
-  Fragment(skip_checks) + Goto(rest_entry);
+  Fragment(skip_checks) + redefinitions_if_skipped + Goto(rest_entry);
   Fragment(rest_entry) + body;
 
   return extra_target_entry;
@@ -1815,8 +1849,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   Fragment explicit_type_checks;
   Fragment implicit_type_checks;
+  Fragment implicit_redefinitions;
   CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset,
-                                &explicit_type_checks, &implicit_type_checks);
+                                &explicit_type_checks, &implicit_type_checks,
+                                &implicit_redefinitions);
 
   const Fragment body =
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
@@ -1860,6 +1896,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
         extra_entry = BuildSharedUncheckedEntryPoint(
             /*shared_prologue_linked_in=*/prologue,
             /*skippable_checks=*/implicit_type_checks,
+            /*redefinitions_if_skipped=*/implicit_redefinitions,
             /*body=*/body);
         break;
       }
@@ -2418,6 +2455,11 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
   return flow_graph_builder_->LoadStaticField();
 }
 
+Fragment StreamingFlowGraphBuilder::RedefinitionWithType(
+    const AbstractType& type) {
+  return flow_graph_builder_->RedefinitionWithType(type);
+}
+
 Fragment StreamingFlowGraphBuilder::CheckNull(
     TokenPosition position,
     LocalVariable* receiver,
@@ -2442,10 +2484,11 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     const Array& argument_names,
     ICData::RebindRule rebind_rule,
     const InferredTypeMetadata* result_type,
-    intptr_t type_args_count) {
-  return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         argument_names, rebind_rule,
-                                         result_type, type_args_count);
+    intptr_t type_args_count,
+    bool use_unchecked_entry) {
+  return flow_graph_builder_->StaticCall(
+      position, target, argument_count, argument_names, rebind_rule,
+      result_type, type_args_count, use_unchecked_entry);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -2509,12 +2552,13 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(
   return flow_graph_builder_->AllocateObject(klass, closure_function);
 }
 
-Fragment StreamingFlowGraphBuilder::AllocateContext(intptr_t size) {
-  return flow_graph_builder_->AllocateContext(size);
+Fragment StreamingFlowGraphBuilder::AllocateContext(
+    const GrowableArray<LocalVariable*>& context_variables) {
+  return flow_graph_builder_->AllocateContext(context_variables);
 }
 
-Fragment StreamingFlowGraphBuilder::LoadField(intptr_t offset) {
-  return flow_graph_builder_->LoadField(offset);
+Fragment StreamingFlowGraphBuilder::LoadNativeField(const Slot& field) {
+  return flow_graph_builder_->LoadNativeField(field);
 }
 
 Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
@@ -2525,11 +2569,6 @@ Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
 Fragment StreamingFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                      const Field& field) {
   return flow_graph_builder_->StoreStaticField(position, field);
-}
-
-Fragment StreamingFlowGraphBuilder::StoreInstanceField(TokenPosition position,
-                                                       intptr_t offset) {
-  return flow_graph_builder_->StoreInstanceField(position, offset);
 }
 
 Fragment StreamingFlowGraphBuilder::StringInterpolate(TokenPosition position) {
@@ -2566,12 +2605,13 @@ Fragment StreamingFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
 }
 
 Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
-  return flow_graph_builder_->CheckStackOverflow(position);
+  return flow_graph_builder_->CheckStackOverflow(
+      position, flow_graph_builder_->loop_depth_);
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(
-    intptr_t num_context_variables) {
-  return flow_graph_builder_->CloneContext(num_context_variables);
+    const GrowableArray<LocalVariable*>& context_variables) {
+  return flow_graph_builder_->CloneContext(context_variables);
 }
 
 Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
@@ -2752,8 +2792,8 @@ Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(
 
 Fragment StreamingFlowGraphBuilder::EnterScope(
     intptr_t kernel_offset,
-    intptr_t* num_context_variables) {
-  return flow_graph_builder_->EnterScope(kernel_offset, num_context_variables);
+    const LocalScope** scope /* = nullptr */) {
+  return flow_graph_builder_->EnterScope(kernel_offset, scope);
 }
 
 Fragment StreamingFlowGraphBuilder::ExitScope(intptr_t kernel_offset) {
@@ -3027,7 +3067,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   bool is_unchecked_call = false;
 #ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr &&
-      call_site_attributes.receiver_type->HasResolvedTypeClass() &&
+      call_site_attributes.receiver_type->HasTypeClass() &&
       !Class::Handle(call_site_attributes.receiver_type->type_class())
            .IsGeneric()) {
     is_unchecked_call = true;
@@ -3317,9 +3357,11 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
     SkipCanonicalNameReference();  // skip target_reference.
 
-    instructions +=
-        StaticCall(position, Function::ZoneHandle(Z, function.raw()),
-                   /* argument_count = */ 2, ICData::kSuper);
+    instructions += StaticCall(
+        position, Function::ZoneHandle(Z, function.raw()),
+        /* argument_count = */ 2, Array::null_array(), ICData::kSuper,
+        /*result_type=*/nullptr, /*type_args_len=*/0,
+        /*use_unchecked_entry=*/!FLAG_precompiled_mode);
     instructions += Drop();  // Drop result of the setter invocation.
   }
 
@@ -3565,7 +3607,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       SkipExpression();  // skip receiver
       is_unchecked_closure_call =
           ReadNameAsMethodName().Equals(Symbols::Call());
-    } else if (call_site_attributes.receiver_type->HasResolvedTypeClass() &&
+    } else if (call_site_attributes.receiver_type->HasTypeClass() &&
                !Class::Handle(call_site_attributes.receiver_type->type_class())
                     .IsGeneric()) {
       is_unchecked_call = true;
@@ -3703,7 +3745,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   if (is_unchecked_closure_call) {
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
-    instructions += LoadField(Closure::function_offset());
+    instructions += LoadNativeField(Slot::Closure_function());
     if (parsed_function()->function().is_debuggable()) {
       ASSERT(!parsed_function()->function().is_native());
       instructions += DebugStepCheck(position);
@@ -3961,7 +4003,8 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     return instructions +
            StaticCall(position, Function::ZoneHandle(Z, function.raw()),
                       argument_count, argument_names, ICData::kSuper,
-                      &result_type, type_args_len);
+                      &result_type, type_args_len,
+                      /*use_unchecked_entry_point=*/!FLAG_precompiled_mode);
   }
 }
 
@@ -4802,38 +4845,40 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(type_args_vec);
-  instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Closure::delayed_type_arguments_offset());
-
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments());
   instructions += Drop();  // Drop type args.
 
   // Copy over the target function.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
-  instructions += LoadField(Closure::function_offset());
   instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Closure::function_offset());
+      flow_graph_builder_->LoadNativeField(Slot::Closure_function());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Slot::Closure_function());
 
   // Copy over the instantiator type arguments.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
-  instructions += LoadField(Closure::instantiator_type_arguments_offset());
-  instructions += StoreInstanceField(
-      TokenPosition::kNoSource, Closure::instantiator_type_arguments_offset());
+  instructions += flow_graph_builder_->LoadNativeField(
+      Slot::Closure_instantiator_type_arguments());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments());
 
   // Copy over the function type arguments.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
-  instructions += LoadField(Closure::function_type_arguments_offset());
-  instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Closure::function_type_arguments_offset());
+  instructions += flow_graph_builder_->LoadNativeField(
+      Slot::Closure_function_type_arguments());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Slot::Closure_function_type_arguments());
 
   // Copy over the context.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
-  instructions += LoadField(Closure::context_offset());
-  instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
+  instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Slot::Closure_context());
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
@@ -5068,8 +5113,8 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
   loop_depth_inc();
 
-  intptr_t num_context_variables = 0;
-  declarations += EnterScope(offset, &num_context_variables);
+  const LocalScope* context_scope = nullptr;
+  declarations += EnterScope(offset, &context_scope);
 
   intptr_t list_length = ReadListLength();  // read number of variables.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -5105,7 +5150,9 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     // the context object (at same depth) which ensures the next iteration of
     // the body gets a fresh set of [ForStatement] variables (with the old
     // (possibly updated) values).
-    if (num_context_variables > 0) body += CloneContext(num_context_variables);
+    if (context_scope->num_context_variables() > 0) {
+      body += CloneContext(context_scope->context_variables());
+    }
 
     body += updates;
     JoinEntryInstr* join = BuildJoinEntry();
@@ -5946,8 +5993,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += LoadLocal(closure);
     instructions += LoadInstantiatorTypeArguments();
     instructions += flow_graph_builder_->StoreInstanceField(
-        TokenPosition::kNoSource,
-        Closure::instantiator_type_arguments_offset());
+        TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments());
   }
 
   // TODO(30455): We only need to save these if the closure uses any captured
@@ -5955,23 +6001,23 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   instructions += LoadLocal(closure);
   instructions += LoadFunctionTypeArguments();
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Closure::function_type_arguments_offset());
+      TokenPosition::kNoSource, Slot::Closure_function_type_arguments());
 
   instructions += LoadLocal(closure);
   instructions += Constant(Object::empty_type_arguments());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Closure::delayed_type_arguments_offset());
+      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments());
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);
   instructions += Constant(function);
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Closure::function_offset());
+      TokenPosition::kNoSource, Slot::Closure_function());
 
   instructions += LoadLocal(closure);
   instructions += LoadLocal(parsed_function()->current_context_var());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Closure::context_offset());
+      TokenPosition::kNoSource, Slot::Closure_context());
 
   return instructions;
 }

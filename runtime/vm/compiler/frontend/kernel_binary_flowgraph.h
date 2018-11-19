@@ -43,8 +43,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
-        call_site_attributes_metadata_helper_(this, &type_translator_) {
-  }
+        call_site_attributes_metadata_helper_(this, &type_translator_) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
 
@@ -56,6 +55,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
  private:
   bool optimizing();
+
+  Thread* thread() const { return flow_graph_builder_->thread_; }
 
   FlowGraph* BuildGraphOfFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
@@ -127,7 +128,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void CheckArgumentTypesAsNecessary(const Function& dart_function,
                                      intptr_t type_parameters_offset,
                                      Fragment* explicit_checks,
-                                     Fragment* implicit_checks);
+                                     Fragment* implicit_checks,
+                                     Fragment* implicit_redefinitions);
   Fragment CompleteBodyWithYieldContinuations(Fragment body);
   FunctionEntryInstr* BuildSeparateUncheckedEntryPoint(
       BlockEntryInstr* normal_entry,
@@ -138,6 +140,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   FunctionEntryInstr* BuildSharedUncheckedEntryPoint(
       Fragment prologue_from_normal_entry,
       Fragment skippable_checks,
+      Fragment redefinitions_if_skipped,
       Fragment body);
 
   Fragment BuildEntryPointsIntrospection();
@@ -206,6 +209,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField();
+  Fragment RedefinitionWithType(const AbstractType& type);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name,
@@ -220,7 +224,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
                       const InferredTypeMetadata* result_type = NULL,
-                      intptr_t type_args_len = 0);
+                      intptr_t type_args_len = 0,
+                      bool use_unchecked_entry = false);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -258,7 +263,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   void BuildArgumentTypeChecks(TypeChecksToBuild mode,
                                Fragment* explicit_checks,
-                               Fragment* implicit_checks);
+                               Fragment* implicit_checks,
+                               Fragment* implicit_redefinitions);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
@@ -269,11 +275,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                           const Class& klass,
                           intptr_t argument_count);
   Fragment AllocateObject(const Class& klass, const Function& closure_function);
-  Fragment AllocateContext(intptr_t size);
-  Fragment LoadField(intptr_t offset);
+  Fragment AllocateContext(
+      const GrowableArray<LocalVariable*>& context_variables);
+  Fragment LoadNativeField(const Slot& field);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
-  Fragment StoreInstanceField(TokenPosition position, intptr_t offset);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
@@ -283,7 +289,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
   Fragment CheckStackOverflow(TokenPosition position);
-  Fragment CloneContext(intptr_t num_context_variables);
+  Fragment CloneContext(const GrowableArray<LocalVariable*>& context_variables);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
@@ -322,7 +328,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment EnterScope(intptr_t kernel_offset,
-                      intptr_t* num_context_variables = NULL);
+                      const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);
 
   TestFragment TranslateConditionForControl();

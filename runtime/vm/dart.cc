@@ -42,7 +42,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 DECLARE_FLAG(bool, strong);
@@ -151,7 +150,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif  // defined(TARGET_OS_WINDOWS)
 
     FLAG_use_field_guards = false;
-    FLAG_optimization_counter_threshold = -1;
   }
 
   FrameLayout::Init();
@@ -170,7 +168,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(
       TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
   Isolate::InitVM();
-  IdleNotifier::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -300,7 +297,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
     T->InitVMConstants();
-    Scanner::Init();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
@@ -441,8 +437,6 @@ char* Dart::Cleanup() {
   }
   WaitForIsolateShutdown();
 
-  IdleNotifier::Stop();
-
 #if !defined(PRODUCT)
   {
     // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
@@ -500,7 +494,6 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
-  IdleNotifier::Cleanup();
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
@@ -796,11 +789,12 @@ const char* Dart::FeaturesString(Isolate* isolate,
 
 void Dart::RunShutdownCallback() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   Isolate* isolate = thread->isolate();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
+    TransitionVMToNative transition(thread);
     (callback)(callback_data);
   }
 }

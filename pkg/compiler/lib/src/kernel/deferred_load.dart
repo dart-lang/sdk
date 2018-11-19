@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common_elements.dart';
 import '../compiler.dart' show Compiler;
-import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import 'element_map.dart';
@@ -183,6 +183,20 @@ class ConstantCollector extends ir.RecursiveVisitor {
     } else {
       super.visitConstructorInvocation(node);
     }
+  }
+
+  @override
+  void visitTypeParameter(ir.TypeParameter node) {
+    // We avoid visiting metadata on the type parameter declaration. The bound
+    // cannot hold constants so we skip that as well.
+  }
+
+  @override
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
+    // We avoid visiting metadata on the parameter declaration by only visiting
+    // the initializer. The type cannot hold constants so can kan skip that
+    // as well.
+    node.initializer?.accept(this);
   }
 
   @override

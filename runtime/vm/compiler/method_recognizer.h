@@ -14,7 +14,8 @@ namespace dart {
 // clang-format off
 // (class-name, function-name, recognized enum, result type, fingerprint).
 // When adding a new function add a 0 as fingerprint, build and run to get the
-// correct fingerprint from the mismatch error.
+// correct fingerprint from the mismatch error (or use Library::GetFunction()
+// and print func.SourceFingerprint()).
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(::, identical, ObjectIdentical, Bool, 0x49c6e96a)                          \
   V(ClassID, getID, ClassIDgetID, Smi, 0x7b18b257)                             \
@@ -169,11 +170,8 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, Bool, 0x3a59e7f4)           \
   V(_Double, _mulFromInteger, Double_mulFromInteger, Double, 0x2017fcf6)       \
   V(_Double, .fromInteger, DoubleFromInteger, Double, 0x6d234f4b)              \
-  V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, Dynamic, 0x50d64c75)   \
-  V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x16b3d2b0)                    \
   V(_GrowableList, .withData, GrowableArray_Allocate, GrowableObjectArray,     \
     0x28b2138e)                                                                \
-  V(_GrowableList, add, GrowableArray_add, Dynamic, 0x40b490b8)                \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, Dynamic, 0x380184b1)          \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, Dynamic,          \
     0x79b8f955)                                                                \
@@ -325,6 +323,8 @@ namespace dart {
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, Smi, 0x25952390)                     \
   V(_List, [], ObjectArrayGetIndexed, Dynamic, 0x653da02e)                     \
+  V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x16b3d2b0)                    \
+  V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, Dynamic, 0x50d64c75)   \
   V(_ImmutableList, get:length, ImmutableArrayLength, Smi, 0x25952390)         \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, Dynamic, 0x653da02e)         \
   V(_GrowableList, get:length, GrowableArrayLength, Smi, 0x18dd86b4)           \
@@ -444,6 +444,9 @@ namespace dart {
   V(::, _toUint16, ConvertIntToUint16, 0x6087d1af)                             \
   V(::, _toInt32, ConvertIntToInt32, 0x62b451b9)                               \
   V(::, _toUint32, ConvertIntToUint32, 0x17a8e085)                             \
+  V(::, _byteSwap16, ByteSwap16, 0x44f173be)                                   \
+  V(::, _byteSwap32, ByteSwap32, 0x6219333b)                                   \
+  V(::, _byteSwap64, ByteSwap64, 0x9abe57e0)                                   \
   V(Lists, copy, ListsCopy, 0x40e974f6)                                        \
   V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x02477157)               \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0x4fc8d5e0)               \

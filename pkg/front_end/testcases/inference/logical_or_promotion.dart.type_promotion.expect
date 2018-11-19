@@ -1,0 +1,9 @@
+pkg/front_end/testcases/inference/logical_or_promotion.dart:16:11: Context: Possible promotion of o@338
+    if (o is A || o is B) {
+          ^^
+pkg/front_end/testcases/inference/logical_or_promotion.dart:16:21: Context: Possible promotion of o@338
+    if (o is A || o is B) {
+                    ^^
+pkg/front_end/testcases/inference/logical_or_promotion.dart:17:13: Context: Possible promotion of o@338
+      if (o is A) {
+            ^^

@@ -32,6 +32,9 @@ class TestRandomAccessFileOutputProvider implements CompilerOutput {
         provider.createUri(name, extension, type), Platform.isWindows));
     return NullSink.outputProvider(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) => new NullBinarySink(uri);
 }
 
 CompileFunc oldCompileFunc;
@@ -39,7 +42,7 @@ CompileFunc oldCompileFunc;
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
     {List<String> groupOutputs: const <String>[]}) async {
   List<String> options = new List<String>.from(arguments)
-    ..add("--library-root=${Uri.base.resolve('sdk/')}");
+    ..add("--libraries-spec=${Uri.base.resolve('sdk/lib/libraries.json')}");
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
   TestRandomAccessFileOutputProvider outputProvider;

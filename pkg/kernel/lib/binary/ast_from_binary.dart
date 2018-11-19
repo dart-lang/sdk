@@ -134,11 +134,15 @@ class BinaryBuilder {
     return _doubleBuffer[0];
   }
 
-  List<int> readByteList() {
-    List<int> bytes = new Uint8List(readUInt());
+  List<int> readBytes(int length) {
+    List<int> bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     return bytes;
+  }
+
+  List<int> readByteList() {
+    return readBytes(readUInt());
   }
 
   String readStringEntry(int numBytes) {
@@ -681,8 +685,11 @@ class BinaryBuilder {
     return _linkTable[index - 1];
   }
 
-  Reference readLibraryReference() {
-    return readCanonicalNameReference().getReference();
+  Reference readLibraryReference({bool allowNull: false}) {
+    CanonicalName canonicalName = readCanonicalNameReference();
+    if (canonicalName != null) return canonicalName.getReference();
+    if (allowNull) return null;
+    throw 'Expected a library reference to be valid but was `null`.';
   }
 
   LibraryDependency readLibraryDependencyReference() {
@@ -823,7 +830,7 @@ class BinaryBuilder {
     var fileOffset = readOffset();
     var flags = readByte();
     var annotations = readExpressionList();
-    var targetLibrary = readLibraryReference();
+    var targetLibrary = readLibraryReference(allowNull: true);
     var prefixName = readStringOrNullIfEmpty();
     var names = readCombinatorList();
     return new LibraryDependency.byReference(
@@ -1828,7 +1835,7 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
-        var typedefReference = readTypedefReference();
+        var typedefType = readDartTypeOption();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
@@ -1836,7 +1843,7 @@ class BinaryBuilder {
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            typedefReference: typedefReference);
+            typedefType: typedefType);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
         var returnType = readDartType();

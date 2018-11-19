@@ -9,7 +9,6 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/scanner.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -67,7 +66,7 @@ DEFINE_NATIVE_ENTRY(Math_log, 1) {
 
 DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
   const double operand =
-      Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+      Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, exponent_object,
                                arguments->NativeArgAt(1));
   const double exponent = exponent_object.value();

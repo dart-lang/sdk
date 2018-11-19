@@ -70,8 +70,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
-  Initializer buildFieldInitializer(
-      bool isSynthetic, String name, int offset, Expression expression,
+  Initializer buildFieldInitializer(bool isSynthetic, String name,
+      int fieldNameOffset, int assignmentOffset, Expression expression,
       {DartType formalType});
 
   Initializer buildSuperInitializer(

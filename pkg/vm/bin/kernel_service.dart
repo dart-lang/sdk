@@ -477,6 +477,13 @@ Future _processLoadRequest(request) async {
   if (verbose) print("DFE:> ${result}");
 
   if (tag == kTrainTag) {
+    // In training mode make sure to read the sdk a few more times...
+    ProcessedOptions p = new ProcessedOptions(options: compiler.options);
+    var bytes = await p.loadSdkSummaryBytes();
+    for (int i = 0; i < 100; i++) {
+      p.loadComponent(bytes, null);
+    }
+
     if (result.status != Status.ok) {
       tag = -tag;
     }

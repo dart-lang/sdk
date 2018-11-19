@@ -164,7 +164,6 @@ class ObjectPointerVisitor;
   V(Null, "Null")                                                              \
   V(null, "null")                                                              \
   V(Dynamic, "dynamic")                                                        \
-  V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "Type")                                                              \
   V(_Type, "_Type")                                                            \
   V(_TypeRef, "_TypeRef")                                                      \
@@ -190,6 +189,7 @@ class ObjectPointerVisitor;
   V(Namespace, "Namespace")                                                    \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(Code, "Code")                                                              \
+  V(Bytecode, "Bytecode")                                                      \
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
@@ -239,7 +239,6 @@ class ObjectPointerVisitor;
   V(ColonStream, ":stream")                                                    \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
-  V(Int64, "_int64")                                                           \
   V(Double, "double")                                                          \
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \

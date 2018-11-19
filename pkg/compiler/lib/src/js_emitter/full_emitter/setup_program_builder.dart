@@ -102,7 +102,8 @@ jsAst.Statement buildSetupProgram(
     'needsMixinSupport': emitter.needsMixinSupport,
     'needsNativeSupport': program.needsNativeSupport,
     'enabledJsInterop': closedWorld.nativeData.isJsInteropUsed,
-    'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
+    'jsInteropBoostrap': jsInteropAnalysis.buildJsInteropBootstrap(
+        compiler.codegenWorldBuilder, closedWorld.nativeData, namer),
     'isInterceptorClass':
         namer.operatorIs(closedWorld.commonElements.jsInterceptorClass),
     'isObject': namer.operatorIs(closedWorld.commonElements.objectClass),
@@ -118,7 +119,9 @@ jsAst.Statement buildSetupProgram(
         compiler.options, emitter, namer, closedWorld.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
-    'deferredActionString': js.string(namer.deferredAction)
+    'deferredActionString': js.string(namer.deferredAction),
+    'callCatchAll':
+        js.quoteName(namer.getNameForJsGetName(null, JsGetName.CALL_CATCH_ALL)),
   };
   String skeleton = '''
 function $setupProgramName(programData, metadataOffset, typesOffset) {
@@ -709,7 +712,7 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
           funcs[0].$metadataIndexField = unmangledNameIndex + 1;
           // The following line installs the [${JsGetName.CALL_CATCH_ALL}]
           // property for closures.
-          if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[applyTrampolineIndex];
+          if (optionalParameterCount) prototype[#callCatchAll] = funcs[applyTrampolineIndex];
         }
       }
     }

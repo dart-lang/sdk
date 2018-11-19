@@ -63,11 +63,7 @@ import '../type_inference/type_inference_engine.dart'
         TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
-    show
-        ExpressionInferenceResult,
-        TypeInferrer,
-        TypeInferrerDisabled,
-        TypeInferrerImpl;
+    show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
 
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
@@ -491,7 +487,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
             ? rhsType
             : inferrer.typeSchemaEnvironment
                 .getStandardUpperBound(readType, rhsType);
-        if (inferrer.strongMode) {
+        if (!inferrer.legacyMode) {
           nullAwareCombiner.staticType = combinedType;
         }
       } else {
@@ -1487,7 +1483,7 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   /// fact that [expression] has the given [type].
   void _storeLetType(
       TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    if (!inferrer.strongMode) return;
+    if (inferrer.legacyMode) return;
     Expression desugared = this.desugared;
     while (true) {
       if (desugared is Let) {
@@ -1562,24 +1558,24 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class ShadowTypeInferenceEngine extends TypeInferenceEngine {
-  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
-      : super(instrumentation, strongMode);
+  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool legacyMode)
+      : super(instrumentation, legacyMode);
 
   @override
   TypeInferrer createDisabledTypeInferrer() =>
-      new TypeInferrerDisabled(typeSchemaEnvironment);
+      new TypeInferrer.disabled(typeSchemaEnvironment);
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
       Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
-    return new ShadowTypeInferrer._(this, uri, false, thisType, library);
+    return new TypeInferrer(this, uri, false, thisType, library);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
       InterfaceType thisType, ShadowField field, KernelLibraryBuilder library) {
     return field._typeInferrer =
-        new ShadowTypeInferrer._(this, field.fileUri, true, thisType, library);
+        new TypeInferrer(this, field.fileUri, true, thisType, library);
   }
 
   @override
@@ -1594,10 +1590,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   final typePromoter;
 
-  ShadowTypeInferrer._(ShadowTypeInferenceEngine engine, Uri uri, bool topLevel,
-      InterfaceType thisType, KernelLibraryBuilder library)
-      : typePromoter = new ShadowTypePromoter(engine.typeSchemaEnvironment),
-        super(engine, uri, topLevel, thisType, library);
+  ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
+      bool topLevel, InterfaceType thisType, KernelLibraryBuilder library)
+      : typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
+        super.private(engine, uri, topLevel, thisType, library);
 
   @override
   Expression getFieldInitializer(ShadowField field) {
@@ -1700,8 +1696,8 @@ class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
 class ShadowTypePromoter extends TypePromoterImpl {
-  ShadowTypePromoter(TypeSchemaEnvironment typeSchemaEnvironment)
-      : super(typeSchemaEnvironment);
+  ShadowTypePromoter.private(TypeSchemaEnvironment typeSchemaEnvironment)
+      : super.private(typeSchemaEnvironment);
 
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {

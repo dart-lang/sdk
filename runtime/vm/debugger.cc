@@ -259,17 +259,11 @@ ActivationFrame::ActivationFrame(uword pc,
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kind),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      is_interpreted_(FLAG_enable_interpreter &&
-                      function_.Bytecode() == code_.raw()),
-#else
-      is_interpreted_(false),
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      is_interpreted_(false),  // TODO(regis): No bytecode debugging support.
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {
-}
+      pc_desc_(PcDescriptors::ZoneHandle()) {}
 
 ActivationFrame::ActivationFrame(Kind kind)
     : pc_(0),
@@ -318,22 +312,8 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // TODO(regis): Revise debugger functionality when running a mix of
-  // interpreted and compiled code.
-  if (!FLAG_enable_interpreter || !function_.HasBytecode()) {
-    function_.EnsureHasCompiledUnoptimizedCode();
-  }
-  if (FLAG_enable_interpreter && function_.HasBytecode()) {
-    is_interpreted_ = true;
-    code_ = function_.Bytecode();
-  } else {
-    code_ = function_.unoptimized_code();
-  }
-#else
   function_.EnsureHasCompiledUnoptimizedCode();
   code_ = function_.unoptimized_code();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
   ASSERT(!ctx_.IsNull());
@@ -1440,43 +1420,6 @@ RawTypeArguments* ActivationFrame::BuildParameters(
   return type_arguments.raw();
 }
 
-RawObject* ActivationFrame::Evaluate(const String& expr,
-                                     const GrowableObjectArray& param_names,
-                                     const GrowableObjectArray& param_values) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Object::null();
-#else
-  Zone* zone = Thread::Current()->zone();
-  const GrowableObjectArray& type_params_names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  TypeArguments& type_arguments = TypeArguments::Handle(
-      zone, BuildParameters(param_names, param_values, type_params_names));
-
-  if (function().is_static()) {
-    const Class& cls = Class::Handle(function().Owner());
-    return cls.Evaluate(
-        expr, Array::Handle(zone, Array::MakeFixedLength(param_names)),
-        Array::Handle(zone, Array::MakeFixedLength(param_values)),
-        Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-        type_arguments);
-  } else {
-    const Object& receiver = Object::Handle(GetReceiver());
-    const Class& method_cls = Class::Handle(function().origin());
-    ASSERT(receiver.IsInstance() || receiver.IsNull());
-    if (!(receiver.IsInstance() || receiver.IsNull())) {
-      return Object::null();
-    }
-    const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(
-        method_cls, expr,
-        Array::Handle(zone, Array::MakeFixedLength(param_names)),
-        Array::Handle(zone, Array::MakeFixedLength(param_values)),
-        Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-        type_arguments);
-  }
-#endif
-}
-
 const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
@@ -1634,8 +1577,8 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
 #if !defined(TARGET_ARCH_DBC)
       saved_value_(Code::null())
 #else
-      saved_value_(Bytecode::kTrap),
-      saved_value_fastsmi_(Bytecode::kTrap)
+      saved_value_(SimulatorBytecode::kTrap),
+      saved_value_fastsmi_(SimulatorBytecode::kTrap)
 #endif
 {
   ASSERT(!code.IsNull());
@@ -1986,6 +1929,12 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                    frame->ToCString());
     }
     if (frame->IsDartFrame()) {
+      if (frame->is_interpreted()) {
+        // TODO(regis): Support debugging of interpreted frames.
+        // For now, do not abort, but skip the frame, as this code is run
+        // while handling a stack overflow. See HandleStackOverflowTestCases.
+        continue;
+      }
       code = frame->LookupDartCode();
       AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
                        &inlined_code, &deopt_frame);
@@ -2067,6 +2016,10 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   while (synchronous_stack_trace_length > 0) {
     ASSERT(frame != NULL);
     if (frame->IsDartFrame()) {
+      if (frame->is_interpreted()) {
+        // TODO(regis): Support debugging of interpreted frames.
+        UNIMPLEMENTED();
+      }
       code = frame->LookupDartCode();
       AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
                        &inlined_code, &deopt_frame);
@@ -2162,6 +2115,10 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                    frame->ToCString());
     }
     if (frame->IsDartFrame()) {
+      if (frame->is_interpreted()) {
+        // TODO(regis): Support debugging of interpreted frames.
+        UNIMPLEMENTED();
+      }
       code = frame->LookupDartCode();
       if (code.is_optimized()) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
@@ -2331,6 +2288,12 @@ ActivationFrame* Debugger::TopDartFrame() const {
   while ((frame != NULL) && !frame->IsDartFrame()) {
     frame = iterator.NextFrame();
   }
+  ASSERT(frame != NULL);
+  if (frame->is_interpreted()) {
+    // TODO(regis): Support debugging of interpreted frames.
+    UNIMPLEMENTED();
+    return NULL;
+  }
   Code& code = Code::Handle(frame->LookupDartCode());
   ActivationFrame* activation = new ActivationFrame(
       frame->pc(), frame->fp(), frame->sp(), code, Object::null_array(), 0);
@@ -2366,6 +2329,7 @@ DebuggerStackTrace* Debugger::CurrentAwaiterStackTrace() {
 DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   Function& function = Function::Handle();
+  Object& code_object = Object::Handle();
   Code& code = Code::Handle();
 
   const uword fp = 0;
@@ -2374,17 +2338,21 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
   const intptr_t deopt_frame_offset = -1;
 
   for (intptr_t i = 0; i < ex_trace.Length(); i++) {
-    code = ex_trace.CodeAtFrame(i);
+    code_object = ex_trace.CodeAtFrame(i);
     // Pre-allocated StackTraces may include empty slots, either (a) to indicate
     // where frames were omitted in the case a stack has more frames than the
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with
     // a shallow stack).
-    if (!code.IsNull()) {
+    if (!code_object.IsNull()) {
+      if (code_object.IsBytecode()) {
+        // TODO(regis): Support debugging of interpreted frames.
+        UNIMPLEMENTED();
+      }
+      code ^= code_object.raw();
       ASSERT(code.IsFunctionCode());
       function = code.function();
       if (function.is_visible()) {
-        code = ex_trace.CodeAtFrame(i);
         ASSERT(function.raw() == code.function());
         uword pc =
             code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));

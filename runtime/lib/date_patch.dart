@@ -57,7 +57,7 @@ class DateTime {
   @patch
   DateTime._now()
       : isUtc = false,
-        _value = _getCurrentMicros() {}
+        _value = _getCurrentMicros();
 
   @patch
   String get timeZoneName {
@@ -71,6 +71,26 @@ class DateTime {
     int offsetInSeconds = _timeZoneOffsetInSeconds(microsecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
   }
+
+  @patch
+  bool operator ==(dynamic other) =>
+      other is DateTime &&
+      _value == other.microsecondsSinceEpoch &&
+      isUtc == other.isUtc;
+
+  @patch
+  bool isBefore(DateTime other) => _value < other.microsecondsSinceEpoch;
+
+  @patch
+  bool isAfter(DateTime other) => _value > other.microsecondsSinceEpoch;
+
+  @patch
+  bool isAtSameMomentAs(DateTime other) =>
+      _value == other.microsecondsSinceEpoch;
+
+  @patch
+  int compareTo(DateTime other) =>
+      _value.compareTo(other.microsecondsSinceEpoch);
 
   /** The first list contains the days until each month in non-leap years. The
     * second list contains the days in leap years. */
@@ -160,9 +180,7 @@ class DateTime {
   }
 
   get _parts {
-    if (__parts == null) {
-      __parts = _computeUpperPart(_localDateInUtcMicros);
-    }
+    __parts ??= _computeUpperPart(_localDateInUtcMicros);
     return __parts;
   }
 

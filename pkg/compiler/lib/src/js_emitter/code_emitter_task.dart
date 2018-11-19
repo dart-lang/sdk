@@ -15,7 +15,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../js_backend/inferred_data.dart';
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'program_builder/program_builder.dart';
@@ -179,7 +179,6 @@ class CodeEmitterTask extends CompilerTask {
           compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
-          compiler.deferredLoadTask,
           closedWorld.outputUnitData,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,
@@ -191,7 +190,6 @@ class CodeEmitterTask extends CompilerTask {
           backend.superMemberData,
           typeTestRegistry.rtiChecks,
           backend.rtiEncoder,
-          backend.jsInteropAnalysis,
           backend.oneShotInterceptorData,
           backend.customElementsCodegenAnalysis,
           backend.generatedCode,

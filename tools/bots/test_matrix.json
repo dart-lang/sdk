@@ -78,6 +78,37 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
+    "fuzzer": [
+      "runtime/tools/dartfuzz/",
+      "out/DebugIA32/",
+      "out/DebugSIMARM/",
+      "out/DebugSIMARM64/",
+      "out/DebugSIMDBC/",
+      "out/DebugSIMDBC64/",
+      "out/DebugX64/",
+      "out/ProductX64/",
+      "out/ReleaseIA32/",
+      "out/ReleaseSIMARM/",
+      "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMDBC/",
+      "out/ReleaseSIMDBC64/",
+      "out/ReleaseX64/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/observatory_pub_packages/packages/",
+      "tools/sdks/dart-sdk/",
+      "pkg/async_helper/",
+      "pkg/dart_internal/",
+      "pkg/expect/",
+      "pkg/front_end/",
+      "pkg/js/",
+      "pkg/kernel/",
+      "pkg/meta/",
+      "pkg/vm/",
+      "runtime/",
+      "sdk/",
+      ".packages"
+    ],
     "vm-kernel": [
       "out/DebugIA32/",
       "out/DebugSIMARM/",
@@ -88,6 +119,7 @@
       "out/ReleaseIA32/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
+      "out/ReleaseXARM64/",
       "out/ReleaseSIMDBC64/",
       "out/ReleaseX64/",
       "xcodebuild/DebugIA32/",
@@ -268,7 +300,7 @@
     "dartk-win-(debug|release)-(ia32|x64)": { },
     "dartk-(linux|mac|win)-product-x64": { },
     "dartk-(linux|mac)-(debug|release)-simdbc64": { },
-    "dartk-linux-release-(simarm|simarm64)": { },
+    "dartk-linux-release-(arm64|simarm|simarm64)": { },
     "dartk-optcounter-linux-release-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
@@ -636,6 +668,27 @@
     },
     {
       "builders": [
+        "cross-vm-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the cross arm builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["-ndartk-${system}-${mode}-${arch}"],
+          "fileset": "vm-kernel",
+          "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
         "app-kernel-linux-debug-x64",
         "app-kernel-linux-product-x64",
         "app-kernel-linux-release-x64"
@@ -833,8 +886,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-${system}-${mode}-${arch}"]
-        }
+            "-ndartk-reload-${system}-${mode}-${arch}"],
+            "fileset": "vm-kernel",
+            "shards": 10
+          }
       ]
     },
     {
@@ -854,8 +909,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-rollback-linux-${mode}-x64"]
-        }
+            "-ndartk-reload-rollback-linux-${mode}-x64"],
+            "fileset": "vm-kernel",
+            "shards": 10
+          }
       ]
     },
     {
@@ -898,9 +955,9 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch"
+            "--dart2js-batch",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js_hostasserts"
         },
@@ -918,25 +975,26 @@
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["pkg"]
+            "--dart2js-batch",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["observatory_ui"]
+            "--dart2js-batch",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--dart2js-batch",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         }
       ]
     },
@@ -965,9 +1023,9 @@
           "arguments": [
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--reset-browser-configuration",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -987,27 +1045,28 @@
           "arguments": [
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["pkg"]
+            "--reset-browser-configuration",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["observatory_ui"]
+            "--reset-browser-configuration",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--reset-browser-configuration",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         }
       ]
     },
@@ -1036,9 +1095,9 @@
           "arguments": [
             "-ndart2js-faststartup-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--reset-browser-configuration",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1058,27 +1117,28 @@
           "arguments": [
             "-ndart2js-faststartup-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["pkg"]
+            "--reset-browser-configuration",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
             "-ndart2js-faststartup-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["observatory_ui"]
+            "--reset-browser-configuration",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
             "-ndart2js-faststartup-${system}-${runtime}",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--reset-browser-configuration",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         }
       ]
     },
@@ -1097,9 +1157,9 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch"
+            "--dart2js-batch",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1107,9 +1167,9 @@
           "name": "dart2js fast-startup tests",
           "arguments": [
             "-ndart2js-minified-faststartup-linux-d8",
-            "--dart2js-batch"
+            "--dart2js-batch",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 6,
           "fileset": "dart2js"
         },
@@ -1117,49 +1177,51 @@
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["pkg"]
+            "--dart2js-batch",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["observatory_ui"]
+            "--dart2js-batch",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--dart2js-batch",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         },
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
             "-ndart2js-minified-faststartup-linux-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["pkg"]
+            "--dart2js-batch",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
             "-ndart2js-minified-faststartup-linux-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["observatory_ui"]
+            "--dart2js-batch",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
             "-ndart2js-minified-faststartup-linux-d8",
-            "--dart2js-batch"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--dart2js-batch",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         }
       ]
     },
@@ -1179,9 +1241,9 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--reset-browser-configuration",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 4,
           "fileset": "dart2js"
         },
@@ -1190,9 +1252,9 @@
           "arguments": [
             "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--reset-browser-configuration",
+            "--exclude_suite=observatory_ui"
           ],
-          "exclude_tests": ["observatory_ui"],
           "shards": 4,
           "fileset": "dart2js"
         },
@@ -1201,53 +1263,55 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["pkg"]
+            "--reset-browser-configuration",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["observatory_ui"]
+            "--reset-browser-configuration",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
-            "--dart2js-batch"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--dart2js-batch",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         },
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
             "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["pkg"]
+            "--reset-browser-configuration",
+            "pkg"
+          ]
         },
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
             "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["observatory_ui"]
+            "--reset-browser-configuration",
+            "observatory_ui"
+          ]
         },
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
             "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--dart2js-batch",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
+            "--reset-browser-configuration",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         }
       ]
     },
@@ -1615,14 +1679,16 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}"],
-          "tests": ["pkg"]
+            "-nunittest-asserts-${system}",
+            "pkg"
+          ]
         },
         {
           "name": "third_party pkg_tested unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}"],
-          "tests": ["pkg_tested"]
+            "-nunittest-asserts-${system}",
+            "pkg_tested"
+          ]
         },
         {
           "name": "pub integration tests",
@@ -1726,9 +1792,11 @@
             "--isolates",
             "8",
             "--no-show-stats",
-            "--repeat",
-            "125"
-          ]
+            "--time",
+            "2700"
+          ],
+          "shards": 10,
+          "fileset": "fuzzer"
         }
       ]
     }

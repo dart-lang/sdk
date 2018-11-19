@@ -73,21 +73,28 @@ class FindElement {
   }
 
   FieldElement field(String name) {
-    for (var type in unitElement.mixins) {
-      for (var field in type.fields) {
+    for (var enum_ in unitElement.enums) {
+      for (var field in enum_.fields) {
         if (field.name == name) {
           return field;
         }
       }
     }
-    for (var type in unitElement.types) {
-      for (var field in type.fields) {
+    for (var mixin in unitElement.mixins) {
+      for (var field in mixin.fields) {
         if (field.name == name) {
           return field;
         }
       }
     }
-    fail('Not found class field: $name');
+    for (var class_ in unitElement.types) {
+      for (var field in class_.fields) {
+        if (field.name == name) {
+          return field;
+        }
+      }
+    }
+    fail('Not found field: $name');
   }
 
   FunctionElement function(String name) {

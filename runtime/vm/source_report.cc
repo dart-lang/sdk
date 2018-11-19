@@ -389,12 +389,13 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   const TokenPosition end_pos = func.end_token_pos();
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
+  Bytecode& bytecode = Bytecode::Handle(zone());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
-    code = func.Bytecode();
+    bytecode = func.bytecode();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  if (code.IsNull()) {
+  if (code.IsNull() && bytecode.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
           Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
@@ -411,7 +412,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       code = func.unoptimized_code();
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
-        code = func.Bytecode();
+        bytecode = func.bytecode();
       }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
@@ -424,7 +425,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       return;
     }
   }
-  ASSERT(!code.IsNull());
+  ASSERT(!code.IsNull() || !bytecode.IsNull());
 
   // We skip compiled async functions.  Once an async function has
   // been compiled, there is another function with the same range which
@@ -438,8 +439,14 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   range.AddProperty("scriptIndex", GetScriptIndex(script));
   range.AddProperty("startPos", begin_pos);
   range.AddProperty("endPos", end_pos);
-  range.AddProperty("compiled", true);
+  // TODO(regis): What is the meaning of 'compiled' in the presence of bytecode?
+  // If it means 'called', it should say 'true' if bytecode is present.
+  range.AddProperty("compiled", !code.IsNull());
 
+  // TODO(regis): Do we want a report covering interpreted functions too?
+  if (code.IsNull()) {
+    return;
+  }
   if (IsReportRequested(kCallSites)) {
     PrintCallSitesData(&range, func, code);
   }

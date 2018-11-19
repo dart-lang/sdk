@@ -99,6 +99,8 @@ BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
   const Error& error =
@@ -423,24 +425,33 @@ BENCHMARK(Dart2JSCompileAll) {
 // Measure frame lookup during stack traversal.
 //
 static void StackFrame_accessFrame(Dart_NativeArguments args) {
-  const int kNumIterations = 100;
-  Code& code = Code::Handle();
   Timer timer(true, "LookupDartCode benchmark");
   timer.Start();
-  for (int i = 0; i < kNumIterations; i++) {
-    StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
-                              Thread::Current(),
-                              StackFrameIterator::kNoCrossThreadIteration);
-    StackFrame* frame = frames.NextFrame();
-    while (frame != NULL) {
-      if (frame->IsStubFrame()) {
-        code = frame->LookupDartCode();
-        EXPECT(code.function() == Function::null());
-      } else if (frame->IsDartFrame()) {
-        code = frame->LookupDartCode();
-        EXPECT(code.function() != Function::null());
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    const int kNumIterations = 100;
+    Code& code = Code::Handle(thread->zone());
+    Bytecode& bytecode = Bytecode::Handle(thread->zone());
+    for (int i = 0; i < kNumIterations; i++) {
+      StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
+                                StackFrameIterator::kNoCrossThreadIteration);
+      StackFrame* frame = frames.NextFrame();
+      while (frame != NULL) {
+        if (frame->IsStubFrame()) {
+          code = frame->LookupDartCode();
+          EXPECT(code.function() == Function::null());
+        } else if (frame->IsDartFrame()) {
+          if (frame->is_interpreted()) {
+            bytecode = frame->LookupDartBytecode();
+            EXPECT(bytecode.function() != Function::null());
+          } else {
+            code = frame->LookupDartCode();
+            EXPECT(code.function() != Function::null());
+          }
+        }
+        frame = frames.NextFrame();
       }
-      frame = frames.NextFrame();
     }
   }
   timer.Stop();
@@ -532,9 +543,13 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
-  Api::CheckAndFinalizePendingClasses(thread);
 
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+
+  Api::CheckAndFinalizePendingClasses(thread);
+
   // Write snapshot with object content.
   FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,
@@ -569,9 +584,13 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
-  Api::CheckAndFinalizePendingClasses(thread);
 
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+
+  Api::CheckAndFinalizePendingClasses(thread);
+
   // Write snapshot with object content.
   FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,
@@ -611,7 +630,12 @@ BENCHMARK(EnterExitIsolate) {
       "\n";
   const intptr_t kLoopCount = 1000000;
   TestCase::LoadTestScript(kScriptChars, NULL);
-  Api::CheckAndFinalizePendingClasses(thread);
+  {
+    TransitionNativeToVM transition(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Api::CheckAndFinalizePendingClasses(thread);
+  }
   Dart_Isolate isolate = Dart_CurrentIsolate();
   Timer timer(true, "Enter and Exit isolate");
   timer.Start();
@@ -626,6 +650,8 @@ BENCHMARK(EnterExitIsolate) {
 
 BENCHMARK(SerializeNull) {
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
   Timer timer(true, "Serialize Null");
@@ -648,6 +674,8 @@ BENCHMARK(SerializeNull) {
 
 BENCHMARK(SerializeSmi) {
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
   Timer timer(true, "Serialize Smi");
@@ -670,6 +698,8 @@ BENCHMARK(SerializeSmi) {
 
 BENCHMARK(SimpleMessage) {
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   const Array& array_object = Array::Handle(Array::New(2));
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
@@ -704,6 +734,8 @@ BENCHMARK(LargeMap) {
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
   EXPECT_VALID(h_result);
   TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;

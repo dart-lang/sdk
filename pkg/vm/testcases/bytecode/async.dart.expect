@@ -6,7 +6,7 @@ import "dart:core" as core;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                3
-  CheckStack
+  CheckStack           0
   Allocate             CP#19
   StoreLocal           r2
   Push                 r2
@@ -70,33 +70,33 @@ Closure CP#9 {
   LoadConstant         r2, CP#10
   LoadConstant         r3, CP#10
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
-  LoadContextVar       5
+  LoadContextVar       0, 5
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
-  StoreContextVar      7
+  StoreContextVar      0, 7
 Try #0 start:
   Push                 r4
   PushInt              1
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r4
   Push                 r4
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r4
-  LoadContextVar       3
+  LoadContextVar       0, 3
   Push                 r4
-  LoadContextVar       4
+  LoadContextVar       0, 4
   Push                 r4
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#12
   IndirectStaticCall   4, CP#11
   PopLocal             r8
@@ -112,9 +112,9 @@ L2:
   Push                 r1
   Drop1
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r4
-  LoadContextVar       2
+  LoadContextVar       0, 2
   PushConstant         CP#14
   IndirectStaticCall   2, CP#13
   Drop1
@@ -127,16 +127,16 @@ Try #0 handler:
   LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       0, 7
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#17
@@ -147,7 +147,7 @@ L3:
   ReturnTOS
 L1:
   Push                 r4
-  LoadContextVar       6
+  LoadContextVar       0, 6
   PopLocal             r4
   Jump                 L4
 
@@ -155,15 +155,15 @@ L1:
 
 Closure CP#0 {
   EntryFixed           2, 4
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  AllocateContext      9
+  AllocateContext      0, 9
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 FP[-5]
   PushConstant         CP#3
   PushNull
@@ -175,27 +175,27 @@ Closure CP#0 {
   PushConstant         CP#6
   PushConstant         CP#8
   IndirectStaticCall   1, CP#7
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r0
   PushNull
-  StoreContextVar      2
+  StoreContextVar      0, 2
   PushNull
   PopLocal             r2
   Push                 r0
   PushNull
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   PushNull
-  StoreContextVar      4
+  StoreContextVar      0, 4
   Push                 r0
   PushInt              0
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r0
   PushNull
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r0
   PushNull
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r0
   Allocate             CP#19
   StoreLocal           r3
@@ -214,32 +214,32 @@ Closure CP#0 {
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#29
   IndirectStaticCall   1, CP#7
   PopLocal             r2
   Push                 r0
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#30
   IndirectStaticCall   1, CP#7
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#31
   IndirectStaticCall   1, CP#7
-  StoreContextVar      4
+  StoreContextVar      0, 4
   PushConstant         CP#32
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#33
   IndirectStaticCall   2, CP#13
   Drop1
   Push                 r0
-  LoadContextVar       1
+  LoadContextVar       0, 1
   InstanceCall         1, CP#34
   ReturnTOS
 
@@ -275,17 +275,17 @@ Closure CP#0 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                7
-  CheckStack
-  AllocateContext      4
+  CheckStack           0
+  AllocateContext      0, 4
   PopLocal             r0
   Push                 r0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   PushNull
-  StoreContextVar      1
+  StoreContextVar      0, 1
   PushNull
   PopLocal             r2
   PushNull
@@ -294,10 +294,10 @@ Bytecode (version: stable) {
   PopLocal             r4
   Push                 r0
   PushInt              0
-  StoreContextVar      2
+  StoreContextVar      0, 2
   Push                 r0
   PushNull
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Allocate             CP#13
   StoreLocal           r6
   Push                 r6
@@ -334,7 +334,7 @@ Bytecode (version: stable) {
   IndirectStaticCall   2, CP#7
   Drop1
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   InstanceCall         1, CP#28
   ReturnTOS
 }
@@ -375,12 +375,12 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       2
+  LoadContextVar       0, 2
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
@@ -389,13 +389,13 @@ Closure CP#3 {
 Try #0 start:
   Push                 r4
   PushInt              42
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Jump                 L2
 L2:
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   PushConstant         CP#8
   IndirectStaticCall   2, CP#7
   Drop1
@@ -406,14 +406,14 @@ Try #0 handler:
   SetFrame             10
   Push                 r6
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#11
@@ -456,43 +456,43 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
-  AllocateContext      11
+  CheckStack           0
+  AllocateContext      0, 11
   PopLocal             r0
   Push                 r0
   Push                 FP[-6]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
-  StoreContextVar      2
+  StoreContextVar      0, 2
   Push                 r0
   PushNull
-  StoreContextVar      3
+  StoreContextVar      0, 3
   PushNull
   PopLocal             r2
   Push                 r0
   PushNull
-  StoreContextVar      4
+  StoreContextVar      0, 4
   Push                 r0
   PushNull
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r0
   PushInt              0
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r0
   PushNull
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r0
   PushNull
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r0
   PushNull
-  StoreContextVar      9
+  StoreContextVar      0, 9
   Push                 r0
   Allocate             CP#17
   StoreLocal           r3
@@ -511,32 +511,32 @@ Bytecode (version: stable) {
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  StoreContextVar      10
+  StoreContextVar      0, 10
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#27
   IndirectStaticCall   1, CP#1
   PopLocal             r2
   Push                 r0
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#28
   IndirectStaticCall   1, CP#1
-  StoreContextVar      4
+  StoreContextVar      0, 4
   Push                 r0
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#29
   IndirectStaticCall   1, CP#1
-  StoreContextVar      5
+  StoreContextVar      0, 5
   PushConstant         CP#30
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#31
   IndirectStaticCall   2, CP#10
   Drop1
   Push                 r0
-  LoadContextVar       2
+  LoadContextVar       0, 2
   InstanceCall         1, CP#32
   ReturnTOS
 }
@@ -581,33 +581,33 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       6
+  LoadContextVar       0, 6
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
-  StoreContextVar      8
+  StoreContextVar      0, 8
 Try #0 start:
   Push                 r4
   PushInt              1
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r4
   Push                 r4
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r4
-  LoadContextVar       4
+  LoadContextVar       0, 4
   Push                 r4
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#8
   IndirectStaticCall   4, CP#7
   PopLocal             r8
@@ -622,21 +622,21 @@ L6:
 L2:
   Push                 r4
   Push                 r1
-  StoreContextVar      9
+  StoreContextVar      0, 9
   Push                 r4
   PushInt              2
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r4
   Push                 r4
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r4
-  LoadContextVar       4
+  LoadContextVar       0, 4
   Push                 r4
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#9
   IndirectStaticCall   4, CP#7
   PopLocal             r9
@@ -651,16 +651,16 @@ L7:
 L3:
   Push                 r4
   Push                 r4
-  LoadContextVar       9
+  LoadContextVar       0, 9
   Push                 r1
   InstanceCall         2, CP#11
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Jump                 L4
 L4:
   Push                 r4
-  LoadContextVar       2
+  LoadContextVar       0, 2
   Push                 r4
-  LoadContextVar       3
+  LoadContextVar       0, 3
   PushConstant         CP#12
   IndirectStaticCall   2, CP#10
   Drop1
@@ -673,16 +673,16 @@ Try #0 handler:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       2
+  LoadContextVar       0, 2
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#15
@@ -693,7 +693,7 @@ L5:
   ReturnTOS
 L1:
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       0, 7
   PopLocal             r4
   Push                 r5
   PushInt              1
@@ -736,43 +736,43 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
-  AllocateContext      11
+  CheckStack           0
+  AllocateContext      0, 11
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r0
   PushNull
-  StoreContextVar      2
+  StoreContextVar      0, 2
   PushNull
   PopLocal             r2
   Push                 r0
   PushNull
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   PushNull
-  StoreContextVar      4
+  StoreContextVar      0, 4
   Push                 r0
   PushInt              0
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r0
   PushNull
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r0
   PushNull
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r0
   PushNull
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r0
   PushNull
-  StoreContextVar      9
+  StoreContextVar      0, 9
   Push                 r0
   Allocate             CP#22
   StoreLocal           r3
@@ -791,32 +791,32 @@ Bytecode (version: stable) {
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  StoreContextVar      10
+  StoreContextVar      0, 10
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#32
   IndirectStaticCall   1, CP#1
   PopLocal             r2
   Push                 r0
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#33
   IndirectStaticCall   1, CP#1
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#34
   IndirectStaticCall   1, CP#1
-  StoreContextVar      4
+  StoreContextVar      0, 4
   PushConstant         CP#35
   Push                 r0
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#36
   IndirectStaticCall   2, CP#14
   Drop1
   Push                 r0
-  LoadContextVar       1
+  LoadContextVar       0, 1
   InstanceCall         1, CP#37
   ReturnTOS
 }
@@ -866,20 +866,20 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                7
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       5
+  LoadContextVar       0, 5
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
-  StoreContextVar      7
+  StoreContextVar      0, 7
 Try #0 start:
-  AllocateContext      1
+  AllocateContext      1, 1
   StoreLocal           r5
   Push                 r5
   Push                 r4
@@ -887,8 +887,8 @@ Try #0 start:
   PopLocal             r4
   Push                 r4
   PushInt              0
-  StoreContextVar      0
-  AllocateContext      2
+  StoreContextVar      1, 0
+  AllocateContext      2, 2
   StoreLocal           r5
   Push                 r5
   Push                 r4
@@ -896,32 +896,31 @@ Try #0 start:
   PopLocal             r4
   Push                 r4
   PushInt              0
-  StoreContextVar      0
+  StoreContextVar      2, 0
 L6:
-  CheckStack
+  CheckStack           1
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       2, 0
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L2
   Push                 r4
   LoadContextParent
   LoadContextParent
-  LoadContextVar       0
+  LoadContextVar       0, 0
   InstanceCall         1, CP#7
   PopLocal             r8
   Push                 r4
   Push                 r8
-  StoreContextVar      1
+  StoreContextVar      2, 1
 L5:
-  CheckStack
+  CheckStack           2
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       2, 1
   StoreLocal           r8
   InstanceCall         1, CP#8
   JumpIfFalse          L3
-  AllocateContext      1
+  AllocateContext      3, 1
   StoreLocal           r5
   Push                 r5
   Push                 r4
@@ -930,7 +929,7 @@ L5:
   Push                 r4
   Push                 r8
   InstanceCall         1, CP#9
-  StoreContextVar      0
+  StoreContextVar      3, 0
   Push                 r4
   LoadContextParent
   LoadContextParent
@@ -938,48 +937,48 @@ L5:
   Push                 r4
   LoadContextParent
   LoadContextParent
-  LoadContextVar       0
-  StoreContextVar      9
+  LoadContextVar       1, 0
+  StoreContextVar      0, 9
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
   Push                 r4
   LoadContextParent
-  LoadContextVar       0
+  LoadContextVar       2, 0
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       3, 0
   AddInt
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
   PushInt              1
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
   Push                 r4
-  StoreContextVar      6
+  StoreContextVar      0, 6
   PushConstant         CP#11
   IndirectStaticCall   0, CP#10
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
-  LoadContextVar       3
+  LoadContextVar       0, 3
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
-  LoadContextVar       4
+  LoadContextVar       0, 4
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PushConstant         CP#13
   IndirectStaticCall   4, CP#12
   PopLocal             r10
@@ -999,31 +998,31 @@ L4:
   LoadContextParent
   LoadContextParent
   LoadContextParent
-  LoadContextVar       9
+  LoadContextVar       0, 9
   Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextParent
-  LoadContextVar       8
+  LoadContextVar       0, 8
   Push                 r1
   InstanceCall         2, CP#15
   InstanceCall         2, CP#16
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
   PopLocal             r4
   Jump                 L5
 L3:
   Push                 r4
-  CloneContext
+  CloneContext         2, 2
   PopLocal             r4
   Push                 r4
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       2, 0
   PushInt              1
   AddInt
   StoreLocal           r8
-  StoreContextVar      0
+  StoreContextVar      2, 0
   Push                 r8
   Drop1
   Jump                 L6
@@ -1034,18 +1033,17 @@ L2:
   PushInt              0
   PopLocal             r8
 L8:
-  CheckStack
+  CheckStack           1
   Push                 r8
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L7
   Push                 r4
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       1, 0
   Push                 r8
   AddInt
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r8
   PushInt              1
   AddInt
@@ -1056,17 +1054,17 @@ L7:
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      2
+  LoadContextVar       1, 0
+  StoreContextVar      0, 2
   Push                 r4
   LoadContextParent
   PopLocal             r4
   Jump                 L9
 L9:
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r4
-  LoadContextVar       2
+  LoadContextVar       0, 2
   PushConstant         CP#17
   IndirectStaticCall   2, CP#14
   Drop1
@@ -1079,16 +1077,16 @@ Try #0 handler:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       0, 7
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#20
@@ -1099,7 +1097,7 @@ L10:
   ReturnTOS
 L1:
   Push                 r4
-  LoadContextVar       6
+  LoadContextVar       0, 6
   PopLocal             r4
   Jump                 L11
 
@@ -1149,58 +1147,58 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
-  AllocateContext      16
+  CheckStack           0
+  AllocateContext      0, 16
   PopLocal             r0
   Push                 r0
   Push                 FP[-7]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   Push                 FP[-6]
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      2
+  StoreContextVar      0, 2
   Push                 r0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   PushNull
-  StoreContextVar      4
+  StoreContextVar      0, 4
   PushNull
   PopLocal             r2
   Push                 r0
   PushNull
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r0
   PushNull
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r0
   PushInt              0
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r0
   PushNull
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r0
   PushNull
-  StoreContextVar      9
+  StoreContextVar      0, 9
   Push                 r0
   PushNull
-  StoreContextVar      10
+  StoreContextVar      0, 10
   Push                 r0
   PushNull
-  StoreContextVar      11
+  StoreContextVar      0, 11
   Push                 r0
   PushNull
-  StoreContextVar      12
+  StoreContextVar      0, 12
   Push                 r0
   PushNull
-  StoreContextVar      13
+  StoreContextVar      0, 13
   Push                 r0
   PushNull
-  StoreContextVar      14
+  StoreContextVar      0, 14
   Push                 r0
   Allocate             CP#30
   StoreLocal           r3
@@ -1219,32 +1217,32 @@ Bytecode (version: stable) {
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  StoreContextVar      15
+  StoreContextVar      0, 15
   Push                 r0
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#40
   IndirectStaticCall   1, CP#1
   PopLocal             r2
   Push                 r0
   Push                 r0
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#41
   IndirectStaticCall   1, CP#1
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r0
   Push                 r0
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#42
   IndirectStaticCall   1, CP#1
-  StoreContextVar      6
+  StoreContextVar      0, 6
   PushConstant         CP#43
   Push                 r0
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#44
   IndirectStaticCall   2, CP#9
   Drop1
   Push                 r0
-  LoadContextVar       3
+  LoadContextVar       0, 3
   InstanceCall         1, CP#45
   ReturnTOS
 }
@@ -1302,20 +1300,20 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                10
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       0, 7
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
-  StoreContextVar      9
+  StoreContextVar      0, 9
 Try #0 start:
-  AllocateContext      2
+  AllocateContext      1, 2
   StoreLocal           r5
   Push                 r5
   Push                 r4
@@ -1323,42 +1321,42 @@ Try #0 start:
   PopLocal             r4
   Push                 r4
   PushInt              1
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      10
+  StoreContextVar      0, 10
 Try #1 start:
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      11
+  StoreContextVar      0, 11
 Try #2 start:
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      14
+  LoadContextVar       1, 0
+  StoreContextVar      0, 14
   Push                 r4
   LoadContextParent
   PushInt              1
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r4
   LoadContextParent
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r4
   LoadContextParent
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
   LoadContextParent
-  LoadContextVar       6
+  LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#8
   IndirectStaticCall   4, CP#7
   PopLocal             r13
@@ -1374,10 +1372,10 @@ L2:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       14
+  LoadContextVar       0, 14
   Push                 r1
   InstanceCall         2, CP#10
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Jump                 L3
 Try #2 end:
 Try #2 handler:
@@ -1386,58 +1384,57 @@ Try #2 handler:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       11
+  LoadContextVar       0, 11
   PopLocal             r4
-  MoveSpecial          r10, exception
-  MoveSpecial          r11, stackTrace
+  MoveSpecial          exception, r10
+  MoveSpecial          stackTrace, r11
   Push                 r4
   LoadContextParent
   Push                 r10
-  StoreContextVar      12
+  StoreContextVar      0, 12
   Push                 r4
   LoadContextParent
   Push                 r11
-  StoreContextVar      13
+  StoreContextVar      0, 13
   Push                 r4
   Push                 r10
-  StoreContextVar      1
+  StoreContextVar      1, 1
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       1, 1
   PushConstant         CP#12
   InstanceCall         2, CP#13
-  AssertBoolean        0
   JumpIfFalse          L4
   Push                 r4
   LoadContextParent
   PushInt              42
-  StoreContextVar      4
+  StoreContextVar      0, 4
   Jump                 L5
 L4:
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      14
+  LoadContextVar       1, 0
+  StoreContextVar      0, 14
   Push                 r4
   LoadContextParent
   PushInt              2
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r4
   LoadContextParent
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r4
   LoadContextParent
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
   LoadContextParent
-  LoadContextVar       6
+  LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#14
   IndirectStaticCall   4, CP#7
   PopLocal             r13
@@ -1453,16 +1450,16 @@ L6:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       14
+  LoadContextVar       0, 14
   Push                 r1
   InstanceCall         2, CP#15
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
-  LoadContextVar       12
+  LoadContextVar       0, 12
   Push                 r4
   LoadContextParent
-  LoadContextVar       13
+  LoadContextVar       0, 13
   Throw                1
 L3:
   Jump                 L7
@@ -1473,18 +1470,18 @@ Try #1 handler:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PopLocal             r4
-  MoveSpecial          r8, exception
-  MoveSpecial          r9, stackTrace
+  MoveSpecial          exception, r8
+  MoveSpecial          stackTrace, r9
   Push                 r4
   LoadContextParent
   Push                 r8
-  StoreContextVar      12
+  StoreContextVar      0, 12
   Push                 r4
   LoadContextParent
   Push                 r9
-  StoreContextVar      13
+  StoreContextVar      0, 13
   PushConstant         CP#16
   PushConstant         CP#17
   IndirectStaticCall   1, CP#1
@@ -1492,28 +1489,28 @@ Try #1 handler:
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      14
+  LoadContextVar       1, 0
+  StoreContextVar      0, 14
   Push                 r4
   LoadContextParent
   PushInt              3
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r4
   LoadContextParent
-  LoadContextVar       2
+  LoadContextVar       0, 2
   Push                 r4
   LoadContextParent
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
   LoadContextParent
-  LoadContextVar       6
+  LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#18
   IndirectStaticCall   4, CP#7
   PopLocal             r12
@@ -1529,15 +1526,15 @@ L8:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       14
+  LoadContextVar       0, 14
   Push                 r1
   InstanceCall         2, CP#19
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      4
+  LoadContextVar       1, 0
+  StoreContextVar      0, 4
   Push                 r4
   LoadContextParent
   PopLocal             r4
@@ -1547,7 +1544,7 @@ L5:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PopLocal             r4
   PushConstant         CP#16
   PushConstant         CP#20
@@ -1556,28 +1553,28 @@ L5:
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      14
+  LoadContextVar       1, 0
+  StoreContextVar      0, 14
   Push                 r4
   LoadContextParent
   PushInt              4
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r4
   LoadContextParent
-  LoadContextVar       2
+  LoadContextVar       0, 2
   Push                 r4
   LoadContextParent
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
   LoadContextParent
-  LoadContextVar       6
+  LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#21
   IndirectStaticCall   4, CP#7
   PopLocal             r12
@@ -1593,15 +1590,15 @@ L10:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       14
+  LoadContextVar       0, 14
   Push                 r1
   InstanceCall         2, CP#22
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      4
+  LoadContextVar       1, 0
+  StoreContextVar      0, 4
   Push                 r4
   LoadContextParent
   PopLocal             r4
@@ -1611,7 +1608,7 @@ L7:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       10
+  LoadContextVar       0, 10
   PopLocal             r4
   PushConstant         CP#16
   PushConstant         CP#23
@@ -1620,28 +1617,28 @@ L7:
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      14
+  LoadContextVar       1, 0
+  StoreContextVar      0, 14
   Push                 r4
   LoadContextParent
   PushInt              5
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r4
   LoadContextParent
-  LoadContextVar       2
+  LoadContextVar       0, 2
   Push                 r4
   LoadContextParent
-  LoadContextVar       5
+  LoadContextVar       0, 5
   Push                 r4
   LoadContextParent
-  LoadContextVar       6
+  LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       15
+  LoadContextVar       0, 15
   PushConstant         CP#24
   IndirectStaticCall   4, CP#7
   PopLocal             r12
@@ -1657,24 +1654,24 @@ L11:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       14
+  LoadContextVar       0, 14
   Push                 r1
   InstanceCall         2, CP#25
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
   Push                 r4
-  LoadContextVar       0
-  StoreContextVar      4
+  LoadContextVar       1, 0
+  StoreContextVar      0, 4
   Push                 r4
   LoadContextParent
   PopLocal             r4
   Jump                 L9
 L9:
   Push                 r4
-  LoadContextVar       3
+  LoadContextVar       0, 3
   Push                 r4
-  LoadContextVar       4
+  LoadContextVar       0, 4
   PushConstant         CP#26
   IndirectStaticCall   2, CP#9
   Drop1
@@ -1687,16 +1684,16 @@ Try #0 handler:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       9
+  LoadContextVar       0, 9
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       3
+  LoadContextVar       0, 3
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#28
@@ -1707,7 +1704,7 @@ L12:
   ReturnTOS
 L1:
   Push                 r4
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PopLocal             r4
   Push                 r5
   PushInt              1
@@ -1783,15 +1780,15 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
-  AllocateContext      2
+  CheckStack           0
+  AllocateContext      0, 2
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   PushInt              3
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Allocate             CP#19
   StoreLocal           r3
   Push                 r3
@@ -1857,20 +1854,20 @@ Closure CP#6 {
   LoadConstant         r2, CP#7
   LoadConstant         r3, CP#7
   Frame                8
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
-  LoadContextVar       4
+  LoadContextVar       1, 4
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
-  StoreContextVar      6
+  StoreContextVar      1, 6
 Try #0 start:
-  AllocateContext      1
+  AllocateContext      2, 1
   StoreLocal           r5
   Push                 r5
   Push                 r4
@@ -1878,38 +1875,38 @@ Try #0 start:
   PopLocal             r4
   Push                 r4
   PushInt              4
-  StoreContextVar      0
+  StoreContextVar      2, 0
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      7
+  StoreContextVar      1, 7
 Try #1 start:
   Push                 r4
   LoadContextParent
   LoadContextParent
   PushInt              5
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r4
   LoadContextParent
   PushInt              1
-  StoreContextVar      4
+  StoreContextVar      1, 4
   Push                 r4
   LoadContextParent
   Push                 r4
-  StoreContextVar      5
+  StoreContextVar      1, 5
   Push                 r4
   LoadContextParent
   LoadContextParent
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r4
   LoadContextParent
-  LoadContextVar       2
+  LoadContextVar       1, 2
   Push                 r4
   LoadContextParent
-  LoadContextVar       3
+  LoadContextVar       1, 3
   Push                 r4
   LoadContextParent
-  LoadContextVar       8
+  LoadContextVar       1, 8
   PushConstant         CP#9
   IndirectStaticCall   4, CP#8
   PopLocal             r11
@@ -1924,17 +1921,17 @@ L6:
 L2:
   Push                 r4
   Push                 r1
-  StoreContextVar      0
+  StoreContextVar      2, 0
   Push                 r4
   LoadContextParent
   Push                 r4
   LoadContextParent
   LoadContextParent
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       2, 0
   AddInt
-  StoreContextVar      1
+  StoreContextVar      1, 1
   Jump                 L3
 Try #1 end:
 Try #1 handler:
@@ -1943,10 +1940,10 @@ Try #1 handler:
   LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       1, 7
   PopLocal             r4
-  MoveSpecial          r8, exception
-  MoveSpecial          r9, stackTrace
+  MoveSpecial          exception, r8
+  MoveSpecial          stackTrace, r9
   PushConstant         CP#11
   PushConstant         CP#12
   IndirectStaticCall   1, CP#4
@@ -1959,7 +1956,7 @@ L3:
   LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       1, 7
   PopLocal             r4
   PushConstant         CP#11
   PushConstant         CP#13
@@ -1971,9 +1968,9 @@ L3:
   Jump                 L4
 L4:
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       1, 0
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       1, 1
   PushConstant         CP#15
   IndirectStaticCall   2, CP#14
   Drop1
@@ -1986,16 +1983,16 @@ Try #0 handler:
   LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
-  LoadContextVar       6
+  LoadContextVar       1, 6
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       1, 0
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#17
@@ -2006,7 +2003,7 @@ L5:
   ReturnTOS
 L1:
   Push                 r4
-  LoadContextVar       5
+  LoadContextVar       1, 5
   PopLocal             r4
   Jump                 L6
 
@@ -2014,11 +2011,11 @@ L1:
 
 Closure CP#0 {
   EntryFixed           1, 4
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  AllocateContext      9
+  AllocateContext      1, 9
   StoreLocal           r1
   Push                 r1
   Push                 r0
@@ -2028,30 +2025,30 @@ Closure CP#0 {
   PushConstant         CP#3
   PushConstant         CP#5
   IndirectStaticCall   1, CP#4
-  StoreContextVar      0
+  StoreContextVar      1, 0
   Push                 r0
   PushNull
-  StoreContextVar      1
+  StoreContextVar      1, 1
   PushNull
   PopLocal             r2
   Push                 r0
   PushNull
-  StoreContextVar      2
+  StoreContextVar      1, 2
   Push                 r0
   PushNull
-  StoreContextVar      3
+  StoreContextVar      1, 3
   Push                 r0
   PushInt              0
-  StoreContextVar      4
+  StoreContextVar      1, 4
   Push                 r0
   PushNull
-  StoreContextVar      5
+  StoreContextVar      1, 5
   Push                 r0
   PushNull
-  StoreContextVar      6
+  StoreContextVar      1, 6
   Push                 r0
   PushNull
-  StoreContextVar      7
+  StoreContextVar      1, 7
   Push                 r0
   Allocate             CP#19
   StoreLocal           r3
@@ -2070,32 +2067,32 @@ Closure CP#0 {
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
-  StoreContextVar      8
+  StoreContextVar      1, 8
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       1, 8
   PushConstant         CP#29
   IndirectStaticCall   1, CP#4
   PopLocal             r2
   Push                 r0
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       1, 8
   PushConstant         CP#30
   IndirectStaticCall   1, CP#4
-  StoreContextVar      2
+  StoreContextVar      1, 2
   Push                 r0
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       1, 8
   PushConstant         CP#31
   IndirectStaticCall   1, CP#4
-  StoreContextVar      3
+  StoreContextVar      1, 3
   PushConstant         CP#32
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       1, 8
   PushConstant         CP#33
   IndirectStaticCall   2, CP#14
   Drop1
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       1, 0
   InstanceCall         1, CP#34
   ReturnTOS
 
@@ -2145,37 +2142,37 @@ Closure CP#0 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                4
-  CheckStack
-  AllocateContext      9
+  CheckStack           0
+  AllocateContext      0, 9
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r0
   PushNull
-  StoreContextVar      2
+  StoreContextVar      0, 2
   PushNull
   PopLocal             r2
   Push                 r0
   PushNull
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   PushNull
-  StoreContextVar      4
+  StoreContextVar      0, 4
   Push                 r0
   PushInt              0
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r0
   PushNull
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r0
   PushNull
-  StoreContextVar      7
+  StoreContextVar      0, 7
   Push                 r0
   Allocate             CP#17
   StoreLocal           r3
@@ -2194,32 +2191,32 @@ Bytecode (version: stable) {
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  StoreContextVar      8
+  StoreContextVar      0, 8
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#27
   IndirectStaticCall   1, CP#1
   PopLocal             r2
   Push                 r0
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#28
   IndirectStaticCall   1, CP#1
-  StoreContextVar      3
+  StoreContextVar      0, 3
   Push                 r0
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#29
   IndirectStaticCall   1, CP#1
-  StoreContextVar      4
+  StoreContextVar      0, 4
   PushConstant         CP#30
   Push                 r0
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#31
   IndirectStaticCall   2, CP#9
   Drop1
   Push                 r0
-  LoadContextVar       1
+  LoadContextVar       0, 1
   InstanceCall         1, CP#32
   ReturnTOS
 }
@@ -2264,34 +2261,34 @@ Closure CP#3 {
   LoadConstant         r2, CP#4
   LoadConstant         r3, CP#4
   Frame                6
-  CheckStack
+  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       5
+  LoadContextVar       0, 5
   StoreLocal           r5
   PushInt              0
   JumpIfNeStrict       L1
   Push                 r4
   Push                 r4
-  StoreContextVar      7
+  StoreContextVar      0, 7
 Try #0 start:
   JumpIfNoAsserts      L2
   Push                 r4
   PushInt              1
-  StoreContextVar      5
+  StoreContextVar      0, 5
   Push                 r4
   Push                 r4
-  StoreContextVar      6
+  StoreContextVar      0, 6
   Push                 r4
-  LoadContextVar       0
+  LoadContextVar       0, 0
   Push                 r4
-  LoadContextVar       3
+  LoadContextVar       0, 3
   Push                 r4
-  LoadContextVar       4
+  LoadContextVar       0, 4
   Push                 r4
-  LoadContextVar       8
+  LoadContextVar       0, 8
   PushConstant         CP#8
   IndirectStaticCall   4, CP#7
   PopLocal             r8
@@ -2319,13 +2316,13 @@ L3:
 L2:
   Push                 r4
   PushInt              7
-  StoreContextVar      2
+  StoreContextVar      0, 2
   Jump                 L4
 L4:
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r4
-  LoadContextVar       2
+  LoadContextVar       0, 2
   PushConstant         CP#13
   IndirectStaticCall   2, CP#9
   Drop1
@@ -2338,16 +2335,16 @@ Try #0 handler:
   LoadFieldTOS         CP#5
   PopLocal             r4
   Push                 r4
-  LoadContextVar       7
+  LoadContextVar       0, 7
   PopLocal             r4
-  MoveSpecial          r6, exception
-  MoveSpecial          r7, stackTrace
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
   Push                 r6
   PopLocal             r8
   Push                 r7
   PopLocal             r9
   Push                 r4
-  LoadContextVar       1
+  LoadContextVar       0, 1
   Push                 r8
   Push                 r9
   InstanceCall         3, CP#15
@@ -2358,7 +2355,7 @@ L5:
   ReturnTOS
 L1:
   Push                 r4
-  LoadContextVar       6
+  LoadContextVar       0, 6
   PopLocal             r4
   Jump                 L6
 
@@ -2398,7 +2395,7 @@ L1:
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

@@ -24,8 +24,7 @@ class DisassemblyFormatter {
   virtual ~DisassemblyFormatter() {}
 
   // Consume the decoded instruction at the given pc.
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -43,8 +42,7 @@ class DisassembleToStdout : public DisassemblyFormatter {
   DisassembleToStdout() : DisassemblyFormatter() {}
   ~DisassembleToStdout() {}
 
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -65,8 +63,7 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
       : DisassemblyFormatter(), jsarr_(jsarr) {}
   ~DisassembleToJSONStream() {}
 
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -81,7 +78,7 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
   DISALLOW_COPY_AND_ASSIGN(DisassembleToJSONStream);
 };
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 // Basic disassembly formatter that outputs the disassembled instruction
 // to a memory buffer. This is only intended for test writing.
 class DisassembleToMemory : public DisassemblyFormatter {
@@ -93,8 +90,7 @@ class DisassembleToMemory : public DisassemblyFormatter {
         overflowed_(false) {}
   ~DisassembleToMemory() {}
 
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -130,7 +126,7 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end, const Code& code) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
@@ -140,7 +136,7 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter);
@@ -153,7 +149,7 @@ class Disassembler : public AllStatic {
                           uword end,
                           char* buffer,
                           uintptr_t buffer_size) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToMemory memory_formatter(buffer, buffer_size);
     LogBlock lb;
     Disassemble(start, end, &memory_formatter);

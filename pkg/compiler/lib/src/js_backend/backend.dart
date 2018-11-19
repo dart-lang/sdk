@@ -34,6 +34,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_builder.dart';
@@ -53,7 +54,6 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'inferred_data.dart';
 import 'interceptor_data.dart';
-import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'namer.dart';
 import 'native_data.dart';
 import 'no_such_method_registry.dart';
@@ -364,9 +364,6 @@ class JavaScriptBackend {
 
   KAllocatorAnalysis _allocatorResolutionAnalysis;
 
-  /// Codegen support for typed JavaScript interop.
-  JsInteropAnalysis jsInteropAnalysis;
-
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -410,7 +407,6 @@ class JavaScriptBackend {
     _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    jsInteropAnalysis = new JsInteropAnalysis(this);
 
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());

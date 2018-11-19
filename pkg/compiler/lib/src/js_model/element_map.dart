@@ -187,7 +187,7 @@ abstract class KernelToTypeInferenceMap {
       ir.PropertySet write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
-  AbstractValue typeOfListLiteral(MemberEntity owner,
+  AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of iterator in [forInStatement].

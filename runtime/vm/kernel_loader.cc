@@ -321,6 +321,7 @@ void KernelLoader::InitializeFields() {
   const ExternalTypedData& metadata_payloads = ExternalTypedData::Handle(
       Z, reader.ExternalDataFromTo(program_->metadata_payloads_offset(),
                                    program_->metadata_mappings_offset()));
+  ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
 
   // Create view of metadata mappings.
   const ExternalTypedData& metadata_mappings = ExternalTypedData::Handle(
@@ -588,20 +589,12 @@ void KernelLoader::LoadNativeExtensionLibraries(
 
       if (uri_path.IsNull()) continue;
 
-      Dart_LibraryTagHandler handler = I->library_tag_handler();
-      if (handler == NULL) {
+      if (!I->HasTagHandler()) {
         H.ReportError("no library handler registered.");
       }
 
       I->BlockClassFinalization();
-      {
-        TransitionVMToNative transition(thread_);
-        Api::Scope api_scope(thread_);
-        Dart_Handle retval = handler(Dart_kImportExtensionTag,
-                                     Api::NewHandle(thread_, library.raw()),
-                                     Api::NewHandle(thread_, uri_path.raw()));
-        result = Api::UnwrapHandle(retval);
-      }
+      result = I->CallTagHandler(Dart_kImportExtensionTag, library, uri_path);
       I->UnblockClassFinalization();
 
       if (result.IsError()) {
@@ -1235,34 +1228,34 @@ void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
 void KernelLoader::LoadClass(const Library& library,
                              const Class& toplevel_class,
                              intptr_t class_end,
-                             Class* klass) {
+                             Class* out_class) {
   intptr_t class_offset = helper_.ReaderOffset();
   ClassIndex class_index(program_->kernel_data(), program_->kernel_data_size(),
                          class_offset, class_end - class_offset);
 
   ClassHelper class_helper(&helper_);
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
-  *klass = LookupClass(library, class_helper.canonical_name_);
-  klass->set_kernel_offset(class_offset - correction_offset_);
+  *out_class = LookupClass(library, class_helper.canonical_name_);
+  out_class->set_kernel_offset(class_offset - correction_offset_);
 
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
   // a script to detect test functions that should not be optimized.
-  if (klass->script() == Script::null()) {
+  if (out_class->script() == Script::null()) {
     class_helper.ReadUntilIncluding(ClassHelper::kSourceUriIndex);
     const Script& script =
         Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
-    klass->set_script(script);
+    out_class->set_script(script);
     FixCoreLibraryScriptUri(library, script);
   }
-  if (klass->token_pos() == TokenPosition::kNoSource) {
+  if (out_class->token_pos() == TokenPosition::kNoSource) {
     class_helper.ReadUntilIncluding(ClassHelper::kStartPosition);
-    klass->set_token_pos(class_helper.start_position_);
+    out_class->set_token_pos(class_helper.start_position_);
   }
 
   class_helper.ReadUntilIncluding(ClassHelper::kFlags);
   if (class_helper.is_enum_class()) {
-    klass->set_is_enum_class();
+    out_class->set_is_enum_class();
   }
 
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
@@ -1275,26 +1268,25 @@ void KernelLoader::LoadClass(const Library& library,
                       &is_potential_native_unused, &has_pragma_annotation);
   }
   if (has_pragma_annotation) {
-    klass->set_has_pragma(true);
+    out_class->set_has_pragma(true);
   }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
       helper_.ReadListLength();  // read type_parameters list length.
 
-  ActiveClassScope active_class_scope(&active_class_, klass);
-  if (!klass->is_cycle_free()) {
+  ActiveClassScope active_class_scope(&active_class_, out_class);
+  if (!out_class->is_cycle_free()) {
     LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
-    for (intptr_t i = 0; i < type_parameter_counts; ++i) {
-      helper_.SkipStringReference();  // read ith name index.
-      helper_.SkipDartType();         // read ith bound.
-    }
+    // do not use type parameters with cycle_free
+    ASSERT(type_parameter_counts == 0);
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 
   if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
-    library.AddClassMetadata(*klass, toplevel_class, TokenPosition::kNoSource,
+    library.AddClassMetadata(*out_class, toplevel_class,
+                             TokenPosition::kNoSource,
                              class_offset - correction_offset_);
   }
 
@@ -1305,7 +1297,7 @@ void KernelLoader::LoadClass(const Library& library,
       library.raw() != expression_evaluation_library_.raw();
 
   if (loading_native_wrappers_library_ || !register_class) {
-    FinishClassLoading(*klass, library, toplevel_class, class_offset,
+    FinishClassLoading(*out_class, library, toplevel_class, class_offset,
                        class_index, &class_helper);
   }
 

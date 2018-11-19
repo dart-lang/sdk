@@ -23,25 +23,25 @@ class ObjectSink extends AbstractDataSink {
   }
 
   @override
-  void _writeEnum(dynamic value) {
+  void _writeEnumInternal(dynamic value) {
     assert(value != null);
     _data.add(value);
   }
 
   @override
-  void _writeInt(int value) {
+  void _writeIntInternal(int value) {
     assert(value != null);
     _data.add(value);
   }
 
   @override
-  void _writeString(String value) {
+  void _writeStringInternal(String value) {
     assert(value != null);
     _data.add(value);
   }
 
   @override
-  void _writeUri(Uri value) {
+  void _writeUriInternal(Uri value) {
     assert(value != null);
     _data.add(value);
   }
@@ -50,4 +50,8 @@ class ObjectSink extends AbstractDataSink {
   void close() {
     _data = null;
   }
+
+  /// Returns the number of objects written to this data sink.
+  @override
+  int get length => _data.length;
 }

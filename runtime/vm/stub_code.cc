@@ -55,16 +55,28 @@ void StubCode::Cleanup() {
 #else
 
 #define STUB_CODE_GENERATE(name)                                               \
-  code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
+  code ^= Generate("_stub_" #name, &object_pool_wrapper,                       \
+                   StubCode::Generate##name##Stub);                            \
   entries_[k##name##Index] = new StubEntry(code);
 
+#define STUB_CODE_SET_OBJECT_POOL(name)                                        \
+  code = entries_[k##name##Index]->code();                                     \
+  code.set_object_pool(object_pool.raw());
+
 void StubCode::Init() {
+  ObjectPoolWrapper object_pool_wrapper;
+
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
+
+  const ObjectPool& object_pool =
+      ObjectPool::Handle(object_pool_wrapper.MakeObjectPool());
+  VM_STUB_CODE_LIST(STUB_CODE_SET_OBJECT_POOL)
 }
 
 #undef STUB_CODE_GENERATE
+#undef STUB_CODE_SET_OBJECT_POOL
 
 #define STUB_CODE_CLEANUP(name)                                                \
   delete entries_[k##name##Index];                                             \
@@ -77,12 +89,13 @@ void StubCode::Cleanup() {
 #undef STUB_CODE_CLEANUP
 
 RawCode* StubCode::Generate(const char* name,
+                            ObjectPoolWrapper* object_pool_wrapper,
                             void (*GenerateStub)(Assembler* assembler)) {
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  Assembler assembler(object_pool_wrapper);
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(
-      Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
+      /*optimized=*/false));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -91,7 +104,9 @@ RawCode* StubCode::Generate(const char* name,
     code.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
   return code.raw();
@@ -169,8 +184,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
-      stub ^=
-          Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */);
+      stub ^= Code::FinalizeCode(name, nullptr, &assembler,
+                                 Code::PoolAttachment::kAttachPool,
+                                 /*optimized1*/ false);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
@@ -195,6 +211,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;
         stub ^= Code::FinalizeCode(name, nullptr, &assembler,
+                                   Code::PoolAttachment::kAttachPool,
                                    false /* optimized */);
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
@@ -212,7 +229,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       stub.Disassemble(&formatter);
       THR_Print("}\n");
       const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-      object_pool.DebugPrint();
+      if (!object_pool.IsNull()) {
+        object_pool.DebugPrint();
+      }
     }
 #endif  // !PRODUCT
   }
@@ -231,8 +250,9 @@ RawCode* StubCode::GetBuildMethodExtractorStub() {
   StubCode::GenerateBuildMethodExtractorStub(&assembler);
 
   const char* name = "BuildMethodExtractor";
-  const Code& stub = Code::Handle(
-      Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */));
+  const Code& stub = Code::Handle(Code::FinalizeCode(
+      name, nullptr, &assembler, Code::PoolAttachment::kAttachPool,
+      /*optimized=*/false));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -241,7 +261,9 @@ RawCode* StubCode::GetBuildMethodExtractorStub() {
     stub.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
   return stub.raw();

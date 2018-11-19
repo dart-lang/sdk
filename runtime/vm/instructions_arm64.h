@@ -148,6 +148,66 @@ class ReturnPattern : public ValueObject {
   const uword pc_;
 };
 
+class PcRelativeCallPattern : public ValueObject {
+ public:
+  explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeImm26BranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeImm26BranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
+};
+
+class PcRelativeJumpPattern : public ValueObject {
+ public:
+  explicit PcRelativeJumpPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeImm26BranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeImm26BranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_INSTRUCTIONS_ARM64_H_

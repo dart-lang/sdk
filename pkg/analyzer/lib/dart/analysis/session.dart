@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,6 +24,11 @@ import 'package:analyzer/src/generated/source.dart';
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class AnalysisSession {
+  /**
+   * The declared environment variables.
+   */
+  DeclaredVariables get declaredVariables;
+
   /**
    * Return the [ResourceProvider] that is used to access the file system.
    */

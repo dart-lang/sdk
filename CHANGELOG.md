@@ -1,59 +1,342 @@
-# 2.1.0-dev.9.4
+## 2.2.0-dev.0.0
 
-Cherry-pick e23acaaf90996b84548ea23af14730ff1a21d826 to dev
+### Dart for the Web
 
-Cherry-pick e6d3a45b6a98ea36581ac375ec5cdd63dd829004 to dev
+#### dart2js
 
-Cherry-pick a40fd6a976d3d3bc341cd2e0f7fb290b7819a52a to dev
+* The `--categories=*` flag is being replaced. `--categories=all` was only used
+  for testing and it is no longer supported. `--categories=Server` continues to
+  work at this time but it is deprecated, please use `--server-mode` instead.
 
-Cherry-pick 9eb1d748819530bb3eb2f78699e0968de8b638fe to dev
+## 2.1.0 - 2018-11-15
 
-# 2.1.0-dev.9.3
+This is a minor version release. The team's focus was mostly on improving
+performance and stability after the large changes in Dart 2.0.0. Notable
+changes:
 
-Cherry-pick 65951ef5080bcfa7d8862685e96f75c2c5d17841 to dev
+*   We've introduced a dedicated syntax for declaring a mixin. Instead of the
+    `class` keyword, it uses `mixin`:
 
-Cherry-pick 6004c8a1876731e65104cf88f46af01bfe8c24c4 to dev
+    ```dart
+    mixin SetMixin<E> implements Set<E> {
+      ...
+    }
+    ```
 
-## 2.1.0-dev.9.2
+    The new syntax also enables `super` calls inside mixins.
 
-Cherry-pick 2cf0ca381ce33d1e6597c778eb1a915eecdac109 to dev
+*   Integer literals now work in double contexts. When passing a literal number
+    to a function that expects a `double`, you no longer need an explicit `.0`
+    at the end of the number. In releases before 2.1, you need code like this
+    when setting a double like `fontSize`:
 
-Cherry-pick c7e6cdf81ca2f6113cc132d85d5f73a9441d3643 to dev
+    ```dart
+    TextStyle(fontSize: 18.0)
+    ```
 
-Cherry-pick a6518386520af63764ad40dde3b53e5e160b9bff to dev
+    Now you can remove the `.0`:
 
-Cherry-pick 2085277771bb91d488edb6e6e55552ba7116dd72 to dev
+    ```dart
+    TextStyle(fontSize: 18)
+    ```
 
-Cherry-pick 0fd4a51e2c805aec79d4d0e42f446f5395c6113a to dev
+    In releases before 2.1, `fontSize : 18` causes a static error. This was a
+    common mistake and source of friction.
 
-Cherry-pick be815e1a867d302ad2fbc8db8d7467cfe85319d2 to dev
+*   **Breaking change:** A number of static errors that should have been
+    detected and reported were not supported in 2.0.0. These are reported now,
+    which means existing incorrect code may show new errors.
 
-Cherry-pick 61df5fdec81be4f8f04c18a774147856931ebbb9 to dev
+*   `dart:core` now exports `Future` and `Stream`. You no longer need to import
+    `dart:async` to use those very common types.
 
-Cherry-pick d8d68358498c83127e26ad1796359146772decad to dev
+### Language
 
-Cherry-pick 9c95624a6307f09f1cdc49054bdd08125acb6f53 to dev
+*   Introduced a new syntax for mixin declarations.
 
-Cherry-pick cde479301a81f9fbaec3fb007457a4ec8e5a65a7 to dev
+    ```dart
+    mixin SetMixin<E> implements Set<E> {
+      ...
+    }
+    ```
 
-## 2.1.0-dev.9.1
+    Most classes that are intended to be used as mixins are intended to *only*
+    be used as mixins. The library author doesn't want users to be able to
+    construct or subclass the class. The new syntax makes that intent clear and
+    enforces it in the type system. It is an error to extend or construct a type
+    declared using `mixin`. (You can implement it since mixins expose an
+    implicit interface.)
 
-Cherry-pick commit 0fe448a99643e149acb2e7e32d7a30eba7dd646d to update the analysis server edit.dartfix protocol.
+    Over time, we expect most mixin declarations to use the new syntax. However,
+    if you have a "mixin" class where users *are* extending or constructing it,
+    note that moving it to the new syntax is a breaking API change since it
+    prevents users from doing that. If you have a type like this that is a
+    mixin as well as being a concrete class and/or superclass, then the existing
+    syntax is what you want.
 
-Cherry-pick commit 45d070d437bb1b596516edd3717e6ee614c5f9ac to update linter to version 0.1.71.
+    If you need to use a `super` inside a mixin, the new syntax is required.
+    This was previously only allowed with the experimental `--supermixins` flag
+    because it has some complex interactions with the type system. The new
+    syntax addresses those issues and lets you use `super` calls by declaring
+    the superclass constraint your mixin requires:
 
-Cherry-pick commit 00f27a32cf52834b3e9e1f52889b6f1c83ad338c to fix usage of mixins in dart dev compiler.
+    ```dart
+    class Superclass {
+      superclassMethod() {
+        print("in superclass");
+      }
+    }
 
-Cherry-pick commit 523353d28017fced825581ea327509c620eed67e to fix the ARM 32-bit build.
+    mixin SomeMixin on Superclass {
+      mixinMethod() {
+        // This is OK:
+        super.superclassMethod();
+      }
+    }
 
-Cherry-pick commit db4271378f56a66528a87f2f920c678162d59a35 to fix an
-issue with coverage
+    class GoodSub extends Superclass with SomeMixin {}
 
-## 2.1.0-dev.9.0
+    class BadSub extends Object with SomeMixin {}
+    // Error: Since the super() call in mixinMethod() can't find a
+    // superclassMethod() to call, this is prohibited.
+    ```
 
-## 2.1.0-dev.8.0
+    Even if you don't need to use `super` calls, the new mixin syntax is good
+    because it clearly expresses that you intend the type to be mixed in.
+
+*   Allow integer literals to be used in double contexts. An integer literal
+    used in a place where a double is required is now interpreted as a double
+    value. The numerical value of the literal needs to be precisely
+    representable as a double value.
+
+*   Integer literals compiled to JavaScript are now allowed to have any value
+    that can be exactly represented as a JavaScript `Number`. They were
+    previously limited to such numbers that were also representable as signed
+    64-bit integers.
+
+**(Breaking)** A number of static errors that should have been detected and
+reported were not supported in 2.0.0. These are reported now, which means
+existing incorrect code may show new errors:
+
+*   **Setters with the same name as the enclosing class aren't allowed.** (Issue
+    [34225][].) It is not allowed to have a class member with the same name as
+    the enclosing class:
+
+    ```dart
+    class A {
+      set A(int x) {}
+    }
+    ```
+
+    Dart 2.0.0 incorrectly allows this for setters (only). Dart 2.1.0 rejects
+    it.
+
+    *To fix:* This is unlikely to break anything, since it violates all style
+    guides anyway.
+
+*   **Constant constructors cannot redirect to non-constant constructors.**
+    (Issue [34161][].) It is not allowed to have a constant constructor that
+    redirects to a non-constant constructor:
+
+    ```dart
+    class A {
+      const A.foo() : this(); // Redirecting to A()
+      A() {}
+    }
+    ```
+
+    Dart 2.0.0 incorrectly allows this. Dart 2.1.0 rejects it.
+
+    *To fix:* Make the target of the redirection a properly const constructor.
+
+*   **Abstract methods may not unsoundly override a concrete method.** (Issue
+    [32014][].) Concrete methods must be valid implementations of their
+    interfaces:
+
+    ```dart
+    class A {
+      num get thing => 2.0;
+    }
+
+    abstract class B implements A {
+      int get thing;
+    }
+
+    class C extends A with B {}
+    // 'thing' from 'A' is not a valid override of 'thing' from 'B'.
+
+    main() {
+      print(new C().thing.isEven); // Expects an int but gets a double.
+    }
+    ```
+
+    Dart 2.0.0 allows unsound overrides like the above in some cases. Dart 2.1.0
+    rejects them.
+
+    *To fix:* Relax the type of the invalid override, or tighten the type of the
+    overridden method.
+
+*   **Classes can't implement FutureOr.** (Issue [33744][].) Dart doesn't allow
+    classes to implement the FutureOr type:
+
+    ```dart
+    class A implements FutureOr<Object> {}
+    ```
+
+    Dart 2.0.0 allows classes to implement FutureOr. Dart 2.1.0 does not.
+
+    *To fix:* Don't do this.
+
+*   **Type arguments to generic typedefs must satisfy their bounds.** (Issue
+    [33308][].) If a parameterized typedef specifies a bound, actual arguments
+    must be checked against it:
+
+    ```dart
+    class A<X extends int> {}
+
+    typedef F<Y extends int> = A<Y> Function();
+
+    F<num> f = null;
+    ```
+
+    Dart 2.0.0 allows bounds violations like `F<num>` above. Dart 2.1.0 rejects
+    them.
+
+    *To fix:* Either remove the bound on the typedef parameter, or pass a valid
+    argument to the typedef.
+
+*   **Constructor invocations must use valid syntax, even with optional `new`.**
+    (Issue [34403][].) Type arguments to generic named constructors go after the
+    class name, not the constructor name, even when used without an explicit
+    `new`:
+
+    ```dart
+    class A<T> {
+      A.foo() {}
+    }
+
+    main() {
+      A.foo<String>(); // Incorrect syntax, was accepted in 2.0.0.
+      A<String>.foo(); // Correct syntax.
+    }
+    ```
+
+    Dart 2.0.0 accepts the incorrect syntax when the `new` keyword is left out.
+    Dart 2.1.0 correctly rejects this code.
+
+    *To fix:* Move the type argument to the correct position after the class
+    name.
+
+*   **Instance members should shadow prefixes.** (Issue [34498][].) If the same
+    name is used as an import prefix and as a class member name, then the class
+    member name takes precedence in the class scope.
+
+    ```dart
+    import 'dart:core';
+    import 'dart:core' as core;
+
+    class A {
+      core.List get core => null; // "core" refers to field, not prefix.
+    }
+    ```
+
+    Dart 2.0.0 incorrectly resolves the use of `core` in `core.List` to the
+    prefix name. Dart 2.1.0 correctly resolves this to the field name.
+
+    *To fix:* Change the prefix name to something which does not clash with the
+    instance member.
+
+*   **Implicit type arguments in extends clauses must satisfy the class
+    bounds.** (Issue [34532][].) Implicit type arguments for generic classes are
+    computed if not passed explicitly, but when used in an `extends` clause they
+    must be checked for validity:
+
+    ```dart
+    class Foo<T> {}
+
+    class Bar<T extends Foo<T>> {}
+
+    class Baz extends Bar {} // Should error because Bar completes to Bar<Foo>
+    ```
+
+    Dart 2.0.0 accepts the broken code above. Dart 2.1.0 rejects it.
+
+    *To fix:* Provide explicit type arguments to the superclass that satisfy the
+    bound for the superclass.
+
+*   **Mixins must correctly override their superclasses.** (Issue [34235][].) In
+    some rare cases, combinations of uses of mixins could result in invalid
+    overrides not being caught:
+
+    ```dart
+    class A {
+      num get thing => 2.0;
+    }
+
+    class M1 {
+      int get thing => 2;
+    }
+
+    class B = A with M1;
+
+    class M2 {
+      num get thing => 2.0;
+    }
+
+    class C extends B with M2 {} // 'thing' from 'M2' not a valid override.
+
+    main() {
+      M1 a = new C();
+      print(a.thing.isEven); // Expects an int but gets a double.
+    }
+    ```
+
+    Dart 2.0.0 accepts the above example. Dart 2.1.0 rejects it.
+
+    *To fix:* Ensure that overriding methods are correct overrides of their
+    superclasses, either by relaxing the superclass type, or tightening the
+    subclass/mixin type.
+
+[32014]: https://github.com/dart-lang/sdk/issues/32014
+[33308]: https://github.com/dart-lang/sdk/issues/33308
+[33744]: https://github.com/dart-lang/sdk/issues/33744
+[34161]: https://github.com/dart-lang/sdk/issues/34161
+[34225]: https://github.com/dart-lang/sdk/issues/34225
+[34235]: https://github.com/dart-lang/sdk/issues/34235
+[34403]: https://github.com/dart-lang/sdk/issues/34403
+[34498]: https://github.com/dart-lang/sdk/issues/34498
+[34532]: https://github.com/dart-lang/sdk/issues/34532
+
+### Core libraries
+
+#### `dart:async`
+
+*   Fixed a bug where calling `stream.take(0).drain(value)` would not correctly
+    forward the `value` through the returned `Future`.
+*   Added a `StreamTransformer.fromBind` constructor.
+*   Updated `Stream.fromIterable` to send a done event after the error when the
+    iterator's `moveNext` throws, and handle if the `current` getter throws
+    (issue [33431][]).
+
+[33431]: http://dartbug.com/33431
+
+#### `dart:core`
+
+*   Added `HashMap.fromEntries` and `LinkedHashmap.fromEntries` constructors.
+*   Added `ArgumentError.checkNotNull` utility method.
+*   Made `Uri` parsing more permissive about `[` and `]` occurring in the path,
+    query or fragment, and `#` occurring in fragment.
+*   Exported `Future` and `Stream` from `dart:core`.
+*   Added operators `&`, `|` and `^` to `bool`.
+*   Added missing methods to `UnmodifiableMapMixin`. Some maps intended to
+    be unmodifiable incorrectly allowed new methods added in Dart 2 to
+    succeed.
+*   Deprecated the `provisional` annotation and the `Provisional`
+    annotation class. These should have been removed before releasing Dart 2.0,
+    and they have no effect.
 
 #### `dart:html`
+
 Fixed Service Workers and any Promise/Future API with a Dictionary parameter.
 
 APIs in dart:html (that take a Dictionary) will receive a Dart Map parameter.
@@ -65,321 +348,135 @@ Future - now it does.
 This caused a number of breaks especially in Service Workers (register, etc.).
 Here is a complete list of the fixed APIs:
 
-* BackgroundFetchManager
-  * `Future<BackgroundFetchRegistration> fetch(String id, Object requests, [Map options])`
+*   BackgroundFetchManager
+    *   `Future<BackgroundFetchRegistration> fetch(String id, Object requests,
+        [Map options])`
+*   CacheStorage
+    *   `Future match(/*RequestInfo*/ request, [Map options])`
+*   CanMakePayment
+    *   `Future<List<Client>> matchAll([Map options])`
+*   CookieStore
+    *   `Future getAll([Map options])`
+    *   `Future set(String name, String value, [Map options])`
+*   CredentialsContainer
+    *   `Future get([Map options])`
+    *   `Future create([Map options])`
+*   ImageCapture
+    *   `Future setOptions(Map photoSettings)`
+*   MediaCapabilities
+    *   `Future<MediaCapabilitiesInfo> decodingInfo(Map configuration)`
+    *   `Future<MediaCapabilitiesInfo> encodingInfo(Map configuration)`
+*   MediaStreamTrack
+    *   `Future applyConstraints([Map constraints])`
+*   Navigator
+    *   `Future requestKeyboardLock([List<String> keyCodes])`
+    *   `Future requestMidiAccess([Map options])`
+    *   `Future share([Map data])`
+*   OffscreenCanvas
+    *   `Future<Blob> convertToBlob([Map options])`
+*   PaymentInstruments
+    *   `Future set(String instrumentKey, Map details)`
+*   Permissions
+    *   `Future<PermissionStatus> query(Map permission)`
+    *   `Future<PermissionStatus> request(Map permissions)`
+    *   `Future<PermissionStatus> revoke(Map permission)`
+*   PushManager
+    *   `Future permissionState([Map options])`
+    *   `Future<PushSubscription> subscribe([Map options])`
+*   RtcPeerConnection
+    *   Changed:
 
-* CacheStorage
-  * `Future match(/*RequestInfo*/ request, [Map options])`
+        ```dart
+        Future createAnswer([options_OR_successCallback,
+            RtcPeerConnectionErrorCallback failureCallback,
+            Map mediaConstraints])
+        ```
 
-* CanMakePayment
-  * `Future<List<Client>> matchAll([Map options])`
+        to:
 
-* CookieStore
-  * `Future getAll([Map options])`
-  * `Future set(String name, String value, [Map options])`
+        ```dart
+        Future<RtcSessionDescription> createAnswer([Map options])
+        ```
 
-* CredentialsContainer
-  * `Future get([Map options])`
-  * `Future create([Map options])`
+    *   Changed:
 
-* ImageCapture
-  * `Future setOptions(Map photoSettings)`
+        ```dart
+        Future createOffer([options_OR_successCallback,
+            RtcPeerConnectionErrorCallback failureCallback,
+            Map rtcOfferOptions])
+        ```
 
-* MediaCapabilities
-  * `Future<MediaCapabilitiesInfo> decodingInfo(Map configuration)`
-  * `Future<MediaCapabilitiesInfo> encodingInfo(Map configuration)`
+        to:
 
-* MediaStreamTrack
-  * `Future applyConstraints([Map constraints])`
+        ```dart
+        Future<RtcSessionDescription> createOffer([Map options])
+        ```
 
-* Navigator
-  * `Future requestKeyboardLock([List<String> keyCodes])`
-  * `Future requestMidiAccess([Map options])`
-  * `Future share([Map data])`
+    *   Changed:
 
-* OffscreenCanvas
-  * `Future<Blob> convertToBlob([Map options])`
+        ```dart
+        Future setLocalDescription(Map description,
+            VoidCallback successCallback,
+            [RtcPeerConnectionErrorCallback failureCallback])
+        ```
 
-* PaymentInstruments
-  * `Future set(String instrumentKey, Map details)`
+        to:
 
-* Permissions
-  * `Future<PermissionStatus> query(Map permission)`
-  * `Future<PermissionStatus> request(Map permissions)`
-  * `Future<PermissionStatus> revoke(Map permission)`
+        ```dart
+        Future setLocalDescription(Map description)
+        ```
 
-* PushManager
-  * `Future permissionState([Map options])`
-  * `Future<PushSubscription> subscribe([Map options])`
+    *   Changed:
 
-* RtcPeerConnection
-  * **CHANGED**
+        ```dart
+        Future setLocalDescription(Map description,
+            VoidCallback successCallback,
+            [RtcPeerConnectionErrorCallback failureCallback])
+        ```
 
-    ```dart
-    Future createAnswer([options_OR_successCallback,
-                         RtcPeerConnectionErrorCallback failureCallback,
-                         Map mediaConstraints])
-    ```
+        to:
 
-    to
+        ```dart
+        Future setRemoteDescription(Map description)
+        ```
 
-    `Future<RtcSessionDescription> createAnswer([Map options])`
-
-  * **CHANGED**
-
-    ```dart
-    Future createOffer([options_OR_successCallback,
-                        RtcPeerConnectionErrorCallback failureCallback,
-                        Map rtcOfferOptions])
-    ```
-
-    to
-
-    `Future<RtcSessionDescription> createOffer([Map options])`
-
-  * **CHANGED**
-
-    ```dart
-    Future setLocalDescription(Map description, VoidCallback successCallback,
-                               [RtcPeerConnectionErrorCallback failureCallback])
-    ```
-
-    to
-
-    `Future setLocalDescription(Map description)`
-  * **CHANGED**
-
-    ```dart
-    Future setLocalDescription(Map description, VoidCallback successCallback,
-                               [RtcPeerConnectionErrorCallback failureCallback])
-    ```
-
-    to
-
-    `Future setRemoteDescription(Map description)`
-
-* ServiceWorkerContainer
-  * `Future<ServiceWorkerRegistration> register(String url, [Map options])`
-
-* ServiceWorkerRegistration
-  * `Future<List<Notification>> getNotifications([Map filter])`
-  * `Future showNotification(String title, [Map options])`
-
-* VRDevice
-  * `Future requestSession([Map options])`
-  * `Future supportsSession([Map options])`
-
-* VRSession
-  * `Future requestFrameOfReference(String type, [Map options])`
-
-* Window
-  * `Future fetch(/*RequestInfo*/ input, [Map init])`
-
-* WorkerGlobalScope
-  * `Future fetch(/*RequestInfo*/ input, [Map init])`
+*   ServiceWorkerContainer
+    *   `Future<ServiceWorkerRegistration> register(String url, [Map options])`
+*   ServiceWorkerRegistration
+    *   `Future<List<Notification>> getNotifications([Map filter])`
+    *   `Future showNotification(String title, [Map options])`
+*   VRDevice
+    *   `Future requestSession([Map options])`
+    *   `Future supportsSession([Map options])`
+*   VRSession
+    *   `Future requestFrameOfReference(String type, [Map options])`
+*   Window
+    *   `Future fetch(/*RequestInfo*/ input, [Map init])`
+*   WorkerGlobalScope
+    *   `Future fetch(/*RequestInfo*/ input, [Map init])`
 
 In addition, exposed Service Worker "self" as a static getter named "instance".
 The instance is exposed on four different Service Worker classes and can throw
 a InstanceTypeError if the instance isn't of the class expected
 (WorkerGlobalScope.instance will always work and not throw):
 
-*   SharedWorkerGlobalScope.instance
-*   DedicatedWorkerGlobalScope.instance
-*   ServiceWorkerGlobalScope.instance
-*   WorkerGlobalScope.instance
+*   `SharedWorkerGlobalScope.instance`
+*   `DedicatedWorkerGlobalScope.instance`
+*   `ServiceWorkerGlobalScope.instance`
+*   `WorkerGlobalScope.instance`
 
-### Language
+#### `dart:io`
 
-*   Allow integer literals to be used in double contexts.
-    An integer literal used in a place where a double is required is now
-    interpreted as a double value. The numerical value of the literal needs
-    to be precisely representable as a double value.
+*   Added new HTTP status codes.
 
-*   Integer literals compiled to JavaScript are now allowed to have any
-    value that can be exactly represented as a JavaScript `Number`.
-    They were previously limited to such numbers that were also representable
-    as signed 64-bit integers.
-
-### Core library changes
-
-*   Add `HashMap.fromEntries` and `LinkedHashmap.fromEntries` constructors.
-*   Add `ArgumentError.checkNotNull` utility method.
-
-### Tool Changes
-
-#### Linter
-
-Bumped the linter to `0.1.70` which includes the following new lints:
-
-* `avoid_returning_null_for_void`
-* `sort_pub_dependencies`
-* `prefer_mixin`
-* `avoid_implementing_value_types`
-* `flutter_style_todos`
-* `avoid_void_async`
-* `prefer_void_to_null`
-
-and improvements:
-
-* fix NPE in `prefer_iterable_whereType`
-* improved message display for `await_only_futures`
-* performance improvements for `null_closures`
-* mixin support
-* update to `sort_constructors_first` to apply to all members
-* update `unnecessary_this` to work on field initializers
-* updated `unawaited_futures` to ignore assignments within cascades
-* improved handling of constant expressions with generic type params
-* NPE fix for `invariant_booleans`
-* improved docs for `unawaited_futures`
-* `unawaited_futures` updated to check cascades
-* relaxed `void_checks` (allowing `T Function()` to be assigned to `void Function()`)
-* fixed false positives in `lines_longer_than_80_chars`
+### Dart for the Web
 
 #### dart2js
 
-*   Breaking change: duplicate keys in a const map are not allowed and produce a
-    compile-time error.  Dart2js used to report this as a warning before. Note
-    this is already an error in dartanalyzer and DDC and will be an error in
-    other tools in the future as well.
-
-## 2.1.0-dev.7.1
-
-* Cherry-pick 6b67cd784bbd13d5b6127cba44281a879fa7275c to dev
-
-## 2.1.0-dev.7.0
-
-### Language
-
-*   Fixed a bug (issue [32014](http://dartbug.com/32014)) that caused invalid
-    implementations of the interface of a class to not be reported in some cases.
-    For instance, the following code would not produce a compile-time error:
-
-    ```dart
-    class A {
-      num get thing => 2.0;
-    }
-
-    abstract class B implements A {
-      int get thing;
-    }
-
-    class C extends A with B {} // 'thing' from 'A' is not a valid override of 'thing' from 'B'.
-
-    main() {
-      print(new C().thing.isEven); // Expects an int but gets a double.
-    }
-    ```
-
-*   Fixed a bug (issue [34235](http://dartbug.com/34235)) that caused invalid
-    overrides between a mixin member and an overridden member in the superclass
-    of the mixin application to not be reported. For instance, the following
-    code would not produce a compile-time error:
-
-    ```dart
-    class A {
-      int get thing => 2;
-    }
-
-    class B {
-      num get thing => 2.0;
-    }
-
-    class C extends A with B {} // 'thing' from 'B' is not a valid override of 'thing' from 'A'.
-
-    main() {
-      A a = new C();
-      print(a.thing.isEven); // Expects an int but gets a double.
-    }
-    ```
-
-### Core library changes
-
-#### `dart:core`
-
-*   Made `Uri` parsing more permissive about `[` and `]` occurring
-    in the path, query or fragment, and `#` occurring in fragment.
-
-## 2.1.0-dev.6.0
-
-## 2.1.0-dev.5.0
-
-### Core library changes
-
-#### `dart:core`
-
-*   Exported `Future` and `Stream` from `dart:core`.
-*   Added operators `&`, `|` and `^` to `bool`.
-
-#### `dart:async`
-
-*   Fix a bug where calling `stream.take(0).drain(value)` would not correctly
-    forward the `value` through the returned `Future`.
-*   Add a `StreamTransformer.fromBind` constructor.
-
-## 2.1.0-dev.4.0
-
-### Core library changes
-
-#### `dart:core`
-
-*   Added missing methods to `UnmodifiableMapMixin`. Some maps intended to
-    be unmodifiable incorrectly allowed new methods added in Dart 2 to
-    succeed.
-
-## 2.1.0-dev.3.1
-
-### Tool Changes
-
-#### dartanalyzer
-
-* Fix a bug in analyzer by cherry-picking commit
-  bd9645abad40d14c8cd9197dfb5c9cc45b20e9d6
-
-## 2.1.0-dev.3.0
-
-### Core library changes
-
-#### `dart:async`
-
-*   Update `Stream.fromIterable` to send a done event after the error when the
-    iterator's `moveNext` throws, and handle if the `current` getter throws.
-    Issue [33431](http://dartbug.com/33431).
-
-## 2.1.0-dev.2.0
-
-### Tool Changes
-
-#### dartfmt
-
-*   Upgrade to an intermediate version of dartfmt.
-*   Address several dartfmt issues when used with the new CFE parser.
-
-### Core library changes
-
-#### `dart:core`:
-
-*   Deprecated the `provisional` annotation and the `Provisional`
-    annotation class. These should have been removed before releasing Dart 2.0,
-    and they have no effect.
-
-## 2.1.0-dev.1.0
-
-### Tool Changes
-
-#### Pub
-
-* Rename the `--checked` flag to `pub run` to `--enable-asserts`.
-
-## 2.1.0-dev.0.0
-
-### Tool Changes
-
-#### Pub
-
-*   Pub will no longer delete directories named "packages".
-*   The `--packages-dir` flag is now ignored.
-
-#### dart2js
+*   **(Breaking)** Duplicate keys in a const map are not allowed and produce a
+    compile-time error. Dart2js used to report this as a warning before. This
+    was already an error in dartanalyzer and DDC and will be an error in other
+    tools in the future as well.
 
 *   Added `-O` flag to tune optimization levels.  For more details run `dart2js
     -h -v`.
@@ -391,6 +488,47 @@ and improvements:
 
     At this time we recommend to test and debug with `-O1` and to deploy with
     `-O3`.
+
+### Tool Changes
+
+#### dartfmt
+
+*   Addressed several dartfmt issues when used with the new CFE parser.
+
+#### Linter
+
+Bumped the linter to `0.1.70` which includes the following new lints:
+
+*   `avoid_returning_null_for_void`
+*   `sort_pub_dependencies`
+*   `prefer_mixin`
+*   `avoid_implementing_value_types`
+*   `flutter_style_todos`
+*   `avoid_void_async`
+*   `prefer_void_to_null`
+
+and improvements:
+
+*   Fixed NPE in `prefer_iterable_whereType`.
+*   Improved message display for `await_only_futures`
+*   Performance improvements for `null_closures`
+*   Mixin support
+*   Updated `sort_constructors_first` to apply to all members.
+*   Updated `unnecessary_this` to work on field initializers.
+*   Updated `unawaited_futures` to ignore assignments within cascades.
+*   Improved handling of constant expressions with generic type params.
+*   NPE fix for `invariant_booleans`.
+*   Improved docs for `unawaited_futures`.
+*   Updated `unawaited_futures` to check cascades.
+*   Relaxed `void_checks` (allowing `T Function()` to be assigned to
+    `void Function()`).
+*   Fixed false positives in `lines_longer_than_80_chars`.
+
+#### Pub
+
+*   Renamed the `--checked` flag to `pub run` to `--enable-asserts`.
+*   Pub will no longer delete directories named "packages".
+*   The `--packages-dir` flag is now ignored.
 
 ## 2.0.0 - 2018-08-07
 

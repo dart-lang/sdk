@@ -36,12 +36,12 @@ import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -260,7 +260,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
               initialTargetElement, _functionNodeOf(definition.node));
           break;
       }
-      assert(graph.isValid());
+      assert(graph.isValid(), "Invalid graph for $initialTargetElement.");
 
       if (backend.tracer.isEnabled) {
         MemberEntity member = initialTargetElement;
@@ -1149,7 +1149,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void _handleParameter(ir.VariableDeclaration variable) {
       Local local = localsMap.getLocalVariable(variable);
       if (nodeIsConstructorBody &&
-          closureDataLookup.getCapturedScope(targetElement).isBoxed(local)) {
+          closureDataLookup
+              .getCapturedScope(targetElement)
+              .isBoxedVariable(local)) {
         // If local is boxed, then `variable` will be a field inside the box
         // passed as the last parameter, so no need to update our locals
         // handler or check types at this point.
@@ -1370,7 +1372,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
     ImportEntity import = _elementMap.getImport(checkLoad.import);
-    String loadId = deferredLoadTask.getImportDeferName(
+    String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, checkLoad), import);
     HInstruction prefixConstant = graph.addConstantString(loadId, closedWorld);
     HInstruction uriConstant =
@@ -1386,7 +1388,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
-    String loadId = deferredLoadTask.getImportDeferName(
+    String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!
@@ -2594,7 +2596,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           new SubGraph(defaultCase, defaultCase)));
     }
     assert(caseHandlers.length == joinBlock.predecessors.length);
-    if (caseHandlers.length != 0) {
+    if (caseHandlers.isNotEmpty) {
       graph.addBlock(joinBlock);
       open(joinBlock);
       if (caseHandlers.length == 1) {
@@ -2738,8 +2740,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           listInstruction, type, sourceInformation);
     }
 
-    AbstractValue type = _typeInferenceMap.typeOfListLiteral(
-        targetElement, node, abstractValueDomain);
+    AbstractValue type =
+        _typeInferenceMap.typeOfListLiteral(node, abstractValueDomain);
     if (!abstractValueDomain.containsAll(type)) {
       listInstruction.instructionType = type;
     }
@@ -3369,13 +3371,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         function == commonElements.jsArrayTypedConstructor;
 
     _inferredTypeOfNewList(ir.StaticInvocation node) {
-      MemberEntity element = sourceElement is ConstructorBodyEntity
-          ? (sourceElement as ConstructorBodyEntity).constructor
-          : sourceElement;
-
-      return globalInferenceResults
-              .resultOfMember(element)
-              .typeOfNewList(node) ??
+      return globalInferenceResults.typeOfNewList(node) ??
           abstractValueDomain.dynamicType;
     }
 
@@ -5325,7 +5321,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     bool hasBox = false;
     forEachOrderedParameter(closedWorld.globalLocalsMap, _elementMap, function,
         (Local parameter) {
-      if (forGenerativeConstructorBody && scopeData.isBoxed(parameter)) {
+      if (forGenerativeConstructorBody &&
+          scopeData.isBoxedVariable(parameter)) {
         // The parameter will be a field in the box passed as the last
         // parameter. So no need to have it.
         hasBox = true;

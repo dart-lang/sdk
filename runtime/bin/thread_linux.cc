@@ -152,10 +152,6 @@ bool Thread::Compare(ThreadId a, ThreadId b) {
   return (pthread_equal(a, b) != 0);
 }
 
-void Thread::InitOnce() {
-  // Nothing to be done.
-}
-
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);

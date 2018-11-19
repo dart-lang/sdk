@@ -23,7 +23,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
-import 'universe/world_builder.dart' show CodegenWorldBuilder;
+import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'world.dart' show JClosedWorld;
@@ -353,7 +353,8 @@ class ElementInfoCollector {
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, backend.emitter.emitter.generatedSize(outputUnit));
-      info.imports.addAll(compiler.deferredLoadTask.getImportNames(outputUnit));
+      info.imports
+          .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
       result.outputUnits.add(info);
       return info;
     });
@@ -613,7 +614,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
+    result.deferredFiles = closedWorld.outputUnitData
+        .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);
     stopwatch.stop();
 
     result.program = new ProgramInfo(

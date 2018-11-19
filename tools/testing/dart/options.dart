@@ -263,6 +263,11 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         'located at the debug_output_directory.',
         hide: true),
     new _Option.bool(
+        'write_logs',
+        'Include the stdout and stderr of tests that don\'t match expectations '
+        'in the "${TestUtils.logsFileName}" file',
+        hide: true),
+    new _Option.bool(
         'reset_browser_configuration',
         '''Browser specific reset of configuration.
 
@@ -351,6 +356,7 @@ compiler.''',
     'tasks',
     'time',
     'verbose',
+    'write_logs',
     'write_debug_log',
     'write_test_outcome_log',
     'write_result_log',
@@ -686,6 +692,7 @@ compiler.''',
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,
                 writeResults: data["write_results"] as bool,
+                writeLogs: data["write_logs"] as bool,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,

@@ -173,13 +173,19 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     // ignore reusePort - not supported on this platform.
     Log::PrintErr(
         "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
-        "Windows." __FILE__,
-        __LINE__);
+        "Windows.",
+        __FILE__, __LINE__);
   }
 
-  status = setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL,
-                      reinterpret_cast<const char*>(&ttl), sizeof(ttl));
-  if (status == SOCKET_ERROR) {
+  // Can't use SocketBase::SetMulticastHops here - we'd need to create
+  // the DatagramSocket object and reinterpret_cast it here, just for that
+  // method to reinterpret_cast it again.
+  int ttlValue = ttl;
+  int ttlLevel = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int ttlOptname =
+      addr.addr.sa_family == AF_INET ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
+  if (setsockopt(s, ttlLevel, ttlOptname, reinterpret_cast<char*>(&ttlValue),
+                 sizeof(ttlValue)) != 0) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
     SetLastError(rc);
@@ -196,6 +202,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
 
   DatagramSocket* datagram_socket = new DatagramSocket(s);
   datagram_socket->EnsureInitialized(EventHandler::delegate());
+
   return reinterpret_cast<intptr_t>(datagram_socket);
 }
 

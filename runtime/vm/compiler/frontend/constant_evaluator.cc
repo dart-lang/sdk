@@ -43,6 +43,8 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                    bool reset_position) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -164,6 +166,8 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
 Instance& ConstantEvaluator::EvaluateListLiteral(intptr_t offset,
                                                  bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -181,6 +185,8 @@ Instance& ConstantEvaluator::EvaluateListLiteral(intptr_t offset,
 Instance& ConstantEvaluator::EvaluateMapLiteral(intptr_t offset,
                                                 bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -199,6 +205,8 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
     intptr_t offset,
     bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -216,6 +224,8 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
 Instance& ConstantEvaluator::EvaluateStaticInvocation(intptr_t offset,
                                                       bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    BailoutIfBackgroundCompilation();
+
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = helper_->ReaderOffset();
     helper_->SetOffset(offset);
@@ -244,6 +254,8 @@ RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
 }
 
 RawObject* ConstantEvaluator::EvaluateAnnotations() {
+  BailoutIfBackgroundCompilation();
+
   intptr_t list_length = helper_->ReadListLength();  // read list length.
   const Array& metadata_values =
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
@@ -255,6 +267,13 @@ RawObject* ConstantEvaluator::EvaluateAnnotations() {
     metadata_values.SetAt(i, value);
   }
   return metadata_values.raw();
+}
+
+void ConstantEvaluator::BailoutIfBackgroundCompilation() {
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(
+        DeoptId::kNone, "Cannot evaluate annotations in background compiler.");
+  }
 }
 
 bool ConstantEvaluator::IsBuildingFlowGraph() const {
@@ -777,6 +796,12 @@ void ConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // read type arguments.
   intptr_t num_type_args = helper_->ReadListLength();
   const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
+  if (!type_args->IsNull() && !type_args->IsInstantiated()) {
+    H.ReportError(
+        script_, TokenPosition::kNoSource,
+        "Type arguments in partial instantiations must be instantiated and are "
+        "therefore not allowed to depend on type parameters.");
+  }
 
   // Create new closure with the type arguments inserted, and other things
   // copied over.

@@ -10,8 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -24,8 +26,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2320,6 +2320,50 @@ class B<T extends A<B>> {}
 
     driver.addFile(a);
     await waitForIdleWithoutExceptions();
+  }
+
+  test_isLibraryByUri() async {
+    var a1 = _p('/aaa/lib/a1.dart');
+    var a2 = _p('/aaa/lib/a2.dart');
+    var b1 = _p('/bbb/lib/b1.dart');
+    var b2 = _p('/bbb/lib/b2.dart');
+
+    String a1UriStr = 'package:aaa/a1.dart';
+    String a2UriStr = 'package:aaa/a2.dart';
+    String b1UriStr = 'package:bbb/b1.dart';
+    String b2UriStr = 'package:bbb/b2.dart';
+
+    provider.newFile(a1, "part 'a2.dart';");
+    provider.newFile(a2, "part of 'a1.dart';");
+    provider.newFile(b1, "part 'b2.dart';");
+    provider.newFile(b2, "part of 'b1.dart';");
+
+    // Build the store with the library.
+    var store = await createAnalysisDriver().test.getSummaryStore(a1);
+    expect(store.unlinkedMap.keys, contains(a1UriStr));
+    expect(store.unlinkedMap.keys, contains(a2UriStr));
+    expect(store.linkedMap.keys, contains(a1UriStr));
+
+    // Remove the stored files from the file system.
+    provider.deleteFile(a1);
+    provider.deleteFile(a2);
+
+    // We can ask isLibraryByUri() for both external and local units.
+    AnalysisDriver driver = createAnalysisDriver(externalSummaries: store);
+    expect(driver.isLibraryByUri(Uri.parse(a1UriStr)), isTrue);
+    expect(driver.isLibraryByUri(Uri.parse(a2UriStr)), isFalse);
+    expect(driver.isLibraryByUri(Uri.parse(b1UriStr)), isTrue);
+    expect(driver.isLibraryByUri(Uri.parse(b2UriStr)), isFalse);
+  }
+
+  test_isLibraryByUri_doesNotExist() async {
+    var uri = Uri.parse('file:///test.dart');
+    expect(driver.isLibraryByUri(uri), isTrue);
+  }
+
+  test_isLibraryByUri_invalidUri() async {
+    var uri = Uri.parse('package:aaa');
+    expect(driver.isLibraryByUri(uri), isTrue);
   }
 
   test_issue34619() async {

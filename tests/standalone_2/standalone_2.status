@@ -123,7 +123,6 @@ io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
-io/socket_upgrade_to_secure_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError

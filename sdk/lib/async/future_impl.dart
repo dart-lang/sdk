@@ -68,7 +68,7 @@ class _FutureListener<S, T> {
   static const int stateCatcherrorTest = maskError | maskTestError;
   static const int stateWhencomplete = maskWhencomplete;
   // Listeners on the same future are linked through this link.
-  _FutureListener _nextListener = null;
+  _FutureListener _nextListener;
   // The future to complete when this listener is activated.
   final _Future<T> result;
   // Which fields means what.
@@ -84,14 +84,11 @@ class _FutureListener<S, T> {
         errorCallback = errorCallback,
         state = (errorCallback == null) ? stateThen : stateThenOnerror;
 
-  _FutureListener.catchError(
-      this.result, this.errorCallback, _FutureErrorTest test)
-      : callback = test,
-        state = (test == null) ? stateCatcherror : stateCatcherrorTest;
+  _FutureListener.catchError(this.result, this.errorCallback, this.callback)
+      : state = (callback == null) ? stateCatcherror : stateCatcherrorTest;
 
-  _FutureListener.whenComplete(this.result, _FutureAction onComplete)
-      : callback = onComplete,
-        errorCallback = null,
+  _FutureListener.whenComplete(this.result, this.callback)
+      : errorCallback = null,
         state = stateWhencomplete;
 
   Zone get _zone => result._zone;
@@ -395,7 +392,7 @@ class _Future<T> implements Future<T> {
   }
 
   _FutureListener _reverseListeners(_FutureListener listeners) {
-    _FutureListener prev = null;
+    _FutureListener prev;
     _FutureListener current = listeners;
     while (current != null) {
       _FutureListener next = current._nextListener;
@@ -429,7 +426,7 @@ class _Future<T> implements Future<T> {
           // and dependent on the listeners of the target future. If none of
           // the target future's listeners want to have the stack trace we don't
           // need a trace.
-          onError: (error, [stackTrace]) {
+          onError: (error, [StackTrace stackTrace]) {
         assert(target._isPendingComplete);
         target._completeError(error, stackTrace);
       });
@@ -739,7 +736,7 @@ class _Future<T> implements Future<T> {
         timer.cancel();
         result._completeWithValue(v);
       }
-    }, onError: (e, s) {
+    }, onError: (e, StackTrace s) {
       if (timer.isActive) {
         timer.cancel();
         result._completeError(e, s);

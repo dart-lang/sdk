@@ -10,9 +10,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/universe/codegen_world_builder.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -215,7 +215,7 @@ class ClosureIrChecker extends IrDataExtractor {
     } else {
       //Expect.isFalse(capturedScope.localIsUsedInTryOrSync(local));
     }
-    if (capturedScope.isBoxed(local)) {
+    if (capturedScope.isBoxedVariable(local)) {
       features.add('boxed');
     }
     if (capturedScope.context == local) {

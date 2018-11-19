@@ -167,16 +167,19 @@ void Service::CancelStream(const char* stream_id) {
 
 RawObject* Service::RequestAssets() {
   Thread* T = Thread::Current();
-  TransitionVMToNative transition(T);
-  Api::Scope api_scope(T);
-  if (get_service_assets_callback_ == NULL) {
-    return Object::null();
+  Object& object = Object::Handle();
+  {
+    Api::Scope api_scope(T);
+    TransitionVMToNative transition(T);
+    if (get_service_assets_callback_ == NULL) {
+      return Object::null();
+    }
+    Dart_Handle handle = get_service_assets_callback_();
+    if (Dart_IsError(handle)) {
+      Dart_PropagateError(handle);
+    }
+    object = Api::UnwrapHandle(handle);
   }
-  Dart_Handle handle = get_service_assets_callback_();
-  if (Dart_IsError(handle)) {
-    Dart_PropagateError(handle);
-  }
-  const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   if (object.IsNull()) {
     return Object::null();
   }
@@ -197,7 +200,7 @@ RawObject* Service::RequestAssets() {
     Exceptions::PropagateError(error);
     return Object::null();
   }
-  return Api::UnwrapHandle(handle);
+  return object.raw();
 }
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
@@ -1327,6 +1330,42 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_scripts_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetScripts(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  ASSERT(isolate != NULL);
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  intptr_t num_libs = libs.Length();
+
+  Library& lib = Library::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  Script& script = Script::Handle(zone);
+
+  JSONObject jsobj(js);
+  {
+    jsobj.AddProperty("type", "ScriptList");
+    JSONArray script_array(&jsobj, "scripts");
+    for (intptr_t i = 0; i < num_libs; i++) {
+      lib ^= libs.At(i);
+      ASSERT(!lib.IsNull());
+      scripts ^= lib.LoadedScripts();
+      for (intptr_t j = 0; j < scripts.Length(); j++) {
+        script ^= scripts.At(j);
+        ASSERT(!script.IsNull());
+        script_array.AddValue(script);
+      }
+    }
+  }
+  return true;
+}
+
 static const MethodParameter* get_unused_changes_in_last_reload_params[] = {
     ISOLATE_PARAMETER, NULL,
 };
@@ -1824,6 +1863,10 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
   Code& code = Code::Handle(Code::FindCode(pc, timestamp));
   if (!code.IsNull()) {
     return code.raw();
+  }
+  Bytecode& bytecode = Bytecode::Handle(Bytecode::FindCode(pc));
+  if (!bytecode.IsNull()) {
+    return bytecode.raw();
   }
 
   // Not found.
@@ -2362,7 +2405,6 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= receiver.raw();
-
     const Object& result =
         Object::Handle(zone, instance.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
@@ -2490,76 +2532,12 @@ static bool BuildScope(Thread* thread,
 }
 
 static bool Evaluate(Thread* thread, JSONStream* js) {
-  if (CheckDebuggerDisabled(thread, js)) {
-    return true;
-  }
-
-  const char* target_id = js->LookupParam("targetId");
-  if (target_id == NULL) {
-    PrintMissingParamError(js, "targetId");
-    return true;
-  }
-  const char* expr = js->LookupParam("expression");
-  if (expr == NULL) {
-    PrintMissingParamError(js, "expression");
-    return true;
-  }
-
-  Zone* zone = thread->zone();
-  const GrowableObjectArray& names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  const GrowableObjectArray& values =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  if (BuildScope(thread, js, names, values)) {
-    return true;
-  }
-  const Array& names_array = Array::Handle(zone, Array::MakeFixedLength(names));
-  const Array& values_array =
-      Array::Handle(zone, Array::MakeFixedLength(values));
-
-  const String& expr_str = String::Handle(zone, String::New(expr));
-  ObjectIdRing::LookupResult lookup_result;
-  Object& obj =
-      Object::Handle(zone, LookupHeapObject(thread, target_id, &lookup_result));
-  if (obj.raw() == Object::sentinel().raw()) {
-    if (lookup_result == ObjectIdRing::kCollected) {
-      PrintSentinel(js, kCollectedSentinel);
-    } else if (lookup_result == ObjectIdRing::kExpired) {
-      PrintSentinel(js, kExpiredSentinel);
-    } else {
-      PrintInvalidParamError(js, "targetId");
-    }
-    return true;
-  }
-  if (obj.IsLibrary()) {
-    const Library& lib = Library::Cast(obj);
-    const Object& result =
-        Object::Handle(zone, lib.Evaluate(expr_str, names_array, values_array));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
-    const Object& result =
-        Object::Handle(zone, cls.Evaluate(expr_str, names_array, values_array));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  if ((obj.IsInstance() || obj.IsNull()) && !ContainsNonInstance(obj)) {
-    // We don't use Instance::Cast here because it doesn't allow null.
-    Instance& instance = Instance::Handle(zone);
-    instance ^= obj.raw();
-    const Class& receiver_cls = Class::Handle(zone, instance.clazz());
-    const Object& result = Object::Handle(
-        zone,
-        instance.Evaluate(receiver_cls, expr_str, names_array, values_array));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "Cannot evaluate against a VM-internal object",
-                 js->method());
+  // If a compilation service is available, this RPC invocation will have been
+  // intercepted by RunningIsolates.routeRequest.
+  js->PrintError(
+      kExpressionCompilationError,
+      "%s: No compilation service available; cannot evaluate from source.",
+      js->method());
   return true;
 }
 
@@ -2769,7 +2747,6 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
 
   bool is_static = BoolParameter::Parse(js->LookupParam("isStatic"), false);
 
-  Dart_KernelCompilationResult compilation_result;
   const GrowableObjectArray& params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
   if (!ParseCSVList(js->LookupParam("definitions"), params)) {
@@ -2784,14 +2761,12 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  {
-    TransitionVMToNative transition(thread);
-    compilation_result = KernelIsolate::CompileExpressionToKernel(
-        js->LookupParam("expression"),
-        Array::Handle(Array::MakeFixedLength(params)),
-        Array::Handle(Array::MakeFixedLength(type_params)),
-        js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
-  }
+  Dart_KernelCompilationResult compilation_result =
+      KernelIsolate::CompileExpressionToKernel(
+          js->LookupParam("expression"),
+          Array::Handle(Array::MakeFixedLength(params)),
+          Array::Handle(Array::MakeFixedLength(type_params)),
+          js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
@@ -2941,34 +2916,12 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 };
 
 static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
-  if (CheckDebuggerDisabled(thread, js)) {
-    return true;
-  }
-
-  Isolate* isolate = thread->isolate();
-  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
-  if (framePos >= stack->Length()) {
-    PrintInvalidParamError(js, "frameIndex");
-    return true;
-  }
-  ActivationFrame* frame = stack->FrameAt(framePos);
-
-  Zone* zone = thread->zone();
-  const GrowableObjectArray& names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  const GrowableObjectArray& values =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  if (BuildScope(thread, js, names, values)) {
-    return true;
-  }
-
-  const char* expr = js->LookupParam("expression");
-  const String& expr_str = String::Handle(zone, String::New(expr));
-
-  const Object& result =
-      Object::Handle(zone, frame->Evaluate(expr_str, names, values));
-  result.PrintJSON(js, true);
+  // If a compilation service is available, this RPC invocation will have been
+  // intercepted by RunningIsolates.routeRequest.
+  js->PrintError(
+      kExpressionCompilationError,
+      "%s: No compilation service available; cannot evaluate from source.",
+      js->method());
   return true;
 }
 
@@ -3157,8 +3110,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   }
 
   Isolate* isolate = thread->isolate();
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler == NULL) {
+  if (!isolate->HasTagHandler()) {
     js->PrintError(kFeatureDisabled,
                    "A library tag handler must be installed.");
     return true;
@@ -4832,6 +4784,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
+  { "getScripts", GetScripts,
+    get_scripts_params },
   { "getSourceReport", GetSourceReport,
     get_source_report_params },
   { "getStack", GetStack,

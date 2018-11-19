@@ -48,11 +48,21 @@ class AotCallSpecializer : public CallSpecializer {
   bool IsSupportedIntOperandForStaticDoubleOp(CompileType* operand_type);
   Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
 
-  Value* PrepareReceiverOfDevirtualizedCall(Value* input, intptr_t cid);
+  CompileType BuildStrengthenedReceiverType(Value* input, intptr_t cid);
 
   bool TryOptimizeInstanceCallUsingStaticTypes(InstanceCallInstr* instr);
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
+
+  // Try to replace a call with a more specialized instruction working on
+  // integers (e.g. BinaryInt64OpInstr, CheckedSmiComparisonInstr,
+  // RelationalOpInstr)
+  bool TryOptimizeIntegerOperation(TemplateDartCall<0>* call, Token::Kind kind);
+
+  // Try to replace a call with a more specialized instruction working on
+  // doubles (e.g. BinaryDoubleOpInstr, CheckedSmiComparisonInstr,
+  // RelationalOpInstr)
+  bool TryOptimizeDoubleOperation(TemplateDartCall<0>* call, Token::Kind kind);
 
   // Check if o.m(...) [call] is actually an invocation through a getter
   // o.get:m().call(...) given that the receiver of the call is a subclass
