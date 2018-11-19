@@ -20,14 +20,14 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
     : writer_(buf_size),
-#ifndef PRODUCT
       default_id_zone_(),
       id_zone_(&default_id_zone_),
-#endif  // !PRODUCT
       reply_port_(ILLEGAL_PORT),
       seq_(NULL),
       parameter_keys_(NULL),
@@ -38,14 +38,12 @@ JSONStream::JSONStream(intptr_t buf_size)
       num_params_(0),
       offset_(0),
       count_(-1) {
-#ifndef PRODUCT
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
     ring = isolate->object_id_ring();
   }
   default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
-#endif  // !PRODUCT
 }
 
 void JSONStream::Setup(Zone* zone,
@@ -310,30 +308,9 @@ void JSONStream::PrintfValue(const char* format, ...) {
   va_end(args);
 }
 
-#ifndef PRODUCT
 void JSONStream::PrintValue(const Object& o, bool ref) {
   PrintCommaIfNeeded();
   o.PrintJSON(this, ref);
-}
-
-void JSONStream::PrintValue(Metric* metric) {
-  PrintCommaIfNeeded();
-  metric->PrintJSON(this);
-}
-
-void JSONStream::PrintValue(Isolate* isolate, bool ref) {
-  PrintCommaIfNeeded();
-  isolate->PrintJSON(this, ref);
-}
-
-void JSONStream::PrintValue(ThreadRegistry* reg) {
-  PrintCommaIfNeeded();
-  reg->PrintJSON(this);
-}
-
-void JSONStream::PrintValue(Thread* thread) {
-  PrintCommaIfNeeded();
-  thread->PrintJSON(this);
 }
 
 void JSONStream::PrintValue(Breakpoint* bpt) {
@@ -351,9 +328,29 @@ void JSONStream::PrintValue(const ServiceEvent* event) {
   event->PrintJSON(this);
 }
 
+void JSONStream::PrintValue(Metric* metric) {
+  PrintCommaIfNeeded();
+  metric->PrintJSON(this);
+}
+
 void JSONStream::PrintValue(MessageQueue* queue) {
   PrintCommaIfNeeded();
   queue->PrintJSON(this);
+}
+
+void JSONStream::PrintValue(Isolate* isolate, bool ref) {
+  PrintCommaIfNeeded();
+  isolate->PrintJSON(this, ref);
+}
+
+void JSONStream::PrintValue(ThreadRegistry* reg) {
+  PrintCommaIfNeeded();
+  reg->PrintJSON(this);
+}
+
+void JSONStream::PrintValue(Thread* thread) {
+  PrintCommaIfNeeded();
+  thread->PrintJSON(this);
 }
 
 void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
@@ -366,15 +363,14 @@ void JSONStream::PrintValue(const TimelineEventBlock* timeline_event_block) {
   timeline_event_block->PrintJSON(this);
 }
 
-void JSONStream::PrintServiceId(const Object& o) {
-  ASSERT(id_zone_ != NULL);
-  PrintProperty("id", id_zone_->GetServiceId(o));
-}
-#endif  // !PRODUCT
-
 void JSONStream::PrintValueVM(bool ref) {
   PrintCommaIfNeeded();
   Service::PrintJSONForVM(this, ref);
+}
+
+void JSONStream::PrintServiceId(const Object& o) {
+  ASSERT(id_zone_ != NULL);
+  PrintProperty("id", id_zone_->GetServiceId(o));
 }
 
 void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
@@ -570,5 +566,7 @@ void JSONArray::AddValueF(const char* format, ...) const {
   stream_->VPrintfValue(format, args);
   va_end(args);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

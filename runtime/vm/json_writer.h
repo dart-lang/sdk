@@ -74,8 +74,6 @@ class JSONWriter : ValueObject {
 
   void PrintPropertyName(const char* name);
 
-  void PrintNewline();
-
   void AddEscapedUTF8String(const char* s);
   void AddEscapedUTF8String(const char* s, intptr_t len);
 

@@ -4440,7 +4440,6 @@ class Instructions : public Object {
   friend class Code;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
-  friend class ImageWriter;
 };
 
 class LocalVarDescriptors : public Object {
