@@ -50,6 +50,21 @@ Future<Result> runDartBinary(String prefix, List<String> arguments) async {
   final processResult = await Process.run(binary, actualArguments);
   final result = new Result(
       '[$prefix] ${binary} ${actualArguments.join(' ')}', processResult);
+
+  if (processResult.stdout.isNotEmpty) {
+    print('''
+
+Command stdout:
+${processResult.stdout}''');
+  }
+
+  if (processResult.stderr.isNotEmpty) {
+    print('''
+
+Command stderr:
+${processResult.stderr}''');
+  }
+
   if (result.processResult.exitCode != 0) {
     reportError(result,
         '[$prefix] Process finished with non-zero exit code ${result.processResult.exitCode}');
@@ -68,6 +83,7 @@ Future<Null> checkDeterministicSnapshot(
 
     final generate1Result = await runDartBinary('GENERATE SNAPSHOT 1', [
       '--deterministic',
+      '--dump_tables',
       '--snapshot=$snapshot1Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -77,6 +93,7 @@ Future<Null> checkDeterministicSnapshot(
 
     final generate2Result = await runDartBinary('GENERATE SNAPSHOT 2', [
       '--deterministic',
+      '--dump_tables',
       '--snapshot=$snapshot2Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),

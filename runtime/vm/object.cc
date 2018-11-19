@@ -22815,4 +22815,19 @@ const char* UserTag::ToCString() const {
   return tag_label.ToCString();
 }
 
+void DumpTypeTable(Isolate* isolate) {
+  OS::PrintErr("canonical types:\n");
+  CanonicalTypeSet table(isolate->object_store()->canonical_types());
+  table.Dump();
+  table.Release();
+}
+
+void DumpTypeArgumentsTable(Isolate* isolate) {
+  OS::PrintErr("canonical type arguments:\n");
+  CanonicalTypeArgumentsSet table(
+      isolate->object_store()->canonical_type_arguments());
+  table.Dump();
+  table.Release();
+}
+
 }  // namespace dart

@@ -674,6 +674,7 @@ class Symbols : public AllStatic {
   }
 
   static void DumpStats(Isolate* isolate);
+  static void DumpTable(Isolate* isolate);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>

@@ -9714,6 +9714,9 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                            TypeArguments,
                                                            TypeArguments>>;
 
+void DumpTypeTable(Isolate* isolate);
+void DumpTypeArgumentsTable(Isolate* isolate);
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_OBJECT_H_
