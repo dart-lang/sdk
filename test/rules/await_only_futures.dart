@@ -29,10 +29,6 @@ class CancellableFuture<T> implements Future<T> {
     throw new Exception('Not supported.');
   }
 
-  @override
-  Future then(onValue(T value), {Function onError}) {
-    throw new Exception('Not supported.');
-  }
 
   @override
   Future<T> timeout(Duration timeLimit, {onTimeout()}) {
@@ -41,6 +37,11 @@ class CancellableFuture<T> implements Future<T> {
 
   @override
   Future<T> whenComplete(action()) {
+    throw new Exception('Not supported.');
+  }
+
+  @override
+  Future<R> then<R>(FutureOr<R> Function(T value) onValue, {Function onError}) {
     throw new Exception('Not supported.');
   }
 }

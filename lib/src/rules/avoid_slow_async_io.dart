@@ -26,7 +26,6 @@ much slower than their synchronous counterparts.
 
 **BAD:**
 ```
-import 'dart:async';
 import 'dart:io';
 
 Future<Null> someFunction() async {
@@ -38,7 +37,6 @@ Future<Null> someFunction() async {
 
 **GOOD:**
 ```
-import 'dart:async';
 import 'dart:io';
 
 Future<Null> someFunction() async {
