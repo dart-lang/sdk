@@ -251,7 +251,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
  * Instances of the class `AstValidator` are used to validate the correct construction of an
  * AST structure.
  */
-class AstValidator extends UnifyingAstVisitor<Object> {
+class AstValidator extends UnifyingAstVisitor<void> {
   /**
    * A list containing the errors found while traversing the AST structure.
    */
@@ -274,9 +274,9 @@ class AstValidator extends UnifyingAstVisitor<Object> {
   }
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     _validate(node);
-    return super.visitNode(node);
+    super.visitNode(node);
   }
 
   /**

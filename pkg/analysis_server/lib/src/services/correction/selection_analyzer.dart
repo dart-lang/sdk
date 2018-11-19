@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /**
  * A visitor for visiting [AstNode]s covered by a selection [SourceRange].
  */
-class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
+class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
   final SourceRange selection;
 
   AstNode _coveringNode;
@@ -101,7 +101,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     SourceRange nodeRange = range.node(node);
     if (selection.covers(nodeRange)) {
       if (isFirstNode) {
@@ -109,21 +109,20 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
       } else {
         handleNextSelectedNode(node);
       }
-      return null;
+      return;
     } else if (selection.coveredBy(nodeRange)) {
       _coveringNode = node;
       node.visitChildren(this);
-      return null;
+      return;
     } else if (selection.startsIn(nodeRange)) {
       handleSelectionStartsIn(node);
       node.visitChildren(this);
-      return null;
+      return;
     } else if (selection.endsIn(nodeRange)) {
       handleSelectionEndsIn(node);
       node.visitChildren(this);
-      return null;
+      return;
     }
     // no intersection
-    return null;
   }
 }

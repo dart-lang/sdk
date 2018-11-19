@@ -1681,7 +1681,7 @@ class B {
 }
 
 class _SimpleResolverTest_localVariable_types_invoked
-    extends RecursiveAstVisitor<Object> {
+    extends RecursiveAstVisitor<void> {
   final SimpleResolverTest test;
 
   List<bool> found;
@@ -1693,7 +1693,7 @@ class _SimpleResolverTest_localVariable_types_invoked
       : super();
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "myVar" && node.parent is MethodInvocation) {
       try {
         found[0] = true;
@@ -1708,6 +1708,5 @@ class _SimpleResolverTest_localVariable_types_invoked
         thrownException[0] = new CaughtException(e, stackTrace);
       }
     }
-    return null;
   }
 }

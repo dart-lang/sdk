@@ -39,7 +39,7 @@ import 'test_support.dart';
  * An AST visitor used to verify that all of the nodes in an AST structure that
  * should have been resolved were resolved.
  */
-class ResolutionVerifier extends RecursiveAstVisitor<Object> {
+class ResolutionVerifier extends RecursiveAstVisitor<void> {
   /**
    * A set containing nodes that are known to not be resolvable and should
    * therefore not cause the test to fail.
@@ -89,7 +89,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     node.visitChildren(this);
     ElementAnnotation elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
@@ -99,154 +99,153 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     } else if (elementAnnotation is! ElementAnnotation) {
       _wrongTypedNodes.add(node);
     }
-    return null;
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
-      return null;
+      return;
     }
     DartType operandType = node.leftOperand.staticType;
     if (operandType == null || operandType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitCommentReference(CommentReference node) => null;
+  void visitCommentReference(CommentReference node) {}
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
-    return _checkResolved(
+    _checkResolved(
         node, node.declaredElement, (node) => node is CompilationUnitElement);
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) =>
-      _checkResolved(node, node.element, (node) => node is ExportElement);
+  void visitExportDirective(ExportDirective node) {
+    _checkResolved(node, node.element, (node) => node is ExportElement);
+  }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
     if (node.declaredElement is LibraryElement) {
       _wrongTypedNodes.add(node);
     }
-    return null;
   }
 
   @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
     // TODO(brianwilkerson) If we start resolving function expressions, then
     // conditionally check to see whether the node was resolved correctly.
-    return null;
     //checkResolved(node, node.getElement(), FunctionElement.class);
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the
     // names are not defined.
     _checkResolved(node, node.element, (node) => node is ImportElement);
     SimpleIdentifier prefix = node.prefix;
     if (prefix == null) {
-      return null;
+      return;
     }
-    return _checkResolved(
+    _checkResolved(
         prefix, prefix.staticElement, (node) => node is PrefixElement);
   }
 
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     DartType targetType = node.realTarget.staticType;
     if (targetType == null || targetType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) =>
-      _checkResolved(node, node.element, (node) => node is LibraryElement);
+  void visitLibraryDirective(LibraryDirective node) {
+    _checkResolved(node, node.element, (node) => node is LibraryElement);
+  }
 
   @override
-  Object visitNamedExpression(NamedExpression node) =>
-      node.expression.accept(this);
+  void visitNamedExpression(NamedExpression node) {
+    node.expression.accept(this);
+  }
 
   @override
-  Object visitPartDirective(PartDirective node) => _checkResolved(
-      node, node.element, (node) => node is CompilationUnitElement);
+  void visitPartDirective(PartDirective node) {
+    _checkResolved(
+        node, node.element, (node) => node is CompilationUnitElement);
+  }
 
   @override
-  Object visitPartOfDirective(PartOfDirective node) =>
-      _checkResolved(node, node.element, (node) => node is LibraryElement);
+  void visitPartOfDirective(PartOfDirective node) {
+    _checkResolved(node, node.element, (node) => node is LibraryElement);
+  }
 
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
-      return null;
+      return;
     }
     DartType operandType = node.operand.staticType;
     if (operandType == null || operandType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     prefix.accept(this);
     DartType prefixType = prefix.staticType;
     if (prefixType == null || prefixType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(node, node.staticElement, null);
+    _checkResolved(node, node.staticElement, null);
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
-      return null;
+      return;
     }
     DartType operandType = node.operand.staticType;
     if (operandType == null || operandType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     target.accept(this);
     DartType targetType = target.staticType;
     if (targetType == null || targetType.isDynamic) {
-      return null;
+      return;
     }
-    return node.propertyName.accept(this);
+    node.propertyName.accept(this);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
-      return null;
+      return;
     }
     if (resolutionMap.staticTypeForExpression(node) != null &&
         resolutionMap.staticTypeForExpression(node).isDynamic &&
         node.staticElement == null) {
-      return null;
+      return;
     }
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
@@ -255,14 +254,14 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
         Expression target = invocation.realTarget;
         DartType targetType = target == null ? null : target.staticType;
         if (targetType == null || targetType.isDynamic) {
-          return null;
+          return;
         }
       }
     }
-    return _checkResolved(node, node.staticElement, null);
+    _checkResolved(node, node.staticElement, null);
   }
 
-  Object _checkResolved(
+  void _checkResolved(
       AstNode node, Element element, Predicate<Element> predicate) {
     if (element == null) {
       if (_knownExceptions == null || !_knownExceptions.contains(node)) {
@@ -273,7 +272,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
         _wrongTypedNodes.add(node);
       }
     }
-    return null;
   }
 
   String _getFileName(AstNode node) {

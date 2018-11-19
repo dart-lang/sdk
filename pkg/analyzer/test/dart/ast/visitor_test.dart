@@ -40,7 +40,7 @@ A f(var p) {
 }''';
     CompilationUnit unit = parseCompilationUnit(source);
     List<AstNode> nodes = new List<AstNode>();
-    BreadthFirstVisitor<Object> visitor =
+    _BreadthFirstVisitorTestHelper visitor =
         new _BreadthFirstVisitorTestHelper(nodes);
     visitor.visitAllNodes(unit);
     expect(nodes, hasLength(59));
@@ -64,14 +64,14 @@ A f(var p) {
  * A helper class used to collect the nodes that were visited and to preserve
  * the order in which they were visited.
  */
-class _BreadthFirstVisitorTestHelper extends BreadthFirstVisitor<Object> {
+class _BreadthFirstVisitorTestHelper extends BreadthFirstVisitor<void> {
   List<AstNode> nodes;
 
   _BreadthFirstVisitorTestHelper(this.nodes) : super();
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     nodes.add(node);
-    return super.visitNode(node);
+    super.visitNode(node);
   }
 }

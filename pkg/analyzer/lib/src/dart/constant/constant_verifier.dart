@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// for additional errors and warnings not covered by the parser and resolver.
 /// In particular, it looks for errors and warnings related to constant
 /// expressions.
-class ConstantVerifier extends RecursiveAstVisitor<Object> {
+class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
 
@@ -71,7 +71,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
     // check annotation creation
     Element element = node.element;
@@ -80,14 +80,14 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       if (!element.isConst) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
-        return null;
+        return;
       }
       // should have arguments
       ArgumentList argumentList = node.arguments;
       if (argumentList == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
-        return null;
+        return;
       }
       // arguments should be constants
       _validateConstantArguments(argumentList);
@@ -99,28 +99,26 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
     }
-    return null;
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
       _validateConstructorInitializers(node);
       _validateFieldInitializers(node.parent as ClassDeclaration, node);
     }
     _validateDefaultValues(node.parameters);
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
-    return null;
   }
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       TypeName typeName = node.constructorName.type;
       _checkForConstWithTypeParameters(typeName);
@@ -138,14 +136,13 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             constantVisitor,
             _errorReporter);
       }
-      return null;
     } else {
-      return super.visitInstanceCreationExpression(node);
+      super.visitInstanceCreationExpression(node);
     }
   }
 
   @override
-  Object visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
       DartObjectImpl result;
@@ -160,11 +157,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitMapLiteral(MapLiteral node) {
+  void visitMapLiteral(MapLiteral node) {
     super.visitMapLiteral(node);
     bool isConst = node.isConst;
     bool reportEqualKeys = true;
@@ -227,18 +223,16 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
       }
     }
-    return null;
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
-    return null;
   }
 
   @override
-  Object visitSetLiteral(SetLiteral node) {
+  void visitSetLiteral(SetLiteral node) {
     super.visitSetLiteral(node);
     if (node.isConst) {
       DartObjectImpl result;
@@ -260,11 +254,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     // TODO(paulberry): to minimize error messages, it would be nice to
     // compare all types with the most popular type rather than the first
     // type.
@@ -300,11 +293,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     if (!foundError) {
       _checkForCaseExpressionTypeImplementsEquals(node, firstType);
     }
-    return super.visitSwitchStatement(node);
+    super.visitSwitchStatement(node);
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
@@ -316,7 +309,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         // values computed if the value was needed (e.g. final variables in a
         // class containing const constructors).
         assert(!node.isConst);
-        return null;
+        return;
       }
       _reportErrors(result.errors,
           CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
@@ -325,7 +318,6 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           CompileTimeErrorCode
               .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
-    return null;
   }
 
   /// This verifies that the passed switch statement does not have a case

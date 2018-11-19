@@ -83,7 +83,7 @@ import 'package:analyzer/src/task/strong/checker.dart';
  * combinators that are not defined in the imported library (which is not an
  * error).
  */
-class ElementResolver extends SimpleAstVisitor<Object> {
+class ElementResolver extends SimpleAstVisitor<void> {
   /**
    * The manager for the inheritance mappings.
    */
@@ -139,7 +139,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   @override
-  Object visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     Expression leftHandSide = node.leftHandSide;
@@ -152,7 +152,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         staticType.isVoid) {
       _recordUndefinedToken(
           null, StaticWarningCode.USE_OF_VOID_RESULT, operator, []);
-      return null;
+      return;
     }
 
     if (operatorType != TokenType.AMPERSAND_AMPERSAND_EQ &&
@@ -174,40 +174,35 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     if (operator.isUserDefinableOperator) {
       _resolveBinaryExpression(node, operator.lexeme);
     } else if (operator.type == TokenType.BANG_EQ) {
       _resolveBinaryExpression(node, TokenType.EQ_EQ.lexeme);
     }
-    return null;
   }
 
   @override
-  Object visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, false);
-    return null;
   }
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitCommentReference(CommentReference node) {
+  void visitCommentReference(CommentReference node) {
     Identifier identifier = node.identifier;
     if (identifier is SimpleIdentifier) {
       Element element = _resolveSimpleIdentifier(identifier);
@@ -247,7 +242,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           // TODO(brianwilkerson) Report this error?
           element = _resolver.nameScope.lookup(identifier, _definingLibrary);
           name.staticElement = element;
-          return null;
+          return;
         }
         LibraryElement library = element.library;
         if (library == null) {
@@ -291,11 +286,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ConstructorElement element = node.declaredElement;
     if (element is ConstructorElementImpl) {
@@ -315,20 +309,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       resolveMetadata(node);
     }
-    return null;
   }
 
   @override
-  Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.fieldName;
     ClassElement enclosingClass = _resolver.enclosingClass;
     FieldElement fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
-    return null;
   }
 
   @override
-  Object visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     DartType type = node.type.type;
     if (type != null && type.isDynamic) {
       // Nothing to do.
@@ -356,29 +348,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 //        // This is part of a redirecting factory constructor; not sure which error code to use
 //      }
     }
-    return null;
   }
 
   @override
-  Object visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(ContinueStatement node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, true);
-    return null;
   }
 
   @override
-  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(EnumDeclaration node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid
@@ -387,23 +375,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
       resolveMetadata(node);
     }
-    return null;
   }
 
   @override
-  Object visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
     _resolveMetadataForParameter(node);
-    return super.visitFieldFormalParameter(node);
+    super.visitFieldFormalParameter(node);
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression function = node.function;
     DartType staticInvokeType = _instantiateGenericMethod(
         function.staticType, node.typeArguments, node);
@@ -415,23 +401,20 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (parameters != null) {
       node.argumentList.correspondingStaticParameters = parameters;
     }
-    return null;
   }
 
   @override
-  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _resolveMetadataForParameter(node);
-    return null;
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     SimpleIdentifier prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
@@ -454,11 +437,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       resolveMetadata(node);
     }
-    return null;
   }
 
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
     DartType staticType = _getStaticType(target);
     String getterMethodName = TokenType.INDEX.lexeme;
@@ -503,11 +485,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       _checkForUndefinedIndexOperator(
           node, target, setterMethodName, staticMethod, staticType);
     }
-    return null;
   }
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
     node.staticElement = invokedConstructor;
     ArgumentList argumentList = node.argumentList;
@@ -518,41 +499,35 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
-    return null;
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     _methodInvocationResolver.resolve(node);
-    return null;
   }
 
   @override
-  Object visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     String methodName = _getPostfixOperator(node);
     DartType staticType = _getStaticType(operand);
@@ -573,11 +548,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             [methodName, staticType.displayName]);
       }
     }
-    return null;
   }
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     SimpleIdentifier identifier = node.identifier;
     //
@@ -587,7 +561,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         _isDeferredPrefix(prefix)) {
       LibraryElement importedLibrary = _getImportedLibrary(prefix);
       identifier.staticElement = importedLibrary?.loadLibraryFunction;
-      return null;
+      return;
     }
     //
     // Check to see whether the prefix is really a prefix.
@@ -603,7 +577,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         element = _resolver.nameScope.lookup(setterName, _definingLibrary);
       }
       if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
-        return null;
+        return;
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
@@ -611,7 +585,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               StaticTypeWarningCode.UNDEFINED_SETTER,
               identifier,
               [identifier.name, prefixElement.name]);
-          return null;
+          return;
         }
         AstNode parent = node.parent;
         if (parent is Annotation) {
@@ -625,7 +599,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               identifier,
               [identifier.name, prefixElement.name]);
         }
-        return null;
+        return;
       }
       Element accessor = element;
       if (accessor is PropertyAccessorElement && identifier.inSetterContext()) {
@@ -645,7 +619,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (parent is Annotation) {
         _resolveAnnotationElement(parent);
       }
-      return null;
+      return;
     }
     // May be annotation, resolve invocation of "const" constructor.
     AstNode parent = node.parent;
@@ -657,11 +631,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // identifier and this is really equivalent to a property access node.
     //
     _resolvePropertyAccess(prefix, identifier, false);
-    return null;
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     if (operatorType.isUserDefinableOperator ||
@@ -689,27 +662,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     if (target is SuperExpression && !_isSuperInValidContext(target)) {
-      return null;
+      return;
     }
     SimpleIdentifier propertyName = node.propertyName;
     _resolvePropertyAccess(target, propertyName, node.isCascaded);
-    return null;
   }
 
   @override
-  Object visitRedirectingConstructorInvocation(
+  void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
-      return null;
+      return;
     }
     SimpleIdentifier name = node.constructorName;
     ConstructorElement element;
@@ -721,7 +692,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (element == null) {
       // TODO(brianwilkerson) Report this error and decide what element to
       // associate with the node.
-      return null;
+      return;
     }
     if (name != null) {
       name.staticElement = element;
@@ -733,41 +704,39 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
-    return null;
   }
 
   @override
-  Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _resolveMetadataForParameter(node);
-    return null;
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     //
     // Synthetic identifiers have been already reported during parsing.
     //
     if (node.isSynthetic) {
-      return null;
+      return;
     }
     //
     // Ignore nodes that should have been resolved before getting here.
     //
     if (node.inDeclarationContext()) {
-      return null;
+      return;
     }
     if (node.staticElement is LocalVariableElement ||
         node.staticElement is ParameterElement) {
-      return null;
+      return;
     }
     AstNode parent = node.parent;
     if (parent is FieldFormalParameter) {
-      return null;
+      return;
     } else if (parent is ConstructorFieldInitializer &&
         parent.fieldName == node) {
-      return null;
+      return;
     } else if (parent is Annotation && parent.constructorName == node) {
-      return null;
+      return;
     }
     //
     // The name dynamic denotes a Type object even though dynamic is not a
@@ -776,7 +745,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (node.name == _dynamicType.name) {
       node.staticElement = _dynamicType.element;
       node.staticType = _typeType;
-      return null;
+      return;
     }
     //
     // Otherwise, the node should be resolved.
@@ -832,21 +801,20 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (parent is Annotation) {
       _resolveAnnotationElement(parent);
     }
-    return null;
   }
 
   @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ClassElementImpl enclosingClass =
         AbstractClassElementImpl.getImpl(_resolver.enclosingClass);
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
-      return null;
+      return;
     }
     InterfaceType superType = enclosingClass.supertype;
     if (superType == null) {
       // TODO(brianwilkerson) Report this error.
-      return null;
+      return;
     }
     SimpleIdentifier name = node.constructorName;
     String superName = name?.name;
@@ -864,7 +832,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             node,
             [superType.displayName]);
       }
-      return null;
+      return;
     } else {
       if (element.isFactory) {
         _resolver.errorReporter.reportErrorForNode(
@@ -882,7 +850,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     Identifier superclassName = declaration.extendsClause?.superclass?.name;
     if (superclassName != null &&
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
-      return null;
+      return;
     }
     ArgumentList argumentList = node.argumentList;
     List<ParameterElement> parameters = _resolveArgumentsToFunction(
@@ -890,28 +858,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
-    return null;
   }
 
   @override
-  Object visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(SuperExpression node) {
     if (!_isSuperInValidContext(node)) {
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     }
-    return super.visitSuperExpression(node);
+    super.visitSuperExpression(node);
   }
 
   @override
-  Object visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(TypeParameter node) {
     resolveMetadata(node);
-    return null;
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     resolveMetadata(node);
-    return null;
   }
 
   /**

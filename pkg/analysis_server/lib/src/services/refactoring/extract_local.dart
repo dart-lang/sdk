@@ -601,7 +601,7 @@ class _HasStatementVisitor extends GeneralizingAstVisitor {
   }
 }
 
-class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
+class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractLocalRefactoringImpl ref;
   final List<SourceRange> occurrences;
   final String selectionSource;
@@ -609,24 +609,24 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   _OccurrencesVisitor(this.ref, this.occurrences, this.selectionSource);
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (!_hasStatements(node)) {
       _tryToFindOccurrenceFragments(node);
-      return null;
+      return;
     }
-    return super.visitBinaryExpression(node);
+    super.visitBinaryExpression(node);
   }
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     if (ref._isExtractable(range.node(node))) {
       _tryToFindOccurrence(node);
     }
-    return super.visitExpression(node);
+    super.visitExpression(node);
   }
 
   @override
-  Object visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     if (ref.stringLiteralPart != null) {
       int length = ref.stringLiteralPart.length;
       String value = ref.utils.getNodeText(node);
@@ -641,9 +641,9 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
         SourceRange range = new SourceRange(start, length);
         occurrences.add(range);
       }
-      return null;
+      return;
     }
-    return visitExpression(node);
+    visitExpression(node);
   }
 
   void _addOccurrence(SourceRange range) {

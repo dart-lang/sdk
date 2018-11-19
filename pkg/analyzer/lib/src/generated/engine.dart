@@ -2699,7 +2699,7 @@ class PerformanceStatistics {
  * An visitor that removes any resolution information from an AST structure when
  * used to visit that structure.
  */
-class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+class ResolutionEraser extends GeneralizingAstVisitor<void> {
   /**
    * A flag indicating whether the elements associated with declarations should
    * be erased.
@@ -2707,122 +2707,122 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   bool eraseDeclarations = true;
 
   @override
-  Object visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
-    return super.visitAssignmentExpression(node);
+    super.visitAssignmentExpression(node);
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     node.staticElement = null;
-    return super.visitBinaryExpression(node);
+    super.visitBinaryExpression(node);
   }
 
   @override
-  Object visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     node.target = null;
-    return super.visitBreakStatement(node);
+    super.visitBreakStatement(node);
   }
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     if (eraseDeclarations) {
       node.element = null;
     }
-    return super.visitCompilationUnit(node);
+    super.visitCompilationUnit(node);
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (eraseDeclarations) {
       node.element = null;
     }
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
-  Object visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     node.staticElement = null;
-    return super.visitConstructorName(node);
+    super.visitConstructorName(node);
   }
 
   @override
-  Object visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(ContinueStatement node) {
     node.target = null;
-    return super.visitContinueStatement(node);
+    super.visitContinueStatement(node);
   }
 
   @override
-  Object visitDirective(Directive node) {
+  void visitDirective(Directive node) {
     if (eraseDeclarations) {
       node.element = null;
     }
-    return super.visitDirective(node);
+    super.visitDirective(node);
   }
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     node.staticType = null;
-    return super.visitExpression(node);
+    super.visitExpression(node);
   }
 
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (eraseDeclarations) {
       node.element = null;
     }
-    return super.visitFunctionExpression(node);
+    super.visitFunctionExpression(node);
   }
 
   @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.staticElement = null;
-    return super.visitFunctionExpressionInvocation(node);
+    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     node.staticElement = null;
-    return super.visitIndexExpression(node);
+    super.visitIndexExpression(node);
   }
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.staticElement = null;
-    return super.visitInstanceCreationExpression(node);
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     node.staticElement = null;
-    return super.visitPostfixExpression(node);
+    super.visitPostfixExpression(node);
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     node.staticElement = null;
-    return super.visitPrefixExpression(node);
+    super.visitPrefixExpression(node);
   }
 
   @override
-  Object visitRedirectingConstructorInvocation(
+  void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     node.staticElement = null;
-    return super.visitRedirectingConstructorInvocation(node);
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (eraseDeclarations || !node.inDeclarationContext()) {
       node.staticElement = null;
     }
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     node.staticElement = null;
-    return super.visitSuperConstructorInvocation(node);
+    super.visitSuperConstructorInvocation(node);
   }
 
   /**

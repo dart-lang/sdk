@@ -413,7 +413,7 @@ class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
  * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
  * structure that should have a static type associated with them do have a static type.
  */
-class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
+class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   /**
    * A list containing all of the AST Expression nodes that were not resolved.
    */
@@ -479,19 +479,19 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitBreakStatement(BreakStatement node) => null;
+  void visitBreakStatement(BreakStatement node) {}
 
   @override
-  Object visitCommentReference(CommentReference node) => null;
+  void visitCommentReference(CommentReference node) {}
 
   @override
-  Object visitContinueStatement(ContinueStatement node) => null;
+  void visitContinueStatement(ContinueStatement node) {}
 
   @override
-  Object visitExportDirective(ExportDirective node) => null;
+  void visitExportDirective(ExportDirective node) {}
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     node.visitChildren(this);
     DartType staticType = node.staticType;
     if (staticType == null) {
@@ -499,66 +499,65 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     } else {
       _resolvedExpressionCount++;
     }
-    return null;
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) => null;
+  void visitImportDirective(ImportDirective node) {}
 
   @override
-  Object visitLabel(Label node) => null;
+  void visitLabel(Label node) {}
 
   @override
-  Object visitLibraryIdentifier(LibraryIdentifier node) => null;
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
     if (node.staticType == null &&
         resolutionMap.staticTypeForExpression(node.prefix).isDynamic) {
-      return null;
+      return;
     }
-    return super.visitPrefixedIdentifier(node);
+    super.visitPrefixedIdentifier(node);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // In cases where identifiers are being used for something other than an
     // expressions, then they can be ignored.
     AstNode parent = node.parent;
     if (parent is MethodInvocation && identical(node, parent.methodName)) {
-      return null;
+      return;
     } else if (parent is RedirectingConstructorInvocation &&
         identical(node, parent.constructorName)) {
-      return null;
+      return;
     } else if (parent is SuperConstructorInvocation &&
         identical(node, parent.constructorName)) {
-      return null;
+      return;
     } else if (parent is ConstructorName && identical(node, parent.name)) {
-      return null;
+      return;
     } else if (parent is ConstructorFieldInitializer &&
         identical(node, parent.fieldName)) {
-      return null;
+      return;
     } else if (node.staticElement is PrefixElement) {
       // Prefixes don't have a type.
-      return null;
+      return;
     }
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
-  Object visitTypeAnnotation(TypeAnnotation node) {
+  void visitTypeAnnotation(TypeAnnotation node) {
     if (node.type == null) {
       _unresolvedTypes.add(node);
     } else {
       _resolvedTypeCount++;
     }
-    return super.visitTypeAnnotation(node);
+    super.visitTypeAnnotation(node);
   }
 
   @override
-  Object visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     // Note: do not visit children from this node, the child SimpleIdentifier in
     // TypeName (i.e. "String") does not have a static type defined.
     // TODO(brianwilkerson) Not visiting the children means that we won't catch
@@ -568,7 +567,6 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     } else {
       _resolvedTypeCount++;
     }
-    return null;
   }
 
   String _getFileName(AstNode node) {

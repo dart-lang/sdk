@@ -3322,7 +3322,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
  * A helper class used to implement the correct order of visits for a
  * [BreadthFirstVisitor].
  */
-class _BreadthFirstChildVisitor extends UnifyingAstVisitor<Object> {
+class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
   /**
    * The [BreadthFirstVisitor] being helped by this visitor.
    */
@@ -3334,8 +3334,7 @@ class _BreadthFirstChildVisitor extends UnifyingAstVisitor<Object> {
   _BreadthFirstChildVisitor(this.outerVisitor);
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     outerVisitor._queue.add(node);
-    return null;
   }
 }

@@ -1114,7 +1114,7 @@ class _HasReturnStatementVisitor extends RecursiveAstVisitor {
   }
 }
 
-class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
+class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final _SourcePattern selectionPattern;
   final Map<String, String> patternToSelectionName;
@@ -1125,50 +1125,50 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
       this.ref, this.selectionPattern, this.patternToSelectionName);
 
   @override
-  Object visitBlock(Block node) {
+  void visitBlock(Block node) {
     if (ref._selectionStatements != null) {
       _visitStatements(node.statements);
     }
-    return super.visitBlock(node);
+    super.visitBlock(node);
   }
 
   @override
-  Object visitConstructorInitializer(ConstructorInitializer node) {
+  void visitConstructorInitializer(ConstructorInitializer node) {
     forceStatic = true;
     try {
-      return super.visitConstructorInitializer(node);
+      super.visitConstructorInitializer(node);
     } finally {
       forceStatic = false;
     }
   }
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     if (ref._selectionFunctionExpression != null ||
         ref._selectionExpression != null &&
             node.runtimeType == ref._selectionExpression.runtimeType) {
       SourceRange nodeRange = range.node(node);
       _tryToFindOccurrence(nodeRange);
     }
-    return super.visitExpression(node);
+    super.visitExpression(node);
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     forceStatic = node.isStatic;
     try {
-      return super.visitMethodDeclaration(node);
+      super.visitMethodDeclaration(node);
     } finally {
       forceStatic = false;
     }
   }
 
   @override
-  Object visitSwitchMember(SwitchMember node) {
+  void visitSwitchMember(SwitchMember node) {
     if (ref._selectionStatements != null) {
       _visitStatements(node.statements);
     }
-    return super.visitSwitchMember(node);
+    super.visitSwitchMember(node);
   }
 
   /**
