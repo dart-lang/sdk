@@ -754,6 +754,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Return a [ParsedLibraryResult] for the library with the given [path].
    *
+   * Throw [ArgumentError] if the given [path] is not the defining compilation
+   * unit for a library (that is, is a part of a library).
+   *
    * The [path] must be absolute and normalized.
    */
   ParsedLibraryResult getParsedLibrary(String path) {
@@ -777,6 +780,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
+  }
+
+  /**
+   * Return a [ParsedLibraryResult] for the library with the given [uri].
+   *
+   * Throw [ArgumentError] if the given [uri] is not the defining compilation
+   * unit for a library (that is, is a part of a library).
+   */
+  ParsedLibraryResult getParsedLibraryByUri(Uri uri) {
+    FileState file = _fsState.getFileForUri(uri);
+
+    if (file.isExternalLibrary) {
+      return ParsedLibraryResultImpl.external(currentSession, file.uri);
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $uri');
+    }
+
+    // The file is a local file, we can get the result.
+    return getParsedLibrary(file.path);
   }
 
   /**
@@ -823,6 +847,37 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
+  }
+
+  /**
+   * Return a [Future] that completes with a [ResolvedLibraryResult] for the
+   * Dart library file with the given [uri].
+   *
+   * Throw [ArgumentError] if the given [uri] is not the defining compilation
+   * unit for a library (that is, is a part of a library).
+   *
+   * Invocation of this method causes the analysis state to transition to
+   * "analyzing" (if it is not in that state already), the driver will produce
+   * the resolution result for it, which is consistent with the current file
+   * state (including new states of the files previously reported using
+   * [changeFile]), prior to the next time the analysis state transitions
+   * to "idle".
+   */
+  Future<ResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
+    FileState file = _fsState.getFileForUri(uri);
+
+    if (file.isExternalLibrary) {
+      return Future.value(
+        ResolvedLibraryResultImpl.external(currentSession, file.uri),
+      );
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $uri');
+    }
+
+    // The file is a local file, we can get the result.
+    return getResolvedLibrary(file.path);
   }
 
   ApiSignature getResolvedUnitKeyByPath(String path) {

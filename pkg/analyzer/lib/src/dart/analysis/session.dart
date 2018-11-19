@@ -132,8 +132,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     _checkConsistency();
     _checkElementOfThisSession(element);
-    var path = element.source.fullName;
-    return getParsedLibrary(path);
+    return _driver.getParsedLibraryByUri(element.source.uri);
   }
 
   @override
@@ -157,8 +156,7 @@ class AnalysisSessionImpl implements AnalysisSession {
       LibraryElement element) {
     _checkConsistency();
     _checkElementOfThisSession(element);
-    var path = element.source.fullName;
-    return getResolvedLibrary(path);
+    return _driver.getResolvedLibraryByUri(element.source.uri);
   }
 
   @override
