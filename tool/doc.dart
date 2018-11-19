@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
+import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
 
 /// Generates lint rule docs for publishing to http://dart-lang.github.io/
-void main([List<String> args]) {
+void main([List<String> args]) async {
   var parser = new ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
@@ -24,7 +26,7 @@ void main([List<String> args]) {
   }
 
   var outDir = options['out'];
-  generateDocs(outDir);
+  await generateDocs(outDir);
 }
 
 const ruleFootMatter = '''
@@ -75,7 +77,7 @@ String get enumerateStyleRules => rules
 
 List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
 
-void generateDocs(String dir) {
+Future<void> generateDocs(String dir) async {
   String outDir = dir;
   if (outDir != null) {
     Directory d = new Directory(outDir);
@@ -92,6 +94,9 @@ void generateDocs(String dir) {
   }
 
   registerLintRules();
+
+  // Generate badge
+  await new Badger(Registry.ruleRegistry).generate(outDir);
 
   // Generate index
   new Indexer(Registry.ruleRegistry).generate(outDir);
@@ -184,6 +189,21 @@ class Generator {
    </body>
 </html>
 ''';
+}
+
+class Badger {
+  Iterable<LintRule> rules;
+  Badger(this.rules);
+
+  generate(String dirPath) async {
+    var lintCount = rules.length;
+
+    var client = new http.Client();
+    var req = await client.get(
+        Uri.parse('https://img.shields.io/badge/lints-$lintCount-blue.svg'));
+    var bytes = req.bodyBytes;
+    await new File('$dirPath/count-badge.svg').writeAsBytes(bytes);
+  }
 }
 
 class Indexer {
