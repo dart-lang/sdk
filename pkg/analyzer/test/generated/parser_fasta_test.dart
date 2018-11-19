@@ -144,14 +144,99 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   void test_setLiteral() {
     SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
     expect(set.elements, hasLength(1));
     IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
   }
 
+  void test_setLiteral_const() {
+    SetLiteral set = parseExpression('const {3, 6}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value1 = set.elements[0];
+    expect(value1.value, 3);
+    IntegerLiteral value2 = set.elements[1];
+    expect(value2.value, 6);
+  }
+
+  void test_setLiteral_const_typeArgument() {
+    SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_invalid_map_entry() {
+    parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments1() {
+    parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          15,
+          1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments2() {
+    parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          15,
+          1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments3() {
+    parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          10,
+          1),
+    ]);
+  }
+
+  void test_setLiteral_nested_typeArgument() {
+    SetLiteral set = parseExpression('<Set<int>>{{3}}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg1 = set.typeArguments.arguments[0];
+    expect(typeArg1.name.name, 'Set');
+    expect(typeArg1.typeArguments.arguments, hasLength(1));
+    NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
+    expect(typeArg2.name.name, 'int');
+    expect(set.elements.length, 1);
+    SetLiteral intSet = set.elements[0];
+    expect(intSet.elements, hasLength(1));
+    IntegerLiteral value = intSet.elements[0];
+    expect(value.value, 3);
+  }
+
   void test_setLiteral_typeArgument() {
     SetLiteral set = parseExpression('<int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
