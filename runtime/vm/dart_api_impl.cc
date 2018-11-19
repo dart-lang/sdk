@@ -5635,6 +5635,8 @@ Dart_CompileToKernel(const char* script_uri,
                      intptr_t platform_kernel_size,
                      bool incremental_compile,
                      const char* package_config) {
+  API_TIMELINE_DURATION(Thread::Current());
+
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
