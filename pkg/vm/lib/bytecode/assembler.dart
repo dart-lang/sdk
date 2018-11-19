@@ -317,8 +317,8 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kStoreContextParent));
   }
 
-  void emitStoreContextVar(int rd) {
-    emitWord(_encodeD(Opcode.kStoreContextVar, rd));
+  void emitStoreContextVar(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kStoreContextVar, ra, rd));
   }
 
   void emitLoadFieldTOS(int rd) {
@@ -333,8 +333,8 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kLoadContextParent));
   }
 
-  void emitLoadContextVar(int rd) {
-    emitWord(_encodeD(Opcode.kLoadContextVar, rd));
+  void emitLoadContextVar(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kLoadContextVar, ra, rd));
   }
 
   void emitBooleanNegateTOS() {
@@ -359,12 +359,12 @@ class BytecodeAssembler {
     emitWord(_encodeA(Opcode.kSetFrame, ra));
   }
 
-  void emitAllocateContext(int rd) {
-    emitWord(_encodeD(Opcode.kAllocateContext, rd));
+  void emitAllocateContext(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kAllocateContext, ra, rd));
   }
 
-  void emitCloneContext(int rd) {
-    emitWord(_encodeD(Opcode.kCloneContext, rd));
+  void emitCloneContext(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kCloneContext, ra, rd));
   }
 
   void emitMoveSpecial(SpecialIndex ra, int rx) {

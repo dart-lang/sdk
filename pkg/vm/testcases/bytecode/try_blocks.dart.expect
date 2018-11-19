@@ -229,17 +229,17 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                7
   CheckStack           0
-  AllocateContext      3
+  AllocateContext      0, 3
   PopLocal             r0
   Push                 r0
   PushInt              1
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
   PopLocal             r2
 Try #0 start:
   Push                 r0
   PushInt              2
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Allocate             CP#9
   StoreLocal           r5
   Push                 r5
@@ -262,7 +262,7 @@ Try #0 start:
   InstanceCall         1, CP#19
   Drop1
   Push                 r0
-  LoadContextVar       1
+  LoadContextVar       0, 1
   PushConstant         CP#20
   IndirectStaticCall   1, CP#4
   Drop1
@@ -278,7 +278,7 @@ Try #0 handler:
   PopLocal             r4
   Push                 r0
   Push                 r3
-  StoreContextVar      2
+  StoreContextVar      0, 2
   PushNull
   PushInt              4
   CreateArrayTOS
@@ -298,7 +298,7 @@ Try #0 handler:
   Push                 r5
   PushInt              3
   Push                 r0
-  LoadContextVar       2
+  LoadContextVar       0, 2
   StoreIndexedTOS
   PushConstant         CP#23
   IndirectStaticCall   1, CP#4
@@ -397,13 +397,13 @@ Try #0 handler:
   Push                 r2
   PopLocal             r4
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#7
   IndirectStaticCall   1, CP#4
   Drop1
   Push                 r0
   PushInt              3
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Jump                 L1
 L1:
   PushNull
@@ -457,7 +457,7 @@ Try #0 handler:
   Push                 r5
   PushInt              3
   Push                 r0
-  LoadContextVar       2
+  LoadContextVar       0, 2
   StoreIndexedTOS
   PushConstant         CP#33
   IndirectStaticCall   1, CP#4
@@ -623,13 +623,11 @@ L5:
   Push                 r0
   PushInt              10
   CompareIntLt
-  AssertBoolean        0
   JumpIfFalse          L1
 Try #0 start:
   Push                 r0
   PushInt              5
   CompareIntGt
-  AssertBoolean        0
   JumpIfFalse          L2
   Jump                 L3
 L2:
@@ -668,7 +666,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 10, end 17, handler 17, needs-stack-trace, types [CP#0]
+  try-index 0, outer -1, start 9, end 15, handler 15, needs-stack-trace, types [CP#0]
 }
 ConstantPool {
   [0] = Type dynamic
@@ -694,13 +692,13 @@ ConstantPool {
 Bytecode (version: stable) {
   Entry                9
   CheckStack           0
-  AllocateContext      2
+  AllocateContext      0, 2
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreContextVar      0
+  StoreContextVar      0, 0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PopLocal             r2
   Push                 r2
   PushInt              1
@@ -721,7 +719,7 @@ Try #0 start:
   Drop1
   Push                 r0
   PushInt              3
-  StoreContextVar      1
+  StoreContextVar      0, 1
   Push                 r0
   PopLocal             r5
 Try #1 start:
@@ -854,12 +852,12 @@ Closure CP#8 {
   LoadFieldTOS         CP#9
   PopLocal             r0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#11
   IndirectStaticCall   1, CP#4
   Drop1
   Push                 r0
-  LoadContextVar       1
+  LoadContextVar       0, 1
   PushConstant         CP#12
   IndirectStaticCall   1, CP#4
   Drop1
@@ -907,11 +905,11 @@ Closure CP#8 {
 Bytecode (version: stable) {
   Entry                6
   CheckStack           0
-  AllocateContext      1
+  AllocateContext      0, 1
   PopLocal             r0
   Push                 r0
   PushInt              11
-  StoreContextVar      0
+  StoreContextVar      0, 0
   PushNull
   PopLocal             r2
   Push                 r0
@@ -944,7 +942,7 @@ Try #0 handler:
   MoveSpecial          exception, r3
   MoveSpecial          stackTrace, r4
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#26
   IndirectStaticCall   1, CP#3
   Drop1
@@ -958,7 +956,7 @@ L1:
   Push                 r3
   PopLocal             r0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#28
   IndirectStaticCall   1, CP#3
   Drop1
@@ -1013,7 +1011,7 @@ Closure CP#0 {
   LoadFieldTOS         CP#1
   PopLocal             r0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#4
   IndirectStaticCall   1, CP#3
   Drop1
@@ -1048,7 +1046,7 @@ Try #1 handler:
   MoveSpecial          exception, r4
   MoveSpecial          stackTrace, r5
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#10
   IndirectStaticCall   1, CP#3
   Drop1
@@ -1059,7 +1057,7 @@ L2:
   Push                 r4
   PopLocal             r0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#11
   IndirectStaticCall   1, CP#3
   Drop1
@@ -1084,7 +1082,7 @@ Try #2 handler:
   MoveSpecial          exception, r4
   MoveSpecial          stackTrace, r5
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#13
   IndirectStaticCall   1, CP#3
   Drop1
@@ -1095,7 +1093,7 @@ L3:
   Push                 r4
   PopLocal             r0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       0, 0
   PushConstant         CP#14
   IndirectStaticCall   1, CP#3
   Drop1

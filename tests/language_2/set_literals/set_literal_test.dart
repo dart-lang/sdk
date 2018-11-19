@@ -115,6 +115,16 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   set = {{1}, {}};  // Set<Object>
   Expect.type<Set<Object>>(x);
   Expect.notType<Set<Set<Object>>>(x);
+
+  // Trailing comma.
+  Iterable<Object> i;
+  i = {1,};
+  Expect.type<Set<Object>>(i);
+  Expect.equals(1, i.length);
+
+  o = {1, 2, 3,};
+  Expect.type<Set<int>>(o);
+  Expect.equals(3, o.length);
 }
 
 class Equality {

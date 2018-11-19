@@ -51,8 +51,11 @@ abstract class TestRunner {
   // Factory.
   static TestRunner getTestRunner(
       String mode, String top, String tmp, Map<String, String> env) {
+    if (mode.startsWith('jit-opt'))
+      return new TestRunnerJIT(
+          getTag(mode), top, tmp, env, ['--optimization_counter_threshold=1']);
     if (mode.startsWith('jit'))
-      return new TestRunnerJIT(getTag(mode), top, tmp, env);
+      return new TestRunnerJIT(getTag(mode), top, tmp, env, []);
     if (mode.startsWith('aot'))
       return new TestRunnerAOT(getTag(mode), top, tmp, env);
     if (mode.startsWith('kbc'))
@@ -81,21 +84,24 @@ abstract class TestRunner {
 
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
-  TestRunnerJIT(String tag, String top, String tmp, Map<String, String> e) {
-    description = 'JIT-${tag}';
+  TestRunnerJIT(String tag, String top, String tmp, Map<String, String> e,
+      List<String> extra_flags) {
+    description = extra_flags.length == 0 ? 'JIT-${tag}' : 'JIT-OPT-${tag}';
     dart = '$top/out/$tag/dart';
     fileName = '$tmp/fuzz.dart';
     env = e;
+    cmd = [dart] + extra_flags + [fileName];
   }
 
   TestResult run() {
-    return runCommand([dart, fileName], env);
+    return runCommand(cmd, env);
   }
 
   String description;
   String dart;
   String fileName;
   Map<String, String> env;
+  List<String> cmd;
 }
 
 /// Concrete test runner of Dart AOT.
@@ -167,8 +173,8 @@ class TestRunnerKBC implements TestRunner {
   String dill;
   String dart;
   String fileName;
-  List<String> cmd;
   Map<String, String> env;
+  List<String> cmd;
 }
 
 /// Concrete test runner of Dart2JS.
@@ -446,7 +452,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      const cluster_modes = 20;
+      int cluster_modes = modes.length - 3;
       Random rand = new Random();
       do {
         mode = modes[rand.nextInt(cluster_modes)];
@@ -475,6 +481,18 @@ class DartFuzzTestSession {
   // Supported modes.
   static const List<String> modes = [
     // Cluster options:
+    'jit-opt-debug-ia32',
+    'jit-opt-debug-x64',
+    'jit-opt-debug-arm32',
+    'jit-opt-debug-arm64',
+    'jit-opt-debug-dbc',
+    'jit-opt-debug-dbc64',
+    'jit-opt-ia32',
+    'jit-opt-x64',
+    'jit-opt-arm32',
+    'jit-opt-arm64',
+    'jit-opt-dbc',
+    'jit-opt-dbc64',
     'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-arm32',
@@ -496,8 +514,8 @@ class DartFuzzTestSession {
     'kbc-cmp-x64',
     'kbc-mix-x64',
     // Times out often:
-    'aot-arm64',
     'aot-debug-arm64',
+    'aot-arm64',
     // Too many divergences (due to arithmetic):
     'js'
   ];
