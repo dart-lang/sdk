@@ -48,247 +48,245 @@ class ExprBuilder {
     if (requireValidConst && !uc.isValidConst) {
       return null;
     }
-    try {
-      for (UnlinkedExprOperation operation in uc.operations) {
-        switch (operation) {
-          case UnlinkedExprOperation.pushNull:
-            _push(AstTestFactory.nullLiteral());
-            break;
-          // bool
-          case UnlinkedExprOperation.pushFalse:
-            _push(AstTestFactory.booleanLiteral(false));
-            break;
-          case UnlinkedExprOperation.pushTrue:
-            _push(AstTestFactory.booleanLiteral(true));
-            break;
-          // literals
-          case UnlinkedExprOperation.pushInt:
-            int value = uc.ints[intPtr++];
-            _push(AstTestFactory.integer(value));
-            break;
-          case UnlinkedExprOperation.pushLongInt:
-            int value = 0;
-            int count = uc.ints[intPtr++];
-            for (int i = 0; i < count; i++) {
-              int next = uc.ints[intPtr++];
-              value = value << 32 | next;
-            }
-            _push(AstTestFactory.integer(value));
-            break;
-          case UnlinkedExprOperation.pushDouble:
-            double value = uc.doubles[doublePtr++];
-            _push(AstTestFactory.doubleLiteral(value));
-            break;
-          case UnlinkedExprOperation.makeSymbol:
-            String component = uc.strings[stringPtr++];
-            _push(AstTestFactory.symbolLiteral([component]));
-            break;
-          // String
-          case UnlinkedExprOperation.pushString:
-            String value = uc.strings[stringPtr++];
-            _push(AstTestFactory.string2(value));
-            break;
-          case UnlinkedExprOperation.concatenate:
-            int count = uc.ints[intPtr++];
-            List<InterpolationElement> elements = <InterpolationElement>[];
-            for (int i = 0; i < count; i++) {
-              Expression expr = _pop();
-              InterpolationElement element = _newInterpolationElement(expr);
-              elements.insert(0, element);
-            }
-            _push(AstTestFactory.string(elements));
-            break;
-          // binary
-          case UnlinkedExprOperation.equal:
-            _pushBinary(TokenType.EQ_EQ);
-            break;
-          case UnlinkedExprOperation.notEqual:
-            _pushBinary(TokenType.BANG_EQ);
-            break;
-          case UnlinkedExprOperation.and:
-            _pushBinary(TokenType.AMPERSAND_AMPERSAND);
-            break;
-          case UnlinkedExprOperation.or:
-            _pushBinary(TokenType.BAR_BAR);
-            break;
-          case UnlinkedExprOperation.bitXor:
-            _pushBinary(TokenType.CARET);
-            break;
-          case UnlinkedExprOperation.bitAnd:
-            _pushBinary(TokenType.AMPERSAND);
-            break;
-          case UnlinkedExprOperation.bitOr:
-            _pushBinary(TokenType.BAR);
-            break;
-          case UnlinkedExprOperation.bitShiftLeft:
-            _pushBinary(TokenType.LT_LT);
-            break;
-          case UnlinkedExprOperation.bitShiftRight:
-            _pushBinary(TokenType.GT_GT);
-            break;
-          case UnlinkedExprOperation.add:
-            _pushBinary(TokenType.PLUS);
-            break;
-          case UnlinkedExprOperation.subtract:
-            _pushBinary(TokenType.MINUS);
-            break;
-          case UnlinkedExprOperation.multiply:
-            _pushBinary(TokenType.STAR);
-            break;
-          case UnlinkedExprOperation.divide:
-            _pushBinary(TokenType.SLASH);
-            break;
-          case UnlinkedExprOperation.floorDivide:
-            _pushBinary(TokenType.TILDE_SLASH);
-            break;
-          case UnlinkedExprOperation.modulo:
-            _pushBinary(TokenType.PERCENT);
-            break;
-          case UnlinkedExprOperation.greater:
-            _pushBinary(TokenType.GT);
-            break;
-          case UnlinkedExprOperation.greaterEqual:
-            _pushBinary(TokenType.GT_EQ);
-            break;
-          case UnlinkedExprOperation.less:
-            _pushBinary(TokenType.LT);
-            break;
-          case UnlinkedExprOperation.lessEqual:
-            _pushBinary(TokenType.LT_EQ);
-            break;
-          // prefix
-          case UnlinkedExprOperation.complement:
-            _pushPrefix(TokenType.TILDE);
-            break;
-          case UnlinkedExprOperation.negate:
-            _pushPrefix(TokenType.MINUS);
-            break;
-          case UnlinkedExprOperation.not:
-            _pushPrefix(TokenType.BANG);
-            break;
-          // conditional
-          case UnlinkedExprOperation.conditional:
-            Expression elseExpr = _pop();
-            Expression thenExpr = _pop();
-            Expression condition = _pop();
-            _push(AstTestFactory.conditionalExpression(
-                condition, thenExpr, elseExpr));
-            break;
-          case UnlinkedExprOperation.invokeMethodRef:
-            _pushInvokeMethodRef();
-            break;
-          case UnlinkedExprOperation.invokeMethod:
-            List<Expression> arguments = _buildArguments();
-            TypeArgumentList typeArguments = _buildTypeArguments();
-            Expression target = _pop();
-            String name = uc.strings[stringPtr++];
-            _push(AstTestFactory.methodInvocation3(
-                target, name, typeArguments, arguments));
-            break;
-          // containers
-          case UnlinkedExprOperation.makeUntypedList:
-            _pushList(null);
-            break;
-          case UnlinkedExprOperation.makeTypedList:
-            TypeAnnotation itemType = _newTypeName();
-            _pushList(
-                AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
-            break;
-          case UnlinkedExprOperation.makeUntypedMap:
-            _pushMap(null);
-            break;
-          case UnlinkedExprOperation.makeTypedMap:
-            TypeAnnotation keyType = _newTypeName();
-            TypeAnnotation valueType = _newTypeName();
-            _pushMap(AstTestFactory.typeArgumentList(
-                <TypeAnnotation>[keyType, valueType]));
-            break;
-          case UnlinkedExprOperation.makeUntypedSet:
-            _pushSet(null);
-            break;
-          case UnlinkedExprOperation.makeTypedSet:
-            TypeAnnotation itemType = _newTypeName();
-            _pushSet(
-                AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
-            break;
-          case UnlinkedExprOperation.pushReference:
-            _pushReference();
-            break;
-          case UnlinkedExprOperation.extractProperty:
-            _pushExtractProperty();
-            break;
-          case UnlinkedExprOperation.invokeConstructor:
-            _pushInstanceCreation();
-            break;
-          case UnlinkedExprOperation.pushParameter:
-            String name = uc.strings[stringPtr++];
-            SimpleIdentifier identifier = AstTestFactory.identifier3(name);
-            identifier.staticElement = parametersInScope[name];
-            _push(identifier);
-            break;
-          case UnlinkedExprOperation.ifNull:
-            _pushBinary(TokenType.QUESTION_QUESTION);
-            break;
-          case UnlinkedExprOperation.await:
-            Expression expression = _pop();
-            _push(AstTestFactory.awaitExpression(expression));
-            break;
-          case UnlinkedExprOperation.pushLocalFunctionReference:
-            _pushLocalFunctionReference();
-            break;
-          case UnlinkedExprOperation.assignToRef:
-            var ref = _createReference();
-            _push(_createAssignment(ref));
-            break;
-          case UnlinkedExprOperation.typeCast:
-            Expression expression = _pop();
-            TypeAnnotation type = _newTypeName();
-            _push(AstTestFactory.asExpression(expression, type));
-            break;
-          case UnlinkedExprOperation.typeCheck:
-            Expression expression = _pop();
-            TypeAnnotation type = _newTypeName();
-            _push(AstTestFactory.isExpression(expression, false, type));
-            break;
-          case UnlinkedExprOperation.throwException:
-            Expression expression = _pop();
-            _push(AstTestFactory.throwExpression2(expression));
-            break;
-          case UnlinkedExprOperation.assignToProperty:
-            Expression target = _pop();
-            String name = uc.strings[stringPtr++];
-            SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
-            PropertyAccess propertyAccess =
-                AstTestFactory.propertyAccess(target, propertyNode);
-            _push(_createAssignment(propertyAccess));
-            break;
-          case UnlinkedExprOperation.assignToIndex:
-            Expression index = _pop();
-            Expression target = _pop();
-            IndexExpression indexExpression =
-                AstTestFactory.indexExpression(target, index);
-            _push(_createAssignment(indexExpression));
-            break;
-          case UnlinkedExprOperation.extractIndex:
-            Expression index = _pop();
-            Expression target = _pop();
-            _push(AstTestFactory.indexExpression(target, index));
-            break;
-          case UnlinkedExprOperation.pushSuper:
-          case UnlinkedExprOperation.pushThis:
-            throw const _InvalidConstantException(); // TODO(paulberry)
-          case UnlinkedExprOperation.cascadeSectionBegin:
-          case UnlinkedExprOperation.cascadeSectionEnd:
-          case UnlinkedExprOperation.pushLocalFunctionReference:
-          case UnlinkedExprOperation.pushError:
-          case UnlinkedExprOperation.pushTypedAbstract:
-          case UnlinkedExprOperation.pushUntypedAbstract:
-            throw new UnimplementedError(
-                'Unexpected $operation in a constant expression.');
-        }
+    for (UnlinkedExprOperation operation in uc.operations) {
+      switch (operation) {
+        case UnlinkedExprOperation.pushNull:
+          _push(AstTestFactory.nullLiteral());
+          break;
+        // bool
+        case UnlinkedExprOperation.pushFalse:
+          _push(AstTestFactory.booleanLiteral(false));
+          break;
+        case UnlinkedExprOperation.pushTrue:
+          _push(AstTestFactory.booleanLiteral(true));
+          break;
+        // literals
+        case UnlinkedExprOperation.pushInt:
+          int value = uc.ints[intPtr++];
+          _push(AstTestFactory.integer(value));
+          break;
+        case UnlinkedExprOperation.pushLongInt:
+          int value = 0;
+          int count = uc.ints[intPtr++];
+          for (int i = 0; i < count; i++) {
+            int next = uc.ints[intPtr++];
+            value = value << 32 | next;
+          }
+          _push(AstTestFactory.integer(value));
+          break;
+        case UnlinkedExprOperation.pushDouble:
+          double value = uc.doubles[doublePtr++];
+          _push(AstTestFactory.doubleLiteral(value));
+          break;
+        case UnlinkedExprOperation.makeSymbol:
+          String component = uc.strings[stringPtr++];
+          _push(AstTestFactory.symbolLiteral([component]));
+          break;
+        // String
+        case UnlinkedExprOperation.pushString:
+          String value = uc.strings[stringPtr++];
+          _push(AstTestFactory.string2(value));
+          break;
+        case UnlinkedExprOperation.concatenate:
+          int count = uc.ints[intPtr++];
+          List<InterpolationElement> elements = <InterpolationElement>[];
+          for (int i = 0; i < count; i++) {
+            Expression expr = _pop();
+            InterpolationElement element = _newInterpolationElement(expr);
+            elements.insert(0, element);
+          }
+          _push(AstTestFactory.string(elements));
+          break;
+        // binary
+        case UnlinkedExprOperation.equal:
+          _pushBinary(TokenType.EQ_EQ);
+          break;
+        case UnlinkedExprOperation.notEqual:
+          _pushBinary(TokenType.BANG_EQ);
+          break;
+        case UnlinkedExprOperation.and:
+          _pushBinary(TokenType.AMPERSAND_AMPERSAND);
+          break;
+        case UnlinkedExprOperation.or:
+          _pushBinary(TokenType.BAR_BAR);
+          break;
+        case UnlinkedExprOperation.bitXor:
+          _pushBinary(TokenType.CARET);
+          break;
+        case UnlinkedExprOperation.bitAnd:
+          _pushBinary(TokenType.AMPERSAND);
+          break;
+        case UnlinkedExprOperation.bitOr:
+          _pushBinary(TokenType.BAR);
+          break;
+        case UnlinkedExprOperation.bitShiftLeft:
+          _pushBinary(TokenType.LT_LT);
+          break;
+        case UnlinkedExprOperation.bitShiftRight:
+          _pushBinary(TokenType.GT_GT);
+          break;
+        case UnlinkedExprOperation.add:
+          _pushBinary(TokenType.PLUS);
+          break;
+        case UnlinkedExprOperation.subtract:
+          _pushBinary(TokenType.MINUS);
+          break;
+        case UnlinkedExprOperation.multiply:
+          _pushBinary(TokenType.STAR);
+          break;
+        case UnlinkedExprOperation.divide:
+          _pushBinary(TokenType.SLASH);
+          break;
+        case UnlinkedExprOperation.floorDivide:
+          _pushBinary(TokenType.TILDE_SLASH);
+          break;
+        case UnlinkedExprOperation.modulo:
+          _pushBinary(TokenType.PERCENT);
+          break;
+        case UnlinkedExprOperation.greater:
+          _pushBinary(TokenType.GT);
+          break;
+        case UnlinkedExprOperation.greaterEqual:
+          _pushBinary(TokenType.GT_EQ);
+          break;
+        case UnlinkedExprOperation.less:
+          _pushBinary(TokenType.LT);
+          break;
+        case UnlinkedExprOperation.lessEqual:
+          _pushBinary(TokenType.LT_EQ);
+          break;
+        // prefix
+        case UnlinkedExprOperation.complement:
+          _pushPrefix(TokenType.TILDE);
+          break;
+        case UnlinkedExprOperation.negate:
+          _pushPrefix(TokenType.MINUS);
+          break;
+        case UnlinkedExprOperation.not:
+          _pushPrefix(TokenType.BANG);
+          break;
+        // conditional
+        case UnlinkedExprOperation.conditional:
+          Expression elseExpr = _pop();
+          Expression thenExpr = _pop();
+          Expression condition = _pop();
+          _push(AstTestFactory.conditionalExpression(
+              condition, thenExpr, elseExpr));
+          break;
+        case UnlinkedExprOperation.invokeMethodRef:
+          _pushInvokeMethodRef();
+          break;
+        case UnlinkedExprOperation.invokeMethod:
+          List<Expression> arguments = _buildArguments();
+          TypeArgumentList typeArguments = _buildTypeArguments();
+          Expression target = _pop();
+          String name = uc.strings[stringPtr++];
+          _push(AstTestFactory.methodInvocation3(
+              target, name, typeArguments, arguments));
+          break;
+        // containers
+        case UnlinkedExprOperation.makeUntypedList:
+          _pushList(null);
+          break;
+        case UnlinkedExprOperation.makeTypedList:
+          TypeAnnotation itemType = _newTypeName();
+          _pushList(
+              AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+          break;
+        case UnlinkedExprOperation.makeUntypedMap:
+          _pushMap(null);
+          break;
+        case UnlinkedExprOperation.makeTypedMap:
+          TypeAnnotation keyType = _newTypeName();
+          TypeAnnotation valueType = _newTypeName();
+          _pushMap(AstTestFactory.typeArgumentList(
+              <TypeAnnotation>[keyType, valueType]));
+          break;
+        case UnlinkedExprOperation.makeUntypedSet:
+          _pushSet(null);
+          break;
+        case UnlinkedExprOperation.makeTypedSet:
+          TypeAnnotation itemType = _newTypeName();
+          _pushSet(AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+          break;
+        case UnlinkedExprOperation.pushReference:
+          _pushReference();
+          break;
+        case UnlinkedExprOperation.extractProperty:
+          _pushExtractProperty();
+          break;
+        case UnlinkedExprOperation.invokeConstructor:
+          _pushInstanceCreation();
+          break;
+        case UnlinkedExprOperation.pushParameter:
+          String name = uc.strings[stringPtr++];
+          SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+          identifier.staticElement = parametersInScope[name];
+          _push(identifier);
+          break;
+        case UnlinkedExprOperation.ifNull:
+          _pushBinary(TokenType.QUESTION_QUESTION);
+          break;
+        case UnlinkedExprOperation.await:
+          Expression expression = _pop();
+          _push(AstTestFactory.awaitExpression(expression));
+          break;
+        case UnlinkedExprOperation.pushLocalFunctionReference:
+          _pushLocalFunctionReference();
+          break;
+        case UnlinkedExprOperation.assignToRef:
+          var ref = _createReference();
+          _push(_createAssignment(ref));
+          break;
+        case UnlinkedExprOperation.typeCast:
+          Expression expression = _pop();
+          TypeAnnotation type = _newTypeName();
+          _push(AstTestFactory.asExpression(expression, type));
+          break;
+        case UnlinkedExprOperation.typeCheck:
+          Expression expression = _pop();
+          TypeAnnotation type = _newTypeName();
+          _push(AstTestFactory.isExpression(expression, false, type));
+          break;
+        case UnlinkedExprOperation.throwException:
+          Expression expression = _pop();
+          _push(AstTestFactory.throwExpression2(expression));
+          break;
+        case UnlinkedExprOperation.assignToProperty:
+          Expression target = _pop();
+          String name = uc.strings[stringPtr++];
+          SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
+          PropertyAccess propertyAccess =
+              AstTestFactory.propertyAccess(target, propertyNode);
+          _push(_createAssignment(propertyAccess));
+          break;
+        case UnlinkedExprOperation.assignToIndex:
+          Expression index = _pop();
+          Expression target = _pop();
+          IndexExpression indexExpression =
+              AstTestFactory.indexExpression(target, index);
+          _push(_createAssignment(indexExpression));
+          break;
+        case UnlinkedExprOperation.extractIndex:
+          Expression index = _pop();
+          Expression target = _pop();
+          _push(AstTestFactory.indexExpression(target, index));
+          break;
+        case UnlinkedExprOperation.pushSuper:
+          _push(AstTestFactory.superExpression());
+          break;
+        case UnlinkedExprOperation.pushThis:
+          _push(AstTestFactory.thisExpression());
+          break;
+        case UnlinkedExprOperation.cascadeSectionBegin:
+        case UnlinkedExprOperation.cascadeSectionEnd:
+        case UnlinkedExprOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushError:
+        case UnlinkedExprOperation.pushTypedAbstract:
+        case UnlinkedExprOperation.pushUntypedAbstract:
+          throw new UnimplementedError(
+              'Unexpected $operation in a constant expression.');
       }
-    } on _InvalidConstantException {
-      return AstTestFactory.identifier3(r'#invalidConst');
     }
     return stack.single;
   }
@@ -438,9 +436,6 @@ class ExprBuilder {
         ..staticElement = element;
       return AstTestFactory.identifier(enclosing, identifier);
     }
-    if (requireValidConst && element == null) {
-      throw const _InvalidConstantException();
-    }
     SimpleIdentifier property = AstTestFactory.identifier3(info.name)
       ..staticElement = element;
     return AstTestFactory.propertyAccess(enclosing, property);
@@ -539,11 +534,7 @@ class ExprBuilder {
         ..staticElement = resynthesizer.typeProvider.objectType.element;
     }
     ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
-    Expression node = _buildIdentifierSequence(info);
-    if (requireValidConst && node is Identifier && node.staticElement == null) {
-      throw const _InvalidConstantException();
-    }
-    return node;
+    return _buildIdentifierSequence(info);
   }
 
   PropertyAccessorElement _getStringLengthElement() =>
@@ -673,9 +664,6 @@ class ExprBuilder {
       constructorNode = AstTestFactory.constructorName(typeNode, null);
     }
     constructorNode.staticElement = constructorElement;
-    if (constructorElement == null) {
-      throw const _InvalidConstantException();
-    }
     // create InstanceCreationExpression
     InstanceCreationExpression instanceCreation =
         AstTestFactory.instanceCreationExpression(
@@ -731,7 +719,6 @@ class ExprBuilder {
   }
 
   void _pushLocalFunctionReference() {
-    _throwIfConst();
     int popCount = uc.ints[intPtr++];
     // Note: nonzero popCount is no longer used.
     assert(popCount == 0);
@@ -815,12 +802,6 @@ class ExprBuilder {
     return items;
   }
 
-  void _throwIfConst() {
-    if (requireValidConst) {
-      throw const _InvalidConstantException();
-    }
-  }
-
   /// Figures out the default value of [parametersInScope] based on [context].
   ///
   /// If [context] is (or contains) a constructor, then its parameters are used.
@@ -837,12 +818,4 @@ class ExprBuilder {
     }
     return result;
   }
-}
-
-/**
- * This exception is thrown when we detect that the constant expression
- * being resynthesized is not a valid constant expression.
- */
-class _InvalidConstantException {
-  const _InvalidConstantException();
 }
