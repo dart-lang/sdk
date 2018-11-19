@@ -739,11 +739,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var uriObj = Uri.parse(uri);
     var file = _fsState.getFileForUri(uriObj);
 
-    if (_externalSummaries != null &&
-        _externalSummaries.unlinkedMap.containsKey(uri)) {
-      if (!_externalSummaries.linkedMap.containsKey(uri)) {
-        throw ArgumentError('$uri is not a library.');
-      }
+    if (file.isExternalLibrary) {
       return _createLibraryContext(file).getLibraryElement(file);
     }
 
@@ -761,7 +757,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The [path] must be absolute and normalized.
    */
   ParsedLibraryResult getParsedLibrary(String path) {
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fsState.getFileForPath(path);
+
+    if (file.isExternalLibrary) {
+      return ParsedLibraryResultImpl.external(currentSession, file.uri);
+    }
 
     if (file.isPart) {
       throw ArgumentError('Is a part: $path');
@@ -804,7 +804,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return new Future.value();
     }
 
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fsState.getFileForPath(path);
+
+    if (file.isExternalLibrary) {
+      return Future.value(
+        ResolvedLibraryResultImpl.external(currentSession, file.uri),
+      );
+    }
+
     if (file.isPart) {
       throw ArgumentError('Is a part: $path');
     }
@@ -963,12 +970,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * not a part, so it must be a library.
    */
   bool isLibraryByUri(Uri uri) {
-    if (_externalSummaries != null) {
-      var uriStr = uri.toString();
-      if (_externalSummaries.unlinkedMap[uriStr] != null) {
-        return _externalSummaries.linkedMap.containsKey(uriStr);
-      }
-    }
     return !_fsState.getFileForUri(uri).isPart;
   }
 

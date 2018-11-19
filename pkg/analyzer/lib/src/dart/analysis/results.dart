@@ -68,14 +68,14 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override
-  final ResultState state = ResultState.VALID;
-
-  @override
   final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl(
       AnalysisSession session, String path, Uri uri, this.units)
       : super(session, path, uri);
+
+  ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
+      : this(session, null, uri, null);
 
   @Deprecated('This factory exists temporary until AnalysisSession migration.')
   factory ParsedLibraryResultImpl.tmp(LibraryElement library) {
@@ -111,7 +111,19 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   }
 
   @override
+  ResultState get state {
+    if (path == null) {
+      return ResultState.NOT_A_FILE;
+    }
+    return ResultState.VALID;
+  }
+
+  @override
   ElementDeclarationResult getElementDeclaration(Element element) {
+    if (state != ResultState.VALID) {
+      throw StateError('The result is not valid: $state');
+    }
+
     var elementPath = element.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
@@ -155,9 +167,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   final LibraryElement element;
 
   @override
-  final ResultState state = ResultState.VALID;
-
-  @override
   final TypeProvider typeProvider;
 
   @override
@@ -167,8 +176,23 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       this.element, this.typeProvider, this.units)
       : super(session, path, uri);
 
+  ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
+      : this(session, null, uri, null, null, null);
+
+  @override
+  ResultState get state {
+    if (path == null) {
+      return ResultState.NOT_A_FILE;
+    }
+    return ResultState.VALID;
+  }
+
   @override
   ElementDeclarationResult getElementDeclaration(Element element) {
+    if (state != ResultState.VALID) {
+      throw StateError('The result is not valid: $state');
+    }
+
     var elementPath = element.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,

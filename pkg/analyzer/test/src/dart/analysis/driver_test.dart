@@ -1524,6 +1524,72 @@ class B {}
     expect(coreLibrary.getType('Object'), isNotNull);
   }
 
+  test_getParsedLibrary_external() async {
+    var a1 = convertPath('/aaa/lib/a1.dart');
+    var a2 = convertPath('/aaa/lib/a2.dart');
+
+    String a1UriStr = 'package:aaa/a1.dart';
+    String a2UriStr = 'package:aaa/a2.dart';
+
+    newFile(a1, content: "part 'a2.dart';  class A {}");
+    newFile(a2, content: "part of 'a1.dart';");
+
+    // Build the store with the library.
+    var store = await createAnalysisDriver().test.getSummaryStore(a1);
+    expect(store.unlinkedMap.keys, contains(a1UriStr));
+    expect(store.unlinkedMap.keys, contains(a2UriStr));
+    expect(store.linkedMap.keys, contains(a1UriStr));
+
+    var driver = createAnalysisDriver(externalSummaries: store);
+    var libraryElement = await driver.getLibraryByUri(a1UriStr);
+    var classA = libraryElement.library.getType('A');
+
+    var parsedLibrary = driver.getParsedLibrary(a1);
+    expect(parsedLibrary, isNotNull);
+    expect(parsedLibrary.state, ResultState.NOT_A_FILE);
+    expect(() {
+      parsedLibrary.getElementDeclaration(classA);
+    }, throwsStateError);
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(() {
+      driver.getParsedLibrary(a2);
+    }, throwsArgumentError);
+  }
+
+  test_getResolvedLibrary_external() async {
+    var a1 = convertPath('/aaa/lib/a1.dart');
+    var a2 = convertPath('/aaa/lib/a2.dart');
+
+    String a1UriStr = 'package:aaa/a1.dart';
+    String a2UriStr = 'package:aaa/a2.dart';
+
+    newFile(a1, content: "part 'a2.dart';  class A {}");
+    newFile(a2, content: "part of 'a1.dart';");
+
+    // Build the store with the library.
+    var store = await createAnalysisDriver().test.getSummaryStore(a1);
+    expect(store.unlinkedMap.keys, contains(a1UriStr));
+    expect(store.unlinkedMap.keys, contains(a2UriStr));
+    expect(store.linkedMap.keys, contains(a1UriStr));
+
+    var driver = createAnalysisDriver(externalSummaries: store);
+    var libraryElement = await driver.getLibraryByUri(a1UriStr);
+    var classA = libraryElement.library.getType('A');
+
+    var resolvedLibrary = await driver.getResolvedLibrary(a1);
+    expect(resolvedLibrary, isNotNull);
+    expect(resolvedLibrary.state, ResultState.NOT_A_FILE);
+    expect(() {
+      resolvedLibrary.getElementDeclaration(classA);
+    }, throwsStateError);
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(() async {
+      await driver.getResolvedLibrary(a2);
+    }, throwsArgumentError);
+  }
+
   test_getResult() async {
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);
