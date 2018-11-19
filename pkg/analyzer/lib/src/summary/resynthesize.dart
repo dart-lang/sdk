@@ -1245,21 +1245,13 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
     if (constExpr == null) {
       // Invalid constant expression.
     } else if (constExpr is Identifier) {
-      var element = constExpr.staticElement;
       ArgumentList arguments = constExpr.getProperty(ExprBuilder.ARGUMENT_LIST);
-      if (element is PropertyAccessorElement && arguments == null) {
-        elementAnnotation.element = element;
-        elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
-      } else if (element is ConstructorElement && arguments != null) {
-        elementAnnotation.element = element;
-        elementAnnotation.annotationAst =
-            AstTestFactory.annotation2(constExpr, null, arguments);
-      } else {
-        elementAnnotation.annotationAst = AstTestFactory.annotation(
-            AstTestFactory.identifier3(r'#invalidConst'));
-      }
-    } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
+      elementAnnotation.annotationAst =
+          AstTestFactory.annotation2(constExpr, null, arguments);
+    } else if (constExpr is InstanceCreationExpression) {
+      var element = constExpr.staticElement;
+      elementAnnotation.element = element;
       Identifier typeName = constExpr.constructorName.type.name;
       SimpleIdentifier constructorName = constExpr.constructorName.name;
       if (typeName is SimpleIdentifier && constructorName != null) {
@@ -1276,20 +1268,10 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       var propertyName = constExpr.propertyName;
       var propertyElement = propertyName.staticElement;
       ArgumentList arguments = constExpr.getProperty(ExprBuilder.ARGUMENT_LIST);
-      if (propertyElement is PropertyAccessorElement && arguments == null) {
-        elementAnnotation.element = propertyElement;
-        elementAnnotation.annotationAst =
-            AstTestFactory.annotation2(target, propertyName, null)
-              ..element = propertyElement;
-      } else if (propertyElement is ConstructorElement && arguments != null) {
-        elementAnnotation.element = propertyElement;
-        elementAnnotation.annotationAst =
-            AstTestFactory.annotation2(target, propertyName, arguments)
-              ..element = propertyElement;
-      } else {
-        elementAnnotation.annotationAst = AstTestFactory.annotation(
-            AstTestFactory.identifier3(r'#invalidConst'));
-      }
+      elementAnnotation.element = propertyElement;
+      elementAnnotation.annotationAst =
+          AstTestFactory.annotation2(target, propertyName, arguments)
+            ..element = propertyElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');

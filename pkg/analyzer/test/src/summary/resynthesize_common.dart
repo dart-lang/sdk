@@ -5171,7 +5171,8 @@ Future<dynamic> f;
 import '';
 ''');
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/
 import '<unresolved>';
 ''');
   }
@@ -5920,7 +5921,10 @@ class D {}
 ''');
     checkElementText(library, r'''
 import 'a.dart' as a;
-@#invalidConst
+@
+        a/*location: test.dart;a*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -5940,7 +5944,9 @@ class D {}
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-@#invalidConst
+@
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -6691,7 +6697,8 @@ const dynamic a =
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
-@#invalidConst
+@
+        __unresolved__/*location: null*/
 class C {
 }
 dynamic f(dynamic _) {}
@@ -8389,7 +8396,9 @@ class C {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo.bar class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -8402,7 +8411,9 @@ class C {
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@#invalidConst
+@
+        foo/*location: test.dart;foo*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -8486,7 +8497,8 @@ class C {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/
 class C {
 }
 ''');
