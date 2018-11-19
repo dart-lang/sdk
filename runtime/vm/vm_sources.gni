@@ -333,6 +333,8 @@ vm_sources = [
   "unicode_data.cc",
   "uri.cc",
   "uri.h",
+  "v8_snapshot_writer.cc",
+  "v8_snapshot_writer.h",
   "virtual_memory.cc",
   "virtual_memory.h",
   "virtual_memory_android.cc",

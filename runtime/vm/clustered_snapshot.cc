@@ -118,9 +118,10 @@ class ClassSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawClass* cls = predefined_[i];
+      s->AssignRef(cls);
+      AutoTraceObject(cls);
       intptr_t class_id = cls->ptr()->id_;
       s->WriteCid(class_id);
-      s->AssignRef(cls);
     }
     count = objects_.length();
     s->WriteUnsigned(count);
@@ -142,6 +143,7 @@ class ClassSerializationCluster : public SerializationCluster {
   }
 
   void WriteClass(Serializer* s, RawClass* cls) {
+    AutoTraceObjectName(cls, cls->ptr()->name_);
     Snapshot::Kind kind = s->kind();
     RawObject** from = cls->from();
     RawObject** to = cls->to_snapshot(kind);
@@ -302,9 +304,10 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawTypeArguments* type_args = objects_[i];
+      s->AssignRef(type_args);
+      AutoTraceObject(type_args);
       intptr_t length = Smi::Value(type_args->ptr()->length_);
       s->WriteUnsigned(length);
-      s->AssignRef(type_args);
     }
   }
 
@@ -312,6 +315,7 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawTypeArguments* type_args = objects_[i];
+      AutoTraceObject(type_args);
       intptr_t length = Smi::Value(type_args->ptr()->length_);
       s->WriteUnsigned(length);
       s->Write<bool>(type_args->IsCanonical());
@@ -400,6 +404,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawPatchClass* cls = objects_[i];
+      AutoTraceObject(cls);
       RawObject** from = cls->from();
       RawObject** to = cls->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
@@ -501,6 +506,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawFunction* func = objects_[i];
+      AutoTraceObjectName(func, func->ptr()->name_);
       RawObject** from = func->from();
       RawObject** to = func->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
@@ -691,6 +697,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawClosureData* data = objects_[i];
+      AutoTraceObject(data);
       if (s->kind() != Snapshot::kFullAOT) {
         s->WriteRef(data->ptr()->context_scope_);
       }
@@ -772,6 +779,7 @@ class SignatureDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawSignatureData* data = objects_[i];
+      AutoTraceObject(data);
       RawObject** from = data->from();
       RawObject** to = data->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -849,6 +857,7 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawRedirectionData* data = objects_[i];
+      AutoTraceObject(data);
       RawObject** from = data->from();
       RawObject** to = data->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -957,6 +966,7 @@ class FieldSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawField* field = objects_[i];
+      AutoTraceObject(field);
 
       s->WriteRef(field->ptr()->name_);
       s->WriteRef(field->ptr()->owner_);
@@ -1114,6 +1124,7 @@ class ScriptSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawScript* script = objects_[i];
+      AutoTraceObject(script);
       RawObject** from = script->from();
       RawObject** to = script->to_snapshot(kind);
       for (RawObject** p = from; p <= to; p++) {
@@ -1205,6 +1216,7 @@ class LibrarySerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawLibrary* lib = objects_[i];
+      AutoTraceObjectName(lib, lib->ptr()->url_);
       RawObject** from = lib->from();
       RawObject** to = lib->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
@@ -1309,6 +1321,7 @@ class NamespaceSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawNamespace* ns = objects_[i];
+      AutoTraceObject(ns);
       RawObject** from = ns->from();
       RawObject** to = ns->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -1386,6 +1399,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawKernelProgramInfo* info = objects_[i];
+      AutoTraceObject(info);
       RawObject** from = info->from();
       RawObject** to = info->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
@@ -1496,6 +1510,7 @@ class CodeSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawCode* code = objects_[i];
+      AutoTraceObject(code);
 
       intptr_t pointer_offsets_length =
           Code::PtrOffBits::decode(code->ptr()->state_bits_);
@@ -1742,9 +1757,10 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawObjectPool* pool = objects_[i];
+      s->AssignRef(pool);
+      AutoTraceObject(pool);
       intptr_t length = pool->ptr()->length_;
       s->WriteUnsigned(length);
-      s->AssignRef(pool);
     }
   }
 
@@ -1752,6 +1768,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawObjectPool* pool = objects_[i];
+      AutoTraceObject(pool);
       intptr_t length = pool->ptr()->length_;
       s->WriteUnsigned(length);
       uint8_t* entry_bits = pool->ptr()->entry_bits();
@@ -1904,12 +1921,13 @@ class RODataSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawObject* object = shared_objects_[i];
+      s->AssignRef(object);
+      AutoTraceObject(object);
       uint32_t offset;
       if (!s->GetSharedDataOffset(object, &offset)) {
         UNREACHABLE();
       }
       s->WriteUnsigned(offset);
-      s->AssignRef(object);
     }
 
     count = objects_.length();
@@ -1917,12 +1935,14 @@ class RODataSerializationCluster : public SerializationCluster {
     uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
       RawObject* object = objects_[i];
+      s->AssignRef(object);
+      AutoTraceObject(object);
       uint32_t offset = s->GetDataOffset(object);
+      s->TraceDataOffset(offset);
       ASSERT(Utils::IsAligned(offset, kObjectAlignment));
       ASSERT(offset > running_offset);
       s->WriteUnsigned((offset - running_offset) >> kObjectAlignmentLog2);
       running_offset = offset;
-      s->AssignRef(object);
     }
   }
 
@@ -1982,9 +2002,10 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawExceptionHandlers* handlers = objects_[i];
+      s->AssignRef(handlers);
+      AutoTraceObject(handlers);
       intptr_t length = handlers->ptr()->num_entries_;
       s->WriteUnsigned(length);
-      s->AssignRef(handlers);
     }
   }
 
@@ -1992,6 +2013,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawExceptionHandlers* handlers = objects_[i];
+      AutoTraceObject(handlers);
       intptr_t length = handlers->ptr()->num_entries_;
       s->WriteUnsigned(length);
       s->WriteRef(handlers->ptr()->handled_types_data_);
@@ -2076,9 +2098,10 @@ class ContextSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawContext* context = objects_[i];
+      s->AssignRef(context);
+      AutoTraceObject(context);
       intptr_t length = context->ptr()->num_variables_;
       s->WriteUnsigned(length);
-      s->AssignRef(context);
     }
   }
 
@@ -2086,6 +2109,7 @@ class ContextSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawContext* context = objects_[i];
+      AutoTraceObject(context);
       intptr_t length = context->ptr()->num_variables_;
       s->WriteUnsigned(length);
       s->WriteRef(context->ptr()->parent_);
@@ -2158,9 +2182,10 @@ class ContextScopeSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawContextScope* scope = objects_[i];
+      s->AssignRef(scope);
+      AutoTraceObject(scope);
       intptr_t length = scope->ptr()->num_variables_;
       s->WriteUnsigned(length);
-      s->AssignRef(scope);
     }
   }
 
@@ -2168,6 +2193,7 @@ class ContextScopeSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawContextScope* scope = objects_[i];
+      AutoTraceObject(scope);
       intptr_t length = scope->ptr()->num_variables_;
       s->WriteUnsigned(length);
       s->Write<bool>(scope->ptr()->is_implicit_);
@@ -2252,6 +2278,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawUnlinkedCall* unlinked = objects_[i];
+      AutoTraceObject(unlinked);
       RawObject** from = unlinked->from();
       RawObject** to = unlinked->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -2331,6 +2358,7 @@ class ICDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawICData* ic = objects_[i];
+      AutoTraceObject(ic);
       RawObject** from = ic->from();
       RawObject** to = ic->to_snapshot(kind);
       for (RawObject** p = from; p <= to; p++) {
@@ -2424,6 +2452,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawMegamorphicCache* cache = objects_[i];
+      AutoTraceObject(cache);
       RawObject** from = cache->from();
       RawObject** to = cache->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -2500,6 +2529,7 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawSubtypeTestCache* cache = objects_[i];
+      AutoTraceObject(cache);
       s->WriteRef(cache->ptr()->cache_);
     }
   }
@@ -2570,6 +2600,7 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawLanguageError* error = objects_[i];
+      AutoTraceObject(error);
       RawObject** from = error->from();
       RawObject** to = error->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -2654,6 +2685,7 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawUnhandledException* exception = objects_[i];
+      AutoTraceObject(exception);
       RawObject** from = exception->from();
       RawObject** to = exception->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -2747,6 +2779,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawInstance* instance = objects_[i];
+      AutoTraceObject(instance);
       s->Write<bool>(instance->IsCanonical());
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
@@ -2851,6 +2884,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawLibraryPrefix* prefix = objects_[i];
+      AutoTraceObject(prefix);
       RawObject** from = prefix->from();
       RawObject** to = prefix->to_snapshot(kind);
       for (RawObject** p = from; p <= to; p++) {
@@ -2965,6 +2999,7 @@ class TypeSerializationCluster : public SerializationCluster {
     intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawType* type = canonical_objects_[i];
+      AutoTraceObject(type);
       RawObject** from = type->from();
       RawObject** to = type->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -2981,6 +3016,7 @@ class TypeSerializationCluster : public SerializationCluster {
     count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawType* type = objects_[i];
+      AutoTraceObject(type);
       RawObject** from = type->from();
       RawObject** to = type->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -3148,6 +3184,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawTypeRef* type = objects_[i];
+      AutoTraceObject(type);
       RawObject** from = type->from();
       RawObject** to = type->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -3257,6 +3294,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawTypeParameter* type = objects_[i];
+      AutoTraceObject(type);
       RawObject** from = type->from();
       RawObject** to = type->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -3369,6 +3407,7 @@ class BoundedTypeSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawBoundedType* type = objects_[i];
+      AutoTraceObject(type);
       RawObject** from = type->from();
       RawObject** to = type->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -3445,6 +3484,7 @@ class ClosureSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawClosure* closure = objects_[i];
+      AutoTraceObject(closure);
       s->Write<bool>(closure->IsCanonical());
       RawObject** from = closure->from();
       RawObject** to = closure->to();
@@ -3514,15 +3554,17 @@ class MintSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(smis_.length() + mints_.length());
     for (intptr_t i = 0; i < smis_.length(); i++) {
       RawSmi* smi = smis_[i];
+      s->AssignRef(smi);
+      AutoTraceObject(smi);
       s->Write<bool>(true);
       s->Write<int64_t>(Smi::Value(smi));
-      s->AssignRef(smi);
     }
     for (intptr_t i = 0; i < mints_.length(); i++) {
       RawMint* mint = mints_[i];
+      s->AssignRef(mint);
+      AutoTraceObject(mint);
       s->Write<bool>(mint->IsCanonical());
       s->Write<int64_t>(mint->ptr()->value_);
-      s->AssignRef(mint);
     }
   }
 
@@ -3606,6 +3648,7 @@ class DoubleSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawDouble* dbl = objects_[i];
+      AutoTraceObject(dbl);
       s->Write<bool>(dbl->IsCanonical());
       s->Write<double>(dbl->ptr()->value_);
     }
@@ -3676,6 +3719,7 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawGrowableObjectArray* array = objects_[i];
+      AutoTraceObject(array);
       s->Write<bool>(array->IsCanonical());
       RawObject** from = array->from();
       RawObject** to = array->to();
@@ -3744,9 +3788,10 @@ class TypedDataSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawTypedData* data = objects_[i];
+      s->AssignRef(data);
+      AutoTraceObject(data);
       intptr_t length = Smi::Value(data->ptr()->length_);
       s->WriteUnsigned(length);
-      s->AssignRef(data);
     }
   }
 
@@ -3755,6 +3800,7 @@ class TypedDataSerializationCluster : public SerializationCluster {
     intptr_t element_size = TypedData::ElementSizeInBytes(cid_);
     for (intptr_t i = 0; i < count; i++) {
       RawTypedData* data = objects_[i];
+      AutoTraceObject(data);
       intptr_t length = Smi::Value(data->ptr()->length_);
       s->WriteUnsigned(length);
       s->Write<bool>(data->IsCanonical());
@@ -3837,6 +3883,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
     intptr_t element_size = ExternalTypedData::ElementSizeInBytes(cid_);
     for (intptr_t i = 0; i < count; i++) {
       RawExternalTypedData* data = objects_[i];
+      AutoTraceObject(data);
       intptr_t length = Smi::Value(data->ptr()->length_);
       s->WriteUnsigned(length);
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data_);
@@ -3920,6 +3967,7 @@ class StackTraceSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawStackTrace* trace = objects_[i];
+      AutoTraceObject(trace);
       RawObject** from = trace->from();
       RawObject** to = trace->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -3996,6 +4044,7 @@ class RegExpSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawRegExp* regexp = objects_[i];
+      AutoTraceObject(regexp);
       RawObject** from = regexp->from();
       RawObject** to = regexp->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -4077,6 +4126,7 @@ class WeakPropertySerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawWeakProperty* property = objects_[i];
+      AutoTraceObject(property);
       RawObject** from = property->from();
       RawObject** to = property->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -4163,6 +4213,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawLinkedHashMap* map = objects_[i];
+      AutoTraceObject(map);
       s->Write<bool>(map->IsCanonical());
 
       s->WriteRef(map->ptr()->type_arguments_);
@@ -4274,9 +4325,10 @@ class ArraySerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawArray* array = objects_[i];
+      s->AssignRef(array);
+      AutoTraceObject(array);
       intptr_t length = Smi::Value(array->ptr()->length_);
       s->WriteUnsigned(length);
-      s->AssignRef(array);
     }
   }
 
@@ -4284,6 +4336,7 @@ class ArraySerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawArray* array = objects_[i];
+      AutoTraceObject(array);
       intptr_t length = Smi::Value(array->ptr()->length_);
       s->WriteUnsigned(length);
       s->Write<bool>(array->IsCanonical());
@@ -4356,9 +4409,10 @@ class OneByteStringSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawOneByteString* str = objects_[i];
+      s->AssignRef(str);
+      AutoTraceObject(str);
       intptr_t length = Smi::Value(str->ptr()->length_);
       s->WriteUnsigned(length);
-      s->AssignRef(str);
     }
   }
 
@@ -4366,6 +4420,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawOneByteString* str = objects_[i];
+      AutoTraceObject(str);
       intptr_t length = Smi::Value(str->ptr()->length_);
       s->WriteUnsigned(length);
       s->Write<bool>(str->IsCanonical());
@@ -4433,9 +4488,10 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       RawTwoByteString* str = objects_[i];
+      s->AssignRef(str);
+      AutoTraceObject(str);
       intptr_t length = Smi::Value(str->ptr()->length_);
       s->WriteUnsigned(length);
-      s->AssignRef(str);
     }
   }
 
@@ -4443,6 +4499,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawTwoByteString* str = objects_[i];
+      AutoTraceObject(str);
       intptr_t length = Smi::Value(str->ptr()->length_);
       s->WriteUnsigned(length);
       s->Write<bool>(str->IsCanonical());
@@ -4512,7 +4569,9 @@ Serializer::Serializer(Thread* thread,
                        uint8_t** buffer,
                        ReAlloc alloc,
                        intptr_t initial_size,
-                       ImageWriter* image_writer)
+                       ImageWriter* image_writer,
+                       bool vm,
+                       V8SnapshotProfileWriter* profile_writer)
     : StackResource(thread),
       heap_(thread->isolate()->heap()),
       zone_(thread->zone()),
@@ -4524,7 +4583,9 @@ Serializer::Serializer(Thread* thread,
       num_cids_(0),
       num_base_objects_(0),
       num_written_objects_(0),
-      next_ref_index_(1)
+      next_ref_index_(1),
+      vm_(vm),
+      profile_writer_(profile_writer)
 #if defined(SNAPSHOT_BACKTRACE)
       ,
       current_parent_(Object::null()),
@@ -4540,6 +4601,43 @@ Serializer::Serializer(Thread* thread,
 
 Serializer::~Serializer() {
   delete[] clusters_by_cid_;
+}
+
+void Serializer::TraceStartWritingObject(const char* type,
+                                         RawObject* obj,
+                                         RawString* name) {
+  if (profile_writer_ == nullptr) return;
+
+  intptr_t id = 0;
+  if (obj->IsHeapObject()) {
+    id = heap_->GetObjectId(obj);
+  } else {
+    id = smi_ids_.Lookup(Smi::RawCast(obj))->id_;
+  }
+  ASSERT(id != 0);
+
+  const char* name_str = nullptr;
+  if (name != nullptr) {
+    String& str = thread()->StringHandle();
+    str = name;
+    name_str = str.ToCString();
+  }
+
+  object_currently_writing_id_ = id;
+  profile_writer_->SetObjectTypeAndName(
+      {V8SnapshotProfileWriter::kSnapshot, id}, type, name_str);
+  object_currently_writing_start_ = stream_.Position();
+}
+
+void Serializer::TraceEndWritingObject() {
+  if (profile_writer_ != nullptr) {
+    ASSERT(object_currently_writing_id_ != 0);
+    profile_writer_->AttributeBytesTo(
+        {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_id_},
+        stream_.Position() - object_currently_writing_start_);
+    object_currently_writing_id_ = 0;
+    object_currently_writing_start_ = 0;
+  }
 }
 
 SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
@@ -4679,6 +4777,31 @@ void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
   ASSERT(offset != 0);
   Write<int32_t>(offset);
+
+  // If offset < 0, it's pointing to a shared instruction. We don't profile
+  // references to shared text/data (since they don't consume any space). Of
+  // course, the space taken for the reference is profiled.
+  if (profile_writer_ != nullptr && offset >= 0) {
+    // Instructions cannot be roots.
+    ASSERT(object_currently_writing_id_ != 0);
+    auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
+                            : V8SnapshotProfileWriter::kIsolateText;
+    profile_writer_->AttributeReferenceTo(
+        {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_id_},
+        {offset_space, offset < 0 ? -offset : offset});
+  }
+}
+
+void Serializer::TraceDataOffset(uint32_t offset) {
+  if (profile_writer_ != nullptr) {
+    // ROData cannot be roots.
+    ASSERT(object_currently_writing_id_ != 0);
+    auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmData
+                            : V8SnapshotProfileWriter::kIsolateData;
+    profile_writer_->AttributeReferenceTo(
+        {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_id_},
+        {offset_space, offset});
+  }
 }
 
 bool Serializer::GetSharedDataOffset(RawObject* object,
@@ -4923,30 +5046,36 @@ void Serializer::AddVMIsolateBaseObjects() {
   // These objects are always allocated by Object::InitOnce, so they are not
   // written into the snapshot.
 
-  AddBaseObject(Object::null());
-  AddBaseObject(Object::sentinel().raw());
-  AddBaseObject(Object::transition_sentinel().raw());
-  AddBaseObject(Object::empty_array().raw());
-  AddBaseObject(Object::zero_array().raw());
-  AddBaseObject(Object::dynamic_type().raw());
-  AddBaseObject(Object::void_type().raw());
-  AddBaseObject(Object::empty_type_arguments().raw());
-  AddBaseObject(Bool::True().raw());
-  AddBaseObject(Bool::False().raw());
+  AddBaseObject(Object::null(), "Null", "<null>");
+  AddBaseObject(Object::sentinel().raw(), "Sentinel");
+  AddBaseObject(Object::transition_sentinel().raw(), "Sentinel");
+  AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
+  AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
+  AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
+  AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
+  AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
+  AddBaseObject(Bool::True().raw(), "bool", "true");
+  AddBaseObject(Bool::False().raw(), "bool", "false");
   ASSERT(Object::extractor_parameter_types().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_types().raw());
+  AddBaseObject(Object::extractor_parameter_types().raw(), "Array",
+                "<extractor parameter types>");
   ASSERT(Object::extractor_parameter_names().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_names().raw());
-  AddBaseObject(Object::empty_context_scope().raw());
-  AddBaseObject(Object::empty_descriptors().raw());
-  AddBaseObject(Object::empty_var_descriptors().raw());
-  AddBaseObject(Object::empty_exception_handlers().raw());
+  AddBaseObject(Object::extractor_parameter_names().raw(), "Array",
+                "<extractor parameter names>");
+  AddBaseObject(Object::empty_context_scope().raw(), "ContextScope", "<empty>");
+  AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors", "<empty>");
+  AddBaseObject(Object::empty_var_descriptors().raw(), "LocalVarDescriptors",
+                "<empty>");
+  AddBaseObject(Object::empty_exception_handlers().raw(), "ExceptionHandlers",
+                "<empty>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-    AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
+    AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
+                  "ArgumentsDescriptor", "<cached arguments descriptor>");
   }
   for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i]);
+    AddBaseObject(ICData::cached_icdata_arrays_[i], "ICData",
+                  "<cached icdata>");
   }
 
   ClassTable* table = isolate()->class_table();
@@ -4954,15 +5083,15 @@ void Serializer::AddVMIsolateBaseObjects() {
     // Error has no class object.
     if (cid != kErrorCid) {
       ASSERT(table->HasValidClassAt(cid));
-      AddBaseObject(table->At(cid));
+      AddBaseObject(table->At(cid), "Class");
     }
   }
-  AddBaseObject(table->At(kDynamicCid));
-  AddBaseObject(table->At(kVoidCid));
+  AddBaseObject(table->At(kDynamicCid), "Class");
+  AddBaseObject(table->At(kVoidCid), "Class");
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i)->code());
+      AddBaseObject(StubCode::EntryAt(i)->code(), "Code", "<stub code>");
     }
   }
 }
@@ -4989,10 +5118,10 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   Serialize();
 
   // Write roots.
-  WriteRef(symbols.raw());
+  WriteRootRef(symbols.raw());
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRef(StubCode::EntryAt(i)->code());
+      WriteRootRef(StubCode::EntryAt(i)->code());
     }
   }
 
@@ -5035,7 +5164,7 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
 
   // Write roots.
   for (RawObject** p = from; p <= to; p++) {
-    WriteRef(*p);
+    WriteRootRef(*p);
   }
 
 #if defined(DEBUG)
@@ -5571,6 +5700,13 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   KernelProgramInfo& kernel_program_info_;
 };
 
+#if defined(DART_PRECOMPILER)
+DEFINE_FLAG(charp,
+            write_v8_snapshot_profile_to,
+            NULL,
+            "Write a snapshot profile in V8 format to a file.");
+#endif
+
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
                                        uint8_t** vm_snapshot_data_buffer,
                                        uint8_t** isolate_snapshot_data_buffer,
@@ -5634,6 +5770,12 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     saved_symbol_table_ = object_store->symbol_table();
     new_vm_symbol_table_ = Dart::vm_isolate()->object_store()->symbol_table();
   }
+
+#if defined(DART_PRECOMPILER)
+  if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+    profile_writer_ = new (zone()) V8SnapshotProfileWriter(zone());
+  }
+#endif
 }
 
 FullSnapshotWriter::~FullSnapshotWriter() {
@@ -5651,7 +5793,8 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
 
   ASSERT(vm_snapshot_data_buffer_ != NULL);
   Serializer serializer(thread(), kind_, vm_snapshot_data_buffer_, alloc_,
-                        kInitialSize, vm_image_writer_);
+                        kInitialSize, vm_image_writer_, /*vm=*/true,
+                        profile_writer_);
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(true);
@@ -5665,10 +5808,12 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   clustered_vm_size_ = serializer.bytes_written();
 
   if (Snapshot::IncludesCode(kind_)) {
+    vm_image_writer_->SetProfileWriter(profile_writer_);
     vm_image_writer_->Write(serializer.stream(), true);
     mapped_data_size_ += vm_image_writer_->data_size();
     mapped_text_size_ += vm_image_writer_->text_size();
     vm_image_writer_->ResetOffsets();
+    vm_image_writer_->ClearProfileWriter();
   }
 
   // The clustered part + the direct mapped data part.
@@ -5681,7 +5826,8 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
       thread(), Timeline::GetIsolateStream(), "WriteIsolateSnapshot"));
 
   Serializer serializer(thread(), kind_, isolate_snapshot_data_buffer_, alloc_,
-                        kInitialSize, isolate_image_writer_);
+                        kInitialSize, isolate_image_writer_, /*vm=*/false,
+                        profile_writer_);
   ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
 
@@ -5694,6 +5840,7 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   clustered_isolate_size_ = serializer.bytes_written();
 
   if (Snapshot::IncludesCode(kind_)) {
+    isolate_image_writer_->SetProfileWriter(profile_writer_);
     isolate_image_writer_->Write(serializer.stream(), false);
 #if defined(DART_PRECOMPILER)
     isolate_image_writer_->DumpStatistics();
@@ -5702,6 +5849,7 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
     mapped_data_size_ += isolate_image_writer_->data_size();
     mapped_text_size_ += isolate_image_writer_->text_size();
     isolate_image_writer_->ResetOffsets();
+    isolate_image_writer_->ClearProfileWriter();
   }
 
   // The clustered part + the direct mapped data part.
@@ -5730,6 +5878,12 @@ void FullSnapshotWriter::WriteFullSnapshot() {
               clustered_vm_size_ + clustered_isolate_size_ + mapped_data_size_ +
                   mapped_text_size_);
   }
+
+#if defined(DART_PRECOMPILER)
+  if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+    profile_writer_->Write(FLAG_write_v8_snapshot_profile_to);
+  }
+#endif
 }
 
 FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,

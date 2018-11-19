@@ -5,12 +5,15 @@
 #ifndef RUNTIME_VM_IMAGE_SNAPSHOT_H_
 #define RUNTIME_VM_IMAGE_SNAPSHOT_H_
 
+#include <utility>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
+#include "vm/v8_snapshot_writer.h"
 
 namespace dart {
 
@@ -120,6 +123,14 @@ class ImageWriter : public ValueObject {
 
   void DumpStatistics();
 
+  void SetProfileWriter(V8SnapshotProfileWriter* profile_writer) {
+    profile_writer_ = profile_writer;
+  }
+
+  void ClearProfileWriter() { profile_writer_ = nullptr; }
+
+  void TraceInstructions(const Instructions& instructions);
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
@@ -162,9 +173,65 @@ class ImageWriter : public ValueObject {
   ObjectOffsetMap shared_instructions_;
   ObjectOffsetMap reuse_instructions_;
 
+  V8SnapshotProfileWriter::IdSpace offset_space_ =
+      V8SnapshotProfileWriter::kSnapshot;
+  V8SnapshotProfileWriter* profile_writer_ = nullptr;
+
+  template <class T>
+  friend class TraceImageObjectScope;
+
  private:
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
+
+#define AutoTraceImage(section_offset, stream, type)                           \
+  auto AutoTraceImagObjectScopeVar##__COUNTER__ {                              \
+    MakeTraceImageObjectScope(this, section_offset, stream, type)              \
+  }
+
+template <typename T>
+class TraceImageObjectScope {
+ public:
+  TraceImageObjectScope(ImageWriter* writer,
+                        intptr_t section_offset,
+                        const T* stream,
+                        const char* type)
+      : writer_(writer),
+        stream_(stream),
+        section_offset_(section_offset),
+        start_offset_(stream_->Position() - section_offset) {
+    if (writer_->profile_writer_ != nullptr) {
+      ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+      writer_->profile_writer_->SetObjectTypeAndName(
+          {writer_->offset_space_, start_offset_}, type, nullptr);
+    }
+  }
+
+  ~TraceImageObjectScope() {
+    if (writer_->profile_writer_ != nullptr) {
+      ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+      writer_->profile_writer_->AttributeBytesTo(
+          {writer_->offset_space_, start_offset_},
+          stream_->Position() - section_offset_ - start_offset_);
+    }
+  }
+
+ private:
+  ImageWriter* writer_;
+  const T* stream_;
+  intptr_t section_offset_;
+  intptr_t start_offset_;
+};
+
+template <typename U>
+static TraceImageObjectScope<U>&& MakeTraceImageObjectScope(
+    ImageWriter* writer,
+    intptr_t section_offset,
+    U* stream,
+    const char* type) {
+  return std::move(
+      TraceImageObjectScope<U>(writer, section_offset, stream, type));
+}
 
 class AssemblyImageWriter : public ImageWriter {
  public:
