@@ -4,7 +4,7 @@
 
 branches:
   only:
-    - master
+    - dev
 
 install:
   - ps: wget https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-windows-x64-release.zip -OutFile dart-sdk.zip
