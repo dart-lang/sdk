@@ -2,6 +2,8 @@ Contributing to the Linter
 ==========================
 
 [![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
+![GitHub contributors](https://img.shields.io/github/contributors/dart-lang/linter.svg)
+
 
 Want to contribute? Great! First, read this page (including the small print at
 the end).
