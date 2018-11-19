@@ -10,7 +10,8 @@ import "package:expect/expect.dart";
 
 const Object d = 3.5;
 
-void main()  var o //
+void main() {
+   var o //
       = <int>{1: 1} //# 01: compile-time error
       = <int, int, int>{} //# 02: compile-time error
       = <int, int, int>{1} //# 03: compile-time error
