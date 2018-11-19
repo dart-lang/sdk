@@ -1001,7 +1001,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->Write<int32_t>(field->ptr()->kernel_offset_);
 #endif
       }
-      s->Write<uint8_t>(field->ptr()->kind_bits_);
+      s->Write<uint16_t>(field->ptr()->kind_bits_);
     }
   }
 
@@ -1053,7 +1053,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->kernel_offset_ = d->Read<int32_t>();
 #endif
       }
-      field->ptr()->kind_bits_ = d->Read<uint8_t>();
+      field->ptr()->kind_bits_ = d->Read<uint16_t>();
     }
   }
 

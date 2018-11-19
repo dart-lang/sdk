@@ -8693,6 +8693,7 @@ void Field::InitializeNew(const Field& result,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
+  result.set_kind_bits(0);
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
@@ -8709,6 +8710,7 @@ void Field::InitializeNew(const Field& result,
   result.set_is_unboxing_candidate(true);
   result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
+  result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
   Isolate* isolate = Isolate::Current();

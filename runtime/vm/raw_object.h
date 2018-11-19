@@ -1218,7 +1218,7 @@ class RawField : public RawObject {
   // field.
   int8_t static_type_exactness_state_;
 
-  uint8_t kind_bits_;  // static, final, const, has initializer....
+  uint16_t kind_bits_;  // static, final, const, has initializer....
 
   friend class CidRewriteVisitor;
 };
