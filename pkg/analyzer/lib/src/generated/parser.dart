@@ -35,6 +35,12 @@ export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 part 'parser_fasta.dart';
 
+/// Whether set literal parsing is currently enabled by default.
+/// TODO(paulberry): once we have a shared source of truth about this
+/// information, hook this constant up to it.  (See phase 0 of
+/// https://github.com/dart-lang/language/issues/60)
+const bool enableSetLiteralsDefault = false;
+
 /// A simple data-holder for a method that needs to return multiple values.
 class CommentAndMetadata {
   /// The documentation comment that was parsed, or `null` if none was given.
@@ -232,6 +238,14 @@ class Parser {
   /// lack either the `new` or `const` keyword.
   void set enableOptionalNewAndConst(bool enable) {
     _enableOptionalNewAndConst = enable;
+  }
+
+  /// Enables or disables parsing of set literals.
+  void set enableSetLiterals(bool value) {
+    if (value) {
+      throw new UnimplementedError(
+          'set-literal experiment not supported by analyzer parser');
+    }
   }
 
   /// Return `true` if the parser is to allow URI's in part-of directives.

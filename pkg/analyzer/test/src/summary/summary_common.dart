@@ -796,8 +796,11 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
    * with the given [variableName].
    */
   UnlinkedVariable serializeVariableText(String text,
-      {String variableName: 'v', bool allowErrors: false}) {
-    serializeLibraryText(text, allowErrors: allowErrors);
+      {String variableName: 'v',
+      bool allowErrors: false,
+      bool enableSetLiterals: enableSetLiteralsDefault}) {
+    serializeLibraryText(text,
+        allowErrors: allowErrors, enableSetLiterals: enableSetLiterals);
     return findVariable(variableName, failIfAbsent: true);
   }
 
@@ -2836,10 +2839,10 @@ const int v = p.a.length;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constExpr_makeTypedSet() {
-    UnlinkedVariable variable =
-        serializeVariableText('const v = const <int>{11, 22, 33};');
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = const <int>{11, 22, 33};',
+        enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.pushInt,
@@ -2856,10 +2859,10 @@ const int v = p.a.length;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constExpr_makeTypedSet_dynamic() {
-    UnlinkedVariable variable =
-        serializeVariableText('const v = const <dynamic>{11, 22, 33};');
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = const <dynamic>{11, 22, 33};',
+        enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.pushInt,
@@ -2875,10 +2878,10 @@ const int v = p.a.length;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constExpr_makeTypedSet_functionType() {
-    UnlinkedVariable variable =
-        serializeVariableText('final v = <void Function(int)>[];');
+    UnlinkedVariable variable = serializeVariableText(
+        'final v = <void Function(int)>{};',
+        enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.makeTypedSet],
         ints: [
@@ -2904,10 +2907,10 @@ const int v = p.a.length;
         forTypeInferenceOnly: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constExpr_makeTypedSet_functionType_withTypeParameters() {
     UnlinkedVariable variable = serializeVariableText(
-        'final v = <void Function<T>(Function<Q>(T, Q))>[];');
+        'final v = <void Function<T>(Function<Q>(T, Q))>{};',
+        enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.makeTypedSet],
         ints: [
@@ -2986,10 +2989,10 @@ const int v = p.a.length;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_constExpr_makeUntypedSet() {
-    UnlinkedVariable variable =
-        serializeVariableText('const v = const {11, 22, 33};');
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = const {11, 22, 33};',
+        enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.pushInt,
@@ -7255,10 +7258,10 @@ final v = f<int, String>();
         forTypeInferenceOnly: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_expr_makeTypedSet() {
-    UnlinkedVariable variable =
-        serializeVariableText('var v = <int>{11, 22, 33};');
+    UnlinkedVariable variable = serializeVariableText(
+        'var v = <int>{11, 22, 33};',
+        enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.makeTypedSet],
         ints: [0],
@@ -7300,15 +7303,15 @@ final v = f<int, String>();
         forTypeInferenceOnly: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_expr_makeUntypedSet() {
-    UnlinkedVariable variable = serializeVariableText('var v = {11, 22, 33};');
+    UnlinkedVariable variable =
+        serializeVariableText('var v = {11, 22, 33};', enableSetLiterals: true);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.makeUntypedList
+          UnlinkedExprOperation.makeUntypedSet
         ],
         ints: [11, 22, 33, 3],
         forTypeInferenceOnly: true);
