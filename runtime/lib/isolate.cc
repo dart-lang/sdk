@@ -26,7 +26,8 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
   return Capability::New(id);
 }
@@ -47,7 +48,8 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
   return ReceivePort::New(port_id, false /* not control port */);
 }
@@ -351,11 +353,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    bool is_checked = checked.value();
     Dart_IsolateFlags* flags = state->isolate_flags();
-    flags->enable_asserts = is_checked;
-    // Do not enable type checks in strong mode.
-    flags->enable_type_checks = is_checked && !FLAG_strong;
+    flags->enable_asserts = checked.value();
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);

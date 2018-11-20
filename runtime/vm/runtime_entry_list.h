@@ -46,8 +46,6 @@ namespace dart {
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \
-  V(TraceFunctionEntry)                                                        \
-  V(TraceFunctionExit)                                                         \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \

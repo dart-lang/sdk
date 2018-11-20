@@ -1,0 +1,14 @@
+diff --git a/lib/snapshot/BUILD.gn b/lib/snapshot/BUILD.gn
+index ef06063a2..fa18ebfbf 100644
+--- a/lib/snapshot/BUILD.gn
++++ b/lib/snapshot/BUILD.gn
+@@ -53,9 +53,7 @@ compiled_action("generate_snapshot_bin") {
+   ]
+ 
+   args = [
+-    "--strong",
+     "--sync-async",
+-    "--reify-generic-functions",
+     "--snapshot_kind=core",
+     "--enable_mirrors=false",
+     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data),

@@ -128,23 +128,6 @@ bool Interpreter::InstanceCall2(Thread* thread,
   return false;
 }
 
-void Interpreter::PrepareForTailCall(RawCode* code,
-                                     RawImmutableArray* args_desc,
-                                     RawObject** FP,
-                                     RawObject*** SP,
-                                     uint32_t** pc) {
-  UNIMPLEMENTED();
-}
-
-bool Interpreter::Deoptimize(Thread* thread,
-                             uint32_t** pc,
-                             RawObject*** FP,
-                             RawObject*** SP,
-                             bool is_lazy) {
-  UNIMPLEMENTED();
-  return false;
-}
-
 bool Interpreter::AssertAssignable(Thread* thread,
                                    uint32_t* pc,
                                    RawObject** FP,

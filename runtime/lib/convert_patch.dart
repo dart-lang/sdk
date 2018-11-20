@@ -177,7 +177,6 @@ class _BuildJsonListener extends _JsonListener {
   }
 
   void arrayElement() {
-    List list = currentContainer;
     currentContainer.add(value);
     value = null;
   }

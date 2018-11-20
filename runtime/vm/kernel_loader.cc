@@ -321,6 +321,7 @@ void KernelLoader::InitializeFields() {
   const ExternalTypedData& metadata_payloads = ExternalTypedData::Handle(
       Z, reader.ExternalDataFromTo(program_->metadata_payloads_offset(),
                                    program_->metadata_mappings_offset()));
+  ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
 
   // Create view of metadata mappings.
   const ExternalTypedData& metadata_mappings = ExternalTypedData::Handle(
@@ -1278,10 +1279,8 @@ void KernelLoader::LoadClass(const Library& library,
   if (!out_class->is_cycle_free()) {
     LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
-    for (intptr_t i = 0; i < type_parameter_counts; ++i) {
-      helper_.SkipStringReference();  // read ith name index.
-      helper_.SkipDartType();         // read ith bound.
-    }
+    // do not use type parameters with cycle_free
+    ASSERT(type_parameter_counts == 0);
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 
@@ -1367,6 +1366,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.IsConst(), is_reflectable, script_class, type,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
+      field.set_has_pragma(has_pragma_annotation);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);

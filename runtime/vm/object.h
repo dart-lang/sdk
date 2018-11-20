@@ -23,7 +23,6 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
-#include "vm/scanner.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
@@ -89,9 +88,6 @@ class Symbols;
              #object);                                                         \
     }                                                                          \
     return *obj;                                                               \
-  }                                                                            \
-  static object& CheckedHandle(RawObject* raw_ptr) {                           \
-    return CheckedHandle(Thread::Current()->zone(), raw_ptr);                  \
   }                                                                            \
   static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {                \
     object* obj =                                                              \
@@ -419,7 +415,6 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
-  static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
@@ -434,6 +429,7 @@ class Object {
     return kernel_program_info_class_;
   }
   static RawClass* code_class() { return code_class_; }
+  static RawClass* bytecode_class() { return bytecode_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
@@ -669,7 +665,6 @@ class Object {
   static RawClass* class_class_;             // Class of the Class vm object.
   static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
   static RawClass* void_class_;              // Class of the 'void' type.
-  static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
@@ -683,6 +678,7 @@ class Object {
   static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
                                                 // object.
   static RawClass* code_class_;                 // Class of the Code vm object.
+  static RawClass* bytecode_class_;      // Class of the Bytecode vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
@@ -782,6 +778,13 @@ typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 class Class : public Object {
  public:
+  enum InvocationDispatcherEntry {
+    kInvocationDispatcherName,
+    kInvocationDispatcherArgsDesc,
+    kInvocationDispatcherFunction,
+    kInvocationDispatcherEntrySize,
+  };
+
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
@@ -1084,7 +1087,6 @@ class Class : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupCallFunctionForTypeTest() const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -1506,37 +1508,6 @@ class Class : public Object {
   friend class Type;
   friend class Intrinsifier;
   friend class ClassFunctionVisitor;
-};
-
-// Unresolved class is used for storing unresolved names which will be resolved
-// to a class after all classes have been loaded and finalized.
-class UnresolvedClass : public Object {
- public:
-  RawObject* library_or_library_prefix() const {
-    return raw_ptr()->library_or_library_prefix_;
-  }
-  RawString* ident() const { return raw_ptr()->ident_; }
-  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
-
-  RawString* Name() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawUnresolvedClass));
-  }
-
-  static RawUnresolvedClass* New(const Object& library_prefix,
-                                 const String& ident,
-                                 TokenPosition token_pos);
-
- private:
-  void set_library_or_library_prefix(const Object& library_prefix) const;
-  void set_ident(const String& ident) const;
-  void set_token_pos(TokenPosition token_pos) const;
-
-  static RawUnresolvedClass* New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
-  friend class Class;
 };
 
 // Classification of type genericity according to type parameter owners.
@@ -2364,8 +2335,8 @@ class Function : public Object {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool IsBytecodeAllowed(Zone* zone) const;
-  void AttachBytecode(const Code& bytecode) const;
-  RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
+  void AttachBytecode(const Bytecode& bytecode) const;
+  RawBytecode* bytecode() const { return raw_ptr()->bytecode_; }
   bool HasBytecode() const;
 #endif
 
@@ -2521,14 +2492,11 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (FLAG_strong) {
-      if (!I->should_emit_strong_mode_checks()) {
-        return false;
-      }
-      return IsClosureFunction() ||
-             !(is_static() || (kind() == RawFunction::kConstructor));
+    if (!I->should_emit_strong_mode_checks()) {
+      return false;
     }
-    return I->type_checks();
+    return IsClosureFunction() ||
+           !(is_static() || (kind() == RawFunction::kConstructor));
   }
 
   bool MayHaveUncheckedEntryPoint(Isolate* I) const;
@@ -3253,6 +3221,13 @@ class Field : public Object {
         value, raw_ptr()->kind_bits_));
   }
 
+  bool has_pragma() const {
+    return HasPragmaBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_has_pragma(bool value) const {
+    set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -3510,22 +3485,24 @@ class Field : public Object {
     kReflectableBit,
     kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
+    kHasPragmaBit,
   };
-  class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
-  class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
-  class FinalBit : public BitField<uint8_t, bool, kFinalBit, 1> {};
+  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
+  class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
   class HasInitializerBit
-      : public BitField<uint8_t, bool, kHasInitializerBit, 1> {};
+      : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
   class UnboxingCandidateBit
-      : public BitField<uint8_t, bool, kUnboxingCandidateBit, 1> {};
-  class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
+      : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
+  class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
-      : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
+      : public BitField<uint16_t, bool, kDoubleInitializedBit, 1> {};
   class InitializerChangedAfterInitializatonBit
-      : public BitField<uint8_t,
+      : public BitField<uint16_t,
                         bool,
                         kInitializerChangedAfterInitializatonBit,
                         1> {};
+  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3558,7 +3535,7 @@ class Field : public Object {
   void set_end_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
   }
-  void set_kind_bits(uint8_t value) const {
+  void set_kind_bits(uint16_t value) const {
     StoreNonPointer(&raw_ptr()->kind_bits_, value);
   }
 
@@ -4251,6 +4228,9 @@ class ObjectPool : public Object {
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
+  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas.
+  void ResetICDatas(Zone* zone) const;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawObjectPool) ==
            OFFSET_OF_RETURNED_VALUE(RawObjectPool, data));
@@ -4922,7 +4902,7 @@ class Code : public Object {
   void set_await_token_positions(const Array& await_token_positions) const;
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
-  // that are embedded inside the Code object.
+  // that are embedded inside the Code or ObjecPool objects.
   void ResetICDatas(Zone* zone) const;
 
   // Array of DeoptInfo objects.
@@ -5154,10 +5134,6 @@ class Code : public Object {
                                PoolAttachment pool_attachment,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
-  static RawCode* FinalizeBytecode(const void* bytecode_data,
-                                   intptr_t bytecode_size,
-                                   const ObjectPool& object_pool,
-                                   CodeStatistics* stats = nullptr);
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
@@ -5294,6 +5270,105 @@ class Code : public Object {
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
+};
+
+class Bytecode : public Object {
+ public:
+  RawExternalTypedData* instructions() const {
+    return raw_ptr()->instructions_;
+  }
+  uword PayloadStart() const;
+  intptr_t Size() const;
+
+  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
+
+  bool ContainsInstructionAt(uword addr) const {
+    return RawBytecode::ContainsPC(raw(), addr);
+  }
+
+  RawPcDescriptors* pc_descriptors() const {
+    return raw_ptr()->pc_descriptors_;
+  }
+  void set_pc_descriptors(const PcDescriptors& descriptors) const {
+    ASSERT(descriptors.IsOld());
+    StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
+  }
+
+  void Disassemble(DisassemblyFormatter* formatter = NULL) const;
+
+  RawExceptionHandlers* exception_handlers() const {
+    return raw_ptr()->exception_handlers_;
+  }
+  void set_exception_handlers(const ExceptionHandlers& handlers) const {
+    ASSERT(handlers.IsOld());
+    StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
+  }
+
+  RawFunction* function() const { return raw_ptr()->function_; }
+
+  void set_function(const Function& function) const {
+    ASSERT(function.IsOld());
+    StorePointer(&raw_ptr()->function_, function.raw());
+  }
+
+  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
+  // that are embedded inside the Code or ObjecPool objects.
+  void ResetICDatas(Zone* zone) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawBytecode));
+  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static RawBytecode* New(const ExternalTypedData& instructions,
+                          const ObjectPool& object_pool);
+#endif
+
+  RawExternalTypedData* GetBinary(Zone* zone) const;
+
+  TokenPosition GetTokenIndexOfPC(uword pc) const;
+
+  intptr_t source_positions_binary_offset() const {
+    return raw_ptr()->source_positions_binary_offset_;
+  }
+  void set_source_positions_binary_offset(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->source_positions_binary_offset_, value);
+  }
+  bool HasSourcePositions() const {
+    return (source_positions_binary_offset() != 0);
+  }
+
+  const char* Name() const;
+  const char* QualifiedName() const;
+
+  class SlowFindRawBytecodeVisitor : public FindObjectVisitor {
+   public:
+    explicit SlowFindRawBytecodeVisitor(uword pc) : pc_(pc) {}
+    virtual ~SlowFindRawBytecodeVisitor() {}
+
+    // Check if object matches find condition.
+    virtual bool FindObject(RawObject* obj) const;
+
+   private:
+    const uword pc_;
+
+    DISALLOW_COPY_AND_ASSIGN(SlowFindRawBytecodeVisitor);
+  };
+
+  static RawBytecode* FindCode(uword pc);
+
+ private:
+  void set_object_pool(const ObjectPool& object_pool) const {
+    StorePointer(&raw_ptr()->object_pool_, object_pool.raw());
+  }
+
+  friend class RawObject;  // For RawObject::SizeFromClass().
+  friend class RawBytecode;
+
+  void set_instructions(const ExternalTypedData& instructions) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bytecode, Object);
+  friend class Class;
+  friend class SnapshotWriter;
 };
 
 class Context : public Object {
@@ -6191,10 +6266,9 @@ class AbstractType : public Instance {
   virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;
   virtual void SetIsResolved() const;
-  virtual bool HasResolvedTypeClass() const;
+  virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
-  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
@@ -6430,7 +6504,6 @@ class AbstractType : public Instance {
 
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
-// An unresolved class is a String specifying the class name.
 //
 // Caution: 'RawType*' denotes a 'raw' pointer to a VM object of class Type, as
 // opposed to 'Type' denoting a 'handle' to the same object. 'RawType' does not
@@ -6464,12 +6537,13 @@ class Type : public AbstractType {
     return raw_ptr()->type_state_ >= RawType::kResolved;
   }
   virtual void SetIsResolved() const;
-  virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
+  virtual bool HasTypeClass() const {
+    ASSERT(type_class_id() != kIllegalCid);
+    return true;
+  }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
   void set_type_class(const Class& value) const;
-  void set_unresolved_class(const Object& value) const;
-  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
@@ -6568,7 +6642,7 @@ class Type : public AbstractType {
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
 
-  static RawType* New(const Object& clazz,
+  static RawType* New(const Class& clazz,
                       const TypeArguments& arguments,
                       TokenPosition token_pos,
                       Heap::Space space = Heap::kOld);
@@ -6617,9 +6691,9 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).error();
   }
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const {
+  virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
-           AbstractType::Handle(type()).HasResolvedTypeClass();
+           AbstractType::Handle(type()).HasTypeClass();
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
@@ -6695,7 +6769,8 @@ class TypeParameter : public AbstractType {
   virtual bool IsMalbounded() const { return false; }
   virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const { return false; }
+  virtual bool HasTypeClass() const { return false; }
+  virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
   RawClass* parameterized_class() const;
   RawFunction* parameterized_function() const {
@@ -6798,17 +6873,14 @@ class BoundedType : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const;
   virtual RawLanguageError* error() const;
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const {
-    return AbstractType::Handle(type()).HasResolvedTypeClass();
+  virtual bool HasTypeClass() const {
+    return AbstractType::Handle(type()).HasTypeClass();
   }
   virtual classid_t type_class_id() const {
     return AbstractType::Handle(type()).type_class_id();
   }
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();
-  }
-  virtual RawUnresolvedClass* unresolved_class() const {
-    return AbstractType::Handle(type()).unresolved_class();
   }
   virtual RawTypeArguments* arguments() const {
     return AbstractType::Handle(type()).arguments();
@@ -6895,7 +6967,7 @@ class MixinAppType : public AbstractType {
   virtual bool IsMalbounded() const { return false; }
   virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return false; }
-  virtual bool HasResolvedTypeClass() const { return false; }
+  virtual bool HasTypeClass() const { return false; }
   virtual RawString* Name() const;
   virtual TokenPosition token_pos() const;
 
@@ -7286,8 +7358,6 @@ class String : public Instance {
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
   uint16_t CharAt(intptr_t index) const;
-
-  Scanner::CharAtFunc CharAtFunc() const;
 
   intptr_t CharSize() const;
 
@@ -8595,6 +8665,10 @@ class TypedData : public Instance {
 
 class ExternalTypedData : public Instance {
  public:
+  // Alignment of data when serializing ExternalTypedData in a clustered
+  // snapshot. Should be independent of word size.
+  static const int kDataSerializationAlignment = 8;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
@@ -9053,8 +9127,8 @@ class StackTrace : public Instance {
   void set_expand_inlined(bool value) const;
 
   RawArray* code_array() const { return raw_ptr()->code_array_; }
-  RawCode* CodeAtFrame(intptr_t frame_index) const;
-  void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
+  RawObject* CodeAtFrame(intptr_t frame_index) const;
+  void SetCodeAtFrame(intptr_t frame_index, const Object& code) const;
 
   RawArray* pc_offset_array() const { return raw_ptr()->pc_offset_array_; }
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
@@ -9641,8 +9715,13 @@ class ArrayOfTuplesView {
   intptr_t index_;
 };
 
+using InvocationDispatcherTable =
+    ArrayOfTuplesView<Class::InvocationDispatcherEntry,
+                      std::tuple<String, Array, Function>>;
+
 using StaticCallsTable =
     ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
                                                            Object,
@@ -9651,6 +9730,9 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments>>;
+
+void DumpTypeTable(Isolate* isolate);
+void DumpTypeArgumentsTable(Isolate* isolate);
 
 }  // namespace dart
 

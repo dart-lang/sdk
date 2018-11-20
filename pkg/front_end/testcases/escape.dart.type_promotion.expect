@@ -1,0 +1,6 @@
+pkg/front_end/testcases/escape.dart:31:5: Context: Write to x@483
+  x ??= "";
+    ^^^
+pkg/front_end/testcases/escape.dart:32:5: Context: Write to x@483
+  x ??= 45;
+    ^^^

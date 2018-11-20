@@ -93,7 +93,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 73;
+  static const int DATA_VERSION = 76;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -859,6 +859,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return `true` is the file with the given absolute [uri] is a library,
+   * or `false` if it is a part. More specifically, return `true` if the file
+   * is not known to be a part.
+   *
+   * Correspondingly, return `true` if the [uri] does not correspond to a file,
+   * for any reason, e.g. the file does not exist, or the [uri] cannot be
+   * resolved to a file path, or the [uri] is invalid, e.g. a `package:` URI
+   * without a package name. In these cases we cannot prove that the file is
+   * not a part, so it must be a library.
+   */
+  bool isLibraryByUri(Uri uri) {
+    if (_externalSummaries != null) {
+      var uriStr = uri.toString();
+      if (_externalSummaries.unlinkedMap[uriStr] != null) {
+        return _externalSummaries.linkedMap.containsKey(uriStr);
+      }
+    }
+    return !_fsState.getFileForUri(uri).isPart;
+  }
+
+  /**
    * Return a [Future] that completes with a [ParseResult] for the file
    * with the given [path].
    *
@@ -1244,7 +1265,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.isLibraryUri,
               libraryContext.analysisContext,
               libraryContext.resynthesizer,
-              library);
+              library,
+              _resourceProvider);
           Map<FileState, UnitAnalysisResult> results = await analyzer.analyze();
 
           List<int> bytes;

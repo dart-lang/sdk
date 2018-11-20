@@ -655,7 +655,7 @@ class SignalException implements IOException {
   final String message;
   final osError;
 
-  const SignalException(this.message, [this.osError = null]);
+  const SignalException(this.message, [this.osError]);
 
   String toString() {
     var msg = "";

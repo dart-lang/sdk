@@ -519,7 +519,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   _StreamImplEvents<T> _ensurePendingEvents() {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      if (_varData == null) _varData = new _StreamImplEvents<T>();
+      _varData ??= new _StreamImplEvents<T>();
       return _varData;
     }
     _StreamControllerAddStreamState<T> state = _varData;
@@ -574,9 +574,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   Future get done => _ensureDoneFuture();
 
   Future _ensureDoneFuture() {
-    if (_doneFuture == null) {
-      _doneFuture = _isCanceled ? Future._nullFuture : new _Future();
-    }
+    _doneFuture ??= _isCanceled ? Future._nullFuture : new _Future();
     return _doneFuture;
   }
 
@@ -935,7 +933,7 @@ class _StreamControllerAddStreamState<T> extends _AddStreamState<T> {
   var varData;
 
   _StreamControllerAddStreamState(_StreamController<T> controller, this.varData,
-      Stream source, bool cancelOnError)
+      Stream<T> source, bool cancelOnError)
       : super(controller, source, cancelOnError) {
     if (controller.isPaused) {
       addSubscription.pause();

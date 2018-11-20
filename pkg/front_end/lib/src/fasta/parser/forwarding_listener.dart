@@ -996,6 +996,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    listener?.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
+  }
+
+  @override
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     listener?.handleExpressionFunctionBody(arrowToken, endToken);
   }
@@ -1128,6 +1134,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleLiteralSet(
+      int count, Token beginToken, Token constKeyword, Token token) {
+    listener?.handleLiteralSet(count, beginToken, constKeyword, token);
+  }
+
+  @override
   void handleMixinHeader(Token mixinKeyword) {
     listener?.handleMixinHeader(mixinKeyword);
   }
@@ -1183,8 +1195,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNoExpression(Token token) {
-    listener?.handleNoExpression(token);
+  void handleForInitializerEmptyStatement(Token token) {
+    listener?.handleForInitializerEmptyStatement(token);
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    listener?.handleForInitializerExpressionStatement(token);
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    listener?.handleForInitializerLocalVariableDeclaration(token);
   }
 
   @override

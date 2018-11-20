@@ -45,7 +45,11 @@ uword RuntimeEntry::GetEntryPoint() const {
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    __ BranchLinkOffset(THR, Thread::OffsetFromThread(this));
+    __ LoadFromOffset(kWord, TMP, THR, Thread::OffsetFromThread(this));
+    __ str(TMP, Address(THR, Thread::vm_tag_offset()));
+    __ blx(TMP);
+    __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
+    __ str(TMP, Address(THR, Thread::vm_tag_offset()));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

@@ -18,7 +18,6 @@ namespace bin {
 
 void BootstrapDartIo() {
   // Bootstrap 'dart:io' event handler.
-  Thread::InitOnce();
   TimerUtils::InitOnce();
   EventHandler::Start();
 }

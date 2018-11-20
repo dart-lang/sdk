@@ -9,6 +9,8 @@ import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart'
+    show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_logger.dart';
@@ -83,12 +85,6 @@ typedef void OptionUpdater(AnalysisOptionsImpl options);
  * [CommunicationChannel] for analysis requests and process them.
  */
 class AnalysisServer {
-  /**
-   * The version of the analysis server. The value should be replaced
-   * automatically during the build.
-   */
-  static final String VERSION = '1.21.1';
-
   /**
    * The options of this server instance.
    */
@@ -362,7 +358,8 @@ class AnalysisServer {
       });
     });
     searchEngine = new SearchEngineImpl(driverMap.values);
-    Notification notification = new ServerConnectedParams(VERSION, io.pid,
+    Notification notification = new ServerConnectedParams(
+            PROTOCOL_VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
     channel.sendNotification(notification);

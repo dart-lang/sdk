@@ -33,9 +33,9 @@ import '../../js_backend/runtime_types.dart'
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
+import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
-import '../../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../../universe/world_builder.dart' show SelectorConstraints;
 import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart'
     show
@@ -421,8 +421,8 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(element, name, null, _registerStaticStateHolder(),
+        code, isFinal, isLazy);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -447,14 +447,15 @@ class ProgramBuilder {
     if (code == null) return null;
 
     js.Name name = _namer.globalPropertyNameForMember(element);
+    js.Name getterName = _namer.lazyInitializerName(element);
     bool isFinal = !element.isAssignable;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(element, name, getterName,
+        _registerStaticStateHolder(), code, isFinal, isLazy);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
@@ -912,17 +913,14 @@ class ProgramBuilder {
       functionType = _generateFunctionType(memberType, outputUnit);
     }
 
-    int requiredParameterCount;
+    FunctionEntity method = element;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int requiredParameterCount = parameterStructure.requiredParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
-      // TODO(redemption): Handle function entities.
-      FunctionEntity method = element;
-      ParameterStructure parameterStructure = method.parameterStructure;
-      requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
-
-      if (element.parameterStructure.typeParameters > 0) {
+      if (parameterStructure.typeParameters > 0) {
         applyIndex = 1;
       }
     }
@@ -1141,14 +1139,12 @@ class ProgramBuilder {
       functionType = _generateFunctionType(type, outputUnit);
     }
 
-    int requiredParameterCount;
+    FunctionEntity method = element;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int requiredParameterCount = parameterStructure.requiredParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
-      // TODO(redemption): Support entities;
-      FunctionEntity method = element;
-      ParameterStructure parameterStructure = method.parameterStructure;
-      requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
       if (parameterStructure.typeParameters > 0) {
         applyIndex = 1;

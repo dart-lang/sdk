@@ -179,7 +179,7 @@ class _ForwardingStreamSubscription<S, T>
 
 typedef bool _Predicate<T>(T value);
 
-void _addErrorWithReplacement(_EventSink sink, error, stackTrace) {
+void _addErrorWithReplacement(_EventSink sink, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
@@ -456,7 +456,7 @@ class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
 typedef bool _Equality<T>(T a, T b);
 
 class _DistinctStream<T> extends _ForwardingStream<T, T> {
-  static var _SENTINEL = new Object();
+  static final _SENTINEL = new Object();
 
   final _Equality<T> _equals;
 

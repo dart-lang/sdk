@@ -123,7 +123,7 @@ class _SinkTransformerStreamSubscription<S, T>
     }
   }
 
-  void _handleError(error, [stackTrace]) {
+  void _handleError(error, [StackTrace stackTrace]) {
     try {
       _transformerSink.addError(error, stackTrace);
     } catch (e, s) {

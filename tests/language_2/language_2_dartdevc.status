@@ -30,7 +30,6 @@ const_cast2_test/none: CompileTimeError
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
-covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
@@ -342,8 +341,6 @@ const_map4_test: RuntimeError # Expect.equals(expected: <true>, actual: <false>)
 const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.
 const_switch_test/04: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <1.0>) fails.
 constructor12_test: RuntimeError # Issue 29920; ReferenceError: JSArrayOfT is not defined
-covariance_field_test/04: RuntimeError
-covariance_field_test/05: RuntimeError
 ct_const_test: RuntimeError # Issue 2992; RangeError: Maximum call stack size exceeded
 custom_await_stack_trace_test: RuntimeError # Issue 29920; Uncaught Expect.equals(at index 0: Expected <Blah \x0ABloop\x0ABleep\x0A...>
 cyclic_type2_test: RuntimeError # Issue 29920; Uncaught ReferenceError: V is not defined

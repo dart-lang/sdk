@@ -213,7 +213,8 @@ class StaticField {
   /// Uses indicate missing information in the model.
   final FieldEntity element;
 
-  js.Name name;
+  final js.Name name;
+  final js.Name getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
   final Holder holder;
@@ -221,8 +222,8 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
 
-  StaticField(this.element, this.name, this.holder, this.code, this.isFinal,
-      this.isLazy);
+  StaticField(this.element, this.name, this.getterName, this.holder, this.code,
+      this.isFinal, this.isLazy);
 
   String toString() {
     return 'StaticField(name=${name.key},element=${element})';
@@ -447,8 +448,9 @@ abstract class DartMethod extends Method {
   // this field holds a function computing the function signature.
   final js.Expression functionType;
 
-  // Signature information for this method. This is only required and stored
-  // here if the method [canBeApplied].
+  // Signature information for this method. [optionalParameterDefaultValues] is
+  // only required and stored here if the method [canBeApplied]. The count is
+  // always stored to help select specialized tear-off paths.
   final int requiredParameterCount;
   final /* Map | List */ optionalParameterDefaultValues;
 

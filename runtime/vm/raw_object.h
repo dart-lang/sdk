@@ -22,7 +22,6 @@ typedef RawObject* RawCompressed;
 // Macrobatics to define the Object hierarchy of VM implementation classes.
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
-  V(UnresolvedClass)                                                           \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
@@ -34,6 +33,7 @@ typedef RawObject* RawCompressed;
   V(Namespace)                                                                 \
   V(KernelProgramInfo)                                                         \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
@@ -959,17 +959,6 @@ class RawClass : public RawObject {
   friend class CidRewriteVisitor;
 };
 
-class RawUnresolvedClass : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
-
-  VISIT_FROM(RawObject*, library_or_library_prefix_);
-  RawObject* library_or_library_prefix_;  // Library or library prefix qualifier
-                                          // for the ident.
-  RawString* ident_;                      // Name of the unresolved identifier.
-  VISIT_TO(RawObject*, ident_);
-  TokenPosition token_pos_;
-};
-
 class RawPatchClass : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
@@ -1078,7 +1067,7 @@ class RawFunction : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
   RawCode* code_;  // Currently active code. Accessed from generated code.
-  NOT_IN_PRECOMPILED(RawCode* bytecode_);
+  NOT_IN_PRECOMPILED(RawBytecode* bytecode_);
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1229,7 +1218,7 @@ class RawField : public RawObject {
   // field.
   int8_t static_type_exactness_state_;
 
-  uint8_t kind_bits_;  // static, final, const, has initializer....
+  uint16_t kind_bits_;  // static, final, const, has initializer....
 
   friend class CidRewriteVisitor;
 };
@@ -1474,6 +1463,25 @@ class RawCode : public RawObject {
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
+};
+
+class RawBytecode : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
+
+  VISIT_FROM(RawObject*, object_pool_);
+  RawObjectPool* object_pool_;
+  RawExternalTypedData* instructions_;
+  RawFunction* function_;
+  RawExceptionHandlers* exception_handlers_;
+  RawPcDescriptors* pc_descriptors_;
+  VISIT_TO(RawObject*, pc_descriptors_);
+
+  intptr_t source_positions_binary_offset_;
+
+  static bool ContainsPC(RawObject* raw_obj, uword pc);
+
+  friend class Function;
+  friend class StackFrame;
 };
 
 class RawObjectPool : public RawObject {
@@ -2006,8 +2014,7 @@ class RawType : public RawAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   VISIT_FROM(RawObject*, type_class_id_)
-  // Either the id of the resolved class as a Smi or an UnresolvedClass.
-  RawObject* type_class_id_;
+  RawSmi* type_class_id_;
   RawTypeArguments* arguments_;
   RawSmi* hash_;
   // This type object represents a function type if its signature field is a
@@ -2377,6 +2384,8 @@ class RawExternalTypedData : public RawInstance {
   VISIT_TO(RawCompressed, length_)
 
   uint8_t* data_;
+
+  friend class RawBytecode;
 };
 
 // VM implementations of the basic types in the isolate.

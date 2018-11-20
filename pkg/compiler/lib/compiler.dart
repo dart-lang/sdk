@@ -6,8 +6,6 @@ library compiler;
 
 import 'dart:async';
 
-import 'package:package_config/packages.dart';
-
 import 'compiler_new.dart' as new_api;
 import 'src/old_to_new_api.dart';
 import 'src/options.dart' show CompilerOptions;
@@ -69,12 +67,6 @@ typedef EventSink<String> CompilerOutputProvider(String name, String extension);
 typedef void DiagnosticHandler(
     Uri uri, int begin, int end, String message, Diagnostic kind);
 
-/**
- * Provides a package lookup mechanism in the case that no package root or
- * package resolution configuration file are explicitly specified.
- */
-typedef Future<Packages> PackagesDiscoveryProvider(Uri uri);
-
 /// Information resulting from the compilation.
 class CompilationResult {
   /// `true` if the compilation succeeded, that is, compilation didn't fail due
@@ -105,20 +97,22 @@ class CompilationResult {
  * as the compiler may create multiple files to support lazy loading
  * of libraries.
  */
-Future<CompilationResult> compile(Uri script, Uri libraryRoot, Uri packageRoot,
-    CompilerInputProvider inputProvider, DiagnosticHandler handler,
+Future<CompilationResult> compile(
+    Uri script,
+    Uri librariesSpecificationUri,
+    Uri packageRoot,
+    CompilerInputProvider inputProvider,
+    DiagnosticHandler handler,
     [List<String> options = const [],
     CompilerOutputProvider outputProvider,
     Map<String, String> environment = const {},
-    Uri packageConfig,
-    PackagesDiscoveryProvider packagesDiscoveryProvider]) {
-  CompilerOptions compilerOptions =
-      CompilerOptions.parse(options, libraryRoot: libraryRoot)
-        ..entryPoint = script
-        ..packageRoot = packageRoot
-        ..packageConfig = packageConfig
-        ..packagesDiscoveryProvider = packagesDiscoveryProvider
-        ..environment = environment;
+    Uri packageConfig]) {
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      librariesSpecificationUri: librariesSpecificationUri)
+    ..entryPoint = script
+    ..packageRoot = packageRoot
+    ..packageConfig = packageConfig
+    ..environment = environment;
 
   new_api.CompilerInput compilerInput = new LegacyCompilerInput(inputProvider);
   new_api.CompilerDiagnostics compilerDiagnostics =

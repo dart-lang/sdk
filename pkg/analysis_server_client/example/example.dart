@@ -3,16 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show Directory, Platform, exit;
+import 'dart:io' show Directory, Platform, ProcessSignal, exit;
 
+import 'package:analysis_server_client/handler/notification_handler.dart';
+import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:path/path.dart' as path;
-
-Completer serverConnected;
-Completer analysisComplete;
-Server server;
-int errorCount;
+import 'package:pub_semver/pub_semver.dart';
 
 /// A simple application that uses the analysis server to analyze a package.
 main(List<String> args) async {
@@ -20,83 +18,92 @@ main(List<String> args) async {
   print('Analyzing $target');
 
   // Launch the server
-  server = new Server();
+  Server server = new Server();
   await server.start();
 
   // Connect to the server
-  serverConnected = new Completer();
-  server.listenToOutput(notificationProcessor: handleEvent);
-  const connectTimeout = const Duration(seconds: 15);
-  await serverConnected.future.timeout(connectTimeout, onTimeout: () {
-    print('Failed to connect to server');
+  _Handler handler = new _Handler(server);
+  server.listenToOutput(notificationProcessor: handler.handleEvent);
+  if (!await handler.serverConnected(timeLimit: const Duration(seconds: 15))) {
     exit(1);
-  });
+  }
 
   // Request analysis
-  errorCount = 0;
-  analysisComplete = new Completer();
   await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
       new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
   await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
       new AnalysisSetAnalysisRootsParams([target], const []).toJson());
 
-  // Wait for analysis to complete
-  await analysisComplete.future;
-  if (errorCount == 0) {
-    print('No issues found.');
-  } else {
-    print('Found $errorCount errors/warnings/hints');
-  }
-
-  await stopServer();
+  // Continue to watch for analysis until the user presses Ctrl-C
+  StreamSubscription<ProcessSignal> subscription;
+  subscription = ProcessSignal.sigint.watch().listen((_) async {
+    print('Exiting...');
+    subscription.cancel();
+    await server.stop();
+  });
 }
 
-void handleEvent(String event, Map<String, dynamic> params) {
-  ResponseDecoder decoder = new ResponseDecoder(null);
-  switch (event) {
-    case ANALYSIS_NOTIFICATION_ERRORS:
-      final analysisErrorsParams =
-          new AnalysisErrorsParams.fromJson(decoder, 'params', params);
-      List<AnalysisError> errors = analysisErrorsParams.errors;
-      bool first = true;
-      for (AnalysisError error in errors) {
-        if (error.type.name == 'TODO') {
-          // Ignore these types of "errors"
-          continue;
-        }
-        if (first) {
-          first = false;
-          print('${analysisErrorsParams.file}:');
-        }
-        Location loc = error.location;
-        print('  ${error.message} • ${loc.startLine}:${loc.startColumn}');
-        ++errorCount;
-      }
-      break;
+class _Handler with NotificationHandler, ConnectionHandler {
+  final Server server;
+  int errorCount = 0;
 
-    case SERVER_NOTIFICATION_CONNECTED:
-      serverConnected.complete();
-      break;
+  _Handler(this.server);
 
-    case SERVER_NOTIFICATION_ERROR:
-      final serverErrorParams =
-          new ServerErrorParams.fromJson(decoder, 'params', params);
-      final message = new StringBuffer('Server Error: ')
-        ..writeln(serverErrorParams.message);
-      if (serverErrorParams.stackTrace != null) {
-        message.writeln(serverErrorParams.stackTrace);
+  @override
+  void onAnalysisErrors(AnalysisErrorsParams params) {
+    List<AnalysisError> errors = params.errors;
+    bool first = true;
+    for (AnalysisError error in errors) {
+      if (error.type.name == 'TODO') {
+        // Ignore these types of "errors"
+        continue;
       }
-      print(message.toString());
-      stopServer(exitCode: 15);
-      break;
+      if (first) {
+        first = false;
+        print('${params.file}:');
+      }
+      Location loc = error.location;
+      print('  ${error.message} • ${loc.startLine}:${loc.startColumn}');
+      ++errorCount;
+    }
+  }
 
-    case SERVER_NOTIFICATION_STATUS:
-      final statusParams =
-          new ServerStatusParams.fromJson(decoder, 'params', params);
-      if (statusParams.analysis != null && !statusParams.analysis.isAnalyzing) {
-        analysisComplete?.complete();
+  @override
+  void onFailedToConnect() {
+    print('Failed to connect to server');
+  }
+
+  @override
+  void onProtocolNotSupported(Version version) {
+    print('Expected protocol version $PROTOCOL_VERSION, but found $version');
+  }
+
+  @override
+  void onServerError(ServerErrorParams params) {
+    if (params.isFatal) {
+      print('Fatal Server Error: ${params.message}');
+    } else {
+      print('Server Error: ${params.message}');
+    }
+    if (params.stackTrace != null) {
+      print(params.stackTrace);
+    }
+    super.onServerError(params);
+  }
+
+  @override
+  void onServerStatus(ServerStatusParams params) {
+    if (!params.analysis.isAnalyzing) {
+      // Whenever the server stops analyzing,
+      // print a brief summary of what issues have been found.
+      if (errorCount == 0) {
+        print('No issues found.');
+      } else {
+        print('Found ${errorCount} errors/warnings/hints');
       }
-      break;
+      errorCount = 0;
+      print('--------- ctrl-c to exit ---------');
+    }
   }
 }
 
@@ -118,18 +125,4 @@ void printUsageAndExit(String errorMessage) {
   print('Usage: $appName <directory path>');
   print('  Analyze the *.dart source files in <directory path>');
   exit(1);
-}
-
-Future stopServer({int exitCode}) async {
-  const timeout = const Duration(seconds: 5);
-  await server.send(SERVER_REQUEST_SHUTDOWN, null).timeout(timeout,
-      onTimeout: () {
-    // fall through to wait for exit.
-  });
-  await server.exitCode.timeout(timeout, onTimeout: () {
-    return server.kill('server failed to exit');
-  });
-  if (exitCode != null) {
-    exit(exitCode);
-  }
 }

@@ -32,7 +32,6 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(bool, enable_interpreter);
 
 // Input parameters:
@@ -60,7 +59,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(RAX, Immediate(VMTag::kDartTagId));
+    __ movq(RAX, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(RAX, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -94,7 +93,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ CallCFunction(RBX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -315,7 +314,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ movq(R8, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -350,7 +349,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ CallCFunction(RAX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -398,7 +397,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ movq(R8, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -429,7 +428,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ CallCFunction(RBX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -965,9 +964,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
-
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movq(RAX, Address(THR, Thread::top_resource_offset()));
@@ -990,6 +986,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #endif
 
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
@@ -1106,9 +1106,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
-
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ movq(RAX, Address(THR, Thread::top_resource_offset()));
@@ -1130,6 +1127,10 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, kArgDescReg);
@@ -2188,7 +2189,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ movq(R8, Immediate(VMTag::kDartCompiledTagId));
     __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -2239,7 +2240,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ call(RAX);
 
   // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -2730,7 +2731,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   // Set the tag.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   // Restore the pool pointer.

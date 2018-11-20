@@ -1756,13 +1756,16 @@ class CodeGenerator extends Object
     if (!mocks.containsKey(element.name + '=')) {
       var args = field.isFinal ? [JS.Super(), name] : [JS.This(), virtualField];
 
-      var setter = element.setter;
-      var covariantParams = _classProperties.covariantParameters;
       JS.Expression value = JS.Identifier('value');
-      if (setter != null &&
-          covariantParams != null &&
-          covariantParams.contains(setter.parameters[0])) {
-        value = _emitCast(setter.parameters[0].type, value);
+
+      var setter = element.setter;
+      if (setter != null) {
+        var covariantParams = _classProperties.covariantParameters;
+        var param = setter.parameters[0];
+        if (param.isCovariant ||
+            covariantParams != null && covariantParams.contains(param)) {
+          value = _emitCast(param.type, value);
+        }
       }
       args.add(value);
 

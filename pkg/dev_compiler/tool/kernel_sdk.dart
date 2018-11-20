@@ -56,7 +56,7 @@ Future main(List<String> args) async {
       component,
       target.hierarchy,
       SharedCompilerOptions(moduleName: 'dart_sdk'),
-      {}).emitModule(component, [], {});
+      {}).emitModule(component, [], [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

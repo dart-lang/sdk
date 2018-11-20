@@ -164,7 +164,6 @@ class ObjectPointerVisitor;
   V(Null, "Null")                                                              \
   V(null, "null")                                                              \
   V(Dynamic, "dynamic")                                                        \
-  V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "Type")                                                              \
   V(_Type, "_Type")                                                            \
   V(_TypeRef, "_TypeRef")                                                      \
@@ -190,6 +189,7 @@ class ObjectPointerVisitor;
   V(Namespace, "Namespace")                                                    \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(Code, "Code")                                                              \
+  V(Bytecode, "Bytecode")                                                      \
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
@@ -674,6 +674,7 @@ class Symbols : public AllStatic {
   }
 
   static void DumpStats(Isolate* isolate);
+  static void DumpTable(Isolate* isolate);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>

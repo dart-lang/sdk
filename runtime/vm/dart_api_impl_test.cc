@@ -881,8 +881,6 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   EXPECT_VALID(result);
   EXPECT(is_static);
 
-  // TODO(bkonyi): uncomment when issue 33417 is resolved.
-  /*
   Dart_Handle klass = Dart_GetType(lib, NewString("Foo"), 0, NULL);
   EXPECT_VALID(klass);
 
@@ -898,7 +896,6 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   result = Dart_FunctionIsStatic(closure, &is_static);
   EXPECT_VALID(result);
   EXPECT(!is_static);
-*/
 }
 
 TEST_CASE(DartAPI_ClosureFunction) {
@@ -3594,9 +3591,7 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   // Create an isolate with checked mode flags.
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.enable_type_checks = true;
   api_flags.enable_asserts = true;
-  api_flags.enable_error_on_bad_type = true;
   char* err;
   Dart_Isolate isolate =
       Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,

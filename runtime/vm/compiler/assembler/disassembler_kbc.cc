@@ -246,7 +246,7 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
                                                    char* human_buffer,
                                                    intptr_t human_size,
                                                    int* out_instr_size,
-                                                   const Code& bytecode,
+                                                   const Bytecode& bytecode,
                                                    Object** object,
                                                    uword pc) {
   const uint32_t instr = *reinterpret_cast<uint32_t*>(pc);
@@ -277,57 +277,22 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
 void KernelBytecodeDisassembler::Disassemble(uword start,
                                              uword end,
                                              DisassemblyFormatter* formatter,
-                                             const Code& bytecode) {
+                                             const Bytecode& bytecode) {
 #if !defined(PRODUCT)
-  const Code::Comments& comments =
-      bytecode.IsNull() ? Code::Comments::New(0) : bytecode.comments();
   ASSERT(formatter != NULL);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
-  intptr_t comment_finger = 0;
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> token_positions;
   while (pc < end) {
-    const intptr_t offset = pc - start;
-    const intptr_t old_comment_finger = comment_finger;
-    while (comment_finger < comments.Length() &&
-           comments.PCOffsetAt(comment_finger) <= offset) {
-      formatter->Print(
-          "        ;; %s\n",
-          String::Handle(comments.CommentAt(comment_finger)).ToCString());
-      comment_finger++;
-    }
-    if (old_comment_finger != comment_finger) {
-      char str[4000];
-      BufferFormatter f(str, sizeof(str));
-      // Comment emitted, emit inlining information.
-      bytecode.GetInlinedFunctionsAtInstruction(offset, &inlined_functions,
-                                                &token_positions);
-      // Skip top scope function printing (last entry in 'inlined_functions').
-      bool first = true;
-      for (intptr_t i = 1; i < inlined_functions.length(); i++) {
-        const char* name = inlined_functions[i]->ToQualifiedCString();
-        if (first) {
-          f.Print("        ;; Inlined [%s", name);
-          first = false;
-        } else {
-          f.Print(" -> %s", name);
-        }
-      }
-      if (!first) {
-        f.Print("]\n");
-        formatter->Print("%s", str);
-      }
-    }
     int instruction_length;
     Object* object;
     DecodeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
                       sizeof(human_buffer), &instruction_length, bytecode,
                       &object, pc);
-    formatter->ConsumeInstruction(bytecode, hex_buffer, sizeof(hex_buffer),
-                                  human_buffer, sizeof(human_buffer), object,
-                                  pc);
+    formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
+                                  sizeof(human_buffer), object, pc);
     pc += instruction_length;
   }
 #else
@@ -340,17 +305,16 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   ASSERT(function.HasBytecode());
   const char* function_fullname = function.ToFullyQualifiedCString();
   Zone* zone = Thread::Current()->zone();
-  const Code& bytecode = Code::Handle(zone, function.Bytecode());
+  const Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
   THR_Print("Bytecode for function '%s' {\n", function_fullname);
-  const Instructions& instr = Instructions::Handle(bytecode.instructions());
-  uword start = instr.PayloadStart();
+  uword start = bytecode.PayloadStart();
   DisassembleToStdout stdout_formatter;
   LogBlock lb;
-  Disassemble(start, start + instr.Size(), &stdout_formatter, bytecode);
+  Disassemble(start, start + bytecode.Size(), &stdout_formatter, bytecode);
   THR_Print("}\n");
 
   const ObjectPool& object_pool =
-      ObjectPool::Handle(zone, bytecode.GetObjectPool());
+      ObjectPool::Handle(zone, bytecode.object_pool());
   object_pool.DebugPrint();
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);

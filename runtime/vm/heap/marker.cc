@@ -53,11 +53,19 @@ class SkippedCodeFunctions {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
-        func->StorePointer(&(func->ptr()->code_),
-                           StubCode::LazyCompile_entry()->code());
-        uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
-        func->ptr()->entry_point_ = entry_point;
-        func->ptr()->unchecked_entry_point_ = entry_point;
+        if (FLAG_enable_interpreter && Function::HasBytecode(func)) {
+          func->StorePointer(&(func->ptr()->code_),
+                             StubCode::InterpretCall_entry()->code());
+          uword entry_point = StubCode::InterpretCall_entry()->EntryPoint();
+          func->ptr()->entry_point_ = entry_point;
+          func->ptr()->unchecked_entry_point_ = entry_point;
+        } else {
+          func->StorePointer(&(func->ptr()->code_),
+                             StubCode::LazyCompile_entry()->code());
+          uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
+          func->ptr()->entry_point_ = entry_point;
+          func->ptr()->unchecked_entry_point_ = entry_point;
+        }
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within
           // a NoHandleScope block. Hence it is not okay to use a regular Zone

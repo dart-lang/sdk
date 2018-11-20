@@ -165,7 +165,7 @@ abstract class _IntListMixin implements List<int> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -282,7 +282,6 @@ abstract class _IntListMixin implements List<int> {
   int reduce(int combine(int value, int element)) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
-    var i = 0;
     var value = this[0];
     for (var i = 1; i < len; ++i) {
       value = combine(value, this[i]);
@@ -330,7 +329,6 @@ abstract class _IntListMixin implements List<int> {
   }
 
   int lastWhere(bool test(int element), {int orElse()}) {
-    var result = null;
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -518,7 +516,7 @@ abstract class _DoubleListMixin implements List<double> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -637,7 +635,6 @@ abstract class _DoubleListMixin implements List<double> {
   double reduce(double combine(double value, double element)) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
-    var i = 0;
     var value = this[0];
     for (var i = 1; i < len; ++i) {
       value = combine(value, this[i]);
@@ -686,7 +683,6 @@ abstract class _DoubleListMixin implements List<double> {
   }
 
   double lastWhere(bool test(double element), {double orElse()}) {
-    var result = null;
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -874,7 +870,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -994,7 +990,6 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   Float32x4 reduce(Float32x4 combine(Float32x4 value, Float32x4 element)) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
-    var i = 0;
     var value = this[0];
     for (var i = 1; i < len; ++i) {
       value = combine(value, this[i]);
@@ -1043,7 +1038,6 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   }
 
   Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
-    var result = null;
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1234,7 +1228,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -1353,7 +1347,6 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   Int32x4 reduce(Int32x4 combine(Int32x4 value, Int32x4 element)) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
-    var i = 0;
     var value = this[0];
     for (var i = 1; i < len; ++i) {
       value = combine(value, this[i]);
@@ -1402,7 +1395,6 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   }
 
   Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
-    var result = null;
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1593,7 +1585,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -1713,7 +1705,6 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   Float64x2 reduce(Float64x2 combine(Float64x2 value, Float64x2 element)) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
-    var i = 0;
     var value = this[0];
     for (var i = 1; i < len; ++i) {
       value = combine(value, this[i]);
@@ -1762,7 +1753,6 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   }
 
   Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
-    var result = null;
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1913,118 +1903,88 @@ class _ByteBuffer implements ByteBuffer {
       (other is _ByteBuffer) && identical(_data, other._data);
 
   ByteData asByteData([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = this.lengthInBytes - offsetInBytes;
-    }
+    length ??= this.lengthInBytes - offsetInBytes;
     return new _ByteDataView(this._data, offsetInBytes, length);
   }
 
   Int8List asInt8List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = this.lengthInBytes - offsetInBytes;
-    }
+    length ??= this.lengthInBytes - offsetInBytes;
     return new _Int8ArrayView(this, offsetInBytes, length);
   }
 
   Uint8List asUint8List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = this.lengthInBytes - offsetInBytes;
-    }
+    length ??= this.lengthInBytes - offsetInBytes;
     return new _Uint8ArrayView(this, offsetInBytes, length);
   }
 
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = this.lengthInBytes - offsetInBytes;
-    }
+    length ??= this.lengthInBytes - offsetInBytes;
     return new _Uint8ClampedArrayView(this, offsetInBytes, length);
   }
 
   Int16List asInt16List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
     return new _Int16ArrayView(this, offsetInBytes, length);
   }
 
   Uint16List asUint16List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
     return new _Uint16ArrayView(this, offsetInBytes, length);
   }
 
   Int32List asInt32List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
     return new _Int32ArrayView(this, offsetInBytes, length);
   }
 
   Uint32List asUint32List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
     return new _Uint32ArrayView(this, offsetInBytes, length);
   }
 
   Int64List asInt64List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
     return new _Int64ArrayView(this, offsetInBytes, length);
   }
 
   Uint64List asUint64List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
     return new _Uint64ArrayView(this, offsetInBytes, length);
   }
 
   Float32List asFloat32List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
     return new _Float32ArrayView(this, offsetInBytes, length);
   }
 
   Float64List asFloat64List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
     return new _Float64ArrayView(this, offsetInBytes, length);
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     return new _Float32x4ArrayView(this, offsetInBytes, length);
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     return new _Int32x4ArrayView(this, offsetInBytes, length);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length =
-          (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
-    }
+    length ??=
+        (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     return new _Float64x2ArrayView(this, offsetInBytes, length);
   }
 }
@@ -3572,7 +3532,7 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
   _TypedListView(_ByteBuffer _buffer, int _offset, int _length)
       : _typedData = _buffer._data,
         offsetInBytes = _offset,
-        length = _length {}
+        length = _length;
 
   // Method(s) implementing the TypedData interface.
 

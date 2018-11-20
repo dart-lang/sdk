@@ -17,6 +17,8 @@ import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'js_backend/enqueuer.dart';
 import 'types/types.dart';
+import 'universe/member_usage.dart';
+import 'universe/resolution_world_builder.dart';
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show

@@ -212,6 +212,7 @@ class Serializer : public StackResource {
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
+  void Align(intptr_t alignment) { stream_.Align(alignment); }
 
   void WriteRef(RawObject* object) {
     if (!object->IsHeapObject()) {
@@ -233,6 +234,12 @@ class Serializer : public StackResource {
         WriteRef(Object::null());
         return;
       }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+        WriteRef(Object::null());
+        return;
+      }
+#endif  // !DART_PRECOMPILED_RUNTIME
       if (object->IsSendPort()) {
         // TODO(rmacnak): Do a better job of resetting fields in precompilation
         // and assert this is unreachable.
@@ -324,6 +331,7 @@ class Deserializer : public StackResource {
   }
 
   void Advance(intptr_t value) { stream_.Advance(value); }
+  void Align(intptr_t alignment) { stream_.Align(alignment); }
 
   intptr_t PendingBytes() const { return stream_.PendingBytes(); }
 
@@ -355,6 +363,8 @@ class Deserializer : public StackResource {
   RawInstructions* ReadInstructions();
   RawObject* GetObjectAt(uint32_t offset) const;
   RawObject* GetSharedObjectAt(uint32_t offset) const;
+
+  void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 

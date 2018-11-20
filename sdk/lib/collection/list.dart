@@ -163,7 +163,7 @@ abstract class ListMixin<E> implements List<E> {
 
   E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
-    E match = null;
+    E match;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -346,7 +346,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void shuffle([Random random]) {
-    if (random == null) random = new Random();
+    random ??= new Random();
     int length = this.length;
     while (length > 1) {
       int pos = random.nextInt(length);
@@ -370,7 +370,7 @@ abstract class ListMixin<E> implements List<E> {
 
   List<E> sublist(int start, [int end]) {
     int listLength = this.length;
-    if (end == null) end = listLength;
+    end ??= listLength;
     RangeError.checkValidRange(start, end, listLength);
     int length = end - start;
     List<E> result = <E>[]..length = length;

@@ -198,7 +198,7 @@ class ProgramCompiler extends Object
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
       SharedCompilerOptions options, Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
-    var types = TypeSchemaEnvironment(coreTypes, hierarchy, true);
+    var types = TypeSchemaEnvironment(coreTypes, hierarchy, false);
     var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types);
@@ -235,16 +235,15 @@ class ProgramCompiler extends Object
   bool get emitMetadata => options.emitMetadata;
 
   JS.Program emitModule(Component component, List<Component> summaries,
-      Map<Uri, String> summaryModules) {
+      List<Uri> summaryUris, Map<Uri, String> moduleImportForSummary) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
     _component = component;
 
-    var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
-      var moduleImport = moduleImports[i];
+      var moduleImport = moduleImportForSummary[summaryUris[i]];
       for (var l in summary.libraries) {
         assert(!_importToSummary.containsKey(l));
         _importToSummary[l] = summary;
@@ -1370,12 +1369,12 @@ class ProgramCompiler extends Object
       return (member as Field).type;
     }
     FunctionType result;
-    if (!f.positionalParameters.any(isCovariant) &&
-        !f.namedParameters.any(isCovariant)) {
+    if (!f.positionalParameters.any(isCovariantParameter) &&
+        !f.namedParameters.any(isCovariantParameter)) {
       result = f.functionType;
     } else {
       reifyParameter(VariableDeclaration p) =>
-          isCovariant(p) ? coreTypes.objectClass.thisType : p.type;
+          isCovariantParameter(p) ? coreTypes.objectClass.thisType : p.type;
       reifyNamedParameter(VariableDeclaration p) =>
           NamedType(p.name, reifyParameter(p));
 
@@ -1772,9 +1771,10 @@ class ProgramCompiler extends Object
 
     var name = _declareMemberName(member);
     if (member.isSetter) {
-      if (superMember is Field && superMember.isGenericCovariantImpl ||
+      if (superMember is Field && isCovariantField(superMember) ||
           superMember is Procedure &&
-              isCovariant(superMember.function.positionalParameters[0])) {
+              isCovariantParameter(
+                  superMember.function.positionalParameters[0])) {
         return const [];
       }
       var setterType = substituteType(superMember.setterType);
@@ -1807,8 +1807,8 @@ class ProgramCompiler extends Object
       var jsParam = JS.Identifier(param.name);
       jsParams.add(jsParam);
 
-      if (isCovariant(param) &&
-          !isCovariant(superMember.function.positionalParameters[i])) {
+      if (isCovariantParameter(param) &&
+          !isCovariantParameter(superMember.function.positionalParameters[i])) {
         var check = _emitCast(jsParam, superMethodType.positionalParameters[i]);
         if (i >= function.requiredParameterCount) {
           body.add(js.statement('if (# !== void 0) #;', [jsParam, check]));
@@ -1819,8 +1819,8 @@ class ProgramCompiler extends Object
     }
     var namedParameters = function.namedParameters;
     for (var param in namedParameters) {
-      if (isCovariant(param) &&
-          !isCovariant(superMember.function.namedParameters
+      if (isCovariantParameter(param) &&
+          !isCovariantParameter(superMember.function.namedParameters
               .firstWhere((n) => n.name == param.name))) {
         var name = _propertyName(param.name);
         var paramType = superMethodType.namedParameters
@@ -1874,7 +1874,7 @@ class ProgramCompiler extends Object
     var args = field.isFinal ? [JS.Super(), name] : [JS.This(), virtualField];
 
     JS.Expression value = JS.Identifier('value');
-    if (!field.isFinal && field.isGenericCovariantImpl) {
+    if (!field.isFinal && isCovariantField(field)) {
       value = _emitCast(value, field.type);
     }
     args.add(value);
@@ -2884,7 +2884,7 @@ class ProgramCompiler extends Object
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
     initParameter(VariableDeclaration p, JS.Identifier jsParam) {
-      if (isCovariant(p)) {
+      if (isCovariantParameter(p)) {
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }

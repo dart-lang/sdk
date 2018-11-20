@@ -113,11 +113,11 @@ bool MatchesPattern(uword end, int16_t* pattern, intptr_t size);
 class KBCPatcher : public AllStatic {
  public:
   static NativeFunctionWrapper GetNativeCallAt(uword return_address,
-                                               const Code& bytecode,
+                                               const Bytecode& bytecode,
                                                NativeFunction* function);
 
   static void PatchNativeCallAt(uword return_address,
-                                const Code& bytecode,
+                                const Bytecode& bytecode,
                                 NativeFunction function,
                                 NativeFunctionWrapper trampoline);
 };

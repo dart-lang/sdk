@@ -224,7 +224,6 @@ class _GrowableList<T> extends ListBase<T> {
     if (length == 1) return this[0];
     if (length == 0) throw IterableElementError.noElement();
     throw IterableElementError.tooMany();
-    ;
   }
 
   // Shared array used as backing for new empty growable arrays.

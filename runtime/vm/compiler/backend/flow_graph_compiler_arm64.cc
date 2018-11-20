@@ -278,7 +278,6 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
         AbstractType::ZoneHandle(zone(), type_arguments.TypeAt(0));
     ASSERT(!tp_argument.IsMalformed());
     if (tp_argument.IsType()) {
-      ASSERT(tp_argument.HasResolvedTypeClass());
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
       if (object_type.IsSubtypeOf(tp_argument, NULL, NULL, Heap::kOld)) {
@@ -479,7 +478,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!FLAG_strong || !Class::Handle(type.type_class()).IsFutureOrClass()) {
+    if (!Class::Handle(type.type_class()).IsFutureOrClass()) {
       __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
     }
     __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
@@ -1137,8 +1136,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters() ||
-      (FLAG_reify_generic_functions && function.IsGeneric())) {
+  if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R4, arguments_descriptor);
   } else {
     __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.

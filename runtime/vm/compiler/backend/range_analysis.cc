@@ -2707,43 +2707,55 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  if (native_field() != nullptr) {
-    switch (native_field()->kind()) {
-      case NativeFieldDesc::kArray_length:
-      case NativeFieldDesc::kGrowableObjectArray_length:
-        *range = Range(RangeBoundary::FromConstant(0),
-                       RangeBoundary::FromConstant(Array::kMaxElements));
-        break;
+  switch (slot().kind()) {
+    case Slot::Kind::kArray_length:
+    case Slot::Kind::kGrowableObjectArray_length:
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(Array::kMaxElements));
+      break;
 
-      case NativeFieldDesc::kTypedData_length:
-        *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
-        break;
+    case Slot::Kind::kTypedData_length:
+      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+      break;
 
-      case NativeFieldDesc::kString_length:
-        *range = Range(RangeBoundary::FromConstant(0),
-                       RangeBoundary::FromConstant(String::kMaxElements));
-        break;
+    case Slot::Kind::kString_length:
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(String::kMaxElements));
+      break;
 
-      case NativeFieldDesc::kLinkedHashMap_index:
-      case NativeFieldDesc::kLinkedHashMap_data:
-      case NativeFieldDesc::kTypeArguments:
-        // Not an integer valued field.
-        UNREACHABLE();
-        break;
+    case Slot::Kind::kDartField:
+    case Slot::Kind::kCapturedVariable:
+      // Use default value.
+      Definition::InferRange(analysis, range);
+      break;
 
-      case NativeFieldDesc::kLinkedHashMap_hash_mask:
-      case NativeFieldDesc::kLinkedHashMap_used_data:
-      case NativeFieldDesc::kLinkedHashMap_deleted_keys:
-        *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
-        break;
+    case Slot::Kind::kLinkedHashMap_index:
+    case Slot::Kind::kLinkedHashMap_data:
+    case Slot::Kind::kGrowableObjectArray_data:
+    case Slot::Kind::kContext_parent:
+    case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kClosure_context:
+    case Slot::Kind::kClosure_delayed_type_arguments:
+    case Slot::Kind::kClosure_function:
+    case Slot::Kind::kClosure_function_type_arguments:
+    case Slot::Kind::kClosure_instantiator_type_arguments:
+      // Not an integer valued field.
+      UNREACHABLE();
+      break;
 
-      case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
-        *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
-        break;
-    }
-    return;
+    case Slot::Kind::kClosure_hash:
+    case Slot::Kind::kLinkedHashMap_hash_mask:
+    case Slot::Kind::kLinkedHashMap_used_data:
+    case Slot::Kind::kLinkedHashMap_deleted_keys:
+      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+      break;
+
+    case Slot::Kind::kArgumentsDescriptor_type_args_len:
+    case Slot::Kind::kArgumentsDescriptor_positional_count:
+    case Slot::Kind::kArgumentsDescriptor_count:
+      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+      break;
   }
-  Definition::InferRange(analysis, range);
 }
 
 void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {

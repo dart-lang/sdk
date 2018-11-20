@@ -458,7 +458,7 @@ class Isolate {
           packageRootString,
           packageConfigString);
       return await _spawnCommon(readyPort);
-    } catch (e, st) {
+    } catch (e) {
       if (readyPort != null) {
         readyPort.close();
       }
@@ -632,7 +632,7 @@ class Isolate {
   static Uri _getCurrentRootUri() {
     try {
       return Uri.parse(_getCurrentRootUriStr());
-    } catch (e, s) {
+    } catch (e) {
       return null;
     }
   }

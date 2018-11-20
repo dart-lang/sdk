@@ -147,7 +147,7 @@ abstract class Stream<T> {
         if (--count == 0) controller._closeUnchecked();
       }
     };
-    var onError = (error, stack) {
+    var onError = (error, StackTrace stack) {
       if (!controller.isClosed) {
         controller._addError(error, stack);
         if (--count == 0) controller._closeUnchecked();
@@ -1193,7 +1193,7 @@ abstract class Stream<T> {
    */
   Future<T> get last {
     _Future<T> future = new _Future<T>();
-    T result = null;
+    T result;
     bool foundResult = false;
     listen(
         (T value) {
@@ -1228,7 +1228,7 @@ abstract class Stream<T> {
    */
   Future<T> get single {
     _Future<T> future = new _Future<T>();
-    T result = null;
+    T result;
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1326,7 +1326,7 @@ abstract class Stream<T> {
    */
   Future<T> lastWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
-    T result = null;
+    T result;
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1366,7 +1366,7 @@ abstract class Stream<T> {
    */
   Future<T> singleWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future<T>();
-    T result = null;
+    T result;
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(

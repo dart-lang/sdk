@@ -3,17 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
 import 'serialization/serialization.dart';
-
-abstract class ClosureConversionTask extends CompilerTask {
-  ClosureConversionTask(Measurer measurer) : super(measurer);
-}
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
@@ -113,7 +108,7 @@ class ScopeInfo {
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
-  bool isBoxed(Local variable) => false;
+  bool isBoxedVariable(Local variable) => false;
 }
 
 /// Class representing the usage of a scope that has been captured in the
@@ -298,10 +293,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
   void forEachFreeVariable(f(Local variable, FieldEntity field)) {}
-
-  /// Return true if [variable] has been captured and mutated (all other
-  /// variables do not require boxing).
-  bool isVariableBoxed(Local variable) => false;
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's

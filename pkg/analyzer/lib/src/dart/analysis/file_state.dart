@@ -220,6 +220,12 @@ class FileState {
   bool get isPart => _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
 
   /**
+   * Return `true` if the file is the "unresolved" file, which does not have
+   * neither a valid URI, nor a path.
+   */
+  bool get isUnresolved => uri == null;
+
+  /**
    * If the file [isPart], return a currently know library the file is a part
    * of. Return `null` if a library is not known, for example because we have
    * not processed a library file yet.
@@ -693,7 +699,7 @@ class FileStateTestView {
  */
 class FileSystemState {
   final PerformanceLog _logger;
-  final ResourceProvider _resourceProvider;
+  final ResourceProvider resourceProvider;
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
@@ -774,7 +780,7 @@ class FileSystemState {
     this._logger,
     this._byteStore,
     this._contentOverlay,
-    this._resourceProvider,
+    this.resourceProvider,
     this._sourceFactory,
     this._analysisOptions,
     this._unlinkedSalt,
@@ -782,7 +788,7 @@ class FileSystemState {
     this.externalSummaries,
   }) {
     _fileContentCache = _FileContentCache.getInstance(
-      _resourceProvider,
+      resourceProvider,
       _contentOverlay,
     );
     _testView = new FileSystemStateTestView(this);
@@ -812,7 +818,7 @@ class FileSystemState {
   FileState getFileForPath(String path) {
     FileState file = _pathToCanonicalFile[path];
     if (file == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       // Try to get the existing instance.
@@ -834,9 +840,10 @@ class FileSystemState {
   }
 
   /**
-   * Return the [FileState] for the given absolute [uri]. May return `null` if
-   * the [uri] is invalid, e.g. a `package:` URI without a package name. The
-   * returned file has the last known state since if was last refreshed.
+   * Return the [FileState] for the given absolute [uri]. May return the
+   * "unresolved" file if the [uri] is invalid, e.g. a `package:` URI without
+   * a package name. The returned file has the last known state since if was
+   * last refreshed.
    */
   FileState getFileForUri(Uri uri) {
     FileState file = _uriToFile[uri];
@@ -862,7 +869,7 @@ class FileSystemState {
       }
 
       String path = uriSource.fullName;
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
@@ -905,7 +912,7 @@ class FileSystemState {
   bool hasUri(String path) {
     bool flag = _hasUriForPath[path];
     if (flag == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       Source uriSource = _sourceFactory.forUri2(uri);

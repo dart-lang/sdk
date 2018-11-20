@@ -1,0 +1,3 @@
+pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:51:5: Context: Write to d@1119
+  d = new D(new C(numToNum));
+    ^

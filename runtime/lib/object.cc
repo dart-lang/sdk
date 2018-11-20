@@ -15,11 +15,10 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_type_checks);
-
 DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
   // The dart:async library code entered an unrecoverable state.
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:async: %s\n", msg);
   FATAL(msg);
@@ -50,7 +49,8 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
 #if defined(HASH_IN_OBJECT_HEADER)
   Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
 #else
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   Heap* heap = isolate->heap();
   heap->SetHash(instance.raw(), hash.Value());
 #endif
@@ -58,7 +58,8 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (instance.IsString()) {
     return instance.raw();
   }
@@ -70,7 +71,8 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (instance.IsString()) {
     return Type::StringType();
   } else if (instance.IsInteger()) {
@@ -82,8 +84,10 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
-  const Instance& left = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Instance& right = Instance::CheckedHandle(arguments->NativeArgAt(1));
+  const Instance& left =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& right =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
 
   const intptr_t left_cid = left.GetClassId();
   const intptr_t right_cid = right.GetClassId();
@@ -316,26 +320,23 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
       Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
 
   Class& interface_cls = Class::Handle(zone);
-  intptr_t num_type_args = 0;  // Remains 0 when executing Dart 1.0 code.
-  // TODO(regis): Check for strong mode too?
-  if (FLAG_reify_generic_functions) {
-    const TypeArguments& function_type_args =
-        TypeArguments::Handle(zone, arguments->NativeTypeArgs());
-    if (function_type_args.Length() == 1) {
-      const AbstractType& function_type_arg =
-          AbstractType::Handle(zone, function_type_args.TypeAt(0));
-      if (function_type_arg.IsType() &&
-          (function_type_arg.arguments() == TypeArguments::null())) {
-        interface_cls = function_type_arg.type_class();
-        num_type_args = interface_cls.NumTypeParameters();
-      }
+  intptr_t num_type_args = 0;
+  const TypeArguments& function_type_args =
+      TypeArguments::Handle(zone, arguments->NativeTypeArgs());
+  if (function_type_args.Length() == 1) {
+    const AbstractType& function_type_arg =
+        AbstractType::Handle(zone, function_type_args.TypeAt(0));
+    if (function_type_arg.IsType() &&
+        (function_type_arg.arguments() == TypeArguments::null())) {
+      interface_cls = function_type_arg.type_class();
+      num_type_args = interface_cls.NumTypeParameters();
     }
-    if (num_type_args == 0) {
-      Exceptions::ThrowArgumentError(String::Handle(
-          zone,
-          String::New(
-              "single function type argument must specify a generic class")));
-    }
+  }
+  if (num_type_args == 0) {
+    Exceptions::ThrowArgumentError(String::Handle(
+        zone,
+        String::New(
+            "single function type argument must specify a generic class")));
   }
   if (instance.IsNull()) {
     Exceptions::ThrowArgumentError(instance);
@@ -502,7 +503,8 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 3) {
-  const Instance& receiver = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& receiver =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, method_name, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, invocation_type, arguments->NativeArgAt(2));
   InvocationMirror::Level level;

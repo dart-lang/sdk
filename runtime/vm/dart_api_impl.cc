@@ -69,6 +69,10 @@ DEFINE_FLAG(bool,
             verify_acquired_data,
             false,
             "Verify correct API acquire/release of typed data.");
+DEFINE_FLAG(bool,
+            dump_tables,
+            false,
+            "Dump common hash tables before snapshotting.");
 
 ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -107,15 +111,15 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
-      ASSERT(typeHandle_.IsMalformed() || !typeHandle_.IsResolved() ||
-             typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
+      ASSERT(typeHandle_.IsMalformed() || typeHandle_.IsTypeParameter() ||
+             typeHandle_.IsCanonical());
       // Verify that the types in the function signature are all canonical or
       // a TypeParameter.
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsMalformed() || !typeHandle_.IsResolved() ||
-               typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
+        ASSERT(typeHandle_.IsMalformed() || typeHandle_.IsTypeParameter() ||
+               typeHandle_.IsCanonical());
       }
     }
   }
@@ -1548,8 +1552,23 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
     Dart_MessageNotifyCallback message_notify_callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  NoSafepointScope no_safepoint_scope;
-  isolate->set_message_notify_callback(message_notify_callback);
+
+  {
+    NoSafepointScope no_safepoint_scope;
+    isolate->set_message_notify_callback(message_notify_callback);
+  }
+
+  if (message_notify_callback != nullptr && isolate->HasPendingMessages()) {
+    ::Dart_ExitIsolate();
+
+    // If a new handler gets installed and there are pending messages in the
+    // queue (e.g. OOB messages for doing vm service work) we need to notify
+    // the newly registered callback, otherwise the embedder might never get
+    // notified about the pending messages.
+    message_notify_callback(Api::CastIsolate(isolate));
+
+    ::Dart_EnterIsolate(Api::CastIsolate(isolate));
+  }
 }
 
 DART_EXPORT Dart_MessageNotifyCallback Dart_GetMessageNotifyCallback() {
@@ -5027,7 +5046,16 @@ static void CheckIsEntryPoint(const Class& klass) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // This is not a completely thorough check that the class is an entry-point,
   // but it catches most missing annotations.
-  RELEASE_ASSERT(klass.has_pragma());
+  if (!klass.has_pragma()) {
+    OS::PrintErr(
+        "ERROR: It is illegal to access class %s through Dart C API "
+        "because it was not annotated with @pragma('vm:entry-point').\n"
+        "ERROR: See "
+        "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+        "aot/entry_point_pragma.md",
+        String::Handle(klass.UserVisibleName()).ToCString());
+    UNREACHABLE();
+  }
 #endif
 }
 
@@ -5607,6 +5635,8 @@ Dart_CompileToKernel(const char* script_uri,
                      intptr_t platform_kernel_size,
                      bool incremental_compile,
                      const char* package_config) {
+  API_TIMELINE_DURATION(Thread::Current());
+
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
@@ -6457,6 +6487,12 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   }
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
+
+  if (FLAG_dump_tables) {
+    Symbols::DumpTable(I);
+    DumpTypeTable(I);
+    DumpTypeArgumentsTable(I);
+  }
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppJITSnapshot"));

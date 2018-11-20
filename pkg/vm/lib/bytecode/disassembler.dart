@@ -6,28 +6,44 @@ library vm.bytecode.disassembler;
 
 import 'dart:typed_data';
 
+import 'package:kernel/ast.dart' show listEquals, listHashCode;
+
 import 'dbc.dart';
 import 'exceptions.dart';
 
-class _Instruction {
+class Instruction {
   final Opcode opcode;
   final List<int> operands;
-  _Instruction(this.opcode, this.operands);
+  Instruction(this.opcode, this.operands);
+
+  @override
+  int get hashCode => opcode.index.hashCode ^ listHashCode(operands);
+
+  @override
+  bool operator ==(other) {
+    return (other is Instruction) &&
+        (opcode == other.opcode) &&
+        listEquals(operands, other.operands);
+  }
 }
 
 class BytecodeDisassembler {
   static const int kOpcodeMask = 0xFF;
   static const int kBitsPerInt = 64;
 
-  List<_Instruction> _instructions;
+  List<Instruction> _instructions;
   int _labelCount;
   Map<int, String> _labels;
   Map<int, List<String>> _markers;
 
-  String disassemble(List<int> bytecode, ExceptionsTable exceptionsTable) {
+  String disassemble(List<int> bytecode, ExceptionsTable exceptionsTable,
+      {List<Map<int, String>> annotations}) {
     _init(bytecode);
     _scanForJumpTargets();
     _markTryBlocks(exceptionsTable);
+    if (annotations != null) {
+      _markAnnotations(annotations);
+    }
     return _disasm();
   }
 
@@ -36,9 +52,9 @@ class BytecodeDisassembler {
     // TODO(alexmarkov): endianness?
     Uint32List words = uint8list.buffer.asUint32List();
 
-    _instructions = new List<_Instruction>(words.length);
+    _instructions = new List<Instruction>(words.length);
     for (int i = 0; i < words.length; i++) {
-      _instructions[i] = _decodeInstruction(words[i]);
+      _instructions[i] = decodeInstruction(words[i]);
     }
 
     _labelCount = 0;
@@ -46,10 +62,10 @@ class BytecodeDisassembler {
     _markers = <int, List<String>>{};
   }
 
-  _Instruction _decodeInstruction(int word) {
+  Instruction decodeInstruction(int word) {
     final opcode = Opcode.values[word & kOpcodeMask];
     final format = BytecodeFormats[opcode];
-    return new _Instruction(opcode, _decodeOperands(format, word));
+    return new Instruction(opcode, _decodeOperands(format, word));
   }
 
   List<int> _decodeOperands(Format format, int word) {
@@ -116,6 +132,14 @@ class BytecodeDisassembler {
     }
   }
 
+  void _markAnnotations(List<Map<int, String>> annotations) {
+    for (var map in annotations) {
+      map.forEach((int pc, String annotation) {
+        _addMarker(pc, '# $annotation');
+      });
+    }
+  }
+
   void _addMarker(int pc, String marker) {
     final markers = (_markers[pc] ??= <String>[]);
     markers.add(marker);
@@ -128,12 +152,12 @@ class BytecodeDisassembler {
       if (markers != null) {
         markers.forEach(out.writeln);
       }
-      _writeInstruction(out, i, _instructions[i]);
+      writeInstruction(out, i, _instructions[i]);
     }
     return out.toString();
   }
 
-  void _writeInstruction(StringBuffer out, int bci, _Instruction instr) {
+  void writeInstruction(StringBuffer out, int bci, Instruction instr) {
     final format = BytecodeFormats[instr.opcode];
     assert(format != null);
 
@@ -180,7 +204,9 @@ class BytecodeDisassembler {
       case Operand.xeg:
         return (value < 0) ? 'FP[$value]' : 'r$value';
       case Operand.tgt:
-        return _labels[bci + value] ?? (throw 'Label not found');
+        return (_labels == null)
+            ? value.toString()
+            : _labels[bci + value] ?? (throw 'Label not found');
       case Operand.spe:
         return SpecialIndex.values[value]
             .toString()

@@ -103,7 +103,7 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
   }
 
   Future<RawSocket> runClient(Socket socket) {
-    var completer = new Completer();
+    Completer<RawSocket> completer = new Completer<RawSocket>();
     var dataReceived = <int>[];
     socket.listen((data) {
       dataReceived.addAll(data);
@@ -156,14 +156,14 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
   Future<SecureSocket> connectClient(int port) {
     if (!handshakeBeforeSecure) {
       return Socket.connect(HOST, port).then((socket) {
-        var future;
+        Future<SecureSocket> future;
         if (hostnameInConnect) {
           future = SecureSocket.secure(socket, context: clientContext);
         } else {
           future =
               SecureSocket.secure(socket, host: HOST, context: clientContext);
         }
-        return future.then((secureSocket) {
+        return future.then<SecureSocket>((SecureSocket secureSocket) {
           socket.add([0]);
           return secureSocket;
         });

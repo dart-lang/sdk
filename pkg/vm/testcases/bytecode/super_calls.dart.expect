@@ -6,7 +6,7 @@ class Base1 extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -24,7 +24,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   CheckFunctionTypeArgs 1, r0
   PushNull
   ReturnTOS
@@ -35,7 +35,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushInt              42
   ReturnTOS
 }
@@ -46,7 +46,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }
@@ -58,7 +58,7 @@ class A extends self::Base1 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -76,7 +76,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   Push                 FP[-6]
   PushConstant         CP#1
@@ -96,7 +96,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -111,7 +111,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -126,7 +126,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
   PushConstant         CP#2
@@ -148,7 +148,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushInt              3
   PushConstant         CP#1
@@ -169,7 +169,7 @@ abstract class Base2 extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -192,7 +192,7 @@ abstract class B extends self::Base2 {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -210,10 +210,10 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
-  PushConstant         CP#0
   PushConstant         CP#1
+  PushConstant         CP#0
   PushConstant         CP#2
   PushInt              5
   CreateArrayTOS
@@ -246,8 +246,8 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'foo'
-  [1] = ArgDesc num-args 4, num-type-args 1, names []
+  [0] = ArgDesc num-args 4, num-type-args 1, names []
+  [1] = String 'foo'
   [2] = TypeArgs [dynamic]
   [3] = TypeArgs [dart.core::double]
   [4] = String 'a1'
@@ -262,10 +262,10 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#0
   PushConstant         CP#1
+  PushConstant         CP#0
   PushConstant         CP#2
   PushInt              1
   CreateArrayTOS
@@ -282,8 +282,8 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'foo'
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = String 'foo'
   [2] = TypeArgs [dynamic]
   [3] = ArgDesc num-args 4, num-type-args 0, names []
   [4] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
@@ -295,10 +295,10 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#0
   PushConstant         CP#1
+  PushConstant         CP#0
   PushConstant         CP#2
   PushInt              1
   CreateArrayTOS
@@ -315,8 +315,8 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'bar'
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = String 'bar'
   [2] = TypeArgs [dynamic]
   [3] = ArgDesc num-args 4, num-type-args 0, names []
   [4] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
@@ -328,11 +328,11 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
-  PushConstant         CP#1
   PushConstant         CP#2
+  PushConstant         CP#1
   PushConstant         CP#3
   PushInt              1
   CreateArrayTOS
@@ -352,8 +352,8 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = TypeArgs [dart.core::int]
-  [1] = String 'bar'
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = String 'bar'
   [3] = TypeArgs [dynamic]
   [4] = ArgDesc num-args 4, num-type-args 0, names []
   [5] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#4
@@ -368,10 +368,10 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#0
   PushConstant         CP#1
+  PushConstant         CP#0
   PushConstant         CP#2
   PushInt              2
   CreateArrayTOS
@@ -388,18 +388,18 @@ Bytecode (version: stable) {
   PushConstant         CP#4
   IndirectStaticCall   4, CP#3
   PushConstant         CP#5
-  IndirectStaticCall   2, CP#1
+  IndirectStaticCall   2, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'bazz'
-  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [0] = ArgDesc num-args 2, num-type-args 0, names []
+  [1] = String 'bazz'
   [2] = TypeArgs [dynamic]
   [3] = ArgDesc num-args 4, num-type-args 0, names []
   [4] = StaticICData target 'dart.core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
-  [5] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#1
+  [5] = StaticICData target 'dart.core::Object::noSuchMethod', arg-desc CP#0
 }
 ]  method testSuperSet() → dynamic {
     super.{self::Base2::bazz} = 3;
@@ -408,7 +408,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

@@ -382,7 +382,7 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
   }
 
 REGULAR_VISITOR(Class)
-REGULAR_VISITOR(UnresolvedClass)
+REGULAR_VISITOR(Bytecode)
 REGULAR_VISITOR(Type)
 REGULAR_VISITOR(TypeRef)
 REGULAR_VISITOR(TypeParameter)
@@ -520,9 +520,8 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
 }
 
 bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
-  uint32_t tags = raw_obj->ptr()->tags_;
-  if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
-    RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
+  if (raw_obj->IsCode()) {
+    RawCode* raw_code = static_cast<RawCode*>(raw_obj);
     return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
   }
   return false;
@@ -554,6 +553,17 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
   ASSERT(length == 0);
   return Code::InstanceSize(0);
 #endif
+}
+
+bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
+  if (raw_obj->IsBytecode()) {
+    RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
+    RawExternalTypedData* bytes = raw_bytecode->ptr()->instructions_;
+    uword start = reinterpret_cast<uword>(bytes->ptr()->data_);
+    uword size = Smi::Value(bytes->ptr()->length_);
+    return (pc - start) < size;
+  }
+  return false;
 }
 
 intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,

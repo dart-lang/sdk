@@ -2428,13 +2428,14 @@ ISOLATE_UNIT_TEST_CASE(ObjectPrinting) {
 
 ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   // Ensure that null handles have the correct C++ vtable setup.
-  const String& str1 = String::Handle();
+  Zone* zone = Thread::Current()->zone();
+  const String& str1 = String::Handle(zone);
   EXPECT(str1.IsString());
   EXPECT(str1.IsNull());
-  const String& str2 = String::CheckedHandle(Object::null());
+  const String& str2 = String::CheckedHandle(zone, Object::null());
   EXPECT(str2.IsString());
   EXPECT(str2.IsNull());
-  String& str3 = String::Handle();
+  String& str3 = String::Handle(zone);
   str3 ^= Object::null();
   EXPECT(str3.IsString());
   EXPECT(str3.IsNull());

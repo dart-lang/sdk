@@ -183,15 +183,20 @@ class ConstantEvaluationEngine {
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
     if (constant is ParameterElementImpl) {
-      Expression defaultValue = constant.constantInitializer;
-      if (defaultValue != null) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        ErrorReporter errorReporter =
-            new ErrorReporter(errorListener, constant.source);
-        DartObjectImpl dartObject =
-            defaultValue.accept(new ConstantVisitor(this, errorReporter));
-        constant.evaluationResult =
-            new EvaluationResultImpl(dartObject, errorListener.errors);
+      if (constant.isOptional) {
+        Expression defaultValue = constant.constantInitializer;
+        if (defaultValue != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, constant.source);
+          DartObjectImpl dartObject =
+              defaultValue.accept(new ConstantVisitor(this, errorReporter));
+          constant.evaluationResult =
+              new EvaluationResultImpl(dartObject, errorListener.errors);
+        } else {
+          constant.evaluationResult =
+              EvaluationResultImpl(typeProvider.nullObject);
+        }
       }
     } else if (constant is VariableElementImpl) {
       Expression constantInitializer = constant.constantInitializer;
@@ -216,12 +221,13 @@ class ConstantEvaluationEngine {
         constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
-    } else if (constant is ConstructorElement) {
+    } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
         // invocations of the constructor.
+        constant.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;

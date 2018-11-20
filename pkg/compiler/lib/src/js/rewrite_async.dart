@@ -1251,6 +1251,12 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Name visitName(js.Name node) => node;
 
   @override
+  js.Parentheses visitParentheses(js.Parentheses node) {
+    unsupported(node);
+    return null;
+  }
+
+  @override
   visitNamedFunction(js.NamedFunction node) {
     unsupported(node);
   }
@@ -2709,6 +2715,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitName(js.Name node) {
     return false;
+  }
+
+  @override
+  bool visitParentheses(js.Parentheses node) {
+    return visit(node.enclosed);
   }
 
   @override

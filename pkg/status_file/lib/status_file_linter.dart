@@ -61,7 +61,7 @@ Iterable<LintingError> lintCommentLinesInSection(StatusSection section) {
     }
     return lintingErrors;
   }
-  return section.entries.where((entry) => entry is CommentEntry).map((entry) =>
+  return section.entries.whereType<CommentEntry>().map((entry) =>
       new LintingError(entry.lineNumber, "Comment is on a line by itself."));
 }
 
@@ -97,7 +97,7 @@ Iterable<LintingError> lintDisjunctionsInHeader(StatusSection section) {
 /// ordered alphabetically.
 Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
   var entries = section.entries
-      .where((entry) => entry is StatusEntry)
+      .whereType<StatusEntry>()
       .map((entry) => (entry as StatusEntry).path)
       .toList();
   var sortedList = entries.toList()..sort((a, b) => a.compareTo(b));
@@ -132,10 +132,8 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
 /// Checks for duplicate section entries in the body of a section.
 Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
   var errors = <LintingError>[];
-  // TODO(whereType): When whereType is supported, use that.
   List<StatusEntry> statusEntries = section.entries
-      .where((entry) => entry is StatusEntry)
-      .cast<StatusEntry>()
+      .whereType<StatusEntry>()
       .toList();
   for (var i = 0; i < statusEntries.length; i++) {
     var entry = statusEntries[i];

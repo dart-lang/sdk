@@ -38,7 +38,7 @@ class _Platform {
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
-  static String packageRoot = null; // TODO(mfairhurst): remove this
+  static String packageRoot; // TODO(mfairhurst): remove this
   static String packageConfig = _packageConfig();
 
   @pragma("vm:entry-point")

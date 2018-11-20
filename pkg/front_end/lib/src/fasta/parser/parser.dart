@@ -261,6 +261,10 @@ class Parser {
 
   bool mayParseFunctionExpressions = true;
 
+  /// Experimental flag for enabling set literal support.
+  /// See https://github.com/dart-lang/sdk/issues/35121
+  bool parseSetLiterals = false;
+
   /// Represents parser state: what asynchronous syntax is allowed in the
   /// function being currently parsed. In rare situations, this can be set by
   /// external clients, for example, to parse an expression outside a function.
@@ -2985,8 +2989,10 @@ class Parser {
       token = parseOperatorName(token);
     } else {
       token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
-      token = parseQualifiedRestOpt(
-          token, IdentifierContext.methodDeclarationContinuation);
+      if (getOrSet == null) {
+        token = parseQualifiedRestOpt(
+            token, IdentifierContext.methodDeclarationContinuation);
+      }
     }
 
     bool isGetter = false;
@@ -3935,6 +3941,7 @@ class Parser {
           listener.handleNoTypeArguments(next);
         }
         token = parseArguments(token);
+        listener.handleSend(beginToken, token);
         typeArg = computeMethodTypeArguments(token);
         if (typeArg != noTypeParamOrArg) {
           // For example a(b)<T>(c), where token is before '<'.
@@ -3942,7 +3949,6 @@ class Parser {
           assert(optional('(', token.next));
         }
         next = token.next;
-        listener.handleSend(beginToken, next);
       } else {
         break;
       }
@@ -4001,7 +4007,7 @@ class Parser {
       return parseLiteralListSuffix(token, null);
     } else if (kind == OPEN_CURLY_BRACKET_TOKEN) {
       listener.handleNoTypeArguments(token.next);
-      return parseLiteralMapSuffix(token, null);
+      return parseLiteralSetOrMapSuffix(token, null);
     } else if (kind == LT_TOKEN) {
       return parseLiteralListOrMapOrFunction(token, null);
     } else {
@@ -4189,12 +4195,55 @@ class Parser {
     return token;
   }
 
+  /// This method parses the portion of a set or map literal that starts with
+  /// the left curly brace.
+  Token parseLiteralSetOrMapSuffix(final Token start, Token constKeyword) {
+    if (!parseSetLiterals) {
+      // TODO(danrubel): remove this once set literals are permanent
+      return parseLiteralMapSuffix(start, constKeyword);
+    }
+
+    Token leftBrace = start.next;
+    assert(optional('{', leftBrace));
+    if (optional('}', leftBrace.next)) {
+      Token rightBrace = leftBrace.next;
+      listener.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
+      return rightBrace;
+    }
+
+    final old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    final originalListener = listener;
+    listener = new ForwardingListener();
+
+    // Skip over the first expression to determine if this is a set or map.
+    // TODO(danrubel): Consider removing listener.beginLiteralMapEntry
+    // so that the expression could be parsed without lookahead
+    // regardless of whether this is a set or map literal.
+    Token token = parseExpression(leftBrace);
+    Token next = token.next;
+
+    listener = originalListener;
+    mayParseFunctionExpressions = old;
+
+    if (optional(',', next) || optional('}', next)) {
+      return parseLiteralSetSuffix(start, constKeyword);
+    } else if (optional(':', next)) {
+      return parseLiteralMapSuffix(start, constKeyword);
+    } else {
+      // Recovery: This could be either a literal set or a literal map
+      // TODO(danrubel): Consider better recovery
+      // rather than just assuming this is a malformed literal map.
+      return parseLiteralMapSuffix(start, constKeyword);
+    }
+  }
+
   /// This method parses the portion of a map literal that starts with the left
   /// curly brace.
   ///
   /// ```
   /// mapLiteral:
-  ///   'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+  ///   'const'? typeArguments? '{' mapLiteralEntry (',' mapLiteralEntry)* ','? '}'
   /// ;
   /// ```
   ///
@@ -4244,6 +4293,66 @@ class Parser {
     return token;
   }
 
+  /// This method parses the portion of a set literal that starts with the left
+  /// curly brace.
+  ///
+  /// ```
+  /// setLiteral:
+  ///   'const'?  typeArguments? '{' expression (',' expression)* ','? '}'
+  /// ;
+  /// ```
+  ///
+  /// Provide a [constKeyword] if the literal is preceded by 'const', or `null`
+  /// if not. This is a suffix parser because it is assumed that type arguments
+  /// have been parsed, or `listener.handleNoTypeArguments` has been executed.
+  Token parseLiteralSetSuffix(Token token, Token constKeyword) {
+    if (!parseSetLiterals) {
+      // TODO(danrubel): remove this once set literals are permanent
+      return parseLiteralMapSuffix(token, constKeyword);
+    }
+
+    Token beginToken = token = token.next;
+    assert(optional('{', beginToken));
+    int count = 0;
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    while (true) {
+      if (optional('}', token.next)) {
+        token = token.next;
+        break;
+      }
+      token = parseExpression(token);
+      Token next = token.next;
+      ++count;
+      if (!optional(',', next)) {
+        if (optional('}', next)) {
+          token = next;
+          break;
+        }
+        // Recovery
+        if (looksLikeExpressionStart(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+              token,
+              fasta.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
+        } else {
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing curly bracket
+          token = beginToken.endGroup;
+          break;
+        }
+      }
+      token = next;
+    }
+    assert(optional('}', token));
+    mayParseFunctionExpressions = old;
+    listener.handleLiteralSet(count, beginToken, constKeyword, token);
+    return token;
+  }
+
   /// formalParameterList functionBody.
   ///
   /// This is a suffix parser because it is assumed that type arguments have
@@ -4286,7 +4395,18 @@ class Parser {
     }
     token = typeParamOrArg.parseArguments(start, this);
     if (optional('{', next)) {
-      return parseLiteralMapSuffix(token, constKeyword);
+      switch (typeParamOrArg.typeArgumentCount) {
+        case 0:
+          return parseLiteralSetOrMapSuffix(token, constKeyword);
+        case 1:
+          return parseLiteralSetSuffix(token, constKeyword);
+        case 2:
+          return parseLiteralMapSuffix(token, constKeyword);
+        default:
+          // TODO(danrubel): Add a compile time warning that set literals
+          // require one type argument and map literals require two.
+          return parseLiteralSetOrMapSuffix(token, constKeyword);
+      }
     }
     if (!optional('[', next) && !optional('[]', next)) {
       // TODO(danrubel): Improve this error message.
@@ -4429,7 +4549,7 @@ class Parser {
     if (identical(value, '{')) {
       listener.beginConstLiteral(next);
       listener.handleNoTypeArguments(next);
-      token = parseLiteralMapSuffix(token, constKeyword);
+      token = parseLiteralSetOrMapSuffix(token, constKeyword);
       listener.endConstLiteral(token.next);
       return token;
     }
@@ -5062,10 +5182,12 @@ class Parser {
     // or an expression if no local variable declaration was found.
     if (token != leftParenthesis) {
       token = parseVariablesDeclarationRest(token, false);
+      listener.handleForInitializerLocalVariableDeclaration(token);
     } else if (optional(';', token.next)) {
-      listener.handleNoExpression(token.next);
+      listener.handleForInitializerEmptyStatement(token.next);
     } else {
       token = parseExpression(token);
+      listener.handleForInitializerExpressionStatement(token);
     }
 
     Token next = token.next;

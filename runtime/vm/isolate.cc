@@ -68,7 +68,6 @@ DECLARE_FLAG(bool, trace_reload);
 #if !defined(PRODUCT)
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
-  FLAG_enable_type_checks = value;
 }
 
 // --enable-checked-mode and --checked both enable checked mode which is
@@ -82,9 +81,9 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler, checked, "Enable checked mode.");
 
 static void DeterministicModeHandler(bool value) {
   if (value) {
-    FLAG_marker_tasks = 0;                // Timing dependent.
     FLAG_background_compilation = false;  // Timing dependent.
     FLAG_collect_code = false;            // Timing dependent.
+    FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
     FLAG_random_seed = 0x44617274;  // "Dart"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -482,6 +481,10 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
     // Allow the embedder to handle message notification.
     (*callback)(Api::CastIsolate(I));
   }
+}
+
+bool Isolate::HasPendingMessages() {
+  return message_handler_->HasMessages() || message_handler_->HasOOBMessages();
 }
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
@@ -933,7 +936,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       reloaded_kernel_blobs_(GrowableObjectArray::null()),
       next_(NULL),
       loading_invalidation_gen_(kInvalidGen),
-      top_level_parsing_count_(0),
       field_list_mutex_(
           new Mutex(NOT_IN_PRODUCT("Isolate::field_list_mutex_"))),
       boxed_field_list_(GrowableObjectArray::null()),

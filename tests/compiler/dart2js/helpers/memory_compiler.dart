@@ -8,12 +8,7 @@ import 'dart:async';
 
 import 'package:compiler/compiler.dart' show DiagnosticHandler;
 import 'package:compiler/compiler_new.dart'
-    show
-        CompilationResult,
-        CompilerDiagnostics,
-        CompilerOutput,
-        Diagnostic,
-        PackagesDiscoveryProvider;
+    show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
@@ -77,10 +72,9 @@ Future<CompilationResult> runCompiler(
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
-    Uri libraryRoot,
+    Uri librariesSpecificationUri,
     Uri packageRoot,
     Uri packageConfig,
-    PackagesDiscoveryProvider packagesDiscoveryProvider,
     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
@@ -92,10 +86,9 @@ Future<CompilationResult> runCompiler(
       outputProvider: outputProvider,
       options: options,
       showDiagnostics: showDiagnostics,
-      libraryRoot: libraryRoot,
+      librariesSpecificationUri: librariesSpecificationUri,
       packageRoot: packageRoot,
-      packageConfig: packageConfig,
-      packagesDiscoveryProvider: packagesDiscoveryProvider);
+      packageConfig: packageConfig);
   if (beforeRun != null) {
     beforeRun(compiler);
   }
@@ -113,17 +106,14 @@ CompilerImpl compilerFor(
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
     bool showDiagnostics: true,
-    Uri libraryRoot,
+    Uri librariesSpecificationUri,
     Uri packageRoot,
-    Uri packageConfig,
-    PackagesDiscoveryProvider packagesDiscoveryProvider}) {
+    Uri packageConfig}) {
   retainDataForTesting = true;
-  libraryRoot ??= Uri.base.resolve('sdk/');
+  librariesSpecificationUri ??= Uri.base.resolve('sdk/lib/libraries.json');
   Uri platformBinaries = computePlatformBinariesLocation();
 
-  if (packageRoot == null &&
-      packageConfig == null &&
-      packagesDiscoveryProvider == null) {
+  if (packageRoot == null && packageConfig == null) {
     if (Platform.packageRoot != null) {
       packageRoot = Uri.base.resolve(Platform.packageRoot);
     } else if (Platform.packageConfig != null) {
@@ -146,12 +136,12 @@ CompilerImpl compilerFor(
   }
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries)
     ..entryPoint = entryPoint
     ..packageRoot = packageRoot
     ..environment = {}
-    ..packageConfig = packageConfig
-    ..packagesDiscoveryProvider = packagesDiscoveryProvider;
+    ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =
       kernelInitializedCompilerState;
   CompilerImpl compiler = new CompilerImpl(

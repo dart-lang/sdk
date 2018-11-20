@@ -256,7 +256,6 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   void operator []=(K key, V value) {
     final int size = _index.length;
-    final int sizeMask = size - 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d = _findValueOrInsertPoint(key, fullHash, hashPattern, size);
@@ -270,8 +269,6 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   V putIfAbsent(K key, V ifAbsent()) {
     final int size = _index.length;
-    final int sizeMask = size - 1;
-    final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d = _findValueOrInsertPoint(key, fullHash, hashPattern, size);

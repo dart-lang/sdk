@@ -20,11 +20,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            trace_natives,
-            false,
-            "Trace invocation of natives (debug mode only)");
-
 void DartNativeThrowArgumentException(const Instance& instance) {
   const Array& __args__ = Array::Handle(Array::New(1));
   __args__.SetAt(0, instance);
@@ -252,8 +247,16 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
 
-    const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
-    const Function& func = Function::Handle(zone, code.function());
+    Code& code = Code::Handle(zone);
+    Bytecode& bytecode = Bytecode::Handle(zone);
+    Function& func = Function::Handle(zone);
+    if (caller_frame->is_interpreted()) {
+      bytecode = caller_frame->LookupDartBytecode();
+      func = bytecode.function();
+    } else {
+      code = caller_frame->LookupDartCode();
+      func = code.function();
+    }
 
     if (FLAG_trace_natives) {
       THR_Print("Resolving native target for %s\n", func.ToCString());
@@ -270,7 +273,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(FLAG_enable_interpreter);
       NativeFunctionWrapper current_trampoline = KBCPatcher::GetNativeCallAt(
-          caller_frame->pc(), code, &current_function);
+          caller_frame->pc(), bytecode, &current_function);
       ASSERT(current_function ==
              reinterpret_cast<NativeFunction>(LinkNativeCall));
       ASSERT(current_trampoline == &BootstrapNativeCallWrapper ||
@@ -322,7 +325,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       } else {
         trampoline = &NoScopeNativeCallWrapper;
       }
-      KBCPatcher::PatchNativeCallAt(caller_frame->pc(), code,
+      KBCPatcher::PatchNativeCallAt(caller_frame->pc(), bytecode,
                                     patch_target_function, trampoline);
 #else
       UNREACHABLE();

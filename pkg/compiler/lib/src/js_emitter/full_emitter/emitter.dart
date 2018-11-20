@@ -29,7 +29,7 @@ import '../../js_backend/js_backend.dart'
 import '../../js_backend/native_data.dart';
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../universe/call_structure.dart' show CallStructure;
-import '../../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../../universe/codegen_world_builder.dart';
 import '../../util/uri_extras.dart' show relativize;
 import '../../world.dart' show JClosedWorld;
 import '../constant_ordering.dart' show ConstantOrdering;
@@ -559,7 +559,7 @@ class Emitter extends js_emitter.EmitterBase {
     List<jsAst.Expression> laziesInfo = <jsAst.Expression>[];
     for (StaticField field in lazies) {
       laziesInfo.add(js.quoteName(field.name));
-      laziesInfo.add(js.quoteName(namer.deriveLazyInitializerName(field.name)));
+      laziesInfo.add(js.quoteName(field.getterName));
       laziesInfo.add(field.code);
       if (!compiler.options.enableMinification) {
         laziesInfo.add(js.quoteName(field.name));

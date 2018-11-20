@@ -7,7 +7,9 @@ import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -16,8 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -565,6 +565,15 @@ part 'not-a2.dart';
     FileState file1 = fileSystemState.getFileForPath(path);
     FileState file2 = fileSystemState.getFileForPath(path);
     expect(file2, same(file1));
+  }
+
+  test_getFileForUri_invalidUri() {
+    var uri = Uri.parse('package:x');
+    var file = fileSystemState.getFileForUri(uri);
+    expect(file.isUnresolved, isTrue);
+    expect(file.uri, isNull);
+    expect(file.path, isNull);
+    expect(file.isPart, isFalse);
   }
 
   test_getFileForUri_packageVsFileUri() {

@@ -14,7 +14,7 @@ ArgParser createArgParser() {
   argParser.addFlag('minify', abbr: 'm', defaultsTo: false);
   argParser.addFlag('trust-primitives', defaultsTo: false);
   argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
-  argParser.addOption('library-root');
+  argParser.addOption('libraries-spec');
   argParser.addOption('packages');
   return argParser;
 }
@@ -33,12 +33,9 @@ Uri getEntryPoint(ArgResults argResults) {
 }
 
 /// Retrieves the library root [Uri] from [argResults].
-Uri getLibraryRoot(ArgResults argResults) {
-  Uri libraryRoot;
-  if (argResults.wasParsed('library-root')) {
-    libraryRoot = Uri.base.resolve(nativeToUriPath(argResults['library-root']));
-  }
-  return libraryRoot;
+Uri getLibrariesSpec(ArgResults argResults) {
+  if (!argResults.wasParsed('libraries-spec')) return null;
+  return Uri.base.resolve(nativeToUriPath(argResults['libraries-spec']));
 }
 
 /// Retrieves the packages config [Uri] from [argResults].

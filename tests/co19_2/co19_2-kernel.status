@@ -1,18 +1,9 @@
 # Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-LibTest/io/HttpClientRequest/done_A02_t01: Skip # This can cause other tests to fail, since it connects to an unbound port, Issue https://github.com/dart-lang/co19/issues/177
-LibTest/io/Link/rename_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/174
-LibTest/io/RawDatagramSocket/any_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/any_A01_t03: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/asBroadcastStream_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/distinct_A01_t05: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/lastWhere_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/listen_A02_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/timeout_A06_t01: Pass, Fail # Next roll might fix it (see https://github.com/dart-lang/co19/commit/8b2e2be5bc3bb9fec41efec8ac6fc777e231d915)
-LibTest/io/Stdin/last_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/182
-LibTest/io/Stdin/readByteSync_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/175
+
+LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Pass, Fail # https://github.com/dart-lang/co19/issues/186
+LibTest/io/Stdin/readLineSync_A03_t02: Pass, Fail # https://github.com/dart-lang/co19/issues/184
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
@@ -83,6 +74,20 @@ LibTest/typed_data/Int32x4List/clear_A01_t01: RuntimeError
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20 tatements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+
+[ $runtime == vm ]
+LibTest/io/FileSystemEntity/*: Skip # Temporary skip these tests
+LibTest/io/Link/rename_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/174
+LibTest/io/RawDatagramSocket/any_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/any_A01_t03: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/asBroadcastStream_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/distinct_A01_t05: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/lastWhere_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/listen_A02_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
+LibTest/io/RawDatagramSocket/timeout_A06_t01: Pass, Fail # Next roll might fix it (see https://github.com/dart-lang/co19/commit/8b2e2be5bc3bb9fec41efec8ac6fc777e231d915)
+LibTest/io/Stdin/first_A04_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/193
+LibTest/io/Stdin/last_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/182
 
 [ $fasta ]
 Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 34190
@@ -194,9 +199,6 @@ Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # 
 Language/Mixins/Mixin_Application/superclass_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/superclass_t02: MissingCompileTimeError
 Language/Mixins/Mixin_Application/superinterfaces_t07: MissingCompileTimeError
-Language/Mixins/Mixin_Application/warning_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
-Language/Mixins/Mixin_Application/warning_t02: CompileTimeError # Expects a warning, but this is an error in Dart 2
-Language/Mixins/Mixin_Application/warning_t03: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
@@ -215,63 +217,69 @@ Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t04: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l1_t03: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l1_t04: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t03: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t04: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t07: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t08: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l3_t02: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t04: RuntimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t01: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t02: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/02: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/03: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/04: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/01: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/02: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/none: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_l1_t03/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l1_t04/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t03/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t07/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l3_t02/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/02: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t01/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/01: Crash, Pass
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/02: Crash, Pass
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/01: Crash, Pass
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/none: Crash, Pass
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t07: RuntimeError
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t08: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t03/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/02: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/05: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/06: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/07: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t05: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t05/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t07/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/02: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/05: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/06: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/07: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t01/none: CompileTimeError
 LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02: CompileTimeError
-LanguageFeatures/Super-mixins/more_specific_t01: CompileTimeError
-LanguageFeatures/Super-mixins/not_class_t02: CompileTimeError
-LanguageFeatures/Super-mixins/not_class_t03: CompileTimeError
-LanguageFeatures/Super-mixins/on_word_t02: CompileTimeError
-LanguageFeatures/Super-mixins/on_word_t03: CompileTimeError
-LanguageFeatures/Super_Mixins/declarations_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_application_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_application_t02: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_application_t03: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_application_t04: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_applying_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_member_neg_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_member_neg_t02: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_member_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/mixin_member_t02: CompileTimeError
-LanguageFeatures/Super_Mixins/more_specific_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/super_invocation_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/syntax_t01: CompileTimeError
-LanguageFeatures/Super_Mixins/syntax_t02: CompileTimeError
-LanguageFeatures/Super_Mixins/syntax_t04: CompileTimeError
+LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError
 LanguageFeatures/regression/33585_t01: MissingCompileTimeError
 LanguageFeatures/regression/33585_t02: MissingCompileTimeError
 LanguageFeatures/regression/33597_t01: MissingCompileTimeError
 LanguageFeatures/regression/33701_t01: MissingCompileTimeError
 LanguageFeatures/regression/34635_t01: CompileTimeError
 LanguageFeatures/regression/34635_t02: CompileTimeError
+LanguageFeatures/regression/34635_t03: CompileTimeError
 LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 LibTest/async/Future/Future_A01_t01: CompileTimeError
@@ -288,6 +296,7 @@ LibTest/io/HttpClientRequest/headers_A03_t01: RuntimeError, Pass
 LibTest/io/Stdout/writeCharCode_A01_t03: Timeout, Pass
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: CompileTimeError
 LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass
 LibTest/io/Link/renameSync_A02_t01: RuntimeError, Pass
@@ -383,35 +392,33 @@ LibTest/io/Directory/watch_A01_t02: RuntimeError, Pass
 LibTest/io/Directory/watch_A02_t01: RuntimeError, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t03: RuntimeError, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t04: RuntimeError, Pass
-LibTest/io/FileSystemCreateEvent/isDirectory_A01_t05: RuntimeError, Pass
+LibTest/io/FileSystemCreateEvent/isDirectory_A01_t05: RuntimeError, Pass, Timeout
+LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Timeout, Pass
 LibTest/io/FileSystemCreateEvent/type_A01_t01: RuntimeError, Pass
 LibTest/io/FileSystemCreateEvent/type_A01_t02: RuntimeError, Pass
-LibTest/io/FileSystemCreateEvent/type_A01_t03: RuntimeError, Pass
-LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t01: RuntimeError
-LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t02: RuntimeError
-LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t03: RuntimeError
-LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t04: RuntimeError
-LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t05: RuntimeError
-LibTest/io/FileSystemDeleteEvent/path_A01_t01: RuntimeError
-LibTest/io/FileSystemDeleteEvent/path_A01_t02: RuntimeError
-LibTest/io/FileSystemDeleteEvent/path_A01_t03: RuntimeError
-LibTest/io/FileSystemDeleteEvent/type_A01_t01: RuntimeError
-LibTest/io/FileSystemDeleteEvent/type_A01_t02: RuntimeError
-LibTest/io/FileSystemDeleteEvent/type_A01_t03: RuntimeError
+LibTest/io/FileSystemCreateEvent/type_A01_t03: RuntimeError, Pass, Timeout
+LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t01: RuntimeError, Timeout
+LibTest/io/FileSystemDeleteEvent/path_A01_t02: RuntimeError, Pass
+LibTest/io/FileSystemDeleteEvent/path_A01_t03: RuntimeError, Pass
+LibTest/io/FileSystemDeleteEvent/type_A01_t03: RuntimeError, Pass
 LibTest/io/FileSystemEntity/isWatchSupported_A01_t01: RuntimeError
-LibTest/io/FileSystemModifyEvent/contentChanged_A01_t01: Fail
-LibTest/io/FileSystemMoveEvent/destination_A01_t01: Fail
-LibTest/io/FileSystemMoveEvent/destination_A01_t02: Fail
-LibTest/io/FileSystemMoveEvent/destination_A01_t03: RuntimeError, Fail
-LibTest/io/FileSystemMoveEvent/isDirectory_A01_t01: Fail
-LibTest/io/FileSystemMoveEvent/isDirectory_A01_t02: Fail
-LibTest/io/FileSystemMoveEvent/isDirectory_A01_t03: Fail
-LibTest/io/FileSystemMoveEvent/path_A01_t01: Fail
-LibTest/io/FileSystemMoveEvent/path_A01_t02: Fail
-LibTest/io/FileSystemMoveEvent/path_A01_t03: Fail
-LibTest/io/FileSystemMoveEvent/type_A01_t01: Fail
-LibTest/io/FileSystemMoveEvent/type_A01_t02: Fail
-LibTest/io/FileSystemMoveEvent/type_A01_t03: Fail
+LibTest/io/FileSystemModifyEvent/contentChanged_A01_t01: Fail, Timeout
+LibTest/io/FileSystemModifyEvent/contentChanged_A01_t02: Timeout, Pass
+LibTest/io/FileSystemModifyEvent/isDirectory_A01_t01: Timeout, Pass
+LibTest/io/FileSystemModifyEvent/path_A01_t02: Timeout, Pass
+LibTest/io/FileSystemModifyEvent/type_A01_t01: Timeout, Pass
+LibTest/io/FileSystemMoveEvent/destination_A01_t01: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/destination_A01_t02: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/destination_A01_t03: RuntimeError, Fail, Timeout
+LibTest/io/FileSystemMoveEvent/isDirectory_A01_t01: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/isDirectory_A01_t02: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/isDirectory_A01_t03: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/path_A01_t01: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/path_A01_t02: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/path_A01_t03: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/type_A01_t01: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/type_A01_t02: Fail, Timeout
+LibTest/io/FileSystemMoveEvent/type_A01_t03: Fail, Timeout
 LibTest/io/HttpClientRequest/contentLength_A02_t01: RuntimeError, Pass
 LibTest/io/HttpClientRequest/headers_A03_t01: RuntimeError, Pass
 LibTest/io/Link/stat_A01_t01: RuntimeError
@@ -531,6 +538,9 @@ LibTest/math/asin_A01_t01: RuntimeError
 LibTest/math/atan_A01_t01: RuntimeError
 LibTest/math/cos_A01_t01: RuntimeError
 
+[ $runtime == vm && $system != macos ]
+LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t07: Fail # Issue 35032
+
 [ $runtime == vm && $system != macos && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Directory/listSync_A01_t02: RuntimeError
 LibTest/io/Directory/listSync_A01_t03: RuntimeError
@@ -551,10 +561,12 @@ Language/Expressions/Logical_Boolean_Expressions/syntax_t01: RuntimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError
 Language/Statements/Assert/execution_t08: RuntimeError
 Language/Types/Function_Types/call_t01: RuntimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l1_t03: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: DartkCrash
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t05/none: CompileTimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_l2_t02: RuntimeError
 LanguageFeatures/regression/33701_t01: MissingCompileTimeError
 LanguageFeatures/regression/34803_t01: DartkCrash
 LanguageFeatures/regression/34803_t02: DartkCrash
@@ -599,6 +611,7 @@ LibTest/core/int/abs_A01_t01: RuntimeError
 LibTest/core/int/isOdd_A01_t01: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t04: RuntimeError
 LibTest/io/Directory/watch_A01_t01: Fail, Pass
+LibTest/io/Directory/watch_A02_t01: Timeout
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t01: Fail, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t02: Fail, Pass
 LibTest/io/FileSystemCreateEvent/path_A01_t01: Fail, Pass
@@ -632,11 +645,11 @@ LibTest/io/ProcessResult/stdout_A01_t01: RuntimeError
 LibTest/io/ProcessResult/stdout_A01_t02: RuntimeError
 LibTest/io/RandomAccessFile/writeByte_A01_t01: RuntimeError, Pass
 LibTest/io/RawDatagramSocket/any_A01_t04: RuntimeError, Pass
-LibTest/io/RawDatagramSocket/any_A01_t05: RuntimeError
-LibTest/io/RawDatagramSocket/any_A01_t06: RuntimeError
-LibTest/io/RawDatagramSocket/any_A02_t01: RuntimeError
-LibTest/io/RawDatagramSocket/any_A02_t02: RuntimeError
-LibTest/io/RawDatagramSocket/any_A02_t03: RuntimeError
+LibTest/io/RawDatagramSocket/any_A01_t05: RuntimeError, Pass
+LibTest/io/RawDatagramSocket/any_A01_t06: RuntimeError, Pass
+LibTest/io/RawDatagramSocket/any_A02_t01: RuntimeError, Pass
+LibTest/io/RawDatagramSocket/any_A02_t02: RuntimeError, Pass
+LibTest/io/RawDatagramSocket/any_A02_t03: RuntimeError, Pass
 LibTest/io/RawDatagramSocket/any_A02_t04: RuntimeError, Pass
 LibTest/io/RawDatagramSocket/asBroadcastStream_A01_t03: RuntimeError, Pass
 LibTest/io/RawDatagramSocket/asBroadcastStream_A02_t02: Timeout, Pass
@@ -874,9 +887,7 @@ Language/Variables/constant_initialization_t03: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t05: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t03: RuntimeError
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t05: RuntimeError
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t08: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
 LibTest/async/Future/asStream_A01_t02: RuntimeError
 LibTest/async/Stream/Stream.fromFutures_A04_t02: RuntimeError
@@ -1013,7 +1024,6 @@ LibTest/io/Directory/renameSync_A02_t01: RuntimeError
 LibTest/io/Directory/rename_A02_t01: RuntimeError
 LibTest/io/Directory/statSync_A01_t05: RuntimeError
 LibTest/io/Directory/stat_A01_t05: RuntimeError
-LibTest/io/File/absolute_A01_t01: RuntimeError
 LibTest/io/File/openRead_A01_t04: RuntimeError
 LibTest/io/File/openRead_A02_t01: RuntimeError
 LibTest/io/File/openSync_A01_t03: RuntimeError
@@ -1025,19 +1035,14 @@ LibTest/io/FileStat/changed_A01_t01: RuntimeError
 LibTest/io/FileStat/modeString_A01_t01: RuntimeError
 LibTest/io/FileStat/mode_A01_t01: RuntimeError
 LibTest/io/FileStat/modified_A01_t01: RuntimeError
-LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: RuntimeError
 LibTest/io/FileSystemCreateEvent/path_A01_t02: RuntimeError, Fail, Pass
-LibTest/io/FileSystemCreateEvent/path_A01_t03: RuntimeError, Fail, Pass
-LibTest/io/FileSystemDeleteEvent/isDirectory_A01_t06: RuntimeError
+LibTest/io/FileSystemCreateEvent/path_A01_t03: RuntimeError, Fail, Pass, Timeout
 LibTest/io/FileSystemEntity/isDirectorySync_A01_t03: RuntimeError
 LibTest/io/FileSystemEntity/isDirectory_A01_t03: RuntimeError
 LibTest/io/FileSystemEntity/isFileSync_A01_t03: RuntimeError
 LibTest/io/FileSystemEntity/isFile_A01_t01: RuntimeError
 LibTest/io/FileSystemEntity/isFile_A01_t03: RuntimeError
-LibTest/io/FileSystemModifyEvent/contentChanged_A01_t01: RuntimeError
-LibTest/io/FileSystemModifyEvent/isDirectory_A01_t02: RuntimeError
 LibTest/io/FileSystemModifyEvent/path_A01_t01: RuntimeError
-LibTest/io/FileSystemModifyEvent/type_A01_t02: RuntimeError
 LibTest/io/HttpClient/addCredentials_A03_t01: RuntimeError
 LibTest/io/HttpClient/addProxyCredentials_A03_t01: RuntimeError
 LibTest/io/HttpClient/authenticateProxy_A01_t01: RuntimeError

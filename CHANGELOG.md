@@ -1,4 +1,30 @@
-## 2.1.0 - 2018-10-31
+## 2.2.0-dev.XX.0
+(Add new changes here, and they will be copied to the change section for the
+  next dev version)
+
+### Language
+
+### Core library changes
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.2.0-dev.0.0
+
+### Dart for the Web
+
+#### dart2js
+
+* The `--categories=*` flag is being replaced. `--categories=all` was only used
+  for testing and it is no longer supported. `--categories=Server` continues to
+  work at this time but it is deprecated, please use `--server-mode` instead.
+
+## 2.1.0 - 2018-11-15
 
 This is a minor version release. The team's focus was mostly on improving
 performance and stability after the large changes in Dart 2.0.0. Notable

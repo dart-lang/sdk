@@ -39,7 +39,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
                                       Dart_NativeFunction func);
 
-#ifndef PRODUCT
+#ifdef DEBUG
 #define TRACE_NATIVE_CALL(format, name)                                        \
   if (FLAG_trace_natives) {                                                    \
     THR_Print("Calling native: " format "\n", name);                           \

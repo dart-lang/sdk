@@ -199,8 +199,7 @@ EMIT_NATIVE_CODE(AssertBoolean,
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());
   }
-  Isolate* isolate = Isolate::Current();
-  __ AssertBoolean(isolate->type_checks() ? 1 : 0);
+  __ AssertBoolean(0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
@@ -1087,34 +1086,34 @@ EMIT_NATIVE_CODE(AllocateObject,
 
 EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   ASSERT(!HasTemp());
-  ASSERT(offset_in_bytes() % kWordSize == 0);
+  ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();
     const Register instance = locs()->in(0).reg();
-    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
-      __ StoreField(instance, offset_in_bytes() / kWordSize, value);
+    if (Utils::IsInt(8, OffsetInBytes() / kWordSize)) {
+      __ StoreField(instance, OffsetInBytes() / kWordSize, value);
     } else {
       __ StoreFieldExt(instance, value);
-      __ Nop(offset_in_bytes() / kWordSize);
+      __ Nop(OffsetInBytes() / kWordSize);
     }
   } else {
-    __ StoreFieldTOS(offset_in_bytes() / kWordSize);
+    __ StoreFieldTOS(OffsetInBytes() / kWordSize);
   }
 }
 
 EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
-  ASSERT(offset_in_bytes() % kWordSize == 0);
+  ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register result = locs()->out(0).reg();
     const Register instance = locs()->in(0).reg();
-    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
-      __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+    if (Utils::IsInt(8, OffsetInBytes() / kWordSize)) {
+      __ LoadField(result, instance, OffsetInBytes() / kWordSize);
     } else {
       __ LoadFieldExt(result, instance);
-      __ Nop(offset_in_bytes() / kWordSize);
+      __ Nop(OffsetInBytes() / kWordSize);
     }
   } else {
-    __ LoadFieldTOS(offset_in_bytes() / kWordSize);
+    __ LoadFieldTOS(OffsetInBytes() / kWordSize);
   }
 }
 

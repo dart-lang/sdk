@@ -31,6 +31,9 @@ class Flags {
   // 'this' and constants.
   static const String experimentLocalNames = '--experiment-code-1';
 
+  // Experimentally try to force part-file functions to be seen as IIFEs.
+  static const String experimentStartupFunctions = '--experiment-code-2';
+
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
@@ -62,10 +65,13 @@ class Flags {
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
+  static const String progress = '--show-internal-progress';
   static const String version = '--version';
 
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+
+  static const String serverMode = '--server-mode';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';

@@ -40,7 +40,7 @@ main() {
           response.toJson(),
           equals({
             Response.ID: '0',
-            Response.RESULT: {VERSION: AnalysisServer.VERSION}
+            Response.RESULT: {VERSION: PROTOCOL_VERSION}
           }));
     });
 

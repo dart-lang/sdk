@@ -118,8 +118,6 @@ class ClassFinalizer : public AllStatic {
   static bool IsMixinCycleFree(const Class& cls,
                                GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
-  static RawClass* ResolveClass(const Class& cls,
-                                const UnresolvedClass& unresolved_class);
   static void ResolveType(const Class& cls, const AbstractType& type);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
@@ -154,10 +152,6 @@ class ClassFinalizer : public AllStatic {
   static void CheckRecursiveType(const Class& cls,
                                  const AbstractType& type,
                                  PendingTypes* pending_types);
-  static void CheckTypeBounds(const Class& cls, const AbstractType& type);
-  static void CheckTypeArgumentBounds(const Class& cls,
-                                      const TypeArguments& arguments,
-                                      Error* bound_error);
   static void ResolveUpperBounds(const Class& cls);
   static void FinalizeUpperBounds(
       const Class& cls,

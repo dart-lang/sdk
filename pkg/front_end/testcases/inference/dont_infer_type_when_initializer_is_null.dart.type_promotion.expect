@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/dont_infer_type_when_initializer_is_null.dart:10:5: Context: Write to x@295
+  x = "hi";
+    ^
+pkg/front_end/testcases/inference/dont_infer_type_when_initializer_is_null.dart:11:5: Context: Write to x@295
+  x = 3;
+    ^

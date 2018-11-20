@@ -1,0 +1,48 @@
+pkg/front_end/testcases/inference/bug31436.dart:10:5: Context: Write to g@308
+  g = /*@returnType=List<Object>*/ () {
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:13:12: Context: Possible promotion of g@308
+  assert(g is List<Object> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:17:5: Context: Write to g@308
+  g = /*@returnType=List<int>*/ () {
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:20:12: Context: Possible promotion of g@308
+  assert(g is List<Object> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:21:12: Context: Possible promotion of g@308
+  assert(g is List<int> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:27:5: Context: Write to g@308
+  g = /*@returnType=List<Object>*/ () {
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:30:12: Context: Possible promotion of g@308
+  assert(g is List<Object> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:34:5: Context: Write to o@843
+  o = 3;
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:43:5: Context: Write to g@1305
+  g = /*@returnType=List<Object>*/ () => /*@typeArgs=Object*/ [3];
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:44:12: Context: Possible promotion of g@1305
+  assert(g is List<Object> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:48:5: Context: Write to g@1305
+  g = /*@returnType=List<int>*/ () => l;
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:49:12: Context: Possible promotion of g@1305
+  assert(g is List<Object> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:50:12: Context: Possible promotion of g@1305
+  assert(g is List<int> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:56:5: Context: Write to g@1305
+  g = /*@returnType=List<Object>*/ () =>
+    ^
+pkg/front_end/testcases/inference/bug31436.dart:58:12: Context: Possible promotion of g@1305
+  assert(g is List<Object> Function());
+           ^^
+pkg/front_end/testcases/inference/bug31436.dart:62:5: Context: Write to o@1810
+  o = 3;
+    ^

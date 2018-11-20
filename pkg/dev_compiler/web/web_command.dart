@@ -141,6 +141,7 @@ class WebCompileCommand extends Command {
     var summaryData = SummaryDataStore([], resourceProvider: resources);
     var compilerOptions = CompilerOptions.fromArguments(argResults);
     compilerOptions.replCompile = true;
+    compilerOptions.libraryRoot = '/';
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
 
@@ -253,7 +254,7 @@ class WebCompileCommand extends Command {
         sb.write('import ${json.encode(existingLibrary)};\n');
 
         for (var import in unlinked.imports) {
-          if (import.uri == null) continue;
+          if (import.uri == null || import.isImplicit) continue;
           var uri = import.uri;
           // dart: and package: uris are not relative but the path package
           // thinks they are. We have to provide absolute uris as our library
@@ -284,13 +285,13 @@ class WebCompileCommand extends Command {
       }
       resources.newFile(fileName, sourceCode);
 
-      compilerOptions.moduleName = path.toUri(libraryName).toString();
+      var name = path.toUri(libraryName).toString();
+      compilerOptions.moduleName = name;
       JSModuleFile module =
           compileWithAnalyzer(driver, [fileName], options, compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {
-        var name = compilerOptions.moduleName;
         moduleCode =
             module.getCode(ModuleFormat.legacyConcat, name, name + '.map').code;
       }

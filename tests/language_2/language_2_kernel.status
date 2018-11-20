@@ -241,6 +241,7 @@ syntax_test/32: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/33: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/60: MissingCompileTimeError # Issue 30470
 syntax_test/61: MissingCompileTimeError # Issue 30470
+type_constants_test/04: MissingCompileTimeError # Issue 32557
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -323,6 +324,9 @@ super_call4_test/01: MissingCompileTimeError
 [ $compiler != dart2js && $compiler != dartdevk && $fasta ]
 const_native_factory_test: MissingCompileTimeError # Issue 29763
 
+[ $compiler != dart2js && $fasta ]
+type_constants_test/01: MissingCompileTimeError # Issue 32557
+
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
@@ -343,11 +347,9 @@ compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
-vm/bool_check_stack_traces_test/01: RuntimeError # No support for line numbers in stacktraces
-vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers in stacktraces
-vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
-vm/causal_async_exception_stack_test: RuntimeError # No support for line numbers in stacktraces
-vm/regress_28325_test: RuntimeError # No support for line numbers in stacktraces
+vm/bool_check_stack_traces_test/02: Pass
+vm/causal_async_exception_stack2_test: RuntimeError # Please triage
+vm/causal_async_exception_stack_test: RuntimeError # Please triage
 
 [ $compiler != dartkb && $compiler != dartkp && $fasta ]
 vm/symbols_test/01: MissingCompileTimeError
@@ -992,7 +994,7 @@ async_star_test/05: Crash
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 enum_duplicate_test/02: Crash # Issue 34606
 enum_duplicate_test/none: Pass, Crash # Issue 34606
-enum_private_test/01: Crash # Issue 34606
+enum_private_test/01: Pass, Crash # Issue 34606
 enum_test: Crash # Issue 34606
 
 [ $mode == product && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
@@ -1985,6 +1987,7 @@ async_star_test/03: Skip # Timeout
 async_star_test/04: Skip # Timeout
 async_star_test/05: Skip # Timeout
 async_star_test/none: Skip # Timeout
+type_constants_test/none: Skip # Deferred libraries and hot reload.
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076

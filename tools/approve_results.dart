@@ -17,87 +17,6 @@ import 'package:glob/glob.dart';
 
 import 'bots/results.dart';
 
-/// gsutil.py binary to use.
-const gsutil = "gsutil.py";
-
-/// Cloud storage location containing results.
-const testResultsStoragePath = "gs://dart-test-results/builders";
-
-/// Runs gsutil with the provided [arguments] and returns the standard output.
-/// Returns null if the requested URL didn't exist.
-Future<String> runGsutil(List<String> arguments) async {
-  final processResult = await Process.run(gsutil, arguments,
-      environment: {"DEPOT_TOOLS_UPDATE": "0"});
-  if (processResult.exitCode != 0) {
-    if (processResult.exitCode == 1 &&
-            processResult.stderr.contains("No URLs matched") ||
-        processResult.stderr.contains("One or more URLs matched no objects")) {
-      return null;
-    }
-    throw new Exception("Failed to run: $gsutil $arguments\n"
-        "exitCode: ${processResult.exitCode}\n"
-        "stdout:\n${processResult.stdout}\n"
-        "stderr:\n${processResult.stderr}");
-  }
-  return processResult.stdout;
-}
-
-/// Returns the contents of the provided cloud storage [path], or null if it
-/// didn't exist.
-Future<String> catGsutil(String path) => runGsutil(["cat", path]);
-
-/// Returns the files and directories in the provided cloud storage [directory],
-/// or null if it didn't exist.
-Future<Iterable<String>> lsGsutil(String directory) async {
-  final contents = await runGsutil(["ls", directory]);
-  if (contents == null) {
-    return null;
-  }
-  return LineSplitter.split(contents).map((String path) {
-    final elements = path.split("/");
-    if (elements[elements.length - 1].isEmpty) {
-      return elements[elements.length - 2];
-    } else {
-      return elements[elements.length - 1];
-    }
-  });
-}
-
-/// Copies a file to or from cloud storage.
-Future cpGsutil(String source, String destination) =>
-    runGsutil(["cp", source, destination]);
-
-/// Copies a directory recursively to or from cloud strorage.
-Future cpRecursiveGsutil(String source, String destination) =>
-    runGsutil(["-m", "cp", "-r", "-Z", source, destination]);
-
-/// Lists the bots in cloud storage.
-Future<Iterable<String>> listBots() => lsGsutil("$testResultsStoragePath");
-
-/// Returns the cloud storage path for the [bot].
-String botCloudPath(String bot) => "$testResultsStoragePath/$bot";
-
-/// Returns the cloud storage path to the [build] on the [bot].
-String buildCloudPath(String bot, String build) =>
-    "${botCloudPath(bot)}/$build";
-
-/// Returns the cloud storage path to the [file] inside the [bot]'s directory.
-String fileCloudPath(String bot, String file) => "${botCloudPath(bot)}/$file";
-
-/// Reads the contents of the [file] inside the [bot]'s cloud storage.
-Future<String> readFile(String bot, String file) =>
-    catGsutil(fileCloudPath(bot, file));
-
-/// Returns the cloud storage path to the [file] inside the [build] on the
-/// [bot].
-String buildFileCloudPath(String bot, String build, String file) =>
-    "${buildCloudPath(bot, build)}/$file";
-
-/// Reads the contents of the [file] inside the [build] in the [bot]'s cloud
-/// storage.
-Future<String> readBuildFile(String bot, String build, String file) =>
-    catGsutil(buildFileCloudPath(bot, build, file));
-
 /// The bot names and named configurations are highly redundant if both are
 /// listed. This function returns a simplified named configuration that doesn't
 /// contain any aspects that's part of the bots name. This is used to get a more
@@ -170,8 +89,9 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
     // results.
     await Future.wait([
       cpRecursiveGsutil(buildCloudPath(bot, build), tmpdir.path),
-      cpRecursiveGsutil(fileCloudPath(bot, "approved_results.json"),
-          "${tmpdir.path}/approved_results.json")
+      cpRecursiveGsutil(
+          "$approvedResultsStoragePath/$bot/approved_results.json",
+          "${tmpdir.path}/approved_results.json"),
     ]);
 
     // Check the build was properly downloaded.
@@ -199,10 +119,11 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
     // Construct an object for every test containing its current result,
     // what the last approved result was, and whether it's flaky.
     final tests = <Test>[];
-    for (final name in results.keys) {
-      final result = results[name];
-      final approvedResult = approvedResults[name];
-      final flakiness = flaky[name];
+    for (final key in results.keys) {
+      final result = results[key];
+      final approvedResult = approvedResults[key];
+      final flakiness = flaky[key];
+      final name = result["name"];
       final test = new Test(bot, name, result, approvedResult, flakiness);
       tests.add(test);
     }
@@ -254,9 +175,8 @@ ${parser.usage}""");
   }
 
   // Load the list of bots according to the test matrix.
-  final testMatrixPath = Platform.script
-      .toFilePath()
-      .replaceAll("approve_results.dart", "bots/test_matrix.json");
+  final testMatrixPath =
+      Platform.script.resolve("bots/test_matrix.json").toFilePath();
   final testMatrix = jsonDecode(await new File(testMatrixPath).readAsString());
   final builderConfigurations = testMatrix["builder_configurations"];
   final testMatrixBots = <String>[];
@@ -498,7 +418,8 @@ ${parser.usage}""");
       final localPath = "${outDirectory.path}/$bot.json";
       await new File(localPath).writeAsString(
           testsList.map((test) => jsonEncode(test.resultData) + "\n").join(""));
-      final remotePath = fileCloudPath(bot, "approved_results.json");
+      final remotePath =
+          "$approvedResultsStoragePath/$bot/approved_results.json";
       futures.add(cpGsutil(localPath, remotePath)
           .then((_) => print("Uploaded approved results for $bot")));
     }

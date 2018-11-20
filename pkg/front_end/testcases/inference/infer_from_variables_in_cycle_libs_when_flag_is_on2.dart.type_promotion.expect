@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/infer_from_variables_in_cycle_libs_when_flag_is_on2.dart:16:5: Context: Write to t@400
+  t = A.x;
+    ^
+pkg/front_end/testcases/inference/infer_from_variables_in_cycle_libs_when_flag_is_on2.dart:17:5: Context: Write to t@400
+  t = B.y;
+    ^

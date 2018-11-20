@@ -136,11 +136,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 //       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
-  V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
-    FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
-    FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
@@ -223,9 +219,12 @@ class Isolate : public BaseIsolate {
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
   }
+
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_ = value;
   }
+
+  bool HasPendingMessages();
 
   Thread* mutator_thread() const;
 
@@ -625,20 +624,6 @@ class Isolate : public BaseIsolate {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
   }
 
-  // True during top level parsing.
-  bool IsTopLevelParsing() {
-    const intptr_t value =
-        AtomicOperations::LoadRelaxed(&top_level_parsing_count_);
-    ASSERT(value >= 0);
-    return value > 0;
-  }
-  void IncrTopLevelParsingCount() {
-    AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
-  }
-  void DecrTopLevelParsingCount() {
-    AtomicOperations::DecrementBy(&top_level_parsing_count_, 1);
-  }
-
   static const intptr_t kInvalidGen = 0;
 
   void IncrLoadingInvalidationGen() {
@@ -698,8 +683,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool can_use_strong_mode_types() const {
-    return FLAG_strong && FLAG_use_strong_mode_types &&
-           !unsafe_trust_strong_mode_types();
+    return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
   }
 
   bool should_load_vmservice() const {
@@ -757,12 +741,10 @@ class Isolate : public BaseIsolate {
 
   // Convenience flag tester indicating whether incoming function arguments
   // should be type checked.
-  bool argument_type_checks() const {
-    return should_emit_strong_mode_checks() || type_checks();
-  }
+  bool argument_type_checks() const { return should_emit_strong_mode_checks(); }
 
   bool should_emit_strong_mode_checks() const {
-    return FLAG_strong && !unsafe_trust_strong_mode_types();
+    return !unsafe_trust_strong_mode_types();
   }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -1002,7 +984,6 @@ class Isolate : public BaseIsolate {
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
   intptr_t loading_invalidation_gen_;
-  intptr_t top_level_parsing_count_;
 
   // Protect access to boxed_field_list_.
   Mutex* field_list_mutex_;

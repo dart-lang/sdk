@@ -10,7 +10,6 @@ import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'dart:isolate' show Isolate;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
@@ -21,7 +20,7 @@ import 'util/command_line.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
-const String LIBRARY_ROOT = '../../../../sdk';
+const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
 /**
@@ -110,10 +109,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   Stopwatch wallclock = new Stopwatch()..start();
   stackTraceFilePrefix = '$currentDirectory';
-  Uri libraryRoot = currentDirectory;
+  Uri librariesSpecificationUri =
+      currentDirectory.resolve('lib/libraries.json');
   bool outputSpecified = false;
   Uri out;
   Uri sourceMapOut;
+  Uri readDataUri;
   Uri writeDataUri;
   List<String> bazelPaths;
   Uri packageConfig = null;
@@ -143,8 +144,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough("--build-id=$BUILD_ID");
   }
 
-  void setLibraryRoot(String argument) {
-    libraryRoot = currentDirectory.resolve(extractPath(argument));
+  void setLibrarySpecificationUri(String argument) {
+    librariesSpecificationUri =
+        currentDirectory.resolve(extractPath(argument, isDirectory: false));
   }
 
   void setPackageRoot(String argument) {
@@ -233,17 +235,16 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
-    if (categories.contains('all')) {
-      categories = ["Client", "Server"];
+    bool isServerMode = categories.length == 1 && categories.single == "Server";
+    if (isServerMode) {
+      hints.add("The --categories flag is deprecated and will be deleted in a "
+          "future release, please use '${Flags.serverMode}' instead of "
+          "'--categories=Server'.");
+      passThrough(Flags.serverMode);
     } else {
-      for (String category in categories) {
-        if (!["Client", "Server"].contains(category)) {
-          fail('Unsupported library category "$category", '
-              'supported categories are: Client, Server, all');
-        }
-      }
+      hints.add(
+          "The --categories flag is deprecated, see the usage for details.");
     }
-    passThrough('--categories=${categories.join(",")}');
   }
 
   void setPlatformBinaries(String argument) {
@@ -255,12 +256,20 @@ Future<api.CompilationResult> compile(List<String> argv,
     if (compilationStrategy == CompilationStrategy.toData) {
       fail("Cannot read and write serialized simultaneously.");
     }
+    if (argument != Flags.readData) {
+      readDataUri = currentDirectory
+          .resolve(nativeToUriPath(extractPath(argument, isDirectory: false)));
+    }
     compilationStrategy = CompilationStrategy.fromData;
   }
 
   void setWriteData(String argument) {
     if (compilationStrategy == CompilationStrategy.fromData) {
       fail("Cannot read and write serialized simultaneously.");
+    }
+    if (argument != Flags.writeData) {
+      writeDataUri = currentDirectory
+          .resolve(nativeToUriPath(extractPath(argument, isDirectory: false)));
     }
     compilationStrategy = CompilationStrategy.toData;
   }
@@ -318,10 +327,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
+    new OptionHandler(Flags.progress, passThrough),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
-    new OptionHandler('--library-root=.+', setLibraryRoot),
-    new OptionHandler(Flags.readData, setReadData),
-    new OptionHandler(Flags.writeData, setWriteData),
+    new OptionHandler('--library-root=.+', ignoreOption),
+    new OptionHandler('--libraries-spec=.+', setLibrarySpecificationUri),
+    new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
+    new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
@@ -354,6 +365,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.resolveOnly, ignoreOption),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
+    new OptionHandler(Flags.serverMode, passThrough),
     new OptionHandler(Flags.disableInlining, passThrough),
     new OptionHandler(Flags.disableProgramSplit, passThrough),
     new OptionHandler(Flags.disableTypeInference, passThrough),
@@ -395,6 +407,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     new OptionHandler(Flags.experimentLocalNames, passThrough),
+    new OptionHandler(Flags.experimentStartupFunctions, passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -480,13 +493,13 @@ Future<api.CompilationResult> compile(List<String> argv,
       break;
     case CompilationStrategy.toData:
       out ??= currentDirectory.resolve('out.dill');
-      writeDataUri = currentDirectory.resolve('$out.data');
+      writeDataUri ??= currentDirectory.resolve('$out.data');
       options.add('${Flags.writeData}=${writeDataUri}');
       break;
     case CompilationStrategy.fromData:
       out ??= currentDirectory.resolve('out.js');
-      options.add(
-          '${Flags.readData}=${currentDirectory.resolve('$scriptName.data')}');
+      readDataUri ??= currentDirectory.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
       break;
   }
   options.add('--out=$out');
@@ -519,17 +532,15 @@ Future<api.CompilationResult> compile(List<String> argv,
             .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
                 'JavaScript in '
                 '${relativize(currentDirectory, out, Platform.isWindows)}');
-        if (diagnosticHandler.verbose) {
-          String input = uriPathToNative(scriptName);
-          print('Dart file ($input) compiled to JavaScript.');
-          print('Wrote the following files:');
-          for (String filename in outputProvider.allOutputFiles) {
-            print("  $filename");
-          }
-        } else if (outputSpecified) {
+        if (outputSpecified || diagnosticHandler.verbose) {
           String input = uriPathToNative(scriptName);
           String output = relativize(currentDirectory, out, Platform.isWindows);
           print('Dart file ($input) compiled to JavaScript: $output');
+          if (diagnosticHandler.verbose) {
+            var files = outputProvider.allOutputFiles;
+            int jsCount = files.where((f) => f.endsWith('.js')).length;
+            print('Emitted file $jsCount JavaScript files.');
+          }
         }
         break;
       case CompilationStrategy.toData:
@@ -546,12 +557,6 @@ Future<api.CompilationResult> compile(List<String> argv,
             relativize(currentDirectory, writeDataUri, Platform.isWindows);
         print('Dart file ($input) serialized to '
             '${dillOutput} and ${dataOutput}.');
-        if (diagnosticHandler.verbose) {
-          print('Wrote the following files:');
-          for (String filename in outputProvider.allOutputFiles) {
-            print("  $filename");
-          }
-        }
         break;
       case CompilationStrategy.fromData:
         int dataCharactersRead = inputProvider.dartCharactersRead;
@@ -568,17 +573,15 @@ Future<api.CompilationResult> compile(List<String> argv,
             .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
                 'JavaScript in '
                 '${relativize(currentDirectory, out, Platform.isWindows)}');
-        if (diagnosticHandler.verbose) {
-          String input = uriPathToNative(scriptName);
-          print('Dart file ($input) compiled to JavaScript.');
-          print('Wrote the following files:');
-          for (String filename in outputProvider.allOutputFiles) {
-            print("  $filename");
-          }
-        } else if (outputSpecified) {
+        if (outputSpecified || diagnosticHandler.verbose) {
           String input = uriPathToNative(scriptName);
           String output = relativize(currentDirectory, out, Platform.isWindows);
           print('Dart file ($input) compiled to JavaScript: $output');
+          if (diagnosticHandler.verbose) {
+            var files = outputProvider.allOutputFiles;
+            int jsCount = files.where((f) => f.endsWith('.js')).length;
+            print('Emitted file $jsCount JavaScript files.');
+          }
         }
         break;
     }
@@ -590,12 +593,12 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries)
     ..entryPoint = script
     ..packageRoot = packageRoot
     ..packageConfig = packageConfig
     ..environment = environment
-    ..packagesDiscoveryProvider = findPackages
     ..kernelInitializedCompilerState = kernelInitializedCompilerState
     ..optimizationLevel = optimizationLevel;
   return compileFunc(
@@ -652,13 +655,15 @@ void fail(String message) {
 
 Future<api.CompilationResult> compilerMain(List<String> arguments,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) async {
-  Uri script = Platform.script;
-  if (script.isScheme("package")) {
-    script = await Isolate.resolvePackageUri(script);
+  if (!arguments.any((a) => a.startsWith('--libraries-spec='))) {
+    Uri script = Platform.script;
+    if (script.isScheme("package")) {
+      script = await Isolate.resolvePackageUri(script);
+    }
+    Uri librariesJson = script.resolve(_defaultSpecificationUri);
+    arguments = <String>['--libraries-spec=${librariesJson.toFilePath()}']
+      ..addAll(arguments);
   }
-  Uri libraryRoot = script.resolve(LIBRARY_ROOT);
-  arguments = <String>['--library-root=${libraryRoot.toFilePath()}']
-    ..addAll(arguments);
   return compile(arguments,
       kernelInitializedCompilerState: kernelInitializedCompilerState);
 }
@@ -830,8 +835,8 @@ be removed in a future version:
   --throw-on-error
     Throw an exception if a compile-time error is detected.
 
-  --library-root=<directory>
-    Where to find the Dart platform libraries.
+  --libraries-spec=<file>
+    A .json file containing the libraries specification for dart2js.
 
   --allow-mock-compilation
     Do not generate a call to main if either of the following
@@ -841,11 +846,14 @@ be removed in a future version:
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
 
+  --server-mode
+    Compile with server support. The compiler will use a library specification
+    that disables dart:html but supports dart:js in conditional imports.
+
   --categories=<categories>
-    A comma separated list of allowed library categories.  The default
-    is "Client".  Possible categories can be seen by providing an
-    unsupported category, for example, --categories=help.  To enable
-    all categories, use --categories=all.
+    (deprecated)
+    Use '--server-mode' instead of '--categories=Server'. All other category
+    values have no effect on the compiler behavior.
 
   --deferred-map=<file>
     Generates a json file with a mapping from each deferred import to a list of

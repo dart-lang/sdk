@@ -1,5 +1,5 @@
 Source: dart
-Maintainer: Soren Gjesse <sgjesse@google.com>
+Maintainer: William Hesse <whesse@google.com>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.2
@@ -7,6 +7,6 @@ Build-Depends: debhelper (>= 9),
 	python,
 
 Package: dart
-Architecture: amd64 i386 armhf armel
+Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Dart SDK

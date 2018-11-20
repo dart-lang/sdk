@@ -9,7 +9,7 @@ class _ScheduleImmediate extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -30,7 +30,7 @@ class _NamespaceImpl extends core::Object implements self::_Namespace {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -48,7 +48,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   Push                 FP[-5]
   NativeCall           CP#0
@@ -62,7 +62,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   NativeCall           CP#0
   ReturnTOS
@@ -75,7 +75,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   NativeCall           CP#0
   ReturnTOS
 }
@@ -87,7 +87,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   Allocate             CP#0
   StoreLocal           r1
   Push                 r1
@@ -115,11 +115,10 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   Allocate             CP#1
   StoreLocal           r1
@@ -156,7 +155,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   PushConstant         CP#3
@@ -176,7 +175,7 @@ class _Namespace extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -194,7 +193,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -212,7 +211,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
@@ -226,7 +225,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
@@ -253,7 +252,7 @@ class VMLibraryHooks extends core::Object {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -270,8 +269,8 @@ ConstantPool {
     ;
 [@vm.bytecode=
 Bytecode (version: stable) {
-  Entry                2
-  CheckStack
+  Entry                1
+  CheckStack           0
   Push                 FP[-5]
   StoreStaticTOS       CP#0
   PushNull
@@ -290,16 +289,14 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#1
   PushStatic           CP#1
   EqualsNull
-  AssertBoolean        0
   BooleanNegateTOS
   PopLocal             r0
   Jump                 L2
@@ -308,7 +305,6 @@ L1:
   PopLocal             r0
 L2:
   Push                 r0
-  AssertBoolean        0
   JumpIfFalse          L3
   PushConstant         CP#1
   PushStatic           CP#1
@@ -332,14 +328,66 @@ ConstantPool {
     return self::VMLibraryHooks::_cachedScript;
   }
 }
+class Stdin extends core::Object {
+[@vm.bytecode=
+Bytecode (version: stable) {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+}
+]  synthetic constructor •() → self::Stdin
+    : super core::Object::•()
+    ;
+}
+class _StdIOUtils extends core::Object {
+[@vm.bytecode=
+Bytecode (version: stable) {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+}
+]  synthetic constructor •() → self::_StdIOUtils
+    : super core::Object::•()
+    ;
+[@vm.bytecode=
+Bytecode (version: stable) {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+]  static method _getStdioInputStream(core::int fd) → self::Stdin
+    return null;
+}
 static field core::int _stdinFD = 0;
 static field core::int _stdoutFD = 1;
 static field core::int _stderrFD = 2;
 static field core::String _rawScript;
+static field self::Stdin _stdin;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   NativeCall           CP#0
   ReturnTOS
@@ -352,7 +400,7 @@ external static method _printString(core::String s) → void;
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   InstanceCall         1, CP#1
   PushConstant         CP#2
@@ -372,7 +420,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   ReturnTOS
 }
@@ -384,7 +432,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   StoreStaticTOS       CP#0
   PushNull
@@ -398,8 +446,8 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode (version: stable) {
-  Entry                3
-  CheckStack
+  Entry                1
+  CheckStack           0
   Push                 FP[-7]
   StoreStaticTOS       CP#0
   Push                 FP[-6]
@@ -422,7 +470,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
@@ -441,7 +489,6 @@ L1:
   PopLocal             r1
 L2:
   Push                 r1
-  AssertBoolean        0
   JumpIfTrue           L3
   PushConstant         CP#0
   PushStatic           CP#0
@@ -455,7 +502,6 @@ L3:
   PopLocal             r0
 L4:
   Push                 r0
-  AssertBoolean        0
   JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
@@ -500,7 +546,7 @@ ConstantPool {
 [@vm.bytecode=
 Bytecode (version: stable) {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
@@ -518,8 +564,45 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode (version: stable) {
+  Entry                2
+  CheckStack           0
+  PushConstant         CP#0
+  PushStatic           CP#0
+  EqualsNull
+  JumpIfFalse          L1
+  PushConstant         CP#1
+  PushStatic           CP#1
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#2
+  StoreLocal           r1
+  Push                 r1
+  StoreStaticTOS       CP#0
+  PopLocal             r0
+  Jump                 L2
+L1:
+  PushNull
+  PopLocal             r0
+L2:
+  Push                 r0
+  Drop1
+  PushConstant         CP#0
+  PushStatic           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_stdin
+  [1] = StaticField #lib::_stdinFD
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = StaticICData target '#lib::_StdIOUtils::_getStdioInputStream', arg-desc CP#2
+}
+]static get stdin() → self::Stdin {
+  self::_stdin.{core::Object::==}(null) ?{self::Stdin} self::_stdin = self::_StdIOUtils::_getStdioInputStream(self::_stdinFD) : null;
+  return self::_stdin;
+}
+[@vm.bytecode=
+Bytecode (version: stable) {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

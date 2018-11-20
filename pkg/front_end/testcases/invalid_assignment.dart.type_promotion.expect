@@ -1,0 +1,18 @@
+pkg/front_end/testcases/invalid_assignment.dart:12:5: Context: Write to i@300
+  i = 1;
+    ^
+pkg/front_end/testcases/invalid_assignment.dart:13:5: Context: Write to i@300
+  i = /*@error=InvalidAssignment*/ s;
+    ^
+pkg/front_end/testcases/invalid_assignment.dart:14:5: Context: Write to i@300
+  i ??= 1;
+    ^^^
+pkg/front_end/testcases/invalid_assignment.dart:15:5: Context: Write to i@300
+  i ??= /*@error=InvalidAssignment*/ s;
+    ^^^
+pkg/front_end/testcases/invalid_assignment.dart:16:5: Context: Write to a@315
+  a = new A();
+    ^
+pkg/front_end/testcases/invalid_assignment.dart:17:34: Context: Write to a@315
+  a /*@error=InvalidAssignment*/ += 1;
+                                 ^^

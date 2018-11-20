@@ -137,10 +137,11 @@ namespace dart {
 //    Check for a passed-in type argument vector of length A and
 //    store it at FP[D].
 //
-//  - CheckStack
+//  - CheckStack A
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
-//    necessary.
+//    necessary. Should be used in prologue (A = 0), or at the beginning of
+//    a loop with depth A.
 //
 //  - Allocate D
 //
@@ -154,13 +155,18 @@ namespace dart {
 //
 //    Allocate array of length SP[0] with type arguments SP[-1].
 //
-//  - AllocateContext D
+//  - AllocateContext A, D
 //
-//    Allocate Context object assuming for D context variables.
+//    Allocate Context object holding D context variables.
+//    A is a static ID of the context. Static ID of a context may be used to
+//    disambiguate accesses to different context objects.
+//    Context objects with the same ID should have the same number of
+//    context variables.
 //
-//  - CloneContext
+//  - CloneContext A, D
 //
-//    Clone context stored in TOS.
+//    Clone Context object SP[0] holding D context variables.
+//    A is a static ID of the context. Cloned context has the same ID.
 //
 //  - LoadContextParent
 //
@@ -170,13 +176,15 @@ namespace dart {
 //
 //    Store context SP[0] into `parent` field of context SP[-1].
 //
-//  - LoadContextVar D
+//  - LoadContextVar A, D
 //
 //    Load value from context SP[0] at index D.
+//    A is a static ID of the context.
 //
-//  - StoreContextVar D
+//  - StoreContextVar A, D
 //
 //    Store value SP[0] into context SP[-1] at index D.
+//    A is a static ID of the context.
 //
 //  - PushConstant D
 //
@@ -397,12 +405,12 @@ namespace dart {
   V(LoadConstant,                        A_D, reg, lit, ___)                   \
   V(Frame,                                 D, num, ___, ___)                   \
   V(CheckFunctionTypeArgs,               A_D, num, reg, ___)                   \
-  V(CheckStack,                            0, ___, ___, ___)                   \
+  V(CheckStack,                            A, num, ___, ___)                   \
   V(Allocate,                              D, lit, ___, ___)                   \
   V(AllocateT,                             0, ___, ___, ___)                   \
   V(CreateArrayTOS,                        0, ___, ___, ___)                   \
   V(AllocateContext,                       D, num, ___, ___)                   \
-  V(CloneContext,                          0, ___, ___, ___)                   \
+  V(CloneContext,                          D, num, ___, ___)                   \
   V(LoadContextParent,                     0, ___, ___, ___)                   \
   V(StoreContextParent,                    0, ___, ___, ___)                   \
   V(LoadContextVar,                        D, num, ___, ___)                   \

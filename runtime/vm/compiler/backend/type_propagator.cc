@@ -651,12 +651,20 @@ CompileType CompileType::Int() {
   return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
 }
 
+CompileType CompileType::NullableInt() {
+  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNullable);
+}
+
 CompileType CompileType::Smi() {
   return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
 }
 
 CompileType CompileType::Double() {
   return Create(kDoubleCid, Type::ZoneHandle(Type::Double()));
+}
+
+CompileType CompileType::NullableDouble() {
+  return FromAbstractType(Type::ZoneHandle(Type::Double()), kNullable);
 }
 
 CompileType CompileType::String() {
@@ -692,7 +700,7 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kNullCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
-    } else if (type_->HasResolvedTypeClass()) {
+    } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();
       CHA& cha = thread->compiler_state().cha();
@@ -753,11 +761,7 @@ const AbstractType* CompileType::ToAbstractType() {
     Isolate* I = Isolate::Current();
     const Class& type_class = Class::Handle(I->class_table()->At(cid_));
     if (type_class.NumTypeArguments() > 0) {
-      if (FLAG_strong) {
-        type_ = &AbstractType::ZoneHandle(type_class.RareType());
-      } else {
-        type_ = &Object::dynamic_type();
-      }
+      type_ = &AbstractType::ZoneHandle(type_class.RareType());
     } else {
       type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
     }
@@ -965,7 +969,7 @@ CompileType ParameterInstr::ComputeType() const {
     // Receiver can't be null but can be an instance of a subclass.
     intptr_t cid = kDynamicCid;
 
-    if (type.HasResolvedTypeClass()) {
+    if (type.type_class_id() != kIllegalCid) {
       Thread* thread = Thread::Current();
       const Class& type_class = Class::Handle(type.type_class());
       if (!CHA::HasSubclasses(type_class)) {
@@ -995,6 +999,9 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType(CompileType::kNonNullable, cid, &type);
   }
 
+  const bool is_unchecked_entry_param =
+      graph_entry->unchecked_entry() == block_;
+
   if (Isolate::Current()->can_use_strong_mode_types()) {
     LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
     // Note: in catch-blocks we have ParameterInstr for each local variable
@@ -1014,7 +1021,9 @@ CompileType ParameterInstr::ComputeType() const {
       }
       // If parameter type was checked by caller, then use Dart type annotation,
       // plus non-nullability from inferred type if known.
-      if (param->was_type_checked_by_caller()) {
+      if (param->was_type_checked_by_caller() ||
+          (is_unchecked_entry_param &&
+           !param->is_explicit_covariant_parameter())) {
         const bool is_nullable =
             (inferred_type == NULL) || inferred_type->is_nullable();
         TraceStrongModeType(this, param->type());
@@ -1202,8 +1211,7 @@ CompileType StaticCallInstr::ComputeType() const {
     return CompileType::FromCid(MethodRecognizer::ResultCid(function_));
   }
 
-  const Isolate* isolate = Isolate::Current();
-  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
     // TODO(dartbug.com/30480): instantiate generic result_type if possible.
@@ -1221,8 +1229,7 @@ CompileType StaticCallInstr::ComputeType() const {
 }
 
 CompileType LoadLocalInstr::ComputeType() const {
-  const Isolate* isolate = Isolate::Current();
-  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     const AbstractType& local_type = local().type();
     TraceStrongModeType(this, local_type);
     return CompileType::FromAbstractType(local_type);
@@ -1257,8 +1264,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   intptr_t cid = kDynamicCid;
   AbstractType* abstract_type = NULL;
   const Field& field = this->StaticField();
-  const Isolate* isolate = Isolate::Current();
-  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &AbstractType::ZoneHandle(field.type());
     TraceStrongModeType(this, *abstract_type);
@@ -1306,36 +1312,28 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
-  // Type may be null if the field is a VM field, e.g. context parent.
-  // Keep it as null for debug purposes and do not return dynamic in production
-  // mode, since misuse of the type would remain undetected.
-  if (type().IsNull()) {
-    return CompileType::Dynamic();
+  const AbstractType& field_type = slot().static_type();
+  CompileType compile_type_cid = slot().ComputeCompileType();
+  if (field_type.raw() == AbstractType::null()) {
+    return compile_type_cid;
   }
 
   const Isolate* isolate = Isolate::Current();
-  bool is_nullable = CompileType::kNullable;
   intptr_t cid = kDynamicCid;
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
-      (isolate->type_checks() &&
-       (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
+      (field_type.IsFunctionType() || field_type.HasTypeClass())) {
     cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
-    abstract_type = &type();
+    abstract_type = &field_type;
     TraceStrongModeType(this, *abstract_type);
   }
-  if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid) &&
-      (field_->guarded_cid() != kDynamicCid)) {
-    cid = field_->guarded_cid();
-    is_nullable = field_->is_nullable();
-    abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
-  } else {
-    cid = result_cid_;
-    if ((cid != kIllegalCid) && (cid != kDynamicCid)) {
-      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
-    }
+
+  if (compile_type_cid.ToNullableCid() != kDynamicCid) {
+    abstract_type = nullptr;
   }
-  return CompileType(is_nullable, cid, abstract_type);
+
+  return CompileType(compile_type_cid.is_nullable(),
+                     compile_type_cid.ToNullableCid(), abstract_type);
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {

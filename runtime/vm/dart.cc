@@ -42,7 +42,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 DECLARE_FLAG(bool, strong);
@@ -151,7 +150,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif  // defined(TARGET_OS_WINDOWS)
 
     FLAG_use_field_guards = false;
-    FLAG_optimization_counter_threshold = -1;
   }
 
   FrameLayout::Init();
@@ -170,7 +168,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(
       TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
   Isolate::InitVM();
-  IdleNotifier::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -300,7 +297,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
     T->InitVMConstants();
-    Scanner::Init();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
@@ -330,7 +326,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   }
 
   const bool is_dart2_aot_precompiler =
-      FLAG_strong && FLAG_precompiled_mode && !kDartPrecompiledRuntime;
+      FLAG_precompiled_mode && !kDartPrecompiledRuntime;
 
   if (!is_dart2_aot_precompiler &&
       (FLAG_support_service || !kDartPrecompiledRuntime)) {
@@ -441,8 +437,6 @@ char* Dart::Cleanup() {
   }
   WaitForIsolateShutdown();
 
-  IdleNotifier::Stop();
-
 #if !defined(PRODUCT)
   {
     // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
@@ -500,7 +494,6 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
-  IdleNotifier::Cleanup();
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
@@ -724,25 +717,11 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
   } while (0);
 
-  // We don't write the strong flag into the features list for the VM isolate
-  // snapshot as the implementation is in an intermediate state where the VM
-  // isolate is always initialized from a vm_snapshot generated in non strong
-  // mode.
-  if (!is_vm_isolate) {
-    buffer.AddString(FLAG_strong ? " strong" : " no-strong");
-  }
-
   if (Snapshot::IncludesCode(kind)) {
-    // Checked mode affects deopt ids.
-    ADD_FLAG(type_checks, enable_type_checks, FLAG_enable_type_checks);
+    // enabling assertions affects deopt ids.
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
-             FLAG_error_on_bad_type);
-    // sync-async and reify_generic_functions also affect deopt_ids.
+    // sync-async affects deopt_ids.
     buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
-    buffer.AddString(FLAG_reify_generic_functions
-                         ? " reify_generic_functions"
-                         : " no-reify_generic_functions");
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);

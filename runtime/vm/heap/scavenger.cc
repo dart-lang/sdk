@@ -926,7 +926,7 @@ void Scavenger::Scavenge() {
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
-    heap_->Verify(kForbidMarked);
+    heap_->VerifyGC(kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
@@ -971,7 +971,7 @@ void Scavenger::Scavenge() {
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying after Scavenge...");
-    heap_->Verify(kForbidMarked);
+    heap_->VerifyGC(kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 

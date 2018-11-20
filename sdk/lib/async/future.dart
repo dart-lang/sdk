@@ -365,7 +365,7 @@ abstract class Future<T> {
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
     // `then` call below.
-    handleError(theError, theStackTrace) {
+    handleError(theError, StackTrace theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
@@ -461,7 +461,7 @@ abstract class Future<T> {
     var onValue = (T value) {
       if (!completer.isCompleted) completer.complete(value);
     };
-    var onError = (error, stack) {
+    var onError = (error, StackTrace stack) {
       if (!completer.isCompleted) completer.completeError(error, stack);
     };
     for (var future in futures) {
@@ -910,7 +910,7 @@ abstract class Completer<T> {
 
 // Helper function completing a _Future with error, but checking the zone
 // for error replacement first.
-void _completeWithErrorCallback(_Future result, error, stackTrace) {
+void _completeWithErrorCallback(_Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
@@ -920,7 +920,8 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
 }
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
-void _asyncCompleteWithErrorCallback(_Future result, error, stackTrace) {
+void _asyncCompleteWithErrorCallback(
+    _Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);

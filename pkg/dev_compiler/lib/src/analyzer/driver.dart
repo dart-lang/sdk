@@ -332,7 +332,8 @@ class LinkedAnalysisDriver {
         (uri) => _isLibraryUri('$uri'),
         context,
         resynthesizer,
-        libraryFile);
+        libraryFile,
+        _fsState.resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
     // but it's async. We can't use `async` here because it would break our
     // developer tools extension (see web/web_command.dart). We should be able

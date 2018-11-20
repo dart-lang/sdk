@@ -200,8 +200,7 @@ class _AsyncStarStreamController<T> {
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) return true;
     isAdding = true;
-    var whenDoneAdding =
-        controller.addStream(stream as Stream<T>, cancelOnError: false);
+    var whenDoneAdding = controller.addStream(stream, cancelOnError: false);
     whenDoneAdding.then((_) {
       isAdding = false;
       scheduleGenerator();

@@ -5,71 +5,32 @@
 import 'dart:async';
 import 'dart:io' show File, Platform;
 
+import 'package:analysis_server_client/handler/connection_handler.dart';
+import 'package:analysis_server_client/handler/notification_handler.dart';
+import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartfix/handler/analysis_complete_handler.dart';
+import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
-import 'package:dartfix/src/verbose_server.dart';
 import 'package:dartfix/src/options.dart';
-import 'package:path/path.dart' as path;
+import 'package:dartfix/src/util.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
-  String dartfixVersion;
+  static final expectedProtocolVersion = new Version.parse('1.21.1');
 
   Context context;
+  _Handler handler;
   Logger logger;
   Server server;
 
-  Completer serverConnected;
-  Completer analysisComplete;
   bool force;
   bool overwrite;
   List<String> targets;
 
-  /// Read pubspec.yaml and return the version in that file.
-  static String get pubspecVersion {
-    String dir = path.dirname(Platform.script.toFilePath());
-    File pubspec = new File(path.join(dir, '..', 'pubspec.yaml'));
-
-    List<String> lines = pubspec.readAsLinesSync();
-    if (lines[0] != 'name: dartfix') {
-      throw 'Expected dartfix pubspec in: ${pubspec.path}';
-    }
-    String version;
-    if (lines[1].startsWith('version:')) {
-      version = lines[1].substring(8).trim();
-    }
-    if (version == null || version.isEmpty) {
-      throw 'Failed to find dartfix pubspec version in ${pubspec.path}';
-    }
-    return version;
-  }
-
-  Driver() {
-    this.dartfixVersion = pubspecVersion;
-  }
-
   Ansi get ansi => logger.ansi;
-
-  /// Return the analysis_server executable by proceeding upward
-  /// until finding the Dart SDK repository root then returning
-  /// the analysis_server executable within the repository.
-  /// Return `null` if it cannot be found.
-  String findServerPath() {
-    String pathname = Platform.script.toFilePath();
-    while (true) {
-      String parent = path.dirname(pathname);
-      if (parent.length >= pathname.length) {
-        return null;
-      }
-      String serverPath =
-          path.join(parent, 'pkg', 'analysis_server', 'bin', 'server.dart');
-      if (new File(serverPath).existsSync()) {
-        return serverPath;
-      }
-      pathname = parent;
-    }
-  }
 
   Future start(List<String> args) async {
     final Options options = Options.parse(args);
@@ -77,37 +38,28 @@ class Driver {
     force = options.force;
     overwrite = options.overwrite;
     targets = options.targets;
-
     context = options.context;
     logger = options.logger;
+    server = new Server(listener: new _Listener(logger));
+    handler = new _Handler(this);
+
+    if (!await startServer(options)) {
+      context.exit(15);
+    }
 
     EditDartfixResult result;
-
-    await startServer(options);
-
-    bool normalShutdown = false;
     try {
       final progress = await setupAnalysis(options);
       result = await requestFixes(options, progress);
-      normalShutdown = true;
     } finally {
-      try {
-        await stopServer(server);
-      } catch (_) {
-        if (normalShutdown) {
-          rethrow;
-        }
-      }
+      await server.stop();
     }
     if (result != null) {
       applyFixes(result);
     }
   }
 
-  Future startServer(Options options) async {
-    server = logger.isVerbose ? new VerboseServer(logger) : new Server();
-    const connectTimeout = const Duration(seconds: 15);
-    serverConnected = new Completer();
+  Future<bool> startServer(Options options) async {
     if (options.verbose) {
       logger.trace('Dart SDK version ${Platform.version}');
       logger.trace('  ${Platform.resolvedExecutable}');
@@ -117,19 +69,14 @@ class Driver {
     // Automatically run analysis server from source
     // if this command line tool is being run from source within the SDK repo.
     String serverPath = findServerPath();
-    logger
-        .trace(serverPath != null ? 'Starting from source...' : 'Starting...');
     await server.start(
       clientId: 'dartfix',
-      clientVersion: dartfixVersion,
+      clientVersion: 'unspecified',
       sdkPath: options.sdkPath,
       serverPath: serverPath,
     );
-    server.listenToOutput(notificationProcessor: handleEvent);
-    await serverConnected.future.timeout(connectTimeout, onTimeout: () {
-      logger.stderr('Failed to connect to server');
-      context.exit(15);
-    });
+    server.listenToOutput(notificationProcessor: handler.handleEvent);
+    return handler.serverConnected(timeLimit: const Duration(seconds: 15));
   }
 
   Future<Progress> setupAnalysis(Options options) async {
@@ -150,25 +97,19 @@ class Driver {
   Future<EditDartfixResult> requestFixes(
       Options options, Progress progress) async {
     logger.trace('Requesting fixes');
-    analysisComplete = new Completer();
+    Future isAnalysisComplete = handler.analysisComplete();
     Map<String, dynamic> json = await server.send(
         EDIT_REQUEST_DARTFIX, new EditDartfixParams(options.targets).toJson());
-    await analysisComplete?.future;
+
+    // TODO(danrubel): This is imprecise signal for determining when all
+    // analysis error notifications have been received. Consider adding a new
+    // notification indicating that the server is idle (all requests processed,
+    // all analysis complete, all notifications sent).
+    await isAnalysisComplete;
+
     progress.finish(showTiming: true);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
-  }
-
-  Future stopServer(Server server) async {
-    logger.trace('Stopping...');
-    const timeout = const Duration(seconds: 5);
-    await server.send(SERVER_REQUEST_SHUTDOWN, null).timeout(timeout,
-        onTimeout: () {
-      // fall through to wait for exit.
-    });
-    await server.exitCode.timeout(timeout, onTimeout: () {
-      return server.kill('server failed to exit');
-    });
   }
 
   Future applyFixes(EditDartfixResult result) async {
@@ -208,7 +149,7 @@ class Driver {
         ..sort(compareSuggestions);
       for (DartFixSuggestion suggestion in sorted) {
         final msg = new StringBuffer();
-        msg.write('  ${_toSentenceFragment(suggestion.description)}');
+        msg.write('  ${toSentenceFragment(suggestion.description)}');
         final loc = suggestion.location;
         if (loc != null) {
           msg.write(' • ${relativePath(loc.file)}');
@@ -236,161 +177,6 @@ class Driver {
     return true;
   }
 
-  /// Dispatch the notification named [event], and containing parameters
-  /// [params], to the appropriate stream.
-  void handleEvent(String event, params) {
-    ResponseDecoder decoder = new ResponseDecoder(null);
-    switch (event) {
-      case SERVER_NOTIFICATION_CONNECTED:
-        onServerConnected(
-            new ServerConnectedParams.fromJson(decoder, 'params', params));
-        break;
-      case SERVER_NOTIFICATION_ERROR:
-        onServerError(
-            new ServerErrorParams.fromJson(decoder, 'params', params));
-        break;
-      case SERVER_NOTIFICATION_STATUS:
-        onServerStatus(
-            new ServerStatusParams.fromJson(decoder, 'params', params));
-        break;
-//      case ANALYSIS_NOTIFICATION_ANALYZED_FILES:
-//        outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
-//        _onAnalysisAnalyzedFiles.add(new AnalysisAnalyzedFilesParams.fromJson(
-//            decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_CLOSING_LABELS:
-//        outOfTestExpect(params, isAnalysisClosingLabelsParams);
-//        _onAnalysisClosingLabels.add(new AnalysisClosingLabelsParams.fromJson(
-//            decoder, 'params', params));
-//        break;
-      case ANALYSIS_NOTIFICATION_ERRORS:
-        onAnalysisErrors(
-            new AnalysisErrorsParams.fromJson(decoder, 'params', params));
-        break;
-//      case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
-//        outOfTestExpect(params, isAnalysisFlushResultsParams);
-//        _onAnalysisFlushResults.add(
-//            new AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_FOLDING:
-//        outOfTestExpect(params, isAnalysisFoldingParams);
-//        _onAnalysisFolding
-//            .add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_HIGHLIGHTS:
-//        outOfTestExpect(params, isAnalysisHighlightsParams);
-//        _onAnalysisHighlights.add(
-//            new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_IMPLEMENTED:
-//        outOfTestExpect(params, isAnalysisImplementedParams);
-//        _onAnalysisImplemented.add(
-//            new AnalysisImplementedParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_INVALIDATE:
-//        outOfTestExpect(params, isAnalysisInvalidateParams);
-//        _onAnalysisInvalidate.add(
-//            new AnalysisInvalidateParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_NAVIGATION:
-//        outOfTestExpect(params, isAnalysisNavigationParams);
-//        _onAnalysisNavigation.add(
-//            new AnalysisNavigationParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_OCCURRENCES:
-//        outOfTestExpect(params, isAnalysisOccurrencesParams);
-//        _onAnalysisOccurrences.add(
-//            new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_OUTLINE:
-//        outOfTestExpect(params, isAnalysisOutlineParams);
-//        _onAnalysisOutline
-//            .add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
-//        break;
-//      case ANALYSIS_NOTIFICATION_OVERRIDES:
-//        outOfTestExpect(params, isAnalysisOverridesParams);
-//        _onAnalysisOverrides.add(
-//            new AnalysisOverridesParams.fromJson(decoder, 'params', params));
-//        break;
-//      case COMPLETION_NOTIFICATION_RESULTS:
-//        outOfTestExpect(params, isCompletionResultsParams);
-//        _onCompletionResults.add(
-//            new CompletionResultsParams.fromJson(decoder, 'params', params));
-//        break;
-//      case SEARCH_NOTIFICATION_RESULTS:
-//        outOfTestExpect(params, isSearchResultsParams);
-//        _onSearchResults
-//            .add(new SearchResultsParams.fromJson(decoder, 'params', params));
-//        break;
-//      case EXECUTION_NOTIFICATION_LAUNCH_DATA:
-//        outOfTestExpect(params, isExecutionLaunchDataParams);
-//        _onExecutionLaunchData.add(
-//            new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
-//        break;
-//      case FLUTTER_NOTIFICATION_OUTLINE:
-//        outOfTestExpect(params, isFlutterOutlineParams);
-//        _onFlutterOutline
-//            .add(new FlutterOutlineParams.fromJson(decoder, 'params', params));
-//        break;
-//      default:
-//        printAndFail('Unexpected notification: $event');
-//        break;
-    }
-  }
-
-  void onAnalysisErrors(AnalysisErrorsParams params) {
-    List<AnalysisError> errors = params.errors;
-    bool foundAtLeastOneError = false;
-    if (errors.isNotEmpty && isTarget(params.file)) {
-      for (AnalysisError error in errors) {
-        if (!shouldFilterError(error)) {
-          if (!foundAtLeastOneError) {
-            foundAtLeastOneError = true;
-            logger.stdout('${relativePath(params.file)}:');
-          }
-          Location loc = error.location;
-          logger.stdout('  ${_toSentenceFragment(error.message)}'
-              ' • ${loc.startLine}:${loc.startColumn}');
-        }
-      }
-    }
-  }
-
-  void onServerConnected(ServerConnectedParams params) {
-    logger.trace('Connected to server');
-    serverConnected.complete();
-  }
-
-  void onServerError(ServerErrorParams params) async {
-    try {
-      await stopServer(server);
-    } catch (e) {
-      // ignored
-    }
-    final message = new StringBuffer('Server Error: ')..writeln(params.message);
-    if (params.stackTrace != null) {
-      message.writeln(params.stackTrace);
-    }
-    logger.stderr(message.toString());
-    context.exit(15);
-  }
-
-  void onServerStatus(ServerStatusParams params) {
-    if (params.analysis != null && !params.analysis.isAnalyzing) {
-      logger.trace('Analysis complete');
-      analysisComplete?.complete();
-      analysisComplete = null;
-    }
-  }
-
-  int compareSuggestions(DartFixSuggestion s1, DartFixSuggestion s2) {
-    int result = s1.description.compareTo(s2.description);
-    if (result != 0) {
-      return result;
-    }
-    return (s2.location?.offset ?? 0) - (s1.location?.offset ?? 0);
-  }
-
   String relativePath(String filePath) {
     for (String target in targets) {
       if (filePath.startsWith(target)) {
@@ -399,29 +185,94 @@ class Driver {
     }
     return filePath;
   }
+}
 
-  bool shouldFilterError(AnalysisError error) {
-    // Do not show TODOs or errors that will be automatically fixed.
+class _Listener with ServerListener, BadMessageListener {
+  final Logger logger;
+  final bool verbose;
 
-    // TODO(danrubel): Rather than checking the error.code with
-    // specific strings, add something to the error indicating that
-    // it will be automatically fixed by edit.dartfix.
-    return error.type.name == 'TODO' ||
-        error.code == 'wrong_number_of_type_arguments_constructor';
-  }
+  _Listener(this.logger) : verbose = logger.isVerbose;
 
-  bool isTarget(String filePath) {
-    for (String target in targets) {
-      if (filePath == target || path.isWithin(target, filePath)) {
-        return true;
-      }
+  @override
+  void log(String prefix, String details) {
+    if (verbose) {
+      logger.trace('$prefix $details');
     }
-    return false;
   }
 }
 
-String _toSentenceFragment(String message) {
-  return message.endsWith('.')
-      ? message.substring(0, message.length - 1)
-      : message;
+class _Handler
+    with NotificationHandler, ConnectionHandler, AnalysisCompleteHandler {
+  final Driver driver;
+  final Logger logger;
+  final Server server;
+
+  _Handler(this.driver)
+      : logger = driver.logger,
+        server = driver.server;
+
+  @override
+  void onFailedToConnect() {
+    logger.stderr('Failed to connect to server');
+  }
+
+  @override
+  void onProtocolNotSupported(Version version) {
+    logger.stderr('Expected protocol version ${Driver.expectedProtocolVersion},'
+        ' but found $version');
+    if (version > Driver.expectedProtocolVersion) {
+      logger.stdout('''
+This version of dartfix is incompatible with the current Dart SDK. 
+Try installing a newer version of dartfix by running
+
+    pub global activate dartfix
+''');
+    } else {
+      logger.stdout('''
+This version of dartfix is too new to be used with the current Dart SDK.
+Try upgrading the Dart SDK to a newer version
+or installing an older version of dartfix using
+
+    pub global activate dartfix <version>
+''');
+    }
+  }
+
+  @override
+  bool checkServerProtocolVersion(Version version) {
+    // This overrides the default protocol version check to be more narrow
+    // because the edit.dartfix protocol is experimental
+    // and will continue to evolve.
+    return version == Driver.expectedProtocolVersion;
+  }
+
+  @override
+  void onServerError(ServerErrorParams params) {
+    if (params.isFatal) {
+      logger.stderr('Fatal Server Error: ${params.message}');
+    } else {
+      logger.stderr('Server Error: ${params.message}');
+    }
+    if (params.stackTrace != null) {
+      logger.stderr(params.stackTrace);
+    }
+    super.onServerError(params);
+  }
+
+  @override
+  void onAnalysisErrors(AnalysisErrorsParams params) {
+    List<AnalysisError> errors = params.errors;
+    bool foundAtLeastOneError = false;
+    for (AnalysisError error in errors) {
+      if (shouldShowError(error)) {
+        if (!foundAtLeastOneError) {
+          foundAtLeastOneError = true;
+          logger.stdout('${driver.relativePath(params.file)}:');
+        }
+        Location loc = error.location;
+        logger.stdout('  ${toSentenceFragment(error.message)}'
+            ' • ${loc.startLine}:${loc.startColumn}');
+      }
+    }
+  }
 }

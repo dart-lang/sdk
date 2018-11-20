@@ -434,10 +434,83 @@ class NativeAllocationSampleFilter : public SampleFilter {
   }
 };
 
+class AbstractCode {
+ public:
+  explicit AbstractCode(RawObject* code) : code_(Object::Handle(code)) {
+    ASSERT(code_.IsNull() || code_.IsCode() || code_.IsBytecode());
+  }
+
+  RawObject* raw() const { return code_.raw(); }
+  const Object* handle() const { return &code_; }
+
+  uword PayloadStart() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).PayloadStart();
+    } else {
+      return Bytecode::Cast(code_).PayloadStart();
+    }
+  }
+
+  uword Size() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).Size();
+    } else {
+      return Bytecode::Cast(code_).Size();
+    }
+  }
+
+  int64_t compile_timestamp() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).compile_timestamp();
+    } else {
+      return 0;
+    }
+  }
+
+  const char* Name() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).Name();
+    } else {
+      return Bytecode::Cast(code_).Name();
+    }
+  }
+
+  const char* QualifiedName() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).QualifiedName();
+    } else {
+      return Bytecode::Cast(code_).QualifiedName();
+    }
+  }
+
+  RawObject* owner() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).owner();
+    } else {
+      return Bytecode::Cast(code_).function();
+    }
+  }
+
+  bool IsNull() const { return code_.IsNull(); }
+  bool IsCode() const { return code_.IsCode(); }
+  bool IsBytecode() const { return code_.IsBytecode(); }
+
+  bool is_optimized() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).is_optimized();
+    } else {
+      return false;
+    }
+  }
+
+ private:
+  const Object& code_;
+};
+
 // A Code object descriptor.
 class CodeDescriptor : public ZoneAllocated {
  public:
-  explicit CodeDescriptor(const Code& code);
+  explicit CodeDescriptor(const AbstractCode code);
 
   uword Start() const;
 
@@ -445,7 +518,7 @@ class CodeDescriptor : public ZoneAllocated {
 
   int64_t CompileTimestamp() const;
 
-  RawCode* code() const { return code_.raw(); }
+  const AbstractCode code() const { return code_; }
 
   const char* Name() const { return code_.Name(); }
 
@@ -471,7 +544,7 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
  private:
-  const Code& code_;
+  const AbstractCode code_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeDescriptor);
 };
@@ -492,7 +565,7 @@ class CodeLookupTable : public ZoneAllocated {
  private:
   void Build(Thread* thread);
 
-  void Add(const Code& code);
+  void Add(const Object& code);
 
   // Code objects sorted by entry.
   ZoneGrowableArray<CodeDescriptor*> code_objects_;

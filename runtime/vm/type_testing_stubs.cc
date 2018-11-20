@@ -153,7 +153,6 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
   }
 
   if (type.IsCanonical()) {
-    ASSERT(type.IsResolved());
     if (type.IsType()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       // Lazily create the type testing stubs array.
@@ -631,9 +630,9 @@ void RegisterTypeArgumentsUse(const Function& function,
     if (cid != kDynamicCid) {
       const Class& instance_klass =
           Class::Handle(Isolate::Current()->class_table()->At(cid));
-      if (instance_klass.IsGeneric() &&
+      if (load_field->slot().IsTypeArguments() && instance_klass.IsGeneric() &&
           instance_klass.type_arguments_field_offset() ==
-              load_field->offset_in_bytes()) {
+              load_field->slot().offset_in_bytes()) {
         // This is a subset of Case c) above, namely forwarding the type
         // argument vector.
         //
@@ -996,7 +995,7 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
   if (type.IsTypeRef()) {
     dereferenced_type = &AbstractType::Handle(TypeRef::Cast(type).type());
   }
-  if (dereferenced_type->IsResolved() && dereferenced_type->IsFinalized()) {
+  if (dereferenced_type->IsFinalized()) {
     return assert_assignable_types_.HasKey(dereferenced_type);
   }
   return false;

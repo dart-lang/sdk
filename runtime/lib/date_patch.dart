@@ -57,7 +57,7 @@ class DateTime {
   @patch
   DateTime._now()
       : isUtc = false,
-        _value = _getCurrentMicros() {}
+        _value = _getCurrentMicros();
 
   @patch
   String get timeZoneName {
@@ -180,9 +180,7 @@ class DateTime {
   }
 
   get _parts {
-    if (__parts == null) {
-      __parts = _computeUpperPart(_localDateInUtcMicros);
-    }
+    __parts ??= _computeUpperPart(_localDateInUtcMicros);
     return __parts;
   }
 
