@@ -146,6 +146,17 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
+  Future<List<Location>> getDefinition(Uri uri, Position pos) async {
+    var request = makeRequest(
+      'textDocument/definition',
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<Location>>(request);
+  }
+
   Future<Hover> getHover(Uri uri, Position pos) async {
     var request = makeRequest(
       'textDocument/hover', // TODO(dantup): Code-gen constants for all these from the spec to avoid mistakes.
@@ -247,10 +258,16 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   Range rangeFromMarkers(String contents) {
     contents = contents.replaceAll(positionMarker, '');
     final start = contents.indexOf(rangeMarkerStart);
-    final end = contents.indexOf(rangeMarkerEnd) - rangeMarkerStart.length;
+    if (start == -1) {
+      throw 'Contents did not contain $rangeMarkerStart';
+    }
+    final end = contents.indexOf(rangeMarkerEnd);
+    if (end == -1) {
+      throw 'Contents did not contain $rangeMarkerEnd';
+    }
     return new Range(
       positionFromOffset(start, contents),
-      positionFromOffset(end, contents),
+      positionFromOffset(end - rangeMarkerStart.length, contents),
     );
   }
 

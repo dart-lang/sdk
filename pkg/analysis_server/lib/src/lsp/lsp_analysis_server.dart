@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/handler_completion.dart';
+import 'package:analysis_server/src/lsp/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handler_initialization.dart';
@@ -200,6 +201,7 @@ class LspAnalysisServer {
     _registerHandler(new HoverHandler(this));
     _registerHandler(new CompletionHandler(this));
     _registerHandler(new SignatureHelpHandler(this));
+    _registerHandler(new DefinitionHandler(this));
     _registerHandler(new FormattingHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }

@@ -10,12 +10,12 @@ import 'server_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(SignatureHelpTest);
   });
 }
 
 @reflectiveTest
-class CompletionTest extends AbstractLspAnalysisServerTest {
+class SignatureHelpTest extends AbstractLspAnalysisServerTest {
   test_signature_help_named() async {
     final content = '''
     /// Does foo.
