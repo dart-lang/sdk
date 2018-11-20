@@ -38,6 +38,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -712,10 +713,14 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   @deprecated
   static const List<ElementAnnotation> EMPTY_LIST = const <ElementAnnotation>[];
 
-  /// Return a representation of the value of this annotation.
-  ///
-  /// Return `null` if the value of this annotation could not be computed
-  /// because of errors.
+  /// Return the errors that were produced while computing a value for this
+  /// annotation, or `null` if no value has been computed. If a value has been
+  /// produced but no errors were generated, then the list will be empty.
+  List<AnalysisError> get constantEvaluationErrors;
+
+  /// Return a representation of the value of this annotation, or `null` if the
+  /// value of this annotation has not been computed or if the value could not
+  /// be computed because of errors.
   DartObject get constantValue;
 
   /// Return the element representing the field, variable, or const constructor

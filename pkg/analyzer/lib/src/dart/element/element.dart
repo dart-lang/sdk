@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -2508,6 +2509,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// Initialize a newly created annotation. The given [compilationUnit] is the
   /// compilation unit in which the annotation appears.
   ElementAnnotationImpl(this.compilationUnit);
+
+  @override
+  List<AnalysisError> get constantEvaluationErrors =>
+      evaluationResult?.errors ?? const <AnalysisError>[];
 
   @override
   DartObject get constantValue => evaluationResult?.value;
