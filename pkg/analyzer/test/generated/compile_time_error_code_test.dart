@@ -38,6 +38,36 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
+  test_constSetElementTypeImplementsEquals_constField() async {
+    return super.test_constSetElementTypeImplementsEquals_constField();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_direct() async {
+    return super.test_constSetElementTypeImplementsEquals_direct();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_dynamic() async {
+    return super.test_constSetElementTypeImplementsEquals_dynamic();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_factory() async {
+    return super.test_constSetElementTypeImplementsEquals_factory();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_super() async {
+    return super.test_constSetElementTypeImplementsEquals_super();
+  }
+
+  @override
+  @failingTest
   test_invalidIdentifierInAsync_async() {
     return super.test_invalidIdentifierInAsync_async();
   }
@@ -55,6 +85,12 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   }
 
   @override
+  @failingTest
+  test_invalidTypeArgumentInConstSet() async {
+    return super.test_invalidTypeArgumentInConstSet();
+  }
+
+  @override
   @failingTest // Does not work with old task model
   test_mixinInference_recursiveSubtypeCheck_new_syntax() {
     return super.test_mixinInference_recursiveSubtypeCheck_new_syntax();
@@ -64,6 +100,24 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @failingTest
   test_mixinOfNonClass() {
     return super.test_mixinOfNonClass();
+  }
+
+  @override
+  @failingTest
+  test_nonConstSetElement() async {
+    return super.test_nonConstSetElement();
+  }
+
+  @override
+  @failingTest
+  test_nonConstSetElementFromDeferredLibrary() async {
+    return super.test_nonConstSetElementFromDeferredLibrary();
+  }
+
+  @override
+  @failingTest
+  test_nonConstSetElementFromDeferredLibrary_nested() async {
+    return super.test_nonConstSetElementFromDeferredLibrary_nested();
   }
 
   @override
@@ -1433,19 +1487,23 @@ main() {
     verify([source]);
   }
 
-  @failingTest
   test_constSetElementTypeImplementsEquals_constField() async {
     Source source = addSource(r'''
+class A {
+  static const a = const A();
+  const A();
+  operator ==(other) => false;
+}
 main() {
-  const {double.INFINITY};
-}''');
+  const {A.a};
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
-  @failingTest
   test_constSetElementTypeImplementsEquals_direct() async {
     Source source = addSource(r'''
 class A {
@@ -1454,14 +1512,14 @@ class A {
 }
 main() {
   const {const A()};
-}''');
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
-  @failingTest
   test_constSetElementTypeImplementsEquals_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
@@ -1476,14 +1534,14 @@ class B {
 }
 main() {
   const {B.a};
-}''');
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
-  @failingTest
   test_constSetElementTypeImplementsEquals_factory() async {
     Source source = addSource(r'''
 class A { const factory A() = B; }
@@ -1496,14 +1554,14 @@ class B implements A {
 
 main() {
   var m = const {const A()};
-}''');
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
-  @failingTest
   test_constSetElementTypeImplementsEquals_super() async {
     Source source = addSource(r'''
 class A {
@@ -1515,7 +1573,8 @@ class B extends A {
 }
 main() {
   const {const B()};
-}''');
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
@@ -3700,7 +3759,6 @@ class A<E> {
     verify([source]);
   }
 
-  @failingTest
   test_invalidTypeArgumentInConstSet() async {
     Source source = addSource(r'''
 class A<E> {
@@ -4716,7 +4774,6 @@ f() {
     ]);
   }
 
-  @failingTest
   test_nonConstSetElement() async {
     Source source = addSource(r'''
 f(a) {
@@ -4727,7 +4784,6 @@ f(a) {
     verify([source]);
   }
 
-  @failingTest
   test_nonConstSetElementFromDeferredLibrary() async {
     await resolveWithErrors(<String>[
       r'''
@@ -4744,7 +4800,6 @@ f() {
     ]);
   }
 
-  @failingTest
   test_nonConstSetElementFromDeferredLibrary_nested() async {
     await resolveWithErrors(<String>[
       r'''

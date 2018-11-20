@@ -106,6 +106,16 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  SetLiteral visitSetLiteral(SetLiteral node) {
+    SetLiteral literal = super.visitSetLiteral(node);
+    literal.staticType = node.staticType;
+    if (node.constKeyword == null && node.isConst) {
+      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
+    return literal;
+  }
+
+  @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
     SimpleIdentifier identifier = super.visitSimpleIdentifier(node);
     identifier.staticElement = node.staticElement;
@@ -169,6 +179,15 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
         _find(entry.key);
       }
       super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  void visitSetLiteral(SetLiteral node) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitSetLiteral(node);
     }
   }
 

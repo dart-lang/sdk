@@ -30,4 +30,7 @@ class Experiments {
   /// Return `true` if the experiment named 'constant-update-2018' has been
   /// enabled.
   bool get constantUpdate2018 => _enabled.contains(constantUpdate2018Name);
+
+  /// Return `true` if the experiment named 'set-literal' has been enabled.
+  bool get setLiteral => _enabled.contains(setLiteralName);
 }

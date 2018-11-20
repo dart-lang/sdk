@@ -204,15 +204,8 @@ main() {
   test_expectedOneSetTypeArgument() async {
     await assertErrorsInCode(r'''
 main() {
-  <int, int>{};
+  <int, int>{2, 3};
 }''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
-  }
-
-  test_expectedTwoMapTypeArguments_one() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int> {};
-}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 
   test_expectedTwoMapTypeArguments_three() async {
