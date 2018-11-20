@@ -98,22 +98,27 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
     return Service::HandleRootMessage(message);
   }
+#endif
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
     return Service::HandleObjectRootMessage(message);
   }
+#endif
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
+#ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: Booting dart:vmservice library.\n");
   }
@@ -122,7 +127,6 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   if (!FLAG_support_service) {
     return Object::null();
   }
-#ifndef PRODUCT
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
@@ -134,12 +138,14 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
 }
 
 DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
+#ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: processed exit message.\n");
     MessageHandler* message_handler = isolate->message_handler();
     OS::PrintErr("vm-service: live ports = %" Pd "\n",
                  message_handler->live_ports());
   }
+#endif
   return Object::null();
 }
 
@@ -157,19 +163,25 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   bool result = false;
   if (FLAG_support_service) {
     result = Service::ListenStream(stream_id.ToCString());
   }
   return Bool::Get(result).raw();
+#else
+  return Object::null();
+#endif
 }
 
 DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
     Service::CancelStream(stream_id.ToCString());
   }
+#endif
   return Object::null();
 }
 

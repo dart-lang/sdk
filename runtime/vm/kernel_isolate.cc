@@ -464,12 +464,13 @@ class KernelCompilationRequest : public ValueObject {
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
     {
-      TransitionVMToNative transition(Thread::Current());
+      TransitionVMToNative transition(thread);
 
       // Send the message.
       Dart_PostCObject(kernel_port, &message);
 
       // Wait for reply to arrive.
+      VMTagScope tagScope(thread, VMTag::kLoadWaitTagId);
       MonitorLocker ml(monitor_);
       while (result_.status == Dart_KernelCompilationStatus_Unknown) {
         ml.Wait();
@@ -637,6 +638,7 @@ class KernelCompilationRequest : public ValueObject {
     ReleaseFilesPairs(files);
 
     // Wait for reply to arrive.
+    VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
     MonitorLocker ml(monitor_);
     while (result_.status == Dart_KernelCompilationStatus_Unknown) {
       ml.Wait();

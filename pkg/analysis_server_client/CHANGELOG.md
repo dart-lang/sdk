@@ -1,3 +1,6 @@
+# 1.1.1
+ * Update ConnectionHandler to call checkServerProtocolVersion
+
 # 1.1.0
  * Add analysis server protocol consts and classes
  * Overhaul the Server class

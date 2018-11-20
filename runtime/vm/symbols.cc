@@ -686,6 +686,13 @@ void Symbols::DumpStats(Isolate* isolate) {
   // in DEBUG mode.
 }
 
+void Symbols::DumpTable(Isolate* isolate) {
+  OS::PrintErr("symbols:\n");
+  SymbolTable table(isolate->object_store()->symbol_table());
+  table.Dump();
+  table.Release();
+}
+
 intptr_t Symbols::LookupPredefinedSymbol(RawObject* obj) {
   for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
     if (symbol_handles_[i]->raw() == obj) {

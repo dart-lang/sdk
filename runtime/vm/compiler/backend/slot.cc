@@ -126,12 +126,19 @@ const Slot& Slot::Get(const Field& field,
   intptr_t nullable_cid = kDynamicCid;
   bool is_nullable = true;
 
-  if (thread->isolate()->use_field_guards() &&
-      field.guarded_cid() != kIllegalCid) {
-    ASSERT(parsed_function != nullptr);  // Need to record dependency.
+  if (field.guarded_cid() != kIllegalCid &&
+      field.guarded_cid() != kDynamicCid) {
     nullable_cid = field.guarded_cid();
     is_nullable = field.is_nullable();
-    parsed_function->AddToGuardedFields(&field);
+
+    if (thread->isolate()->use_field_guards()) {
+      ASSERT(parsed_function != nullptr);
+      parsed_function->AddToGuardedFields(&field);
+    } else {
+      // In precompiled mode we use guarded_cid field for type information
+      // inferred by TFA.
+      ASSERT(FLAG_precompiled_mode);
+    }
   }
 
   return SlotCache::Instance(thread).Canonicalize(

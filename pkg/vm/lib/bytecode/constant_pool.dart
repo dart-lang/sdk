@@ -331,7 +331,6 @@ class ConstantInt extends ConstantPoolEntry {
   final int value;
 
   ConstantInt(this.value);
-  ConstantInt.fromLiteral(IntLiteral literal) : this(literal.value);
 
   @override
   ConstantTag get tag => ConstantTag.kInt;
@@ -360,7 +359,6 @@ class ConstantDouble extends ConstantPoolEntry {
   final double value;
 
   ConstantDouble(this.value);
-  ConstantDouble.fromLiteral(DoubleLiteral literal) : this(literal.value);
 
   @override
   ConstantTag get tag => ConstantTag.kDouble;
@@ -432,11 +430,10 @@ class ConstantArgDesc extends ConstantPoolEntry {
   final int numTypeArgs;
   final List<String> argNames;
 
-  ConstantArgDesc(this.numArguments,
-      {this.numTypeArgs = 0, this.argNames = const <String>[]});
+  ConstantArgDesc(this.numArguments, this.numTypeArgs, this.argNames);
 
-  ConstantArgDesc.fromArguments(Arguments args,
-      {bool hasReceiver: false, bool isFactory: false})
+  ConstantArgDesc.fromArguments(
+      Arguments args, bool hasReceiver, bool isFactory)
       : this(
             args.positional.length +
                 args.named.length +
@@ -446,8 +443,8 @@ class ConstantArgDesc extends ConstantPoolEntry {
                 // numTypeArgs.
                 // TODO(alexmarkov): Clean this up.
                 (isFactory ? 1 : 0),
-            numTypeArgs: isFactory ? 0 : args.types.length,
-            argNames: new List<String>.from(args.named.map((ne) => ne.name)));
+            isFactory ? 0 : args.types.length,
+            new List<String>.from(args.named.map((ne) => ne.name)));
 
   @override
   ConstantTag get tag => ConstantTag.kArgDesc;
@@ -504,9 +501,8 @@ class ConstantICData extends ConstantPoolEntry {
   final Name targetName;
   final int argDescConstantIndex;
 
-  ConstantICData(
-      InvocationKind invocationKind, this.targetName, this.argDescConstantIndex,
-      {bool isDynamic: false})
+  ConstantICData(InvocationKind invocationKind, this.targetName,
+      this.argDescConstantIndex, bool isDynamic)
       : assert(invocationKind.index <= invocationKindMask),
         _flags = invocationKind.index | (isDynamic ? flagDynamic : 0);
 
@@ -1165,7 +1161,87 @@ class ConstantPool {
 
   ConstantPool();
 
-  int add(ConstantPoolEntry entry) {
+  int addNull() => _add(const ConstantNull());
+
+  int addString(String value) => _add(new ConstantString(value));
+
+  int addInt(int value) => _add(new ConstantInt(value));
+
+  int addDouble(double value) => _add(new ConstantDouble(value));
+
+  int addBool(bool value) => _add(new ConstantBool(value));
+
+  int addArgDesc(int numArguments,
+          {int numTypeArgs = 0, List<String> argNames = const <String>[]}) =>
+      _add(new ConstantArgDesc(numArguments, numTypeArgs, argNames));
+
+  int addArgDescByArguments(Arguments args,
+          {bool hasReceiver: false, bool isFactory: false}) =>
+      _add(new ConstantArgDesc.fromArguments(args, hasReceiver, isFactory));
+
+  int addICData(
+          InvocationKind invocationKind, Name targetName, int argDescCpIndex,
+          {bool isDynamic: false}) =>
+      _add(new ConstantICData(
+          invocationKind, targetName, argDescCpIndex, isDynamic));
+
+  int addStaticICData(
+          InvocationKind invocationKind, Member target, int argDescCpIndex) =>
+      _add(new ConstantStaticICData(invocationKind, target, argDescCpIndex));
+
+  int addStaticField(Field field) => _add(new ConstantStaticField(field));
+
+  int addInstanceField(Field field) => _add(new ConstantInstanceField(field));
+
+  int addClass(Class node) => _add(new ConstantClass(node));
+
+  int addTypeArgumentsField(Class node) =>
+      _add(new ConstantTypeArgumentsField(node));
+
+  int addTearOff(Procedure node) => _add(new ConstantTearOff(node));
+
+  int addType(DartType type) => _add(new ConstantType(type));
+
+  int addTypeArguments(List<DartType> typeArgs) =>
+      _add(new ConstantTypeArguments(typeArgs));
+
+  int addList(DartType typeArgument, List<int> entries) =>
+      _add(new ConstantList(typeArgument, entries));
+
+  int addInstance(
+          Class klass, int typeArgumentsCpIndex, Map<Field, int> fieldValues) =>
+      _add(new ConstantInstance(
+          klass,
+          typeArgumentsCpIndex,
+          fieldValues.map<Reference, int>((Field field, int valueCpIndex) =>
+              new MapEntry(field.reference, valueCpIndex))));
+
+  int addTypeArgumentsForInstanceAllocation(
+          Class classNode, List<DartType> typeArgs) =>
+      _add(new ConstantTypeArgumentsForInstanceAllocation(classNode, typeArgs));
+
+  int addClosureFunction(String name, FunctionNode function) =>
+      _add(new ConstantClosureFunction(name, function));
+
+  int addEndClosureFunctionScope() =>
+      _add(new ConstantEndClosureFunctionScope());
+
+  int addNativeEntry(String nativeName) =>
+      _add(new ConstantNativeEntry(nativeName));
+
+  int addSubtypeTestCache() => _add(new ConstantSubtypeTestCache());
+
+  int addPartialTearOffInstantiation(
+          int tearOffCpIndex, int typeArgumentsCpIndex) =>
+      _add(new ConstantPartialTearOffInstantiation(
+          tearOffCpIndex, typeArgumentsCpIndex));
+
+  int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
+
+  int addSymbol(Library library, String name) =>
+      _add(new ConstantSymbol(library?.reference, name));
+
+  int _add(ConstantPoolEntry entry) {
     return _canonicalizationCache.putIfAbsent(entry, () {
       int index = entries.length;
       if (index >= constantPoolIndexLimit) {

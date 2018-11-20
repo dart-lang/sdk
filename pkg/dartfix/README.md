@@ -1,7 +1,13 @@
 # dartfix
 
 dartfix is a tool for migrating Dart source to newer versions of the Dart SDK,
-and fixing common issues.
+and fixing common issues including:
+
+* Converting classes used as mixins to use the
+  [new mixin syntax](https://github.com/dart-lang/language/issues/7)
+* Converting [double literals to int literals](https://github.com/dart-lang/language/issues/4)
+  where applicable
+* Moving named constructor type arguments from the name to the type
 
 ## Usage
 
