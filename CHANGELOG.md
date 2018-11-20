@@ -24,6 +24,11 @@
   for testing and it is no longer supported. `--categories=Server` continues to
   work at this time but it is deprecated, please use `--server-mode` instead.
 
+* The `--library-root` flag was replaced by `--libraries-spec`. This flag is
+  rarely used by developers invoking dart2js directly. It's important for
+  integrating dart2js with build systems. See `--help` for more details on the
+  new flag.
+
 ## 2.1.0 - 2018-11-15
 
 This is a minor version release. The team's focus was mostly on improving
