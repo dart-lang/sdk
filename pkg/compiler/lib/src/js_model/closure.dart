@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/tasks.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -25,10 +24,6 @@ import '../universe/selector.dart';
 import 'elements.dart';
 import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
-
-class KernelClosureConversionTask extends ClosureConversionTask {
-  KernelClosureConversionTask(Measurer measurer) : super(measurer);
-}
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a

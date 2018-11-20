@@ -3,17 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
 import 'serialization/serialization.dart';
-
-abstract class ClosureConversionTask extends CompilerTask {
-  ClosureConversionTask(Measurer measurer) : super(measurer);
-}
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
