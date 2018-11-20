@@ -268,7 +268,11 @@ static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
   }
   intptr_t r = 0;
   char* end_ptr = NULL;
+#if defined(ARCH_IS_32_BIT)
   r = strtol(s, &end_ptr, base);
+#else
+  r = strtoll(s, &end_ptr, base);
+#endif
   if (end_ptr == s) {
     // String was not advanced at all, cannot be valid.
     return false;
@@ -288,7 +292,11 @@ static bool GetUnsignedIntegerId(const char* s, uintptr_t* id, int base = 10) {
   }
   uintptr_t r = 0;
   char* end_ptr = NULL;
+#if defined(ARCH_IS_32_BIT)
   r = strtoul(s, &end_ptr, base);
+#else
+  r = strtoull(s, &end_ptr, base);
+#endif
   if (end_ptr == s) {
     // String was not advanced at all, cannot be valid.
     return false;

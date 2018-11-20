@@ -751,8 +751,8 @@ class FragmentEmitter {
       return null;
     }
 
-    // TODO(floitsch): don't just reference 'init'.
-    return js.js(deferredBoilerplateDart2, {
+    js.Expression code = js.js(deferredBoilerplateDart2, {
+      // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': new js.Parameter('init'),
       'staticState': new js.Parameter(namer.staticStateHolder),
       'holders': holderCode.statements,
@@ -772,6 +772,11 @@ class FragmentEmitter {
       'nativeSupport': nativeSupport,
       'typesOffset': namer.typesOffsetName,
     });
+
+    if (compiler.options.experimentStartupFunctions) {
+      code = js.Parentheses(code);
+    }
+    return code;
   }
 
   /// Emits all holders, except for the static-state holder.

@@ -31,6 +31,9 @@ class Flags {
   // 'this' and constants.
   static const String experimentLocalNames = '--experiment-code-1';
 
+  // Experimentally try to force part-file functions to be seen as IIFEs.
+  static const String experimentStartupFunctions = '--experiment-code-2';
+
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =

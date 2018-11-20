@@ -452,7 +452,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      int cluster_modes = modes.length - 3;
+      int cluster_modes = modes.length - 15;
       Random rand = new Random();
       do {
         mode = modes[rand.nextInt(cluster_modes)];
@@ -481,18 +481,6 @@ class DartFuzzTestSession {
   // Supported modes.
   static const List<String> modes = [
     // Cluster options:
-    'jit-opt-debug-ia32',
-    'jit-opt-debug-x64',
-    'jit-opt-debug-arm32',
-    'jit-opt-debug-arm64',
-    'jit-opt-debug-dbc',
-    'jit-opt-debug-dbc64',
-    'jit-opt-ia32',
-    'jit-opt-x64',
-    'jit-opt-arm32',
-    'jit-opt-arm64',
-    'jit-opt-dbc',
-    'jit-opt-dbc64',
     'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-arm32',
@@ -517,7 +505,20 @@ class DartFuzzTestSession {
     'aot-debug-arm64',
     'aot-arm64',
     // Too many divergences (due to arithmetic):
-    'js'
+    'js',
+    // https://github.com/dart-lang/sdk/issues/35196
+    'jit-opt-debug-ia32',
+    'jit-opt-debug-x64',
+    'jit-opt-debug-arm32',
+    'jit-opt-debug-arm64',
+    'jit-opt-debug-dbc',
+    'jit-opt-debug-dbc64',
+    'jit-opt-ia32',
+    'jit-opt-x64',
+    'jit-opt-arm32',
+    'jit-opt-arm64',
+    'jit-opt-dbc',
+    'jit-opt-dbc64',
   ];
 }
 

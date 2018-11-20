@@ -238,6 +238,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Expermental optimization.
   bool experimentLocalNames = false;
 
+  /// Experimental part file function generation.
+  bool experimentStartupFunctions = false;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using
@@ -293,6 +296,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentalAllocationsPath = _extractStringOption(
           options, "${Flags.experimentalAllocationsPath}=", null)
       ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
+      ..experimentStartupFunctions =
+          _hasOption(options, Flags.experimentStartupFunctions)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)

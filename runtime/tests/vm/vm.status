@@ -187,10 +187,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 [ ($compiler == dartk || $compiler == dartkb) && $system == windows ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
 
-[ $arch == x64 && ($compiler == dartk || $compiler == dartkb) && $system == windows && $mode == release ]
-cc/Service_Address: Fail
-cc/Service_Code: Fail
-
 [ ($compiler == dartk || $compiler == dartkb) && $checked ]
 dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 
@@ -318,6 +314,3 @@ dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-tri
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
-
-[ $compiler != dartkp ]
-dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT.

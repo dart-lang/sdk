@@ -1070,6 +1070,14 @@ class Printer implements NodeVisitor {
   }
 
   @override
+  visitParentheses(Parentheses node) {
+    out("(");
+    visitNestedExpression(node.enclosed, EXPRESSION,
+        newInForInit: false, newAtStatementBegin: false);
+    out(")");
+  }
+
+  @override
   visitLiteralNumber(LiteralNumber node) {
     outputNumberWithRequiredWhitespace(node.value);
   }
