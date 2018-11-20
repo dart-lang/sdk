@@ -206,6 +206,39 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return inferred;
   }
 
+  DartType inferSetType(SetLiteral node, {bool downwards: false}) {
+    DartType contextType = InferenceContext.getContext(node);
+
+    var ts = _typeSystem as StrongTypeSystemImpl;
+    List<DartType> elementTypes;
+    List<ParameterElement> parameters;
+
+    if (downwards) {
+      if (contextType == null) {
+        return null;
+      }
+
+      elementTypes = [];
+      parameters = [];
+    } else {
+      // Also use upwards information to infer the type.
+      elementTypes = node.elements
+          .map((e) => e.staticType)
+          .where((t) => t != null)
+          .toList();
+      var setTypeParam = _typeProvider.setType.typeParameters[0].type;
+      var syntheticParamElement = new ParameterElementImpl.synthetic(
+          'element', setTypeParam, ParameterKind.POSITIONAL);
+      parameters = new List.filled(elementTypes.length, syntheticParamElement);
+    }
+    DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
+        _typeProvider.setType, parameters, elementTypes, contextType,
+        downwards: downwards,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
+    return inferred;
+  }
+
   /**
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>
@@ -636,9 +669,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
 
-    DartType mapDynamicType = _typeProvider.mapType
-        .instantiate(<DartType>[_dynamicType, _dynamicType]);
-
     // If we have type arguments, use them
     if (typeArguments != null) {
       DartType staticKeyType = _dynamicType;
@@ -660,6 +690,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
               .instantiate(<DartType>[staticKeyType, staticValueType]));
       return;
     }
+
+    DartType mapDynamicType = _typeProvider.mapType
+        .instantiate(<DartType>[_dynamicType, _dynamicType]);
 
     // If we have no explicit type arguments, try to infer type arguments.
     ParameterizedType inferred = inferMapType(node);
@@ -919,6 +952,45 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitRethrowExpression(RethrowExpression node) {
     _recordStaticType(node, _typeProvider.bottomType);
+  }
+
+  @override
+  void visitSetLiteral(SetLiteral node) {
+    TypeArgumentList typeArguments = node.typeArguments;
+
+    // If we have type arguments, use them
+    if (typeArguments != null) {
+      DartType elementType = _dynamicType;
+      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
+      if (arguments != null && arguments.length == 1) {
+        DartType type = _getType(arguments[0]);
+        if (type != null) {
+          elementType = type;
+        }
+      }
+      _recordStaticType(
+          node, _typeProvider.setType.instantiate(<DartType>[elementType]));
+      return;
+    }
+
+    DartType setDynamicType =
+        _typeProvider.setType.instantiate(<DartType>[_dynamicType]);
+
+    // If we have no explicit type arguments, try to infer type arguments.
+    ParameterizedType inferred = inferSetType(node);
+
+    if (inferred != setDynamicType) {
+      // TODO(jmesserly): this results in an "inferred" message even when we
+      // in fact had an error above, because it will still attempt to return
+      // a type. Perhaps we should record inference from TypeSystem if
+      // everything was successful?
+      _resolver.inferenceContext.recordInference(node, inferred);
+      _recordStaticType(node, inferred);
+      return;
+    }
+
+    // If no type arguments and no inference, use dynamic
+    _recordStaticType(node, setDynamicType);
   }
 
   /**
