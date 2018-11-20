@@ -13,7 +13,7 @@ import '../js_ast/js_ast.dart' show js;
 ///
 /// This class should only implement functionality that depends purely on JS
 /// classes, rather than on Analyzer/Kernel types.
-abstract class SharedCompiler<Library> {
+abstract class SharedCompiler<Library, Class> {
   /// When inside a `[]=` operator, this will be a non-null value that should be
   /// returned by any `return;` statement.
   ///
@@ -141,21 +141,26 @@ abstract class SharedCompiler<Library> {
     });
   }
 
-  /// Emits an expression to set the property [name] on the class [className],
+  /// Emits an expression to set the property [nameExpr] on the class [className],
   /// with [value].
   ///
   /// This will use `className.name = value` if possible, otherwise it will use
   /// `dart.defineValue(className, name, value)`. This is required when
   /// `Function.prototype` already defins a getters with the same name.
-  JS.Expression defineValueOnClass(
-      JS.Expression className, JS.Expression name, JS.Expression value) {
-    var args = [className, name, value];
-    if (name is JS.LiteralString &&
-        JS.isFunctionPrototypeGetter(name.valueWithoutQuotes)) {
-      return runtimeCall('defineValue(#, #, #)', args);
+  JS.Expression defineValueOnClass(Class c, JS.Expression className,
+      JS.Expression nameExpr, JS.Expression value) {
+    var args = [className, nameExpr, value];
+    if (nameExpr is JS.LiteralString) {
+      var name = nameExpr.valueWithoutQuotes;
+      if (JS.isFunctionPrototypeGetter(name) || superclassHasStatic(c, name)) {
+        return runtimeCall('defineValue(#, #, #)', args);
+      }
     }
     return js.call('#.# = #', args);
   }
+
+  /// Whether any superclass of [c] defines a static [name].
+  bool superclassHasStatic(Class c, String name);
 }
 
 /// Whether a variable with [name] is referenced in the [node].
