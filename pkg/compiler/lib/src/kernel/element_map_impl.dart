@@ -107,6 +107,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
 
+  Map<KMember, Map<ir.TreeNode, ir.DartType>> staticTypeCacheForTesting;
+
   KernelToElementMapImpl(this.reporter, Environment environment,
       this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
@@ -1335,8 +1337,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           commonElements, nativeBasicData, reporter, options);
 
   ResolutionImpact computeWorldImpact(KMember member) {
-    return buildKernelImpact(
-        members.getData(member).node, this, reporter, options);
+    ir.Member node = members.getData(member).node;
+    KernelImpactBuilder builder =
+        new KernelImpactBuilder(this, member, reporter, options);
+    node.accept(builder);
+    if (retainDataForTesting) {
+      staticTypeCacheForTesting ??= {};
+      staticTypeCacheForTesting[member] = builder.staticTypeCacheForTesting;
+    }
+    return builder.impactBuilder;
   }
 
   ScopeModel computeScopeModel(KMember member) {

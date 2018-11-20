@@ -9,7 +9,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
-import '../common/resolution.dart';
 import '../common_elements.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
@@ -27,17 +26,6 @@ import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import 'element_map.dart';
 import 'runtime_type_analysis.dart';
-
-ResolutionImpact buildKernelImpact(
-    ir.Member member,
-    KernelToElementMap elementMap,
-    DiagnosticReporter reporter,
-    CompilerOptions options) {
-  KernelImpactBuilder builder = new KernelImpactBuilder(
-      elementMap, elementMap.getMember(member), reporter, options);
-  member.accept(builder);
-  return builder.impactBuilder;
-}
 
 class KernelImpactBuilder extends StaticTypeVisitor {
   final ResolutionWorldImpactBuilder impactBuilder;

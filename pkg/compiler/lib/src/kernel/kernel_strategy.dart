@@ -47,8 +47,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   KernelAnnotationProcessor _annotationProcesser;
 
-  final Map<MemberEntity, ClosureScopeModel> closureModels =
-      <MemberEntity, ClosureScopeModel>{};
+  final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
@@ -210,6 +209,7 @@ class KernelWorkItem implements WorkItem {
         if (scopeModel?.closureScopeModel != null) {
           closureModels[element] = scopeModel.closureScopeModel;
         }
+        return scopeModel;
       });
       return _compilerTask.measureSubtask('worldImpact', () {
         ResolutionImpact impact = _elementMap.computeWorldImpact(element);

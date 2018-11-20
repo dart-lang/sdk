@@ -24,6 +24,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   StaticTypeVisitor(ir.TypeEnvironment typeEnvironment)
       : super(typeEnvironment);
 
+  Map<ir.Expression, ir.DartType> get staticTypeCacheForTesting => _cache;
+
   @override
   ir.DartType defaultNode(ir.Node node) =>
       throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
