@@ -50,7 +50,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_requests_before_initialize_are_rejected_and_logged() async {
     final request = makeRequest('randomRequest', null);
-    final nextNotification = channel.waitForNotificationFromServer();
+    final nextNotification = channel.errorNotificationsFromServer.first;
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
@@ -63,5 +63,23 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       (params) => params,
     );
     expect(logParams.type, equals(MessageType.Error));
+  }
+
+  test_notifications_before_initialize_are_silently_dropped() async {
+    final notification = makeNotification('randomNotification', null);
+    final nextNotification = channel.errorNotificationsFromServer.first;
+    channel.sendNotificationToServer(notification);
+
+    // Wait up to 1sec to ensure no error/log notifications were sent back.
+    var didTimeout = false;
+    final notificationFromServer = await nextNotification.timeout(
+      const Duration(seconds: 1),
+      onTimeout: () {
+        didTimeout = true;
+      },
+    );
+
+    expect(notificationFromServer, isNull);
+    expect(didTimeout, isTrue);
   }
 }

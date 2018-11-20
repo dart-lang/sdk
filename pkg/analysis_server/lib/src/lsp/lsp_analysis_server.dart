@@ -328,13 +328,25 @@ class LspAnalysisServer {
                 message.method != 'initialize') ||
             (state == InitializationState.Initializing &&
                 message.method != 'initialized')) {
-          _sendNotInitializedError(message);
+          // Only send not initialized errors for requests - notifications
+          // sent before initialization should be dropped.
+          if (message is RequestMessage) {
+            _sendNotInitializedError(message);
+          }
           return;
         }
 
         final handler = handlers[message.method];
         if (handler == null) {
-          _sendUnknownMethodError(message);
+          // Messages that start with $/ are optional and can be silently ignored
+          // if we don't know how to handle them.
+          final isOptionalRequest = message.method.startsWith(r'$/');
+          if (!isOptionalRequest) {
+            // TODO(dantup): How should we handle unknown notifications that do
+            // *not* start with $/?
+            // https://github.com/Microsoft/language-server-protocol/issues/608
+            _sendUnknownMethodError(message);
+          }
           return;
         }
 

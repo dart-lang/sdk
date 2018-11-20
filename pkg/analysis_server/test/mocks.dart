@@ -57,8 +57,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   final StreamController<lsp.Message> _serverToClient =
       new StreamController<lsp.Message>.broadcast();
 
-  Stream<lsp.Message> get serverToClient => _serverToClient.stream;
-
   bool _closed = false;
 
   String name;
@@ -72,15 +70,33 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     }
   }
 
+  Stream<lsp.Message> get serverToClient => _serverToClient.stream;
+
   @override
   void close() {
     _closed = true;
+  }
+
+  /**
+   * A stream of [NotificationMessage]s from the server that may be errors.
+   */
+  Stream<lsp.NotificationMessage> get errorNotificationsFromServer {
+    return notificationsFromServer.where(_isErrorNotification);
   }
 
   @override
   void listen(void Function(lsp.IncomingMessage message) onMessage,
       {Function onError, void Function() onDone}) {
     _clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
+  }
+
+  /**
+   * A stream of [NotificationMessage]s from the server.
+   */
+  Stream<lsp.NotificationMessage> get notificationsFromServer {
+    return _serverToClient.stream
+        .where((m) => m is lsp.NotificationMessage)
+        .cast<lsp.NotificationMessage>();
   }
 
   @override
@@ -145,16 +161,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     return response;
   }
 
-  /**
-   * Return a future that will complete when the next [NotificationMessage] has
-   * been received.
-   */
-  Future<lsp.NotificationMessage> waitForNotificationFromServer() async {
-    final notification = await _serverToClient.stream
-        .firstWhere((m) => m is lsp.NotificationMessage);
-    return notification;
-  }
-
   /// Round trips the object to JSON and back to ensure it behaves the same as
   /// when running over the real STDIO server. Without this, the object passed
   /// to the handlers will have concrete types as constructed in tests rather
@@ -162,6 +168,15 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   T _convertJson<T>(
       lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
     return constructor(jsonDecode(jsonEncode(message.toJson())));
+  }
+
+  /// Checks whether a notification is likely an error from the server (for
+  /// example a window/showMessage). This is useful for tests that want to
+  /// ensure no errors come from the server in response to notifications (which
+  /// don't have their own responses).
+  bool _isErrorNotification(lsp.NotificationMessage notification) {
+    return notification.method == 'window/logMessage' ||
+        notification.method == 'window/showMessage';
   }
 }
 
