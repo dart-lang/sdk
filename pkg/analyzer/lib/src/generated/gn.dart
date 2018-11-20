@@ -86,21 +86,6 @@ class GnWorkspace extends Workspace {
   }
 
   /**
-   * Return the file with the given [absolutePath].
-   *
-   * Return `null` if the given [absolutePath] is not in the workspace [root].
-   */
-  File findFile(String absolutePath) {
-    try {
-      File writableFile = provider.getFile(absolutePath);
-      if (writableFile.exists) {
-        return writableFile;
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  /**
    * Creates an alternate representation for available packages.
    */
   Map<String, List<Folder>> _convertPackagesToMap(Packages packages) {
