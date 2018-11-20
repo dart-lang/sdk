@@ -147,6 +147,13 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
   }
 
   @override
+  bool visitParentheses(Parentheses node, Node arg) {
+    if (arg is! Parentheses) return failAt(node, arg);
+    Parentheses other = arg;
+    return testValues(node, node.enclosed, other, other.enclosed);
+  }
+
+  @override
   bool visitStringConcatenation(StringConcatenation node, Node arg) {
     if (arg is! StringConcatenation) return failAt(node, arg);
     StringConcatenation other = arg;
