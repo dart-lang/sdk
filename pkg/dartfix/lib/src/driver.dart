@@ -71,7 +71,7 @@ class Driver {
     String serverPath = findServerPath();
     await server.start(
       clientId: 'dartfix',
-      clientVersion: pubspecVersion,
+      clientVersion: 'unspecified',
       sdkPath: options.sdkPath,
       serverPath: serverPath,
     );
