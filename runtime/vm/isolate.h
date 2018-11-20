@@ -357,6 +357,10 @@ class Isolate : public BaseIsolate {
     return kernel_data_class_cache_mutex_;
   }
 
+  // Any access to constants arrays must be locked since mutator and
+  // background compiler can access the arrays at the same time.
+  Mutex* kernel_constants_mutex() const { return kernel_constants_mutex_; }
+
 #if !defined(PRODUCT)
   Debugger* debugger() const {
     ASSERT(debugger_ != NULL);
@@ -959,6 +963,7 @@ class Isolate : public BaseIsolate {
   Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
   Mutex* kernel_data_lib_cache_mutex_;
   Mutex* kernel_data_class_cache_mutex_;
+  Mutex* kernel_constants_mutex_;
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   intptr_t defer_finalization_count_;
