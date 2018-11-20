@@ -761,11 +761,7 @@ const AbstractType* CompileType::ToAbstractType() {
     Isolate* I = Isolate::Current();
     const Class& type_class = Class::Handle(I->class_table()->At(cid_));
     if (type_class.NumTypeArguments() > 0) {
-      if (FLAG_strong) {
-        type_ = &AbstractType::ZoneHandle(type_class.RareType());
-      } else {
-        type_ = &Object::dynamic_type();
-      }
+      type_ = &AbstractType::ZoneHandle(type_class.RareType());
     } else {
       type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
     }
@@ -1215,8 +1211,7 @@ CompileType StaticCallInstr::ComputeType() const {
     return CompileType::FromCid(MethodRecognizer::ResultCid(function_));
   }
 
-  const Isolate* isolate = Isolate::Current();
-  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
     // TODO(dartbug.com/30480): instantiate generic result_type if possible.
@@ -1234,8 +1229,7 @@ CompileType StaticCallInstr::ComputeType() const {
 }
 
 CompileType LoadLocalInstr::ComputeType() const {
-  const Isolate* isolate = Isolate::Current();
-  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     const AbstractType& local_type = local().type();
     TraceStrongModeType(this, local_type);
     return CompileType::FromAbstractType(local_type);
@@ -1270,8 +1264,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   intptr_t cid = kDynamicCid;
   AbstractType* abstract_type = NULL;
   const Field& field = this->StaticField();
-  const Isolate* isolate = Isolate::Current();
-  if (isolate->can_use_strong_mode_types() || isolate->type_checks()) {
+  if (Isolate::Current()->can_use_strong_mode_types()) {
     cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &AbstractType::ZoneHandle(field.type());
     TraceStrongModeType(this, *abstract_type);
@@ -1329,8 +1322,7 @@ CompileType LoadFieldInstr::ComputeType() const {
   intptr_t cid = kDynamicCid;
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
-      (isolate->type_checks() &&
-       (field_type.IsFunctionType() || field_type.HasTypeClass()))) {
+      (field_type.IsFunctionType() || field_type.HasTypeClass())) {
     cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &field_type;
     TraceStrongModeType(this, *abstract_type);

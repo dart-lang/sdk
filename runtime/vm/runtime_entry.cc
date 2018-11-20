@@ -366,24 +366,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
-  if (isolate->type_checks()) {
-    Error& bound_error = Error::Handle(zone);
-    type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-        instantiator_type_arguments, function_type_arguments, &bound_error);
-    if (!bound_error.IsNull()) {
-      // Throw a dynamic type error.
-      const TokenPosition location = GetCallerLocation();
-      String& bound_error_message =
-          String::Handle(zone, String::New(bound_error.ToErrorCString()));
-      Exceptions::CreateAndThrowTypeError(
-          location, AbstractType::Handle(zone), AbstractType::Handle(zone),
-          Symbols::Empty(), bound_error_message);
-      UNREACHABLE();
-    }
-  } else {
-    type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-        instantiator_type_arguments, function_type_arguments, NULL);
-  }
+  type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
+      instantiator_type_arguments, function_type_arguments, NULL);
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
@@ -833,8 +817,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     }
     String& bound_error_message = String::Handle(zone);
     if (!bound_error.IsNull()) {
-      ASSERT(isolate->type_checks());
-      bound_error_message = String::New(bound_error.ToErrorCString());
+      UNREACHABLE();
     }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)

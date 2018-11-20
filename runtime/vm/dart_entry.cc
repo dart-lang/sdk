@@ -117,7 +117,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // and never start the VM service isolate. So we should never end up invoking
   // any dart code in the Dart 2.0 AOT compiler.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_strong && FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

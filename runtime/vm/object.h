@@ -1087,7 +1087,6 @@ class Class : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupCallFunctionForTypeTest() const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -2493,14 +2492,11 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (FLAG_strong) {
-      if (!I->should_emit_strong_mode_checks()) {
-        return false;
-      }
-      return IsClosureFunction() ||
-             !(is_static() || (kind() == RawFunction::kConstructor));
+    if (!I->should_emit_strong_mode_checks()) {
+      return false;
     }
-    return I->type_checks();
+    return IsClosureFunction() ||
+           !(is_static() || (kind() == RawFunction::kConstructor));
   }
 
   bool MayHaveUncheckedEntryPoint(Isolate* I) const;
