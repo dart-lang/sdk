@@ -93,11 +93,6 @@ get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
 
-[ $arch == x64 && $compiler == dartk && $mode == release && $system == windows ]
-code_test: RuntimeError
-get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
-
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky

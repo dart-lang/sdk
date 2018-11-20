@@ -187,10 +187,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 [ ($compiler == dartk || $compiler == dartkb) && $system == windows ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
 
-[ $arch == x64 && ($compiler == dartk || $compiler == dartkb) && $system == windows && $mode == release ]
-cc/Service_Address: Fail
-cc/Service_Code: Fail
-
 [ ($compiler == dartk || $compiler == dartkb) && $checked ]
 dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 
