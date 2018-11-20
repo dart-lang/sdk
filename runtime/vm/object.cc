@@ -2737,32 +2737,29 @@ void Class::CalculateFieldOffsets() const {
   set_next_field_offset(offset);
 }
 
-struct InvocationDispatcherCacheLayout {
-  enum { kNameIndex = 0, kArgsDescIndex, kFunctionIndex, kEntrySize };
-};
-
 void Class::AddInvocationDispatcher(const String& target_name,
                                     const Array& args_desc,
                                     const Function& dispatcher) const {
-  // Search for a free entry.
-  Array& cache = Array::Handle(invocation_dispatcher_cache());
+  auto& cache = Array::Handle(invocation_dispatcher_cache());
+  InvocationDispatcherTable dispatchers(cache);
   intptr_t i = 0;
-  while (i < cache.Length() && cache.At(i) != Object::null()) {
-    i += InvocationDispatcherCacheLayout::kEntrySize;
+  for (auto dispatcher : dispatchers) {
+    if (dispatcher.Get<kInvocationDispatcherName>() == String::null()) {
+      break;
+    }
+    i++;
   }
-
-  if (i == cache.Length()) {
-    // Allocate new larger cache.
-    intptr_t new_len =
-        (cache.Length() == 0)
-            ? static_cast<intptr_t>(InvocationDispatcherCacheLayout::kEntrySize)
-            : cache.Length() * 2;
+  if (i == dispatchers.Length()) {
+    const intptr_t new_len = cache.Length() == 0
+                                 ? Class::kInvocationDispatcherEntrySize
+                                 : cache.Length() * 2;
     cache ^= Array::Grow(cache, new_len);
     set_invocation_dispatcher_cache(cache);
   }
-  cache.SetAt(i + InvocationDispatcherCacheLayout::kNameIndex, target_name);
-  cache.SetAt(i + InvocationDispatcherCacheLayout::kArgsDescIndex, args_desc);
-  cache.SetAt(i + InvocationDispatcherCacheLayout::kFunctionIndex, dispatcher);
+  auto entry = dispatchers[i];
+  entry.Set<Class::kInvocationDispatcherName>(target_name);
+  entry.Set<Class::kInvocationDispatcherArgsDesc>(args_desc);
+  entry.Set<Class::kInvocationDispatcherFunction>(dispatcher);
 }
 
 RawFunction* Class::GetInvocationDispatcher(const String& target_name,
@@ -2772,31 +2769,31 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
          kind == RawFunction::kInvokeFieldDispatcher ||
          kind == RawFunction::kDynamicInvocationForwarder);
-  Function& dispatcher = Function::Handle();
-  Array& cache = Array::Handle(invocation_dispatcher_cache());
+  auto Z = Thread::Current()->zone();
+  auto& function = Function::Handle(Z);
+  auto& name = String::Handle(Z);
+  auto& desc = Array::Handle(Z);
+  auto& cache = Array::Handle(Z, invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
-  String& name = String::Handle();
-  Array& desc = Array::Handle();
-  intptr_t i = 0;
-  for (; i < cache.Length(); i += InvocationDispatcherCacheLayout::kEntrySize) {
-    name ^= cache.At(i + InvocationDispatcherCacheLayout::kNameIndex);
+
+  InvocationDispatcherTable dispatchers(cache);
+  for (auto dispatcher : dispatchers) {
+    name = dispatcher.Get<Class::kInvocationDispatcherName>();
     if (name.IsNull()) break;  // Reached last entry.
     if (!name.Equals(target_name)) continue;
-    desc ^= cache.At(i + InvocationDispatcherCacheLayout::kArgsDescIndex);
+    desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
     if (desc.raw() != args_desc.raw()) continue;
-    dispatcher ^= cache.At(i + InvocationDispatcherCacheLayout::kFunctionIndex);
-    if (dispatcher.kind() == kind) {
-      // Found match.
-      ASSERT(dispatcher.IsFunction());
-      break;
+    function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+    if (function.kind() == kind) {
+      break;  // Found match.
     }
   }
 
-  if (dispatcher.IsNull() && create_if_absent) {
-    dispatcher ^= CreateInvocationDispatcher(target_name, args_desc, kind);
-    AddInvocationDispatcher(target_name, args_desc, dispatcher);
+  if (function.IsNull() && create_if_absent) {
+    function = CreateInvocationDispatcher(target_name, args_desc, kind);
+    AddInvocationDispatcher(target_name, args_desc, function);
   }
-  return dispatcher.raw();
+  return function.raw();
 }
 
 RawFunction* Class::CreateInvocationDispatcher(const String& target_name,

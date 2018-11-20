@@ -778,6 +778,13 @@ typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 class Class : public Object {
  public:
+  enum InvocationDispatcherEntry {
+    kInvocationDispatcherName,
+    kInvocationDispatcherArgsDesc,
+    kInvocationDispatcherFunction,
+    kInvocationDispatcherEntrySize,
+  };
+
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
@@ -9712,8 +9719,13 @@ class ArrayOfTuplesView {
   intptr_t index_;
 };
 
+using InvocationDispatcherTable =
+    ArrayOfTuplesView<Class::InvocationDispatcherEntry,
+                      std::tuple<String, Array, Function>>;
+
 using StaticCallsTable =
     ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
                                                            Object,
