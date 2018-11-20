@@ -1,3 +1,7 @@
+## 0.5.14
+* Updates `coverage_log_server.dart` and `live_code_size_analysis.dart` to make
+  them strong clean and match the latest changes in dart2js.
+
 ## 0.5.13
 
 * Use a more efficient `Map` implementation for decoding existing info files.

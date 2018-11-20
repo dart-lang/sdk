@@ -431,16 +431,14 @@ the reachable size, but how much of that we are not certain.
 Coverage information requires a bit more setup and work to get them running. The
 steps are as follows:
 
-  * Compile an app with dart2js using `--dump-info` and defining the
-    Dart environment `traceCalls=post`:
+  * Compile an app with dart2js using `--dump-info` and
+    `--experiment-call-instrumentation`
 
 ```console
-$ DART_VM_OPTIONS="-DtraceCalls=post" dart2js --dump-info main.dart
+$ dart2js --dump-info --experiment-call-instrumentation main.dart
 ```
 
-  Because coverage/tracing data is currently experimental, the feature is
-  not exposed as a flag in dart2js, but you can enable it using the Dart
-  environment flag. The flag only works dart2js version 1.13.0-dev.0.0 or newer.
+  The flag only works dart2js version 2.2.0 or newer.
 
   * Launch the coverage server tool to serve up the JS code of your app:
 

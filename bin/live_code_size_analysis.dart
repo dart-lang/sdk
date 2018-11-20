@@ -72,8 +72,10 @@ main(args) async {
       // validate just once.
       var name = f.name;
       if (name.contains('.')) name = name.substring(name.lastIndexOf('.') + 1);
-      if (data['name'] != name && data['name'] != '') {
-        print('invalid coverage: $data for $f');
+      var otherName = data['name'];
+      if (otherName.contains('.')) otherName = otherName.substring(otherName.lastIndexOf('.') + 1);
+      if (otherName != name && otherName != '') {
+        print('invalid coverage: $data for $f, ($name vs $otherName)');
       }
       reachableCode += f.size;
     } else {

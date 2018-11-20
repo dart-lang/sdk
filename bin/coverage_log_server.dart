@@ -115,7 +115,7 @@ class _Server {
 
   _expectedPath(String tail) => prefix == '' ? tail : '$prefix/$tail';
 
-  _handler(shelf.Request request) async {
+  FutureOr<shelf.Response> _handler(shelf.Request request) async {
     var urlPath = request.url.path;
     print('received request: $urlPath');
     var baseJsName = path.basename(jsPath);
@@ -187,9 +187,25 @@ _normalize(String uriPath) {
 }
 
 _adjustRequestUrl(String code, String prefix) {
-  var newUrl = prefix == '' ? 'coverage' : '$prefix/coverage';
-  return code.replaceFirst('"/coverage_uri_to_amend_by_server"',
-      '"/$newUrl" /*url-prefix updated!*/');
+  var url = prefix == '' ? 'coverage' : '$prefix/coverage';
+  var hook = '''
+      self.dartCallInstrumentation = function(id, name) {
+        if (!this.traceBuffer) {
+          this.traceBuffer = [];
+        }
+        var buffer = this.traceBuffer;
+        if (buffer.length == 0) {
+          window.setTimeout(function() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/$url");
+              xhr.send(JSON.stringify(buffer));
+              buffer.length = 0;
+            }, 1000);
+        }
+        buffer.push([id, name]);
+     };
+     ''';
+  return '$hook$code';
 }
 
 const HTML_HEADERS = const {'content-type': 'text/html'};
