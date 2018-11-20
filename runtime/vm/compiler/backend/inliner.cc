@@ -1049,8 +1049,7 @@ class CallSiteInliner : public ValueObject {
         // without linking between the caller and callee graphs.
         // TODO(zerny): Put more information in the stubs, eg, type information.
         const intptr_t first_actual_param_index = call_data->first_arg_index;
-        const intptr_t inlined_type_args_param =
-            (FLAG_reify_generic_functions && function.IsGeneric()) ? 1 : 0;
+        const intptr_t inlined_type_args_param = function.IsGeneric() ? 1 : 0;
         const intptr_t num_inlined_params =
             inlined_type_args_param + function.NumParameters();
         ZoneGrowableArray<Definition*>* param_stubs =
@@ -3028,7 +3027,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     cursor =
         flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
     // With an explicit null check, a non-speculative unbox suffices.
-    ASSERT(FLAG_strong);
     switch (view_cid) {
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid:

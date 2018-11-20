@@ -353,11 +353,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    bool is_checked = checked.value();
     Dart_IsolateFlags* flags = state->isolate_flags();
-    flags->enable_asserts = is_checked;
-    // Do not enable type checks in strong mode.
-    flags->enable_type_checks = is_checked && !FLAG_strong;
+    flags->enable_asserts = checked.value();
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);

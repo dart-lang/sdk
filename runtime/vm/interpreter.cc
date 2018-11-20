@@ -194,8 +194,7 @@ class InterpreterHelpers {
   static bool ObjectArraySetIndexed(Thread* thread,
                                     RawObject** FP,
                                     RawObject** result) {
-    return !thread->isolate()->type_checks() &&
-           ObjectArraySetIndexedUnchecked(thread, FP, result);
+    return ObjectArraySetIndexedUnchecked(thread, FP, result);
   }
 
   static bool ObjectArraySetIndexedUnchecked(Thread* thread,
@@ -228,8 +227,7 @@ class InterpreterHelpers {
   static bool GrowableArraySetIndexed(Thread* thread,
                                       RawObject** FP,
                                       RawObject** result) {
-    return !thread->isolate()->type_checks() &&
-           GrowableArraySetIndexedUnchecked(thread, FP, result);
+    return GrowableArraySetIndexedUnchecked(thread, FP, result);
   }
 
   static bool GrowableArraySetIndexedUnchecked(Thread* thread,

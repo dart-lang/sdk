@@ -40,8 +40,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   const intptr_t previous_block_id = last_used_block_id_;
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
-  const bool expect_type_args =
-      function_.IsGeneric() && FLAG_reify_generic_functions;
+  const bool expect_type_args = function_.IsGeneric();
   const bool check_arguments = function_.IsClosureFunction();
 
   Fragment prologue = Fragment(entry);

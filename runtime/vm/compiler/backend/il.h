@@ -2929,7 +2929,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
-    ASSERT(!FLAG_strong || !dst_type.IsDynamicType());
+    ASSERT(!dst_type.IsDynamicType());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
@@ -4215,13 +4215,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
   Assembler::CanBeSmi CanValueBeSmi() const {
-    Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !FLAG_strong) {
-      // Dart 1 sometimes places a store into a context before a parameter
-      // type check.
-      return Assembler::kValueCanBeSmi;
-    }
-
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
@@ -4387,13 +4380,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   Assembler::CanBeSmi CanValueBeSmi() const {
-    Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !FLAG_strong) {
-      // Dart 1 sometimes places a store into a context before a parameter
-      // type check.
-      return Assembler::kValueCanBeSmi;
-    }
-
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
