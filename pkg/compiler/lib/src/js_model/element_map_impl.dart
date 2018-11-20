@@ -27,6 +27,7 @@ import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../ir/closure.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';

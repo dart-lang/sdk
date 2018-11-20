@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure.dart';
 import 'closure.dart';
 
 /// This builder walks the code to determine what variables are captured/free at

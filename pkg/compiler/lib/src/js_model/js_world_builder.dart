@@ -11,6 +11,7 @@ import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart';
 import '../js_backend/backend_usage.dart';

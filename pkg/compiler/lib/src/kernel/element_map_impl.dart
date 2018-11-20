@@ -28,6 +28,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../ir/closure.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
@@ -39,7 +40,6 @@ import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -1341,7 +1341,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = members.getData(member).node;
-    return KernelClosureAnalysis.computeScopeModel(member, node);
+    return ScopeModel.computeScopeModel(node);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].
