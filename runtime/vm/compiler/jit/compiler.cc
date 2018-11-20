@@ -1018,7 +1018,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
         // The non-optimizing compiler can get an unhandled exception
         // due to OOM or Stack overflow errors, it should not however
         // bail out.
-        ASSERT(error.IsUnhandledException() ||
+        ASSERT(error.IsUnhandledException() || error.IsUnwindError() ||
                (error.IsLanguageError() &&
                 LanguageError::Cast(error).kind() != Report::kBailout));
         return error.raw();
