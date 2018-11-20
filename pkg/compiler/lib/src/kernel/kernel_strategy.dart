@@ -17,7 +17,8 @@ import '../elements/types.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
-import '../ir/closure.dart' show ScopeModel;
+import '../ir/closure.dart' show ClosureScopeModel;
+import '../ir/scope.dart' show ScopeModel;
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
@@ -46,8 +47,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   KernelAnnotationProcessor _annotationProcesser;
 
-  final Map<MemberEntity, ScopeModel> closureModels =
-      <MemberEntity, ScopeModel>{};
+  final Map<MemberEntity, ClosureScopeModel> closureModels =
+      <MemberEntity, ClosureScopeModel>{};
 
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
@@ -161,7 +162,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
-  final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<MemberEntity, ClosureScopeModel> closureModels;
   final Map<Entity, WorldImpact> impactCache;
 
   KernelWorkItemBuilder(
@@ -188,7 +189,7 @@ class KernelWorkItem implements WorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
-  final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<MemberEntity, ClosureScopeModel> closureModels;
   final Map<Entity, WorldImpact> impactCache;
 
   KernelWorkItem(
@@ -205,9 +206,9 @@ class KernelWorkItem implements WorkItem {
     return _compilerTask.measure(() {
       _nativeMemberResolver.resolveNativeMember(element);
       _compilerTask.measureSubtask('closures', () {
-        ScopeModel closureModel = _elementMap.computeScopeModel(element);
-        if (closureModel != null) {
-          closureModels[element] = closureModel;
+        ScopeModel scopeModel = _elementMap.computeScopeModel(element);
+        if (scopeModel?.closureScopeModel != null) {
+          closureModels[element] = scopeModel.closureScopeModel;
         }
       });
       return _compilerTask.measureSubtask('worldImpact', () {

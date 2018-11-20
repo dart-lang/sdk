@@ -53,7 +53,7 @@ class JsClosedWorldBuilder {
 
   JsClosedWorld convertClosedWorld(
       KClosedWorld closedWorld,
-      Map<MemberEntity, ScopeModel> closureModels,
+      Map<MemberEntity, ClosureScopeModel> closureModels,
       OutputUnitData kOutputUnitData) {
     JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
 

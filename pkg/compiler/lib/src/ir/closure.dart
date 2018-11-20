@@ -4,10 +4,8 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import 'closure_visitors.dart';
-
 /// Collection of scope data collected for a single member.
-class ScopeModel {
+class ClosureScopeModel {
   /// Collection [ScopeInfo] data for the member.
   KernelScopeInfo scopeInfo;
 
@@ -21,41 +19,6 @@ class ScopeModel {
 
   String toString() {
     return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
-  }
-
-  /// Inspect members and mark if those members capture any state that needs to
-  /// be marked as free variables.
-  static ScopeModel computeScopeModel(ir.Member node) {
-    if (node.isAbstract && !node.isExternal) return null;
-    if (node is ir.Field && !node.isInstanceMember) {
-      ir.Field field = node;
-      // Skip top-level/static fields without an initializer.
-      if (field.initializer == null) return null;
-    }
-
-    bool hasThisLocal = false;
-    if (node is ir.Constructor) {
-      hasThisLocal = true;
-    } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
-      hasThisLocal = false;
-    } else if (node.isInstanceMember) {
-      hasThisLocal = true;
-    }
-    ScopeModel model = new ScopeModel();
-    CapturedScopeBuilder translator =
-        new CapturedScopeBuilder(model, hasThisLocal: hasThisLocal);
-    if (node is ir.Field) {
-      if (node is ir.Field && node.initializer != null) {
-        node.accept(translator);
-      } else {
-        assert(node.isInstanceMember);
-        model.scopeInfo = new KernelScopeInfo(true);
-      }
-    } else {
-      assert(node is ir.Procedure || node is ir.Constructor);
-      node.accept(translator);
-    }
-    return model;
   }
 }
 

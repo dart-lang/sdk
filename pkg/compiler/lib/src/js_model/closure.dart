@@ -291,10 +291,10 @@ class ClosureDataBuilder {
 
   ClosureData createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
-      Map<MemberEntity, ScopeModel> closureModels,
+      Map<MemberEntity, ClosureScopeModel> closureModels,
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
-    closureModels.forEach((MemberEntity member, ScopeModel model) {
+    closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
           _elementMap.makeRecordContainer(model.scopeInfo, member, localsMap);

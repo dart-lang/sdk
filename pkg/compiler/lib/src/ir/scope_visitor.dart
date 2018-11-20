@@ -5,12 +5,14 @@
 import 'package:kernel/ast.dart' as ir;
 
 import 'closure.dart';
+import 'scope.dart';
 
-/// This builder walks the code to determine what variables are captured/free at
-/// various points to build CapturedScope that can respond to queries
-/// about how a particular variable is being used at any point in the code.
-class CapturedScopeBuilder extends ir.Visitor<void> {
-  ScopeModel _model;
+/// This builder walks the code to determine what variables are
+/// assigned/captured/free at various points to build a [ClosureScopeModel] and
+/// a [VariableScopeModel] that can respond to queries about how a particular
+/// variable is being used at any point in the code.
+class ScopeModelBuilder extends ir.Visitor<void> with VariableCollectorMixin {
+  ClosureScopeModel _model;
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
@@ -71,7 +73,7 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
   /// type variable usage, such as type argument in method invocations.
   VariableUse _currentTypeUsage;
 
-  CapturedScopeBuilder(this._model, {bool hasThisLocal})
+  ScopeModelBuilder(this._model, {bool hasThisLocal})
       : this._hasThisLocal = hasThisLocal;
 
   @override
@@ -170,35 +172,40 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
   }
 
   @override
-  visitTryCatch(ir.TryCatch node) {
+  void visitTryCatch(ir.TryCatch node) {
     bool oldInTry = _inTry;
     _inTry = true;
-    visitNode(node.body);
+    visitInVariableScope(node, () {
+      visitNode(node.body);
+    });
     visitNodes(node.catches);
     _inTry = oldInTry;
   }
 
   @override
-  visitTryFinally(ir.TryFinally node) {
+  void visitTryFinally(ir.TryFinally node) {
     bool oldInTry = _inTry;
     _inTry = true;
-    visitNode(node.body);
+    visitInVariableScope(node, () {
+      visitNode(node.body);
+    });
     visitNode(node.finalizer);
     _inTry = oldInTry;
   }
 
   @override
-  visitVariableGet(ir.VariableGet node) {
+  void visitVariableGet(ir.VariableGet node) {
     _markVariableAsUsed(node.variable, VariableUse.explicit);
     // Don't visit `node.promotedType`.
   }
 
   @override
-  visitVariableSet(ir.VariableSet node) {
+  void visitVariableSet(ir.VariableSet node) {
     _mutatedVariables.add(node.variable);
     _markVariableAsUsed(node.variable, VariableUse.explicit);
     visitInContext(node.variable.type, VariableUse.localType);
     visitNode(node.value);
+    registerAssignedVariable(node.variable);
   }
 
   void _handleVariableDeclaration(
@@ -212,7 +219,7 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
   }
 
   @override
-  visitVariableDeclaration(ir.VariableDeclaration node) {
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
     _handleVariableDeclaration(node, VariableUse.localType);
   }
 
@@ -308,8 +315,10 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
     }
     enterNewScope(node, () {
       visitNode(node.variable);
-      visitNode(node.iterable);
-      visitNode(node.body);
+      visitInVariableScope(node, () {
+        visitNode(node.iterable);
+        visitNode(node.body);
+      });
     });
     if (node.isAsync) {
       _inTry = oldInTry;
@@ -318,15 +327,19 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
 
   void visitWhileStatement(ir.WhileStatement node) {
     enterNewScope(node, () {
-      visitNode(node.condition);
-      visitNode(node.body);
+      visitInVariableScope(node, () {
+        visitNode(node.condition);
+        visitNode(node.body);
+      });
     });
   }
 
   void visitDoStatement(ir.DoStatement node) {
     enterNewScope(node, () {
-      visitNode(node.body);
-      visitNode(node.condition);
+      visitInVariableScope(node, () {
+        visitNode(node.body);
+        visitNode(node.condition);
+      });
     });
   }
 
@@ -338,7 +351,9 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
       // First visit initialized variables and update steps so we can easily
       // check if a loop variable was captured in one of these subexpressions.
       visitNodes(node.variables);
-      visitNodes(node.updates);
+      visitInVariableScope(node, () {
+        visitNodes(node.updates);
+      });
 
       // Loop variables that have not been captured yet can safely be flagged as
       // non-mutated, because no nested function can observe the mutation.
@@ -351,8 +366,10 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
       // Visit condition and body.
       // This must happen after the above, so any loop variables mutated in the
       // condition or body are indeed flagged as mutated.
-      visitNode(node.condition);
-      visitNode(node.body);
+      visitInVariableScope(node, () {
+        visitNode(node.condition);
+        visitNode(node.body);
+      });
 
       // See if we have declared loop variables that need to be boxed.
       for (ir.VariableDeclaration variable in node.variables) {
@@ -501,14 +518,18 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
   @override
   void visitFunctionExpression(ir.FunctionExpression node) {
     visitInvokable(node, () {
-      visitNode(node.function);
+      visitInVariableScope(node, () {
+        visitNode(node.function);
+      });
     });
   }
 
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     visitInvokable(node, () {
-      visitNode(node.function);
+      visitInVariableScope(node, () {
+        visitNode(node.function);
+      });
     });
   }
 
@@ -762,7 +783,9 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
     visitInContext(node.guard, VariableUse.explicit);
     visitNode(node.exception);
     visitNode(node.stackTrace);
-    visitNode(node.body);
+    visitInVariableScope(node, () {
+      visitNode(node.body);
+    });
   }
 
   @override
@@ -787,8 +810,10 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
 
   @override
   void visitAssertStatement(ir.AssertStatement node) {
-    visitNode(node.condition);
-    visitNode(node.message);
+    visitInVariableScope(node, () {
+      visitNode(node.condition);
+      visitNode(node.message);
+    });
   }
 
   @override
@@ -807,7 +832,9 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
   @override
   void visitSwitchStatement(ir.SwitchStatement node) {
     visitNode(node.expression);
-    visitNodes(node.cases);
+    visitInVariableScope(node, () {
+      visitNodes(node.cases);
+    });
   }
 
   @override
@@ -816,7 +843,9 @@ class CapturedScopeBuilder extends ir.Visitor<void> {
   }
 
   @override
-  void visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {}
+  void visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    registerContinueSwitch();
+  }
 
   @override
   void visitBreakStatement(ir.BreakStatement node) {}
