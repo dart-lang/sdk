@@ -408,6 +408,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
     new OptionHandler(Flags.experimentLocalNames, passThrough),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
+    new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),

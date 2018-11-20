@@ -318,14 +318,6 @@ class JavaScriptBackend {
   final Map<MemberEntity, jsAst.Expression> generatedCode =
       <MemberEntity, jsAst.Expression>{};
 
-  /// If [true], the compiler will emit code that logs whenever a method is
-  /// called. When TRACE_METHOD is 'console' this will be logged
-  /// directly in the JavaScript console. When TRACE_METHOD is 'post' the
-  /// information will be sent to a server via a POST request.
-  static const String TRACE_METHOD = const String.fromEnvironment('traceCalls');
-  static const bool TRACE_CALLS =
-      TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
-
   Namer _namer;
 
   Namer get namer {

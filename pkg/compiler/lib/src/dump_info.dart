@@ -147,7 +147,7 @@ class ElementInfoCollector {
           codegenWorldBuilder.getConstantFieldInitializer(field)];
     }
 
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+    if (compiler.options.experimentCallInstrumentation) {
       // We use field.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${field.hashCode}';
@@ -312,7 +312,7 @@ class ElementInfoCollector {
     int closureSize = _addClosureInfo(info, function);
     size += closureSize;
 
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+    if (compiler.options.experimentCallInstrumentation) {
       // We use function.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${function.hashCode}';
