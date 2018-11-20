@@ -1,3 +1,9 @@
+## 0.33.4
+* Add a hint when either Future or Stream are imported from dart:core in a package that is expected to work with an SDK before 2.1 where they were required to be imported from dart:async.
+* Add a new "deprecated" maturity for lints
+* Don't report DEPRECATED_MEMBER_USE for deprecated mixins, top-level variables, and class fields.
+* Various bug fixes.
+
 ## 0.33.3+2
 * Update SDK requirement to 2.1.0-dev.5.0.  From now on, the analyzer may import
   Future from dart:core. (#35158)
