@@ -881,8 +881,6 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   EXPECT_VALID(result);
   EXPECT(is_static);
 
-  // TODO(bkonyi): uncomment when issue 33417 is resolved.
-  /*
   Dart_Handle klass = Dart_GetType(lib, NewString("Foo"), 0, NULL);
   EXPECT_VALID(klass);
 
@@ -898,7 +896,6 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   result = Dart_FunctionIsStatic(closure, &is_static);
   EXPECT_VALID(result);
   EXPECT(!is_static);
-*/
 }
 
 TEST_CASE(DartAPI_ClosureFunction) {
