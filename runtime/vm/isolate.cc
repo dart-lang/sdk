@@ -68,6 +68,7 @@ DECLARE_FLAG(bool, trace_reload);
 #if !defined(PRODUCT)
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
+  FLAG_enable_type_checks = value;
 }
 
 // --enable-checked-mode and --checked both enable checked mode which is

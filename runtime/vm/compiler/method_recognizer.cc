@@ -94,7 +94,7 @@ intptr_t MethodRecognizer::ResultCid(const Function& function) {
 #define DEFINE_CASE(cname, fname, ename, result_type, fingerprint)             \
   case k##ename: {                                                             \
     const intptr_t cid = k##result_type##Cid;                                  \
-    if (cid != kDynamicCid) {                                                  \
+    if (FLAG_strong && cid != kDynamicCid) {                                   \
       String& err = String::Handle();                                          \
       err = function.QualifiedScrubbedName();                                  \
       err = String::Concat(                                                    \

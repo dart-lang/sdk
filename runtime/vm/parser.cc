@@ -74,7 +74,8 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
                     Symbols::CurrentContextVar(), Object::dynamic_type());
   current_context_var_ = temp;
 
-  const bool reify_generic_argument = function.IsGeneric();
+  const bool reify_generic_argument =
+      function.IsGeneric() && FLAG_reify_generic_functions;
 
   const bool load_optional_arguments = function.HasOptionalParameters();
 

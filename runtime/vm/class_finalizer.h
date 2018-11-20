@@ -152,6 +152,10 @@ class ClassFinalizer : public AllStatic {
   static void CheckRecursiveType(const Class& cls,
                                  const AbstractType& type,
                                  PendingTypes* pending_types);
+  static void CheckTypeBounds(const Class& cls, const AbstractType& type);
+  static void CheckTypeArgumentBounds(const Class& cls,
+                                      const TypeArguments& arguments,
+                                      Error* bound_error);
   static void ResolveUpperBounds(const Class& cls);
   static void FinalizeUpperBounds(
       const Class& cls,

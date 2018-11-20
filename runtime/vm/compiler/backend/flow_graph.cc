@@ -1111,7 +1111,10 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
-      ((inlining_parameters != NULL) && function().IsGeneric()) ? 1 : 0;
+      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
+       function().IsGeneric())
+          ? 1
+          : 0;
 
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, function_entry);
@@ -1136,9 +1139,11 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     }
 
     // Replace the type arguments slot with a special parameter.
-    const bool reify_generic_argument = function().IsGeneric();
+    const bool reify_generic_argument =
+        function().IsGeneric() && FLAG_reify_generic_functions;
     if (reify_generic_argument) {
       ASSERT(parsed_function().function_type_arguments() != NULL);
+
       Definition* defn;
       if (inlining_parameters == NULL) {
         // Note: If we are not inlining, then the prologue builder will

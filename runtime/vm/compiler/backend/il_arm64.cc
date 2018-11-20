@@ -491,9 +491,18 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
+  Isolate* isolate = Isolate::Current();
 
-  __ CompareObject(reg, Object::null_instance());
-  __ b(&done, NE);
+  if (isolate->type_checks()) {
+    __ CompareObject(reg, Bool::True());
+    __ b(&done, EQ);
+    __ CompareObject(reg, Bool::False());
+    __ b(&done, EQ);
+  } else {
+    ASSERT(isolate->asserts() || FLAG_strong);
+    __ CompareObject(reg, Object::null_instance());
+    __ b(&done, NE);
+  }
 
   __ Push(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos, deopt_id,
@@ -818,7 +827,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // All arguments are already @SP due to preceding PushArgument()s.
   ASSERT(ArgumentCount() ==
-         function().NumParameters() + (function().IsGeneric() ? 1 : 0));
+                 function().NumParameters() +
+                     (function().IsGeneric() && FLAG_reify_generic_functions)
+             ? 1
+             : 0);
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());

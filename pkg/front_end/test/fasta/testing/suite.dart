@@ -246,6 +246,12 @@ class Run extends Step<Uri, int, FastaContext> {
     StdioProcess process;
     try {
       var args = <String>[];
+      if (!context.legacyMode) {
+        // TODO(ahe): This argument is probably ignored by the VM.
+        args.add('--strong');
+        // TODO(ahe): This argument is probably ignored by the VM.
+        args.add('--reify-generic-functions');
+      }
       args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);

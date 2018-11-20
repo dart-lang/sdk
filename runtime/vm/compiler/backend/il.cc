@@ -2675,7 +2675,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
     // In strong mode type is already verified either by static analysis
     // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (!value()->Type()->is_nullable()) {
+    if (FLAG_strong && !value()->Type()->is_nullable()) {
       return value()->definition();
     }
   }
@@ -2781,7 +2781,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
+  return (Isolate::Current()->type_checks() || HasUses()) ? this : NULL;
 }
 
 LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,

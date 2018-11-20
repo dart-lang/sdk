@@ -137,6 +137,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
+  Fragment StoreInstanceFieldGuarded(const Field& field,
+                                     bool is_initialization_store);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();

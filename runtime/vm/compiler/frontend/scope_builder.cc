@@ -113,7 +113,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if ((function.IsGeneric() || function.HasGenericParent())) {
+  if (FLAG_reify_generic_functions &&
+      (function.IsGeneric() || function.HasGenericParent())) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());

@@ -1001,7 +1001,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     // Compute if we need to type check the value. Always type check if
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;
-    if (!instr->interface_target().IsNull() && (field.kernel_offset() >= 0)) {
+    if (FLAG_strong && !instr->interface_target().IsNull() &&
+        (field.kernel_offset() >= 0)) {
       bool is_covariant = false;
       bool is_generic_covariant = false;
       field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);

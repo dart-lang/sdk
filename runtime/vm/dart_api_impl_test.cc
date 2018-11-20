@@ -3591,7 +3591,9 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   // Create an isolate with checked mode flags.
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
+  api_flags.enable_type_checks = true;
   api_flags.enable_asserts = true;
+  api_flags.enable_error_on_bad_type = true;
   char* err;
   Dart_Isolate isolate =
       Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,

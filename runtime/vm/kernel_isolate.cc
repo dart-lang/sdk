@@ -88,7 +88,9 @@ class RunKernelTask : public ThreadPool::Task {
     // the app-jit training run (see //utils/kernel-service/BUILD.gn).
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
+    api_flags.enable_type_checks = false;
     api_flags.enable_asserts = false;
+    api_flags.enable_error_on_bad_type = false;
     api_flags.unsafe_trust_strong_mode_types = false;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;
@@ -545,7 +547,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_strong;
     dart_strong.type = Dart_CObject_kBool;
-    dart_strong.value.as_bool = true;
+    dart_strong.value.as_bool = FLAG_strong;
 
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into

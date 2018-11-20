@@ -498,7 +498,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!Class::Handle(type.type_class()).IsFutureOrClass()) {
+    if (!FLAG_strong || !Class::Handle(type.type_class()).IsFutureOrClass()) {
       __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
       __ j(ZERO, is_not_instance_lbl);
     }
@@ -1008,7 +1008,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
   // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
+  if (function.HasOptionalParameters() ||
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(EDX, arguments_descriptor);
   } else {
     __ xorl(EDX, EDX);  // GC safe smi zero because of stub.
