@@ -14,6 +14,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_logger.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
@@ -42,14 +43,11 @@ import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -58,39 +56,26 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
-    show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
-import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
-const List<String> analyzableFilePatterns = <String>[
-  '**/*.${AnalysisEngine.SUFFIX_DART}',
-  '**/*.${AnalysisEngine.SUFFIX_HTML}',
-  '**/*.${AnalysisEngine.SUFFIX_HTM}',
-  '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
-  '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-  '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
-];
-
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
 /// Instances of the class [AnalysisServer] implement a server that listens on a
 /// [CommunicationChannel] for analysis requests and process them.
-class AnalysisServer {
+class AnalysisServer extends AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -106,19 +91,8 @@ class AnalysisServer {
   /// The object used to manage the execution of plugins.
   PluginManager pluginManager;
 
-  /// The [ResourceProvider] using which paths are converted into [Resource]s.
-  final ResourceProvider resourceProvider;
-
   /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
   SearchEngine searchEngine;
-
-  /// A list of the globs used to determine which files should be analyzed. The
-  /// list is lazily created and should be accessed using [analyzedFilesGlobs].
-  List<Glob> _analyzedFilesGlobs = null;
-
-  /// The [ContextManager] that handles the mapping from analysis roots to
-  /// context directories.
-  ContextManager contextManager;
 
   /// A flag indicating the value of the 'analyzing' parameter sent in the last
   /// status message to the client.
@@ -203,9 +177,6 @@ class AnalysisServer {
   final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
 
-  /// The set of the files that are currently priority.
-  final Set<String> priorityFiles = new Set<String>();
-
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
   /// server.
@@ -222,7 +193,7 @@ class AnalysisServer {
   /// running a full analysis server.
   AnalysisServer(
     this.channel,
-    this.resourceProvider,
+    ResourceProvider resourceProvider,
     this.options,
     this.sdkManager,
     this.instrumentationService, {
@@ -230,8 +201,9 @@ class AnalysisServer {
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  }) : notificationManager =
-            new NotificationManager(channel, resourceProvider) {
+  })  : notificationManager =
+            new NotificationManager(channel, resourceProvider),
+        super(resourceProvider) {
     _performance = performanceDuringStartup;
 
     pluginManager = new PluginManager(
@@ -311,28 +283,6 @@ class AnalysisServer {
   /// The analytics instance; note, this object can be `null`.
   telemetry.Analytics get analytics => options.analytics;
 
-  /// Return a list of the globs used to determine which files should be
-  /// analyzed.
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      for (String pattern in analyzableFilePatterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(new Glob(resourceProvider.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
-  }
-
-  /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
-  Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
-
   /// The [Future] that completes when analysis is complete.
   Future get onAnalysisComplete {
     if (isAnalysisComplete()) {
@@ -381,28 +331,6 @@ class AnalysisServer {
     return null;
   }
 
-  /// Return an analysis driver to which the file with the given [path] is
-  /// added if one exists, otherwise a driver in which the file was analyzed if
-  /// one exists, otherwise the first driver, otherwise `null`.
-  nd.AnalysisDriver getAnalysisDriver(String path) {
-    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
-    if (drivers.isNotEmpty) {
-      // Sort the drivers so that more deeply nested contexts will be checked
-      // before enclosing contexts.
-      drivers.sort((first, second) =>
-          second.contextRoot.root.length - first.contextRoot.root.length);
-      nd.AnalysisDriver driver = drivers.firstWhere(
-          (driver) => driver.contextRoot.containsFile(path),
-          orElse: () => null);
-      driver ??= drivers.firstWhere(
-          (driver) => driver.knownFiles.contains(path),
-          orElse: () => null);
-      driver ??= drivers.first;
-      return driver;
-    }
-    return null;
-  }
-
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.
   ResolvedUnitResult getCachedResolvedUnit(String path) {
@@ -414,69 +342,6 @@ class AnalysisServer {
     return driver?.getCachedResult(path);
   }
 
-  /// Return a [Future] that completes with the [Element] at the given
-  /// [offset] of the given [file], or with `null` if there is no node at the
-  /// [offset] or the node does not have an element.
-  Future<Element> getElementAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    if (!priorityFiles.contains(file)) {
-      var driver = getAnalysisDriver(file);
-      if (driver == null) {
-        return null;
-      }
-
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult == null) {
-        return null;
-      }
-
-      var element = findElementByNameOffset(unitElementResult.element, offset);
-      if (element != null) {
-        return element;
-      }
-    }
-
-    AstNode node = await getNodeAtOffset(file, offset);
-    return getElementOfNode(node);
-  }
-
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element getElementOfNode(AstNode node) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-    Element element = ElementLocator.locate(node);
-    if (node is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(node);
-    }
-    return element;
-  }
-
-  /// Return a [Future] that completes with the resolved [AstNode] at the
-  /// given [offset] of the given [file], or with `null` if there is no node as
-  /// the [offset].
-  Future<AstNode> getNodeAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    ResolvedUnitResult result = await getResolvedUnit(file);
-    CompilationUnit unit = result?.unit;
-    if (unit != null) {
-      return new NodeLocator(offset).searchWithin(unit);
-    }
-    return null;
-  }
-
   /// Return a [Future] that completes with the resolved [CompilationUnit] for
   /// the Dart file with the given [path], or with `null` if the file is not a
   /// Dart file or cannot be resolved.
@@ -485,25 +350,6 @@ class AnalysisServer {
     await null;
     ResolvedUnitResult result = await getResolvedUnit(path);
     return result?.unit;
-  }
-
-  /// Return the resolved unit for the file with the given [path]. The file is
-  /// analyzed in one of the analysis drivers to which the file was added,
-  /// otherwise in the first driver, otherwise `null` is returned.
-  Future<ResolvedUnitResult> getResolvedUnit(String path,
-      {bool sendCachedToStream: false}) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return null;
-    }
-
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    if (driver == null) {
-      return new Future.value();
-    }
-
-    return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
   }
 
   /// Handle a [request] that was read from the communication channel.
@@ -1270,24 +1116,4 @@ class ServerPerformanceStatistics {
 
   /// The [PerformanceTag] for time spent in server request handlers.
   static final PerformanceTag serverRequests = server.createChild('requests');
-}
-
-/// If the state location can be accessed, return the file byte store,
-/// otherwise return the memory byte store.
-ByteStore createByteStore(ResourceProvider resourceProvider) {
-  const int M = 1024 * 1024 /*1 MiB*/;
-  const int G = 1024 * 1024 * 1024 /*1 GiB*/;
-
-  const int memoryCacheSize = 128 * M;
-
-  if (resourceProvider is PhysicalResourceProvider) {
-    Folder stateLocation =
-        resourceProvider.getStateLocation('.analysis-driver');
-    if (stateLocation != null) {
-      return new MemoryCachingByteStore(
-          new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
-    }
-  }
-
-  return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
 }

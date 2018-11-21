@@ -9,6 +9,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/handler_completion.dart';
@@ -23,8 +24,6 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -36,10 +35,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
-import 'package:analyzer/src/util/glob.dart';
 import 'package:watcher/watcher.dart';
 
 enum InitializationState {
@@ -59,7 +55,7 @@ enum InitializationState {
  * Instances of the class [LspAnalysisServer] implement an LSP-based server that
  * listens on a [CommunicationChannel] for analysis requests and process them.
  */
-class LspAnalysisServer {
+class LspAnalysisServer extends AbstractAnalysisServer {
   InitializationState state = InitializationState.Uninitialized;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
@@ -77,17 +73,6 @@ class LspAnalysisServer {
   final LspServerCommunicationChannel channel;
 
   final NotificationManager notificationManager = new NullNotificationManager();
-
-  /**
-   * The [ResourceProvider] using which paths are converted into [Resource]s.
-   */
-  final ResourceProvider resourceProvider;
-
-  /**
-   * The [ContextManager] that handles the mapping from analysis roots to
-   * context directories.
-   */
-  ContextManager contextManager;
 
   /**
    * A list of the request handlers used to handle the requests sent to this
@@ -109,18 +94,6 @@ class LspAnalysisServer {
    * The content overlay for all analysis drivers.
    */
   final nd.FileContentOverlay fileContentOverlay = new nd.FileContentOverlay();
-
-  /**
-   * The current state of overlays from the client.  This is used as the
-   * content cache for all contexts.
-   */
-  final ContentCache overlayState = new ContentCache();
-
-  /**
-   * A list of the globs used to determine which files should be analyzed. The
-   * list is lazily created and should be accessed using [analyzedFilesGlobs].
-   */
-  List<Glob> _analyzedFilesGlobs = null;
 
   /**
    * The default options used to create new analysis contexts. This object is
@@ -157,12 +130,12 @@ class LspAnalysisServer {
    */
   LspAnalysisServer(
     this.channel,
-    this.resourceProvider,
+    ResourceProvider resourceProvider,
     this.options,
     this.sdkManager,
     this.instrumentationService, {
     ResolverProvider packageResolverProvider: null,
-  }) {
+  }) : super(resourceProvider) {
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
@@ -205,33 +178,9 @@ class LspAnalysisServer {
     _registerHandler(new FormattingHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }
-  /**
-   * Return a list of the globs used to determine which files should be analyzed.
-   */
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      for (String pattern in analyzableFilePatterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(new Glob(resourceProvider.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
-  }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities get clientCapabilities => _clientCapabilities;
-
-  /**
-   * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
-   */
-  Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
 
   void changeTextDocument(VersionedTextDocumentIdentifier id,
       List<TextDocumentContentChangeEvent> changes) {
@@ -270,49 +219,6 @@ class LspAnalysisServer {
     // TODO(dantup): It's not legal to print this!
     print(error);
     print(stack);
-  }
-
-  /// Return an analysis driver to which the file with the given [path] is
-  /// added if one exists, otherwise a driver in which the file was analyzed if
-  /// one exists, otherwise the first driver, otherwise `null`.
-  nd.AnalysisDriver getAnalysisDriver(String path) {
-    // TODO(dantup): This is copy/pasted from AnalysisServer.
-    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
-    if (drivers.isNotEmpty) {
-      // Sort the drivers so that more deeply nested contexts will be checked
-      // before enclosing contexts.
-      drivers.sort((first, second) =>
-          second.contextRoot.root.length - first.contextRoot.root.length);
-      nd.AnalysisDriver driver = drivers.firstWhere(
-          (driver) => driver.contextRoot.containsFile(path),
-          orElse: () => null);
-      driver ??= drivers.firstWhere(
-          (driver) => driver.knownFiles.contains(path),
-          orElse: () => null);
-      driver ??= drivers.first;
-      return driver;
-    }
-    return null;
-  }
-
-  /// Return the resolved unit for the file with the given [path]. The file is
-  /// analyzed in one of the analysis drivers to which the file was added,
-  /// otherwise in the first driver, otherwise `null` is returned.
-  Future<ResolvedUnitResult> getResolvedUnit(String path,
-      {bool sendCachedToStream: false}) {
-    // TODO(dantup): This is copy/pasted from AnalysisServer.
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return null;
-    }
-
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    if (driver == null) {
-      return new Future.value();
-    }
-
-    return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
   }
 
   /**
@@ -583,8 +489,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = new ContextBuilder(resourceProvider,
-        analysisServer.sdkManager, analysisServer.overlayState,
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.fileResolverProvider = analysisServer.fileResolverProvider;
     builder.packageResolverProvider = analysisServer.packageResolverProvider;
