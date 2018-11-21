@@ -25,7 +25,6 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
-import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
@@ -36,6 +35,7 @@ import '../universe/world_impact.dart';
 import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'loader.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
@@ -57,8 +57,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   }
 
   @override
-  void registerLoadedLibraries(LoadedLibraries loadedLibraries) {
-    _elementMap.addComponent(loadedLibraries.component);
+  void registerLoadedLibraries(KernelResult kernelResult) {
+    _elementMap.addComponent(kernelResult.component);
   }
 
   @override

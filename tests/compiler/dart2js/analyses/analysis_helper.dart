@@ -11,9 +11,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
-import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
+import 'package:compiler/src/kernel/loader.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -57,10 +57,9 @@ run(Uri entryPoint, String allowedListPath,
         librariesSpecificationUri: librariesSpecificationUri,
         packageConfig: packageConfig,
         options: options);
-    LoadedLibraries loadedLibraries =
-        await compiler.libraryLoader.loadLibraries(entryPoint);
-    new DynamicVisitor(compiler.reporter, loadedLibraries.component,
-            allowedListPath, analyzedUrisFilter)
+    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    new DynamicVisitor(compiler.reporter, result.component, allowedListPath,
+            analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
   });
 }

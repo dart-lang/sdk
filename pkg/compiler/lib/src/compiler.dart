@@ -32,7 +32,7 @@ import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
-import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
+import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'serialization/task.dart';
@@ -101,7 +101,7 @@ abstract class Compiler {
   Entity get currentElement => _reporter.currentElement;
 
   List<CompilerTask> tasks;
-  LibraryLoaderTask libraryLoader;
+  KernelLoaderTask kernelLoader;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
@@ -168,8 +168,8 @@ abstract class Compiler {
     enqueuer = backend.makeEnqueuer();
 
     tasks = [
-      libraryLoader =
-          new LibraryLoaderTask(options, provider, reporter, measurer),
+      kernelLoader =
+          new KernelLoaderTask(options, provider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
@@ -226,30 +226,6 @@ abstract class Compiler {
         });
       });
 
-  /// This method is called when all new libraries loaded through
-  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
-  /// have been computed.
-  ///
-  /// [loadedLibraries] contains the newly loaded libraries.
-  void processLoadedLibraries(LoadedLibraries loadedLibraries) {
-    frontendStrategy.registerLoadedLibraries(loadedLibraries);
-    loadedLibraries.forEachLibrary((Uri uri) {
-      LibraryEntity library =
-          frontendStrategy.elementEnvironment.lookupLibrary(uri);
-      backend.setAnnotations(library);
-    });
-
-    // TODO(efortuna, sigmund): These validation steps should be done in the
-    // front end for the Kernel path since Kernel doesn't have the notion of
-    // imports (everything has already been resolved). (See
-    // https://github.com/dart-lang/sdk/issues/29368)
-    if (loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
-      reporter.reportWarningMessage(NO_LOCATION_SPANNABLE,
-          MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
-    }
-    backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
-  }
-
   Future runInternal(Uri uri) async {
     // TODO(ahe): This prevents memory leaks when invoking the compiler
     // multiple times. Implement a better mechanism where we can store
@@ -274,16 +250,30 @@ abstract class Compiler {
           await serializationTask.deserialize();
       generateJavaScriptCode(results);
     } else {
-      LoadedLibraries loadedLibraries = await libraryLoader.loadLibraries(uri);
-      // Note: libraries may be null because of errors trying to find files or
-      // parse-time errors (when using `package:front_end` as a loader).
-      if (loadedLibraries == null) return;
+      KernelResult result = await kernelLoader.load(uri);
+      if (result == null) return;
       if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
         return;
       }
-      _mainLibraryUri = loadedLibraries.rootLibraryUri;
-      processLoadedLibraries(loadedLibraries);
-      await compileLoadedLibraries(loadedLibraries);
+      _mainLibraryUri = result.rootLibraryUri;
+
+      frontendStrategy.registerLoadedLibraries(result);
+      for (Uri uri in result.libraries) {
+        LibraryEntity library =
+            frontendStrategy.elementEnvironment.lookupLibrary(uri);
+        backend.setAnnotations(library);
+      }
+
+      // TODO(efortuna, sigmund): These validation steps should be done in the
+      // front end for the Kernel path since Kernel doesn't have the notion of
+      // imports (everything has already been resolved). (See
+      // https://github.com/dart-lang/sdk/issues/29368)
+      if (result.libraries.contains(Uris.dart_mirrors)) {
+        reporter.reportWarningMessage(NO_LOCATION_SPANNABLE,
+            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
+      }
+
+      await compileFromKernel(result.rootLibraryUri, result.libraries);
     }
   }
 
@@ -303,7 +293,7 @@ abstract class Compiler {
     return resolutionEnqueuer;
   }
 
-  JClosedWorld computeClosedWorld(LoadedLibraries loadedLibraries) {
+  JClosedWorld computeClosedWorld(Uri rootLibraryUri, Iterable<Uri> libraries) {
     ResolutionEnqueuer resolutionEnqueuer = startResolution();
     for (LibraryEntity library
         in frontendStrategy.elementEnvironment.libraries) {
@@ -321,7 +311,7 @@ abstract class Compiler {
     // compile-time constants that are metadata.  This means adding
     // something to the resolution queue.  So we cannot wait with
     // this until after the resolution queue is processed.
-    deferredLoadTask.beforeResolution(loadedLibraries);
+    deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
     impactStrategy = backend.createImpactStrategy(
         supportDeferredLoad: deferredLoadTask.isProgramSplit,
         supportDumpInfo: options.dumpInfo);
@@ -395,10 +385,9 @@ abstract class Compiler {
     checkQueue(codegenEnqueuer);
   }
 
-  /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries(LoadedLibraries loadedLibraries) {
-    selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
-      JClosedWorld closedWorld = computeClosedWorld(loadedLibraries);
+  void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
+    selfTask.measureSubtask("Compiler.compileFromKernel", () {
+      JClosedWorld closedWorld = computeClosedWorld(rootLibraryUri, libraries);
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);

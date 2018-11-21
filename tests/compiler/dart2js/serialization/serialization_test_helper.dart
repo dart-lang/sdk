@@ -35,7 +35,7 @@ runTest(
       options: options,
       outputProvider: collector1,
       beforeRun: (Compiler compiler) {
-        compiler.libraryLoader.forceSerialization = true;
+        compiler.kernelLoader.forceSerialization = true;
       });
   Expect.isTrue(result1.isSuccess);
 
@@ -48,7 +48,7 @@ runTest(
       options: options,
       outputProvider: collector2,
       beforeRun: (Compiler compiler) {
-        compiler.libraryLoader.forceSerialization = true;
+        compiler.kernelLoader.forceSerialization = true;
         compiler.stopAfterTypeInference = true;
       });
   Expect.isTrue(result.isSuccess);
