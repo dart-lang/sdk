@@ -565,7 +565,7 @@ train(String scriptUri, String platformKernelPath) {
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
-    true /* synchronous async */,
+    false /* generate bytecode */,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
