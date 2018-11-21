@@ -5857,10 +5857,10 @@ bool Function::HasCode() const {
   NoSafepointScope no_safepoint;
   ASSERT(raw_ptr()->code_ != Code::null());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  return raw_ptr()->code_ != StubCode::LazyCompile().raw();
 #else
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  return raw_ptr()->code_ != StubCode::LazyCompile().raw() &&
+         raw_ptr()->code_ != StubCode::InterpretCall().raw();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5914,7 +5914,7 @@ void Function::AttachBytecode(const Bytecode& value) const {
 
   if (FLAG_enable_interpreter) {
     // Set the code entry_point to InterpretCall stub.
-    SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+    SetInstructions(StubCode::InterpretCall());
   }
 }
 
@@ -5931,10 +5931,10 @@ bool Function::HasCode(RawFunction* function) {
   NoSafepointScope no_safepoint;
   ASSERT(function->ptr()->code_ != Code::null());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  return function->ptr()->code_ != StubCode::LazyCompile().raw();
 #else
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  return function->ptr()->code_ != StubCode::LazyCompile().raw() &&
+         function->ptr()->code_ != StubCode::InterpretCall().raw();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5947,7 +5947,7 @@ void Function::ClearCode() const {
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 
-  SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  SetInstructions(StubCode::LazyCompile());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -6008,10 +6008,10 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
     // Set the lazy compile or interpreter call stub code.
     if (FLAG_enable_interpreter && HasBytecode()) {
       TIR_Print("Switched to interpreter call stub for %s\n", ToCString());
-      SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+      SetInstructions(StubCode::InterpretCall());
     } else {
       TIR_Print("Switched to lazy compile stub for %s\n", ToCString());
-      SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+      SetInstructions(StubCode::LazyCompile());
     }
     return;
   }
@@ -7413,8 +7413,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
-  result.SetInstructionsSafe(
-      Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructionsSafe(StubCode::LazyCompile());
   if (kind == RawFunction::kClosureFunction ||
       kind == RawFunction::kImplicitClosureFunction) {
     ASSERT(space == Heap::kOld);
@@ -14993,8 +14992,7 @@ void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code =
-      Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  const Code& new_code = StubCode::FixCallersTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 }
@@ -15004,8 +15002,7 @@ void Code::DisableStubCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code =
-      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  const Code& new_code = StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 #else
@@ -22157,8 +22154,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code_object.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
+      } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -22246,8 +22242,7 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
+      } else if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance

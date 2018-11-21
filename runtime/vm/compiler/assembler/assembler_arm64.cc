@@ -626,10 +626,9 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
   }
 }
 
-void Assembler::Branch(const StubEntry& stub_entry,
+void Assembler::Branch(const Code& target,
                        Register pp,
                        ObjectPool::Patchability patchable) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset, pp);
@@ -637,13 +636,12 @@ void Assembler::Branch(const StubEntry& stub_entry,
   br(TMP);
 }
 
-void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  Branch(stub_entry, PP, ObjectPool::kPatchable);
+void Assembler::BranchPatchable(const Code& code) {
+  Branch(code, PP, ObjectPool::kPatchable);
 }
 
-void Assembler::BranchLink(const StubEntry& stub_entry,
+void Assembler::BranchLink(const Code& target,
                            ObjectPool::Patchability patchable) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
@@ -651,18 +649,13 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
   blr(TMP);
 }
 
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLink(stub_entry, ObjectPool::kPatchable);
-}
-
 void Assembler::BranchLinkToRuntime() {
   ldr(LR, Address(THR, Thread::call_to_runtime_entry_point_offset()));
   blr(LR);
 }
 
-void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);

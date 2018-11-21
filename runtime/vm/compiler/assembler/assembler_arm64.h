@@ -21,7 +21,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 class RegisterSet;
 
 class Immediate : public ValueObject {
@@ -1350,24 +1349,25 @@ class Assembler : public AssemblerBase {
 
   void BranchIfSmi(Register reg, Label* label) { tbz(label, reg, kSmiTag); }
 
-  void Branch(const StubEntry& stub_entry,
+  void Branch(const Code& code,
               Register pp,
               ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
-  void BranchPatchable(const StubEntry& stub_entry);
+  void BranchPatchable(const Code& code);
 
   void BranchLink(
-      const StubEntry& stub_entry,
+      const Code& code,
       ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
 
-  void BranchLinkPatchable(const StubEntry& stub_entry);
+  void BranchLinkPatchable(const Code& code) {
+    BranchLink(code, ObjectPool::kPatchable);
+  }
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                 const Object& equivalence);
+  void BranchLinkWithEquivalence(const Code& code, const Object& equivalence);
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);

@@ -202,8 +202,7 @@ void StubCode::GenerateBuildMethodExtractorStub(Assembler* assembler) {
 
   const intptr_t kReceiverOffset = compiler_frame_layout.param_end_from_fp + 1;
 
-  const auto& context_allocation_stub =
-      Code::ZoneHandle(StubCode::AllocateContext_entry()->code());
+  const auto& context_allocation_stub = StubCode::AllocateContext();
 
   __ EnterStubFrame();
 
@@ -580,7 +579,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ LoadObject(R1, Object::null_object());
   // R1: null element type for raw Array.
   // R2: smi-tagged argument count, may be zero.
-  __ BranchLink(*StubCode::AllocateArray_entry());
+  __ BranchLink(StubCode::AllocateArray());
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
@@ -2666,7 +2665,7 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Bind(&is_simple_case);
   {
     __ PushPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
-    __ BranchLink(*StubCode::Subtype2TestCache_entry());
+    __ BranchLink(StubCode::Subtype2TestCache());
     __ CompareObject(R1, Bool::True());
     __ PopPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -2676,7 +2675,7 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Bind(&is_complex_case);
   {
     __ PushPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
-    __ BranchLink(*StubCode::Subtype6TestCache_entry());
+    __ BranchLink(StubCode::Subtype6TestCache());
     __ CompareObject(R1, Bool::True());
     __ PopPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.

@@ -761,7 +761,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
 #endif
   ASSERT(Function::HasCode(function));
   RawCode* volatile code = function->ptr()->code_;
-  ASSERT(code != StubCode::LazyCompile_entry()->code());
+  ASSERT(code != StubCode::LazyCompile().raw());
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
   if (IsTracingExecution()) {
@@ -773,7 +773,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   typedef RawObject* (*invokestub)(RawCode * code, RawArray * argdesc,
                                    RawObject * *arg0, Thread * thread);
   invokestub volatile entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint());
+      StubCode::InvokeDartCodeFromBytecode().EntryPoint());
   RawObject* volatile result;
   Exit(thread, *FP, call_top + 1, *pc);
   {
@@ -3007,7 +3007,7 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   fp_ = reinterpret_cast<RawObject**>(fp);
 
-  if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
+  if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
     // The RunExceptionHandler stub is a placeholder.  We implement
     // its behavior here.
     RawObject* raw_exception = thread->active_exception();

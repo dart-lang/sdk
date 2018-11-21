@@ -2522,13 +2522,12 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   vmulqs(qd, qn, qd);
 }
 
-void Assembler::Branch(const StubEntry& stub_entry,
+void Assembler::Branch(const Code& target,
                        ObjectPool::Patchability patchable,
                        Register pp,
                        Condition cond) {
-  const Code& target_code = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper().FindObject(target_code, patchable));
+      object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
   Branch(FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
 }
@@ -2551,12 +2550,6 @@ void Assembler::BranchLink(const Code& target,
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-void Assembler::BranchLink(const StubEntry& stub_entry,
-                           ObjectPool::Patchability patchable) {
-  const Code& code = Code::ZoneHandle(stub_entry.code());
-  BranchLink(code, patchable);
-}
-
 void Assembler::BranchLinkPatchable(const Code& target,
                                     Code::EntryKind entry_kind) {
   BranchLink(target, ObjectPool::kPatchable, entry_kind);
@@ -2576,10 +2569,9 @@ void Assembler::CallNullErrorShared(bool save_fpu_registers) {
   blx(LR);
 }
 
-void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           Code::EntryKind entry_kind) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2594,11 +2586,6 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.
-}
-
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry,
-                                    Code::EntryKind entry_kind) {
-  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()), entry_kind);
 }
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
@@ -3418,7 +3405,8 @@ void Assembler::Stop(const char* message) {
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
-    BranchLink(&StubCode::PrintStopMessage_entry()->label());
+    ExternalLabel label(StubCode::PrintStopMessage().EntryPoint());
+    BranchLink(&label);
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   bkpt(Instr::kStopMessageCode);

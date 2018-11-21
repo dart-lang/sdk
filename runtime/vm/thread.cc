@@ -213,7 +213,7 @@ void Thread::InitVMConstants() {
     defined(TARGET_ARCH_X64)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] =
-        StubCode::WriteBarrierWrappers_entry()->EntryPoint() +
+        StubCode::WriteBarrierWrappers().EntryPoint() +
         i * kStoreBufferWrapperSize;
   }
 #endif

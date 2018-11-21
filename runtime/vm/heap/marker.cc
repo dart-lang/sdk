@@ -55,14 +55,14 @@ class SkippedCodeFunctions {
         // code from the function.
         if (FLAG_enable_interpreter && Function::HasBytecode(func)) {
           func->StorePointer(&(func->ptr()->code_),
-                             StubCode::InterpretCall_entry()->code());
-          uword entry_point = StubCode::InterpretCall_entry()->EntryPoint();
+                             StubCode::InterpretCall().raw());
+          uword entry_point = StubCode::InterpretCall().EntryPoint();
           func->ptr()->entry_point_ = entry_point;
           func->ptr()->unchecked_entry_point_ = entry_point;
         } else {
           func->StorePointer(&(func->ptr()->code_),
-                             StubCode::LazyCompile_entry()->code());
-          uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
+                             StubCode::LazyCompile().raw());
+          uword entry_point = StubCode::LazyCompile().EntryPoint();
           func->ptr()->entry_point_ = entry_point;
           func->ptr()->unchecked_entry_point_ = entry_point;
         }

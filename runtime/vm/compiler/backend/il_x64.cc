@@ -849,24 +849,24 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ leaq(RAX, Address(RSP, ArgumentCount() * kWordSize));
 
   __ LoadImmediate(R10, Immediate(argc_tag));
-  const StubEntry* stub_entry;
+  const Code* stub;
   if (link_lazily()) {
-    stub_entry = StubCode::CallBootstrapNative_entry();
+    stub = &StubCode::CallBootstrapNative();
     ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label, ObjectPool::kPatchable);
-    compiler->GeneratePatchableCall(token_pos(), *stub_entry,
+    compiler->GeneratePatchableCall(token_pos(), *stub,
                                     RawPcDescriptors::kOther, locs());
   } else {
     if (is_bootstrap_native()) {
-      stub_entry = StubCode::CallBootstrapNative_entry();
+      stub = &StubCode::CallBootstrapNative();
     } else if (is_auto_scope()) {
-      stub_entry = StubCode::CallAutoScopeNative_entry();
+      stub = &StubCode::CallAutoScopeNative();
     } else {
-      stub_entry = StubCode::CallNoScopeNative_entry();
+      stub = &StubCode::CallNoScopeNative();
     }
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
     __ LoadNativeEntry(RBX, &label, ObjectPool::kNotPatchable);
-    compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,
+    compiler->GenerateCall(token_pos(), *stub, RawPcDescriptors::kOther,
                            locs());
   }
   __ popq(result);
@@ -1017,7 +1017,6 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     __ Bind(entry_label());
     const Code& stub = Code::ZoneHandle(
         compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
-    const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction()->locs();
 
@@ -1025,7 +1024,7 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(TokenPosition::kNoSource,  // No token position.
-                           stub_entry, RawPcDescriptors::kOther, locs);
+                           stub, RawPcDescriptors::kOther, locs);
     __ MoveRegister(result_, RAX);
     compiler->RestoreLiveRegisters(locs);
     __ jmp(exit_label());
@@ -2264,7 +2263,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Bind(&slow_path);
   compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  *StubCode::AllocateArray_entry(),
+                                  StubCode::AllocateArray(),
                                   RawPcDescriptors::kOther, locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -2534,7 +2533,7 @@ class AllocateContextSlowPath
 
     __ LoadImmediate(R10, Immediate(instruction()->num_context_variables()));
     compiler->GenerateCall(instruction()->token_pos(),
-                           *StubCode::AllocateContext_entry(),
+                           StubCode::AllocateContext(),
                            RawPcDescriptors::kOther, locs);
     ASSERT(instruction()->locs()->out(0).reg() == RAX);
     compiler->RestoreLiveRegisters(instruction()->locs());
@@ -2581,7 +2580,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == RAX);
 
   __ LoadImmediate(R10, Immediate(num_context_variables()));
-  compiler->GenerateCall(token_pos(), *StubCode::AllocateContext_entry(),
+  compiler->GenerateCall(token_pos(), StubCode::AllocateContext(),
                          RawPcDescriptors::kOther, locs());
 }
 
@@ -6297,15 +6296,13 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
-  const StubEntry stub_entry(stub);
-  compiler->GenerateCall(token_pos(), stub_entry, RawPcDescriptors::kOther,
-                         locs());
+  compiler->GenerateCall(token_pos(), stub, RawPcDescriptors::kOther, locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  __ CallPatchable(*StubCode::DebugStepCheck_entry());
+  __ CallPatchable(StubCode::DebugStepCheck());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
 }

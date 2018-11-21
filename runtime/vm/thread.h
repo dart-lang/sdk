@@ -85,41 +85,36 @@ class Zone;
 #define CACHED_VM_STUBS_LIST(V)
 #else
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(RawCode*, write_barrier_code_, StubCode::WriteBarrier_entry()->code(),     \
+  V(RawCode*, write_barrier_code_, StubCode::WriteBarrier().raw(), NULL)       \
+  V(RawCode*, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),  \
     NULL)                                                                      \
-  V(RawCode*, array_write_barrier_code_,                                       \
-    StubCode::ArrayWriteBarrier_entry()->code(), NULL)                         \
-  V(RawCode*, fix_callers_target_code_,                                        \
-    StubCode::FixCallersTarget_entry()->code(), NULL)                          \
+  V(RawCode*, fix_callers_target_code_, StubCode::FixCallersTarget().raw(),    \
+    NULL)                                                                      \
   V(RawCode*, fix_allocation_stub_code_,                                       \
-    StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
-  V(RawCode*, invoke_dart_code_stub_,                                          \
-    StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+    StubCode::FixAllocationStubTarget().raw(), NULL)                           \
+  V(RawCode*, invoke_dart_code_stub_, StubCode::InvokeDartCode().raw(), NULL)  \
   V(RawCode*, invoke_dart_code_from_bytecode_stub_,                            \
-    StubCode::InvokeDartCodeFromBytecode_entry()->code(), NULL)                \
-  V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
-    NULL)                                                                      \
+    StubCode::InvokeDartCodeFromBytecode().raw(), NULL)                        \
+  V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime().raw(), NULL)    \
   V(RawCode*, null_error_shared_without_fpu_regs_stub_,                        \
-    StubCode::NullErrorSharedWithoutFPURegs_entry()->code(), NULL)             \
+    StubCode::NullErrorSharedWithoutFPURegs().raw(), NULL)                     \
   V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
-    StubCode::NullErrorSharedWithFPURegs_entry()->code(), NULL)                \
+    StubCode::NullErrorSharedWithFPURegs().raw(), NULL)                        \
   V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
-    StubCode::StackOverflowSharedWithoutFPURegs_entry()->code(), NULL)         \
+    StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
-    StubCode::StackOverflowSharedWithFPURegs_entry()->code(), NULL)            \
-  V(RawCode*, monomorphic_miss_stub_,                                          \
-    StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
+    StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
+  V(RawCode*, monomorphic_miss_stub_, StubCode::MonomorphicMiss().raw(), NULL) \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
-    StubCode::ICCallThroughCode_entry()->code(), NULL)                         \
-  V(RawCode*, deoptimize_stub_, StubCode::Deoptimize_entry()->code(), NULL)    \
+    StubCode::ICCallThroughCode().raw(), NULL)                                 \
+  V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
-    StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
+    StubCode::DeoptimizeLazyFromReturn().raw(), NULL)                          \
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
-    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
-  V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest_entry()->code(),    \
-    NULL)                                                                      \
+    StubCode::DeoptimizeLazyFromThrow().raw(), NULL)                           \
+  V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest().raw(), NULL)      \
   V(RawCode*, lazy_specialize_type_test_stub_,                                 \
-    StubCode::LazySpecializeTypeTest_entry()->code(), NULL)
+    StubCode::LazySpecializeTypeTest().raw(), NULL)
 
 #endif
 
@@ -144,25 +139,25 @@ class Zone;
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)
 #else
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
-  V(uword, write_barrier_entry_point_,                                         \
-    StubCode::WriteBarrier_entry()->EntryPoint(), 0)                           \
+  V(uword, write_barrier_entry_point_, StubCode::WriteBarrier().EntryPoint(),  \
+    0)                                                                         \
   V(uword, array_write_barrier_entry_point_,                                   \
-    StubCode::ArrayWriteBarrier_entry()->EntryPoint(), 0)                      \
+    StubCode::ArrayWriteBarrier().EntryPoint(), 0)                             \
   V(uword, call_to_runtime_entry_point_,                                       \
-    StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+    StubCode::CallToRuntime().EntryPoint(), 0)                                 \
   V(uword, null_error_shared_without_fpu_regs_entry_point_,                    \
-    StubCode::NullErrorSharedWithoutFPURegs_entry()->EntryPoint(), 0)          \
+    StubCode::NullErrorSharedWithoutFPURegs().EntryPoint(), 0)                 \
   V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
-    StubCode::NullErrorSharedWithFPURegs_entry()->EntryPoint(), 0)             \
+    StubCode::NullErrorSharedWithFPURegs().EntryPoint(), 0)                    \
   V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
-    StubCode::StackOverflowSharedWithoutFPURegs_entry()->EntryPoint(), 0)      \
+    StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
   V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
-    StubCode::StackOverflowSharedWithFPURegs_entry()->EntryPoint(), 0)         \
+    StubCode::StackOverflowSharedWithFPURegs().EntryPoint(), 0)                \
   V(uword, megamorphic_call_checked_entry_,                                    \
-    StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
-  V(uword, monomorphic_miss_entry_,                                            \
-    StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)                        \
-  V(uword, deoptimize_entry_, StubCode::Deoptimize_entry()->EntryPoint(), 0)
+    StubCode::MegamorphicCall().EntryPoint(), 0)                               \
+  V(uword, monomorphic_miss_entry_, StubCode::MonomorphicMiss().EntryPoint(),  \
+    0)                                                                         \
+  V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)
 
 #endif
 

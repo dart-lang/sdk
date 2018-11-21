@@ -44,7 +44,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ set_constant_pool_allowed(true);
 
   __ LoadObject(RBX, ic_data);
-  __ CallPatchable(*StubCode::OneArgCheckInlineCache_entry());
+  __ CallPatchable(StubCode::OneArgCheckInlineCache());
   __ ret();
 }
 

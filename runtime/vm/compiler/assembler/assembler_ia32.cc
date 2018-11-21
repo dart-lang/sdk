@@ -2132,8 +2132,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
+void Assembler::Call(const Code& target, bool movable_target) {
   LoadObject(CODE_REG, target, movable_target);
   call(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
@@ -2142,13 +2141,13 @@ void Assembler::CallToRuntime() {
   call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
-void Assembler::Jmp(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
+void Assembler::Jmp(const Code& target) {
+  const ExternalLabel label(target.EntryPoint());
   jmp(&label);
 }
 
-void Assembler::J(Condition condition, const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
+void Assembler::J(Condition condition, const Code& target) {
+  const ExternalLabel label(target.EntryPoint());
   j(condition, &label);
 }
 
@@ -2368,8 +2367,8 @@ void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     pushl(EAX);  // Preserve EAX.
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
-    Call(*StubCode::PrintStopMessage_entry());  // Passing message in EAX.
-    popl(EAX);                                  // Restore EAX.
+    Call(StubCode::PrintStopMessage());  // Passing message in EAX.
+    popl(EAX);                           // Restore EAX.
   }
   // Emit the int3 instruction.
   int3();  // Execution can be resumed with the 'cont' command in gdb.

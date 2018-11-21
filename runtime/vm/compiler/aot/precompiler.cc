@@ -1537,7 +1537,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   }
 
   ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
-         StubCode::DefaultTypeTest_entry()->EntryPoint());
+         StubCode::DefaultTypeTest().EntryPoint());
 }
 
 void Precompiler::DropTypes() {
@@ -2028,9 +2028,8 @@ void Precompiler::SwitchICCalls() {
           unlinked_.set_args_descriptor(args_descriptor_);
           unlinked_ = DedupUnlinkedCall(unlinked_);
           pool.SetObjectAt(i, unlinked_);
-        } else if (entry_.raw() ==
-                   StubCode::ICCallThroughFunction_entry()->code()) {
-          target_code_ = StubCode::UnlinkedCall_entry()->code();
+        } else if (entry_.raw() == StubCode::ICCallThroughFunction().raw()) {
+          target_code_ = StubCode::UnlinkedCall().raw();
           pool.SetObjectAt(i, target_code_);
         }
       }

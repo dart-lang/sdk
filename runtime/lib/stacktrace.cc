@@ -77,7 +77,7 @@ static RawStackTrace* CurrentStackTrace(
   intptr_t write_cursor = 0;
   if (for_async_function) {
     // Place the asynchronous gap marker at the top of the stack trace.
-    code = StubCode::AsynchronousGapMarker_entry()->code();
+    code = StubCode::AsynchronousGapMarker().raw();
     ASSERT(!code.IsNull());
     offset = Smi::New(0);
     code_array.SetAt(write_cursor, code);

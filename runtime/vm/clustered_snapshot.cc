@@ -639,11 +639,9 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
         } else if (FLAG_enable_interpreter && func.HasBytecode()) {
           // Set the code entry_point to InterpretCall stub.
-          func.SetInstructions(
-              Code::Handle(StubCode::InterpretCall_entry()->code()));
+          func.SetInstructions(StubCode::InterpretCall());
         } else if (FLAG_use_bytecode_compiler && func.HasBytecode()) {
-          func.SetInstructions(
-              Code::Handle(StubCode::LazyCompile_entry()->code()));
+          func.SetInstructions(StubCode::LazyCompile());
 #endif                                 // !defined(DART_PRECOMPILED_RUNTIME)
         } else {
           func.ClearCode();  // Set code and entrypoint to lazy compile stub.
@@ -1761,14 +1759,12 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
         switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
           case ObjectPool::kTaggedObject: {
 #if !defined(TARGET_ARCH_DBC)
-            if ((entry.raw_obj_ ==
-                 StubCode::CallNoScopeNative_entry()->code()) ||
-                (entry.raw_obj_ ==
-                 StubCode::CallAutoScopeNative_entry()->code())) {
+            if ((entry.raw_obj_ == StubCode::CallNoScopeNative().raw()) ||
+                (entry.raw_obj_ == StubCode::CallAutoScopeNative().raw())) {
               // Natives can run while precompiling, becoming linked and
               // switching their stub. Reset to the initial stub used for
               // lazy-linking.
-              s->WriteRef(StubCode::CallBootstrapNative_entry()->code());
+              s->WriteRef(StubCode::CallBootstrapNative().raw());
               break;
             }
 #endif
@@ -4962,7 +4958,7 @@ void Serializer::AddVMIsolateBaseObjects() {
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i)->code());
+      AddBaseObject(StubCode::EntryAt(i).raw());
     }
   }
 }
@@ -4977,7 +4973,7 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   Push(symbols.raw());
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      Push(StubCode::EntryAt(i)->code());
+      Push(StubCode::EntryAt(i).raw());
     }
   }
   if (seeds != NULL) {
@@ -4992,7 +4988,7 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   WriteRef(symbols.raw());
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRef(StubCode::EntryAt(i)->code());
+      WriteRef(StubCode::EntryAt(i).raw());
     }
   }
 
@@ -5385,7 +5381,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i)->code());
+      AddBaseObject(StubCode::EntryAt(i).raw());
     }
   }
 }
@@ -5407,10 +5403,10 @@ void Deserializer::ReadVMSnapshot() {
     symbol_table ^= ReadRef();
     isolate()->object_store()->set_symbol_table(symbol_table);
     if (Snapshot::IncludesCode(kind_)) {
-      Code& code = Code::Handle(zone_);
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-        code ^= ReadRef();
-        StubCode::EntryAtPut(i, new StubEntry(code));
+        Code* code = Code::ReadOnlyHandle();
+        *code ^= ReadRef();
+        StubCode::EntryAtPut(i, code);
       }
     }
 
