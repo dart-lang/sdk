@@ -1336,10 +1336,11 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(KMember member) {
+  ResolutionImpact computeWorldImpact(
+      KMember member, VariableScopeModel variableScopeModel) {
     ir.Member node = members.getData(member).node;
-    KernelImpactBuilder builder =
-        new KernelImpactBuilder(this, member, reporter, options);
+    KernelImpactBuilder builder = new KernelImpactBuilder(
+        this, member, reporter, options, variableScopeModel);
     node.accept(builder);
     if (retainDataForTesting) {
       staticTypeCacheForTesting ??= {};

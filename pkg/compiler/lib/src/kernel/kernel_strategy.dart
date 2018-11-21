@@ -204,7 +204,7 @@ class KernelWorkItem implements WorkItem {
   WorldImpact run() {
     return _compilerTask.measure(() {
       _nativeMemberResolver.resolveNativeMember(element);
-      _compilerTask.measureSubtask('closures', () {
+      ScopeModel scopeModel = _compilerTask.measureSubtask('closures', () {
         ScopeModel scopeModel = _elementMap.computeScopeModel(element);
         if (scopeModel?.closureScopeModel != null) {
           closureModels[element] = scopeModel.closureScopeModel;
@@ -212,7 +212,8 @@ class KernelWorkItem implements WorkItem {
         return scopeModel;
       });
       return _compilerTask.measureSubtask('worldImpact', () {
-        ResolutionImpact impact = _elementMap.computeWorldImpact(element);
+        ResolutionImpact impact = _elementMap.computeWorldImpact(
+            element, scopeModel?.variableScopeModel);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (impactCache != null) {

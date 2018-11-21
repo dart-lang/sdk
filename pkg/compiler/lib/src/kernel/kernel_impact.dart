@@ -14,6 +14,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
 import '../js_backend/native_data.dart';
@@ -33,9 +34,10 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   final DiagnosticReporter reporter;
   final CompilerOptions _options;
   final MemberEntity currentMember;
+  final VariableScopeModel variableScopeModel;
 
-  KernelImpactBuilder(
-      this.elementMap, this.currentMember, this.reporter, this._options)
+  KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
+      this._options, this.variableScopeModel)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
         super(elementMap.typeEnvironment);
