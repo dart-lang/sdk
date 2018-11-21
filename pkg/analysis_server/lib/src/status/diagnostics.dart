@@ -399,6 +399,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Preserve comments', options.preserveComments));
     b.write(writeOption('Strong mode hints', options.strongModeHints));
 
+    b.write(writeOption('Enabled experiments', options.enabledExperiments));
+
     return b.toString();
   }
 
