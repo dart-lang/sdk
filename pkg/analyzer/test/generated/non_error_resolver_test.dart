@@ -3290,6 +3290,52 @@ void main() {
     verify([source]);
   }
 
+  test_issue_35320_lists() async {
+    addNamedSource('/lib.dart', '''
+const x = const <String>['a'];
+''');
+    Source source = addSource('''
+import 'lib.dart';
+const y = const <String>['b'];
+int f(v) {
+  switch(v) {
+    case x:
+      return 0;
+    case y:
+      return 1;
+    default:
+      return 2;
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_issue_35320_maps() async {
+    addNamedSource('/lib.dart', '''
+const x = const <String, String>{'a': 'b'};
+''');
+    Source source = addSource('''
+import 'lib.dart';
+const y = const <String, String>{'c': 'd'};
+int f(v) {
+  switch(v) {
+    case x:
+      return 0;
+    case y:
+      return 1;
+    default:
+      return 2;
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_listElementTypeNotAssignable() async {
     Source source = addSource(r'''
 var v1 = <int> [42];

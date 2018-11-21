@@ -180,7 +180,7 @@ class NativeArguments {
     if (function.IsClosureFunction()) {
       function_bits |= kClosureFunctionBit;
     }
-    if (function.IsGeneric() && FLAG_reify_generic_functions) {
+    if (function.IsGeneric()) {
       function_bits |= kGenericFunctionBit;
       argc++;
     }

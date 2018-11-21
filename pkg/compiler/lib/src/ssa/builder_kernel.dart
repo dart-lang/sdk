@@ -1326,7 +1326,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (functionNode != null) {
       _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
     }
-    _insertTraceCall(member);
     _insertCoverageCall(member);
   }
 
@@ -5377,7 +5376,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _elementMap.elementEnvironment.getFunctionType(function).returnType;
     stack = <HInstruction>[];
 
-    _insertTraceCall(function);
     _insertCoverageCall(function);
   }
 
@@ -5521,35 +5519,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return _allInlinedFunctionsCalledOnce && _isFunctionCalledOnce(element);
   }
 
-  void _insertTraceCall(MemberEntity element) {
-    if (JavaScriptBackend.TRACE_METHOD == 'console') {
-      if (element == commonElements.traceHelper) return;
-      n(e) => e == null ? '' : e.name;
-      String name = "${n(element.library)}:${n(element.enclosingClass)}."
-          "${n(element)}";
-      HConstant nameConstant = graph.addConstantString(name, closedWorld);
-      add(new HInvokeStatic(
-          commonElements.traceHelper,
-          <HInstruction>[nameConstant],
-          abstractValueDomain.dynamicType,
-          const <DartType>[]));
-    }
-  }
-
   void _insertCoverageCall(MemberEntity element) {
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
-      if (element == commonElements.traceHelper) return;
-      // TODO(sigmund): create a better uuid for elements.
-      HConstant idConstant =
-          graph.addConstantInt(element.hashCode, closedWorld);
-      HConstant nameConstant =
-          graph.addConstantString(element.name, closedWorld);
-      add(new HInvokeStatic(
-          commonElements.traceHelper,
-          <HInstruction>[idConstant, nameConstant],
-          abstractValueDomain.dynamicType,
-          const <DartType>[]));
-    }
+    if (!options.experimentCallInstrumentation) return;
+    if (element == commonElements.traceHelper) return;
+    // TODO(sigmund): create a better uuid for elements.
+    HConstant idConstant = graph.addConstantInt(element.hashCode, closedWorld);
+    n(e) => e == null ? '' : e.name;
+    String name = "${n(element.library)}:${n(element.enclosingClass)}."
+        "${n(element)}";
+    HConstant nameConstant = graph.addConstantString(name, closedWorld);
+    add(new HInvokeStatic(
+        commonElements.traceHelper,
+        <HInstruction>[idConstant, nameConstant],
+        abstractValueDomain.dynamicType,
+        const <DartType>[]));
   }
 }
 

@@ -27,6 +27,7 @@ import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../ir/closure.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
@@ -86,6 +87,7 @@ class JsKernelToElementMap
   static const String typedefDataTag = 'typedef-data';
   static const String memberDataTag = 'member-data';
   static const String typeVariableDataTag = 'type-variable-data';
+  static const String nestedClosuresTag = 'nested-closures';
 
   final CompilerOptions options;
   final DiagnosticReporter reporter;
@@ -332,7 +334,10 @@ class JsKernelToElementMap
       JClassEnv env = new JClassEnv.readFromDataSource(source);
       JClassData data = new JClassData.readFromDataSource(source);
       classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
-      libraries.getEnv(cls.library).registerClass(cls.name, env);
+      if (cls is! JRecord && cls is! JClosureClass) {
+        // Synthesized classes are not part of the library environment.
+        libraries.getEnv(cls.library).registerClass(cls.name, env);
+      }
       assert(index == cls.classIndex);
     });
     source.end(classDataTag);
@@ -375,6 +380,12 @@ class JsKernelToElementMap
       assert(index == typeVariable.typeVariableIndex);
     });
     source.end(typeVariableDataTag);
+
+    source.begin(nestedClosuresTag);
+    _nestedClosureMap.addAll(
+        source.readMemberMap(() => source.readMembers<IndexedFunction>()));
+    source.end(nestedClosuresTag);
+
     source.end(tag);
   }
 
@@ -455,6 +466,10 @@ class JsKernelToElementMap
       data.writeToDataSink(sink);
     });
     sink.end(typeVariableDataTag);
+
+    sink.begin(nestedClosuresTag);
+    sink.writeMemberMap(_nestedClosureMap, sink.writeMembers);
+    sink.end(nestedClosuresTag);
 
     sink.end(tag);
   }

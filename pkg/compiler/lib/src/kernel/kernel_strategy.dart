@@ -17,13 +17,14 @@ import '../elements/types.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
+import '../ir/closure.dart' show ClosureScopeModel;
+import '../ir/scope.dart' show ScopeModel;
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
-import '../js_model/closure.dart' show ScopeModel;
 import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
@@ -46,8 +47,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   KernelAnnotationProcessor _annotationProcesser;
 
-  final Map<MemberEntity, ScopeModel> closureModels =
-      <MemberEntity, ScopeModel>{};
+  final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
@@ -161,7 +161,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
-  final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<MemberEntity, ClosureScopeModel> closureModels;
   final Map<Entity, WorldImpact> impactCache;
 
   KernelWorkItemBuilder(
@@ -188,7 +188,7 @@ class KernelWorkItem implements WorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
-  final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<MemberEntity, ClosureScopeModel> closureModels;
   final Map<Entity, WorldImpact> impactCache;
 
   KernelWorkItem(
@@ -204,14 +204,16 @@ class KernelWorkItem implements WorkItem {
   WorldImpact run() {
     return _compilerTask.measure(() {
       _nativeMemberResolver.resolveNativeMember(element);
-      _compilerTask.measureSubtask('closures', () {
-        ScopeModel closureModel = _elementMap.computeScopeModel(element);
-        if (closureModel != null) {
-          closureModels[element] = closureModel;
+      ScopeModel scopeModel = _compilerTask.measureSubtask('closures', () {
+        ScopeModel scopeModel = _elementMap.computeScopeModel(element);
+        if (scopeModel?.closureScopeModel != null) {
+          closureModels[element] = scopeModel.closureScopeModel;
         }
+        return scopeModel;
       });
       return _compilerTask.measureSubtask('worldImpact', () {
-        ResolutionImpact impact = _elementMap.computeWorldImpact(element);
+        ResolutionImpact impact = _elementMap.computeWorldImpact(
+            element, scopeModel?.variableScopeModel);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (impactCache != null) {

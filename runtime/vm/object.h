@@ -778,6 +778,13 @@ typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 class Class : public Object {
  public:
+  enum InvocationDispatcherEntry {
+    kInvocationDispatcherName,
+    kInvocationDispatcherArgsDesc,
+    kInvocationDispatcherFunction,
+    kInvocationDispatcherEntrySize,
+  };
+
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
@@ -1080,7 +1087,6 @@ class Class : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupCallFunctionForTypeTest() const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -2486,14 +2492,11 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (FLAG_strong) {
-      if (!I->should_emit_strong_mode_checks()) {
-        return false;
-      }
-      return IsClosureFunction() ||
-             !(is_static() || (kind() == RawFunction::kConstructor));
+    if (!I->should_emit_strong_mode_checks()) {
+      return false;
     }
-    return I->type_checks();
+    return IsClosureFunction() ||
+           !(is_static() || (kind() == RawFunction::kConstructor));
   }
 
   bool MayHaveUncheckedEntryPoint(Isolate* I) const;
@@ -9712,8 +9715,13 @@ class ArrayOfTuplesView {
   intptr_t index_;
 };
 
+using InvocationDispatcherTable =
+    ArrayOfTuplesView<Class::InvocationDispatcherEntry,
+                      std::tuple<String, Array, Function>>;
+
 using StaticCallsTable =
     ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
                                                            Object,

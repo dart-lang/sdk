@@ -4,14 +4,15 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure.dart';
 import 'closure.dart';
+import 'scope.dart';
 
-/// This builder walks the code to determine what variables are captured/free at
-/// various points to build CapturedScope that can respond to queries
-/// about how a particular variable is being used at any point in the code.
-class CapturedScopeBuilder extends ir.Visitor {
-  ScopeModel _model;
+/// This builder walks the code to determine what variables are
+/// assigned/captured/free at various points to build a [ClosureScopeModel] and
+/// a [VariableScopeModel] that can respond to queries about how a particular
+/// variable is being used at any point in the code.
+class ScopeModelBuilder extends ir.Visitor<void> with VariableCollectorMixin {
+  ClosureScopeModel _model;
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
@@ -72,8 +73,22 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// type variable usage, such as type argument in method invocations.
   VariableUse _currentTypeUsage;
 
-  CapturedScopeBuilder(this._model, {bool hasThisLocal})
+  ScopeModelBuilder(this._model, {bool hasThisLocal})
       : this._hasThisLocal = hasThisLocal;
+
+  @override
+  ir.DartType defaultNode(ir.Node node) =>
+      throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
+
+  void visitNode(ir.Node node) {
+    return node?.accept(this);
+  }
+
+  void visitNodes(List<ir.Node> nodes) {
+    for (ir.Node node in nodes) {
+      visitNode(node);
+    }
+  }
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
@@ -152,53 +167,60 @@ class CapturedScopeBuilder extends ir.Visitor {
   }
 
   @override
-  void defaultNode(ir.Node node) {
-    node.visitChildren(this);
+  void visitNamedExpression(ir.NamedExpression node) {
+    visitNode(node.value);
   }
 
   @override
-  visitTryCatch(ir.TryCatch node) {
+  void visitTryCatch(ir.TryCatch node) {
     bool oldInTry = _inTry;
     _inTry = true;
-    node.visitChildren(this);
+    visitInVariableScope(node, () {
+      visitNode(node.body);
+    });
+    visitNodes(node.catches);
     _inTry = oldInTry;
   }
 
   @override
-  visitTryFinally(ir.TryFinally node) {
+  void visitTryFinally(ir.TryFinally node) {
     bool oldInTry = _inTry;
     _inTry = true;
-    node.visitChildren(this);
+    visitInVariableScope(node, () {
+      visitNode(node.body);
+    });
+    visitNode(node.finalizer);
     _inTry = oldInTry;
   }
 
   @override
-  visitVariableGet(ir.VariableGet node) {
+  void visitVariableGet(ir.VariableGet node) {
     _markVariableAsUsed(node.variable, VariableUse.explicit);
     // Don't visit `node.promotedType`.
   }
 
   @override
-  visitVariableSet(ir.VariableSet node) {
+  void visitVariableSet(ir.VariableSet node) {
     _mutatedVariables.add(node.variable);
     _markVariableAsUsed(node.variable, VariableUse.explicit);
     visitInContext(node.variable.type, VariableUse.localType);
-    node.visitChildren(this);
+    visitNode(node.value);
+    registerAssignedVariable(node.variable);
   }
 
-  void handleVariableDeclaration(
+  void _handleVariableDeclaration(
       ir.VariableDeclaration node, VariableUse usage) {
     if (!node.isFieldFormal) {
       _scopeVariables.add(node);
     }
 
     visitInContext(node.type, usage);
-    node.initializer?.accept(this);
+    visitNode(node.initializer);
   }
 
   @override
-  visitVariableDeclaration(ir.VariableDeclaration node) {
-    handleVariableDeclaration(node, VariableUse.localType);
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
+    _handleVariableDeclaration(node, VariableUse.localType);
   }
 
   /// Add this variable to the set of free variables if appropriate and add to
@@ -292,7 +314,11 @@ class CapturedScopeBuilder extends ir.Visitor {
       _inTry = true;
     }
     enterNewScope(node, () {
-      node.visitChildren(this);
+      visitNode(node.variable);
+      visitInVariableScope(node, () {
+        visitNode(node.iterable);
+        visitNode(node.body);
+      });
     });
     if (node.isAsync) {
       _inTry = oldInTry;
@@ -301,13 +327,19 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   void visitWhileStatement(ir.WhileStatement node) {
     enterNewScope(node, () {
-      node.visitChildren(this);
+      visitInVariableScope(node, () {
+        visitNode(node.condition);
+        visitNode(node.body);
+      });
     });
   }
 
   void visitDoStatement(ir.DoStatement node) {
     enterNewScope(node, () {
-      node.visitChildren(this);
+      visitInVariableScope(node, () {
+        visitNode(node.body);
+        visitNode(node.condition);
+      });
     });
   }
 
@@ -318,10 +350,10 @@ class CapturedScopeBuilder extends ir.Visitor {
     enterNewScope(node, () {
       // First visit initialized variables and update steps so we can easily
       // check if a loop variable was captured in one of these subexpressions.
-      node.variables
-          .forEach((ir.VariableDeclaration variable) => variable.accept(this));
-      node.updates
-          .forEach((ir.Expression expression) => expression.accept(this));
+      visitNodes(node.variables);
+      visitInVariableScope(node, () {
+        visitNodes(node.updates);
+      });
 
       // Loop variables that have not been captured yet can safely be flagged as
       // non-mutated, because no nested function can observe the mutation.
@@ -334,8 +366,10 @@ class CapturedScopeBuilder extends ir.Visitor {
       // Visit condition and body.
       // This must happen after the above, so any loop variables mutated in the
       // condition or body are indeed flagged as mutated.
-      if (node.condition != null) node.condition.accept(this);
-      node.body.accept(this);
+      visitInVariableScope(node, () {
+        visitNode(node.condition);
+        visitNode(node.body);
+      });
 
       // See if we have declared loop variables that need to be boxed.
       for (ir.VariableDeclaration variable in node.variables) {
@@ -366,28 +400,27 @@ class CapturedScopeBuilder extends ir.Visitor {
       _registerNeedsThis(VariableUse.explicit);
     }
     if (node.arguments.types.isNotEmpty) {
-      visitListInContext(node.arguments.types,
+      visitNodesInContext(node.arguments.types,
           new VariableUse.staticTypeArgument(node.interfaceTarget));
     }
-    ir.visitList(node.arguments.positional, this);
-    ir.visitList(node.arguments.named, this);
+    visitNodes(node.arguments.positional);
+    visitNodes(node.arguments.named);
   }
 
   void visitSuperPropertySet(ir.SuperPropertySet node) {
     if (_hasThisLocal) {
       _registerNeedsThis(VariableUse.explicit);
     }
-    node.visitChildren(this);
+    visitNode(node.value);
   }
 
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     if (_hasThisLocal) {
       _registerNeedsThis(VariableUse.explicit);
     }
-    node.visitChildren(this);
   }
 
-  void visitInvokable(ir.TreeNode node) {
+  void visitInvokable(ir.TreeNode node, void f()) {
     assert(node is ir.Member ||
         node is ir.FunctionExpression ||
         node is ir.FunctionDeclaration);
@@ -409,9 +442,7 @@ class CapturedScopeBuilder extends ir.Visitor {
       _model.scopeInfo = _currentScopeInfo;
     }
 
-    enterNewScope(node, () {
-      node.visitChildren(this);
-    });
+    enterNewScope(node, f);
 
     KernelScopeInfo savedScopeInfo = _currentScopeInfo;
     bool savedIsInsideClosure = _isInsideClosure;
@@ -461,111 +492,201 @@ class CapturedScopeBuilder extends ir.Visitor {
   }
 
   @override
-  void visitField(ir.Field field) {
+  void visitField(ir.Field node) {
     _currentTypeUsage = VariableUse.fieldType;
-    visitInvokable(field);
+    visitInvokable(node, () {
+      visitNode(node.initializer);
+    });
     _currentTypeUsage = null;
   }
 
   @override
-  void visitConstructor(ir.Constructor constructor) {
-    visitInvokable(constructor);
+  void visitConstructor(ir.Constructor node) {
+    visitInvokable(node, () {
+      visitNodes(node.initializers);
+      visitNode(node.function);
+    });
   }
 
   @override
-  void visitProcedure(ir.Procedure procedure) {
-    visitInvokable(procedure);
+  void visitProcedure(ir.Procedure node) {
+    visitInvokable(node, () {
+      visitNode(node.function);
+    });
   }
 
   @override
-  void visitFunctionExpression(ir.FunctionExpression functionExpression) {
-    visitInvokable(functionExpression);
+  void visitFunctionExpression(ir.FunctionExpression node) {
+    visitInvokable(node, () {
+      visitInVariableScope(node, () {
+        visitNode(node.function);
+      });
+    });
   }
 
   @override
-  void visitFunctionDeclaration(ir.FunctionDeclaration functionDeclaration) {
-    visitInvokable(functionDeclaration);
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    visitInvokable(node, () {
+      visitInVariableScope(node, () {
+        visitNode(node.function);
+      });
+    });
   }
 
   @override
-  visitTypeParameterType(ir.TypeParameterType type) {
-    _analyzeTypeVariable(type, _currentTypeUsage);
+  void visitDynamicType(ir.DynamicType node) {}
+
+  @override
+  void visitBottomType(ir.BottomType node) {}
+
+  @override
+  void visitInvalidType(ir.InvalidType node) {}
+
+  @override
+  void visitVoidType(ir.VoidType node) {}
+
+  @override
+  void visitInterfaceType(ir.InterfaceType node) {
+    visitNodes(node.typeArguments);
   }
 
-  visitInContext(ir.Node node, VariableUse use) {
+  @override
+  void visitFunctionType(ir.FunctionType node) {
+    visitNode(node.returnType);
+    visitNodes(node.positionalParameters);
+    visitNodes(node.namedParameters);
+    visitNodes(node.typeParameters);
+  }
+
+  @override
+  void visitNamedType(ir.NamedType node) {
+    visitNode(node.type);
+  }
+
+  @override
+  void visitTypeParameterType(ir.TypeParameterType node) {
+    _analyzeTypeVariable(node, _currentTypeUsage);
+  }
+
+  void visitInContext(ir.Node node, VariableUse use) {
     VariableUse oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;
-    node?.accept(this);
+    visitNode(node);
     _currentTypeUsage = oldCurrentTypeUsage;
   }
 
-  visitListInContext(List<ir.Node> nodes, VariableUse use) {
+  void visitNodesInContext(List<ir.Node> nodes, VariableUse use) {
     VariableUse oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;
-    ir.visitList(nodes, this);
-    _currentTypeUsage = oldCurrentTypeUsage;
-  }
-
-  visitChildrenInContext(ir.Node node, VariableUse use) {
-    VariableUse oldCurrentTypeUsage = _currentTypeUsage;
-    _currentTypeUsage = use;
-    node.visitChildren(this);
+    visitNodes(nodes);
     _currentTypeUsage = oldCurrentTypeUsage;
   }
 
   @override
-  visitTypeLiteral(ir.TypeLiteral node) {
-    visitChildrenInContext(node, VariableUse.explicit);
-  }
-
-  @override
-  visitIsExpression(ir.IsExpression node) {
-    node.operand.accept(this);
+  void visitTypeLiteral(ir.TypeLiteral node) {
     visitInContext(node.type, VariableUse.explicit);
   }
 
   @override
-  visitAsExpression(ir.AsExpression node) {
-    node.operand.accept(this);
+  void visitIsExpression(ir.IsExpression node) {
+    visitNode(node.operand);
+    visitInContext(node.type, VariableUse.explicit);
+  }
+
+  @override
+  void visitAsExpression(ir.AsExpression node) {
+    visitNode(node.operand);
     visitInContext(node.type,
         node.isTypeError ? VariableUse.implicitCast : VariableUse.explicit);
   }
 
   @override
-  visitFunctionNode(ir.FunctionNode node) {
+  void visitAwaitExpression(ir.AwaitExpression node) {
+    visitNode(node.operand);
+  }
+
+  @override
+  void visitYieldStatement(ir.YieldStatement node) {
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitLoadLibrary(ir.LoadLibrary node) {}
+
+  @override
+  void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded node) {}
+
+  @override
+  void visitFunctionNode(ir.FunctionNode node) {
     VariableUse parameterUsage = node.parent is ir.Member
         ? new VariableUse.memberParameter(node.parent)
         : new VariableUse.localParameter(node.parent);
-    visitListInContext(node.typeParameters, parameterUsage);
+    visitNodesInContext(node.typeParameters, parameterUsage);
     for (ir.VariableDeclaration declaration in node.positionalParameters) {
-      handleVariableDeclaration(declaration, parameterUsage);
+      _handleVariableDeclaration(declaration, parameterUsage);
     }
     for (ir.VariableDeclaration declaration in node.namedParameters) {
-      handleVariableDeclaration(declaration, parameterUsage);
+      _handleVariableDeclaration(declaration, parameterUsage);
     }
     visitInContext(
         node.returnType,
         node.parent is ir.Member
             ? new VariableUse.memberReturnType(node.parent)
             : new VariableUse.localReturnType(node.parent));
-    node.body?.accept(this);
+    visitNode(node.body);
   }
 
   @override
-  visitListLiteral(ir.ListLiteral node) {
+  void visitListLiteral(ir.ListLiteral node) {
     visitInContext(node.typeArgument, VariableUse.listLiteral);
-    ir.visitList(node.expressions, this);
+    visitNodes(node.expressions);
   }
 
   @override
-  visitMapLiteral(ir.MapLiteral node) {
+  void visitMapLiteral(ir.MapLiteral node) {
     visitInContext(node.keyType, VariableUse.mapLiteral);
     visitInContext(node.valueType, VariableUse.mapLiteral);
-    ir.visitList(node.entries, this);
+    visitNodes(node.entries);
   }
 
   @override
-  visitStaticInvocation(ir.StaticInvocation node) {
+  void visitMapEntry(ir.MapEntry node) {
+    visitNode(node.key);
+    visitNode(node.value);
+  }
+
+  @override
+  void visitNullLiteral(ir.NullLiteral node) {}
+
+  @override
+  void visitStringLiteral(ir.StringLiteral node) {}
+  @override
+  void visitIntLiteral(ir.IntLiteral node) {}
+
+  @override
+  void visitDoubleLiteral(ir.DoubleLiteral node) {}
+
+  @override
+  void visitSymbolLiteral(ir.SymbolLiteral node) {}
+
+  @override
+  void visitBoolLiteral(ir.BoolLiteral node) {}
+
+  @override
+  void visitStringConcatenation(ir.StringConcatenation node) {
+    visitNodes(node.expressions);
+  }
+
+  @override
+  void visitStaticGet(ir.StaticGet node) {}
+
+  @override
+  void visitStaticSet(ir.StaticSet node) {
+    visitNode(node.value);
+  }
+
+  @override
+  void visitStaticInvocation(ir.StaticInvocation node) {
     if (node.arguments.types.isNotEmpty) {
       VariableUse usage;
       if (node.target.kind == ir.ProcedureKind.Factory) {
@@ -574,34 +695,34 @@ class CapturedScopeBuilder extends ir.Visitor {
         usage = new VariableUse.staticTypeArgument(node.target);
       }
 
-      visitListInContext(node.arguments.types, usage);
+      visitNodesInContext(node.arguments.types, usage);
     }
-    ir.visitList(node.arguments.positional, this);
-    ir.visitList(node.arguments.named, this);
+    visitNodes(node.arguments.positional);
+    visitNodes(node.arguments.named);
   }
 
   @override
-  visitConstructorInvocation(ir.ConstructorInvocation node) {
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
     if (node.arguments.types.isNotEmpty) {
-      visitListInContext(node.arguments.types,
+      visitNodesInContext(node.arguments.types,
           new VariableUse.constructorTypeArgument(node.target));
     }
-    ir.visitList(node.arguments.positional, this);
-    ir.visitList(node.arguments.named, this);
+    visitNodes(node.arguments.positional);
+    visitNodes(node.arguments.named);
   }
 
   @override
-  visitConditionalExpression(ir.ConditionalExpression node) {
-    node.condition.accept(this);
-    node.then.accept(this);
-    node.otherwise.accept(this);
+  void visitConditionalExpression(ir.ConditionalExpression node) {
+    visitNode(node.condition);
+    visitNode(node.then);
+    visitNode(node.otherwise);
     // Don't visit `node.staticType`.
   }
 
   @override
-  visitMethodInvocation(ir.MethodInvocation node) {
+  void visitMethodInvocation(ir.MethodInvocation node) {
     ir.TreeNode receiver = node.receiver;
-    receiver.accept(this);
+    visitNode(receiver);
     if (node.arguments.types.isNotEmpty) {
       VariableUse usage;
       if (receiver is ir.VariableGet &&
@@ -612,24 +733,168 @@ class CapturedScopeBuilder extends ir.Visitor {
       } else {
         usage = new VariableUse.instanceTypeArgument(node);
       }
-      visitListInContext(node.arguments.types, usage);
+      visitNodesInContext(node.arguments.types, usage);
     }
-    ir.visitList(node.arguments.positional, this);
-    ir.visitList(node.arguments.named, this);
+    visitNodes(node.arguments.positional);
+    visitNodes(node.arguments.named);
   }
 
   @override
-  visitCatch(ir.Catch node) {
+  void visitPropertyGet(ir.PropertyGet node) {
+    visitNode(node.receiver);
+  }
+
+  @override
+  void visitPropertySet(ir.PropertySet node) {
+    visitNode(node.receiver);
+    visitNode(node.value);
+  }
+
+  @override
+  void visitDirectPropertyGet(ir.DirectPropertyGet node) {
+    visitNode(node.receiver);
+  }
+
+  @override
+  void visitDirectPropertySet(ir.DirectPropertySet node) {
+    visitNode(node.receiver);
+    visitNode(node.value);
+  }
+
+  @override
+  void visitNot(ir.Not node) {
+    visitNode(node.operand);
+  }
+
+  @override
+  void visitLogicalExpression(ir.LogicalExpression node) {
+    visitNode(node.left);
+    visitNode(node.right);
+  }
+
+  @override
+  void visitLet(ir.Let node) {
+    visitNode(node.variable);
+    visitNode(node.body);
+  }
+
+  @override
+  void visitCatch(ir.Catch node) {
     visitInContext(node.guard, VariableUse.explicit);
-    node.exception?.accept(this);
-    node.stackTrace?.accept(this);
-    node.body.accept(this);
+    visitNode(node.exception);
+    visitNode(node.stackTrace);
+    visitInVariableScope(node, () {
+      visitNode(node.body);
+    });
   }
 
   @override
-  visitInstantiation(ir.Instantiation node) {
-    visitChildrenInContext(
-        node, new VariableUse.instantiationTypeArgument(node));
+  void visitInstantiation(ir.Instantiation node) {
+    visitNodesInContext(
+        node.typeArguments, new VariableUse.instantiationTypeArgument(node));
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitThrow(ir.Throw node) {
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitRethrow(ir.Rethrow node) {}
+
+  @override
+  void visitBlock(ir.Block node) {
+    visitNodes(node.statements);
+  }
+
+  @override
+  void visitAssertStatement(ir.AssertStatement node) {
+    visitInVariableScope(node, () {
+      visitNode(node.condition);
+      visitNode(node.message);
+    });
+  }
+
+  @override
+  void visitReturnStatement(ir.ReturnStatement node) {
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitEmptyStatement(ir.EmptyStatement node) {}
+
+  @override
+  void visitExpressionStatement(ir.ExpressionStatement node) {
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitSwitchStatement(ir.SwitchStatement node) {
+    visitNode(node.expression);
+    visitInVariableScope(node, () {
+      visitNodes(node.cases);
+    });
+  }
+
+  @override
+  void visitSwitchCase(ir.SwitchCase node) {
+    visitNode(node.body);
+  }
+
+  @override
+  void visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    registerContinueSwitch();
+  }
+
+  @override
+  void visitBreakStatement(ir.BreakStatement node) {}
+
+  @override
+  void visitLabeledStatement(ir.LabeledStatement node) {
+    visitNode(node.body);
+  }
+
+  @override
+  void visitFieldInitializer(ir.FieldInitializer node) {
+    visitNode(node.value);
+  }
+
+  @override
+  void visitLocalInitializer(ir.LocalInitializer node) {
+    visitNode(node.variable.initializer);
+  }
+
+  @override
+  void visitSuperInitializer(ir.SuperInitializer node) {
+    if (node.arguments.types.isNotEmpty) {
+      visitNodesInContext(node.arguments.types,
+          new VariableUse.constructorTypeArgument(node.target));
+    }
+    visitNodes(node.arguments.positional);
+    visitNodes(node.arguments.named);
+  }
+
+  @override
+  void visitRedirectingInitializer(ir.RedirectingInitializer node) {
+    if (node.arguments.types.isNotEmpty) {
+      visitNodesInContext(node.arguments.types,
+          new VariableUse.constructorTypeArgument(node.target));
+    }
+    visitNodes(node.arguments.positional);
+    visitNodes(node.arguments.named);
+  }
+
+  @override
+  void visitAssertInitializer(ir.AssertInitializer node) {
+    visitNode(node.statement);
+  }
+
+  @override
+  void visitIfStatement(ir.IfStatement node) {
+    visitNode(node.condition);
+    visitNode(node.then);
+    visitNode(node.otherwise);
   }
 
   /// Returns true if the node is a field, or a constructor (factory or

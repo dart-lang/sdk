@@ -113,14 +113,6 @@ class ElementInfoCollector {
       _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
-    var isInInstantiatedClass = false;
-    if (containingClass != null) {
-      isInInstantiatedClass =
-          closedWorld.classHierarchy.isInstantiated(containingClass);
-    }
-    if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
-      return null;
-    }
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
@@ -147,7 +139,7 @@ class ElementInfoCollector {
           codegenWorldBuilder.getConstantFieldInitializer(field)];
     }
 
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+    if (compiler.options.experimentCallInstrumentation) {
       // We use field.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${field.hashCode}';
@@ -158,12 +150,6 @@ class ElementInfoCollector {
 
     result.fields.add(info);
     return info;
-  }
-
-  bool _hasBeenResolved(MemberEntity entity) {
-    return compiler.globalInference.typesInferrerInternal.inferrer.types
-        .memberTypeInformations
-        .containsKey(entity);
   }
 
   ClassInfo visitClass(ClassEntity clazz) {
@@ -312,7 +298,7 @@ class ElementInfoCollector {
     int closureSize = _addClosureInfo(info, function);
     size += closureSize;
 
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+    if (compiler.options.experimentCallInstrumentation) {
       // We use function.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${function.hashCode}';
@@ -556,9 +542,12 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       compiler.outputProvider.createOutputSink(
           compiler.options.outputUri.pathSegments.last,
           'info.json',
-          OutputType.info)
+          OutputType.dumpInfo)
         ..add(jsonBuffer.toString())
         ..close();
+      // TODO(johnniwinther): Reenable this when package:dart2js_info have
+      // stable ids.
+      //BasicInfo.resetIds();
     });
   }
 

@@ -30,6 +30,7 @@ import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
+import '../ir/scope.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
@@ -39,7 +40,6 @@ import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -106,6 +106,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
+
+  Map<KMember, Map<ir.TreeNode, ir.DartType>> staticTypeCacheForTesting;
 
   KernelToElementMapImpl(this.reporter, Environment environment,
       this._frontendStrategy, this.options) {
@@ -1334,14 +1336,22 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(KMember member) {
-    return buildKernelImpact(
-        members.getData(member).node, this, reporter, options);
+  ResolutionImpact computeWorldImpact(
+      KMember member, VariableScopeModel variableScopeModel) {
+    ir.Member node = members.getData(member).node;
+    KernelImpactBuilder builder = new KernelImpactBuilder(
+        this, member, reporter, options, variableScopeModel);
+    node.accept(builder);
+    if (retainDataForTesting) {
+      staticTypeCacheForTesting ??= {};
+      staticTypeCacheForTesting[member] = builder.staticTypeCacheForTesting;
+    }
+    return builder.impactBuilder;
   }
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = members.getData(member).node;
-    return KernelClosureAnalysis.computeScopeModel(member, node);
+    return ScopeModel.computeScopeModel(node);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

@@ -19,7 +19,8 @@ void main() {
     CompilerImpl compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     // Ensure a mapping file is output.
-    Expect.isNotNull(collector.getOutput("deferred_map.json", OutputType.info));
+    Expect.isNotNull(
+        collector.getOutput("deferred_map.json", OutputType.deferredMap));
 
     Map mapping = closedWorld.outputUnitData
         .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);

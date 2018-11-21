@@ -4,6 +4,7 @@
 
 // SharedOptions=--enable-experiment=set-literals
 
+import 'dart:async';
 import "dart:collection" show LinkedHashSet;
 
 import "package:expect/expect.dart";
@@ -22,7 +23,7 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Object setContext<T>(Set<T> object) => object;
   Object iterableContext<T>(Iterable<T> object) => object;
   Object foSetContext<T>(FutureOr<Set<T>> object) => object;
-  cbject foIterableContext<T>(FutureOr<Iterable<T>> object) => object;
+  Object foIterableContext<T>(FutureOr<Iterable<T>> object) => object;
   Object sContext(S object) => object;
   Object iContext(I object) => object;
 
@@ -113,8 +114,8 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Expect.equals(0, set.first.length);
 
   set = {{1}, {}};  // Set<Object>
-  Expect.type<Set<Object>>(x);
-  Expect.notType<Set<Set<Object>>>(x);
+  Expect.type<Set<Object>>(set);
+  Expect.notType<Set<Set<Object>>>(set);
 
   // Trailing comma.
   Iterable<Object> i;
@@ -124,7 +125,8 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
 
   o = {1, 2, 3,};
   Expect.type<Set<int>>(o);
-  Expect.equals(3, o.length);
+  set = o;
+  Expect.equals(3, set.length);
 }
 
 class Equality {
@@ -132,6 +134,6 @@ class Equality {
   final String name;
   const Equality(this.id, this.name);
   int get hashCode => id;
-  bool operator==(Object other) => other is Equality && id = other.id;
+  bool operator==(Object other) => other is Equality && id == other.id;
   String toString() => "$id:$name";
 }

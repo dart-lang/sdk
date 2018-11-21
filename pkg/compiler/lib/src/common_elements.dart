@@ -11,7 +11,6 @@ import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'native/native.dart';
@@ -1416,17 +1415,7 @@ class CommonElementsImpl
   FunctionEntity get boolConversionCheck =>
       _findHelperFunction('boolConversionCheck');
 
-  FunctionEntity get _consoleTraceHelper =>
-      _findHelperFunction('consoleTraceHelper');
-
-  FunctionEntity get _postTraceHelper => _findHelperFunction('postTraceHelper');
-
-  FunctionEntity _traceHelper;
-  FunctionEntity get traceHelper {
-    return _traceHelper ??= JavaScriptBackend.TRACE_METHOD == 'console'
-        ? _consoleTraceHelper
-        : _postTraceHelper;
-  }
+  FunctionEntity get traceHelper => _findHelperFunction('traceHelper');
 
   FunctionEntity get closureFromTearOff =>
       _findHelperFunction('closureFromTearOff');

@@ -241,6 +241,12 @@ class CompilerOptions implements DiagnosticOptions {
   /// Experimental part file function generation.
   bool experimentStartupFunctions = false;
 
+  /// Experimental instrumentation to investigate code bloat.
+  ///
+  /// If [true], the compiler will emit code that logs whenever a method is
+  /// called.
+  bool experimentCallInstrumentation = false;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using
@@ -298,6 +304,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
+      ..experimentCallInstrumentation =
+          _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)

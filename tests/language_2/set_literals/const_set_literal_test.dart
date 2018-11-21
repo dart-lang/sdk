@@ -4,6 +4,8 @@
 
 // SharedOptions=--enable-experiment=set-literals
 
+import 'dart:async';
+
 import "package:expect/expect.dart";
 
 void main() {

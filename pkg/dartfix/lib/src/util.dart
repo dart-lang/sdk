@@ -7,25 +7,6 @@ import 'dart:io' show File, Platform;
 import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart' as path;
 
-/// Read pubspec.yaml and return the version in that file.
-String get pubspecVersion {
-  String dir = path.dirname(Platform.script.toFilePath());
-  File pubspec = new File(path.join(dir, '..', 'pubspec.yaml'));
-
-  List<String> lines = pubspec.readAsLinesSync();
-  if (lines[0] != 'name: dartfix') {
-    throw 'Expected dartfix pubspec in: ${pubspec.path}';
-  }
-  String version;
-  if (lines[1].startsWith('version:')) {
-    version = lines[1].substring(8).trim();
-  }
-  if (version == null || version.isEmpty) {
-    throw 'Failed to find dartfix pubspec version in ${pubspec.path}';
-  }
-  return version;
-}
-
 int compareSuggestions(DartFixSuggestion s1, DartFixSuggestion s2) {
   int result = s1.description.compareTo(s2.description);
   if (result != 0) {

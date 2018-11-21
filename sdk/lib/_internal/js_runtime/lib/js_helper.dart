@@ -274,45 +274,42 @@ void throwInvalidReflectionError(String memberName) {
       "because it is not included in a @MirrorsUsed annotation.");
 }
 
-/// Helper to print the given method information to the console the first
-/// time it is called with it.
+/// Helper used to instrument calls when the compiler is invoked with
+/// `--experiment-call-instrumentation`.
+///
+/// By default, whenever a method is invoked for the first time, it prints an id
+/// and the method name to the console. This can be overriden by adding a top
+/// level `dartCallInstrumentation` hook in JavaScript.
 @NoInline()
-void consoleTraceHelper(String method) {
-  if (JS('bool', '!this.cache')) {
-    JS('', 'this.cache = Object.create(null)');
-  }
-  if (JS('bool', '!this.cache[#]', method)) {
-    JS('', 'console.log(#)', method);
-    JS('', 'this.cache[#] = true', method);
-  }
-}
-
-List _traceBuffer;
-
-/// Helper to send coverage information as a POST request to a server.
-@NoInline()
-void postTraceHelper(int id, String name) {
-  // Note: we can't move this initialization to the declaration of
-  // [_traceBuffer] because [postTraceHelper] is called very early on functions
-  // that define constants, this happens before getters and setters are expanded
-  // and before main starts executing. This initialization here allows us to
-  // skip the lazy field initialization logic.
-  if (_traceBuffer == null) _traceBuffer = JS('JSArray', '[]');
-  if (JS('bool', '#.length == 0', _traceBuffer)) {
-    JS(
-        '',
-        r'''
-      window.setTimeout((function(buffer) {
-        return function() {
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", "/coverage_uri_to_amend_by_server");
-          xhr.send(JSON.stringify(buffer));
-          buffer.length = 0;
-        };
-      })(#), 1000)''',
-        _traceBuffer);
-  }
-  JS('', '#.push([#, #])', _traceBuffer, id, name);
+void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
+  // Note: this method is written mostly in JavaScript to prevent a stack
+  // overflow. In particular, we use dynamic argument types because with with
+  // types, traceHelper would include type checks for the parameter types, those
+  // checks (intTypeCheck, stringTypeCheck) are themselves calls that end up
+  // invoking this traceHelper and produce a stack overflow.  Similarly if we
+  // had Dart code below using, for example, string interpolation, we would
+  // include extra calls to the Dart runtime that could also trigger a stack
+  // overflow. This approach here is simpler than making the compiler smart
+  // about how to generate traceHelper calls more carefully.
+  JS(
+      '',
+      r'''
+      (function (id, name) {
+        var hook = self.dartCallInstrumentation;
+        if (typeof hook === "function") {
+          hook(id, name);
+          return;
+        }
+        if (!this.callInstrumentationCache) {
+          this.callInstrumentationCache = Object.create(null);
+        }
+        if (!this.callInstrumentationCache[id]) {
+          console.log(id, name);
+          this.callInstrumentationCache[id] = true;
+        }
+      })(#, #)''',
+      id,
+      qualifiedName);
 }
 
 class JSInvocationMirror implements Invocation {

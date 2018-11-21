@@ -136,11 +136,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 //       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
-  V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
-    FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
-    FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
@@ -360,6 +356,10 @@ class Isolate : public BaseIsolate {
   Mutex* kernel_data_class_cache_mutex() const {
     return kernel_data_class_cache_mutex_;
   }
+
+  // Any access to constants arrays must be locked since mutator and
+  // background compiler can access the arrays at the same time.
+  Mutex* kernel_constants_mutex() const { return kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const {
@@ -687,8 +687,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool can_use_strong_mode_types() const {
-    return FLAG_strong && FLAG_use_strong_mode_types &&
-           !unsafe_trust_strong_mode_types();
+    return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
   }
 
   bool should_load_vmservice() const {
@@ -746,12 +745,10 @@ class Isolate : public BaseIsolate {
 
   // Convenience flag tester indicating whether incoming function arguments
   // should be type checked.
-  bool argument_type_checks() const {
-    return should_emit_strong_mode_checks() || type_checks();
-  }
+  bool argument_type_checks() const { return should_emit_strong_mode_checks(); }
 
   bool should_emit_strong_mode_checks() const {
-    return FLAG_strong && !unsafe_trust_strong_mode_types();
+    return !unsafe_trust_strong_mode_types();
   }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -966,6 +963,7 @@ class Isolate : public BaseIsolate {
   Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
   Mutex* kernel_data_lib_cache_mutex_;
   Mutex* kernel_data_class_cache_mutex_;
+  Mutex* kernel_constants_mutex_;
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   intptr_t defer_finalization_count_;

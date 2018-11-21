@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+import 'scope.dart';
 import 'static_type_base.dart';
 
 /// Visitor that computes and caches the static type of expression while
@@ -23,6 +24,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   StaticTypeVisitor(ir.TypeEnvironment typeEnvironment)
       : super(typeEnvironment);
+
+  Map<ir.Expression, ir.DartType> get staticTypeCacheForTesting => _cache;
+
+  VariableScopeModel get variableScopeModel => null;
 
   @override
   ir.DartType defaultNode(ir.Node node) =>
@@ -88,6 +93,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType _computePropertyGetType(
       ir.PropertyGet node, ir.DartType receiverType) {
     ir.Member interfaceTarget = node.interfaceTarget;
+    if (interfaceTarget == null && receiverType is ir.InterfaceType) {
+      interfaceTarget = node.interfaceTarget = typeEnvironment.hierarchy
+          .getInterfaceMember(receiverType.classNode, node.name);
+    }
     if (interfaceTarget != null) {
       ir.Class superclass = interfaceTarget.enclosingClass;
       receiverType = getTypeAsInstanceOf(receiverType, superclass);
@@ -124,6 +133,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitPropertySet(ir.PropertySet node) {
     ir.DartType receiverType = visitNode(node.receiver);
     ir.DartType valueType = super.visitPropertySet(node);
+    if (node.interfaceTarget == null && receiverType is ir.InterfaceType) {
+      node.interfaceTarget = typeEnvironment.hierarchy
+          .getInterfaceMember(receiverType.classNode, node.name, setter: true);
+    }
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
     handlePropertySet(node, receiverType, valueType);
     return valueType;
@@ -217,6 +230,75 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return receiverType;
   }
 
+  /// Returns `true` if [member] can be called with the structure of
+  /// [arguments].
+  bool _isApplicable(ir.Arguments arguments, ir.Member member) {
+    /// Returns `true` if [arguments] are applicable to the function type
+    /// structure.
+    bool isFunctionTypeApplicable(
+        int typeParameterCount,
+        int requiredParameterCount,
+        int positionalParameterCount,
+        Iterable<String> Function() getNamedParameters) {
+      if (arguments.types.isNotEmpty &&
+          arguments.types.length != typeParameterCount) {
+        return false;
+      }
+      if (arguments.positional.length < requiredParameterCount) {
+        return false;
+      }
+      if (arguments.positional.length > positionalParameterCount) {
+        return false;
+      }
+      Iterable<String> namedParameters = getNamedParameters();
+      if (arguments.named.length > namedParameters.length) {
+        return false;
+      }
+      if (arguments.named.isNotEmpty) {
+        for (ir.NamedExpression namedArguments in arguments.named) {
+          if (!namedParameters.contains(namedArguments.name)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    /// Returns `true` if [arguments] are applicable to a value of the static
+    /// [type].
+    bool isTypeApplicable(ir.DartType type) {
+      if (type is ir.DynamicType) return true;
+      if (type == typeEnvironment.rawFunctionType) return true;
+      if (type is ir.FunctionType) {
+        return isFunctionTypeApplicable(
+            type.typeParameters.length,
+            type.requiredParameterCount,
+            type.positionalParameters.length,
+            () => type.namedParameters.map((p) => p.name).toSet());
+      }
+      return false;
+    }
+
+    if (member is ir.Procedure) {
+      if (member.kind == ir.ProcedureKind.Setter ||
+          member.kind == ir.ProcedureKind.Factory) {
+        return false;
+      } else if (member.kind == ir.ProcedureKind.Getter) {
+        return isTypeApplicable(member.getterType);
+      } else if (member.kind == ir.ProcedureKind.Method ||
+          member.kind == ir.ProcedureKind.Operator) {
+        return isFunctionTypeApplicable(
+            member.function.typeParameters.length,
+            member.function.requiredParameterCount,
+            member.function.positionalParameters.length,
+            () => member.function.namedParameters.map((p) => p.name).toSet());
+      }
+    } else if (member is ir.Field) {
+      return isTypeApplicable(member.type);
+    }
+    return false;
+  }
+
   /// Computes the result type of the method invocation [node] on a receiver of
   /// type [receiverType].
   ///
@@ -234,6 +316,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         node.arguments.named.isEmpty) {
       interfaceTarget = node.interfaceTarget = objectEquals;
     }
+    if (interfaceTarget == null && receiverType is ir.InterfaceType) {
+      ir.Member member = typeEnvironment.hierarchy
+          .getInterfaceMember(receiverType.classNode, node.name);
+      if (_isApplicable(node.arguments, member)) {
+        interfaceTarget = node.interfaceTarget = member;
+      }
+    }
     if (interfaceTarget != null) {
       if (isSpecialCasedBinaryOperator(interfaceTarget)) {
         ir.DartType argumentType = argumentTypes.positional[0];
@@ -245,8 +334,21 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.DartType getterType = ir.Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
       if (getterType is ir.FunctionType) {
+        List<ir.DartType> typeArguments = node.arguments.types;
+        if (interfaceTarget is ir.Procedure &&
+            interfaceTarget.function.typeParameters.isNotEmpty &&
+            typeArguments.isEmpty) {
+          // If this was a dynamic call the invocation does not have the
+          // inferred default type arguments so we need to create them here
+          // to perform a valid substitution.
+          ir.Substitution substitution =
+              ir.Substitution.fromInterfaceType(receiverType);
+          typeArguments = interfaceTarget.function.typeParameters
+              .map((t) => substitution.substituteType(t.defaultType))
+              .toList();
+        }
         return ir.Substitution.fromPairs(
-                getterType.typeParameters, node.arguments.types)
+                getterType.typeParameters, typeArguments)
             .substituteType(getterType.returnType);
       } else {
         return const ir.DynamicType();
@@ -815,7 +917,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitVariableDeclaration(ir.VariableDeclaration node) {
-    visitNode(node.initializer);
+    ir.DartType type = visitNode(node.initializer);
+    if (node.initializer != null &&
+        variableScopeModel != null &&
+        variableScopeModel.isEffectivelyFinal(node)) {
+      node.type = type;
+    }
     handleVariableDeclaration(node);
   }
 }

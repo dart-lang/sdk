@@ -92,11 +92,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
-  R(enable_type_checks, false, bool, false, "Enable type checks.")             \
-  R(error_on_bad_override, false, bool, false,                                 \
-    "Report error for bad overrides. Ignored in strong mode.")                 \
-  R(error_on_bad_type, false, bool, false,                                     \
-    "Report error for malformed types.")                                       \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
   C(force_clone_compiler_objects, false, false, bool, false,                   \
@@ -158,12 +153,9 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
-  P(reify_generic_functions, bool, true,                                       \
-    "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong, bool, true, "Enable strong mode.")                                 \
   P(sync_async, bool, true, "Start `async` functions synchronously.")          \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
