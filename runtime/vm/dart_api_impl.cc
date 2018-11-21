@@ -1965,6 +1965,18 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
   return Api::ClassId(object) == kClosureCid;
 }
 
+DART_EXPORT bool Dart_IsTearOff(Dart_Handle object) {
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
+  if (obj.IsClosure()) {
+    const Closure& closure = Closure::Cast(obj);
+    const Function& func = Function::Handle(Z, closure.function());
+    return func.IsImplicitClosureFunction();
+  }
+  return false;
+}
+
 DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   intptr_t cid = Api::ClassId(handle);
   return RawObject::IsTypedDataClassId(cid) ||

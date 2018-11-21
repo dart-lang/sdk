@@ -861,6 +861,60 @@ TEST_CASE(DartAPI_FunctionOwner) {
   EXPECT_STREQ(url, lib_url);
 }
 
+TEST_CASE(DartAPI_IsTearOff) {
+  const char* kScriptChars =
+      "int getInt() { return 1; }\n"
+      "getTearOff() => getInt;\n"
+      "Function foo = () { print('baz'); };\n"
+      "class Baz {\n"
+      "  static int foo() => 42;\n"
+      "  getTearOff() => bar;\n"
+      "  int bar() => 24;\n"
+      "}\n"
+      "Baz getBaz() => Baz();\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  // Check tear-off of top-level static method.
+  Dart_Handle get_tear_off = Dart_GetField(lib, NewString("getTearOff"));
+  EXPECT_VALID(get_tear_off);
+  EXPECT(Dart_IsTearOff(get_tear_off));
+  Dart_Handle tear_off = Dart_InvokeClosure(get_tear_off, 0, NULL);
+  EXPECT_VALID(tear_off);
+  EXPECT(Dart_IsTearOff(tear_off));
+
+  // Check anonymous closures are not considered tear-offs.
+  Dart_Handle anonymous_closure = Dart_GetField(lib, NewString("foo"));
+  EXPECT_VALID(anonymous_closure);
+  EXPECT(!Dart_IsTearOff(anonymous_closure));
+
+  Dart_Handle baz_cls = Dart_GetClass(lib, NewString("Baz"));
+  EXPECT_VALID(baz_cls);
+
+  // Check tear-off for a static method in a class.
+  Dart_Handle closure =
+      Dart_GetStaticMethodClosure(lib, baz_cls, NewString("foo"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsTearOff(closure));
+
+  // Flutter will use Dart_IsTearOff in conjunction with Dart_ClosureFunction
+  // and Dart_FunctionIsStatic to prevent anonymous closures from being used to
+  // generate callback handles. We'll test that case here, just to be sure.
+  Dart_Handle function = Dart_ClosureFunction(closure);
+  EXPECT_VALID(function);
+  bool is_static = false;
+  Dart_Handle result = Dart_FunctionIsStatic(function, &is_static);
+  EXPECT_VALID(result);
+  EXPECT(is_static);
+
+  // Check tear-off for an instance method in a class.
+  Dart_Handle instance = Dart_Invoke(lib, NewString("getBaz"), 0, NULL);
+  EXPECT_VALID(instance);
+  closure = Dart_Invoke(instance, NewString("getTearOff"), 0, NULL);
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsTearOff(closure));
+}
+
 TEST_CASE(DartAPI_FunctionIsStatic) {
   const char* kScriptChars =
       "int getInt() { return 1; }\n"
