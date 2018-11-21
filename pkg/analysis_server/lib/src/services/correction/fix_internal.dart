@@ -40,6 +40,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -477,6 +478,10 @@ class FixProcessor {
     if (errorCode ==
         CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE) {
       await _addFix_extendClassForMixin();
+    }
+    if (errorCode == HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE) {
+      await _addFix_importAsync();
+      await _addFix_updateSdkConstraints();
     }
     // lints
     if (errorCode is LintCode) {
@@ -2134,6 +2139,11 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_RETURN_TYPE_FUTURE);
   }
 
+  Future<void> _addFix_importAsync() async {
+    await _addFix_importLibrary(
+        DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async'));
+  }
+
   Future<void> _addFix_importLibrary(FixKind kind, Uri library) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -3410,6 +3420,53 @@ class FixProcessor {
       }
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
+  }
+
+  Future<void> _addFix_updateSdkConstraints() async {
+    Context context = resourceProvider.pathContext;
+    File pubspecFile = null;
+    Folder folder = resourceProvider.getFolder(context.dirname(file));
+    while (folder != null) {
+      pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+      if (pubspecFile.exists) {
+        break;
+      }
+      pubspecFile = null;
+      folder = folder.parent;
+    }
+    if (pubspecFile == null) {
+      return;
+    }
+    SdkConstraintExtractor extractor = new SdkConstraintExtractor(pubspecFile);
+    String text = extractor.constraintText();
+    int offset = extractor.constraintOffset();
+    int length = text.length;
+    if (text == null || offset < 0) {
+      return;
+    }
+    String newText;
+    int spaceOffset = text.indexOf(' ');
+    if (spaceOffset >= 0) {
+      length = spaceOffset;
+    }
+    if (text == 'any') {
+      newText = '^2.1.0';
+    } else if (text.startsWith('^')) {
+      newText = '^2.1.0';
+    } else if (text.startsWith('>=')) {
+      newText = '>=2.1.0';
+    } else if (text.startsWith('>')) {
+      newText = '>=2.1.0';
+    }
+    if (newText == null) {
+      return;
+    }
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(pubspecFile.path,
+        (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(new SourceRange(offset, length), newText);
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.UPDATE_SDK_CONSTRAINTS);
   }
 
   Future<void> _addFix_useEffectiveIntegerDivision() async {

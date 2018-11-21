@@ -178,6 +178,8 @@ class DartFixKind {
       'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const EXTEND_CLASS_FOR_MIXIN =
       const FixKind('EXTEND_CLASS_FOR_MIXIN', 50, "Extend the class '{0}'");
+  static const IMPORT_ASYNC =
+      const FixKind('IMPORT_ASYNC', 49, "Import 'dart:async'");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',
       49, "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT1 =
@@ -273,6 +275,8 @@ class DartFixKind {
       "Replace the '.' with a '?.' in the invocation");
   static const REPLACE_WITH_TEAR_OFF = const FixKind(
       'REPLACE_WITH_TEAR_OFF', 50, "Replace function literal with tear-off");
+  static const UPDATE_SDK_CONSTRAINTS =
+      const FixKind('UPDATE_SDK_CONSTRAINTS', 50, "Update the SDK constraints");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION',

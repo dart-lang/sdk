@@ -12,44 +12,84 @@ class SdkConstraintExtractor {
   /// The file from which the constraint is to be extracted.
   final File pubspecFile;
 
-  /// The version range that was
+  /// A flag indicating whether the [_constraintText], [_constraintOffset] and
+  /// [_constraint] have been initialized.
+  bool _initialized = false;
+
+  /// The text of the constraint, or `null` if the range has not yet been
+  /// computed or if there was an error when attempting to compute the range.
+  String _constraintText;
+
+  /// The offset of the constraint text, or `-1` if the offset is not known.
+  int _constraintOffset = -1;
+
+  /// The cached range of supported versions, or `null` if the range has not yet
+  /// been computed or if there was an error when attempting to compute the
+  /// range.
   VersionConstraint _constraint;
 
   /// Initialize a newly created extractor to extract the SDK version constraint
   /// from the given `pubspec.yaml` file.
   SdkConstraintExtractor(this.pubspecFile);
 
-  /// Return the range of supported versions.
+  /// Return the range of supported versions, or `null` if the range could not
+  /// be computed.
   VersionConstraint constraint() {
     if (_constraint == null) {
-      try {
-        String constraintText = _getConstraintText();
-        if (constraintText != null) {
-          _constraint = new VersionConstraint.parse(constraintText);
+      String text = constraintText();
+      if (text != null) {
+        try {
+          _constraint = new VersionConstraint.parse(text);
+        } catch (e) {
+          // Ignore this, leaving [_constraint] unset.
         }
-      } catch (e) {
-        // Return `null` by falling through without setting `_versionRange`.
       }
     }
     return _constraint;
   }
 
+  /// Return the offset of the constraint text.
+  int constraintOffset() {
+    if (_constraintText == null) {
+      _initializeTextAndOffset();
+    }
+    return _constraintOffset;
+  }
+
   /// Return the constraint text following "sdk:".
-  String _getConstraintText() {
-    String fileContent = pubspecFile.readAsStringSync();
-    YamlDocument document = loadYamlDocument(fileContent);
-    YamlNode contents = document.contents;
-    if (contents is YamlMap) {
-      var environment = contents['environment'];
-      if (environment is YamlMap) {
-        var sdk = environment['sdk'];
-        if (sdk is String) {
-          return sdk;
-        } else if (sdk is YamlScalar) {
-          return sdk.toString();
+  String constraintText() {
+    if (_constraintText == null) {
+      _initializeTextAndOffset();
+    }
+    return _constraintText;
+  }
+
+  /// Initialize both [_constraintText] and [_constraintOffset], or neither if
+  /// there is an error or if the pubspec does not contain an sdk constraint.
+  void _initializeTextAndOffset() {
+    if (!_initialized) {
+      _initialized = true;
+      try {
+        String fileContent = pubspecFile.readAsStringSync();
+        YamlDocument document = loadYamlDocument(fileContent);
+        YamlNode contents = document.contents;
+        if (contents is YamlMap) {
+          YamlNode environment = contents.nodes['environment'];
+          if (environment is YamlMap) {
+            YamlNode sdk = environment.nodes['sdk'];
+            if (sdk is YamlScalar) {
+              _constraintText = sdk.value;
+              _constraintOffset = sdk.span.start.offset;
+              if (sdk.style == ScalarStyle.SINGLE_QUOTED ||
+                  sdk.style == ScalarStyle.DOUBLE_QUOTED) {
+                _constraintOffset++;
+              }
+            }
+          }
         }
+      } catch (e) {
+        // Ignore this, leaving both fields unset.
       }
     }
-    return null;
   }
 }

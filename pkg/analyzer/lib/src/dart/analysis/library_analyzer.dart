@@ -266,7 +266,7 @@ class LibraryAnalyzer {
     // version allowed in the pubspec.yaml file.
     //
     VersionRange versionRange = versionConstraintFromPubspec();
-    if (versionRange != noSpecifiedRange) {
+    if (!identical(versionRange, noSpecifiedRange)) {
       SdkConstraintVerifier verifier = new SdkConstraintVerifier(
           errorReporter, _libraryElement, _typeProvider, versionRange);
       unit.accept(verifier);
