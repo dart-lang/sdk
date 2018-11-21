@@ -79,10 +79,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
   @Deprecated('This factory exists temporary until AnalysisSession migration.')
   factory ParsedLibraryResultImpl.tmp(LibraryElement library) {
-    var libraryPath = library.source.fullName;
     var session = library.session;
     if (session != null) {
-      return session.getParsedLibrary(libraryPath);
+      return session.getParsedLibraryByElement(library);
     } else {
       var analysisContext = library.context;
       var units = <ParsedUnitResult>[];
@@ -105,6 +104,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
             unitSource != library.source,
             unit, const []));
       }
+      var libraryPath = library.source.fullName;
       return ParsedLibraryResultImpl(
           null, libraryPath, library.source.uri, units);
     }
@@ -213,10 +213,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @Deprecated('This method exists temporary until AnalysisSession migration.')
   static Future<ResolvedLibraryResult> tmp(LibraryElement library) async {
-    var libraryPath = library.source.fullName;
     var session = library.session;
     if (session != null) {
-      return await session.getResolvedLibrary(libraryPath);
+      return session.getResolvedLibraryByElement(library);
     } else {
       var units = <ResolvedUnitResult>[];
       var analysisContext = library.context;
@@ -234,6 +233,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
         units.add(ResolvedUnitResultImpl(null, path, unitSource.uri, true,
             content, lineInfo, unitSource != library.source, unit, const []));
       }
+      var libraryPath = library.source.fullName;
       return ResolvedLibraryResultImpl(null, libraryPath, library.source.uri,
           library, library.context.typeProvider, units);
     }
