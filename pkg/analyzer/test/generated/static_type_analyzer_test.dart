@@ -33,6 +33,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
+    defineReflectiveTests(StaticTypeAnalyzer3Test);
   });
 }
 
@@ -176,6 +177,48 @@ main() {
       expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
       expect(type.typeFormals, isEmpty);
     }
+  }
+}
+
+/**
+ * End-to-end tests of the static type analyzer that use the new driver.
+ */
+@reflectiveTest
+class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
+  bool get enableNewAnalysisDriver => true;
+
+  test_emptyMapLiteral_inContext() async {
+    String code = r'''
+main() {
+  useMap({});
+}
+void useMap(Map<int, int> m) {
+}
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Map<int, int>');
+  }
+
+  test_emptyMapLiteral_notInContext() async {
+    String code = r'''
+main() {
+  var v = {};
+}
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Map<dynamic, dynamic>');
+  }
+
+  test_emptySetLiteral_inContext() async {
+    String code = r'''
+main() {
+  useSet({});
+}
+void useSet(Set<int> s) {
+}
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Set<int>');
   }
 }
 

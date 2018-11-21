@@ -1127,6 +1127,7 @@ class TypeProviderImplTest extends EngineTestCase {
         _classElement("Iterable", objectType, ["T"]).type;
     InterfaceType listType = _classElement("List", objectType, ["E"]).type;
     InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
+    InterfaceType setType = _classElement("Set", objectType, ["E"]).type;
     InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
     InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
     InterfaceType stringType = _classElement("String", objectType).type;
@@ -1141,18 +1142,23 @@ class TypeProviderImplTest extends EngineTestCase {
       iterableType.element,
       listType.element,
       mapType.element,
+      setType.element,
       objectType.element,
       stackTraceType.element,
       stringType.element,
       symbolType.element,
       typeType.element
     ];
+    coreUnit.source = new TestSource('dart:core');
+    coreUnit.librarySource = coreUnit.source;
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     asyncUnit.types = <ClassElement>[
       futureType.element,
       futureOrType.element,
       streamType.element
     ];
+    asyncUnit.source = new TestSource('dart:async');
+    asyncUnit.librarySource = asyncUnit.source;
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;

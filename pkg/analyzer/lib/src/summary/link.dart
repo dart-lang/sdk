@@ -5327,10 +5327,12 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _iterableType;
   InterfaceType _listType;
   InterfaceType _mapType;
+  InterfaceType _mapNullNullType;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
   InterfaceType _setType;
+  InterfaceType _setNullType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -5399,6 +5401,10 @@ class TypeProviderForLink extends TypeProviderBase {
       _listType ??= _buildInterfaceType(_linker.coreLibrary, 'List');
 
   @override
+  InterfaceType get mapNullNullType =>
+      _mapNullNullType ??= mapType.instantiate(<DartType>[nullType, nullType]);
+
+  @override
   InterfaceType get mapType =>
       _mapType ??= _buildInterfaceType(_linker.coreLibrary, 'Map');
 
@@ -5419,6 +5425,10 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get objectType =>
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
+
+  @override
+  InterfaceType get setNullType =>
+      _setNullType ??= setType.instantiate(<DartType>[nullType]);
 
   @override
   InterfaceType get setType =>

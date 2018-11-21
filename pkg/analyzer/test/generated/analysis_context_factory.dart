@@ -130,6 +130,7 @@ class AnalysisContextFactory {
       objectClassElement,
       overrideClassElement,
       proxyClassElement,
+      provider.setType.element,
       provider.stackTraceType.element,
       provider.stringType.element,
       provider.symbolType.element,

@@ -11,6 +11,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -171,6 +173,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
+    if (contextType != null &&
+        node.typeArguments == null &&
+        node.entries.isEmpty &&
+        _typeSystem.isAssignableTo(_typeProvider.setNullType, contextType) &&
+        !_typeSystem.isAssignableTo(
+            _typeProvider.mapNullNullType, contextType)) {
+      // The node is really an empty set literal with no type arguments. Rewrite
+      // the AST and infer the type of the set as appropriate.
+      SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
+          node.constKeyword, null, node.leftBracket, null, node.rightBracket);
+      InferenceContext.setType(setLiteral, contextType);
+      NodeReplacer.replace(node, setLiteral);
+      DartType type = inferSetType(setLiteral, downwards: downwards);
+      setLiteral.staticType = type;
+      return type;
+    }
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
     if (downwards) {

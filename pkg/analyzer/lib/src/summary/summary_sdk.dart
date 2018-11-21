@@ -131,11 +131,13 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _iterableType;
   InterfaceType _listType;
   InterfaceType _mapType;
+  InterfaceType _mapNullNullType;
   DartObjectImpl _nullObject;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
   InterfaceType _setType;
+  InterfaceType _setNullType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -248,6 +250,13 @@ class SummaryTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get mapNullNullType {
+    assert(_coreLibrary != null);
+    return _mapNullNullType ??=
+        mapType.instantiate(<DartType>[nullType, nullType]);
+  }
+
+  @override
   InterfaceType get mapType {
     assert(_coreLibrary != null);
     _mapType ??= _getType(_coreLibrary, "Map");
@@ -281,6 +290,12 @@ class SummaryTypeProvider extends TypeProviderBase {
     assert(_coreLibrary != null);
     _objectType ??= _getType(_coreLibrary, "Object");
     return _objectType;
+  }
+
+  @override
+  InterfaceType get setNullType {
+    assert(_coreLibrary != null);
+    return _setNullType ??= setType.instantiate(<DartType>[nullType]);
   }
 
   @override

@@ -109,6 +109,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _mapType;
 
   /**
+   * The type representing the built-in type 'Map'.
+   */
+  InterfaceType _mapNullNullType;
+
+  /**
    * An shared object representing the value 'null'.
    */
   DartObjectImpl _nullObject;
@@ -132,6 +137,11 @@ class TestTypeProvider extends TypeProviderBase {
    * The type representing the built-in type 'Set'.
    */
   InterfaceType _setType;
+
+  /**
+   * The type representing the built-in type 'Set'.
+   */
+  InterfaceType _setNullType;
 
   /**
    * The type representing the built-in type 'StackTrace'.
@@ -389,6 +399,14 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get mapNullNullType {
+    if (_mapNullNullType == null) {
+      _mapNullNullType = mapType.instantiate(<DartType>[nullType, nullType]);
+    }
+    return _mapNullNullType;
+  }
+
+  @override
   InterfaceType get mapType {
     if (_mapType == null) {
       ClassElementImpl mapElement =
@@ -476,9 +494,17 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get setNullType {
+    if (_setNullType == null) {
+      _setNullType = setType.instantiate(<DartType>[nullType]);
+    }
+    return _setNullType;
+  }
+
+  @override
   InterfaceType get setType {
     if (_setType == null) {
-      ClassElementImpl setElement = ElementFactory.classElement2("Set");
+      ClassElementImpl setElement = ElementFactory.classElement2("Set", ["E"]);
       _setType = setElement.type;
     }
     return _setType;

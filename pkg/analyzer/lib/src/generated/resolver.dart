@@ -5180,6 +5180,15 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else {
       mapT = typeAnalyzer.inferMapType(node, downwards: true);
+      if (mapT != null &&
+          node.typeArguments == null &&
+          node.entries.isEmpty &&
+          typeSystem.isAssignableTo(typeProvider.setNullType, mapT) &&
+          !typeSystem.isAssignableTo(typeProvider.mapNullNullType, mapT)) {
+        // The node is really an empty set literal with no type arguments, so
+        // don't try to visit the replaced map literal.
+        return;
+      }
     }
     if (mapT != null) {
       DartType kType = mapT.typeArguments[0];
@@ -7808,6 +7817,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'List'.
   InterfaceType get listType;
 
+  /// Return the type representing 'Map<Null, Null>'.
+  InterfaceType get mapNullNullType;
+
   /// Return the type representing the built-in type 'Map'.
   InterfaceType get mapType;
 
@@ -7826,6 +7838,9 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type 'Object'.
   InterfaceType get objectType;
+
+  /// Return the type representing 'Set<Null>'.
+  InterfaceType get setNullType;
 
   /// Return the type representing the built-in type 'Set'.
   InterfaceType get setType;
@@ -7947,11 +7962,17 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'Map'.
   InterfaceType _mapType;
 
+  /// The type representing the built-in type 'Map<Null, Null>'.
+  InterfaceType _mapNullNullType;
+
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
   /// The type representing the type 'Set'.
   InterfaceType _setType;
+
+  /// The type representing the type 'Set<Null>'.
+  InterfaceType _setNullType;
 
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
@@ -8046,6 +8067,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get listType => _listType;
 
   @override
+  InterfaceType get mapNullNullType => _mapNullNullType;
+
+  @override
   InterfaceType get mapType => _mapType;
 
   @override
@@ -8064,6 +8088,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get objectType => _objectType;
+
+  @override
+  InterfaceType get setNullType => _setNullType;
 
   @override
   InterfaceType get setType => _setType;
@@ -8133,6 +8160,8 @@ class TypeProviderImpl extends TypeProviderBase {
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
+    _mapNullNullType = _mapType.instantiate(<DartType>[_nullType, _nullType]);
+    _setNullType = _setType.instantiate(<DartType>[_nullType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
     // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
     // doesn't have it yet, create an element for it.
