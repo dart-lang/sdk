@@ -25,24 +25,15 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  test_unknown_request() async {
-    await initialize();
-    final request = makeRequest('randomRequest', null);
-    final response = await channel.sendRequestToServer(request);
-    expect(response.id, equals(request.id));
-    expect(response.error, isNotNull);
-    expect(response.result, isNull);
-  }
-
   test_unknown_dollar_notification_are_silently_ignored() async {
     await initialize();
     final notification = makeNotification(r'$/randomNotification', null);
-    final errorNotifications = channel.errorNotificationsFromServer.first;
+    final firstError = channel.errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    final notificationFromServer = await errorNotifications.timeout(
+    final notificationFromServer = await firstError.timeout(
       const Duration(seconds: 1),
       onTimeout: () {
         didTimeout = true;
@@ -59,5 +50,14 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     // unknown $/ requests.
     // https://github.com/Microsoft/language-server-protocol/issues/607
     fail('TODO(dantup)');
+  }
+
+  test_unknown_request() async {
+    await initialize();
+    final request = makeRequest('randomRequest', null);
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.error, isNotNull);
+    expect(response.result, isNull);
   }
 }

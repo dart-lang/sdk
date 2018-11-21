@@ -48,23 +48,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         response.error.code, equals(ServerErrorCodes.ServerAlreadyInitialized));
   }
 
-  test_requests_before_initialize_are_rejected_and_logged() async {
-    final request = makeRequest('randomRequest', null);
-    final nextNotification = channel.errorNotificationsFromServer.first;
-    final response = await channel.sendRequestToServer(request);
-    expect(response.id, equals(request.id));
-    expect(response.result, isNull);
-    expect(response.error, isNotNull);
-    expect(response.error.code, ErrorCodes.ServerNotInitialized);
-    final notification = await nextNotification;
-    expect(notification.method, equals('window/logMessage'));
-    LogMessageParams logParams = notification.params.map(
-      (_) => throw 'Expected dynamic, got List<dynamic>',
-      (params) => params,
-    );
-    expect(logParams.type, equals(MessageType.Error));
-  }
-
   test_notifications_before_initialize_are_silently_dropped() async {
     final notification = makeNotification('randomNotification', null);
     final nextNotification = channel.errorNotificationsFromServer.first;
@@ -81,5 +64,17 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     expect(notificationFromServer, isNull);
     expect(didTimeout, isTrue);
+  }
+
+  test_requests_before_initialize_are_rejected_and_logged() async {
+    final request = makeRequest('randomRequest', null);
+    final logParams = await expectErrorNotification<LogMessageParams>(() async {
+      final response = await channel.sendRequestToServer(request);
+      expect(response.id, equals(request.id));
+      expect(response.result, isNull);
+      expect(response.error, isNotNull);
+      expect(response.error.code, ErrorCodes.ServerNotInitialized);
+    });
+    expect(logParams.type, equals(MessageType.Error));
   }
 }

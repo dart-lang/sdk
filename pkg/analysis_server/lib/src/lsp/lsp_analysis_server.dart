@@ -185,9 +185,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void changeTextDocument(VersionedTextDocumentIdentifier id,
       List<TextDocumentContentChangeEvent> changes) {
     final path = Uri.parse(id.uri).toFilePath();
+    final oldContents = fileContentOverlay[path];
     // TODO(dantup): Should we be tracking the version?
 
-    final oldContents = fileContentOverlay[path];
+    // Visual Studio has been seen to skip didOpen notifications for files that
+    // were already open when the LSP server initialized, so handle this with
+    // a specific message to make it clear what's happened.
+    if (oldContents == null) {
+      throw new ResponseError(
+        ErrorCodes.InvalidParams,
+        'Unable to apply changes because the file was not previously opened: $path',
+        null,
+      );
+    }
     final newContents = applyEdits(oldContents, changes);
 
     fileContentOverlay[path] = newContents;
@@ -260,15 +270,21 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           final result = await handler.handleMessage(message);
           if (message is RequestMessage) {
             channel.sendResponse(
-                new ResponseMessage(message.id, result, null, "2.0"));
+                new ResponseMessage(message.id, result, null, jsonRpcVersion));
           }
         } on ResponseError catch (error) {
           sendErrorResponse(message, error);
         } catch (error, stackTrace) {
           sendErrorResponse(
               message,
-              new ResponseError(ServerErrorCodes.UnhandledError,
-                  error.toString(), stackTrace?.toString()));
+              new ResponseError(
+                  ServerErrorCodes.UnhandledError,
+                  'An error occurred while handling ${message.method} message',
+                  null));
+          logError(error.toString());
+          if (stackTrace != null) {
+            logError(stackTrace.toString());
+          }
         }
       });
     }, onError: (error, stackTrace) {
@@ -278,6 +294,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
               stackTrace?.toString()));
       return;
     });
+  }
+
+  void logError(String message) {
+    channel.sendNotification(new NotificationMessage(
+        'window/logMessage',
+        Either2<List<dynamic>, dynamic>.t2(
+            new LogMessageParams(MessageType.Error, message)),
+        jsonRpcVersion));
   }
 
   void openTextDocument(TextDocumentItem doc) {
@@ -295,21 +319,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void sendErrorResponse(IncomingMessage message, ResponseError error) {
     if (message is RequestMessage) {
-      channel.sendResponse(new ResponseMessage(message.id, null, error, "2.0"));
-      // TODO(dantup): Figure out if it's necessary to send log events to make
-      // errors visible at the client end, or if the normal error responses are
-      // usually visible somewhere.
-      channel.sendNotification(new NotificationMessage(
-          'window/logMessage',
-          Either2<List<dynamic>, dynamic>.t2(
-              new LogMessageParams(MessageType.Error, error.message)),
-          "2.0"));
+      channel.sendResponse(
+          new ResponseMessage(message.id, null, error, jsonRpcVersion));
+      // Since the LSP client might not show the failed requests to the user,
+      // also ensure the error is logged to the client.
+      logError(error.message);
     } else {
       channel.sendNotification(new NotificationMessage(
           'window/showMessage',
           Either2<List<dynamic>, dynamic>.t2(
               new ShowMessageParams(MessageType.Error, error.message)),
-          "2.0"));
+          jsonRpcVersion));
     }
   }
 
@@ -421,7 +441,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         final message = new NotificationMessage(
             'textDocument/publishDiagnostics',
             Either2<List<dynamic>, dynamic>.t2(params),
-            '2.0');
+            jsonRpcVersion);
         analysisServer.sendNotification(message);
       }
     });

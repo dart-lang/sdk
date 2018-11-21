@@ -111,6 +111,19 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     await pumpEventQueue();
   }
 
+  Future<T> expectErrorNotification<T>(
+    FutureOr<void> f(), {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final firstError = channel.errorNotificationsFromServer.first;
+    await f();
+
+    final notificationFromServer = await firstError.timeout(timeout);
+
+    expect(notificationFromServer, isNotNull);
+    return notificationFromServer.params.map((t2) => t2 as T, (t2) => t2 as T);
+  }
+
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
@@ -212,13 +225,13 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
 
   NotificationMessage makeNotification(String method, ToJsonable params) {
     return new NotificationMessage(
-        method, Either2<List<dynamic>, dynamic>.t2(params), '2.0');
+        method, Either2<List<dynamic>, dynamic>.t2(params), jsonRpcVersion);
   }
 
   RequestMessage makeRequest(String method, ToJsonable params) {
     final id = Either2<num, String>.t1(_id++);
     return new RequestMessage(
-        id, method, Either2<List<dynamic>, dynamic>.t2(params), '2.0');
+        id, method, Either2<List<dynamic>, dynamic>.t2(params), jsonRpcVersion);
   }
 
   Future openFile(Uri uri, String content) async {

@@ -16,6 +16,29 @@ main() {
 
 @reflectiveTest
 class FileModificationTest extends AbstractLspAnalysisServerTest {
+  test_document_change_in_unopened_file() async {
+    // It's not valid for a client to send a request to modify a file that it
+    // has not opened, but Visual Studio has done it in the past so we should
+    // ensure it generates an obvious error that the user can understand.
+    final simpleEdit = new TextDocumentContentChangeEvent(
+      new Range(new Position(1, 1), new Position(1, 1)),
+      null,
+      'test',
+    );
+    await initialize();
+    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+      () => changeFile(mainFileUri, [simpleEdit]),
+    );
+    expect(notificationParams, isNotNull);
+    expect(
+      notificationParams.message,
+      allOf(
+        contains('because the file was not previously opened'),
+        contains(mainFilePath),
+      ),
+    );
+  }
+
   test_document_change_partial() async {
     final initialContent = '0123456789\n0123456789';
     final expectedUpdatedContent = '0123456789\n01234   89';

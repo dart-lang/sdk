@@ -53,11 +53,11 @@ class LspSocketServer {
           'window/showMessage',
           Either2<List<dynamic>, dynamic>.t2(
               new ShowMessageParams(MessageType.Error, error.message)),
-          '2.0'));
+          jsonRpcVersion));
       serverChannel.listen((IncomingMessage message) {
         if (message is RequestMessage) {
           serverChannel.sendResponse(
-              new ResponseMessage(message.id, null, error, '2.0'));
+              new ResponseMessage(message.id, null, error, jsonRpcVersion));
         }
       });
       return;
