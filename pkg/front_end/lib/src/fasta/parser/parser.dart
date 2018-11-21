@@ -1208,8 +1208,10 @@ class Parser {
           } else if (next.kind == IDENTIFIER_TOKEN &&
               next.next.kind == IDENTIFIER_TOKEN) {
             // Looks like a missing comma
-            Token comma = new SyntheticToken(TokenType.COMMA, next.charOffset);
-            token = rewriter.insertToken(token, comma);
+            token = rewriteAndRecover(
+                token,
+                fasta.templateExpectedButGot.withArguments(','),
+                new SyntheticToken(TokenType.COMMA, next.charOffset));
             continue;
           } else {
             token = ensureCloseParen(token, begin);
