@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:dart_style/dart_style.dart';
@@ -14,6 +15,8 @@ class FormattingHandler extends MessageHandler {
   final LspAnalysisServer server;
   final DartFormatter formatter = new DartFormatter();
   FormattingHandler(this.server);
+
+  @override
   List<String> get handlesMessages => const ['textDocument/formatting'];
 
   FutureOr<List<TextEdit>> handleFormatDocument(

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class TextDocumentChangeHandler extends MessageHandler {
@@ -20,6 +21,7 @@ class TextDocumentChangeHandler extends MessageHandler {
   /**
    * The messages that this handler can handle.
    */
+  @override
   List<String> get handlesMessages => const [
         'textDocument/didOpen',
         'textDocument/didChange',
@@ -36,6 +38,12 @@ class TextDocumentChangeHandler extends MessageHandler {
 
   @override
   Object handleMessage(IncomingMessage message) {
+    // TODO(dantup): Make all handlers handle on a single request (we can
+    // split this into three, but keep together in this file) then simplify
+    // this boilerplate so the convert params can be done further up (though
+    // we'll need to provide the fromJson function in a super constructor
+    // call or similar).
+
     if (message is! NotificationMessage) {
       throw 'Unexpected message (expected NotificationMessage but got ${message.runtimeType})';
     }

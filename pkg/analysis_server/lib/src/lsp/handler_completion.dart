@@ -7,6 +7,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -41,6 +42,8 @@ final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
 class CompletionHandler extends MessageHandler {
   final LspAnalysisServer server;
   CompletionHandler(this.server);
+
+  @override
   List<String> get handlesMessages => const ['textDocument/completion'];
 
   Future<List<CompletionItem>> handleCompletion(CompletionParams params) async {

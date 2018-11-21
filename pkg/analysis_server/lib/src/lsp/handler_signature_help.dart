@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -15,6 +16,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 class SignatureHelpHandler extends MessageHandler {
   final LspAnalysisServer server;
   SignatureHelpHandler(this.server);
+
+  @override
   List<String> get handlesMessages => const ['textDocument/signatureHelp'];
 
   @override

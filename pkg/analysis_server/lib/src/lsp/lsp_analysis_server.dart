@@ -12,13 +12,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
-import 'package:analysis_server/src/lsp/handler_completion.dart';
-import 'package:analysis_server/src/lsp/handler_definition.dart';
-import 'package:analysis_server/src/lsp/handler_formatting.dart';
-import 'package:analysis_server/src/lsp/handler_hover.dart';
-import 'package:analysis_server/src/lsp/handler_initialization.dart';
-import 'package:analysis_server/src/lsp/handler_signature_help.dart';
-import 'package:analysis_server/src/lsp/handler_text_document_changes.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -38,26 +33,11 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:watcher/watcher.dart';
 
-enum InitializationState {
-  /// The initialize request has not been received.
-  Uninitialized,
-
-  /// The initialize request has been recieved but the initialized notification
-  /// has not.
-  Initializing,
-
-  /// Both the initialize request and the initialized notification have been
-  /// recieved.
-  Initialized
-}
-
 /**
  * Instances of the class [LspAnalysisServer] implement an LSP-based server that
- * listens on a [CommunicationChannel] for analysis requests and process them.
+ * listens on a [CommunicationChannel] for LSP messages and processes them.
  */
 class LspAnalysisServer extends AbstractAnalysisServer {
-  InitializationState state = InitializationState.Uninitialized;
-
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
 
@@ -67,18 +47,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   AnalysisServerOptions options;
 
   /**
-   * The channel from which requests are received and to which responses should
+   * The channel from which messages are received and to which responses should
    * be sent.
    */
   final LspServerCommunicationChannel channel;
 
   final NotificationManager notificationManager = new NullNotificationManager();
-
-  /**
-   * A list of the request handlers used to handle the requests sent to this
-   * server.
-   */
-  Map<String, MessageHandler> handlers = {};
 
   /**
    * The object used to manage the SDK's known to this server.
@@ -119,14 +93,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   nd.AnalysisDriverScheduler analysisDriverScheduler;
 
+  ServerStateMessageHandler messageHandler;
+
   /**
-   * Initialize a newly created server to receive requests from and send
-   * responses to the given [channel].
-   *
-   * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
-   * propagated up the call stack.  The default is true to allow analysis
-   * exceptions to show up in unit tests, but it should be set to false when
-   * running a full analysis server.
+   * Initialize a newly created server to send and receive messages to the given
+   * [channel].
    */
   LspAnalysisServer(
     this.channel,
@@ -136,6 +107,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     this.instrumentationService, {
     ResolverProvider packageResolverProvider: null,
   }) : super(resourceProvider) {
+    messageHandler = new UninitializedStateMessageHandler(this);
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
@@ -169,13 +141,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         new LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
 
-    _registerHandler(new InitializationHandler(this));
-    _registerHandler(new TextDocumentChangeHandler(this));
-    _registerHandler(new HoverHandler(this));
-    _registerHandler(new CompletionHandler(this));
-    _registerHandler(new SignatureHelpHandler(this));
-    _registerHandler(new DefinitionHandler(this));
-    _registerHandler(new FormattingHandler(this));
     channel.listen(handleMessage, onDone: done, onError: error);
   }
 
@@ -215,14 +180,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /**
-   * The socket from which requests are being read has been closed.
+   * The socket from which messages are being read has been closed.
    */
   void done() {
     // TODO(dantup): Do we need to do anything here?
   }
 
   /**
-   * There was an error related to the socket from which requests are being
+   * There was an error related to the socket from which messages are being
    * read.
    */
   void error(error, stack) {
@@ -232,42 +197,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /**
-   * Handle a [request] that was read from the communication channel.
+   * Handle a [message] that was read from the communication channel.
    */
   void handleMessage(IncomingMessage message) {
     // TODO(dantup): Put in all the things this server is missing, like:
-    //     _performance.logRequest(request);
+    //     _performance.logRequest(message);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
-        // No requests are allowed before the initialize request/response.
-        if ((state == InitializationState.Uninitialized &&
-                message.method != 'initialize') ||
-            (state == InitializationState.Initializing &&
-                message.method != 'initialized')) {
-          // Only send not initialized errors for requests - notifications
-          // sent before initialization should be dropped.
-          if (message is RequestMessage) {
-            _sendNotInitializedError(message);
-          }
-          return;
-        }
-
-        final handler = handlers[message.method];
-        if (handler == null) {
-          // Messages that start with $/ are optional and can be silently ignored
-          // if we don't know how to handle them.
-          final isOptionalRequest = message.method.startsWith(r'$/');
-          if (!isOptionalRequest) {
-            // TODO(dantup): How should we handle unknown notifications that do
-            // *not* start with $/?
-            // https://github.com/Microsoft/language-server-protocol/issues/608
-            _sendUnknownMethodError(message);
-          }
-          return;
-        }
-
         try {
-          final result = await handler.handleMessage(message);
+          final result = await messageHandler.handleMessage(message);
           if (message is RequestMessage) {
             channel.sendResponse(
                 new ResponseMessage(message.id, result, null, jsonRpcVersion));
@@ -380,28 +318,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     });
 
     return new Future.value();
-  }
-
-  _registerHandler(MessageHandler handler) {
-    for (final message in handler.handlesMessages) {
-      handlers[message] = handler;
-    }
-  }
-
-  void _sendNotInitializedError(IncomingMessage message) {
-    sendErrorResponse(
-        message,
-        new ResponseError(
-            ErrorCodes.ServerNotInitialized,
-            'Unable to handle ${message.method} before server is initialized',
-            null));
-  }
-
-  void _sendUnknownMethodError(IncomingMessage message) {
-    sendErrorResponse(
-        message,
-        new ResponseError(ErrorCodes.MethodNotFound,
-            'Unknown method ${message.method}', null));
   }
 }
 
@@ -528,41 +444,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
     driver.dispose();
   }
-}
-
-/**
- * An object that can handle messages and produce responses for requests.
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class MessageHandler {
-  /**
-   * The messages that this handler can handle.
-   */
-  List<String> get handlesMessages;
-
-  T convertParams<T>(
-      IncomingMessage message, T Function(Map<String, dynamic>) constructor) {
-    return message.params.map(
-      (_) => throw 'Expected dynamic, got List<dynamic>',
-      (params) => constructor(params),
-    );
-  }
-
-  List<T> convertParamsList<T>(
-      IncomingMessage message, T Function(Map<String, dynamic>) constructor) {
-    return message.params.map(
-      (params) => params.map((p) => constructor(p)).toList(),
-      (_) => throw 'Expected List<dynamic>, got dynamic',
-    );
-  }
-
-  /**
-   * Handle the given [message]. If the [message] is a [RequestMessage], then the
-   * return value will be sent back in a [ResponseMessage].
-   * [NotificationMessage]s are not expected to return results.
-   */
-  FutureOr<Object> handleMessage(IncomingMessage message);
 }
 
 class NullNotificationManager implements NotificationManager {

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
@@ -17,6 +18,8 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 class DefinitionHandler extends MessageHandler {
   final LspAnalysisServer server;
   DefinitionHandler(this.server);
+
+  @override
   List<String> get handlesMessages => const ['textDocument/definition'];
 
   Future<List<Location>> handleDefinition(
