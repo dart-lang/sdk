@@ -54,6 +54,10 @@ abstract class Info {
 //  - inputSize: bytes used in the Dart source program
 abstract class BasicInfo implements Info {
   static final Set<int> _ids = new Set<int>();
+
+  /// Frees internal cache used for id uniqueness.
+  static void resetIds() => BasicInfo._ids.clear();
+
   final InfoKind kind;
 
   int _id;
