@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=
 // VMOptions=--use_compactor
+// VMOptions=--use_compactor --force_evacuation
 
 import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
