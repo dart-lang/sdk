@@ -412,7 +412,7 @@ class ModelEmitter {
         omittedUnits:
             omittedFragments.map((fragemnt) => fragemnt.outputUnit).toSet()));
     compiler.outputProvider.createOutputSink(
-        compiler.options.deferredMapUri.path, '', OutputType.info)
+        compiler.options.deferredMapUri.path, '', OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

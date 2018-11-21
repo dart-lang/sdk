@@ -72,9 +72,11 @@ enum OutputType {
   /// A source map for a JavaScript output.
   sourceMap,
 
-  /// Additional information requested by the user, such dump info or a deferred
-  /// map.
-  info,
+  /// Dump info output.
+  dumpInfo,
+
+  /// Deferred map output.
+  deferredMap,
 
   /// Implementation specific output used for debugging the compiler.
   debug,

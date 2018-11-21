@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/serialization/strategies.dart';
 import 'package:expect/expect.dart';
 import 'serialization_test_helper.dart';
@@ -49,6 +50,8 @@ Future checkTests(Directory dataDir,
     if (shouldContinue) continued = true;
     testCount++;
     List<String> testOptions = options.toList();
+    testOptions.add(Flags.dumpInfo);
+    testOptions.add('--out=out.js');
     if (onTest != null) {
       onTest(entity.uri);
     }

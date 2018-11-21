@@ -113,14 +113,6 @@ class ElementInfoCollector {
       _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
-    var isInInstantiatedClass = false;
-    if (containingClass != null) {
-      isInInstantiatedClass =
-          closedWorld.classHierarchy.isInstantiated(containingClass);
-    }
-    if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
-      return null;
-    }
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
@@ -158,12 +150,6 @@ class ElementInfoCollector {
 
     result.fields.add(info);
     return info;
-  }
-
-  bool _hasBeenResolved(MemberEntity entity) {
-    return compiler.globalInference.typesInferrerInternal.inferrer.types
-        .memberTypeInformations
-        .containsKey(entity);
   }
 
   ClassInfo visitClass(ClassEntity clazz) {
@@ -556,9 +542,12 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       compiler.outputProvider.createOutputSink(
           compiler.options.outputUri.pathSegments.last,
           'info.json',
-          OutputType.info)
+          OutputType.dumpInfo)
         ..add(jsonBuffer.toString())
         ..close();
+      // TODO(johnniwinther): Reenable this when package:dart2js_info have
+      // stable ids.
+      //BasicInfo.resetIds();
     });
   }
 
