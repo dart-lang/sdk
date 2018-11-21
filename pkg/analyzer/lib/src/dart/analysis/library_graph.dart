@@ -106,6 +106,13 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     var signature = new ApiSignature();
     signature.addUint32List(_linkedSalt);
 
+    // Sort libraries to produce stable signatures.
+    scc.sort((first, second) {
+      var firstPath = first.file.path;
+      var secondPath = second.file.path;
+      return firstPath.compareTo(secondPath);
+    });
+
     // Append direct referenced cycles.
     for (var node in scc) {
       var file = node.file;
