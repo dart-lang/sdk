@@ -112,6 +112,19 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     // Used for testing sentinel in the hashtable.
     bool operator!=(const NodeInfo& other) { return id != other.id; }
     bool operator==(const NodeInfo& other) { return !(*this != other); }
+
+    NodeInfo(intptr_t type,
+             intptr_t name,
+             ObjectId id,
+             intptr_t self_size,
+             ZoneGrowableArray<EdgeInfo>* edges,
+             intptr_t offset)
+        : type(type),
+          name(name),
+          id(id),
+          self_size(self_size),
+          edges(edges),
+          offset(offset) {}
   };
 
   NodeInfo DefaultNode(ObjectId object_id);
@@ -153,7 +166,8 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     struct Pair {
       Key key;
       Value value;
-      Pair() : key{kSnapshot, -1}, value{0, 0, {kSnapshot, -1}, 0, nullptr} {};
+      Pair()
+          : key{kSnapshot, -1}, value{0, 0, {kSnapshot, -1}, 0, nullptr, -1} {};
       Pair(Key k, Value v) : key(k), value(v) {}
     };
 

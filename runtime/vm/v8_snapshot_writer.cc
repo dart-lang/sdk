@@ -92,6 +92,7 @@ V8SnapshotProfileWriter::NodeInfo V8SnapshotProfileWriter::DefaultNode(
       object_id,
       0,
       new (zone_) ZoneGrowableArray<EdgeInfo>(zone_, 0),
+      -1,
   };
 }
 
