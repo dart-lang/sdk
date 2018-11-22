@@ -131,6 +131,8 @@ const Slot& Slot::Get(const Field& field,
     if (cid != kDynamicCid) {
       nullable_cid = cid;
       is_nullable = false;
+    } else if (MethodRecognizer::HasNonNullableResultTypeFromPragma(field)) {
+      is_nullable = false;
     }
   }
 

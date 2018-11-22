@@ -3577,6 +3577,7 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
     return _typedData.buffer;
   }
 
+  @pragma("vm:non-nullable-result-type")
   final _TypedList _typedData;
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")

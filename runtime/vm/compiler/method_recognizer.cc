@@ -96,6 +96,34 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
   return kDynamicCid;
 }
 
+bool MethodRecognizer::HasNonNullableResultTypeFromPragma(
+    const Object& function_or_field) {
+  auto T = Thread::Current();
+  auto Z = T->zone();
+  auto& klass = Class::Handle(Z);
+  if (function_or_field.IsFunction()) {
+    auto& function = Function::Cast(function_or_field);
+    ASSERT(function.has_pragma());
+    klass = function.Owner();
+  } else {
+    auto& field = Field::Cast(function_or_field);
+    ASSERT(field.has_pragma());
+    klass = field.Owner();
+  }
+  auto& library = Library::Handle(Z, klass.library());
+  const bool can_use_pragma = library.IsAnyCoreLibrary();
+  if (can_use_pragma) {
+    auto& option = Object::Handle(Z);
+    if (library.FindPragma(T, function_or_field,
+                           Symbols::vm_non_nullable_result_type(), &option)) {
+      return true;
+    }
+  }
+
+  // If nothing said otherwise, the return type is nullable.
+  return false;
+}
+
 intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   switch (kind) {
     case kImmutableArrayGetIndexed:
