@@ -42,13 +42,10 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
   // performance problem nonetheless, we could consider adding a cache.
   auto T = Thread::Current();
   auto Z = T->zone();
-  bool is_recognized_method = false;
   auto& klass = Class::Handle(Z);
   if (function_or_field.IsFunction()) {
     auto& function = Function::Cast(function_or_field);
     ASSERT(function.has_pragma());
-    is_recognized_method =
-        function.recognized_kind() != MethodRecognizer::kUnknown;
     klass = function.Owner();
   } else {
     auto& field = Field::Cast(function_or_field);
@@ -93,35 +90,6 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
           }
         }
       }
-    }
-  }
-
-  // Sanity check that all recognized methods which have a non-kDynamicCid were
-  // already recognized via @pragmas()s.
-  if (is_recognized_method) {
-    const auto& function = Function::Cast(function_or_field);
-    switch (function.recognized_kind()) {
-#define DEFINE_CASE(cname, fname, ename, result_type, fingerprint)             \
-  case k##ename: {                                                             \
-    const intptr_t cid = k##result_type##Cid;                                  \
-    if (cid != kDynamicCid) {                                                  \
-      String& err = String::Handle();                                          \
-      err = function.QualifiedScrubbedName();                                  \
-      err = String::Concat(                                                    \
-          err,                                                                 \
-          String::Handle(String::New(" (MethodRecognizer::k" #ename            \
-                                     ") should be using pragma annotation"     \
-                                     " rather than method recognizer.",        \
-                                     Heap::kOld)),                             \
-          Heap::kOld);                                                         \
-      FATAL(err.ToCString());                                                  \
-    }                                                                          \
-    return cid;                                                                \
-  }
-      RECOGNIZED_LIST(DEFINE_CASE)
-#undef DEFINE_CASE
-      default:
-        return kDynamicCid;
     }
   }
 
@@ -214,8 +182,7 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   return kIllegalCid;
 }
 
-#define KIND_TO_STRING(class_name, function_name, enum_name, type, fp)         \
-  #enum_name,
+#define KIND_TO_STRING(class_name, function_name, enum_name, fp) #enum_name,
 static const char* recognized_list_method_name[] = {
     "Unknown", RECOGNIZED_LIST(KIND_TO_STRING)};
 #undef KIND_TO_STRING
@@ -232,7 +199,7 @@ void MethodRecognizer::InitializeState() {
   Libraries(&libs);
   Function& func = Function::Handle();
 
-#define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, type, fp)    \
+#define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, fp)          \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   if (!func.IsNull()) {                                                        \
     CHECK_FINGERPRINT3(func, class_name, function_name, enum_name, fp);        \
@@ -292,7 +259,7 @@ RawGrowableObjectArray* MethodRecognizer::QueryRecognizedMethods(Zone* zone) {
   GrowableArray<Library*> libs(3);
   Libraries(&libs);
 
-#define ADD_RECOGNIZED_METHOD(class_name, function_name, enum_name, type, fp)  \
+#define ADD_RECOGNIZED_METHOD(class_name, function_name, enum_name, fp)        \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   methods.Add(func);
 

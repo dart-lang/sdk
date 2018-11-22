@@ -2605,7 +2605,7 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
 // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
 // where these are looked up.
 #define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
-                         result_type, fingerprint)                             \
+                         fingerprint)                                          \
   do {                                                                         \
     PreventRenaming(#class_name);                                              \
     PreventRenaming(#function_name);                                           \

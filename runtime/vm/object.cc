@@ -12488,7 +12488,7 @@ void Library::CheckFunctionFingerprints() {
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
   }
 
-#define CHECK_FINGERPRINTS2(class_name, function_name, dest, type, fp)         \
+#define CHECK_FINGERPRINTS2(class_name, function_name, dest, fp)               \
   CHECK_FINGERPRINTS(class_name, function_name, dest, fp)
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
