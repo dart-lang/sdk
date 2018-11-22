@@ -2280,8 +2280,6 @@ class Function : public Object {
   // Return true if any parent function of this function is generic.
   bool HasGenericParent() const;
 
-  bool FindPragma(Isolate* I, const String& pragma_name, Object* options) const;
-
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
   void InstallOptimizedCode(const Code& code) const;
@@ -3824,6 +3822,18 @@ class Library : public Object {
                          const Function& from_fun,
                          const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
+
+  // Tries to finds a @pragma annotation on [object].
+  //
+  // If successful returns `true`. If an error happens during constant
+  // evaluation, returns `false.
+  //
+  // WARNING: If the isolate received an [UnwindError] this function will not
+  // return and rather unwinds until the enclosing setjmp() handler.
+  bool FindPragma(Thread* T,
+                  const Object& object,
+                  const String& pragma_name,
+                  Object* options) const;
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;

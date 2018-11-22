@@ -1184,8 +1184,11 @@ CompileType InstanceCallInstr::ComputeType() const {
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   if (IsSureToCallSingleRecognizedTarget()) {
     const Function& target = *targets_.TargetAt(0)->target;
-    if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-      return CompileType::FromCid(MethodRecognizer::ResultCid(target));
+    if (target.has_pragma()) {
+      const intptr_t cid = MethodRecognizer::ResultCidFromPragma(target);
+      if (cid != kDynamicCid) {
+        return CompileType::FromCid(cid);
+      }
     }
   }
 
@@ -1207,8 +1210,11 @@ CompileType StaticCallInstr::ComputeType() const {
     return *inferred_type;
   }
 
-  if (function_.recognized_kind() != MethodRecognizer::kUnknown) {
-    return CompileType::FromCid(MethodRecognizer::ResultCid(function_));
+  if (function_.has_pragma()) {
+    const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
+    if (cid != kDynamicCid) {
+      return CompileType::FromCid(cid);
+    }
   }
 
   if (Isolate::Current()->can_use_strong_mode_types()) {

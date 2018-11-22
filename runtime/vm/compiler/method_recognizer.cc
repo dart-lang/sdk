@@ -35,20 +35,32 @@ intptr_t MethodRecognizer::NumArgsCheckedForStaticCall(
   }
 }
 
-intptr_t MethodRecognizer::ResultCid(const Function& function) {
-  // Use the 'vm:exact-result-type' annotation if available. This can only be
-  // used within the core library, see 'result_type_pragma.md', detail 1.2 for
-  // explanation.
-  Class& cls = Thread::Current()->ClassHandle();
-  Library& lib = Thread::Current()->LibraryHandle();
-  cls = function.Owner();
-  lib = cls.library();
-  const bool can_use_pragma = lib.IsAnyCoreLibrary();
-  cls = Class::null();
+intptr_t MethodRecognizer::ResultCidFromPragma(
+    const Object& function_or_field) {
+  // TODO(vm-team): The caller should only call us if the
+  // function_or_field.has_pragma(). If this method turns out to be a
+  // performance problem nonetheless, we could consider adding a cache.
+  auto T = Thread::Current();
+  auto Z = T->zone();
+  bool is_recognized_method = false;
+  auto& klass = Class::Handle(Z);
+  if (function_or_field.IsFunction()) {
+    auto& function = Function::Cast(function_or_field);
+    ASSERT(function.has_pragma());
+    is_recognized_method =
+        function.recognized_kind() != MethodRecognizer::kUnknown;
+    klass = function.Owner();
+  } else {
+    auto& field = Field::Cast(function_or_field);
+    ASSERT(field.has_pragma());
+    klass = field.Owner();
+  }
+  auto& library = Library::Handle(Z, klass.library());
+  const bool can_use_pragma = library.IsAnyCoreLibrary();
   if (can_use_pragma) {
-    Isolate* I = Isolate::Current();
-    auto& option = Object::Handle();
-    if (function.FindPragma(I, Symbols::vm_exact_result_type(), &option)) {
+    auto& option = Object::Handle(Z);
+    if (library.FindPragma(T, function_or_field,
+                           Symbols::vm_exact_result_type(), &option)) {
       if (option.IsType()) {
         return Type::Cast(option).type_class_id();
       } else if (option.IsString()) {
@@ -68,17 +80,13 @@ intptr_t MethodRecognizer::ResultCid(const Function& function) {
           }
         }
         if (!parse_failure && library_end > 0) {
-          auto& libraryUri = String::Handle(
-              String::SubString(str, 0, library_end, Heap::kOld));
-          auto& className = String::Handle(
-              String::SubString(str, library_end + 1,
-                                str.Length() - library_end - 1, Heap::kOld));
-
-          Library& lib = Library::Handle(
-              Library::LookupLibrary(Thread::Current(), libraryUri));
-          if (!lib.IsNull()) {
-            Class& klass =
-                Class::Handle(lib.LookupClassAllowPrivate(className));
+          auto& tmp = String::Handle(Z);
+          tmp = String::SubString(str, 0, library_end, Heap::kOld);
+          library = Library::LookupLibrary(Thread::Current(), tmp);
+          if (!library.IsNull()) {
+            tmp = String::SubString(str, library_end + 1,
+                                    str.Length() - library_end - 1, Heap::kOld);
+            klass = library.LookupClassAllowPrivate(tmp);
             if (!klass.IsNull()) {
               return klass.id();
             }
@@ -88,9 +96,11 @@ intptr_t MethodRecognizer::ResultCid(const Function& function) {
     }
   }
 
-  // No result-type annotation can be used, so fall back on the table of
-  // recognized methods.
-  switch (function.recognized_kind()) {
+  // Sanity check that all recognized methods which have a non-kDynamicCid were
+  // already recognized via @pragmas()s.
+  if (is_recognized_method) {
+    const auto& function = Function::Cast(function_or_field);
+    switch (function.recognized_kind()) {
 #define DEFINE_CASE(cname, fname, ename, result_type, fingerprint)             \
   case k##ename: {                                                             \
     const intptr_t cid = k##result_type##Cid;                                  \
@@ -108,11 +118,14 @@ intptr_t MethodRecognizer::ResultCid(const Function& function) {
     }                                                                          \
     return cid;                                                                \
   }
-    RECOGNIZED_LIST(DEFINE_CASE)
+      RECOGNIZED_LIST(DEFINE_CASE)
 #undef DEFINE_CASE
-    default:
-      return kDynamicCid;
+      default:
+        return kDynamicCid;
+    }
   }
+
+  return kDynamicCid;
 }
 
 intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
