@@ -54,7 +54,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy, MixinInferrer;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart'
-    show calculateBounds, getFreshTypeParameters, Substitution;
+    show getFreshTypeParameters, Substitution;
+
+import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
 import '../../base/instrumentation.dart'
     show

@@ -5,18 +5,189 @@
 import '../ast.dart'
     show
         BottomType,
+        Class,
         DartType,
         DynamicType,
         FunctionType,
         InterfaceType,
+        InvalidType,
         NamedType,
         TypeParameter,
+        TypeParameterType,
         TypedefType,
         VoidType;
 
-import '../type_algebra.dart' show substitute;
+import '../type_algebra.dart' show Substitution, substitute;
 
 import '../type_environment.dart' show TypeEnvironment;
+
+import '../util/graph.dart' show Graph, computeStrongComponents;
+
+import '../visitor.dart' show DartTypeVisitor;
+
+class TypeVariableGraph extends Graph<int> {
+  List<int> vertices;
+  List<TypeParameter> typeParameters;
+  List<DartType> bounds;
+
+  // `edges[i]` is the list of indices of type variables that reference the type
+  // variable with the index `i` in their bounds.
+  List<List<int>> edges;
+
+  TypeVariableGraph(this.typeParameters, this.bounds) {
+    assert(typeParameters.length == bounds.length);
+
+    vertices = new List<int>(typeParameters.length);
+    Map<TypeParameter, int> typeParameterIndices = <TypeParameter, int>{};
+    edges = new List<List<int>>(typeParameters.length);
+    for (int i = 0; i < vertices.length; i++) {
+      vertices[i] = i;
+      typeParameterIndices[typeParameters[i]] = i;
+      edges[i] = <int>[];
+    }
+
+    for (int i = 0; i < vertices.length; i++) {
+      OccurrenceCollectorVisitor collector =
+          new OccurrenceCollectorVisitor(typeParameters.toSet());
+      collector.visit(bounds[i]);
+      for (TypeParameter typeParameter in collector.occurred) {
+        edges[typeParameterIndices[typeParameter]].add(i);
+      }
+    }
+  }
+
+  Iterable<int> neighborsOf(int index) {
+    return edges[index];
+  }
+}
+
+class OccurrenceCollectorVisitor extends DartTypeVisitor {
+  final Set<TypeParameter> typeParameters;
+  Set<TypeParameter> occurred = new Set<TypeParameter>();
+
+  OccurrenceCollectorVisitor(this.typeParameters);
+
+  visit(DartType node) => node.accept(this);
+
+  visitNamedType(NamedType node) {
+    node.type.accept(this);
+  }
+
+  visitInvalidType(InvalidType node);
+  visitDynamicType(DynamicType node);
+  visitVoidType(VoidType node);
+
+  visitInterfaceType(InterfaceType node) {
+    for (DartType argument in node.typeArguments) {
+      argument.accept(this);
+    }
+  }
+
+  visitTypedefType(TypedefType node) {
+    for (DartType argument in node.typeArguments) {
+      argument.accept(this);
+    }
+  }
+
+  visitFunctionType(FunctionType node) {
+    for (TypeParameter typeParameter in node.typeParameters) {
+      typeParameter.bound.accept(this);
+      typeParameter.defaultType?.accept(this);
+    }
+    for (DartType parameter in node.positionalParameters) {
+      parameter.accept(this);
+    }
+    for (NamedType namedParameter in node.namedParameters) {
+      namedParameter.type.accept(this);
+    }
+    node.returnType.accept(this);
+  }
+
+  visitTypeParameterType(TypeParameterType node) {
+    if (typeParameters.contains(node.parameter)) {
+      occurred.add(node.parameter);
+    }
+  }
+}
+
+DartType instantiateToBounds(DartType type, Class object) {
+  if (type is InterfaceType) {
+    for (var typeArgument in type.typeArguments) {
+      // If at least one of the arguments is not dynamic, we assume that the
+      // type is not raw and does not need instantiation of its type parameters
+      // to their bounds.
+      if (typeArgument is! DynamicType) {
+        return type;
+      }
+    }
+    return new InterfaceType.byReference(
+        type.className, calculateBounds(type.classNode.typeParameters, object));
+  }
+  if (type is TypedefType) {
+    for (var typeArgument in type.typeArguments) {
+      if (typeArgument is! DynamicType) {
+        return type;
+      }
+    }
+    return new TypedefType.byReference(type.typedefReference,
+        calculateBounds(type.typedefNode.typeParameters, object));
+  }
+  return type;
+}
+
+/// Calculates bounds to be provided as type arguments in place of missing type
+/// arguments on raw types with the given type parameters.
+///
+/// See the [description]
+/// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
+/// of the algorithm for details.
+List<DartType> calculateBounds(
+    List<TypeParameter> typeParameters, Class object) {
+  List<DartType> bounds = new List<DartType>(typeParameters.length);
+  for (int i = 0; i < typeParameters.length; i++) {
+    DartType bound = typeParameters[i].bound;
+    if (bound == null) {
+      bound = const DynamicType();
+    } else if (bound is InterfaceType && bound.classNode == object) {
+      DartType defaultType = typeParameters[i].defaultType;
+      if (!(defaultType is InterfaceType && defaultType.classNode == object)) {
+        bound = const DynamicType();
+      }
+    }
+    bounds[i] = bound;
+  }
+
+  TypeVariableGraph graph = new TypeVariableGraph(typeParameters, bounds);
+  List<List<int>> stronglyConnected = computeStrongComponents(graph);
+  for (List<int> component in stronglyConnected) {
+    Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> lowerBounds = <TypeParameter, DartType>{};
+    for (int typeParameterIndex in component) {
+      upperBounds[typeParameters[typeParameterIndex]] = const DynamicType();
+      lowerBounds[typeParameters[typeParameterIndex]] = const BottomType();
+    }
+    Substitution substitution =
+        Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
+    for (int typeParameterIndex in component) {
+      bounds[typeParameterIndex] =
+          substitution.substituteType(bounds[typeParameterIndex]);
+    }
+  }
+
+  for (int i = 0; i < typeParameters.length; i++) {
+    Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> lowerBounds = <TypeParameter, DartType>{};
+    upperBounds[typeParameters[i]] = bounds[i];
+    lowerBounds[typeParameters[i]] = const BottomType();
+    Substitution substitution =
+        Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
+    for (int j = 0; j < typeParameters.length; j++) {
+      bounds[j] = substitution.substituteType(bounds[j]);
+    }
+  }
+
+  return bounds;
+}
 
 class TypeArgumentIssue {
   // The type argument that violated the bound.
