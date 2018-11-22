@@ -2,7 +2,8 @@
 
 **Owner**: eernst@
 
-**Status**: Implemented.
+**Status**: This document is now background material.
+For normative text, please consult the language specification.
 
 **Version**: 0.6 (2018-06-01)
 

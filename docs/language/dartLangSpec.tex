@@ -1,12 +1,13 @@
 \documentclass[makeidx]{article}
 \usepackage{xspace}
 \usepackage{epsfig}
-\usepackage{color}
+\usepackage{xcolor}
 \usepackage{syntax}
 \usepackage{dart}
 \usepackage{hyperref}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
+\usepackage[fleqn]{amsmath}
 \usepackage{makeidx}
 \makeindex
 \title{Dart Programming Language Specification\\
@@ -73,6 +74,18 @@
 % - Specify that super-bounded generic type alias applications must trigger
 %   a well-boundedness check on all types occurring in the denoted type.
 % - Corrected corner case of rules for generation of noSuchMethod forwarders.
+% - Integrate feature specification on parameters that are
+%   covariant-by-declaration.
+% - Integrate feature specification on parameters that are
+%   covariant-by-class.
+% - Correct section 'Type of a function', allowing for adjustments needed
+%   for rules related to covariant parameters.
+% - Specified the dynamic type of function objects in several contexts, such
+%   that the special treatment of covariant parameters can be mentioned.
+% - Specified what it means for an override relation to be correct, thus
+%   adding the parts that are not captured by a function type subtype check.
+% - Introduced the notion of member signatures, specified that they are the
+%   kind of entity that a class interface contains.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -287,7 +300,7 @@ In the context of a lexical production it consumes a single character if there i
 An example would be:
 }
 
-\begin{grammar}
+\begin{grammar}\color{commentaryColor}
 <aProduction> ::= <anAlternative>
   \alt <anotherAlternative>
   \alt <oneThing> <after> <another>
@@ -710,7 +723,7 @@ Variables are storage locations in memory.
 \begin{grammar}
 <variableDeclaration> ::= <declaredIdentifier> (`,' <identifier>)*
 
-<declaredIdentifier> ::= <metadata> <finalConstVarOrType> <identifier>
+<declaredIdentifier> ::= <metadata> \COVARIANT{}? <finalConstVarOrType> <identifier>
 
 <finalConstVarOrType> ::= \FINAL{} <type>?
   \alt \CONST{} <type>?
@@ -728,17 +741,14 @@ Variables are storage locations in memory.
 \end{grammar}
 
 \LMHash{}%
-A variable declaration that contains one or more terms of the form
-\syntax{<identifier>}
-(\commentary{i.e., a declaration that declares two or more variables})
+A \synt{variableDeclaration} that declares two or more variables
 is equivalent to multiple variable declarations declaring
 the same set of variable names in the same order,
 with the same type and modifiers.
 
 \LMHash{}%
-An \syntax{<initializedVariableDeclaration>} that contains one or more terms of the form
-\syntax{<initializedIdentifier>}
-(\commentary{that is, a declaration that declares two or more initialized variables})
+An \synt{initializedVariableDeclaration}
+that declares two or more variables
 is equivalent to multiple variable declarations declaring
 the same set of variable names, in the same order,
 with the same initialization, type, and modifiers.
@@ -755,6 +765,14 @@ is equivalent to
 }
 
 \LMHash{}%
+It is possible for a variable declaration to include the modifier \COVARIANT{}.
+The effect of doing this with an instance variable is described elsewhere
+(\ref{instanceVariables}).
+It is a compile-time error for the declaration of
+a variable which is not an instance variable
+to include the modifier \COVARIANT{}.
+
+\LMHash{}%
 In a variable declaration of one of the forms
 \code{$N$ $v$;}
 \code{$N$ $v$ = $e$;}
@@ -769,7 +787,7 @@ a \Index{declaring identifier} respectively an \Index{referencing identifier}.
 \commentary{
 In an expression of the form \code{$e$.\id} it is possible that
 $e$ has static type \DYNAMIC{} and \id{} cannot be associated with
-any declaration named \id{} at compile-time,
+any specific declaration named \id{} at compile-time,
 but in this situation \id{} is still a referencing identifier.
 }
 
@@ -813,7 +831,8 @@ is a variable which is not final.
 %% then we treat `var x;` as if it had been `T x;`.
 
 \LMHash{}%
-The following rules apply to all static and instance variables.
+The following rules on implicitly induced getters and setters
+apply to all static and instance variables.
 
 \LMHash{}%
 A variable declaration of one of the forms
@@ -1259,8 +1278,8 @@ It is a compile-time error if any default values are specified in the signature 
 <functionFormalParameter> ::= \gnewline{}
   <metadata> \COVARIANT{}? <returnType>? <identifier> <formalParameterPart>
 
-<simpleFormalParameter> ::= \gnewline{}
-  <metadata> \COVARIANT{}? <finalConstVarOrType>? <identifier>
+<simpleFormalParameter> ::= <declaredIdentifier>
+  \alt <metadata> \COVARIANT{}? <identifier>
 
 <fieldFormalParameter> ::= \gnewline{}
   <metadata> <finalConstVarOrType>? \THIS{} `.' <identifier> \gnewline{}
@@ -1268,12 +1287,15 @@ It is a compile-time error if any default values are specified in the signature 
 \end{grammar}
 
 \LMHash{}%
-It is possible to include the modifier \COVARIANT{} in some forms of parameter declarations.
-This modifier has no effect.
+It is possible to include the modifier \COVARIANT{}
+in some forms of parameter declarations.
+The effect of doing this is described in a separate section
+(\ref{covariantParameters}).
 
-\rationale{
-The modifier \COVARIANT{} is used in strong mode.
-The modifier is allowed here even though it has no effect, such that source code can be used in both contexts.
+\commentary{
+Note that the non-terminal \synt{normalFormalParameter} is also used
+in the grammar rules for optional parameters,
+which means that such parameters can also be covariant.
 }
 
 \LMHash{}%
@@ -1314,72 +1336,281 @@ The static checker would of course flag such situations, but the consequence wou
 }
 
 
+\subsubsection{Covariant Parameters}
+\LMLabel{covariantParameters}
+
+\LMHash{}%
+Dart allows formal parameters of instance methods,
+including setters and operators,
+to be declared \COVARIANT{}.
+\commentary{
+The syntax for doing this is specified in an earlier section (\ref{requiredFormals}).
+}
+
+\LMHash{}%
+It is a compile-time error if the modifier \COVARIANT{} occurs
+in the declaration of a formal parameter of a function
+which is not an instance method, an instance setter, or an operator.
+
+\commentary{
+As specified below, a parameter can also be covariant for other reasons.
+The overall effect of having a covariant parameter $p$
+in the signature of a given method $m$
+is to allow the type of $p$ to be overridden covariantly,
+which means that the type required at run time for a given actual argument
+may be a proper subtype of the type which is known at compile time
+at the call site.
+}
+
+\rationale{
+This mechanism allows developers to explicitly request that
+a compile-time guarantee which is otherwise supported
+(namely: that an actual argument whose static type satisfies the requirement
+will also do so at run time)
+is replaced by dynamic type checks.
+In return for accepting these dynamic type checks,
+developers can use covariant parameters to express software designs
+where the dynamic type checks are known (or at least trusted) to succeed,
+based on reasoning that the static type analysis does not capture.
+}
+
+\LMHash{}%
+Let $m$ be a method signature with formal type parameters
+\List{X}{1}{s},
+positional formal parameters \List{p}{1}{n},
+and named formal parameters \List{q}{1}{k}.
+Let $m'$ be a method signature with formal type parameters
+\List{X'\!}{1}{s},
+positional formal parameters \List{p'\!}{1}{n'},
+and named formal parameters \List{q'\!}{1}{k'}.
+%
+Assume that $j \in 1 .. n'$, and $j \leq n$;
+we say that $p'_j$ is the parameter in $m'$ that
+\IndexCustom{corresponds}{parameter corresponds to parameter}
+to the formal parameter $p_j$ in $m$.
+Assume that $j \in 1 .. k'$ and $l \in 1 .. k$;
+we say that $q'_j$ is the parameter in $m'$ that
+\NoIndex{corresponds} to the formal parameter
+$q_l$ in $m$ if $q'_j = q_l$.
+%
+Similarly, we say that the formal type parameter
+$X'_j$ from $m'$
+\NoIndex{corresponds} to the formal type parameter
+$X_j$ from $m$, for all $j \in 1 .. s$.
+
+\commentary{
+This includes the case where $m$ respectively $m'$ has
+optional positional parameters,
+in which case $k = 0$ respectively $k' = 0$ must hold,
+but we can have $n \not= n'$.
+The case where the numbers of formal type parameters differ is not relevant.
+}
+
+% Being covariant is a property of a parameter of the interface of a class;
+% this means that we only talk about the originating keyword \COVARIANT{}
+% and the class that contains the relevant declaration when we detect for
+% the first time that a given parameter is covariant. From that point and on
+% it is "carried" along the subtype links associated with class interfaces,
+% such that we can get it inductively from an indirect superinterface just
+% by checking whether the direct superinterfaces "have" a method signature
+% with the relevant name and a corresponding parameter, and then checking
+% that parameter. The same approach is applicable for covariant-by-class.
+
+\LMHash{}%
+Let $C$ be a class that declares a method $m$ which has
+a parameter $p$ whose declaration has the modifier \COVARIANT{};
+in this case we say that the parameter $p$ is
+\IndexCustom{covariant-by-declaration}{parameter!covariant-by-declaration}.
+%
+In this case the interface of $C$ has the method signature $m$,
+and that signature has the parameter $p$;
+we also say that the parameter $p$ in this method signature is
+\NoIndex{covariant-by-declaration}.
+%
+Finally, the parameter $p$ of the method signature $m$
+of the interface of a class $C$ is
+\NoIndex{covariant-by-declaration}
+if a direct superinterface of $C$
+has an accessible method signature $m'$ with the same name as $m$,
+which has a parameter $p'$ that corresponds to $p$,
+such that $p'$ is covariant-by-declaration.
+
+\LMHash{}%
+Assume that $C$ is a generic class with formal type parameter declarations
+\code{$X_1\ \EXTENDS\ B_1 \ldots,\ X_s\ \EXTENDS\ B_s$},
+let $m$ be a declaration of an instance method in $C$
+(which can be a method, a setter, or an operator),
+let $p$ be a parameter declared by $m$, and
+let $T$ be the declared type of $p$.
+%
+The parameter $p$ is
+\IndexCustom{covariant-by-class}{parameter!covariant-by-class}
+if, for any $j \in 1 .. s$,
+$X_j$ occurs in a covariant or an invariant position in $T$.
+%
+In this case the interface of $C$ also has the method signature $m$,
+and that signature has the parameter $p$;
+we also say that the parameter $p$ in this method signature is
+\NoIndex{covariant-by-class}.
+Finally, the parameter $p$ of the method signature $m$
+of the interface of the class $C$ is
+\NoIndex{covariant-by-class}
+if a direct superinterface of $C$
+has an accessible method signature $m'$ with the same name as $m$,
+which has a parameter $p'$ that corresponds to $p$,
+such that $p'$ is covariant-by-class.
+
+\LMHash{}%
+A formal parameter $p$ is
+\IndexCustom{covariant}{parameter!covariant}
+if $p$ is covariant-by-declaration or $p$ is covariant-by-class.
+
+\commentary{
+It is possible for a parameter to be simultaneously
+covariant-by-declaration and covariant-by-class.
+Note that a parameter may be
+covariant-by-declaration or covariant-by-class
+based on a declaration in any direct or indirect superinterface,
+including any superclass:
+The definitions above propagate these properties
+to an interface from each of its direct superinterfaces,
+but they will in turn receive the property from their direct superinterfaces,
+and so on.
+}
+
+
 \subsection{Type of a Function}
 \LMLabel{typeOfAFunction}
 
 \LMHash{}%
-If a function declaration does not declare a return type explicitly, its return type is \DYNAMIC{} (\ref{typeDynamic}),
-unless it is a constructor function, in which case its return type is the immediately enclosing class,
-or it is a setter or operator \code{[]=}, in which case its return type is \VOID{}.
+This section specifies the static type which is ascribed to
+the function denoted by a function declaration,
+and the dynamic type of the corresponding function object.
+
+\LMHash{}%
+In this specification,
+the notation used to denote the type of a function follows
+the syntax of the language, except that \EXTENDS{} is abbreviated to
+\FunctionTypeExtends.
+This means that every function type is of one of the forms
+\FunctionTypePositionalStd{T_0}
+\FunctionTypeNamedStd{T_0}
+
+\noindent
+where $T_0$ is the return type,
+$X_j$ are the formal type parameters with bounds $B_j$, $j \in 1 .. s$,
+$T_j$ are the formal parameter types for $j \in 1 .. n + k$.
+Non-generic function types are covered by the case $s = 0$,
+where the type parameter declaration list
+\code{<\ldots{}>}
+as a whole is omitted.
+%
+Similarly, the optional brackets \code{[]} and \code{\{\}} are omitted
+when there are no optional parameters.
+
+% We promise that the two forms always get the same treatment for k=0.
+\commentary{
+Both forms with optionals cover function types with no optionals when $k = 0$,
+and every rule in this specification is such that
+any of the two forms may be used without ambiguity
+to determine the treatment of function types with no optionals.
+}
+
+\LMHash{}%
+If a function declaration does not declare a return type explicitly,
+its return type is \DYNAMIC{} (\ref{typeDynamic}),
+unless it is a constructor,
+in which case it is not considered to have a return type,
+or it is a setter or operator \code{[]=},
+in which case its return type is \VOID{}.
 
 \LMHash{}%
 A function declaration may declare formal type parameters.
-The type of the function includes the names of the type parameters and their upper bounds.
+The type of the function includes the names of the type parameters
+and for each type parameter the upper bound,
+which is considered to be the built-in class \code{Object} if no bound is specified.
 When consistent renaming of type parameters can make two function types identical,
 they are considered to be the same type.
 
 \commentary{
-It is convenient to include the type parameter names in function types because they are needed in order to express such things as relations among different type parameters, and F-bounds.
-However, we do not wish to distinguish two function types if they have the same structure and only differ in the choice of names.
+It is convenient to include the formal type parameter names in function types
+because they are needed in order to express such things as relations among
+different type parameters, F-bounds, and the types of formal parameters.
+However, we do not wish to distinguish between two function types if they have
+the same structure and only differ in the choice of names.
 This treatment of names is also known as alpha-equivalence.
 }
 
 \LMHash{}%
 In the following three paragraphs,
-if the number $m$ of formal type parameters is zero then the type parameter list in the function type should be omitted.
+if the number $m$ of formal type parameters is zero then
+the type parameter list in the function type is omitted.
 
 \LMHash{}%
 Let $F$ be a function with
-formal type parameters $X_1\ B_1, \ldots,\ X_m\ B_m$,
-required formal parameters $T_1\ p_1, \ldots,\ T_n\ p_n$,
-return type $T_0$
+type parameters \TypeParametersStd,
+required formal parameter types \List{T}{1}{n},
+return type $T_0$,
 and no optional parameters.
-Then the type of $F$ is
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n$) $ \rightarrow T_0$}.
+Then the static type of $F$ is
+\FunctionTypeAllRequiredStd{T_0}.
 
 \LMHash{}%
 Let $F$ be a function with
-formal type parameters $X_1\ B_1, \ldots,\ X_m\ B_m$,
-required formal parameters $T_1\ p_1, \ldots,\ T_n\ p_n$,
+type parameters \TypeParametersStd,
+required formal parameter types  \List{T}{1}{n},
 return type $T_0$
-and positional optional parameters $T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}$.
-Then the type of $F$ is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}$]) $ \rightarrow T_0$}.
+and positional optional parameter types \List{T}{n+1}{n+k}.
+Then the static type of $F$ is
+\FunctionTypePositionalStd{T_0}.
 
 \LMHash{}%
 Let $F$ be a function with
-formal type parameters $X_1\ B_1, \ldots,\ X_m\ B_m$,
-required formal parameters $T_1\ p_1, \ldots,\ T_n\ p_n$,
-return type $T_0$
-and named optional parameters $T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}$.
-Then the type of $F$ is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}$\}) $ \rightarrow T_0$}.
+type parameters \TypeParametersStd,
+required formal parameter types \List{T}{1}{n},
+return type $T_0$,
+and named parameters \PairList{T}{x}{n+1}{n+k}.
+Then the static type of $F$ is
+\FunctionTypeNamedStd{T_0}.
 
 \LMHash{}%
-The run-time type of a function object always implements the class \FUNCTION{}.
-
+Let $T$ be the static type of a function declaration $F$.
+Let $u$ be the run-time type of a function object $o$ obtained by
+function closurization
+(\ref{functionClosurization})
+or instance method closurization
+(\ref{ordinaryMemberClosurization})
+applied to $F$,
+and let $t$ be the actual type corresponding to $T$
+at the occasion where $o$ was created
+(\ref{actualTypeOfADeclaration}).
+\commentary{$T$ may contain free type variables, but $t$ contains their actual values.}
+The following must then hold:
+$u$ is a class that implements the built-in class \FUNCTION{};
+$u$ is a subtype of $t$;
+and $u$ is not a subtype of any function type which is a proper subtype of $t$.
 \commentary{
-One cannot assume, based on the above, that given a function \code{f}, \code{f.runtimeType} will actually be \FUNCTION{}, or that any two distinct function objects necessarily have the same run-time type.
+If we had omitted the last requirement then
+\code{f \IS{} int\,\FUNCTION([int])}
+could evaluate to \TRUE{} with the declaration
+\code{void f()\,\{\}},
+e.g., by letting $u$ be \code{Null}.
 }
 
 \rationale{
-It is up to the implementation to choose an appropriate representation for function objects.
-For example, consider that a function object produced via property extraction treats equality differently from other function objects, and is therefore likely a different class.
-Implementations may also use different classes for function objects based on arity and or type.
-Arity may be implicitly affected by whether a function is an instance method (with an implicit receiver parameter) or not.
-The variations are manifold, and so this specification only guarantees that function objects are instances of some class that implements \FUNCTION{}.
+It is up to the implementation to choose
+an appropriate representation for function objects.
+For example, consider that
+a function object produced via property extraction
+treats equality differently from other function objects,
+and is therefore likely a different class.
+Implementations may also use different classes for function objects
+based on arity and or type.
+Arity may be implicitly affected by whether a function is
+an instance method (with an implicit receiver parameter) or not.
+The variations are manifold and, e.g.,
+one cannot assume that any two distinct function objects
+will necessarily have the same run-time type.
 }
 
 
@@ -1431,7 +1662,6 @@ Classes may be defined by class declarations as described below, or via mixin ap
 
 <methodSignature> ::= <constructorSignature> <initializers>?
   \alt <factoryConstructorSignature>
-% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
   \alt \STATIC{}? <functionSignature>
   \alt \STATIC{}? <getterSignature>
   \alt \STATIC{}? <setterSignature>
@@ -1444,10 +1674,8 @@ Classes may be defined by class declarations as described below, or via mixin ap
   \alt ((\EXTERNAL{} \STATIC{}?))? <getterSignature>
   \alt ((\EXTERNAL{} \STATIC{}?))? <setterSignature>
   \alt \EXTERNAL{}? <operatorSignature>
-% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
   \alt ((\EXTERNAL{} \STATIC{}?))? <functionSignature>
   \alt \STATIC{} (\FINAL{} | \CONST{}) <type>? <staticFinalDeclarationList>
-%      \CONST{} type? staticFinalDeclarationList;
   \alt \FINAL{} <type>? <initializedIdentifierList>
   \alt (\STATIC{} | \COVARIANT{})? (\VAR{} | <type>) <initializedIdentifierList>
 
@@ -1459,12 +1687,8 @@ Classes may be defined by class declarations as described below, or via mixin ap
 
 \LMHash{}%
 It is possible to include the modifier \COVARIANT{} in some forms of declarations.
-This modifier has no effect.
-
-\rationale{
-The modifier \COVARIANT{} is used in strong mode.
-The modifier is allowed here even though it has no effect, such that source code can be used in both contexts.
-}
+The effect of doing this is described elsewhere
+(\ref{covariantParameters}).
 
 \LMHash{}%
 A class has constructors, instance members and static members.
@@ -1510,13 +1734,57 @@ whose declaration is concrete.
 
 \rationale{
 We want different behavior for concrete classes and abstract classes.
-If $A$ is intended to be abstract, we want the static checker to warn about any attempt to instantiate $A$, and we do not want the checker to complain about unimplemented methods in $A$.
-In contrast, if $A$ is intended to be concrete, the checker should warn about all unimplemented methods, but allow clients to instantiate it freely.
+If $A$ is intended to be abstract,
+we want the static checker to warn about any attempt to instantiate $A$,
+and we do not want the checker to complain about unimplemented methods in $A$.
+In contrast, if $A$ is intended to be concrete,
+the checker should warn about all unimplemented methods,
+but allow clients to instantiate it freely.
+}
+
+\commentary{
+The interface of a class $C$ is
+an implicit interface that declares instance member signatures
+that correspond to the instance members declared by $C$,
+and whose direct superinterfaces are
+the direct superinterfaces of $C$
+(\ref{interfaces}, \ref{superinterfaces}).
 }
 
 \LMHash{}%
-The \Index{interface of a class} $C$ is an implicit interface that declares instance members that correspond to the instance members declared by $C$, and whose direct superinterfaces are the direct superinterfaces of $C$ (\ref{superinterfaces}).
-When a class name appears as a type, that name denotes the interface of the class.
+When a class name appears as a type,
+that name denotes the interface of the class.
+
+\LMHash{}%
+% The use of 'concrete member' below may seem redundant, because a class
+% does not inherit abstract members from its superclass, but this
+% underscores the fact that even when an abstract declaration of $m$ is
+% declared in $C$, $C$ does not "have" $m$.
+A concrete class must fully implement its interface:
+Let $C$ be a concrete class with interface $I$.
+Assume that $I$ has an accessible member signature $m$.
+It is a compile-time error if $C$ does not have
+a concrete accessible member with the same name as $m$,
+unless $C$ has a non-trivial \code{noSuchMethod}
+(\ref{theMethodNoSuchMethod}).
+It is a compile-time error if $C$ has
+a concrete accessible member with the same name as $m$,
+with a method signature $m'$ which is not a correct override of $m$
+(\ref{correctMemberOverrides}),
+unless that concrete member is a \code{noSuchMethod} forwarder
+(\ref{theMethodNoSuchMethod}).
+
+\commentary{
+In particular, it is an error for a class to be concrete even if it inherits
+a member implementation for every member signature in its interface,
+unless each of them has parameters and types such that they satisfy
+the corresponding member signature.
+But when there is a non-trivial \code{noSuchMethod} it is allowed
+to leave some members unimplemented,
+and it is allowed to to have a \code{noSuchMethod} forwarder which does not
+satisfy the class interface
+(in which case it will be overridden by another \code{noSuchMethod} forwarder).
+}
 
 % making an exception for the setters generated for final fields is tempting but problematic.
 % If a super type defines a setter, it will be overridden yet have no impact on the interface.
@@ -1569,26 +1837,71 @@ and if $G$ has a constructor named \code{$G$.$X$}.
 \LMLabel{instanceMethods}
 
 \LMHash{}%
-Instance methods are functions (\ref{functions}) whose declarations are immediately contained within a class declaration and that are not declared \STATIC{}.
-The instance methods of a class $C$ are those instance methods declared by $C$ and the instance methods inherited by $C$ from its superclass.
+\IndexCustom{Instance methods}{method!instance}
+are functions (\ref{functions})
+whose declarations are immediately contained within a class declaration
+and that are not declared \STATIC{}.
+The \Index{instance methods of a class} $C$ are the instance methods declared by $C$
+and the instance methods inherited by $C$ from its superclass
+(\ref{inheritanceAndOverriding}).
 
 \LMHash{}%
-It is a compile-time error if an instance method $m_1$ overrides (\ref{inheritanceAndOverriding}) an instance member $m_2$ and $m_1$ has a greater number of required parameters than $m_2$.
-It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and $m_1$ has fewer positional parameters than $m_2$.
-It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and $m_1$ does not declare all the named parameters declared by $m_2$.
-
-\LMHash{}%
-%% TODO(eernst): We need to use the concept of 'correctly overrides' rather than 'is a subtype of', e.g., to treat `void` correctly.
-It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
-It is a static warning if
-an instance method $m_1$ overrides an instance member $m_2$,
-the signature of $m_2$ explicitly specifies a default value
-for a formal parameter $p$, and
-the signature of $m_1$ implies a different default value for $p$.
+Consider a class $C$.
+It is a compile-time error if an instance method declaration in $C$ has
+a member signature $m$
+(\ref{interfaces})
+% Note that $m'$ is accessible, due to the definition of 'overrides'.
+which overrides a member signature $m'$
+from a direct superinterface of $C$
+(\ref{interfaceInheritanceAndOverriding}),
+unless this is a correct member override
+(\ref{correctMemberOverrides}).
 
 \commentary{
-A method declaration may conflict with other declarations
+This is not the only kind of conflict that may exist:
+An instance member declaration $D$ may conflict with another declaration $D'$,
+even in the case where they do not have the same name
+or they are not the same kind of declaration.
+E.g., $D$ could be an instance getter and $D'$ a static setter
 (\ref{classMemberConflicts}).
+}
+
+\LMHash{}%
+For each parameter $p$ of $m$ where \COVARIANT{} is present,
+it is a compile-time error if there exists
+a direct or indirect superinterface $J$ of $C$ which has
+an accessible method signature $m''$ with the same name as $m$,
+such that $m''$ has a parameter $p''$ that corresponds to $p$
+(\ref{covariantParameters}),
+unless the type of $p$ is assignable to the type of $p''$.
+
+\commentary{
+This means that
+a parameter which is covariant-by-declaration can have a type
+which is a supertype or a subtype of the type of
+a corresponding parameter in a superinterface,
+but the two types cannot be unrelated.
+Note that this requirement must be satisfied
+for each direct or indirect superinterface separately,
+because assignability is not transitive.
+}
+
+\rationale{
+The superinterface may be the statically known type of the receiver,
+so this means that we relax the potential typing relationship
+between the statically known type of a parameter and the
+type which is actually required at run time
+to the assignability relationship,
+rather than the strict supertype relationship
+which applies to a parameter which is not covariant.
+It should be noted that it is not statically known
+at the call site whether any given parameter is covariant,
+because the covariance could be introduced in
+a proper subtype of the statically known type of the receiver.
+We chose to give priority to flexibility rather than safety here,
+because the whole point covariant parameters is that developers
+can make the choice to increase the flexibility
+in a trade-off where some static type safety is lost.
 }
 
 
@@ -2027,22 +2340,24 @@ If no return type is specified, the return type of the getter is \DYNAMIC{}.
 A getter definition that is prefixed with the \STATIC{} modifier defines a static getter.
 Otherwise, it defines an instance getter.
 The name of the getter is given by the identifier in the definition.
-The effect of a static getter declaration in class $C$ is to add an instance getter with the same name and signature to the \code{Type} object for class $C$ that forwards (\ref{functionDeclarations}) to the static getter.
 
 \LMHash{}%
-The instance getters of a class $C$ are those instance getters declared by $C$, either implicitly or explicitly, and the instance getters inherited by $C$ from its superclass.
-The static getters of a class $C$ are those static getters declared by $C$.
+The \Index{instance getters of a class} $C$ are
+those instance getters declared by $C$,
+either implicitly or explicitly,
+and the instance getters inherited by $C$ from its superclass.
+The \Index{static getters of a class} $C$ are
+those static getters declared by $C$.
 
 \commentary{
 A getter declaration may conflict with other declarations
 (\ref{classMemberConflicts}).
 In particular, a getter can never override a method,
 and a method can never override a getter or an instance variable.
+The rules for when a getter correctly overrides another member
+are given elsewhere
+(\ref{correctMemberOverrides}).
 }
-
-\LMHash{}%
-It is a compile-time error if a getter $m_1$ overrides (\ref{inheritanceAndOverriding}) a getter $m_2$
-and the return type of $m_1$ is not a subtype of the return type of $m_2$.
 
 
 \subsection{Setters}
@@ -2063,33 +2378,39 @@ If no return type is specified, the return type of the setter is \VOID{} (\ref{t
 A setter definition that is prefixed with the \STATIC{} modifier defines a static setter.
 Otherwise, it defines an instance setter.
 The name of a setter is obtained by appending the string `=' to the identifier given in its signature.
-The effect of a static setter declaration in class $C$ is to add an instance setter with the same name and signature to the \code{Type} object for class $C$ that forwards (\ref{functionDeclarations}) to the static setter.
 
 \commentary{
 Hence, a setter name can never conflict with, override or be overridden by a getter or method.
 }
 
 \LMHash{}%
-The instance setters of a class $C$ are those instance setters declared by $C$ either implicitly or explicitly, and the instance setters inherited by $C$ from its superclass.
-The static setters of a class $C$ are those static setters declared by $C$.
+The \Index{instance setters of a class} $C$ are
+those instance setters declared by $C$
+either implicitly or explicitly,
+and the instance setters inherited by $C$ from its superclass.
+The \Index{static setters of a class} $C$ are
+those static setters declared by $C$,
+either implicitly or explicitly.
 
 \LMHash{}%
-It is a compile-time error if a setter's formal parameter list does not consist of exactly one required formal parameter $p$.
+It is a compile-time error if a setter's formal parameter list
+does not consist of exactly one required formal parameter $p$.
 \rationale{
 We could enforce this via the grammar, but we'd have to specify the evaluation rules in that case.
 }
 
 \LMHash{}%
 It is a static warning if a setter declares a return type other than \VOID{}.
-It is a compile-time error if a setter $m_1$ overrides (\ref{inheritanceAndOverriding}) a setter $m_2$
-and the parameter type of $m_1$ is not a supertype of the parameter type of $m_2$.
 It is a static warning if a class has
-a setter named $v=$ with argument type $T$ and
+a setter named \code{$v$=} with argument type $T$ and
 a getter named $v$ with return type $S$,
 and $S$ may not be assigned to $T$.
 
 \commentary{
-A setter declaration may conflict with other declarations
+The rules for when a setter correctly overrides another member
+are given elsewhere
+(\ref{correctMemberOverrides}).
+A setter declaration may conflict with other declarations as well
 (\ref{classMemberConflicts}).
 }
 
@@ -2110,14 +2431,15 @@ A \IndexCustom{concrete method}{method!concrete}
 is an instance method, getter or setter that is not abstract.
 
 \rationale{
-Earlier versions of Dart required that abstract members be identified by prefixing them with the modifier \ABSTRACT{}.
-The elimination of this requirement is motivated by the desire to use abstract classes as interfaces.
-Every Dart class induces an implicit interface.
-
-Using an abstract class instead of an interface has important advantages.
-An abstract class can provide default implementations; it can also provide static methods, obviating the need for service classes such as \code{Collections} or \code{Lists}, whose entire purpose is to group utilities related to a given type.
-
-Eliminating the requirement for an explicit modifier on members makes abstract classes more concise, making abstract classes an attractive substitute for interface declarations.
+Abstract instance members are useful because of their interplay with classes.
+Every Dart class induces an implicit interface,
+and Dart does not support specifying interfaces explicitly.
+Using an abstract class instead of a traditional interface
+has important advantages.
+An abstract class can provide default implementations.
+It can also provide static methods,
+obviating the need for service classes such as \code{Collections} or \code{Lists},
+whose entire purpose is to group utilities related to a given type.
 }
 
 \commentary{
@@ -2133,21 +2455,11 @@ not to the class itself.
 }
 
 \rationale{
-The purpose of an abstract method is to provide a declaration for purposes such as type checking and reflection.
-In classes used as mixins, it is often useful to introduce such declarations for methods that the mixin expects will be provided by the superclass the mixin is applied to.
+The purpose of an abstract method is to provide a declaration
+for purposes such as type checking and reflection.
+In mixins, it is often useful to introduce such declarations for methods that
+the mixin expects will be provided by the superclass the mixin is applied to.
 }
-
-\LMHash{}%
-%% TODO(eernst): This is semi-redundant: We should define what it means for
-%% a class to be 'fully implemented' and require once and for all that it is
-%% a compile-time error if a concrete class is not fully implemented. That
-%% is very nearly what line 2706++ already says. This will then be commentary,
-%% just focusing on the case where a concrete $C$ _declares_ an abstract $m$.
-It is a compile-time error if an abstract member $m$ is declared or inherited in a concrete class $C$ unless:
-\begin{itemize}
-\item $m$ overrides a concrete member, or
-\item $C$ has a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
-\end{itemize}
 
 \rationale{
 We wish to detect if one declares a concrete class with abstract members.
@@ -2177,8 +2489,13 @@ Therefore no error should be raised if a corresponding concrete member exists in
 \LMLabel{instanceVariables}
 
 \LMHash{}%
-Instance variables are variables whose declarations are immediately contained within a class declaration and that are not declared \STATIC{}.
-The instance variables of a class $C$ are those instance variables declared by $C$ and the instance variables inherited by $C$ from its superclass.
+\IndexCustom{Instance variables}{variables!instance}
+are variables whose declarations
+are immediately contained within a class declaration
+and that are not declared \STATIC{}.
+The \Index{instance variables of a class} $C$ are
+the instance variables declared by $C$
+and the instance variables inherited by $C$ from its superclass.
 
 \LMHash{}%
 It is a compile-time error if an instance variable is declared to be constant.
@@ -2193,6 +2510,23 @@ However, a constant instance variable could not be treated as a true compile-tim
 
 Given that the value does not depend on the instance, it is better to use a static class variable.
 An instance getter for it can always be defined manually if desired.
+}
+
+\LMHash{}%
+It is possible for the declaration of an instance variable
+to include the modifier \COVARIANT{}
+(\ref{variables}).
+The effect of this is that the formal parameter of
+the corresponding implicitly induced setter
+is considered to be covariant-by-declaration
+(\ref{covariantParameters}).
+
+\commentary{
+The modifier \COVARIANT{} on an instance variable has no other effects.
+In particular, the return type of the implicitly induced getter
+can already be overridden covariantly without \COVARIANT{},
+and it can never be overridden to a supertype or an unrelated type,
+regardless of whether the modifier \COVARIANT{} is present.
 }
 
 
@@ -2282,6 +2616,7 @@ The type of the constructor is defined in terms of its formal parameters, includ
 \LMHash{}%
 Initializing formals are executed during the execution of generative constructors detailed below.
 Executing an initializing formal \code{\THIS{}.\id} causes the instance variable \id{} of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
+%% TODO(eernst): This should be a compile-time error -- check, revise if true!
 unless \id{} is a final variable that has already been initialized, in which case a run-time error occurs.
 
 \commentary{
@@ -2687,13 +3022,13 @@ $N$ is $C$ or $C.\id_0$ for some identifier $\id_0$,
 $T$ is a type name, and \id{} is an identifier,
 then consider a declaration of a redirecting factory constructor $k$ of one of the forms
 
-\begin{dartCode}
+\begin{normativeDartCode}
 $\ConstMetavar$ \FACTORY{}
     $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1}$=$d_1, \ldots,\ T_{n+k}\ x_{n+k}$=$d_k$]) = $R$;
 \\
 $\ConstMetavar$ \FACTORY{}
     $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1}$=$d_1, \ldots,\ T_{n+k}\ x_{n+k}$=$d_k$\}) = $R$;
-\end{dartCode}
+\end{normativeDartCode}
 
 \noindent
 where $R$ is of one of the forms
@@ -2946,16 +3281,16 @@ and that same expression would evaluate without errors at run time.
 are functions, other than getters or setters, whose declarations are immediately contained within a class declaration and that are declared \STATIC{}.
 The static methods of a class $C$ are those static methods declared by $C$.
 
-\LMHash{}%
-The effect of a static method declaration in class $C$ is to add an instance method with the same name and signature to the \code{Type} object for class $C$ that forwards (\ref{functionDeclarations}) to the static method.
-
 \rationale{
 Inheritance of static methods has little utility in Dart.
 Static methods cannot be overridden.
-Any required static function can be obtained from its declaring library, and there is no need to bring it into scope via inheritance.
-Experience shows that developers are confused by the idea of inherited methods that are not instance methods.
+Any required static function can be obtained from its declaring library,
+and there is no need to bring it into scope via inheritance.
+Experience shows that developers are confused by
+the idea of inherited methods that are not instance methods.
 
-Of course, the entire notion of static methods is debatable, but it is retained here because so many programmers are familiar with it.
+Of course, the entire notion of static methods is debatable,
+but it is retained here because so many programmers are familiar with it.
 Dart static methods may be seen as functions of the enclosing library.
 }
 
@@ -3067,7 +3402,7 @@ A class may override instance members that would otherwise have been inherited f
 Let $C = S_0$ be a class declared in library $L$, and
 let $\{S_1, \ldots, S_k\}$ be the set of all superclasses of $C$,
 where $S_i$ is the superclass of $S_{i-1}$ for $i \in 1 .. k$.
-\commentary{This means that $S_k$ is the built-in class \code{Object}.}
+\commentary{$S_k$ is the built-in class \code{Object}.}
 Let $C$ declare a concrete member $m$, and
 let $m'$ be a concrete member of $S_j, j \in 1 .. k$, that has the same name as $m$,
 such that $m'$ is accessible to $L$.
@@ -3081,47 +3416,21 @@ The getters and setters induced by instance variables do.
 }
 
 \rationale{
-Again, a local definition of overriding would be preferable, but fails to account for library privacy.
-}
-
-\LMHash{}%
-Whether an override is legal or not is described elsewhere in this specification (see \ref{instanceMethods}, \ref{getters} and \ref{setters}).
-
-\commentary{
-For example getters may not legally override methods and vice versa.
-Setters never override methods or getters, and vice versa, because their names always differ.
-}
-
-\rationale{
-It is nevertheless convenient to define the override relation between members in this way, so that we can concisely describe the illegal cases.
+Again, a local definition of overriding would be preferable,
+but fails to account for library privacy.
 }
 
 \commentary{
-Note that instance variables do not participate in the override relation, but the getters and setters they induce do.
-Also, getters don't override setters and vice versa.
-Finally, static members never override anything.
+Whether an override is legal or not is specified relative to
+all direct superinterfaces, not just the interface of the superclass,
+and that is described elsewhere
+(\ref{instanceMethods}).
+Static members never override anything,
+but they may participate in some conflicts
+involving declarations in superinterfaces
+(\ref{classMemberConflicts}).
 }
 
-\LMHash{}%
-Let $C$ be a concrete class
-whose interface has an accessible member $m$ named \id{}.
-It is a compile-time error if $C$ does not have
-a concrete member $m'$ named \id{} which is a correct override of $m$,
-unless $C$ has a concrete method named \code{noSuchMethod}
-which is different from the one in the built-in class \code{Object},
-and $C$ does not have a concrete member named \id.
-
-\commentary{
-So it is an error even if $C$ does have a concrete member $m'$ named \id{}
-if $m'$ is an \emph{incorrect} override of $m$,
-also when $C$ has a \code{noSuchMethod} which is not from \code{Object}.
-Note that it is allowed to let inaccessible methods remain unimplemented;
-invocations of such methods will be redirected to \code{noSuchMethod}.
-}
-
-%% TODO(eernst): Why don't we just get rid of this list entirely?
-%% It's 'for convenience', but that's not otherwise a priority in this
-%% document, it is more important that it is correct and consistent.
 \commentary{
 For convenience, here is a summary of the relevant rules,
 using `error' to denote compile-time errors.
@@ -3152,26 +3461,9 @@ The controlling language is in the relevant sections of the specification.
   they override each other.
   This may or may not be legal.
 \item \label{typeSigAssignable}
-  %% TODO(eernst): This is commentary, but we may need to adjust it
-  %% to say 'correctly overrides'.
   If two members override each other,
-  it is an error if their type signatures are not assignable to each other
-  (\ref{instanceMethods}, \ref{getters}, \ref{setters})
-  %% TODO(eernst): Revisit relative to the new subtyping.md rules.
-  (and since these are function types, this means the same as
-  "subtypes of each other").
-\item \label{requiredParams}
-  If two members override each other,
-  it is an error if the overriding member has
-  more required parameters than the overridden one (\ref{instanceMethods}).
-\item \label{optionalPositionals}
-  If two members override each other,
-  it is an error if the overriding member has
-  fewer positional parameters than the overridden one (\ref{instanceMethods}).
-\item \label{namedParams}
-  If two members override each other,
-  it is an error if the overriding member does not have
-  all the named parameters that the overridden one has (\ref{instanceMethods}).
+  it is an error unless it is a correct override
+  (\ref{correctMemberOverrides}).
 \item Setters, getters and operators never have
   optional parameters of any kind;
   it's an error (\ref{operators}, \ref{getters}, \ref{setters}).
@@ -3187,38 +3479,31 @@ The controlling language is in the relevant sections of the specification.
   it has no body and is not labeled \EXTERNAL{}
   (\ref{abstractInstanceMembers}, \ref{externalFunctions}).
 \item A class is abstract if{}f it is explicitly labeled \ABSTRACT{}.
-\item It is an error if a concrete class has an abstract member
-  (declared or inherited), and there is no \code{noSuchMethod}.
+\item It is an error if a concrete class does not implement some member
+  of its interface, and there is no non-trivial \code{noSuchMethod}
+  (\ref{classes}).
 \item It is an error to call a non-factory constructor of an abstract class
   using an instance creation expression (\ref{instanceCreation}),
   such a constructor may only be invoked from another constructor
   using a super invocation (\ref{superInvocation}).
 \item If a class defines an instance member named $m$,
-  and any of its superinterfaces have a member named $m$,
+  and any of its superinterfaces have a member signature named $m$,
   the interface of the class contains the $m$ from the class itself.
-\item
-  %% TODO(eernst): This needs to be updated when we introduce the
-  %% new override/conflict rules.
-  An interface inherits all members of its superinterfaces
+\item An interface inherits all members of its superinterfaces
   that are not overridden and not members of multiple superinterfaces.
-\item
-  %% TODO(eernst): This must be rewritten when we introduce the new
-  %% override/conflict rules.
-  If multiple superinterfaces of an interface
-  define a member with the same name $m$,
+\item If multiple superinterfaces of an interface
+  define a member with the same name as $m$,
   then at most one member is inherited.
-  %% TODO(eernst): Switch to use 'correctly overrides' terminology.
   That member (if it exists) is the one whose type is a subtype
   of all the others.
-  If there is no such member, then an error occurs
+  If there is no such member, an error occurs
   (\ref{interfaceInheritanceAndOverriding}).
 \item Rule \ref{typeSigAssignable} applies to interfaces as well as classes
   (\ref{interfaceInheritanceAndOverriding}).
 \item It is an error if a concrete class does not have an implementation
   for a method in its interface
-  unless it has a concrete \code{noSuchMethod} method
-  (\ref{superinterfaces})
-  distinct from the one in class \code{Object}.
+  unless it has a non-trivial \code{noSuchMethod}
+  (\ref{theMethodNoSuchMethod}).
 \item The identifier of a named constructor cannot be
   the same as the name of a static member declared in the same class
   (\ref{classMemberConflicts}).
@@ -3228,11 +3513,12 @@ The controlling language is in the relevant sections of the specification.
 
 \subsection{Superinterfaces}
 \LMLabel{superinterfaces}
-% what about rules about classes that fail to implement their interfaces?
 
 \LMHash{}%
-A class has a set of direct superinterfaces.
-This set includes the interface of its superclass and the interfaces specified in the \IMPLEMENTS{} clause of the class.
+A class has a set of \Index{direct superinterfaces}.
+This set contains the interface of its superclass
+and the interfaces of the classes specified in
+the \IMPLEMENTS{} clause of the class.
 
 \begin{grammar}
 <interfaces> ::= \IMPLEMENTS{} <typeList>
@@ -3263,36 +3549,9 @@ As such, it is an indication that the programmer may very well have meant to say
 \LMHash{}%
 It is a compile-time error if the interface of a class $C$ is a superinterface of itself.
 
-\LMHash{}%
-Let $C$ be a concrete class that does not have a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
-%% TODO(eernst): Adjust to use 'correctly overrides' terminology.
-It is a compile-time error if the implicit interface of $C$ has an accessible instance member $m$ of type $F$,
-and $C$ does not declare or inherit a corresponding concrete instance member $m$ of type $F'$ such that $F' <: F$.
-
 \commentary{
 A class does not inherit members from its superinterfaces.
 However, its implicit interface does.
-}
-
-\rationale{
-We choose to raise these compile-time errors only for concrete classes;
-an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of the interface.
-We also disable these errors if a concrete \code{noSuchMethod()} declaration is present or inherited from any class other than \code{Object},
-unless a concrete member $m$ is declared or inherited.
-The point is that there is an error to disable,
-so the signature of the concrete $m$ is not a correct override of the signature in the class interface.
-Otherwise, when all such errors have been disabled,
-the supported interface is going to be implemented via \code{noSuchMethod()}
-and no actual declarations of the implemented interface's members are needed.
-This allows proxy classes for specific types to be implemented without provoking errors.
-}
-
-\LMHash{}%
-%% TODO(eernst): Switch to use 'correctly overrides' terminology.
-It is a compile-time error if the implicit interface of a class $C$ has an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if $F'$ is not a subtype of $F$.
-
-\rationale{
-However, if a class does explicitly declare a member that conflicts with its superinterface, this always yields an error.
 }
 
 
@@ -3325,18 +3584,397 @@ as well as when they are induced by variable declarations.
 \LMLabel{interfaces}
 
 \LMHash{}%
-An \Index{interface} defines how one may interact with an object.
-An interface has methods, getters and setters and a set of superinterfaces.
+This section introduces the notion of interfaces.
+We define the notion of member signatures first,
+because that concept is needed in the definition of interfaces.
+
+% We need a separate concept of instance member signatures,
+% such that we can obtain a clean treatment of how to compute
+% the interface of a class and the common interface of a set
+% of superinterfaces, e.g., the superinterfaces of a class or
+% the common interface represented by an `on` clause in a
+% `mixin`. For instance, we do not want to specify each time
+% we check for conflicts that the body doesn't matter, or
+% that the metadata doesn't matter, the interface of a class
+% should simply never contain a body of any member in the
+% first place. Also the clear separation of a syntactic
+% declaration and a member signature provides a well-defined
+% occasion to introduce transformations, e.g., to replace
+% some parameter types by others, which is needed for the
+% specification of a correct override relation.
+
+\LMHash{}%
+A \Index{member signature} $s$
+can be derived from a class instance member declaration $D$.
+It contains the same information as $D$,
+except that $s$ omits the body, if any;
+it contains the return type and parameter types
+even if they are implicit in $D$;
+it omits the names of positional parameters;
+it omits the modifier \FINAL{} from each parameter, if any;
+it omits metadata
+(\ref{metadata});
+and it omits information about whether the member is
+\EXTERNAL{}, \ASYNC{}, \ASYNC*, or \SYNC*.
+It makes no difference whether $D$ is given as explicit syntax
+or it is induced implicitly, e.g., by a variable declaration.
+Finally, if $s$ has formal parameters,
+each of them has the modifier \COVARIANT{}
+(\ref{requiredFormals})
+if and only if that parameter is covariant-by-declaration
+(\ref{covariantParameters}).
+
+\LMHash{}%
+We use a syntax similar to that of an abstract member declaration
+to specify member signatures.
+The difference is that the names of positional parameters are omitted.
+This syntax is only used for the purposes of specification.
+
+\rationale{
+Member signatures are synthetic entities, that is,
+they are not supported as concrete syntax in a Dart program,
+they are computed entities used during static analysis.
+However, it is useful to be able to indicate the
+properties of a member signature in this specification
+via a syntactic representation.
+A member signature makes it explicit
+whether a parameter is covariant-by-declaration,
+but it remains implicit whether it is covariant-by-class
+(\ref{covariantParameters}).
+The reason for this is that the rule for determining whether
+a given override relation is correct
+(\ref{correctMemberOverrides})
+depends on the former and not on the latter.
+}
+
+\LMHash{}%
+Let $m$ be a method signature of the form
+
+\noindent
+\code{$T_0$ \id<\TypeParametersStd>(}
+
+\noindent
+\code{\qquad\qquad\List{\COVARIANT{}?\ T}{1}{n},}
+
+\noindent
+\code{\qquad\qquad[\PairList{\COVARIANT{}?\ T}{= d}{n+1}{n+k}])}.
+
+\noindent
+The \IndexCustom{function type of}{method signature!function type}
+$m$ is then
+
+\noindent
+\FunctionTypePositionalStd{T_0}.
+
+\LMHash{}%
+Let $m$ be a method signature of the form
+
+\noindent
+\code{$T_0$ \id<\TypeParametersStd>(}
+
+\noindent
+\code{\qquad\qquad\List{\COVARIANT{}?\ T}{1}{n},}
+
+\noindent
+\code{\qquad\qquad\{\TripleList{\COVARIANT{}?\ T}{x}{= d}{n+1}{n+k}\})}.
+
+\noindent
+The \NoIndex{function type of} $m$ is then
+
+\noindent
+\FunctionTypeNamedStd{T_0}.
+
+\LMHash{}%
+Let $m$ be a setter signature of the form
+\code{\VOID\ \SET\ \id(\COVARIANT?\ $T$ $p$)}.
+The \NoIndex{function type of} $m$ is then
+\FunctionTypeSimple{\VOID}{$T$}.
+
+\LMHash{}%
+The function type of a member signature remains unchanged if
+some or all default values are omitted.
+
+\commentary{
+We do not specify the function type of a getter signature.
+For such signatures we will instead directly refer to the return type.
+}
+
+\LMHash{}%
+An \Index{interface} is a synthetic entity that defines
+how one may interact with an object.
+An interface has method, getter and setter signatures,
+and a set of superinterfaces,
+which are again interfaces.
+Each interface is the implicit interface of a class,
+in which case we call it a
+\IndexCustom{class interface}{interface!class},
+or a combination of several other interfaces,
+in which case we call it a
+\IndexCustom{combined interface}{interface!combined}.
+
+\LMHash{}%
+Let $C$ be a class.
+The \Index{class interface} $I$ of $C$ is the interface that declares
+a member signature derived from
+each instance member declared by $C$.
+The \Index{direct superinterfaces} of $I$ are the direct superinterfaces of $C$
+(\ref{superinterfaces}).
+
+\commentary{
+We say that the class interface 'declares' these member signatures,
+such that we can say that an interface 'declares' or 'has' a member,
+just like we do for classes.
+Note that a member signature $s$ of the interface of class $C$
+may have a parameter $p$ with modifier \COVARIANT{},
+even though $s$ was derived from a declaration $D$ in $C$
+and the parameter corresponding to $p$ in $D$ does not
+have that modifier.
+This is because $p$ may have ``inherited''
+the property of being covariant-by-declaration
+from one of its superinterfaces
+(\ref{covariantParameters}).
+}
+
+\LMHash{}%
+%% TODO(eernst): 'list of interfaces' --> 'set of interfaces' if we
+%% switch to use a total order on top types for interface specificity.
+The \Index{combined interface} $I$ of a list of interfaces \List{I}{1}{k}
+is the interface that declares the set of member signatures $M$,
+where $M$ is determined as specified below.
+The \Index{direct superinterfaces} of $I$ is the set \List{I}{1}{k}.
+
+\LMHash{}%
+Let $M_0$ be the set of all member signatures declared by \List{I}{1}{k}.
+$M$ is then the smallest set satisfying the following:
+
+\begin{itemize}
+\item For each name \id{} and library $L$ such that $M_0$ contains
+  a member signature named \id{} which is accessible to $L$,
+  let $m$ be the combined member signature named \id{}
+  from \List{I}{1}{k} with respect to $L$.
+  It is a compile-time error
+  if the computation of this combined member signature failed.
+  Otherwise, $M$ contains $m$.
+\end{itemize}
+
+\rationale{
+Interfaces must be able to contain inaccessible member signatures,
+because they may be accessible from the interfaces associated with
+declarations of subtypes.
+}
+
+\commentary{%
+For instance, class $C$ in library $L$ may declare a private member named
+\code{\_foo},
+a class $D$ in a different library $L_2$ may extend $C$,
+and a class $E$ in library $L$ may extend $D$;
+$E$ may then declare a member that overrides \code{\_foo} from $C$,
+and that override relation must be checked based on the interface of $D$.
+So we cannot allow the interface of $D$
+to ``forget'' inaccessible members like \code{\_foo}.
+
+For conflicts the situation is even more demanding:
+Classes $C_1$ and $C_2$ in library $L$ may declare private members
+\code{String \_foo(int i)} and \code{int get \_foo},
+and a subtype $D_{12}$ in a different library $L_2$ may have
+an \IMPLEMENTS{} clause listing both $C_1$ and $C_2$.
+In that case we must report a conflict even though the conflicting
+declarations are not accessible to $L_2$,
+because those member signatures are then noSuchMethod forwarded
+(\ref{theMethodNoSuchMethod}),
+and an invocation of \code{\_foo} on an instance of $D$ in $L$
+must return an `int` according to the first member signature,
+and it must return a function object according to the second one,
+and an invocation of \code{\_foo(42)}
+must return a \code{String} with the first member signature, and it must fail
+(at compile time or, for a dynamic invocation, run time) with the second.
+}
+
+\rationale{%
+It may not be possible to satisfy such constraints simultaneously,
+and it will inevitably be a complex semantics,
+so we have chosen to make it an error.
+It is unfortunate that the addition of a private declaration
+in one library may break existing code in a different library.
+But it should be noted that the conflicts can be detected locally
+in the library where the private declarations exist,
+because they only arise for private members with
+the same name and incompatible signatures.
+Renaming that private member to anything not used in that library
+will eliminate the conflict and will not break any clients.
+}
+
+
+\subsection{Combined Member Signatures}
+\LMLabel{combinedMemberSignatures}
+
+\LMHash{}%
+This section specifies how to compute a member signature which will
+appropriately stand for a prioritized set of several member signatures,
+taken from a given list of interfaces.
+
+\commentary{
+In general, a combined member signature has a type which is
+a subtype of all the types given for that member.
+This is needed in order to ensure that the type of
+a member \id{} of a class $C$ is well-defined,
+even in the case where $C$ inherits
+several different declarations of \id{}
+and does not override \id{}.
+In case of failure, it serves to specify the situations
+where a developer must add a declaration in order to resolve an ambiguity.
+The member signatures are prioritized in the sense that we will select
+a member signature from the interface with the lowest possible index
+in the case where several member signatures are equally suitable
+to be chosen as the combined member signature.
+That is, ``the first interface wins''.
+}
+
+\LMHash{}%
+For the purposes of computing a combined member signature,
+we need a special notion of
+\IndexCustom{equality}{member signature equality}
+of member signatures.
+Two member signatures $m_1$ and $m_2$ are equal
+if{}f they have the same name,
+are accessible to the same set of libraries,
+have the same same return type (for getters),
+or the same function type and the same occurrences of \COVARIANT{}
+(for methods and setters).
+
+\commentary{
+In particular, private methods from different libraries are never equal.
+Top types differ as well.
+For instance,
+\FunctionTypeSimple{\DYNAMIC}{} and \FunctionTypeSimple{\code{Object}}{}
+are not equal, even though they are subtypes of each other.
+We need this distinction because management of top type discrepancies is
+one of the purposes of computing a combined interface.
+}
+
+\LMHash{}%
+Now we define combined member signatures.
+Let \id{} be an identifier, $L$ a library,
+\List{I}{1}{k} a list of interfaces,
+and $M_0$ the set of
+all member signatures from \List{I}{1}{k} named \id{}
+and accessible to $L$.
+The
+\IndexCustom{combined member signature
+  named \id{} from \List{I}{1}{k} with respect to $L$}{%
+  combined member signature}
+is the member signature which is obtained as follows:
+
+\LMHash{}%
+If $M_0$ is empty, computation of the combined member signature failed.
+
+\LMHash{}%
+If $M_0$ contains exactly one member signature $m'$,
+the combined member signature is $m'$.
+
+\LMHash{}%
+Otherwise, $M_0$ contains more than one member signature \List{m}{1}{q}.
+
+\LMHash{}%
+\Case{Failing mixtures}
+If $M_0$ contains at least one getter signature
+and at least one non-getter signature,
+the computation of the combined member signature failed.
+
+\LMHash{}%
+\Case{Getters}
+If $M_0$ contains getter signatures only,
+the computation of the combined member signature proceeds as described below
+for methods and setters,
+except that it uses the return type of the getter signature
+where methods and setters use the function type of the member signature.
+
+
+\LMHash{}%
+\Case{Methods and setters}
+In this case $M_0$ consists of setter signatures only,
+or method signatures only,
+because the name \id{} in the former case always end in \syntax{`='},
+which is never true in the latter case.
+
+\LMHash{}%
+Determine whether there exists a non-empty set $N \subseteq 1 .. q$ such that
+for each $i \in N$,
+the function type of $m_i$ is a subtype of
+the function type of $m_j$ for each $j \in 1 .. q$.
+%
+If no such set exists, the computation of the combined member signature failed.
+\commentary{%
+A useful intuition about this situation is that
+the given member signatures do not agree on
+which type is suitable for the member named \id.
+Otherwise we have a set of member signatures which are ``most specific''
+in the sense that their function types are subtypes of them all.
+}
+
+{ % Scope for N_min, M_min, N_firstMin.
+
+\def\Nall{\ensuremath{N_{\mbox{\scriptsize{}all}}}}
+\def\Mall{\ensuremath{M_{\mbox{\scriptsize{}all}}}}
+\def\MallFirst{\ensuremath{M_{\mbox{\scriptsize{}first}}}}
+
+\LMHash{}%
+Otherwise, when a set $N$ as specified above exists,
+let \Nall{} be the greatest set satisfying the requirement on $N$,
+and let $\Mall{} = \{ m_i\;|\;i \in \Nall\}$.
+\commentary{
+That is, \Mall{} contains all member signatures named \id{}
+with the most specific type.
+Dart subtyping is a partial pre-order,
+which ensures that such a greatest set of least elements exists,
+if any non-empty set of least elements exist.
+We can have several such signatures because member signatures
+can be such that they are not equal,
+and yet their function types are subtypes of each other.
+We need to compute one member signature from \Mall{},
+and we do that by using the ordering of the given interfaces.
+}
+
+\LMHash{}%
+Let $j \in 1 .. k$ be the smallest number such that
+$\MallFirst{} = \Mall{} \cap I_j$ is non-empty.
+Let $m_i$ be the single element that \MallFirst{} contains.
+\commentary{
+This set contains exactly one element because it is non-empty
+and no interface contains more than one member signature named \id.
+In other words, we choose $m_i$ as the member signature from
+the first possible interface
+among the most specific member signatures \Mall.
+}
+}
+
+\LMHash{}
+The combined member signature is then $m'$,
+which is obtained from $m_i$ by adding the modifier \COVARIANT{}
+to each parameter $p$ (if it is not already present)
+when there exists a $j \in 1 .. q$
+such that the parameter corresponding to $p$
+(\ref{covariantParameters})
+has the modifier \COVARIANT{}.
+\commentary{
+In other words,
+each parameter in the combined member signature is marked covariant
+if any of the corresponding parameters are marked covariant,
+not just among the most specific signatures,
+but among \emph{all} signatures named \id{} (which are accessible to $L$)
+in the given list of interfaces.
+}
 
 
 \subsection{Superinterfaces}
 \LMLabel{interfaceSuperinterfaces}
 
 \LMHash{}%
-An interface has a set of direct superinterfaces.
-
-\LMHash{}%
-An interface $J$ is a superinterface of an interface $I$ if{}f either $J$ is a direct superinterface of $I$ or $J$ is a superinterface of a direct superinterface of $I$.
+An interface has a set of direct superinterfaces
+(\ref{interfaces}).
+An interface $J$ is a \Index{superinterface} of an interface $I$
+if{}f either $J$ is a direct superinterface of $I$
+or $J$ is a superinterface of a direct superinterface of $I$.
 
 
 \subsubsection{Inheritance and Overriding}
@@ -3344,58 +3982,111 @@ An interface $J$ is a superinterface of an interface $I$ if{}f either $J$ is a d
 
 \LMHash{}%
 Let $J$ be an interface and $K$ be a library.
-We define $inherited(J, K)$ to be the set of members $m$ such that all of the following hold:
+We define $\inherited{J, K}$ to be the set of member signatures $m$
+such that all of the following hold:
 \begin{itemize}
 \item $m$ is accessible to $K$ and
 \item $A$ is a direct superinterface of $J$ and either
   \begin{itemize}
-  \item $A$ declares a member $m$ or
-  \item $m$ is a member of $inherited(A, K)$.
+  \item $A$ declares a member signature $m$ or
+  \item $m$ is a member of $\inherited{A, K}$.
   \end{itemize}
 \item $m$ is not overridden by $J$.
 \end{itemize}
 
 \LMHash{}%
-Furthermore, we define $overrides(J, K)$ to be the set of members $m'$ such that all of the following hold:
+Furthermore, we define $\overrides{J, K}$ to be
+the set of member signatures $m'$
+such that all of the following hold:
 \begin{itemize}
-\item $J$ is the implicit interface of a class $C$.
-\item $C$ declares a member $m$.
+\item $J$ is the interface of a class $C$.
+\item $C$ declares a member signature $m$.
 \item $m'$ has the same name as $m$.
 \item $m'$ is accessible to $K$.
 \item $A$ is a direct superinterface of $J$ and either
   \begin{itemize}
-  \item $A$ declares a member $m'$ or
+  \item $A$ declares a member signature $m'$ or
   \item $m'$ is a member of $inherited(A, K)$.
   \end{itemize}
 \end{itemize}
 
 \LMHash{}%
-Let $I$ be the implicit interface of a class $C$ declared in library $L$.
-$I$ \Index{inherits} all members of $inherited(I, L)$ and $I$ \Index{overrides} $m'$ if $m' \in overrides(I, L)$.
+Let $I$ be the interface of a class $C$ declared in library $L$.
+$I$ \Index{inherits} all members of $\inherited{I, L}$
+and $I$ \Index{overrides} $m'$ if $m' \in \overrides{I, L}$.
 
 \LMHash{}%
-All the compile-time errors pertaining to the overriding of instance members given in section \ref{classes} above hold for overriding between interfaces as well.
+All the compile-time errors pertaining to the overriding of instance members
+given in section~\ref{classes} hold for overriding between interfaces as well.
 
 \LMHash{}%
-It is a compile-time error if $m$ is a method and $m'$ is a getter, or if $m$ is a getter and $m'$ is a method.
+If the above rule would cause multiple member signatures
+with the same name \id{} to be inherited then
+exactly one member is inherited, namely
+the combined member signature named \id{},
+from the direct superinterfaces
+%% TODO(eernst): This is only well-defined when $J$ is a class interface.
+in the textual order that they are declared,
+with respect to $L$
+(\ref{combinedMemberSignatures}).
 
-%Let $I = S_0$ be the implicit interface of a class $C$ declared in library $L$, and let $\{S_1, \ldots, S_k\}$ be the set of all superinterfaces of $I$.
 
-%Let $I$ be the implicit interface of a class $C$.  $I$ inherits any instance members of its superinterfaces that are not overridden by members declared in $C$.
-
-% tighten definition? do we need chain as for classes?  Definition for interface override?
+\subsubsection{Correct Member Overrides}
+\LMLabel{correctMemberOverrides}
 
 \LMHash{}%
-However, if the above rules would cause multiple members $m_1, \ldots, m_k$ with the same name $n$ to be inherited (because identically named members existed in several superinterfaces) then at most one member is inherited.
+Let $m$ and $m'$ be member signatures with the same name \id.
+Then $m$ is a \Index{correct override} of $m'$
+if{}f the following criteria are all satisfied:
 
-\LMHash{}%
-If some but not all of the $m_i, 1 \le i \le k$ are getters, a compile-time error occurs.
+\begin{itemize}
+\item
+  $m$ and $m'$ are both methods, both getters, or both setters.
+  % We cannot have a setter and a method, say, because they cannot have
+  % the same name. However, we must _allow_ $m$ and $m'$ to be two setters.
+\item
+  If $m$ and $m'$ are both methods or both setters:
+  Let $F$ be the function type of $m$
+  except that the parameter type is the built-in class \code{Object}
+  for each parameter of $m$ which has the modifier \COVARIANT{}.
+  Let $F'$ be the function type of $m'$.
+  $F$ must then be a subtype of $F'$.
 
-\LMHash{}%
-%% TODO(eernst): Adjust to use 'correctly overrides' terminology.
-Otherwise, if the static types $T_1, \ldots, T_k$ of the members $m_1, \ldots, m_k$ are not identical then there must be an $x \in 1 .. k$ such that $T_x <: T_i$ for all $i \in 1 .. k$,
-or a compile-time error occurs.
-The member that is inherited  is $m_x$, if it exists.
+  \commentary{%
+  The subtype requirement ensures that argument list shapes
+  that are admissible for an invocation of a method with signature $m'$
+  are also admissible for an invocation of a method with signature $m$.
+  For instance, $m'$ may accept 2 or 3 positional arguments,
+  and $m$ may accept 1, 2, 3, or 4 positional arguments, but not vice versa.
+  This is a built-in property of the function type subtype rules.
+  %
+  Note that a member signature differs from
+  an underlying syntactic declaration $D$ in a class $C$.
+  In particular,
+  a parameter in a member signature has the modifier \COVARIANT{}
+  if and only if the parameter is covariant-by-declaration
+  (\ref{covariantParameters}),
+  and that may be the case due to declarations in a supertype of $C$,
+  so that modifier need not be present in $D$.
+  %
+  There is an additional potential compile-time error associated with
+  a parameter which is covariant-by-declaration
+  (\ref{instanceMethods}).
+  But we cannot cover that here as a property of member overrides,
+  because it is concerned with declarations in all superinterfaces,
+  indirect as well as direct.
+  }
+\item
+  If $m$ and $m'$ are both methods,
+  $p$ is an optional parameter of $m$,
+  $p'$ is the parameter of $m'$ corresponding to $p$,
+  $p$ has default value $d$ and $p'$ has default value $d'$,
+  then $d$ and $d'$ must be identical,
+  or a compile-time warning occurs.
+\item
+  If $m$ and $m'$ are both getters:
+  The return type of $m$ must be a subtype of the return type of $m'$.
+\end{itemize}
 
 
 \section{Mixins}
@@ -3462,9 +4153,9 @@ let $S$ be the superclass of $C$, and let $S_N$ be the name of $S$.
 
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, $\ldots$, $T_{k}$ $a_{k}$)} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots, $T_{k}$ $a_{k}$): $\SUPER_q$($a_{1}$, $\ldots$, $a_{k}$);
-\end{dartCode}
+\end{normativeDartCode}
 
 \noindent
 where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
@@ -3476,10 +4167,10 @@ fields, $C_q$ is also a const constructor.
 \LMHash{}%
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d_1$, \ldots , $T_{k+p}$ $a_{k+p}$ = $d_p$])} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d'_{1}$, \ldots , $T_{k+p}$ $a_{k+p}$ = $d'_p$])
     : $\SUPER_q$($a_{1}$, \ldots , $a_{k}$, $a_{k+1}$, \ldots, $a_p$);
-\end{dartCode}
+\end{normativeDartCode}
 
 \noindent
 where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
@@ -3494,10 +4185,10 @@ fields, $C_q$ is also a const constructor.
 \LMHash{}%
 For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d_1$, \ldots , $T_{k+n}$ $a_{k+n}$ = $d_n$\})} of $S$ that is accessible to $L_C$, $C$ has an implicitly declared constructor of the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d'_1$, \ldots , $T_{k+n}$ $a_{k+n}$ = $d'_n$\})
     : $\SUPER_q$($a_{1}$, \ldots , $a_{k}$, $a_{k+1}$: $a_{k+1}$, \ldots, $a_p$: $a_p$);
-\end{dartCode}
+\end{normativeDartCode}
 
 \noindent
 where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
@@ -3563,17 +4254,17 @@ the application of
 
 to \code{$S$<$V_1, \ldots, V_{k_S}$>} for the name $C$ is equivalent to
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \ABSTRACT{} \CLASS{} $C<T_1, \ldots, T_{k_{M_1}}, U_1, \ldots, U_{k_{M_2}}, V_1, \ldots, V_{k_S}> = $
       $Id_2<U_1, \ldots, U_{k_{M_2}}, V_1 \ldots V_{k_S}>$ \WITH{} $M_1 <T_1, \ldots, T_{k_{M_1}}>$;
-\end{dartCode}
+\end{normativeDartCode}
 
 where $Id_2$ denotes
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \ABSTRACT{} \CLASS{} $Id_2<U_1, \ldots, U_{k_{M_2}}, V_1, \ldots, V_{k_S}> =$
                          $S<V_1, \ldots, V_{k_S}>$ \WITH{} $M_2<U_1, \ldots, U_{k_{M_2}}>$;
-\end{dartCode}
+\end{normativeDartCode}
 
 and $Id_2$ is a unique identifier that does not exist anywhere in the program.
 
@@ -3610,7 +4301,7 @@ The declaration of an enum of the form
 \code{$m$ \ENUM{} $E$ \{$m_0\,\,\id_0, \ldots,\ m_{n-1}\,\,\id_{n-1}$\}}
 has the same effect as a class declaration
 
-\begin{dartCode}
+\begin{normativeDartCode}
 $m$ \CLASS{} $E$ \{
   \FINAL{} int index;
   \CONST{} $E$(\THIS{}.index);
@@ -3620,7 +4311,7 @@ $m$ \CLASS{} $E$ \{
   \STATIC{} \CONST{} List<$E$> values = const <$E$>[\id$_0, \ldots, $ \id$_{n-1}$];
   String toString() => \{ 0: `$E$.\id$_0$', $\ldots$, n-1: `$E$.\id$_{n-1}$'\}[index]
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 \commentary{
 It is also a compile-time error to subclass, mix-in or implement an enum or to explicitly instantiate an enum.
@@ -5419,64 +6110,33 @@ The static type of a throw expression is $\bot$.
 \LMLabel{functionExpressions}
 
 \LMHash{}%
-%% TODO(eernst): A function literal is a syntactic construct, and we may use
-%% function closurization to obtain a corresponding function object.
 A \IndexCustom{function literal}{literal!function}
-is an object that encapsulates an executable unit of code.
+is an anonymous declaration and an expression
+that encapsulates an executable unit of code.
 
 \begin{grammar}
 <functionExpression> ::= <formalParameterPart> <functionBody>
 \end{grammar}
 
-%% TODO[inference]: The static and dynamic type of a function literal
-%% interacts with inference: If a type-from-context $T$ exists and the
-%% function literal can be given a type which is a subtype of $T$, we may
-%% end up typing both the function as a whole and the body of the function
-%% very differently than we would in a situation where no type-from-context
-%% exists. So the rules below must be changed to be the default case (where
-%% no type-from-context is available, or it is `Object` or some other
-%% non-constraing type, and other cases where the type-from-context is
-%% actually used to select the function literal signature must be described
-%% specifically for each relevant type of situation.
+\LMHash{}%
+The grammar does not allow a function literal to declare a return type,
+but it is possible for a function literal to have a
+\IndexCustom{declared return type}{literal!function!declared return type},
+because it can be obtained by means of type inference.
+Such a return type is included
+when we refer to the declared return type of a function.
+
+\commentary{%
+Type inference will be specified in a future version of this document.
+Currently we consider type inference to be a phase that has completed,
+and this document specifies the meaning of Dart programs
+where inferred types have already been added.
+}
 
 \LMHash{}%
-The class of a function literal implements the built-in class \FUNCTION{}.
-
-\LMHash{}%
-The static type of a function literal of the form
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
-
-\code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) => $e$}
-
-\noindent
-is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow T_0$},
-
-\noindent
-%% TODO[inference]: The static type of the function literal may come from context.
-where $T_0$ is the static type of $e$.
-
-\LMHash{}%
-The static type of a function literal of the form
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
-
-\code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) \ASYNC{} => $e$}
-
-\noindent
-is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
-
-\code{($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow$ Future<\flatten{T_0}>},
-
-\noindent
-where $T_0$ is the static type of $e$.
-
-\LMHash{}%
-In the previous two paragraphs, the type argument lists are omitted in the case where $m = 0$, and \flatten{T} is defined as follows:
+We define the auxiliary function
+\IndexCustom{\flatten{T}}{flatten(t)@\emph{flatten}$(T)$},
+which is used below and in other sections, as follows:
 
 \begin{itemize}
 \item If $T$ is \code{FutureOr<$S$>} for some $S$ then $\flatten{T} = S$.
@@ -5484,10 +6144,10 @@ In the previous two paragraphs, the type argument lists are omitted in the case 
 \item Otherwise if
 \code{$T <:$ Future}
 then let $S$ be a type such that
-\code{$T <<$ Future<$S$>}
+\code{$T <:$ Future<$S$>}
 and for all $R$, if
-\code{$T <<$ Future<$R$>}
-then $S << R$.
+\code{$T <:$ Future<$R$>}
+then $S <: R$.
 
 \rationale{
 This ensures that
@@ -5505,138 +6165,209 @@ Then $\flatten{T} = S$.
 \end{itemize}
 
 \LMHash{}%
+\Case{Positional, arrow}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
+\code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) => $e$}
+
+\noindent
+is
+\FunctionTypePositionalStd{T_0},
+
+\noindent
+%% TODO[inference]: The static type of the function literal may come from context.
+where $T_0$ is the static type of $e$.
+
+\LMHash{}%
+\Case{Positional, arrow, future}
+The static type of a function literal of the form
+
+\noindent
+\code{<\TypeParametersStd>}
+
+\noindent
+\code{($T_1\ a_1, \ldots,\ T_n\ a_n,$ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) \ASYNC{} => $e$}
+
+\noindent
+is
+\FunctionTypePositionalStdCr{\code{Future<\flatten{T_0}>}},
+
+\noindent
+where $T_0$ is the static type of $e$.
+
+\LMHash{}%
+\Case{Named, arrow}
+The static type of a function literal of the form
+
+\noindent
+\code{<\TypeParametersStd>}
+
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ \{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) => $e$}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$\}) $ \rightarrow T_0$},
+\FunctionTypeNamedStd{T_0},
 
 \noindent
 where $T_0$ is the static type of $e$.
 
 \LMHash{}%
+\Case{Named, arrow, future}
 The static type of a function literal of the form
 
-\code{<$X_1 B_1, \ldots,\ X_m B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ \{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) \ASYNC{} => $e$}
 
 \noindent
 is
-
-\code{<$X_1 B_1, \ldots,\ X_m B_m$>}
-
-\code{($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$\}) $ \rightarrow$ Future<\flatten{T_0}>},
+\FunctionTypeNamedStdCr{\code{Future<\flatten{T_0}>}},
 
 \noindent
 where $T_0$ is the static type of $e$.
 
 \LMHash{}%
+\Case{Positional, block}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParameters{X}{B}{S}>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k}= d_k$]) \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow$ \DYNAMIC{}}.
+\FunctionTypePositionalStdCr{\DYNAMIC}
 
 \LMHash{}%
+\Case{Positional, block, future}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) \ASYNC{} \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow$ Future}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypePositionalStdCr{\code{Future}}.
 
 \LMHash{}%
+\Case{Positional, block, stream}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k}= d_k$]) \ASYNC*{} \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow$ Stream}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypePositionalStdCr{\code{Stream}}.
 
 \LMHash{}%
+\Case{Positional, block, iterable}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k}= d_k$]) \SYNC*{} \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow$ Iterable}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypePositionalStdCr{\code{Iterable}}.
 
 \LMHash{}%
+\Case{Named, block}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ [$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k}= d_k$]) \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ [$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$]) $ \rightarrow$ \DYNAMIC{}}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypePositionalStdCr{\DYNAMIC}.
 
 \LMHash{}%
+\Case{Named, block, future}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ \{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) \ASYNC{} \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$\}) $ \rightarrow$ Future}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypeNamedStdCr{\code{Future}}.
 
 \LMHash{}%
+\Case{Named, block, stream}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ \{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) \ASYNC*{} \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$\}) $ \rightarrow$ Stream}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypeNamedStdCr{\code{Stream}}.
 
 \LMHash{}%
+\Case{Named, block, iterable}
 The static type of a function literal of the form
 
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>}
+\noindent
+\code{<\TypeParametersStd>}
 
+\noindent
 \code{($T_1\ a_1, \ldots,\ T_n\ a_n, $ \{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) \SYNC*{} \{ $s$ \}}
 
 \noindent
 is
-
-\code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ x_{n+1}, \ldots,\ T_{n+k}\ x_{n+k}$\}) $ \rightarrow$ Iterable}.
+%% TODO(eernst): Adjust to take type inference into account.
+\FunctionTypeNamedStdCr{\code{Iterable}}.
 
 \LMHash{}%
 In all of the above cases,
 the type argument lists are omitted when $m=0$,
-and whenever $T_i, 1 \le i \le n+k$, is not specified,
+and whenever $T_i$ is not specified, $i \in 1 .. n+k$,
 it is considered to have been specified as \DYNAMIC{}.
+
+\LMHash{}%
+Evaluation of a function literal yields a function object $o$.
+
+\commentary{
+The run-time type of $o$ is specified based on
+the static type $T$ of the function literal
+and the binding of type variables occurring in $T$
+at the occasion where the evaluation occurred
+(\ref{typeOfAFunction}).
+}
 
 
 \subsection{This}
@@ -6403,7 +7134,7 @@ So, in this section,
 the word `function' is more low-level than `function object',
 but `function' still denotes a semantic entity
 which is associated with a function declaration,
-even though there may not be corresponding entity in the heap at run time.
+even though there may not be a corresponding entity in the heap at run time.
 }
 
 \LMHash{}%
@@ -6425,13 +7156,16 @@ let $p_1, \ldots, p_n$ be the positional parameters,
 and let $p_{h+1}, \ldots, p_{h+k}$ be the optional parameters of $F$.
 Let $S_i$ be the static type of the formal parameters $p_i, i \in 1 .. h+k$,
 and for each $q$ let $S_q$ be the type of the parameter named $q$,
-where each parameter type is obtained by replacing $X_j$ by $A_j, j \in 1 .. s$, in the given parameter type annotation.
+where each parameter type is obtained by replacing $X_j$ by $A_j, j \in 1 .. s$,
+in the given parameter type annotation.
 Finally, let $T_i$ be the static type of $a_i$.
 
 \commentary{
-We have an actual argument list consisting of $r$ type arguments, $m$ positional arguments, and $l$ named arguments.
-We have a function with $s$ type parameters, $h$ required parameters, and $k$ optional parameters.
-Figure~\ref{fig:argumentsAndParameters} shows how this situation may arise.
+We have an actual argument list consisting of $r$ type arguments,
+$m$ positional arguments, and $l$ named arguments.
+We have a function with $s$ type parameters,
+$h$ required parameters, and $k$ optional parameters.
+Figure~\ref{fig:argumentsAndParameters} shows how this situation arises.
 }
 
 % View on declaration:
@@ -6517,6 +7251,32 @@ The static type of $i$ is $[A_1/X_1, \ldots, A_r/X_s]S_0$.
 \LMHash{}%
 It is a compile-time error if $T_j$ may not be assigned to $S_j, j \in 1 .. m$.
 It is a compile-time error if $T_{m+j}$ may not be assigned to $S_{q_j}, j \in 1 .. l$.
+
+\commentary{
+Consider the case where the function invocation in focus here is
+an instance method invocation.
+In that case, for each actual argument,
+the corresponding parameter may be covariant.
+However, the above assignability requirements apply equally
+both when the parameter is covariant and when it is not.
+}
+
+\rationale{
+Parameter covariance in an instance method invocation can be introduced by
+a subtype of the statically known receiver type,
+which means that any attempt to flag a given actual argument as dangerous
+due to the dynamic type check that it will be subjected to
+will be incomplete:
+some actual arguments can be subjected to such a dynamic type check
+even though this is not known statically at the call site.
+This is not surprising for a mechanism like parameter covariance which is
+designed for the very purpose of allowing developers to explicitly request
+that this specific kind of compile-time safety is violated.
+The point is that this mechanism postpones the enforcement of
+the underlying invariant to run time,
+and in return allows some useful program designs
+that would otherwise be rejected at compile-time.
+}
 
 \LMHash{}%
 For the dynamic semantics,
@@ -6764,14 +7524,26 @@ and it is also used as a shorthand for either of them when there is no ambiguity
 \LMHash{}%
 Function closurization applied to a function declaration $f$
 amounts to the creation of a function object $o$
-which is an instance of a class whose interface is a subtype of the actual type
+which is an instance of a class $C$ whose interface is
+a subtype of the actual type $F$
 (\ref{actualTypeOfADeclaration})
 corresponding to the signature in the function declaration $f$,
 using the current bindings of type variables, if any.
+There does not exist a function type $F'$ which is a proper subtype of $F$
+such that $C$ is a subtype of $F'$.
 If $f$ denotes a static method or top-level function,
-the corresponding class does not override the \code{==} operator
+class $C$ does not override the \code{==} operator
 inherited from the \code{Object} class.
-%
+
+\commentary{
+In other words, $C$ has the freedom to be a proper subtype of
+the function type that we can read off of the declaration of $f$
+because it may need to be a specific internal platform defined class,
+but $C$ does not have the freedom to be a subtype of
+a different and more special function type, and it cannot be \code{Null}.
+}
+
+\LMHash{}%
 An invocation of $o$ with a given argument list will bind actuals to formals
 in the same way as an invocation of $f$
 (\ref{bindingActualsToFormals}),
@@ -6949,13 +7721,10 @@ where the number of type arguments is zero (\ref{generics}).
 
 \LMHash{}%
 Let $T$ be the static type of $e$.
-It is a compile-time error if $T$ does not have an accessible (\ref{privacy}) instance member named $m$, unless either:
+It is a compile-time error if $T$ does not have an accessible
+(\ref{privacy})
+instance member named $m$, unless either:
 \begin{itemize}
-\item
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-$T$ is \code{Type}, $e$ is a constant type literal,
-and the class corresponding to $e$ has a static getter named $m$.
-Or
 \item $T$ is \DYNAMIC{}.
 Or
 \item $T$ is \FUNCTION{} and $m$ is \CALL.
@@ -7006,30 +7775,24 @@ proceeds as follows:
 
 \LMHash{}%
 First, the expression $e$ is evaluated to a value $o$.
-Let $f$ be the result of looking up (\ref{lookup}) method $m$ in $o$ with respect to the current library $L$.
-
-\LMHash{}%
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-If method lookup succeeded,
-but $o$ is an instance of \code{Type} and $e$ is not a constant type literal,
-then if $m$ is a method that forwards (\ref{functionDeclarations}) to a static method,
-method lookup is considered to have failed.
+Let $f$ be the result of looking up
+(\ref{lookup})
+method $m$ in $o$ with respect to the current library $L$.
 
 \LMHash{}%
 If the method lookup succeeded,
-the binding of actual arguments to formal parameters is performed as specified in Section~\ref{bindingActualsToFormals}.
-The body of $f$ is then executed with respect to the bindings that resulted from the evaluation of the argument list,
+the binding of actual arguments to formal parameters is performed
+as specified in Section~\ref{bindingActualsToFormals}.
+The body of $f$ is then executed with respect to the bindings
+that resulted from the evaluation of the argument list,
 and with \THIS{} bound to $o$.
 The value of $i$ is the value returned by the execution of $f$'s body.
 
 \LMHash{}%
 If the method lookup failed,
-then let $g$ be the result of looking up getter (\ref{lookup}) $m$ in $o$ with respect to $L$.
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-If getter lookup succeeded,
-but $o$ is an instance of \code{Type} and $e$ is not a constant type literal,
-then if $g$ is a getter that forwards to a static getter,
-getter lookup is considered to have failed.
+then let $g$ be the result of looking up getter
+(\ref{lookup})
+$m$ in $o$ with respect to $L$.
 
 \LMHash{}%
 If the getter lookup succeeded then invoke the getter $o.m$
@@ -7217,77 +7980,152 @@ allows for a member to be accessed as a property rather than a function.
 A property extraction can be either:
 \begin{enumerate}
 \item An instance method closurization,
-which converts a method into a function object
-(\ref{ordinaryMemberClosurization}).
-Or
-\item A getter invocation, which returns the result of invoking of a getter method
-(\ref{getterAccessAndMethodExtraction}).
+  which converts a method into a function object
+  (\ref{ordinaryMemberClosurization}).
+  Or
+\item A getter invocation, which returns
+  the result of invoking of a getter method
+  (\ref{getterAccessAndMethodExtraction}).
 \end{enumerate}
 
 \commentary{
-Function objects derived from members via closurization are colloquially known as tear-offs.
+Function objects derived from members via closurization
+are colloquially known as tear-offs.
 }
 
 Property extraction can be either conditional or unconditional.
 
 \LMHash{}%
-Evaluation of a \IndexCustom{conditional property extraction expression}{%
+\Case{Conditional}
+Consider a \IndexCustom{conditional property extraction expression}{%
   property extraction!conditional}
-$e$ of the form \code{$e_1$?.\id} proceeds as follows:
+$i$ of the form \code{$e$?.\id}.
 
 \LMHash{}%
-If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$m$}.
+If $e$ is a type literal, $i$ is equivalent to \code{$e$.\id}.
 
 \LMHash{}%
-Otherwise evaluate $e_1$ to an object $o$.
-If $o$ is the null object, $e$ evaluates to the null object (\ref{null}).
+Otherwise, the static type of $i$ is the same as
+the static type of \code{$e$.\id}.
+Let $T$ be the static type of $e$,
+and let $y$ be a fresh variable of type $T$.
+Except for errors inside $e$ and references to the name $y$,
+exactly the same compile-time errors that would be caused by \code{$y$.\id}
+are also generated in the case of \code{$e$?.\id}.
+
+\LMHash{}%
+Evaluation of a conditional property extraction expression $i$
+of the form \code{$e$?.\id} proceeds as follows:
+
+\LMHash{}%
+If $e$ is a type literal,
+evaluation of $i$ amounts to evaluation of \code{$e$.\id}.
+
+\LMHash{}%
+Otherwise evaluate $e$ to an object $o$.
+If $o$ is the null object, $i$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
 and evaluate \code{$x$.\id} to a value $r$.
-Then $e$ evaluates to $r$.
-
-The static type of $e$ is the same as the static type of \code{$e_1$.\id}.
-Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$.
-Exactly the same compile-time errors that would be caused by \code{$y$.\id} are also generated in the case of \code{$e_1$?.\id}.
+Then $i$ evaluates to $r$.
 
 \LMHash{}%
-\IndexCustom{Unconditional property extraction}{%
+\Case{Unconditional}
+Let \id{} be an identifier;
+an \IndexCustom{unconditional property extraction}{%
   property extraction!unconditional}
-has one of two syntactic forms:
-$e.m$ (\ref{getterAccessAndMethodExtraction}) or
-$\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}),
-where $e$ is an expression and $m$ is an identifier.
+may be of the form \code{$e$.\id} where $e$ is an expression
+(\ref{getterAccessAndMethodExtraction}),
+or of the form \code{\SUPER.\id}
+(\ref{superGetterAccessAndMethodClosurization}).
 
 
 \subsubsection{Getter Access and Method Extraction}
 \LMLabel{getterAccessAndMethodExtraction}
 
 \LMHash{}%
-Evaluation of a property extraction $i$ of the form $e.m$ proceeds as follows:
+Consider an unconditional property extraction $i$
+(\ref{propertyExtraction})
+of the form \code{$e$.\id}.
+It is a compile-time error if \id{} is a member of class \code{Object}
+and $e$ is either a prefix object (\ref{imports})
+or a type literal.
+
+\commentary{
+It may seem obvious that it is an error to use prefix object,
+but more surprising that it also applies to a type literal.
+In particular, we cannot use \code{int.toString}
+to obtain a function object for the \code{toString} method of the
+\code{Type} object for \code{int}.
+But we can use \code{(int).toString}:
+$e$ is then not a type literal, but a parenthesized expression.
+}
+
+\rationale{
+This is a pragmatic trade-off.
+The ability to tear off instance methods on instances of \code{Type}
+was considered less useful,
+and it was considered more useful to insist on the simple rule that
+a method tear-off on a type literal is \emph{always} a tear-off
+of a static method on the denoted class.
+}
+
+\LMHash{}%
+Let $T$ be the static type of $e$.
+It is a compile-time error if $T$ does not have a method or getter named \id{}
+unless $T$ is \DYNAMIC{},
+or $T$ is \FUNCTION{} and \id{} is \code{call}.
+The static type of $i$ is:
+
+\begin{itemize}
+\item The declared return type of \code{$T$.\id},
+  if $T$ has an accessible instance getter named \id{}.
+\item The function type of the method signature \code{$T$.\id},
+  if $T$ has an accessible instance method named \id{}.
+\item The type \DYNAMIC{} otherwise.
+  \commentary{This only occurs when $T$ is \DYNAMIC{} or \FUNCTION.}
+\end{itemize}
+
+\commentary{
+Note that the type of a method tear-off ignores
+whether any given parameter is covariant.
+However, the dynamic type of a function object
+thus obtained does take parameter covariance into account.
+}
+
+\LMHash{}%
+Evaluation of a property extraction $i$ of the form \code{$e$.\id} proceeds as follows:
 
 \LMHash{}%
 First, the expression $e$ is evaluated to an object $o$.
-Let $f$ be the result of looking up (\ref{lookup}) method (\ref{instanceMethods}) $m$ in $o$ with respect to the current library $L$.
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $f$ is a method that forwards (\ref{functionDeclarations}) to a static method, method lookup fails.
-If method lookup succeeds then $i$ evaluates to the closurization of method $f$ on object $o$ (\ref{ordinaryMemberClosurization}).
+Let $f$ be the result of looking up (\ref{lookup}) method
+(\ref{instanceMethods})
+\id{} in $o$ with respect to the current library $L$.
+If method lookup succeeds then $i$ evaluates to
+the closurization of method $f$ on object $o$
+(\ref{ordinaryMemberClosurization}).
 
 \commentary{
 Note that $f$ is never an abstract method, because method lookup skips abstract methods.
-Hence, if $m$ refers to an abstract method, we will continue to the next step.
-However, since methods and getters never override each other, getter lookup will necessarily fail as well, and \code{noSuchMethod()} will ultimately be invoked.
+If the method lookup failed, e.g.,
+because there is an abstract declaration of \id, but no concrete declaration,
+we will continue to the next step.
+However, since methods and getters never override each other,
+getter lookup will necessarily fail as well,
+and \code{noSuchMethod()} will ultimately be invoked.
 The regrettable implication is that the error will refer to a missing getter rather than an attempt to closurize an abstract method.
 }
 
 \LMHash{}%
 Otherwise, $i$ is a getter invocation.
-Let $f$ be the result of looking up (\ref{lookup}) getter (\ref{getters}) $m$ in $o$ with respect to $L$.
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $f$ is a getter that forwards to a static getter, getter lookup fails.
+Let $f$ be the result of looking up (\ref{lookup}) getter
+(\ref{getters})
+\id{} in $o$ with respect to $L$.
 Otherwise, the body of $f$ is executed with \THIS{} bound to $o$.
 The value of $i$ is the result returned by the call to the getter function.
 
 \LMHash{}%
-If the getter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
+If the getter lookup has failed,
+then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
 \item \code{$im$.isGetter} evaluates to \code{\TRUE{}}.
 \item \code{$im$.memberName} evaluates to the symbol \code{m}.
@@ -7310,82 +8148,75 @@ The situation where \code{noSuchMethod} is invoked can only arise
 when the static type of $e$ is \DYNAMIC{}.
 }
 
-\LMHash{}%
-It is a compile-time error if $m$ is a member of class \code{Object} and $e$ is either a prefix object (\ref{imports}) or a constant type literal.
-
-\commentary{
-This precludes \code{int.toString} but not \code{(int).toString} because in the latter case, $e$ is a parenthesized expression.
-}
-
-\LMHash{}%
-Let $T$ be the static type of $e$.
-It is a compile-time error if $T$ does not have a method or getter named $m$,
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-unless $T$ is \code{Type},
-$e$ is a constant type literal,
-and the class corresponding to $e$ has a static method or getter named $m$.
-
-\LMHash{}%
-The static type of $i$ is:
-\begin{itemize}
-\item The declared return type of \code{$T$.$m$}, if $T$ has an accessible instance getter named $m$.
-\item
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-The declared return type of $m$, if $T$ is \code{Type},
-$e$ is a constant type literal
-and the class corresponding to $e$ declares an accessible static getter named $m$.
-\item The static type of function \code{$T$.$m$} if $T$ has an accessible instance method named $m$.
-\item
-%% TODO(eernst): This is metaclass stuff, should be deleted.
-The static type of function $m$, if $T$ is \code{Type},
-$e$ is a constant type literal
-and the class corresponding to $e$ declares an accessible static method named $m$.
-\item The type \DYNAMIC{} otherwise.
-\end{itemize}
-
 
 \subsubsection{Super Getter Access and Method Closurization}
 \LMLabel{superGetterAccessAndMethodClosurization}
 
 \LMHash{}%
+Consider a property extraction $i$ of the form \code{\SUPER.\id}.
+
+\LMHash{}%
+Let $S$ be the superclass of the immediately enclosing class.
+It is a compile-time error if $S$ does not have
+an accessible instance method or getter named \id.
+The static type of $i$ is:
+
+\begin{itemize}
+\item The declared return type of \code{$S$.\id},
+  if $S$ has an accessible instance getter named \id.
+\item The function type of the method signature \code{$S$.\id},
+  if $S$ has an accessible instance method named \id.
+\item The type \DYNAMIC{} otherwise.
+  \commentary{This only occurs when $T$ is \DYNAMIC{} or \FUNCTION.}
+\end{itemize}
+
+\commentary{
+Note that the type of a method tear-off ignores
+whether any given parameter is covariant.
+However, the dynamic type of a function object
+thus obtained does take parameter covariance into account.
+}
+
+\LMHash{}%
 Evaluation of a property extraction $i$ of the form $\SUPER.m$ proceeds as follows:
 
 \LMHash{}%
-Let $g$ be the method currently executing, and let $C$ be the class in which $g$ was looked up.
-Let $S_{dynamic}$ be the superclass of $C$.
-Let $f$ be the result of looking up method $m$ in $S_{dynamic}$ with respect to the current library $L$.
-If method lookup succeeds then $i$ evaluates to the closurization of method $f$ with respect to superclass $S_{dynamic}$ (\ref{superClosurization}).
+Let $g$ be the method implementation currently executing,
+and let $C$ be the class in which $g$ is declared.
+Let $S$ be the superclass of $C$.
+Let $f$ be the result of looking up method \id{} in $S$
+with respect to the current library $L$.
+If method lookup succeeds then $i$ evaluates to
+the closurization of method $f$
+with respect to superclass $S$
+(\ref{superClosurization}).
 
 \LMHash{}%
 Otherwise, $i$ is a getter invocation.
-Let $f$ be the result of looking up getter $m$ in $S_{dynamic}$ with respect to $L$.
+Let $f$ be the result of looking up
+getter \id{} in $S$ with respect to $L$.
 The body of $f$ is executed with \THIS{} bound to the current value of \THIS{}.
 The value of $i$ is the result returned by the call to the getter function.
 
 \commentary{
 The getter lookup will not fail, because it is a compile-time error to have
-a super property extraction of a member $m$ when the superclass $S_{dynamic}$
-does not have a concrete member named $m$.
+a super property extraction of a member \id{} when the superclass $S$
+does not have a concrete member named \id.
 }
-
-\LMHash{}%
-Let $S_{static}$ be the superclass of the immediately enclosing class.
-It is a compile-time error if $S_{static}$ does not have an accessible instance method or getter named $m$.
-
-The static type of $i$ is:
-\begin{itemize}
-\item The declared return type of $S_{static}.m$, if $S_{static}$ has an accessible instance getter named $m$.
-\item The static type of function $S_{static}.m$, if $S_{static}$ has an accessible instance method named $m$.
-\item The type \DYNAMIC{} otherwise.
-\end{itemize}
 
 
 \subsubsection{Ordinary Member Closurization}
 \LMLabel{ordinaryMemberClosurization}
 
+\LMHash{}%
+This section specifies the dynamic semantics of
+ordinary member closurizations.
+
 \commentary{
 Note that the non-generic case is covered implicitly using $s = 0$,
-in which case the type parameter declarations are omitted (\ref{generics}).
+in which case the type parameter declaration lists
+and the actual type argument lists passed in invocations
+are omitted (\ref{generics}).
 }
 
 \LMHash{}%
@@ -7404,26 +8235,30 @@ is defined to be equivalent
 %\item $(a) \{\RETURN{}$ $u[a];$\} if $f$ is named \code{[]}.
 %\item $(a, b) \{\RETURN{}$ $u[a] = b;$\} if $f$ is named \code{[]=}.
 \item
-\begin{dartCode}
-<$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-($T_1\ r_1, \ldots,\ T_n\ r_n,\ $\{$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$\}) =>
-    $u.m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1$: $p_1, \ldots,\ p_k$: $p_k$);
-\end{dartCode}
-if $f$ is named $m$ and has type parameter declarations
-$X_1\ \EXTENDS\ B_1$, \ldots,\ $X_s\ \EXTENDS\ B_s$,
-required parameters $r_1, \ldots, r_n$,
-and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\begin{normativeDartCode}
+<\TypeParameters{X}{B'}{s}>
+($\PairList{T}{p}{1}{n},\ $\{$T_{n+1}\ p_{n+1} = d_1, \ldots,\ T_{n+k}\ p_{n+k} = d_k$\}) =>
+\quad$u$.$m$<\List{X}{1}{s}>($\List{p}{1}{n},\ p_{n+1}$: $p_{n+1}, \ldots,\ p_{n+k}$: $p_{n+k}$);
+\end{normativeDartCode}
+where $f$ is an instance method named $m$
+which has type parameter declarations
+\TypeParametersStd{},
+required parameters \List{p}{1}{n},
+and named parameters \List{p}{n+1}{n+k} with defaults \List{d}{1}{k},
+using \code{null} for parameters whose default value is not specified.
 \item
-\begin{dartCode}
-<$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-($T_1\ r_1, \ldots,\ T_n\ r_n,\ $[$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$]) =>
-    $u.m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1, \ldots,\ p_k$);
-\end{dartCode}
-if $f$ is named $m$ and has type parameter declarations
-$X_1\ \EXTENDS\ B_1$, \ldots,\ $X_s\ \EXTENDS\ B_s$,
-required parameters $r_1, \ldots, r_n$,
+\begin{normativeDartCode}
+<\TypeParameters{X}{B'}{s}>
+($\PairList{T}{p}{1}{n},\ $[$T_{n+1}\ p_{n+1} = d_1, \ldots,\ T_{n+k}\ p_{n+k} = d_k$]) =>
+\quad$u$.$m$<\List{X}{1}{s}>(\List{p}{1}{n+k});
+\end{normativeDartCode}
+where $f$ is an instance method named $m$
+which has type parameter declarations
+\TypeParametersStd{},
+required parameters \List{p}{1}{n},
 and optional positional parameters
-$p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\List{p}{n+1}{n+k} with defaults \List{d}{1}{k},
+using \code{null} for parameters whose default value is not specified.
 \end{itemize}
 
 \LMHash{}%
@@ -7434,23 +8269,14 @@ and $t'_1, \ldots, t'_{s'}$ be the actual type arguments.
 Then $B'_j = [t'_1/X'_1, \ldots, t'_{s'}/X'_{s'}]B_j, j \in 1 .. s$.
 
 \commentary{
-That is, we replace the formal type parameters of the enclosing class, if any, by the corresponding actual type arguments.
+That is, we replace the formal type parameters of the enclosing class, if any,
+by the corresponding actual type arguments.
 }
-
-%% TODO: We should specify tear-offs by means of their (static and dynamice)
-%% semantics, not via syntactic sugar, because the syntactic sugar causes
-%% weird phenomena like `a type annotation that denotes the same type as`
-%% etc.
-
-%% TODO[covariant-parameters]: When adding a specification of covariant
-%% parameters we will need to indicate that the dynamic parameter type is
-%% `Object` for such a parameter, and that the static type of the function
-%% as a whole will be taken from the statically known type of the receiver
-%% of the tear-off invocation.
 
 \LMHash{}%
 The parameter types $T_j, j \in 1 .. n+k$, are determined as follows:
-Let the method declaration $D$ be the implementation of $m$ which is invoked by the expression in the body.
+Let the method declaration $D$ be the implementation of $m$
+which is invoked by the expression in the body.
 Let $T$ be the class that contains $D$.
 
 \commentary{
@@ -7458,8 +8284,24 @@ Note that $T$ is the dynamic type of $o$, or a superclass thereof.
 }
 
 \LMHash{}%
+For each parameter $p_j$, $j \in 1 .. n+k$, if $p_j$ is covariant
+(\ref{covariantParameters})
+then $T_j$ is the built-in class \code{Object}.
+
+\commentary{
+This is concerned with the dynamic type of the function object obtained by
+the member closurization.
+The static type of the expression that gives rise to the member closurization
+is specified elsewhere
+(\ref{propertyExtraction},
+\ref{getterAccessAndMethodExtraction}).
+Note that for the static type it is ignored whether a parameter is covariant.
+}
+
+\LMHash{}%
 If $T$ is a non-generic class then for $j \in 1 .. n+k$,
-$T_j$ is a type annotation that denotes the same type as that which is denoted by the type annotation on the corresponding parameter declaration in $D$.
+$T_j$ is a type annotation that denotes the same type as that
+which is denoted by the type annotation on the corresponding parameter declaration in $D$.
 If that parameter declaration has no type annotation then $T_j$ is \DYNAMIC{}.
 
 \LMHash{}%
@@ -7478,11 +8320,6 @@ Assume that $o_1$ and $o_2$ are objects, $m$ is an identifier,
 and $c_1$ and $c_2$ are function objects
 obtained by closurization of $m$ on $o_1$ respectively $o_2$.
 Then \code{$c_1$ == $c_2$} evaluates to true if and only if $o_1$ and $o_2$ is the same object.
-
-%% TODO(eernst): This being a comment, it's presumably spelled out somewhere
-%% else. Find it and check that it does actually say that it is an error
-%% except when the type of $e$ is \DYNAMIC{}.
-%\item The static type of the property extraction is the static type of function \code{$T$.$m$}, where $T$ is the static type of $e$, if \code{$T$.$m$} is defined. Otherwise the static type of $e.m$ is \DYNAMIC{}.
 
 \commentary{
 % Spell out the consequences for `==` and for `identical`, for the receivers
@@ -7504,6 +8341,10 @@ A common example is the DOM API in web browsers.
 
 \subsubsection{Super Closurization}
 \LMLabel{superClosurization}
+
+\LMHash{}%
+This section specifies the dynamic semantics of
+super closurizations.
 
 \commentary{
 Note that the non-generic case is covered implicitly using $s = 0$,
@@ -7533,25 +8374,28 @@ is defined to be equivalent
 %\item $(a) \{\RETURN{}$ $\SUPER[a];$\} if $f$ is named \code{[]}.
 %\item $(a, b) \{\RETURN{}$ $\SUPER[a] = b;$\} if $f$ is named \code{[]=}.
 \item
-\begin{dartCode}
-<$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-($T_1\ r_1, \ldots,\ T_n\ r_n,\ $\{$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$\}) =>
-    \SUPER$.m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1$: $p_1, \ldots,\ p_k$: $p_k$);
-\end{dartCode}
-if $f$ is named $m$ and has type parameter declarations
-$X_1\ \EXTENDS\ B_1$, \ldots,\ $X_s\ \EXTENDS\ B_s$,
-required parameters $r_1, \ldots, r_n$,
-and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\begin{normativeDartCode}
+<\TypeParameters{X}{B'}{s}>
+($\PairList{T}{p}{1}{n},\ $\{$T_{n+1}\ p_{n+1} = d_1, \ldots,\ T_{n+k}\ p_{n+k} = d_k$\}) =>
+\quad\SUPER$.m$<\List{X}{1}{s}>($\List{p}{1}{n},\ p_{n+1}$: $p_{n+1}, \ldots,\ p_{n+k}$: $p_{n+k}$);
+\end{normativeDartCode}
+where $f$ is an instance method named $m$
+which has type parameter declarations
+\TypeParametersStd{},
+required parameters \List{p}{1}{n},
+and named parameters \List{p}{n+1}{n+k} with defaults \List{d}{1}{k}.
 \item
-\begin{dartCode}
-<$X_1\ \EXTENDS\ B'_1, \ldots,\ X_s\ \EXTENDS\ B'_s$>
-($T_1\ r_1, \ldots,\ T_n\ r_n,\ $[$T_{n+1}\ p_1 = d_1, \ldots,\ T_{n+k}\ p_k = d_k$]) =>
-    \SUPER.$m$<$X_1, \ldots,\ X_s$>($r_1, \ldots,\ r_n,\ p_1, \ldots,\ p_k$);
-\end{dartCode}
-if $f$ is named $m$ and has type parameter declarations
-$X_1\ \EXTENDS\ B_1$, \ldots,\ $X_s\ \EXTENDS\ B_s$,
-required parameters $r_1, \ldots, r_n$,
-and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\begin{normativeDartCode}
+<\TypeParameters{X}{B'}{s}>
+($\PairList{T}{p}{1}{n},\ $[$T_{n+1}\ p_{n+1} = d_1, \ldots,\ T_{n+k}\ p_{n+k} = d_k$]) =>
+\quad\SUPER.$m$<\List{X}{1}{s}>(\List{p}{1}{n+k});
+\end{normativeDartCode}
+where $f$ is an instance method named $m$
+which has type parameter declarations
+\TypeParametersStd{},
+required parameters \List{p}{1}{n},
+and optional positional parameters
+\List{p}{n+1}{n+k} with defaults \List{d}{1}{k}.
 \end{itemize}
 
 \commentary{
@@ -7567,28 +8411,36 @@ and $t'_1, \ldots, t'_{s'}$ be the actual type arguments of \THIS{} at $S$.
 Then $B'_j = [t'_1/X'_1, \ldots, t'_{s'}/X'_{s'}]B_j, j \in 1 .. s$.
 
 \commentary{
-That is, we replace the formal type parameters of the enclosing class, if any, by the corresponding actual type arguments.
-We need to consider the type arguments with respect to a specific class because it is possible for a class to pass different type arguments to its superclass than the ones it receives itself.
+That is, we replace the formal type parameters of the enclosing class, if any,
+by the corresponding actual type arguments.
+We need to consider the type arguments with respect to a specific class because
+it is possible for a class to pass different type arguments to its superclass
+than the ones it receives itself.
 }
-
-%% TODO: We should specify tear-offs by means of their (static and dynamice)
-%% semantics, not via syntactic sugar, because the syntactic sugar causes
-%% weird phenomena like `a type annotation that denotes the same type as`
-%% etc.
-
-%% TODO[covariant-parameters]: When adding a specification of covariant
-%% parameters we will need to indicate that the dynamic parameter type is
-%% `Object` for such a parameter, and that the static type of the function
-%% as a whole will be taken from the statically known type of the receiver
-%% of the tear-off invocation.
 
 \LMHash{}%
 The parameter types $T_j, j \in 1 .. n+k$, are determined as follows:
 Let the method declaration $D$ be the implementation of $m$ in $S$.
 
 \LMHash{}%
+For each parameter $p_j$, $j \in 1 .. n+k$, if $p_j$ is covariant
+(\ref{covariantParameters})
+then $T_j$ is the built-in class \code{Object}.
+
+\commentary{
+This is concerned with the dynamic type of the function object obtained by
+the super closurization.
+The static type of the expression that gives rise to the super closurization
+is specified elsewhere
+(\ref{propertyExtraction},
+\ref{superGetterAccessAndMethodClosurization}).
+Note that for the static type it is ignored whether a parameter is covariant.
+}
+
+\LMHash{}%
 If $S$ is a non-generic class then for $j \in 1 .. n+k$,
-$T_j$ is a type annotation that denotes the same type as that which is denoted by the type annotation on the corresponding parameter declaration in $D$.
+$T_j$ is a type annotation that denotes the same type as that
+which is denoted by the type annotation on the corresponding parameter declaration in $D$.
 If that parameter declaration has no type annotation then $T_j$ is \DYNAMIC{}.
 
 \LMHash{}%
@@ -9442,13 +10294,13 @@ Let $D$ be derived from \syntax{<finalConstVarOrType>?}
 and let $n0$ be an identifier that does not occur anywhere in the program.
 A for statement of the form \code{\FOR{} ($D$ \id{} \IN{} $e$) $s$} is equivalent to the following code:
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \VAR{} $n0$ = $e$.iterator;
 \WHILE{} ($n0$.moveNext()) \{
    $D$ \id{} = $n0$.current;
    $s$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 For purposes of static typechecking,
 this code is checked under the assumption that $n0$ is declared to be of type $T$,
@@ -9623,24 +10475,24 @@ The \Index{switch statement} supports dispatching control among a large number o
 \LMHash{}%
  Given a switch statement of the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
    $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 or the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 it is a compile-time error unless the expressions $e_k$ are constant expressions for all $k \in 1 .. n$.
 It is a compile-time error if the values of the expressions $e_k$ are not either:
@@ -9684,24 +10536,24 @@ The \SWITCH{} statement should only be used in very limited situations (e.g., in
 \LMHash{}%
 Execution of a switch statement of the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
    $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 or the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 proceeds as follows:
 
@@ -9721,14 +10573,14 @@ Otherwise if there is a \DEFAULT{} clause, the case statements $s_{n+1}$ are exe
 \LMHash{}%
 Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
    $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 against the value of a variable \id{} proceeds as follows:
 
@@ -9743,13 +10595,13 @@ The case statements $s_h$ are then executed (\ref{case-execute}).
 \LMHash{}%
 Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 against the value of a variable \id{} proceeds as follows:
 
@@ -9813,24 +10665,24 @@ In other words, a warning will be emitted if a switch statement over an enum is 
 \LMHash{}%
 Execution of the case statements $s_h$ of a switch statement
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 or a switch statement
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \SWITCH{} ($e$) \{
    $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
    $\ldots$
    $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
    $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
-\end{dartCode}
+\end{normativeDartCode}
 
 proceeds as follows:
 
@@ -9940,13 +10792,13 @@ The static type of $p_1$ is $T$ and the static type of $p_2$ is \code{StackTrace
 \LMHash{}%
 Execution of a \TRY{} statement $s$ of the form:
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \TRY{} $b$
 \ON{} $T_1$ \CATCH{} ($e_1$, $t_1$) $c_1$
 \ldots{}
 \ON{} $T_n$ \CATCH{} ($e_n$, $t_n$) $c_n$
 \FINALLY{} $f$
-\end{dartCode}
+\end{normativeDartCode}
 proceeds as follows:
 
 \LMHash{}%
@@ -9971,11 +10823,11 @@ It is a compile-time error if $T_i$, $1 \le i \le n$ is a deferred or malformed 
 \LMHash{}%
 Matching an exception object $e$ and stack trace $t$ against a (potentially empty) sequence of \ON{}-\CATCH{} clauses of the form
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \ON{} $T_1$ \CATCH{} ($e_1$, $st_1$) \{ $s_1$ \}
 \ldots
 \ON{} $T_n$ \CATCH{} ($e_n$, $st_n$) \{ $s_n$ \}
-\end{dartCode}
+\end{normativeDartCode}
 proceeds as follows:
 
 \LMHash{}%
@@ -9991,11 +10843,11 @@ The matching completes in the same way as this execution.
 \LMHash{}%
 Otherwise, if the first clause did not match $e$, $e$ and $t$ are recursively matched against the remaining \ON{}-\CATCH{} clauses:
 
-\begin{dartCode}
+\begin{normativeDartCode}
 \ON{} $T_2$ \CATCH{} ($e_2$, $t_2$) \{ $s_2$ \}
 \ldots
 \ON{} $T_n$ \CATCH{} ($e_n$, $t_n$) \{ $s_n$ \}
-\end{dartCode}
+\end{normativeDartCode}
 
 
 \subsection{Return}
@@ -11325,7 +12177,7 @@ Any self reference in a typedef, either directly, or recursively via another typ
 \LMLabel{interfaceTypes}
 
 \LMHash{}%
-The implicit interface of class $I$ is a direct supertype of the implicit interface of class $J$ if{}f:
+The interface of class $I$ is a direct supertype of the interface of class $J$ if{}f:
 \begin{itemize}
 \item $I$ is \code{Object}, and $J$ has no \EXTENDS{} clause.
 \item $I$ is listed in the \EXTENDS{} clause of $J$.
