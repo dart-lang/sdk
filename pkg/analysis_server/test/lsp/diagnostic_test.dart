@@ -36,7 +36,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     final diagnostics = await waitForDiagnostics(mainFileUri);
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics.first;
-    expect(diagnostic.code.valueEquals('invalid_assignment'), isTrue);
+    expect(diagnostic.code, equals('invalid_assignment'));
     expect(diagnostic.range.start.line, equals(0));
     expect(diagnostic.range.start.character, equals(11));
     expect(diagnostic.range.end.line, equals(0));

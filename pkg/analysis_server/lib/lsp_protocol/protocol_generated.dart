@@ -2354,11 +2354,7 @@ class Diagnostic implements ToJsonable {
     final severity = json['severity'] != null
         ? DiagnosticSeverity.fromJson(json['severity'])
         : null;
-    final code = json['code'] is num
-        ? new Either2<num, String>.t1(json['code'])
-        : (json['code'] is String
-            ? new Either2<num, String>.t2(json['code'])
-            : (throw '''${json['code']} was not one of (num, String)'''));
+    final code = json['code'];
     final source = json['source'];
     final message = json['message'];
     final relatedInformation = json['relatedInformation']
@@ -2371,7 +2367,7 @@ class Diagnostic implements ToJsonable {
   }
 
   /// The diagnostic's code, which might appear in the user interface.
-  final Either2<num, String> code;
+  final String code;
 
   /// The diagnostic's message.
   final String message;

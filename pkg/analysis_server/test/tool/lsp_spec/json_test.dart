@@ -43,7 +43,7 @@ main() {
       final codeAction = new Diagnostic(
         range,
         DiagnosticSeverity.Error,
-        new Either2.t2('test_err'),
+        'test_err',
         '/tmp/source.dart',
         'err!!',
         [new DiagnosticRelatedInformation(location, 'message')],

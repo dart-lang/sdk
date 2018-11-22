@@ -39,6 +39,7 @@ String getImprovedType(String interfaceName, String fieldName) {
   const Map<String, Map<String, String>> _improvedTypeMappings = {
     "Diagnostic": {
       "severity": "DiagnosticSeverity",
+      "code": "String",
     },
     "TextDocumentSyncOptions": {
       "change": "TextDocumentSyncKind",

@@ -243,11 +243,7 @@ lsp.Diagnostic toDiagnostic(
   return new lsp.Diagnostic(
     toRange(lineInfo, error.offset, error.length),
     toDiagnosticSeverity(errorSeverity),
-    // TODO(dantup): We should strip these union types in places where we know
-    // we'll only generate one set from the server to simplify this code. We only
-    // need to keep unions where the value may be either (eg. originates
-    // from the client).
-    lsp.Either2<num, String>.t2(errorCode.name.toLowerCase()),
+    errorCode.name.toLowerCase(),
     languageSourceName,
     error.message,
     null,
