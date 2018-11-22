@@ -5,6 +5,8 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/source_edits.dart';
 
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
@@ -14,7 +16,23 @@ class TextDocumentChangeHandler
       : super(DidChangeTextDocumentParams.fromJson);
 
   void handle(DidChangeTextDocumentParams params) {
-    server.changeTextDocument(params.textDocument, params.contentChanges);
+    final path = pathOf(params.textDocument);
+    final oldContents = server.fileContentOverlay[path];
+    // TODO(dantup): Should we be tracking the version?
+
+    // Visual Studio has been seen to skip didOpen notifications for files that
+    // were already open when the LSP server initialized, so handle this with
+    // a specific message to make it clear what's happened.
+    if (oldContents == null) {
+      throw new ResponseError(
+        ErrorCodes.InvalidParams,
+        'Unable to edit document because the file was not previously opened: $path',
+        null,
+      );
+    }
+    final newContents = applyEdits(oldContents, params.contentChanges);
+
+    server.updateOverlay(path, newContents);
   }
 }
 
@@ -26,7 +44,8 @@ class TextDocumentCloseHandler
       : super(DidCloseTextDocumentParams.fromJson);
 
   void handle(DidCloseTextDocumentParams params) {
-    server.closeTextDocument(params.textDocument);
+    final path = pathOf(params.textDocument);
+    server.updateOverlay(path, null);
   }
 }
 
@@ -38,6 +57,14 @@ class TextDocumentOpenHandler
       : super(DidOpenTextDocumentParams.fromJson);
 
   void handle(DidOpenTextDocumentParams params) {
-    server.openTextDocument(params.textDocument);
+    final doc = params.textDocument;
+    final path = Uri.parse(doc.uri).toFilePath();
+    // TODO(dantup): Should we be tracking the version?
+
+    server.updateOverlay(path, doc.text);
+
+    // If the file did not exist, and is "overlay only", it still should be
+    // analyzed. Add it to driver to which it should have been added.
+    server.contextManager.getDriverFor(path)?.addFile(path);
   }
 }

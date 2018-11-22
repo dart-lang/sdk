@@ -15,7 +15,6 @@ import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -147,38 +146,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities get clientCapabilities => _clientCapabilities;
 
-  void changeTextDocument(VersionedTextDocumentIdentifier id,
-      List<TextDocumentContentChangeEvent> changes) {
-    final path = Uri.parse(id.uri).toFilePath();
-    final oldContents = fileContentOverlay[path];
-    // TODO(dantup): Should we be tracking the version?
-
-    // Visual Studio has been seen to skip didOpen notifications for files that
-    // were already open when the LSP server initialized, so handle this with
-    // a specific message to make it clear what's happened.
-    if (oldContents == null) {
-      throw new ResponseError(
-        ErrorCodes.InvalidParams,
-        'Unable to apply changes because the file was not previously opened: $path',
-        null,
-      );
-    }
-    final newContents = applyEdits(oldContents, changes);
-
-    fileContentOverlay[path] = newContents;
-
-    driverMap.values.forEach((driver) => driver.changeFile(path));
-  }
-
-  void closeTextDocument(TextDocumentIdentifier id) {
-    final path = Uri.parse(id.uri).toFilePath();
-    // TODO(dantup): Should we be tracking the version?
-
-    fileContentOverlay[path] = null;
-
-    driverMap.values.forEach((driver) => driver.changeFile(path));
-  }
-
   /**
    * The socket from which messages are being read has been closed.
    */
@@ -240,19 +207,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         Either2<List<dynamic>, dynamic>.t2(
             new LogMessageParams(MessageType.Error, message)),
         jsonRpcVersion));
-  }
-
-  void openTextDocument(TextDocumentItem doc) {
-    final path = Uri.parse(doc.uri).toFilePath();
-    // TODO(dantup): Should we be tracking the version?
-
-    fileContentOverlay[path] = doc.text;
-
-    driverMap.values.forEach((driver) => driver.changeFile(path));
-
-    // If the file did not exist, and is "overlay only", it still should be
-    // analyzed. Add it to driver to which it should have been added.
-    contextManager.getDriverFor(path)?.addFile(path);
   }
 
   void sendErrorResponse(IncomingMessage message, ResponseError error) {
@@ -318,6 +272,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     });
 
     return new Future.value();
+  }
+
+  void updateOverlay(String path, String contents) {
+    fileContentOverlay[path] = contents;
+    driverMap.values.forEach((driver) => driver.changeFile(path));
   }
 }
 
