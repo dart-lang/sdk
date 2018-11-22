@@ -304,6 +304,11 @@ LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 LibTest/async/Future/Future_A01_t01: CompileTimeError
 
+[ $arch == simdbc64 && $compiler == dartk ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Issue http://dartbug.com/35242
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash  # Issue http://dartbug.com/35242
+LibTest/core/List/List_class_A01_t02: Crash # Issue http://dartbug.com/35242
+
 [ $arch == simdbc64 && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
 LanguageFeatures/Subtyping/static/generated/function_type_function_arguments_binding_A04_t02: Crash, Pass
 LibTest/io/Directory/watch_A01_t02: RuntimeError, Pass

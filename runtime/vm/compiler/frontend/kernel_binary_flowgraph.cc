@@ -35,10 +35,6 @@ Class& StreamingFlowGraphBuilder::GetSuperOrDie() {
   return klass;
 }
 
-bool StreamingFlowGraphBuilder::optimizing() {
-  return flow_graph_builder_->optimizing_;
-}
-
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   FieldHelper field_helper(this);
   field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -3508,11 +3504,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   }
 }
 
-static bool IsNumberLiteral(Tag tag) {
-  return tag == kNegativeIntLiteral || tag == kPositiveIntLiteral ||
-         tag == kSpecializedIntLiteral || tag == kDoubleLiteral;
-}
-
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
   const TokenPosition position = ReadPosition();  // read position.
@@ -3526,39 +3517,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
 
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
-  if (IsNumberLiteral(receiver_tag) &&
-      (!optimizing() || constant_evaluator_.IsCached(offset))) {
-    const intptr_t before_branch_offset = ReaderOffset();
-
-    SkipExpression();  // read receiver (it's just a number literal).
-
-    const String& name = ReadNameAsMethodName();  // read name.
-    const Token::Kind token_kind =
-        MethodTokenRecognizer::RecognizeTokenKind(name);
-    intptr_t argument_count = PeekArgumentsCount() + 1;
-
-    if ((argument_count == 1) && (token_kind == Token::kNEGATE)) {
-      const Object& result = Object::ZoneHandle(
-          Z, constant_evaluator_.EvaluateExpressionSafe(offset));
-      if (!result.IsError()) {
-        SkipArguments();               // read arguments.
-        SkipCanonicalNameReference();  // read interface_target_reference.
-        return Constant(result);
-      }
-    } else if ((argument_count == 2) &&
-               Token::IsBinaryArithmeticOperator(token_kind) &&
-               IsNumberLiteral(PeekArgumentsFirstPositionalTag())) {
-      const Object& result = Object::ZoneHandle(
-          Z, constant_evaluator_.EvaluateExpressionSafe(offset));
-      if (!result.IsError()) {
-        SkipArguments();               // read arguments.
-        SkipCanonicalNameReference();  // read interface_target_reference.
-        return Constant(result);
-      }
-    }
-
-    SetOffset(before_branch_offset);
-  }
 
   bool is_unchecked_closure_call = false;
   bool is_unchecked_call = false;
