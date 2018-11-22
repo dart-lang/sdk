@@ -179,6 +179,18 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return expectSuccessfulResponseTo<Hover>(request);
   }
 
+  Future<List<Location>> getReferences(Uri uri, Position pos) async {
+    var request = makeRequest(
+      'textDocument/references',
+      new ReferenceParams(
+        new ReferenceContext(true),
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<Location>>(request);
+  }
+
   Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) async {
     var request = makeRequest(
       'textDocument/signatureHelp',

@@ -61,10 +61,10 @@ class InitializeMessageHandler
           // https://github.com/dart-lang/sdk/issues/34241
           [],
         ),
+        true, // definitionProvider
         null,
         null,
-        null,
-        null,
+        true, // referencesProvider
         null,
         null,
         null,

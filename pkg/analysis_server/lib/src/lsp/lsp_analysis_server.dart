@@ -17,6 +17,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -51,6 +53,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * be sent.
    */
   final LspServerCommunicationChannel channel;
+
+  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
+  SearchEngine searchEngine;
 
   final NotificationManager notificationManager = new NullNotificationManager();
 
@@ -140,6 +145,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final contextManagerCallbacks =
         new LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
+    searchEngine = new SearchEngineImpl(driverMap.values);
 
     channel.listen(handleMessage, onDone: done, onError: error);
   }
