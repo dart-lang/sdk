@@ -20,6 +20,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -161,6 +162,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // TODO(dantup): It's not legal to print this!
     print(error);
     print(stack);
+  }
+
+  /// Return the LineInfo for the file with the given [path]. The file is
+  /// analyzed in one of the analysis drivers to which the file was added,
+  /// otherwise in the first driver, otherwise `null` is returned.
+  LineInfo getLineInfo(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    return getAnalysisDriver(path)?.getFileSync(path)?.lineInfo;
   }
 
   /**

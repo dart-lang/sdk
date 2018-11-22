@@ -36,13 +36,21 @@ class DefinitionHandler
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
     computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
 
-    Location toLocation(NavigationTarget target) {
+    Future<Location> toLocation(NavigationTarget target) async {
+      final targetFilePath = collector.files[target.fileIndex];
+      final lineInfo = server.getLineInfo(targetFilePath);
+
+      if (lineInfo == null) {
+        return null;
+      }
+
       return new Location(
-        Uri.file(collector.files[target.fileIndex]).toString(),
-        toRange(unit.lineInfo, target.offset, target.length),
+        Uri.file(targetFilePath).toString(),
+        toRange(lineInfo, target.offset, target.length),
       );
     }
 
-    return collector.targets.map(toLocation).toList();
+    final locations = await Future.wait(collector.targets.map(toLocation));
+    return locations.where((l) => l != null).toList();
   }
 }

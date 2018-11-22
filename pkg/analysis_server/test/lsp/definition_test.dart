@@ -32,4 +32,41 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(loc.range, equals(rangeFromMarkers(contents)));
     expect(loc.uri, equals(mainFileUri.toString()));
   }
+
+  test_definition_across_files() async {
+    final mainContents = '''
+    import 'referenced.dart';
+
+    main() {
+      fo^o();
+    }
+    ''';
+
+    final referencedContents = '''
+    /// Ensure the function is on a line that
+    /// does not exist in the mainContents file
+    /// to ensure we're translating offsets to line/col
+    /// using the correct files LineInfo
+    /// ...
+    /// ...
+    /// ...
+    /// ...
+    /// ...
+    [[foo]]() {}
+    ''';
+
+    final referencedFileUri =
+        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(referencedFileUri, withoutMarkers(referencedContents));
+    final res =
+        await getDefinition(mainFileUri, positionFromMarker(mainContents));
+
+    expect(res, hasLength(1));
+    Location loc = res.single;
+    expect(loc.range, equals(rangeFromMarkers(referencedContents)));
+    expect(loc.uri, equals(referencedFileUri.toString()));
+  }
 }
