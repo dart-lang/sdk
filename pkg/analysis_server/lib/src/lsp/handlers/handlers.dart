@@ -7,21 +7,36 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler with LspParamsConverterMixin {
-  /// The messages that this handler can handle. Can be null for handlers that
-  /// are invoked directly to handle all messages.
-  List<String> get handlesMessages => null;
+abstract class MessageHandler<P, R> with LspParamsConverterMixin {
+  /// The message types that this handler can handle.
+  String get handlesMessage;
+
+  // TODO(dantup): Change this to an abstract method instead of putting it here.
+  final P Function(Map<String, dynamic>) fromJson;
+
+  MessageHandler(this.fromJson);
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<Object> handleMessage(IncomingMessage message);
+  FutureOr<R> handleMessage(IncomingMessage message) {
+    // TODO: Change the return type here to something that can be an R or an error
+    // and stop throwing ResponseError's but return them instead.
+
+    // TODO(dantup): This should become simpler onces fromJson becomes an
+    // abstract method.
+    final params = fromJson != null ? convertParams(message, fromJson) : null;
+    return handle(params);
+  }
+
+  FutureOr<R> handle(P params);
 }
 
 /// A message handler that handles all messages for a given server state.
@@ -60,13 +75,15 @@ abstract class ServerStateMessageHandler with LspParamsConverterMixin {
   }
 
   registerHandler(MessageHandler handler) {
-    if (handler.handlesMessages == null) {
+    if (handler.handlesMessage == null) {
       throw 'Unable to register handler ${handler.runtimeType} because it does '
           'not declare which messages it can handle';
     }
-    for (final message in handler.handlesMessages) {
-      _messageHandlers[message] = handler;
-    }
+    _messageHandlers[handler.handlesMessage] = handler;
+  }
+
+  reject(String type, ErrorCodes code, String message) {
+    registerHandler(new RejectMessageHandler(type, code, message));
   }
 }
 

@@ -11,19 +11,18 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:dart_style/dart_style.dart';
 
-class FormattingHandler extends MessageHandler {
+class FormattingHandler
+    extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
   final LspAnalysisServer server;
+  String get handlesMessage => 'textDocument/formatting';
   final DartFormatter formatter = new DartFormatter();
-  FormattingHandler(this.server);
+  FormattingHandler(this.server) : super(DocumentFormattingParams.fromJson);
 
-  @override
-  List<String> get handlesMessages => const ['textDocument/formatting'];
-
-  FutureOr<List<TextEdit>> handleFormatDocument(
-      DocumentFormattingParams params) async {
+  Future<List<TextEdit>> handle(DocumentFormattingParams params) async {
     final path = pathOf(params.textDocument);
+    // TODO(dantup): Switch this to requireUnit() which is in a "future"
+    // changeset.
     final result = await server.getResolvedUnit(path);
-
     if (result == null) {
       throw new ResponseError(
           ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
@@ -66,19 +65,5 @@ class FormattingHandler extends MessageHandler {
         formattedSource,
       )
     ];
-  }
-
-  @override
-  FutureOr<Object> handleMessage(IncomingMessage message) {
-    if (message is! RequestMessage) {
-      throw 'Unexpected message (expected RequestMessage but got ${message.runtimeType})';
-    }
-    if (message.method == 'textDocument/formatting') {
-      final params = convertParams(message, DocumentFormattingParams.fromJson);
-      return handleFormatDocument(params);
-    } else {
-      // TODO(dantup): formatOnType/formatRange(??)
-      throw 'Unexpected message';
-    }
   }
 }

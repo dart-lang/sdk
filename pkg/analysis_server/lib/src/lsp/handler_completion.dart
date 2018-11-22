@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -39,14 +38,13 @@ final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
   CompletionItemKind.Reference,
 ]);
 
-class CompletionHandler extends MessageHandler {
+class CompletionHandler
+    extends MessageHandler<CompletionParams, List<CompletionItem>> {
   final LspAnalysisServer server;
-  CompletionHandler(this.server);
+  String get handlesMessage => 'textDocument/completion';
+  CompletionHandler(this.server) : super(CompletionParams.fromJson);
 
-  @override
-  List<String> get handlesMessages => const ['textDocument/completion'];
-
-  Future<List<CompletionItem>> handleCompletion(CompletionParams params) async {
+  Future<List<CompletionItem>> handle(CompletionParams params) async {
     final path = pathOf(params.textDocument);
     ResolvedUnitResult result = await server.getResolvedUnit(path);
     // TODO(dantup): Handle bad paths/offsets.
@@ -85,17 +83,6 @@ class CompletionHandler extends MessageHandler {
           .toList();
     } on AbortCompletion {
       return [];
-    }
-  }
-
-  @override
-  FutureOr<Object> handleMessage(IncomingMessage message) {
-    if (message is RequestMessage &&
-        message.method == 'textDocument/completion') {
-      final params = convertParams(message, CompletionParams.fromJson);
-      return handleCompletion(params);
-    } else {
-      throw 'Unexpected message';
     }
   }
 }

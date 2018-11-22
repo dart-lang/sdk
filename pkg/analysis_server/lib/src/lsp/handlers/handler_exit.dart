@@ -4,20 +4,16 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-class ExitMessageHandler extends MessageHandler {
+class ExitMessageHandler extends MessageHandler<void, void> {
   final LspAnalysisServer server;
-
-  ExitMessageHandler(this.server);
-
-  @override
-  List<String> get handlesMessages => const ['exit'];
+  String get handlesMessage => 'exit';
+  ExitMessageHandler(this.server) : super(null);
 
   @override
-  FutureOr<Object> handleMessage(IncomingMessage message) {
+  Future<void> handle(void _) {
     return server.shutdown();
   }
 }

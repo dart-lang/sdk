@@ -14,7 +14,6 @@ import 'package:analysis_server/src/lsp/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
@@ -31,11 +30,13 @@ FutureOr<Object> _rejectRequests(IncomingMessage message) {
 
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
-    registerHandler(new RejectMessageHandler(
-        ['initialize', 'initialized'],
-        ServerErrorCodes.ServerAlreadyInitialized,
-        'Server already initialized'));
+    reject('initialize', ServerErrorCodes.ServerAlreadyInitialized,
+        'Server already initialized');
+    reject('initialized', ServerErrorCodes.ServerAlreadyInitialized,
+        'Server already initialized');
+    registerHandler(new TextDocumentOpenHandler(server));
     registerHandler(new TextDocumentChangeHandler(server));
+    registerHandler(new TextDocumentCloseHandler(server));
     registerHandler(new HoverHandler(server));
     registerHandler(new CompletionHandler(server));
     registerHandler(new SignatureHelpHandler(server));
@@ -48,6 +49,8 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   InitializingStateMessageHandler(
       LspAnalysisServer server, List<String> openWorkspacePaths)
       : super(server) {
+    reject('initialize', ServerErrorCodes.ServerAlreadyInitialized,
+        'Server already initialized');
     registerHandler(new IntializedMessageHandler(server, openWorkspacePaths));
   }
 

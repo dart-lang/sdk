@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -15,15 +14,13 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 
-class DefinitionHandler extends MessageHandler {
+class DefinitionHandler
+    extends MessageHandler<TextDocumentPositionParams, List<Location>> {
   final LspAnalysisServer server;
-  DefinitionHandler(this.server);
+  String get handlesMessage => 'textDocument/definition';
+  DefinitionHandler(this.server) : super(TextDocumentPositionParams.fromJson);
 
-  @override
-  List<String> get handlesMessages => const ['textDocument/definition'];
-
-  Future<List<Location>> handleDefinition(
-      TextDocumentPositionParams params) async {
+  Future<List<Location>> handle(TextDocumentPositionParams params) async {
     final path = pathOf(params.textDocument);
     ResolvedUnitResult result = await server.getResolvedUnit(path);
     // TODO(dantup): Handle bad paths/offsets.
@@ -47,17 +44,5 @@ class DefinitionHandler extends MessageHandler {
     }
 
     return collector.targets.map(toLocation).toList();
-  }
-
-  @override
-  FutureOr<Object> handleMessage(IncomingMessage message) {
-    if (message is RequestMessage &&
-        message.method == 'textDocument/definition') {
-      final params =
-          convertParams(message, TextDocumentPositionParams.fromJson);
-      return handleDefinition(params);
-    } else {
-      throw 'Unexpected message';
-    }
   }
 }

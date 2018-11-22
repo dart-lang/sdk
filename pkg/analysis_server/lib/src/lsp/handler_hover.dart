@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
@@ -16,14 +15,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 
-class HoverHandler extends MessageHandler {
+class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   final LspAnalysisServer server;
-  HoverHandler(this.server);
+  String get handlesMessage => 'textDocument/hover';
+  HoverHandler(this.server) : super(TextDocumentPositionParams.fromJson);
 
-  @override
-  List<String> get handlesMessages => const ['textDocument/hover'];
-
-  Future<Hover> handleHover(TextDocumentPositionParams params) async {
+  Future<Hover> handle(TextDocumentPositionParams params) async {
     // TODO(dantup): Look at clientCapabilities.hover.contentFormat to decide what
     // format to send back?
 
@@ -40,17 +37,6 @@ class HoverHandler extends MessageHandler {
     final offset = result.lineInfo.getOffsetOfLine(pos.line) + pos.character;
     final hover = new DartUnitHoverComputer(unit, offset).compute();
     return toHover(result.lineInfo, hover);
-  }
-
-  @override
-  FutureOr<Object> handleMessage(IncomingMessage message) {
-    if (message is RequestMessage && message.method == 'textDocument/hover') {
-      final params =
-          convertParams(message, TextDocumentPositionParams.fromJson);
-      return handleHover(params);
-    } else {
-      throw 'Unexpected message';
-    }
   }
 
   Hover toHover(LineInfo lineInfo, HoverInformation hover) {

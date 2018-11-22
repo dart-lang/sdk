@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-class InitializeMessageHandler extends MessageHandler {
+class InitializeMessageHandler
+    extends MessageHandler<InitializeParams, InitializeResult> {
   final LspAnalysisServer server;
+  String get handlesMessage => 'initialize';
 
-  InitializeMessageHandler(this.server);
+  InitializeMessageHandler(this.server) : super(InitializeParams.fromJson);
 
-  @override
-  List<String> get handlesMessages => const ['initialize'];
-
-  InitializeResult handleInitialize(InitializeParams params) {
+  InitializeResult handle(InitializeParams params) {
     final openWorkspacePaths = <String>[];
 
     if (params.workspaceFolders != null) {
@@ -83,11 +80,5 @@ class InitializeMessageHandler extends MessageHandler {
         null,
         null,
         null));
-  }
-
-  @override
-  FutureOr<Object> handleMessage(IncomingMessage message) {
-    final params = convertParams(message, InitializeParams.fromJson);
-    return handleInitialize(params);
   }
 }
