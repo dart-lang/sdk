@@ -2234,6 +2234,9 @@ class Function : public Object {
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
 
+  // The parameters, starting with NumImplicitParameters() parameters which are
+  // only visible to the VM, but not to Dart users.
+  // Note that type checks exclude implicit parameters.
   RawAbstractType* ParameterTypeAt(intptr_t index) const;
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
   RawArray* parameter_types() const { return raw_ptr()->parameter_types_; }
