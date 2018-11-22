@@ -147,9 +147,15 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 }
 
 // We check the length parameter against a possible maximum length for the
-// array based on available physical addressable memory on the system. The
-// maximum possible length is a scaled value of kSmiMax which is set up based
-// on whether the underlying architecture is 32-bit or 64-bit.
+// array based on available physical addressable memory on the system.
+//
+// More specifically
+//
+//   TypedData::MaxElements(cid) is equal to (kSmiMax / ElementSizeInBytes(cid))
+//
+// which ensures that the number of bytes the array holds is guaranteed to fit
+// into a _Smi.
+//
 // Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
   DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                             \

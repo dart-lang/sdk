@@ -1325,11 +1325,9 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  intptr_t cid = kDynamicCid;
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
       (field_type.IsFunctionType() || field_type.HasTypeClass())) {
-    cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &field_type;
     TraceStrongModeType(this, *abstract_type);
   }
