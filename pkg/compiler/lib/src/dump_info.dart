@@ -545,9 +545,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
           OutputType.dumpInfo)
         ..add(jsonBuffer.toString())
         ..close();
-      // TODO(johnniwinther): Reenable this when package:dart2js_info have
-      // stable ids.
-      //BasicInfo.resetIds();
+      BasicInfo.resetIds();
     });
   }
 

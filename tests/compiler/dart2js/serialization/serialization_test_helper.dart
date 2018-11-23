@@ -73,22 +73,19 @@ runTest(
       String newCode = newFileMap[fileName];
       bool Function(int, List<String>, List<String>) filter;
       if (outputType == OutputType.dumpInfo) {
-        return;
-        // TODO(johnniwinther): Reenable this when package:dart2js_info have
-        // stable ids.
-        //filter = (int index, List<String> lines1, List<String> lines2) {
-        //  if (index <= lines1.length && index <= lines2.length) {
-        //    String line1 = lines1[index];
-        //    String line2 = lines2[index];
-        //    for (String exception in dumpInfoExceptions) {
-        //      if (line1.trim().startsWith(exception) &&
-        //          line2.trim().startsWith(exception)) {
-        //        return true;
-        //      }
-        //    }
-        //  }
-        //  return false;
-        //};
+        filter = (int index, List<String> lines1, List<String> lines2) {
+          if (index <= lines1.length && index <= lines2.length) {
+            String line1 = lines1[index];
+            String line2 = lines2[index];
+            for (String exception in dumpInfoExceptions) {
+              if (line1.trim().startsWith(exception) &&
+                  line2.trim().startsWith(exception)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
       }
       int failureLine =
           checkEqualContentAndShowDiff(code, newCode, filter: filter);
