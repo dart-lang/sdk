@@ -49,10 +49,6 @@ if [ $need_runhooks = true ]; then
   # Normally gclient sync would update the cache - but we are bypassing
   # it here.
   git_cache=$(python -c 'import imp; config = imp.load_source("config", ".gclient"); print getattr(config, "cache_dir", "")')
-  if [ "$git_cache" != "" ]; then
-    echo "--- Forcing update of the git_cache ${git_cache}"
-    git_cache.py fetch -c ${git_cache} -v --all
-  fi
 
   # DEPS file might have been patched with new version of packages that
   # Dart SDK depends on. Get information about dependencies from the
@@ -77,6 +73,10 @@ if [ $need_runhooks = true ]; then
     pushd ${dependency_path} > /dev/null
     if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
       echo "${dependency_path} requires update to match DEPS file"
+      if [ "$git_cache" != "" ]; then
+        echo "--- Forcing update of the git_cache ${git_cache}"
+        git cache fetch -c ${git_cache} --all -v
+      fi
       git fetch origin
       git checkout ${dependency_tag_or_hash}
     fi
