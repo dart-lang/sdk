@@ -63,6 +63,7 @@ if [ $need_runhooks = true ]; then
     pushd ${dependency_path} > /dev/null
     if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
       echo "${dependency_path} requires update to match DEPS file"
+      git fetch
       git checkout ${dependency_tag_or_hash}
     fi
     popd > /dev/null
