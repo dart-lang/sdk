@@ -244,7 +244,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   if (listTests) {
     eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
-    eventListener.add(new ExitCodeSetter());
+    if (!firstConf.noStatus) {
+      eventListener.add(new ExitCodeSetter());
+    }
     eventListener.add(new IgnoredTestMonitor());
   }
 
