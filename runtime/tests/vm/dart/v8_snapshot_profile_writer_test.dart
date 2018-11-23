@@ -14,11 +14,14 @@ String path(List<String> segments) {
 
 test(bool use_elf) async {
   if (Platform.isWindows) return;
+  if (Platform.isMacOS && use_elf) return;
+
+  final String outputDir = Platform.isMacOS ? "xcodebuild" : "out";
 
   final List<String> sdkBaseSegments =
       Uri.file(Platform.resolvedExecutable).pathSegments.toList();
-  sdkBaseSegments
-      .replaceRange(sdkBaseSegments.indexOf("out"), sdkBaseSegments.length, []);
+  sdkBaseSegments.replaceRange(
+      sdkBaseSegments.indexOf(outputDir), sdkBaseSegments.length, []);
 
   // Generate the snapshot profile.
   final String thisTestPath = path(sdkBaseSegments) +
