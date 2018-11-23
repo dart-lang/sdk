@@ -32,11 +32,40 @@ if [ -e "$patch" ]; then
   (cd flutter && git apply ../$patch)
   need_runhooks=true
 fi
+
 patch=src/third_party/dart/tools/patches/flutter-engine/${pinned_dart_sdk}.patch
 if [ -e "$patch" ]; then
   (cd src/flutter && git apply ../../$patch)
   need_runhooks=true
 fi
+
 if [ $need_runhooks = true ]; then
+  # DEPS file might have been patched with new version of packages that
+  # Dart SDK depends on. Get information about dependencies from the
+  # DEPS file and forcefully update checkouts of those dependencies.
+  gclient revinfo | grep 'src/third_party/dart/' | while read -r line; do
+    # revinfo would produce lines in the following format:
+    #     path: git-url@tag-or-hash
+    # Where no spaces occur inside path, git-url or tag-or-hash.
+    # To extract path and tag-or-hash we replace ': ' and '@' with ' '
+    # and then create array from the resulting string which splits it
+    # by whitespace.
+    line="${line/: / }"
+    line="${line/@/ }"
+    line=(${line})
+    dependency_path=${line[0]}
+    dependency_tag_or_hash=${line[2]}
+
+    # Inside dependency compare HEAD to specified tag-or-hash by rev-parse'ing
+    # them and comparing resulting hashes.
+    # Note: tag^0 forces rev-parse to return commit hash rather then the hash of
+    # the tag object itself.
+    pushd ${dependency_path} > /dev/null
+    if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
+      echo "${dependency_path} requires update to match DEPS file"
+      git checkout ${dependency_tag_or_hash}
+    fi
+    popd > /dev/null
+  done
   gclient runhooks
 fi
