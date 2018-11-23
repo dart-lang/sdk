@@ -48,7 +48,7 @@ if [ $need_runhooks = true ]; then
   # referencing.
   # Normally gclient sync would update the cache - but we are bypassing
   # it here.
-  git_cache = $(python -c 'import imp; config = imp.load_source("config", ".gclient"); print getattr(config, "cache_dir", "");')
+  git_cache=$(python -c 'import imp; config = imp.load_source("config", ".gclient"); print getattr(config, "cache_dir", "")')
   if [ "$git_cache" != "" ]; then
     echo "--- Forcing update of the git_cache ${git_cache}"
     git_cache.py fetch -c ${git_cache} -v --all
