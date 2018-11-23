@@ -40,6 +40,20 @@ if [ -e "$patch" ]; then
 fi
 
 if [ $need_runhooks = true ]; then
+  # Check if .gclient configuration specifies a cache_dir. Local caches are used
+  # by bots to reduce amount of Git traffic. .gclient configuration file
+  # is a well-formed Python source so use Python load_source to parse it.
+  # If cache_dir is specified then we need to force update the git cache,
+  # otherwise git fetch below might fail to find tags and commits we are
+  # referencing.
+  # Normally gclient sync would update the cache - but we are bypassing
+  # it here.
+  git_cache = $(python -c 'import imp; config = imp.load_source("config", ".gclient"); print getattr(config, "cache_dir", "");')
+  if [ "$git_cache" != "" ]; then
+    echo "--- Forcing update of the git_cache ${git_cache}"
+    git_cache.py fetch -c ${git_cache} -v --all
+  fi
+
   # DEPS file might have been patched with new version of packages that
   # Dart SDK depends on. Get information about dependencies from the
   # DEPS file and forcefully update checkouts of those dependencies.
@@ -63,7 +77,7 @@ if [ $need_runhooks = true ]; then
     pushd ${dependency_path} > /dev/null
     if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
       echo "${dependency_path} requires update to match DEPS file"
-      git fetch
+      git fetch origin
       git checkout ${dependency_tag_or_hash}
     fi
     popd > /dev/null
