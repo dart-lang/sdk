@@ -31,7 +31,8 @@ for (final key in map.keys.toList()) {
 map.keys.toList().forEach(map.remove);
 ```
 
-**NOTE:** Replacing a for each statement with a forEach call may change the behavior in the case there are side-effects on the iterable itself.
+**NOTE:** Replacing a for each statement with a forEach call may change the 
+behavior in the case where there are side-effects on the iterable itself.
 ```
 for (final v in myList) {
   foo().f(v); // This code invokes foo() many times.
