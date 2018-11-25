@@ -105,7 +105,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   DartType _dynamicType;
 
   /**
-   * The type representing the type 'type'.
+   * The type representing the type 'Type'.
    */
   InterfaceType _typeType;
 
@@ -1332,8 +1332,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // Class(args)
       if (element1 is ClassElement) {
-        constructor = new InterfaceTypeImpl(element1)
-            .lookUpConstructor(null, _definingLibrary);
+        constructor = element1.type.lookUpConstructor(null, _definingLibrary);
       } else if (element1 == null) {
         undefined = true;
       }
@@ -1361,8 +1360,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
-        constructor = new InterfaceTypeImpl(element1)
-            .lookUpConstructor(nameNode2.name, _definingLibrary);
+        constructor =
+            element1.type.lookUpConstructor(nameNode2.name, _definingLibrary);
         nameNode2.staticElement = constructor;
       }
       if (element1 == null && element2 == null) {
@@ -1387,8 +1386,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           return;
         }
         // prefix.Class.constructor(args)
-        constructor = new InterfaceTypeImpl(element2)
-            .lookUpConstructor(name3, _definingLibrary);
+        constructor = element2.type.lookUpConstructor(name3, _definingLibrary);
         nameNode3.staticElement = constructor;
       } else if (element2 == null) {
         undefined = true;
