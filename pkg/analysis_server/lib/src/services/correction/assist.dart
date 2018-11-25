@@ -47,10 +47,10 @@ class DartAssistKind {
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
       'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
-  static const CONVERT_INTO_FOR_INDEX = const AssistKind(
-      'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field");
+  static const CONVERT_INTO_FOR_INDEX = const AssistKind(
+      'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
       'dart.assist.convert.toGenericFunctionSyntax',
       30,

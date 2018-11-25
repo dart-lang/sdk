@@ -3223,22 +3223,6 @@ class StaticTypeWarningCode extends ErrorCode {
               "defining a method named '{0}'.");
 
   /**
-   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance member named <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the method that is undefined
-   * 1: the resolved type name that the method lookup is happening on
-   */
-  static const StaticTypeWarningCode UNDEFINED_METHOD_WITH_CONSTRUCTOR =
-      const StaticTypeWarningCode('UNDEFINED_METHOD_WITH_CONSTRUCTOR',
-          "The method '{0}' isn't defined for the class '{1}', but a constructor with that name is defined.",
-          correction:
-              "Try adding 'new' or 'const' to invoke the constructor, or "
-              "correcting the name to the name of an existing method.");
-
-  /**
    * 12.18 Assignment: Evaluation of an assignment of the form
    * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
    * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);

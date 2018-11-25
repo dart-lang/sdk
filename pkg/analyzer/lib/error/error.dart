@@ -559,7 +559,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticTypeWarningCode.UNDEFINED_FUNCTION,
   StaticTypeWarningCode.UNDEFINED_GETTER,
   StaticTypeWarningCode.UNDEFINED_METHOD,
-  StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
   StaticTypeWarningCode.UNDEFINED_OPERATOR,
   StaticTypeWarningCode.UNDEFINED_SETTER,
   StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,

@@ -111,12 +111,12 @@ class DartFixKind {
       appliedTogetherMessage: "Add all casts in file");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 70, "Add final field formal parameters");
+  static const ADD_MISSING_PARAMETER_NAMED = const FixKind(
+      'ADD_MISSING_PARAMETER_NAMED', 70, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(
       'ADD_MISSING_PARAMETER_POSITIONAL',
       69,
       "Add optional positional parameter");
-  static const ADD_MISSING_PARAMETER_NAMED = const FixKind(
-      'ADD_MISSING_PARAMETER_NAMED', 70, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 70, "Add required parameter");
   static const ADD_MISSING_REQUIRED_ARGUMENT = const FixKind(
@@ -146,6 +146,8 @@ class DartFixKind {
       const FixKind('CONVERT_FLUTTER_CHILD', 50, "Convert to children:");
   static const CONVERT_FLUTTER_CHILDREN =
       const FixKind('CONVERT_FLUTTER_CHILDREN', 50, "Convert to child:");
+  static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(
+      'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
@@ -174,8 +176,6 @@ class DartFixKind {
       const FixKind('CREATE_MIXIN', 50, "Create mixin '{0}'");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
-  static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(
-      'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const EXTEND_CLASS_FOR_MIXIN =
       const FixKind('EXTEND_CLASS_FOR_MIXIN', 50, "Extend the class '{0}'");
   static const IMPORT_ASYNC =
@@ -194,20 +194,18 @@ class DartFixKind {
       const FixKind('IMPORT_LIBRARY_SHOW', 55, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
-  static const INVOKE_CONSTRUCTOR_USING_NEW = const FixKind(
-      'INVOKE_CONSTRUCTOR_USING_NEW', 50, "Invoke constructor using 'new'");
   static const MAKE_CLASS_ABSTRACT =
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
+  static const MAKE_FIELD_NOT_FINAL =
+      const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const MAKE_FINAL = const FixKind('MAKE_FINAL', 50, "Make final");
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = const FixKind(
       'MOVE_TYPE_ARGUMENTS_TO_CLASS',
       50,
       "Move type arguments to after class name");
+  static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
-  static const MAKE_FIELD_NOT_FINAL =
-      const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
-  static const MAKE_FINAL = const FixKind('MAKE_FINAL', 50, "Make final");
-  static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_EMPTY_CATCH =
       const FixKind('REMOVE_EMPTY_CATCH', 50, "Remove empty catch clause");
   static const REMOVE_EMPTY_CONSTRUCTOR_BODY = const FixKind(
@@ -255,12 +253,12 @@ class DartFixKind {
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
-  static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
-      'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
+      'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
   static const REPLACE_WITH_BRACKETS =
       const FixKind('REPLACE_WITH_BRACKETS', 50, "Replace with { }");
   static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
