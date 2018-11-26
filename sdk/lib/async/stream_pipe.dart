@@ -26,7 +26,7 @@ _runUserCode<T>(
 void _cancelAndError(StreamSubscription subscription, _Future future, error,
     StackTrace stackTrace) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture is Future && !identical(cancelFuture, Future._nullFuture)) {
+  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
   } else {
     future._completeError(error, stackTrace);
@@ -57,7 +57,7 @@ _ErrorCallback _cancelAndErrorClosure(
   before completing with a value. */
 void _cancelAndValue(StreamSubscription subscription, _Future future, value) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture is Future && !identical(cancelFuture, Future._nullFuture)) {
+  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._complete(value));
   } else {
     future._complete(value);
@@ -306,7 +306,7 @@ class _TakeStream<T> extends _ForwardingStream<T, T> {
         super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
-    if (count is! int) throw new ArgumentError(count);
+    ArgumentError.checkNotNull(count, "count");
   }
 
   StreamSubscription<T> _createSubscription(void onData(T data),
@@ -397,7 +397,8 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
         super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
-    if (count is! int || count < 0) throw new ArgumentError(count);
+    ArgumentError.checkNotNull(count, "count");
+    RangeError.checkNotNegative(count, "count");
   }
 
   StreamSubscription<T> _createSubscription(void onData(T data),
