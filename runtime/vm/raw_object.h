@@ -282,7 +282,9 @@ enum class MemoryOrder {
   SNAPSHOT_WRITER_SUPPORT()                                                    \
   HEAP_PROFILER_SUPPORT()                                                      \
   friend class object##SerializationCluster;                                   \
-  friend class object##DeserializationCluster;
+  friend class object##DeserializationCluster;                                 \
+  friend class Serializer;                                                     \
+  friend class Deserializer;
 
 // RawObject is the base class of all raw objects; even though it carries the
 // tags_ field not all raw objects are allocated in the heap and thus cannot
@@ -1142,6 +1144,7 @@ class RawSignatureData : public RawObject {
   RawFunction* parent_function_;  // Enclosing function of this sig. function.
   RawType* signature_type_;
   VISIT_TO(RawObject*, signature_type_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Function;
 };
@@ -1155,6 +1158,7 @@ class RawRedirectionData : public RawObject {
   RawString* identifier_;
   RawFunction* target_;
   VISIT_TO(RawObject*, target_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawField : public RawObject {
@@ -1340,6 +1344,7 @@ class RawNamespace : public RawObject {
   RawField* metadata_field_;  // remembers the token pos of metadata if any,
                               // and the metadata values if computed.
   VISIT_TO(RawObject*, metadata_field_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawKernelProgramInfo : public RawObject {
@@ -1475,6 +1480,7 @@ class RawBytecode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   VISIT_TO(RawObject*, pc_descriptors_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   intptr_t source_positions_binary_offset_;
 
@@ -1796,6 +1802,9 @@ class RawContextScope : public RawObject {
     // 'end' is the address just beyond the last descriptor, so step back.
     return reinterpret_cast<RawObject**>(end - kWordSize);
   }
+  RawObject** to_snapshot(Snapshot::Kind kind, intptr_t num_vars) {
+    return to(num_vars);
+  }
 
   friend class Object;
   friend class RawClosureData;
@@ -1818,6 +1827,7 @@ class RawUnlinkedCall : public RawObject {
   RawString* target_name_;
   RawArray* args_descriptor_;
   VISIT_TO(RawObject*, args_descriptor_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawICData : public RawObject {
@@ -1867,6 +1877,7 @@ class RawMegamorphicCache : public RawObject {
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   VISIT_TO(RawObject*, args_descriptor_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t filled_entry_count_;
 };
@@ -1902,6 +1913,8 @@ class RawLanguageError : public RawError {
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;              // Of type Report::Kind.
+
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawUnhandledException : public RawError {
@@ -1911,6 +1924,7 @@ class RawUnhandledException : public RawError {
   RawInstance* exception_;
   RawInstance* stacktrace_;
   VISIT_TO(RawObject*, stacktrace_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawUnwindError : public RawError {
@@ -2031,6 +2045,8 @@ class RawType : public RawAbstractType {
   TokenPosition token_pos_;
   int8_t type_state_;
 
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+
   friend class CidRewriteVisitor;
   friend class RawTypeArguments;
 };
@@ -2042,6 +2058,7 @@ class RawTypeRef : public RawAbstractType {
   VISIT_FROM(RawObject*, type_)
   RawAbstractType* type_;  // The referenced type.
   VISIT_TO(RawObject*, type_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawTypeParameter : public RawAbstractType {
@@ -2059,6 +2076,8 @@ class RawTypeParameter : public RawAbstractType {
   int16_t index_;
   int8_t type_state_;
 
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+
   friend class CidRewriteVisitor;
 };
 
@@ -2072,6 +2091,7 @@ class RawBoundedType : public RawAbstractType {
   RawSmi* hash_;
   RawTypeParameter* type_parameter_;  // For more detailed error reporting.
   VISIT_TO(RawObject*, type_parameter_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawMixinAppType : public RawAbstractType {
@@ -2102,6 +2122,8 @@ class RawClosure : public RawInstance {
   RawSmi* hash_;
 
   VISIT_TO(RawCompressed, hash_)
+
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Note that instantiator_type_arguments_, function_type_arguments_ and
   // delayed_type_arguments_ are used to instantiate the signature of function_
@@ -2277,6 +2299,7 @@ class RawGrowableObjectArray : public RawInstance {
   RawSmi* length_;
   RawArray* data_;
   VISIT_TO(RawCompressed, data_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
 };
@@ -2425,6 +2448,7 @@ class RawStackTrace : public RawInstance {
   RawArray* code_array_;       // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
   VISIT_TO(RawObject*, pc_offset_array_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
   bool expand_inlined_;
@@ -2458,6 +2482,7 @@ class RawRegExp : public RawInstance {
   RawFunction* external_one_byte_sticky_function_;
   RawFunction* external_two_byte_sticky_function_;
   VISIT_TO(RawObject*, external_two_byte_sticky_function_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   intptr_t num_registers_;
 
@@ -2474,6 +2499,7 @@ class RawWeakProperty : public RawInstance {
   RawObject* key_;
   RawObject* value_;
   VISIT_TO(RawObject*, value_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Linked list is chaining all pending weak properties.
   // Untyped to make it clear that it is not to be visited by GC.

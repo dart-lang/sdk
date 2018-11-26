@@ -284,6 +284,24 @@ class Serializer : public StackResource {
     }
   }
 
+  template <typename T, typename... P>
+  void WriteFromTo(T* obj, P&&... args) {
+    RawObject** from = obj->from();
+    RawObject** to = obj->to_snapshot(kind(), args...);
+    for (RawObject** p = from; p <= to; p++) {
+      WriteRef(*p);
+    }
+  }
+
+  template <typename T, typename... P>
+  void PushFromTo(T* obj, P&&... args) {
+    RawObject** from = obj->from();
+    RawObject** to = obj->to_snapshot(kind(), args...);
+    for (RawObject** p = from; p <= to; p++) {
+      Push(*p);
+    }
+  }
+
   void WriteRootRef(RawObject* object) {
     WriteRef(object, /* is_root = */ true);
   }
@@ -339,6 +357,20 @@ class Serializer : public StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
 
+#define AutoTraceObject(obj)                                                   \
+  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, nullptr)
+
+#define AutoTraceObjectName(obj, str)                                          \
+  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, str)
+
+#define WriteField(obj, field) s->WriteRef(obj->ptr()->field);
+
+#define WriteFieldValue(field, value) s->WriteRef(value);
+
+#define WriteFromTo(obj, ...) s->WriteFromTo(obj, ##__VA_ARGS__);
+
+#define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
+
 struct SerializerWritingObjectScope {
   SerializerWritingObjectScope(Serializer* serializer,
                                const char* type,
@@ -353,12 +385,6 @@ struct SerializerWritingObjectScope {
  private:
   Serializer* serializer_;
 };
-
-#define AutoTraceObject(obj)                                                   \
-  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, nullptr)
-
-#define AutoTraceObjectName(obj, str)                                          \
-  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, str)
 
 class Deserializer : public StackResource {
  public:
@@ -417,6 +443,20 @@ class Deserializer : public StackResource {
 
   RawObject* ReadRef() { return Ref(ReadUnsigned()); }
 
+  template <typename T, typename... P>
+  void ReadFromTo(T* obj, P&&... params) {
+    RawObject** from = obj->from();
+    RawObject** to_snapshot = obj->to_snapshot(kind(), params...);
+    RawObject** to = obj->to(params...);
+    for (RawObject** p = from; p <= to_snapshot; p++) {
+      *p = ReadRef();
+    }
+    // TODO(sjindel/rmacnak): Is this really necessary?
+    for (RawObject** p = to_snapshot + 1; p <= to; p++) {
+      *p = Object::null();
+    }
+  }
+
   TokenPosition ReadTokenPosition() {
     return TokenPosition::SnapshotDecode(Read<int32_t>());
   }
@@ -456,6 +496,8 @@ class Deserializer : public StackResource {
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;
 };
+
+#define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);
 
 class FullSnapshotWriter {
  public:
