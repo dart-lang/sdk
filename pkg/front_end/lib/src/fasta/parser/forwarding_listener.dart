@@ -254,11 +254,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginLiteralMapEntry(Token token) {
-    listener?.beginLiteralMapEntry(token);
-  }
-
-  @override
   void beginLiteralString(Token token) {
     listener?.beginLiteralString(token);
   }
@@ -686,8 +681,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
-    listener?.endLiteralMapEntry(colon, endToken);
+  void handleLiteralMapEntry(Token colon, Token endToken) {
+    listener?.handleLiteralMapEntry(colon, endToken);
   }
 
   @override

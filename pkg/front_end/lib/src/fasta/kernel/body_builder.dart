@@ -2328,7 +2328,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
     Expression key = popForValue();
