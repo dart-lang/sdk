@@ -44,6 +44,11 @@ abstract class AbstractScanner implements Scanner {
 
   final bool includeComments;
 
+  /// Experimental flag for enabling parsing of `>>>`.
+  /// See https://github.com/dart-lang/language/issues/61
+  /// and https://github.com/dart-lang/language/issues/60
+  bool enableGtGtGt = false;
+
   /**
    * The string offset for the next token that will be created.
    *
@@ -638,7 +643,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeGreaterThan(int next) {
-    // > >= >> >>=
+    // > >= >> >>= >>>
     next = advance();
     if (identical($EQ, next)) {
       appendPrecedenceToken(TokenType.GT_EQ);
@@ -647,6 +652,9 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
       if (identical($EQ, next)) {
         appendPrecedenceToken(TokenType.GT_GT_EQ);
+        return advance();
+      } else if (enableGtGtGt && identical($GT, next)) {
+        appendPrecedenceToken(TokenType.GT_GT_GT);
         return advance();
       } else {
         appendGtGt(TokenType.GT_GT);
