@@ -18,7 +18,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -650,13 +649,13 @@ class Assembler : public AssemblerBase {
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
-  void Call(const StubEntry& stub_entry, bool movable_target = false);
+  void Call(const Code& code, bool movable_target = false);
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
 
-  void Jmp(const StubEntry& stub_entry);
-  void J(Condition condition, const StubEntry& stub_entry);
+  void Jmp(const Code& code);
+  void J(Condition condition, const Code& code);
 
   /*
    * Loading and comparing classes of objects.

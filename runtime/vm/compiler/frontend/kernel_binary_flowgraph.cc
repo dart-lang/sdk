@@ -35,10 +35,6 @@ Class& StreamingFlowGraphBuilder::GetSuperOrDie() {
   return klass;
 }
 
-bool StreamingFlowGraphBuilder::optimizing() {
-  return flow_graph_builder_->optimizing_;
-}
-
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   FieldHelper field_helper(this);
   field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1633,25 +1629,30 @@ Fragment StreamingFlowGraphBuilder::BuildFirstTimePrologue(
 Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
   if (!FLAG_enable_testing_pragmas) return Drop();
 
-  Function& function = Function::Handle(parsed_function()->function().raw());
+  auto& function = Function::Handle(Z, parsed_function()->function().raw());
 
   if (function.IsImplicitClosureFunction()) {
-    const Function& parent =
-        Function::ZoneHandle(Z, function.parent_function());
-    const String& func_name = String::ZoneHandle(Z, parent.name());
-    const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+    const auto& parent = Function::Handle(Z, function.parent_function());
+    const auto& func_name = String::Handle(Z, parent.name());
+    const auto& owner = Class::Handle(Z, parent.Owner());
     function = owner.LookupFunction(func_name);
   }
 
-  Object& options = Object::Handle();
-  if (!function.FindPragma(I, Symbols::vm_trace_entrypoints(), &options) ||
+  auto& tmp = Object::Handle(Z);
+  tmp = function.Owner();
+  tmp = Class::Cast(tmp).library();
+  auto& library = Library::Cast(tmp);
+
+  Object& options = Object::Handle(Z);
+  if (!library.FindPragma(H.thread(), function, Symbols::vm_trace_entrypoints(),
+                          &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
-  Closure& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
   LocalVariable* entry_point_num = MakeTemporary();
 
-  String& function_name = String::ZoneHandle(
+  auto& function_name = String::ZoneHandle(
       Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
   if (parsed_function()->function().IsImplicitClosureFunction()) {
     function_name = String::Concat(
@@ -1669,7 +1670,7 @@ Fragment StreamingFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
   call_hook += B->ClosureCall(TokenPosition::kNoSource,
                               /*type_args_len=*/0, /*argument_count=*/3,
-                              /*argument_names=*/Array::Handle());
+                              /*argument_names=*/Array::ZoneHandle(Z));
   call_hook += Drop();  // result of closure call
   call_hook += Drop();  // entrypoint number
   return call_hook;
@@ -3503,11 +3504,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   }
 }
 
-static bool IsNumberLiteral(Tag tag) {
-  return tag == kNegativeIntLiteral || tag == kPositiveIntLiteral ||
-         tag == kSpecializedIntLiteral || tag == kDoubleLiteral;
-}
-
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
   const TokenPosition position = ReadPosition();  // read position.
@@ -3521,39 +3517,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
 
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
-  if (IsNumberLiteral(receiver_tag) &&
-      (!optimizing() || constant_evaluator_.IsCached(offset))) {
-    const intptr_t before_branch_offset = ReaderOffset();
-
-    SkipExpression();  // read receiver (it's just a number literal).
-
-    const String& name = ReadNameAsMethodName();  // read name.
-    const Token::Kind token_kind =
-        MethodTokenRecognizer::RecognizeTokenKind(name);
-    intptr_t argument_count = PeekArgumentsCount() + 1;
-
-    if ((argument_count == 1) && (token_kind == Token::kNEGATE)) {
-      const Object& result = Object::ZoneHandle(
-          Z, constant_evaluator_.EvaluateExpressionSafe(offset));
-      if (!result.IsError()) {
-        SkipArguments();               // read arguments.
-        SkipCanonicalNameReference();  // read interface_target_reference.
-        return Constant(result);
-      }
-    } else if ((argument_count == 2) &&
-               Token::IsBinaryArithmeticOperator(token_kind) &&
-               IsNumberLiteral(PeekArgumentsFirstPositionalTag())) {
-      const Object& result = Object::ZoneHandle(
-          Z, constant_evaluator_.EvaluateExpressionSafe(offset));
-      if (!result.IsError()) {
-        SkipArguments();               // read arguments.
-        SkipCanonicalNameReference();  // read interface_target_reference.
-        return Constant(result);
-      }
-    }
-
-    SetOffset(before_branch_offset);
-  }
 
   bool is_unchecked_closure_call = false;
   bool is_unchecked_call = false;

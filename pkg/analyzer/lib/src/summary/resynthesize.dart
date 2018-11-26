@@ -259,7 +259,10 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         if (libraryMap == null) {
           getLibraryElement(libraryUri);
           libraryMap = _resynthesizedUnits[libraryUri];
-          assert(libraryMap != null);
+          if (libraryMap == null) {
+            throw new StateError(
+                'Unable to find library `$libraryUri` in a summary file.');
+          }
         }
         CompilationUnitElementImpl unitElement = libraryMap[unitUri];
         // Fill elements in the unit map.

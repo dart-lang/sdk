@@ -1509,6 +1509,19 @@ DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
                                               bool* is_static);
 
 /**
+ * Is this object a closure resulting from a tear-off (closurized method)?
+ *
+ * Returns true for closures produced when an ordinary method is accessed
+ * through a getter call. Returns false otherwise, in particular for closures
+ * produced from local function declarations.
+ *
+ * \param object Some Object.
+ *
+ * \return true if Object is a tear-off.
+ */
+DART_EXPORT bool Dart_IsTearOff(Dart_Handle object);
+
+/**
  * Retrieves the function of a closure.
  *
  * \return A handle to the function of the closure, or an error handle if the

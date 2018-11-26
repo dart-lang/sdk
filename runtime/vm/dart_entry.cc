@@ -167,8 +167,8 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 // Now Call the invoke stub which will invoke the dart function.
 #if !defined(TARGET_ARCH_DBC)
-  invokestub entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCode_entry()->EntryPoint());
+  invokestub entrypoint =
+      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
 #endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());

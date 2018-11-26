@@ -1182,17 +1182,23 @@ CompileType InstanceCallInstr::ComputeType() const {
 }
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
+  bool is_nullable = CompileType::kNullable;
   if (IsSureToCallSingleRecognizedTarget()) {
     const Function& target = *targets_.TargetAt(0)->target;
-    if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-      return CompileType::FromCid(MethodRecognizer::ResultCid(target));
+    if (target.has_pragma()) {
+      const intptr_t cid = MethodRecognizer::ResultCidFromPragma(target);
+      if (cid != kDynamicCid) {
+        return CompileType::FromCid(cid);
+      } else if (MethodRecognizer::HasNonNullableResultTypeFromPragma(target)) {
+        is_nullable = CompileType::kNonNullable;
+      }
     }
   }
 
   if (Isolate::Current()->can_use_strong_mode_types()) {
     CompileType* type = instance_call()->Type();
     TraceStrongModeType(this, type);
-    return *type;
+    return is_nullable ? *type : type->CopyNonNullable();
   }
 
   return CompileType::Dynamic();
@@ -1207,8 +1213,15 @@ CompileType StaticCallInstr::ComputeType() const {
     return *inferred_type;
   }
 
-  if (function_.recognized_kind() != MethodRecognizer::kUnknown) {
-    return CompileType::FromCid(MethodRecognizer::ResultCid(function_));
+  bool is_nullable = CompileType::kNullable;
+  if (function_.has_pragma()) {
+    const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
+    if (cid != kDynamicCid) {
+      return CompileType::FromCid(cid);
+    }
+    if (MethodRecognizer::HasNonNullableResultTypeFromPragma(function_)) {
+      is_nullable = CompileType::kNonNullable;
+    }
   }
 
   if (Isolate::Current()->can_use_strong_mode_types()) {
@@ -1219,8 +1232,8 @@ CompileType StaticCallInstr::ComputeType() const {
     // non-instantiated types properly.
     if (result_type.IsInstantiated()) {
       TraceStrongModeType(this, result_type);
-      const bool is_nullable =
-          (inferred_type == NULL) || inferred_type->is_nullable();
+      is_nullable = is_nullable &&
+                    (inferred_type == nullptr || inferred_type->is_nullable());
       return CompileType::FromAbstractType(result_type, is_nullable);
     }
   }
@@ -1319,11 +1332,9 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  intptr_t cid = kDynamicCid;
   const AbstractType* abstract_type = NULL;
   if (isolate->can_use_strong_mode_types() ||
       (field_type.IsFunctionType() || field_type.HasTypeClass())) {
-    cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
     abstract_type = &field_type;
     TraceStrongModeType(this, *abstract_type);
   }

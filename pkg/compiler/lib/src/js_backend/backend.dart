@@ -26,7 +26,6 @@ import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
@@ -749,18 +748,6 @@ class JavaScriptBackend {
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
-    }
-  }
-
-  /// This method is called when all new libraries loaded through
-  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
-  /// have been computed.
-  void onLibrariesLoaded(
-      CommonElements commonElements, LoadedLibraries loadedLibraries) {
-    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-      assert(loadedLibraries.containsLibrary(Uris.dart_core));
-      assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
-      assert(loadedLibraries.containsLibrary(Uris.dart__js_helper));
     }
   }
 

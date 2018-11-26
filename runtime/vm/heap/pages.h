@@ -436,7 +436,7 @@ class PageSpace {
                                     bool is_locked);
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
-  HeapPage* AllocatePage(HeapPage::PageType type);
+  HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);

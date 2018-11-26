@@ -41,7 +41,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       function, target_name, args_descriptor, 15, 1, ICData::kInstance));
 
   __ LoadObject(ECX, ic_data);
-  __ Call(*StubCode::OneArgCheckInlineCache_entry());
+  __ Call(StubCode::OneArgCheckInlineCache());
   __ ret();
 }
 

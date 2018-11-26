@@ -126,10 +126,21 @@ const Slot& Slot::Get(const Field& field,
   intptr_t nullable_cid = kDynamicCid;
   bool is_nullable = true;
 
+  if (field.has_pragma()) {
+    const intptr_t cid = MethodRecognizer::ResultCidFromPragma(field);
+    if (cid != kDynamicCid) {
+      nullable_cid = cid;
+      is_nullable = false;
+    } else if (MethodRecognizer::HasNonNullableResultTypeFromPragma(field)) {
+      is_nullable = false;
+    }
+  }
+
   if (field.guarded_cid() != kIllegalCid &&
       field.guarded_cid() != kDynamicCid) {
-    nullable_cid = field.guarded_cid();
-    is_nullable = field.is_nullable();
+    nullable_cid =
+        nullable_cid != kDynamicCid ? nullable_cid : field.guarded_cid();
+    is_nullable = is_nullable && field.is_nullable();
 
     if (thread->isolate()->use_field_guards()) {
       ASSERT(parsed_function != nullptr);

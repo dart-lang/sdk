@@ -87,7 +87,7 @@ struct LibraryInstrinsicsDesc {
   IntrinsicDesc* intrinsics;
 };
 
-#define DEFINE_INTRINSIC(class_name, function_name, destination, type, fp)     \
+#define DEFINE_INTRINSIC(class_name, function_name, destination, fp)           \
   {#class_name, #function_name},
 
 // clang-format off
@@ -230,7 +230,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name:                                         \
     if (!Build_##enum_name(graph)) return false;                               \
     break;
@@ -300,7 +300,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 #define EMIT_BREAKPOINT()
 #endif
 
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name: {                                       \
     compiler->assembler()->Comment("Intrinsic");                               \
     Label normal_ir_body;                                                      \

@@ -94,7 +94,7 @@ Future<CompilationResult> runCompiler(
   }
   bool isSuccess = await compiler.run(entryPoint);
   fe.InitializedCompilerState compilerState = kernelInitializedCompilerState =
-      compiler.libraryLoader.initializedCompilerState;
+      compiler.kernelLoader.initializedCompilerState;
   return new CompilationResult(compiler,
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }

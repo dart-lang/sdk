@@ -444,24 +444,24 @@ class FlowGraphCompiler : public ValueObject {
                            LocationSummary* locs);
 
   void GenerateCall(TokenPosition token_pos,
-                    const StubEntry& stub_entry,
+                    const Code& stub,
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateCallWithDeopt(TokenPosition token_pos,
                              intptr_t deopt_id,
-                             const StubEntry& stub_entry,
+                             const Code& stub,
                              RawPcDescriptors::Kind kind,
                              LocationSummary* locs);
 
   void GeneratePatchableCall(TokenPosition token_pos,
-                             const StubEntry& stub_entry,
+                             const Code& stub,
                              RawPcDescriptors::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         TokenPosition token_pos,
-                        const StubEntry& stub_entry,
+                        const Code& stub,
                         RawPcDescriptors::Kind kind,
                         LocationSummary* locs,
                         Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -528,14 +528,14 @@ class FlowGraphCompiler : public ValueObject {
                                      bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(
-      const StubEntry& stub_entry,
+      const Code& stub,
       const ICData& ic_data,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitInstanceCall(const StubEntry& stub_entry,
+  void EmitInstanceCall(const Code& stub,
                         const ICData& ic_data,
                         intptr_t deopt_id,
                         TokenPosition token_pos,
@@ -937,7 +937,8 @@ class FlowGraphCompiler : public ValueObject {
           function(function_arg),
           code(code_arg) {
       ASSERT((function == NULL) || function->IsZoneHandle());
-      ASSERT((code == NULL) || code->IsZoneHandle());
+      ASSERT((code == NULL) || code->IsZoneHandle() ||
+             code->IsReadOnlyHandle());
     }
 
    private:

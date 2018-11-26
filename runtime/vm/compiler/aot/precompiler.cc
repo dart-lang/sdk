@@ -1019,20 +1019,22 @@ void Precompiler::AddAnnotatedRoots() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
 
+      // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
-        // Check for @pragma on the class itself.
         metadata ^= lib.GetMetadata(cls);
         if (metadata_defines_entrypoint() == EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
+      }
 
-        // Check for @pragma on any fields in the class.
-        members = cls.fields();
-        implicit_getters = GrowableObjectArray::New(members.Length());
-        implicit_setters = GrowableObjectArray::New(members.Length());
-        implicit_static_getters = GrowableObjectArray::New(members.Length());
-        for (intptr_t k = 0; k < members.Length(); ++k) {
-          field ^= members.At(k);
+      // Check for @pragma on any fields in the class.
+      members = cls.fields();
+      implicit_getters = GrowableObjectArray::New(members.Length());
+      implicit_setters = GrowableObjectArray::New(members.Length());
+      implicit_static_getters = GrowableObjectArray::New(members.Length());
+      for (intptr_t k = 0; k < members.Length(); ++k) {
+        field ^= members.At(k);
+        if (field.has_pragma()) {
           metadata ^= lib.GetMetadata(field);
           if (metadata.IsNull()) continue;
           EntryPointPragma pragma = metadata_defines_entrypoint();
@@ -1537,7 +1539,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   }
 
   ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
-         StubCode::DefaultTypeTest_entry()->EntryPoint());
+         StubCode::DefaultTypeTest().EntryPoint());
 }
 
 void Precompiler::DropTypes() {
@@ -2028,9 +2030,8 @@ void Precompiler::SwitchICCalls() {
           unlinked_.set_args_descriptor(args_descriptor_);
           unlinked_ = DedupUnlinkedCall(unlinked_);
           pool.SetObjectAt(i, unlinked_);
-        } else if (entry_.raw() ==
-                   StubCode::ICCallThroughFunction_entry()->code()) {
-          target_code_ = StubCode::UnlinkedCall_entry()->code();
+        } else if (entry_.raw() == StubCode::ICCallThroughFunction().raw()) {
+          target_code_ = StubCode::UnlinkedCall().raw();
           pool.SetObjectAt(i, target_code_);
         }
       }
@@ -2604,7 +2605,7 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
 // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
 // where these are looked up.
 #define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
-                         result_type, fingerprint)                             \
+                         fingerprint)                                          \
   do {                                                                         \
     PreventRenaming(#class_name);                                              \
     PreventRenaming(#function_name);                                           \

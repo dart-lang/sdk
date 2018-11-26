@@ -1374,9 +1374,9 @@ RawObject* Simulator::Call(const Code& code,
       // Make the DRT_OptimizeInvokedFunction see a stub as its caller for
       // consistency with the other architectures, and to avoid needing to
       // generate a stackmap for the HotCheck pc.
-      const StubEntry* stub = StubCode::OptimizeFunction_entry();
-      FP[kPcMarkerSlotFromFp] = stub->code();
-      pc = reinterpret_cast<uint32_t*>(stub->EntryPoint());
+      const Code& stub = StubCode::OptimizeFunction();
+      FP[kPcMarkerSlotFromFp] = stub.raw();
+      pc = reinterpret_cast<uint32_t*>(stub.EntryPoint());
 
       Exit(thread, FP, FP + 3, pc);
       NativeArguments args(thread, 1, /*argv=*/FP, /*retval=*/FP + 1);
@@ -3971,7 +3971,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   fp_ = reinterpret_cast<RawObject**>(fp);
 
-  if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
+  if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
     // The RunExceptionHandler stub is a placeholder.  We implement
     // its behavior here.
     RawObject* raw_exception = thread->active_exception();

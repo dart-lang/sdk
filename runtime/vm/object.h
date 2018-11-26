@@ -2234,6 +2234,9 @@ class Function : public Object {
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
 
+  // The parameters, starting with NumImplicitParameters() parameters which are
+  // only visible to the VM, but not to Dart users.
+  // Note that type checks exclude implicit parameters.
   RawAbstractType* ParameterTypeAt(intptr_t index) const;
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
   RawArray* parameter_types() const { return raw_ptr()->parameter_types_; }
@@ -2279,8 +2282,6 @@ class Function : public Object {
 
   // Return true if any parent function of this function is generic.
   bool HasGenericParent() const;
-
-  bool FindPragma(Isolate* I, const String& pragma_name, Object* options) const;
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -3825,6 +3826,18 @@ class Library : public Object {
                          const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
 
+  // Tries to finds a @pragma annotation on [object].
+  //
+  // If successful returns `true`. If an error happens during constant
+  // evaluation, returns `false.
+  //
+  // WARNING: If the isolate received an [UnwindError] this function will not
+  // return and rather unwinds until the enclosing setjmp() handler.
+  bool FindPragma(Thread* T,
+                  const Object& object,
+                  const String& pragma_name,
+                  Object* options) const;
+
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;
 
@@ -4443,6 +4456,7 @@ class Instructions : public Object {
   friend class Code;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
+  friend class ImageWriter;
 };
 
 class LocalVarDescriptors : public Object {

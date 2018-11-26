@@ -20,7 +20,6 @@ import 'constants/values.dart'
 import 'elements/types.dart';
 import 'elements/entities.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
-import 'library_loader.dart';
 import 'serialization/serialization.dart';
 import 'options.dart';
 import 'universe/use.dart';
@@ -785,15 +784,15 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Frees up strategy-specific temporary data.
   void cleanup() {}
 
-  void beforeResolution(LoadedLibraries loadedLibraries) {
-    for (Uri uri in loadedLibraries.libraries) {
+  void beforeResolution(Uri rootLibraryUri, Iterable<Uri> libraries) {
+    for (Uri uri in libraries) {
       LibraryEntity library = elementEnvironment.lookupLibrary(uri);
       reporter.withCurrentElement(library, () {
         checkForDeferredErrorCases(library);
         for (ImportEntity import in elementEnvironment.getImports(library)) {
           if (import.isDeferred) {
-            _deferredImportDescriptions[import] = new ImportDescription(
-                import, library, loadedLibraries.rootLibraryUri);
+            _deferredImportDescriptions[import] =
+                new ImportDescription(import, library, rootLibraryUri);
             isProgramSplit = true;
           }
         }

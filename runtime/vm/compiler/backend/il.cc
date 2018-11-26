@@ -3917,19 +3917,19 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
 
 // DBC does not use specialized inline cache stubs for smi operations.
 #if !defined(TARGET_ARCH_DBC)
-static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
-    return 0;
+    return Code::null();
   }
   switch (kind) {
     case Token::kADD:
-      return StubCode::SmiAddInlineCache_entry();
+      return StubCode::SmiAddInlineCache().raw();
     case Token::kSUB:
-      return StubCode::SmiSubInlineCache_entry();
+      return StubCode::SmiSubInlineCache().raw();
     case Token::kEQ:
-      return StubCode::SmiEqualInlineCache_entry();
+      return StubCode::SmiEqualInlineCache().raw();
     default:
-      return NULL;
+      return Code::null();
   }
 }
 #else
@@ -4037,16 +4037,17 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
                                    token_pos());
     bool is_smi_two_args_op = false;
-    const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
-    if (stub_entry != nullptr) {
+    const Code& stub =
+        Code::ZoneHandle(TwoArgsSmiOpInlineCacheEntry(token_kind()));
+    if (!stub.IsNull()) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
       is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, deopt_id(),
-                                 token_pos(), locs());
+      compiler->EmitInstanceCall(stub, *call_ic_data, deopt_id(), token_pos(),
+                                 locs());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
                                      *call_ic_data);

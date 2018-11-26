@@ -1408,8 +1408,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   }
 
   // Call site is not single target, switch to call using ICData.
-  const Code& stub =
-      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  const Code& stub = StubCode::ICCallThroughCode();
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
@@ -1474,8 +1473,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   }
 
   // Patch to call through stub.
-  const Code& stub =
-      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  const Code& stub = StubCode::ICCallThroughCode();
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
@@ -1559,8 +1557,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
       cache.set_entry_point(code.EntryPoint());
       cache.set_lower_limit(lower);
       cache.set_upper_limit(upper);
-      const Code& stub =
-          Code::Handle(zone, StubCode::SingleTargetCall_entry()->code());
+      const Code& stub = StubCode::SingleTargetCall();
       CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, cache,
                                          stub);
       // Return the ICData. The miss stub will jump to continue in the IC call
@@ -1571,8 +1568,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   }
 
   // Patch to call through stub.
-  const Code& stub =
-      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  const Code& stub = StubCode::ICCallThroughCode();
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
@@ -1666,8 +1662,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
         ASSERT(caller_frame->IsDartFrame());
         const Code& caller_code =
             Code::Handle(zone, caller_frame->LookupDartCode());
-        const Code& stub =
-            Code::Handle(zone, StubCode::MegamorphicCall_entry()->code());
+        const Code& stub = StubCode::MegamorphicCall();
 
         CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
                                            cache, stub);
