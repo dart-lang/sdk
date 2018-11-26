@@ -1977,8 +1977,6 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class InductionVariableInfo;
-
 class PhiInstr : public Definition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
@@ -1986,7 +1984,6 @@ class PhiInstr : public Definition {
         inputs_(num_inputs),
         representation_(kTagged),
         reaching_defs_(NULL),
-        loop_variable_info_(NULL),
         is_alive_(false),
         is_receiver_(kUnknownReceiver) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
@@ -2042,14 +2039,6 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
-  void set_induction_variable_info(InductionVariableInfo* info) {
-    loop_variable_info_ = info;
-  }
-
-  InductionVariableInfo* induction_variable_info() {
-    return loop_variable_info_;
-  }
-
   PRINT_TO_SUPPORT
 
   enum ReceiverType { kUnknownReceiver = -1, kNotReceiver = 0, kReceiver = 1 };
@@ -2071,7 +2060,6 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   Representation representation_;
   BitVector* reaching_defs_;
-  InductionVariableInfo* loop_variable_info_;
   bool is_alive_;
   int8_t is_receiver_;
 

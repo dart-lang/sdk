@@ -65,16 +65,19 @@ class InductionVarAnalysis : public ValueObject {
   void Classify(LoopInfo* loop, Definition* def);
   void ClassifySCC(LoopInfo* loop);
 
-  // Transfer methods. Computes how induction of the operands, if any,
+  // Transfer methods. Compute how induction of the operands, if any,
   // tranfers over the operation performed by the given definition.
   InductionVar* TransferPhi(LoopInfo* loop, Definition* def, intptr_t idx = -1);
   InductionVar* TransferBinary(LoopInfo* loop, Definition* def);
   InductionVar* TransferUnary(LoopInfo* loop, Definition* def);
 
-  // Solver methods. Computes how temporary meaning given to the
+  // Solver methods. Compute how temporary meaning given to the
   // definitions in a cycle transfer over the operation performed
   // by the given definition.
   InductionVar* SolvePhi(LoopInfo* loop, Definition* def, intptr_t idx = -1);
+  InductionVar* SolveConstraint(LoopInfo* loop,
+                                Definition* def,
+                                InductionVar* init);
   InductionVar* SolveBinary(LoopInfo* loop,
                             Definition* def,
                             InductionVar* init);
@@ -239,8 +242,8 @@ void InductionVarAnalysis::Classify(LoopInfo* loop, Definition* def) {
     }
   } else if (def->IsPhi()) {
     induc = TransferPhi(loop, def);
-  } else if (def->IsRedefinition() || def->IsConstraint() || def->IsBox() ||
-             def->IsUnbox()) {
+  } else if (def->IsRedefinition() || def->IsBox() || def->IsUnbox() ||
+             def->IsConstraint()) {
     induc = Lookup(loop, def->InputAt(0)->definition());  // pass-through
   } else if (def->IsBinaryIntegerOp()) {
     induc = TransferBinary(loop, def);
@@ -278,9 +281,10 @@ void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
       InductionVar* update = nullptr;
       if (def->IsPhi()) {
         update = SolvePhi(loop, def);
-      } else if (def->IsRedefinition() || def->IsConstraint() || def->IsBox() ||
-                 def->IsUnbox()) {
+      } else if (def->IsRedefinition() || def->IsBox() || def->IsUnbox()) {
         update = LookupCycle(def->InputAt(0)->definition());  // pass-through
+      } else if (def->IsConstraint()) {
+        update = SolveConstraint(loop, def, init);
       } else if (def->IsBinaryIntegerOp()) {
         update = SolveBinary(loop, def, init);
       } else if (def->IsUnaryIntegerOp()) {
@@ -379,6 +383,21 @@ InductionVar* InductionVarAnalysis::SolvePhi(LoopInfo* loop,
     }
   }
   return induc;
+}
+
+InductionVar* InductionVarAnalysis::SolveConstraint(LoopInfo* loop,
+                                                    Definition* def,
+                                                    InductionVar* init) {
+  InductionVar* c = LookupCycle(def->InputAt(0)->definition());
+  if (c == init) {
+    // Record a non-artifical bound constraint on a phi.
+    // TODO(ajcbik): detect full loop logic, trip counts, etc.
+    ConstraintInstr* constraint = def->AsConstraint();
+    if (constraint->target() != nullptr) {
+      loop->limit_ = constraint;
+    }
+  }
+  return c;
 }
 
 InductionVar* InductionVarAnalysis::SolveBinary(LoopInfo* loop,
@@ -629,6 +648,7 @@ LoopInfo::LoopInfo(intptr_t id, BlockEntryInstr* header, BitVector* blocks)
       blocks_(blocks),
       back_edges_(),
       induction_(),
+      limit_(nullptr),
       outer_(nullptr),
       inner_(nullptr),
       next_(nullptr) {}
@@ -650,9 +670,9 @@ bool LoopInfo::IsBackEdge(BlockEntryInstr* block) const {
   return false;
 }
 
-bool LoopInfo::IsHeaderPhi(Instruction* instr) const {
-  return instr->IsPhi() && instr->GetBlock() == header_ &&
-         !instr->AsPhi()->IsRedundant();  // phi(x,..,x) = x
+bool LoopInfo::IsHeaderPhi(Definition* def) const {
+  return def != nullptr && def->IsPhi() && def->GetBlock() == header_ &&
+         !def->AsPhi()->IsRedundant();  // phi(x,..,x) = x
 }
 
 bool LoopInfo::IsIn(LoopInfo* loop) const {
@@ -679,6 +699,8 @@ void LoopInfo::ResetInduction() {
 }
 
 void LoopInfo::AddInduction(Definition* def, InductionVar* induc) {
+  ASSERT(def != nullptr);
+  ASSERT(induc != nullptr);
   induction_.Insert(InductionKV::Pair(def, induc));
 }
 

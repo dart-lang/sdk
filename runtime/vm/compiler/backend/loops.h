@@ -38,7 +38,7 @@ class InductionVar : public ZoneAllocated {
   // Constructor for a constant.
   explicit InductionVar(int64_t offset) : InductionVar(offset, 0, nullptr) {}
 
-  // Constructor for induction.
+  // Constructor for an induction.
   InductionVar(Kind kind, InductionVar* initial, InductionVar* next)
       : kind_(kind), initial_(initial), next_(next) {
     ASSERT(IsInvariant(initial));
@@ -71,6 +71,29 @@ class InductionVar : public ZoneAllocated {
       }
     }
     return false;
+  }
+
+  // Getters.
+  Kind kind() const { return kind_; }
+  int64_t offset() const {
+    ASSERT(kind_ == kInvariant);
+    return offset_;
+  }
+  int64_t mult() const {
+    ASSERT(kind_ == kInvariant);
+    return mult_;
+  }
+  Definition* def() const {
+    ASSERT(kind_ == kInvariant);
+    return def_;
+  }
+  InductionVar* initial() const {
+    ASSERT(kind_ != kInvariant);
+    return initial_;
+  }
+  InductionVar* next() const {
+    ASSERT(kind_ != kInvariant);
+    return next_;
   }
 
   // For debugging.
@@ -134,8 +157,8 @@ class LoopInfo : public ZoneAllocated {
   // Returns true if given block is backedge of this loop.
   bool IsBackEdge(BlockEntryInstr* block) const;
 
-  // Returns true if given instruction is a header phi for this loop.
-  bool IsHeaderPhi(Instruction* instr) const;
+  // Returns true if given definition is a header phi for this loop.
+  bool IsHeaderPhi(Definition* def) const;
 
   // Returns true if this loop is nested inside given loop.
   bool IsIn(LoopInfo* loop) const;
@@ -158,8 +181,9 @@ class LoopInfo : public ZoneAllocated {
   // Getters.
   intptr_t id() const { return id_; }
   BlockEntryInstr* header() const { return header_; }
-  const GrowableArray<BlockEntryInstr*>& back_edges() { return back_edges_; }
   BitVector* blocks() const { return blocks_; }
+  const GrowableArray<BlockEntryInstr*>& back_edges() { return back_edges_; }
+  ConstraintInstr* limit() const { return limit_; }
   LoopInfo* outer() const { return outer_; }
   LoopInfo* inner() const { return inner_; }
   LoopInfo* next() const { return next_; }
@@ -187,8 +211,11 @@ class LoopInfo : public ZoneAllocated {
   // Back edges of loop (usually one).
   GrowableArray<BlockEntryInstr*> back_edges_;
 
-  // Map instruction -> induction for this loop.
+  // Map definition -> induction for this loop.
   DirectChainedHashMap<InductionKV> induction_;
+
+  // Constraint on a header phi.
+  ConstraintInstr* limit_;
 
   // Loop hierarchy.
   LoopInfo* outer_;
