@@ -9,6 +9,7 @@
 
 #include "platform/globals.h"
 
+#include "bin/kernel_isolate.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
