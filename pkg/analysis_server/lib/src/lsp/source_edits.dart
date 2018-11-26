@@ -1,4 +1,5 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 
 String applyEdits(
@@ -9,13 +10,9 @@ String applyEdits(
       newContent = change.text;
     } else {
       final lines = LineInfo.fromContent(newContent);
-      final offsetOfStartLine = lines.getOffsetOfLine(change.range.start.line);
-      final offsetOfStartCharacter =
-          offsetOfStartLine + change.range.start.character;
-      final offsetOfEndLine = lines.getOffsetOfLine(change.range.end.line);
-      final offsetOfEndCharacter = offsetOfEndLine + change.range.end.character;
-      newContent = newContent.replaceRange(
-          offsetOfStartCharacter, offsetOfEndCharacter, change.text);
+      final offsetStart = toOffset(lines, change.range.start);
+      final offsetEnd = toOffset(lines, change.range.end);
+      newContent = newContent.replaceRange(offsetStart, offsetEnd, change.text);
     }
   });
   return newContent;

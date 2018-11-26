@@ -13,29 +13,25 @@ import 'package:dart_style/dart_style.dart';
 
 class FormattingHandler
     extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
-  final LspAnalysisServer server;
-  String get handlesMessage => 'textDocument/formatting';
   final DartFormatter formatter = new DartFormatter();
-  FormattingHandler(this.server) : super(DocumentFormattingParams.fromJson);
+  FormattingHandler(LspAnalysisServer server) : super(server);
+  String get handlesMessage => 'textDocument/formatting';
+
+  @override
+  DocumentFormattingParams convertParams(Map<String, dynamic> json) =>
+      DocumentFormattingParams.fromJson(json);
 
   Future<List<TextEdit>> handle(DocumentFormattingParams params) async {
     final path = pathOf(params.textDocument);
-    // TODO(dantup): Switch this to requireUnit() which is in a "future"
-    // changeset.
-    final result = await server.getResolvedUnit(path);
-    if (result == null) {
-      throw new ResponseError(
-          ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
-    }
+    final result = await requireUnit(path);
 
-    String unformattedSource;
-    try {
-      final source = server.resourceProvider.getFile(path).createSource();
-      unformattedSource =
-          server.fileContentOverlay[path] ?? source.contents.data;
-    } catch (e) {
-      throw new ResponseError(
-          ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+    final unformattedSource = server.fileContentOverlay[path];
+
+    // If the file has not been opened (added to the overlay) we should not have
+    // been asked to format it.
+    if (unformattedSource == null) {
+      throw new ResponseError(ServerErrorCodes.FileNotOpen,
+          'Cannot format a file that is not open', path);
     }
 
     final code =

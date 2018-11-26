@@ -16,9 +16,12 @@ import 'package:analyzer/dart/element/element.dart';
 
 class ReferencesHandler
     extends MessageHandler<ReferenceParams, List<Location>> {
-  LspAnalysisServer server;
-  ReferencesHandler(this.server) : super(ReferenceParams.fromJson);
+  ReferencesHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'textDocument/references';
+
+  @override
+  ReferenceParams convertParams(Map<String, dynamic> json) =>
+      ReferenceParams.fromJson(json);
 
   @override
   Future<List<Location>> handle(ReferenceParams params) async {

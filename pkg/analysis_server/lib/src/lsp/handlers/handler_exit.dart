@@ -8,9 +8,11 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class ExitMessageHandler extends MessageHandler<void, void> {
-  final LspAnalysisServer server;
+  ExitMessageHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'exit';
-  ExitMessageHandler(this.server) : super(null);
+
+  @override
+  void convertParams(Map<String, dynamic> json) => null;
 
   @override
   Future<void> handle(void _) {

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 main() {
@@ -17,43 +17,70 @@ main() {
 
 @reflectiveTest
 class FormatTest extends AbstractLspAnalysisServerTest {
-  test_invalid_path() async {
-    await initialize();
-    try {
-      await formatDocument(
-        new Uri.file(join(projectFolderPath, 'missing.dart')),
-      );
-      throw 'Expected an InvalidFilePath response error';
-    } on ResponseError catch (e) {
-      expect(e.code, equals(ServerErrorCodes.InvalidFilePath));
-    }
-  }
-
-  test_invalid_syntax() async {
-    const contents = '''main(((( {
-  print('test');
-}
-''';
-    newFile(mainFilePath, content: contents);
-
-    await initialize();
-    final formatEdits = await formatDocument(mainFileUri);
-    expect(formatEdits, isNull);
-  }
-
-  test_no_format() async {
+  test_alreadyFormatted() async {
     const contents = '''main() {
   print('test');
 }
 ''';
-    newFile(mainFilePath, content: contents);
-
+    await newFile(mainFilePath, content: contents);
     await initialize();
+    await openFile(mainFileUri, contents);
+
     final formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
   }
 
-  test_simple_format() async {
+  test_fileNotOpen() async {
+    await newFile(mainFilePath);
+    await initialize();
+
+    await expectLater(
+      formatDocument(mainFileUri),
+      throwsA(isResponseError(ServerErrorCodes.FileNotOpen)),
+    );
+  }
+
+  test_invalidSyntax() async {
+    const contents = '''main(((( {
+  print('test');
+}
+''';
+    await newFile(mainFilePath, content: contents);
+    await initialize();
+    await openFile(mainFileUri, contents);
+
+    final formatEdits = await formatDocument(mainFileUri);
+    expect(formatEdits, isNull);
+  }
+
+  test_path_doesNotExist() async {
+    await initialize();
+
+    await expectLater(
+      formatDocument(new Uri.file(join(projectFolderPath, 'missing.dart'))),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
+    );
+  }
+
+  test_path_invalidFormat() async {
+    await initialize();
+
+    await expectLater(
+      formatDocument(Uri.file(join(projectFolderPath, '*'))),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
+    );
+  }
+
+  test_path_notFileScheme() async {
+    await initialize();
+
+    await expectLater(
+      formatDocument(Uri.parse('a:/a.a')),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
+    );
+  }
+
+  test_simple() async {
     const contents = '''
     main  ()
     {
@@ -65,9 +92,10 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   print('test');
 }
 ''';
-    newFile(mainFilePath, content: contents);
-
+    await newFile(mainFilePath, content: contents);
     await initialize();
+    await openFile(mainFileUri, contents);
+
     final formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNotNull);
     final formattedContents = applyEdits(contents, formatEdits);

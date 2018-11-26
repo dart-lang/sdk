@@ -10,18 +10,22 @@ import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R> with LspParamsConverterMixin {
+abstract class MessageHandler<P, R> {
+  LspAnalysisServer server;
+
+  MessageHandler(this.server);
+
   /// The message types that this handler can handle.
   String get handlesMessage;
 
-  // TODO(dantup): Change this to an abstract method instead of putting it here.
-  final P Function(Map<String, dynamic>) fromJson;
+  P convertParams(Map<String, dynamic> json);
 
-  MessageHandler(this.fromJson);
+  FutureOr<R> handle(P params);
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
@@ -30,17 +34,29 @@ abstract class MessageHandler<P, R> with LspParamsConverterMixin {
     // TODO: Change the return type here to something that can be an R or an error
     // and stop throwing ResponseError's but return them instead.
 
-    // TODO(dantup): This should become simpler onces fromJson becomes an
-    // abstract method.
-    final params = fromJson != null ? convertParams(message, fromJson) : null;
+    // TODO(dantup): We'll need to tweak this when we have a handler that takes
+    // a list as its params (if there aren't any, we should "improve" the type
+    // to not be an Either2 during codegen).
+    final params = message.params.map(
+      (_) => throw 'Expected dynamic, got List<dynamic>',
+      (params) => convertParams(params),
+    );
+
     return handle(params);
   }
 
-  FutureOr<R> handle(P params);
+  Future<ResolvedUnitResult> requireUnit(String path) async {
+    final result = await server.getResolvedUnit(path);
+    if (result?.state != ResultState.VALID) {
+      throw new ResponseError(
+          ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+    }
+    return result;
+  }
 }
 
 /// A message handler that handles all messages for a given server state.
-abstract class ServerStateMessageHandler with LspParamsConverterMixin {
+abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
   Map<String, MessageHandler> _messageHandlers = {};
 
@@ -83,24 +99,6 @@ abstract class ServerStateMessageHandler with LspParamsConverterMixin {
   }
 
   reject(String type, ErrorCodes code, String message) {
-    registerHandler(new RejectMessageHandler(type, code, message));
-  }
-}
-
-mixin LspParamsConverterMixin {
-  T convertParams<T>(
-      IncomingMessage message, T Function(Map<String, dynamic>) constructor) {
-    return message.params.map(
-      (_) => throw 'Expected dynamic, got List<dynamic>',
-      (params) => constructor(params),
-    );
-  }
-
-  List<T> convertParamsList<T>(
-      IncomingMessage message, T Function(Map<String, dynamic>) constructor) {
-    return message.params.map(
-      (params) => params.map((p) => constructor(p)).toList(),
-      (_) => throw 'Expected List<dynamic>, got dynamic',
-    );
+    registerHandler(new RejectMessageHandler(server, type, code, message));
   }
 }

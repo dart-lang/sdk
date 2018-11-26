@@ -16,6 +16,27 @@ main() {
 
 @reflectiveTest
 class FileModificationTest extends AbstractLspAnalysisServerTest {
+  test_document_change_bad_position() async {
+    final contents = '';
+    await initialize();
+    await openFile(mainFileUri, contents);
+
+    // Since this is a notification and not a request, the server cannot
+    // respond with an error, but instead sends a ShowMessage notification
+    // to alert the user to something failing.
+    final error = await expectErrorNotification<ShowMessageParams>(() async {
+      await changeFile(mainFileUri, [
+        new TextDocumentContentChangeEvent(
+          new Range(new Position(999, 999), new Position(999, 999)),
+          null,
+          '   ',
+        )
+      ]);
+    });
+
+    expect(error.message, contains('Invalid line'));
+  }
+
   test_document_change_in_unopened_file() async {
     // It's not valid for a client to send a request to modify a file that it
     // has not opened, but Visual Studio has done it in the past so we should

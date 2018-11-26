@@ -3,29 +3,31 @@ import 'dart:collection';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/generated/source.dart' as server;
 
 const languageSourceName = 'dart';
 
-Either2<String, MarkupContent> asStringOrMarkupContent(
-    List<MarkupKind> preferredFormats, String content) {
+lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
+    List<lsp.MarkupKind> preferredFormats, String content) {
   if (content == null) {
     return null;
   }
 
   return preferredFormats == null
-      ? new Either2<String, MarkupContent>.t1(content)
-      : new Either2<String, MarkupContent>.t2(
+      ? new lsp.Either2<String, lsp.MarkupContent>.t1(content)
+      : new lsp.Either2<String, lsp.MarkupContent>.t2(
           _asMarkup(preferredFormats, content));
 }
 
-lsp.MarkupContent _asMarkup(List<MarkupKind> preferredFormats, String content) {
+lsp.MarkupContent _asMarkup(
+    List<lsp.MarkupKind> preferredFormats, String content) {
   // It's not valid to call this function with a null format, as null formats
   // do not support MarkupContent. [asStringOrMarkupContent] is probably the
   // better choice.
@@ -36,16 +38,16 @@ lsp.MarkupContent _asMarkup(List<MarkupKind> preferredFormats, String content) {
   }
 
   if (preferredFormats.isEmpty) {
-    preferredFormats.add(MarkupKind.Markdown);
+    preferredFormats.add(lsp.MarkupKind.Markdown);
   }
 
-  final supportsMarkdown = preferredFormats.contains(MarkupKind.Markdown);
-  final supportsPlain = preferredFormats.contains(MarkupKind.PlainText);
+  final supportsMarkdown = preferredFormats.contains(lsp.MarkupKind.Markdown);
+  final supportsPlain = preferredFormats.contains(lsp.MarkupKind.PlainText);
   // Since our PlainText version is actually just Markdown, only advertise it
   // as PlainText if the client explicitly supports PlainText and not Markdown.
   final format = supportsPlain && !supportsMarkdown
-      ? MarkupKind.PlainText
-      : MarkupKind.Markdown;
+      ? lsp.MarkupKind.PlainText
+      : lsp.MarkupKind.Markdown;
 
   return new lsp.MarkupContent(format, content);
 }
@@ -157,8 +159,14 @@ String getCompletionDetail(
 }
 
 /// Returns the file system path for a TextDocumentIdentifier.
-String pathOf(lsp.TextDocumentIdentifier doc) =>
-    Uri.parse(doc.uri).toFilePath();
+String pathOf(lsp.TextDocumentIdentifier doc) {
+  final uri = Uri.parse(doc.uri);
+  if (!uri.isScheme('file')) {
+    throw new ResponseError(lsp.ServerErrorCodes.InvalidFilePath,
+        'URI was not a file:// URI', doc.uri);
+  }
+  return uri.toFilePath();
+}
 
 lsp.CompletionItemKind suggestionKindToCompletionItemKind(
   HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
@@ -294,6 +302,17 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
+int toOffset(server.LineInfo lineInfo, lsp.Position pos) {
+  if (pos.line > lineInfo.lineCount) {
+    throw new lsp.ResponseError(lsp.ServerErrorCodes.InvalidFileLineCol,
+        'Invalid line number', pos.line);
+  }
+  // TODO(dantup): Is there any way to validate the character? We could ensure
+  // it's less than the offset of the next line, but that would only work for
+  // all lines except the last one.
+  return lineInfo.getOffsetOfLine(pos.line) + pos.character;
+}
+
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.
   return new lsp.Position(location.lineNumber - 1, location.columnNumber - 1);
@@ -309,7 +328,7 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   );
 }
 
-lsp.SignatureHelp toSignatureHelp(List<MarkupKind> preferredFormats,
+lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
     server.AnalysisGetSignatureResult signature) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
@@ -348,7 +367,7 @@ lsp.SignatureHelp toSignatureHelp(List<MarkupKind> preferredFormats,
   }
 
   lsp.ParameterInformation toParameterInfo(server.ParameterInfo param) {
-    return new ParameterInformation(getParamLabel(param), null);
+    return new lsp.ParameterInformation(getParamLabel(param), null);
   }
 
   final cleanDoc = cleanDartdoc(signature.dartdoc);
@@ -362,6 +381,6 @@ lsp.SignatureHelp toSignatureHelp(List<MarkupKind> preferredFormats,
       ),
     ],
     0, // activeSignature
-    null, // activeParamter
+    null, // activeParameter
   );
 }

@@ -10,10 +10,12 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
-  final LspAnalysisServer server;
+  TextDocumentChangeHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'textDocument/didChange';
-  TextDocumentChangeHandler(this.server)
-      : super(DidChangeTextDocumentParams.fromJson);
+
+  @override
+  DidChangeTextDocumentParams convertParams(Map<String, dynamic> json) =>
+      DidChangeTextDocumentParams.fromJson(json);
 
   void handle(DidChangeTextDocumentParams params) {
     final path = pathOf(params.textDocument);
@@ -38,10 +40,12 @@ class TextDocumentChangeHandler
 
 class TextDocumentCloseHandler
     extends MessageHandler<DidCloseTextDocumentParams, void> {
-  final LspAnalysisServer server;
+  TextDocumentCloseHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'textDocument/didClose';
-  TextDocumentCloseHandler(this.server)
-      : super(DidCloseTextDocumentParams.fromJson);
+
+  @override
+  DidCloseTextDocumentParams convertParams(Map<String, dynamic> json) =>
+      DidCloseTextDocumentParams.fromJson(json);
 
   void handle(DidCloseTextDocumentParams params) {
     final path = pathOf(params.textDocument);
@@ -51,15 +55,19 @@ class TextDocumentCloseHandler
 
 class TextDocumentOpenHandler
     extends MessageHandler<DidOpenTextDocumentParams, void> {
-  final LspAnalysisServer server;
+  TextDocumentOpenHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'textDocument/didOpen';
-  TextDocumentOpenHandler(this.server)
-      : super(DidOpenTextDocumentParams.fromJson);
+
+  @override
+  DidOpenTextDocumentParams convertParams(Map<String, dynamic> json) =>
+      DidOpenTextDocumentParams.fromJson(json);
 
   void handle(DidOpenTextDocumentParams params) {
     final doc = params.textDocument;
     final path = Uri.parse(doc.uri).toFilePath();
-    // TODO(dantup): Should we be tracking the version?
+    // TODO(dantup): Keep track of versions, so that when we compute fixes etc.
+    // we can send them back versions so the client can drop them if the document
+    // has been modified.
 
     server.updateOverlay(path, doc.text);
 

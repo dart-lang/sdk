@@ -10,31 +10,25 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 
 class DefinitionHandler
     extends MessageHandler<TextDocumentPositionParams, List<Location>> {
-  final LspAnalysisServer server;
+  DefinitionHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'textDocument/definition';
-  DefinitionHandler(this.server) : super(TextDocumentPositionParams.fromJson);
+
+  @override
+  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
+      TextDocumentPositionParams.fromJson(json);
 
   Future<List<Location>> handle(TextDocumentPositionParams params) async {
     final path = pathOf(params.textDocument);
-    ResolvedUnitResult result = await server.getResolvedUnit(path);
-    // TODO(dantup): Handle bad paths/offsets.
-    CompilationUnit unit = result?.unit;
-
-    if (unit == null) {
-      return null;
-    }
-
-    final pos = params.position;
-    final offset = result.lineInfo.getOffsetOfLine(pos.line) + pos.character;
+    final result = await requireUnit(path);
+    final offset = toOffset(result.lineInfo, params.position);
 
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
-    computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
+    computeDartNavigation(
+        server.resourceProvider, collector, result.unit, offset, 0);
 
     Future<Location> toLocation(NavigationTarget target) async {
       final targetFilePath = collector.files[target.fileIndex];

@@ -6,9 +6,11 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class ShutdownMessageHandler extends MessageHandler<void, void> {
-  final LspAnalysisServer server;
+  ShutdownMessageHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'shutdown';
-  ShutdownMessageHandler(this.server) : super(null);
+
+  @override
+  void convertParams(Map<String, dynamic> json) => null;
 
   @override
   void handle(void _) {

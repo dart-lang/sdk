@@ -13,7 +13,6 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
@@ -40,17 +39,17 @@ final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
 
 class CompletionHandler
     extends MessageHandler<CompletionParams, List<CompletionItem>> {
-  final LspAnalysisServer server;
+  CompletionHandler(LspAnalysisServer server) : super(server);
   String get handlesMessage => 'textDocument/completion';
-  CompletionHandler(this.server) : super(CompletionParams.fromJson);
+
+  @override
+  CompletionParams convertParams(Map<String, dynamic> json) =>
+      CompletionParams.fromJson(json);
 
   Future<List<CompletionItem>> handle(CompletionParams params) async {
     final path = pathOf(params.textDocument);
-    ResolvedUnitResult result = await server.getResolvedUnit(path);
-    // TODO(dantup): Handle bad paths/offsets.
-
-    final pos = params.position;
-    final offset = result.lineInfo.getOffsetOfLine(pos.line) + pos.character;
+    final result = await requireUnit(path);
+    final offset = toOffset(result.lineInfo, params.position);
 
     final completionCapabilities =
         server.clientCapabilities.textDocument != null

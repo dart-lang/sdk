@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 main() {
@@ -22,6 +24,15 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     await initialize(textDocumentCapabilities: {
       'hover': {'contentFormat': formats.map((f) => f.toJson())}
     });
+  }
+
+  test_hover_bad_position() async {
+    await initialize();
+    await openFile(mainFileUri, '');
+    await expectLater(
+      () => getHover(mainFileUri, new Position(999, 999)),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+    );
   }
 
   test_markdown_isFormattedForDisplay() async {

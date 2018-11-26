@@ -10,10 +10,13 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class InitializeMessageHandler
     extends MessageHandler<InitializeParams, InitializeResult> {
-  final LspAnalysisServer server;
+  InitializeMessageHandler(LspAnalysisServer server) : super(server);
+
   String get handlesMessage => 'initialize';
 
-  InitializeMessageHandler(this.server) : super(InitializeParams.fromJson);
+  @override
+  InitializeParams convertParams(Map<String, dynamic> json) =>
+      InitializeParams.fromJson(json);
 
   InitializeResult handle(InitializeParams params) {
     final openWorkspacePaths = <String>[];

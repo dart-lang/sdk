@@ -15,7 +15,8 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
-  test_shutdown_before_intialize() async {
+  test_shutdown_before_after_initialize() async {
+    await initialize();
     final request = makeRequest('shutdown', null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
@@ -23,8 +24,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  test_shutdown_before_after_initialize() async {
-    await initialize();
+  test_shutdown_before_intialize() async {
     final request = makeRequest('shutdown', null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
