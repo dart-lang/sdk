@@ -156,18 +156,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /**
    * The socket from which messages are being read has been closed.
    */
-  void done() {
-    // TODO(dantup): Do we need to do anything here?
-  }
+  void done() {}
 
   /**
    * There was an error related to the socket from which messages are being
    * read.
    */
   void error(error, stack) {
-    // TODO(dantup): It's not legal to print this!
-    print(error);
-    print(stack);
+    sendServerErrorNotification('Server error', error, stack);
   }
 
   /// Return the LineInfo for the file with the given [path]. The file is
@@ -210,13 +206,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           }
         }
       });
-    }, onError: (error, stackTrace) {
-      sendErrorResponse(
-          message,
-          new ResponseError(ServerErrorCodes.UnhandledError, error.toString(),
-              stackTrace?.toString()));
-      return;
-    });
+    }, onError: error);
+  }
+
+  void showError(String message) {
+    channel.sendNotification(new NotificationMessage(
+        'window/showMessage',
+        Either2<List<dynamic>, dynamic>.t2(
+            new ShowMessageParams(MessageType.Error, message)),
+        jsonRpcVersion));
   }
 
   void logError(String message) {
@@ -235,11 +233,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       // also ensure the error is logged to the client.
       logError(error.message);
     } else {
-      channel.sendNotification(new NotificationMessage(
-          'window/showMessage',
-          Either2<List<dynamic>, dynamic>.t2(
-              new ShowMessageParams(MessageType.Error, error.message)),
-          jsonRpcVersion));
+      // For notifications where we couldn't respond with an error, send it as
+      // show instead of log.
+      showError(error.message);
     }
   }
 
@@ -257,12 +253,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     channel.sendResponse(response);
   }
 
-  void sendServerErrorNotification(String message, exception, stackTrace,
-      {bool fatal = false}) {
-    // TODO(dantup): Fix this; we can't just write to stdout.
-    print(message);
-    print(exception);
-    print(stackTrace);
+  void sendServerErrorNotification(String message, exception, stackTrace) {
+    final fullError = new StringBuffer();
+    fullError.writeln(message);
+    if (exception != null) {
+      fullError.writeln(exception.toString());
+    }
+    if (stackTrace != null) {
+      fullError.writeln(stackTrace.toString());
+    }
+    showError(message); // Show message to the user.
+    logError(fullError.toString()); // Log the full message.
   }
 
   void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,

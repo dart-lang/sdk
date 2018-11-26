@@ -265,48 +265,5 @@ export namespace ResourceOperationKind {
       expect(delete.commentText,
           equals('Supports deleting existing files and folders.'));
     });
-
-    test('parses inline types', () {
-      final String input = '''
-interface ServerCapabilities {
-	/**
-	 * Workspace specific server capabilities
-	 */
-	workspace?: {
-		/**
-		 * The server supports workspace folder.
-		 *
-		 * Since 3.6.0
-		 */
-		workspaceFolders?: {
-			supported?: boolean;
-			changeNotifications?: string | boolean;
-		}
-	}
-	/**
-	 * Experimental server capabilities.
-	 */
-	experimental?: any;
-}
-    ''';
-      final List<AstNode> output = parseFile(input);
-      expect(output, hasLength(1));
-      expect(output[0], const TypeMatcher<Interface>());
-      final Interface interface = output[0];
-      expect(interface.members, hasLength(2));
-      interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
-      final Field workspace = interface.members[0],
-          experimental = interface.members[1];
-      expect(workspace.name, equals('workspace'));
-      // TODO(dantup): Fix up this test once we support parsing these types
-      // and unskip this test.
-      expect(workspace.type, equals(['TODO']));
-      expect(workspace.commentText,
-          equals('Workspace specific server capabilities'));
-      expect(experimental.name, equals('experimental'));
-      expect(experimental.type, isArrayOf(isSimpleType('any')));
-      expect(experimental.commentText,
-          equals('Experimental server capabilities.'));
-    }, skip: true);
   });
 }

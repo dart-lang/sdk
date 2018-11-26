@@ -88,7 +88,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       } else if (NotificationMessage.canParse(json)) {
         onMessage(NotificationMessage.fromJson(json));
       } else {
-        // TODO(dantup): Report error
+        _sendParseError();
       }
     });
   }
@@ -114,6 +114,16 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       // TODO(dantup): This...
       //_instrumentationService.logResponse(jsonEncoded);
     });
+  }
+
+  void _sendParseError() {
+    final error = new ResponseMessage(
+        null,
+        null,
+        new ResponseError(
+            ErrorCodes.ParseError, 'Unable to parse message', null),
+        jsonRpcVersion);
+    sendResponse(error);
   }
 
   /**
