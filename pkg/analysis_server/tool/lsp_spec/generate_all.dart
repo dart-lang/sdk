@@ -25,7 +25,7 @@ main() async {
       .where(shouldIncludeScriptBlock)
       .map(parseFile)
       .expand((f) => f)
-      .where(shouldIncludeNode)
+      .where(includeTypeDefinitionInOutput)
       .toList();
   final String output = generateDartForTypes(types);
 

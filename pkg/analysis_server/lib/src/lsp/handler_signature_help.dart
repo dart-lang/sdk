@@ -36,7 +36,9 @@ class SignatureHelpHandler
     if (computer.offsetIsValid) {
       final signature = computer.compute();
       if (signature != null) {
-        return toSignatureHelp(signature);
+        final formats = server?.clientCapabilities?.textDocument?.signatureHelp
+            ?.signatureInformation?.documentationFormat;
+        return toSignatureHelp(formats, signature);
       }
     }
 

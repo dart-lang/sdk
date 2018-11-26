@@ -16,10 +16,22 @@ main() {
 
 @reflectiveTest
 class SignatureHelpTest extends AbstractLspAnalysisServerTest {
+  Future<void> initializeSupportingMarkupContent([
+    List<MarkupKind> formats = const [MarkupKind.Markdown],
+  ]) async {
+    await initialize(textDocumentCapabilities: {
+      'signatureHelp': {
+        'signatureInformation': {
+          'documentationFormat': formats.map((f) => f.toJson())
+        }
+      }
+    });
+  }
+
   test_signature_help_named() async {
     final content = '''
     /// Does foo.
-    foo(String s, int i, {bool b = true}) {
+    foo(String s, {bool b = true}) {
       foo(^);
     }
     ''';
@@ -27,7 +39,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedLabel = 'foo(String s, {bool b = true})';
     final expectedDoc = 'Does foo.';
 
-    testSignature(
+    await initializeSupportingMarkupContent();
+    await testSignature(
       content,
       expectedLabel,
       expectedDoc,
@@ -41,7 +54,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
   test_signature_help_named_multiple() async {
     final content = '''
     /// Does foo.
-    foo(String s, int i, {bool b = true, bool a}) {
+    foo(String s, {bool b = true, bool a}) {
       foo(^);
     }
     ''';
@@ -49,7 +62,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedLabel = 'foo(String s, {bool b = true, bool a})';
     final expectedDoc = 'Does foo.';
 
-    testSignature(
+    await initializeSupportingMarkupContent();
+    await testSignature(
       content,
       expectedLabel,
       expectedDoc,
@@ -58,6 +72,29 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
         new ParameterInformation('bool b = true', null),
         new ParameterInformation('bool a', null),
       ],
+    );
+  }
+
+  test_signature_help_no_markupcontent_support() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize();
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('int i', null),
+      ],
+      expectedFormat: null,
     );
   }
 
@@ -72,7 +109,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedLabel = 'foo(String s, [bool b = true])';
     final expectedDoc = 'Does foo.';
 
-    testSignature(
+    await initializeSupportingMarkupContent();
+    await testSignature(
       content,
       expectedLabel,
       expectedDoc,
@@ -94,7 +132,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedLabel = 'foo(String s, [bool b = true, bool a])';
     final expectedDoc = 'Does foo.';
 
-    testSignature(
+    await initializeSupportingMarkupContent();
+    await testSignature(
       content,
       expectedLabel,
       expectedDoc,
@@ -103,6 +142,56 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
         new ParameterInformation('bool b = true', null),
         new ParameterInformation('bool a', null),
       ],
+    );
+  }
+
+  test_signature_help_plain_text() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initializeSupportingMarkupContent([MarkupKind.PlainText]);
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('int i', null),
+      ],
+      expectedFormat: MarkupKind.PlainText,
+    );
+  }
+
+  test_signature_help_plain_text_preferred() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    // We say we prefer PlainText as a client, but since we only really
+    // support Markdown and the client supports it, we expect the server
+    // to provide Markdown.
+    await initializeSupportingMarkupContent(
+        [MarkupKind.PlainText, MarkupKind.Markdown]);
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('int i', null),
+      ],
+      expectedFormat: MarkupKind.Markdown,
     );
   }
 
@@ -116,7 +205,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedLabel = 'foo(String s, int i)';
     final expectedDoc = 'Does foo.';
 
-    testSignature(
+    await initializeSupportingMarkupContent();
+    await testSignature(
       content,
       expectedLabel,
       expectedDoc,
@@ -131,9 +221,9 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     String fileContent,
     String expectedLabel,
     String expectedDoc,
-    List<ParameterInformation> expectedParams,
-  ) async {
-    await initialize();
+    List<ParameterInformation> expectedParams, {
+    MarkupKind expectedFormat = MarkupKind.Markdown,
+  }) async {
     await openFile(mainFileUri, withoutMarkers(fileContent));
     final res =
         await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
@@ -142,13 +232,19 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     expect(res.activeSignature, equals(0));
     expect(res.signatures, hasLength(1));
     final sig = res.signatures.first;
-    // TODO(dantup): Add test + support for plain text.
     expect(sig.label, equals(expectedLabel));
-    expect(
-        sig.documentation.valueEquals(
-          new MarkupContent(MarkupKind.Markdown, expectedDoc),
-        ),
-        isTrue);
     expect(sig.parameters, equals(expectedParams));
+
+    // Test the format matches the tests expectation.
+    // For clients that don't support MarkupContent it'll be a plain string,
+    // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
+    final doc = sig.documentation;
+    if (expectedFormat == null) {
+      // Plain string.
+      expect(doc.valueEquals(expectedDoc), isTrue);
+    } else {
+      final expected = new MarkupContent(expectedFormat, expectedDoc);
+      expect(doc.valueEquals(expected), isTrue);
+    }
   }
 }

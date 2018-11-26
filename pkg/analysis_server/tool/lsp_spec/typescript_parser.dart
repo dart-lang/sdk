@@ -297,7 +297,7 @@ class Parser {
 
       // We also remove any types that are deprecated and/or we won't use to
       // simplify the unions.
-      remainingTypes.removeWhere((t) => !shouldIncludeType(t));
+      remainingTypes.removeWhere((t) => !allowTypeInSignatures(t));
 
       type = remainingTypes.length > 1
           ? new UnionType(remainingTypes)
@@ -783,6 +783,10 @@ class Type extends TypeBase {
       'number': 'num',
       'any': 'dynamic',
       'object': 'dynamic',
+      // Simplify MarkedString from
+      //     string | { language: string; value: string }
+      // to just String
+      'MarkedString': 'String'
     };
 
     final typeName = mapping[name] ?? name;

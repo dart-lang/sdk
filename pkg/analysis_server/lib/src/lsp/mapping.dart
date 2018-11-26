@@ -13,9 +13,42 @@ import 'package:analyzer/src/generated/source.dart' as server;
 
 const languageSourceName = 'dart';
 
-lsp.MarkupContent asMarkdown(String content) => content == null
-    ? null
-    : new lsp.MarkupContent(lsp.MarkupKind.Markdown, content);
+Either2<String, MarkupContent> asStringOrMarkupContent(
+    List<MarkupKind> preferredFormats, String content) {
+  if (content == null) {
+    return null;
+  }
+
+  return preferredFormats == null
+      ? new Either2<String, MarkupContent>.t1(content)
+      : new Either2<String, MarkupContent>.t2(
+          _asMarkup(preferredFormats, content));
+}
+
+lsp.MarkupContent _asMarkup(List<MarkupKind> preferredFormats, String content) {
+  // It's not valid to call this function with a null format, as null formats
+  // do not support MarkupContent. [asStringOrMarkupContent] is probably the
+  // better choice.
+  assert(preferredFormats != null);
+
+  if (content == null) {
+    return null;
+  }
+
+  if (preferredFormats.isEmpty) {
+    preferredFormats.add(MarkupKind.Markdown);
+  }
+
+  final supportsMarkdown = preferredFormats.contains(MarkupKind.Markdown);
+  final supportsPlain = preferredFormats.contains(MarkupKind.PlainText);
+  // Since our PlainText version is actually just Markdown, only advertise it
+  // as PlainText if the client explicitly supports PlainText and not Markdown.
+  final format = supportsPlain && !supportsMarkdown
+      ? MarkupKind.PlainText
+      : MarkupKind.Markdown;
+
+  return new lsp.MarkupContent(format, content);
+}
 
 lsp.CompletionItemKind elementKindToCompletionItemKind(
   HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
@@ -185,13 +218,11 @@ lsp.CompletionItem toCompletionItem(
       ? suggestion.displayText
       : suggestion.completion;
 
-  final clientSupportsSnippets = completionCapabilities != null &&
-      completionCapabilities.completionItem != null &&
-      completionCapabilities.completionItem.snippetSupport == true;
-
-  final clientSupportsDeprecated = completionCapabilities != null &&
-      completionCapabilities.completionItem != null &&
-      completionCapabilities.completionItem.deprecatedSupport == true;
+  final useSnippets =
+      completionCapabilities?.completionItem?.snippetSupport == true;
+  final useDeprecated =
+      completionCapabilities?.completionItem?.deprecatedSupport == true;
+  final formats = completionCapabilities?.completionItem?.documentationFormat;
 
   final completionKind = suggestion.element != null
       ? elementKindToCompletionItemKind(
@@ -202,11 +233,9 @@ lsp.CompletionItem toCompletionItem(
   return new lsp.CompletionItem(
     label,
     completionKind,
-    getCompletionDetail(suggestion, completionKind, clientSupportsDeprecated),
-    // TODO(dantup): completionItem.documentationFormat from ClientCapabilities
-    lsp.Either2<String, lsp.MarkupContent>.t2(
-        asMarkdown(cleanDartdoc(suggestion.docComplete))),
-    clientSupportsDeprecated ? suggestion.isDeprecated : null,
+    getCompletionDetail(suggestion, completionKind, useDeprecated),
+    asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
+    useDeprecated ? suggestion.isDeprecated : null,
     false, // preselect
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
@@ -216,9 +245,7 @@ lsp.CompletionItem toCompletionItem(
     (1000000 - suggestion.relevance).toString(),
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
-    clientSupportsSnippets
-        ? lsp.InsertTextFormat.Snippet
-        : lsp.InsertTextFormat.PlainText,
+    useSnippets ? lsp.InsertTextFormat.Snippet : lsp.InsertTextFormat.PlainText,
     new lsp.TextEdit(
       // TODO(dantup): If `clientSupportsSnippets == true` then we should map
       // `selection` in to a snippet (see how Dart Code does this).
@@ -282,7 +309,8 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   );
 }
 
-lsp.SignatureHelp toSignatureHelp(server.AnalysisGetSignatureResult signature) {
+lsp.SignatureHelp toSignatureHelp(List<MarkupKind> preferredFormats,
+    server.AnalysisGetSignatureResult signature) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
   // is at the end ready to provide another argument).
@@ -323,12 +351,13 @@ lsp.SignatureHelp toSignatureHelp(server.AnalysisGetSignatureResult signature) {
     return new ParameterInformation(getParamLabel(param), null);
   }
 
+  final cleanDoc = cleanDartdoc(signature.dartdoc);
+
   return new lsp.SignatureHelp(
     [
       new lsp.SignatureInformation(
         getSignatureLabel(signature),
-        Either2<String, lsp.MarkupContent>.t2(
-            asMarkdown(cleanDartdoc(signature.dartdoc))),
+        asStringOrMarkupContent(preferredFormats, cleanDoc),
         signature.parameters.map(toParameterInfo).toList(),
       ),
     ],

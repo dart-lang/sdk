@@ -75,21 +75,29 @@ List<String> getSpecialBaseTypes(Interface interface) {
   }
 }
 
-/// Removes types that are in the spec that we don't want.
-bool shouldIncludeNode(AstNode node) {
+/// Removes types that are in the spec that we don't want to emit.
+bool includeTypeDefinitionInOutput(AstNode node) {
   // These types are not used for v3.0 (Feb 2017) and by dropping them we don't
   // have to handle any cases where both a namespace and interfaces are declared
   // with the same name.
   return node.name != 'InitializeError' &&
-      // startsWith because there are inline types that will be generated.
+      // We don't emit MarkedString because it gets mapped to a simple String
+      // when getting the .dartType for it.
+      // .startsWith() because there are inline types that will be generated.
       !node.name.startsWith('MarkedString');
 }
 
-/// Removes types that are in the spec that we don't want.
-bool shouldIncludeType(TypeBase type) {
-  type = type is ArrayType ? type.elementType : type;
-  if (type is Type && type.name == 'MarkedString') {
-    return false;
+/// Removes types that are in the spec that we don't want in other signatures.
+bool allowTypeInSignatures(TypeBase type) {
+  // Don't allow arrays of MarkedStrings, but do allow simple MarkedStrings.
+  // The only place that uses these are Hovers and we only send one value
+  // (to match the MarkupString equiv) so the array just makes the types
+  // unnecessarily complicated.
+  if (type is ArrayType) {
+    final elementType = type.elementType;
+    if (elementType is Type && elementType.name == 'MarkedString') {
+      return false;
+    }
   }
   return true;
 }

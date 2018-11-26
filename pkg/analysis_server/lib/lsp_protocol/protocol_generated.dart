@@ -4581,15 +4581,19 @@ class Hover implements ToJsonable {
     }
   }
   static Hover fromJson(Map<String, dynamic> json) {
-    final contents = json['contents'] != null
-        ? MarkupContent.fromJson(json['contents'])
-        : null;
+    final contents = json['contents'] is String
+        ? new Either2<String, MarkupContent>.t1(json['contents'])
+        : (MarkupContent.canParse(json['contents'])
+            ? new Either2<String, MarkupContent>.t2(json['contents'] != null
+                ? MarkupContent.fromJson(json['contents'])
+                : null)
+            : (throw '''${json['contents']} was not one of (String, MarkupContent)'''));
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     return new Hover(contents, range);
   }
 
   /// The hover's content
-  final MarkupContent contents;
+  final Either2<String, MarkupContent> contents;
 
   /// An optional range is a range inside a text document that is used to
   /// visualize a hover, e.g. by changing the background color.
@@ -4608,7 +4612,7 @@ class Hover implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('contents') &&
-        MarkupContent.canParse(obj['contents']);
+        (obj['contents'] is String || MarkupContent.canParse(obj['contents']));
   }
 
   @override

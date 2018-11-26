@@ -21,9 +21,6 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   HoverHandler(this.server) : super(TextDocumentPositionParams.fromJson);
 
   Future<Hover> handle(TextDocumentPositionParams params) async {
-    // TODO(dantup): Look at clientCapabilities.hover.contentFormat to decide what
-    // format to send back?
-
     final path = pathOf(params.textDocument);
     ResolvedUnitResult result = await server.getResolvedUnit(path);
     // TODO(dantup): Handle bad paths/offsets.
@@ -36,6 +33,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
     final pos = params.position;
     final offset = result.lineInfo.getOffsetOfLine(pos.line) + pos.character;
     final hover = new DartUnitHoverComputer(unit, offset).compute();
+
     return toHover(result.lineInfo, hover);
   }
 
@@ -77,8 +75,10 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
+    final formats =
+        server?.clientCapabilities?.textDocument?.hover?.contentFormat;
     return new Hover(
-      asMarkdown(content.toString().trimRight()),
+      asStringOrMarkupContent(formats, content.toString().trimRight()),
       toRange(lineInfo, hover.offset, hover.length),
     );
   }
