@@ -83,7 +83,10 @@ Future<Null> checkDeterministicSnapshot(
 
     final generate1Result = await runDartBinary('GENERATE SNAPSHOT 1', [
       '--deterministic',
-      '--dump_tables',
+      '--trace_class_finalization',
+      '--trace_type_finalization',
+      '--trace_compiler',
+      '--verbose_gc',
       '--snapshot=$snapshot1Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -93,7 +96,10 @@ Future<Null> checkDeterministicSnapshot(
 
     final generate2Result = await runDartBinary('GENERATE SNAPSHOT 2', [
       '--deterministic',
-      '--dump_tables',
+      '--trace_class_finalization',
+      '--trace_type_finalization',
+      '--trace_compiler',
+      '--verbose_gc',
       '--snapshot=$snapshot2Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
