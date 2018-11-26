@@ -49,7 +49,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   test_notifications_before_initialize_are_silently_dropped() async {
-    final notification = makeNotification('randomNotification', null);
+    final notification =
+        makeNotification(new Method.fromJson('randomNotification'), null);
     final nextNotification = channel.errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
@@ -67,7 +68,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   test_requests_before_initialize_are_rejected_and_logged() async {
-    final request = makeRequest('randomRequest', null);
+    final request = makeRequest(new Method.fromJson('randomRequest'), null);
     final logParams = await expectErrorNotification<LogMessageParams>(() async {
       final response = await channel.sendRequestToServer(request);
       expect(response.id, equals(request.id));

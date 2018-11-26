@@ -152,7 +152,7 @@ class Either4<T1, T2, T3, T4> {
 /// A base class containing the fields common to RequestMessage and
 /// NotificationMessage to simplify handling.
 abstract class IncomingMessage {
-  String get method;
+  Method get method;
   Either2<List<dynamic>, dynamic> get params;
 }
 

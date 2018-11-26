@@ -11,7 +11,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
   IntializedMessageHandler(LspAnalysisServer server, this.openWorkspacePaths)
       : super(server);
-  String get handlesMessage => 'initialized';
+  Method get handlesMessage => Method.initialized;
 
   @override
   InitializedParams convertParams(Map<String, dynamic> json) =>

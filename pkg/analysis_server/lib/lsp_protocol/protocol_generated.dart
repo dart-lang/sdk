@@ -4403,22 +4403,22 @@ class FoldingRangeKind {
 
   static bool canParse(Object obj) {
     switch (obj) {
-      case 'comment':
-      case 'imports':
-      case 'region':
+      case r'comment':
+      case r'imports':
+      case r'region':
         return true;
     }
     return false;
   }
 
   /// Folding range for a comment
-  static const Comment = const FoldingRangeKind._('comment');
+  static const Comment = const FoldingRangeKind._(r'comment');
 
   /// Folding range for a imports or includes
-  static const Imports = const FoldingRangeKind._('imports');
+  static const Imports = const FoldingRangeKind._(r'imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = const FoldingRangeKind._('region');
+  static const Region = const FoldingRangeKind._(r'region');
 
   Object toJson() => _value;
 
@@ -5237,6 +5237,208 @@ class MessageType {
   bool operator ==(o) => o is MessageType && o._value == _value;
 }
 
+/// Valid LSP methods known at the time of code generation from the spec.
+class Method {
+  const Method._(this._value);
+  const Method.fromJson(this._value);
+
+  final Object _value;
+
+  static bool canParse(Object obj) {
+    switch (obj) {
+      case r'$/cancelRequest':
+      case r'initialize':
+      case r'initialized':
+      case r'shutdown':
+      case r'exit':
+      case r'window/showMessage':
+      case r'window/showMessageRequest':
+      case r'window/logMessage':
+      case r'telemetry/event':
+      case r'client/registerCapability':
+      case r'client/unregisterCapability':
+      case r'workspace/didChangeWatchedFiles':
+      case r'workspace/symbol':
+      case r'workspace/applyEdit':
+      case r'textDocument/didOpen':
+      case r'textDocument/didChange':
+      case r'textDocument/willSave':
+      case r'textDocument/willSaveWaitUntil':
+      case r'textDocument/didClose':
+      case r'textDocument/publishDiagnostics':
+      case r'textDocument/completion':
+      case r'completionItem/resolve':
+      case r'textDocument/hover':
+      case r'textDocument/signatureHelp':
+      case r'textDocument/definition':
+      case r'textDocument/typeDefinition':
+      case r'textDocument/implementation':
+      case r'textDocument/references':
+      case r'textDocument/documentHighlight':
+      case r'textDocument/documentSymbol':
+      case r'textDocument/codeAction':
+      case r'textDocument/codeLens':
+      case r'codeLens/resolve':
+      case r'textDocument/documentLink':
+      case r'documentLink/resolve':
+      case r'textDocument/formatting':
+      case r'textDocument/onTypeFormatting':
+      case r'textDocument/rename':
+      case r'textDocument/prepareRename':
+        return true;
+    }
+    return false;
+  }
+
+  /// Constant for the '$/cancelRequest' method.
+  static const cancelRequest = const Method._(r'$/cancelRequest');
+
+  /// Constant for the 'initialize' method.
+  static const initialize = const Method._(r'initialize');
+
+  /// Constant for the 'initialized' method.
+  static const initialized = const Method._(r'initialized');
+
+  /// Constant for the 'shutdown' method.
+  static const shutdown = const Method._(r'shutdown');
+
+  /// Constant for the 'exit' method.
+  static const exit = const Method._(r'exit');
+
+  /// Constant for the 'window/showMessage' method.
+  static const window_showMessage = const Method._(r'window/showMessage');
+
+  /// Constant for the 'window/showMessageRequest' method.
+  static const window_showMessageRequest =
+      const Method._(r'window/showMessageRequest');
+
+  /// Constant for the 'window/logMessage' method.
+  static const window_logMessage = const Method._(r'window/logMessage');
+
+  /// Constant for the 'telemetry/event' method.
+  static const telemetry_event = const Method._(r'telemetry/event');
+
+  /// Constant for the 'client/registerCapability' method.
+  static const client_registerCapability =
+      const Method._(r'client/registerCapability');
+
+  /// Constant for the 'client/unregisterCapability' method.
+  static const client_unregisterCapability =
+      const Method._(r'client/unregisterCapability');
+
+  /// Constant for the 'workspace/didChangeWatchedFiles' method.
+  static const workspace_didChangeWatchedFiles =
+      const Method._(r'workspace/didChangeWatchedFiles');
+
+  /// Constant for the 'workspace/symbol' method.
+  static const workspace_symbol = const Method._(r'workspace/symbol');
+
+  /// Constant for the 'workspace/applyEdit' method.
+  static const workspace_applyEdit = const Method._(r'workspace/applyEdit');
+
+  /// Constant for the 'textDocument/didOpen' method.
+  static const textDocument_didOpen = const Method._(r'textDocument/didOpen');
+
+  /// Constant for the 'textDocument/didChange' method.
+  static const textDocument_didChange =
+      const Method._(r'textDocument/didChange');
+
+  /// Constant for the 'textDocument/willSave' method.
+  static const textDocument_willSave = const Method._(r'textDocument/willSave');
+
+  /// Constant for the 'textDocument/willSaveWaitUntil' method.
+  static const textDocument_willSaveWaitUntil =
+      const Method._(r'textDocument/willSaveWaitUntil');
+
+  /// Constant for the 'textDocument/didClose' method.
+  static const textDocument_didClose = const Method._(r'textDocument/didClose');
+
+  /// Constant for the 'textDocument/publishDiagnostics' method.
+  static const textDocument_publishDiagnostics =
+      const Method._(r'textDocument/publishDiagnostics');
+
+  /// Constant for the 'textDocument/completion' method.
+  static const textDocument_completion =
+      const Method._(r'textDocument/completion');
+
+  /// Constant for the 'completionItem/resolve' method.
+  static const completionItem_resolve =
+      const Method._(r'completionItem/resolve');
+
+  /// Constant for the 'textDocument/hover' method.
+  static const textDocument_hover = const Method._(r'textDocument/hover');
+
+  /// Constant for the 'textDocument/signatureHelp' method.
+  static const textDocument_signatureHelp =
+      const Method._(r'textDocument/signatureHelp');
+
+  /// Constant for the 'textDocument/definition' method.
+  static const textDocument_definition =
+      const Method._(r'textDocument/definition');
+
+  /// Constant for the 'textDocument/typeDefinition' method.
+  static const textDocument_typeDefinition =
+      const Method._(r'textDocument/typeDefinition');
+
+  /// Constant for the 'textDocument/implementation' method.
+  static const textDocument_implementation =
+      const Method._(r'textDocument/implementation');
+
+  /// Constant for the 'textDocument/references' method.
+  static const textDocument_references =
+      const Method._(r'textDocument/references');
+
+  /// Constant for the 'textDocument/documentHighlight' method.
+  static const textDocument_documentHighlight =
+      const Method._(r'textDocument/documentHighlight');
+
+  /// Constant for the 'textDocument/documentSymbol' method.
+  static const textDocument_documentSymbol =
+      const Method._(r'textDocument/documentSymbol');
+
+  /// Constant for the 'textDocument/codeAction' method.
+  static const textDocument_codeAction =
+      const Method._(r'textDocument/codeAction');
+
+  /// Constant for the 'textDocument/codeLens' method.
+  static const textDocument_codeLens = const Method._(r'textDocument/codeLens');
+
+  /// Constant for the 'codeLens/resolve' method.
+  static const codeLens_resolve = const Method._(r'codeLens/resolve');
+
+  /// Constant for the 'textDocument/documentLink' method.
+  static const textDocument_documentLink =
+      const Method._(r'textDocument/documentLink');
+
+  /// Constant for the 'documentLink/resolve' method.
+  static const documentLink_resolve = const Method._(r'documentLink/resolve');
+
+  /// Constant for the 'textDocument/formatting' method.
+  static const textDocument_formatting =
+      const Method._(r'textDocument/formatting');
+
+  /// Constant for the 'textDocument/onTypeFormatting' method.
+  static const textDocument_onTypeFormatting =
+      const Method._(r'textDocument/onTypeFormatting');
+
+  /// Constant for the 'textDocument/rename' method.
+  static const textDocument_rename = const Method._(r'textDocument/rename');
+
+  /// Constant for the 'textDocument/prepareRename' method.
+  static const textDocument_prepareRename =
+      const Method._(r'textDocument/prepareRename');
+
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  get hashCode => _value.hashCode;
+
+  bool operator ==(o) => o is Method && o._value == _value;
+}
+
 class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   NotificationMessage(this.method, this.params, this.jsonrpc) {
     if (method == null) {
@@ -5247,7 +5449,8 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     }
   }
   static NotificationMessage fromJson(Map<String, dynamic> json) {
-    final method = json['method'];
+    final method =
+        json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = (json['params'] is List &&
             (json['params'].length == 0 ||
                 json['params'].every((item) => true)))
@@ -5261,7 +5464,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   final String jsonrpc;
 
   /// The method to be invoked.
-  final String method;
+  final Method method;
 
   /// The notification's params.
   final Either2<List<dynamic>, dynamic> params;
@@ -5280,7 +5483,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('method') &&
-        obj['method'] is String &&
+        Method.canParse(obj['method']) &&
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
@@ -6133,7 +6336,8 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         : (json['id'] is String
             ? new Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (num, String)'''));
-    final method = json['method'];
+    final method =
+        json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = (json['params'] is List &&
             (json['params'].length == 0 ||
                 json['params'].every((item) => true)))
@@ -6149,7 +6353,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   final String jsonrpc;
 
   /// The method to be invoked.
-  final String method;
+  final Method method;
 
   /// The method's params.
   final Either2<List<dynamic>, dynamic> params;
@@ -6171,7 +6375,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         obj.containsKey('id') &&
         (obj['id'] is num || obj['id'] is String) &&
         obj.containsKey('method') &&
-        obj['method'] is String &&
+        Method.canParse(obj['method']) &&
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }

@@ -15,7 +15,7 @@ class FormattingHandler
     extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
   final DartFormatter formatter = new DartFormatter();
   FormattingHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/formatting';
+  Method get handlesMessage => Method.textDocument_formatting;
 
   @override
   DocumentFormattingParams convertParams(Map<String, dynamic> json) =>

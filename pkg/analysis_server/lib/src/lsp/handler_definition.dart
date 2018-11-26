@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 class DefinitionHandler
     extends MessageHandler<TextDocumentPositionParams, List<Location>> {
   DefinitionHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/definition';
+  Method get handlesMessage => Method.textDocument_definition;
 
   @override
   TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>

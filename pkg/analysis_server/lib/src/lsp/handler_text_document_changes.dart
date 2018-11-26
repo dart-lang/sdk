@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
   TextDocumentChangeHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/didChange';
+  Method get handlesMessage => Method.textDocument_didChange;
 
   @override
   DidChangeTextDocumentParams convertParams(Map<String, dynamic> json) =>
@@ -41,7 +41,7 @@ class TextDocumentChangeHandler
 class TextDocumentCloseHandler
     extends MessageHandler<DidCloseTextDocumentParams, void> {
   TextDocumentCloseHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/didClose';
+  Method get handlesMessage => Method.textDocument_didClose;
 
   @override
   DidCloseTextDocumentParams convertParams(Map<String, dynamic> json) =>
@@ -56,7 +56,7 @@ class TextDocumentCloseHandler
 class TextDocumentOpenHandler
     extends MessageHandler<DidOpenTextDocumentParams, void> {
   TextDocumentOpenHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/didOpen';
+  Method get handlesMessage => Method.textDocument_didOpen;
 
   @override
   DidOpenTextDocumentParams convertParams(Map<String, dynamic> json) =>

@@ -19,9 +19,9 @@ main() {
 
     test('returns correct output for union types', () {
       final message = new RequestMessage(
-          new Either2<num, String>.t1(1), "test", null, "test");
+          new Either2<num, String>.t1(1), Method.shutdown, null, "test");
       String output = json.encode(message.toJson());
-      expect(output, equals('{"id":1,"method":"test","jsonrpc":"test"}'));
+      expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
     });
 
     test('returns correct output for union types containing interface types',
@@ -93,21 +93,21 @@ main() {
 
   group('fromJson', () {
     test('parses JSON for types with unions (left side)', () {
-      final input = '{"id":1,"method":"test","jsonrpc":"test"}';
+      final input = '{"id":1,"method":"shutdown","jsonrpc":"test"}';
       final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(new Either2<num, String>.t1(1)));
       expect(message.id.valueEquals(1), isTrue);
       expect(message.jsonrpc, "test");
-      expect(message.method, "test");
+      expect(message.method, Method.shutdown);
     });
 
     test('parses JSON for types with unions (right side)', () {
-      final input = '{"id":"one","method":"test","jsonrpc":"test"}';
+      final input = '{"id":"one","method":"shutdown","jsonrpc":"test"}';
       final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(new Either2<num, String>.t2("one")));
       expect(message.id.valueEquals("one"), isTrue);
       expect(message.jsonrpc, "test");
-      expect(message.method, "test");
+      expect(message.method, Method.shutdown);
     });
   });
 

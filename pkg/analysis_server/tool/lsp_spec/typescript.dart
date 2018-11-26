@@ -59,6 +59,12 @@ String getImprovedType(String interfaceName, String fieldName) {
     "ResponseError": {
       "code": "ErrorCodes",
     },
+    "NotificationMessage": {
+      "method": "Method",
+    },
+    "RequestMessage": {
+      "method": "Method",
+    }
   };
 
   final interface = _improvedTypeMappings[interfaceName];

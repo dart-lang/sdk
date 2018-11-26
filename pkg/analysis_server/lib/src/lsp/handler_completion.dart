@@ -40,7 +40,7 @@ final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
 class CompletionHandler
     extends MessageHandler<CompletionParams, List<CompletionItem>> {
   CompletionHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/completion';
+  Method get handlesMessage => Method.textDocument_completion;
 
   @override
   CompletionParams convertParams(Map<String, dynamic> json) =>

@@ -31,6 +31,11 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   }
 
   test_fileNotOpen() async {
+    // TODO(dantup): This test turns out ot be invalid. LSP spec says:
+    // "Note that a server's ability to fulfill requests is independent of
+    // whether a text document is open or closed"
+    // Need to review any instances that rely on files being open (and add
+    // additional tests for this).
     await newFile(mainFilePath);
     await initialize();
 

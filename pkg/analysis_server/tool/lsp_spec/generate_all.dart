@@ -27,10 +27,40 @@ main() async {
       .expand((f) => f)
       .where(includeTypeDefinitionInOutput)
       .toList();
+
+  // Generate an enum for all of the request methods to avoid strings.
+  types.add(extractMethodsEnum(spec));
+
   final String output = generateDartForTypes(types);
 
   new File(path.join(outFolder, 'protocol_generated.dart'))
       .writeAsStringSync(_generatedFileHeader + output);
+}
+
+Namespace extractMethodsEnum(String spec) {
+  Const toConstant(String value) {
+    final comment = new Comment(
+        new Token(TokenType.COMMENT, '''Constant for the '$value' method.'''));
+
+    // Generate a safe name for the member from the string. Those that start with
+    // $/ will have the prefix removed and all slashes should be replaced with
+    // underscores.
+    final safeMemberName = value.replaceAll(r'$/', '').replaceAll('/', '_');
+
+    return new Const(
+      comment,
+      new Token.identifier(safeMemberName),
+      new Type.identifier('string'),
+      new Token(TokenType.STRING, "'$value'"),
+    );
+  }
+
+  final comment = new Comment(new Token(TokenType.COMMENT,
+      'Valid LSP methods known at the time of code generation from the spec.'));
+  final methodConstants = extractMethodNames(spec).map(toConstant).toList();
+
+  return new Namespace(
+      comment, new Token.identifier('Method'), methodConstants);
 }
 
 const _generatedFileHeader = '''

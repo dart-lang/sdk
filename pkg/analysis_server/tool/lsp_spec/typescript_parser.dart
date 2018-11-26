@@ -70,7 +70,16 @@ class Const extends Member {
       : super(comment);
   String get name => nameToken.lexeme;
 
-  String get valueAsLiteral => valueToken.lexeme;
+  String get valueAsLiteral {
+    if (type.dartType == 'String') {
+      // Write strings as raw strings, since some have dollars in them (eg. for
+      // LSP method names). valueToken.lexeme already includes the quotes as
+      // read from the spec.
+      return 'r${valueToken.lexeme}';
+    } else {
+      return valueToken.lexeme;
+    }
+  }
 }
 
 class Field extends Member {

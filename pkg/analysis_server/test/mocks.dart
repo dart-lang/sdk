@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -175,8 +176,8 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// ensure no errors come from the server in response to notifications (which
   /// don't have their own responses).
   bool _isErrorNotification(lsp.NotificationMessage notification) {
-    return notification.method == 'window/logMessage' ||
-        notification.method == 'window/showMessage';
+    return notification.method == Method.window_logMessage ||
+        notification.method == Method.window_showMessage;
   }
 }
 

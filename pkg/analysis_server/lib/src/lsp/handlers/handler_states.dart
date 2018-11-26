@@ -18,22 +18,11 @@ import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-/// A handler that requests requests but drops notifications. Used for handling
-/// unknown messages prior to the initialisation stage.
-FutureOr<Object> _rejectRequests(IncomingMessage message) {
-  // Silently drop non-requests.
-  if (message is! RequestMessage) {
-    return null;
-  }
-  throw new ResponseError(ErrorCodes.ServerNotInitialized,
-      'Unable to handle ${message.method} before server is initialized', null);
-}
-
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
-    reject('initialize', ServerErrorCodes.ServerAlreadyInitialized,
+    reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
-    reject('initialized', ServerErrorCodes.ServerAlreadyInitialized,
+    reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     registerHandler(new TextDocumentOpenHandler(server));
     registerHandler(new TextDocumentChangeHandler(server));
@@ -51,14 +40,23 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   InitializingStateMessageHandler(
       LspAnalysisServer server, List<String> openWorkspacePaths)
       : super(server) {
-    reject('initialize', ServerErrorCodes.ServerAlreadyInitialized,
+    reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     registerHandler(new IntializedMessageHandler(server, openWorkspacePaths));
   }
 
   @override
-  FutureOr<Object> handleUnknownMessage(IncomingMessage message) =>
-      _rejectRequests(message);
+  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
+    // Silently drop non-requests.
+    if (message is! RequestMessage) {
+      return null;
+    }
+    throw new ResponseError(
+        ErrorCodes.ServerNotInitialized,
+        'Unable to handle ${message.method} before the server is initialized '
+        'and the client has sent the initialized notification',
+        null);
+  }
 }
 
 class UninitializedStateMessageHandler extends ServerStateMessageHandler {
@@ -67,6 +65,14 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<Object> handleUnknownMessage(IncomingMessage message) =>
-      _rejectRequests(message);
+  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
+    // Silently drop non-requests.
+    if (message is! RequestMessage) {
+      return null;
+    }
+    throw new ResponseError(
+        ErrorCodes.ServerNotInitialized,
+        'Unable to handle ${message.method} before client has sent initialize request',
+        null);
+  }
 }

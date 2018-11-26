@@ -4,12 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class ExitMessageHandler extends MessageHandler<void, void> {
   ExitMessageHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'exit';
+  Method get handlesMessage => Method.exit;
 
   @override
   void convertParams(Map<String, dynamic> json) => null;

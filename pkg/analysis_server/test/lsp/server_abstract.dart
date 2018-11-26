@@ -93,7 +93,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   Future changeFile(
       Uri uri, List<TextDocumentContentChangeEvent> changes) async {
     var notification = makeNotification(
-      'textDocument/didChange',
+      Method.textDocument_didChange,
       new DidChangeTextDocumentParams(
           new VersionedTextDocumentIdentifier(1, uri.toString()), changes),
     );
@@ -103,7 +103,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
 
   Future closeFile(Uri uri) async {
     var notification = makeNotification(
-      'textDocument/didClose',
+      Method.textDocument_didClose,
       new DidCloseTextDocumentParams(
           new TextDocumentIdentifier(uri.toString())),
     );
@@ -136,8 +136,8 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   }
 
   Future<List<TextEdit>> formatDocument(String fileUri) async {
-    var request = makeRequest(
-      'textDocument/formatting',
+    final request = makeRequest(
+      Method.textDocument_formatting,
       new DocumentFormattingParams(
         new TextDocumentIdentifier(fileUri),
         new FormattingOptions(2, true), // These currently don't do anything
@@ -148,8 +148,8 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
 
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
       {CompletionContext context}) async {
-    var request = makeRequest(
-      'textDocument/completion',
+    final request = makeRequest(
+      Method.textDocument_completion,
       new CompletionParams(
         context,
         new TextDocumentIdentifier(uri.toString()),
@@ -160,8 +160,8 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   }
 
   Future<List<Location>> getDefinition(Uri uri, Position pos) async {
-    var request = makeRequest(
-      'textDocument/definition',
+    final request = makeRequest(
+      Method.textDocument_definition,
       new TextDocumentPositionParams(
         new TextDocumentIdentifier(uri.toString()),
         pos,
@@ -171,17 +171,21 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   }
 
   Future<Hover> getHover(Uri uri, Position pos) async {
-    var request = makeRequest(
-      'textDocument/hover', // TODO(dantup): Code-gen constants for all these from the spec to avoid mistakes.
+    final request = makeRequest(
+      Method.textDocument_hover,
       new TextDocumentPositionParams(
           new TextDocumentIdentifier(uri.toString()), pos),
     );
     return expectSuccessfulResponseTo<Hover>(request);
   }
 
-  Future<List<Location>> getReferences(Uri uri, Position pos) async {
-    var request = makeRequest(
-      'textDocument/references',
+  Future<List<Location>> getReferences(
+    Uri uri,
+    Position pos, {
+    includeDeclarations = false,
+  }) async {
+    final request = makeRequest(
+      Method.textDocument_references,
       new ReferenceParams(
         new ReferenceContext(true),
         new TextDocumentIdentifier(uri.toString()),
@@ -192,8 +196,8 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   }
 
   Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) async {
-    var request = makeRequest(
-      'textDocument/signatureHelp',
+    final request = makeRequest(
+      Method.textDocument_signatureHelp,
       new TextDocumentPositionParams(
         new TextDocumentIdentifier(uri.toString()),
         pos,
@@ -215,7 +219,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     final newTextDocumentCapabilities =
         overrideTextDocumentCapabilities(textDocumentCapabilities);
     final request = makeRequest(
-        'initialize',
+        Method.initialize,
         new InitializeParams(
             null,
             null,
@@ -228,19 +232,19 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     expect(response.id, equals(request.id));
 
     if (response.error == null) {
-      final notification = makeNotification('initialized', null);
+      final notification = makeNotification(Method.initialized, null);
       channel.sendNotificationToServer(notification);
     }
 
     return response;
   }
 
-  NotificationMessage makeNotification(String method, ToJsonable params) {
+  NotificationMessage makeNotification(Method method, ToJsonable params) {
     return new NotificationMessage(
         method, Either2<List<dynamic>, dynamic>.t2(params), jsonRpcVersion);
   }
 
-  RequestMessage makeRequest(String method, ToJsonable params) {
+  RequestMessage makeRequest(Method method, ToJsonable params) {
     final id = Either2<num, String>.t1(_id++);
     return new RequestMessage(
         id, method, Either2<List<dynamic>, dynamic>.t2(params), jsonRpcVersion);
@@ -248,7 +252,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
 
   Future openFile(Uri uri, String content) async {
     var notification = makeNotification(
-      'textDocument/didOpen',
+      Method.textDocument_didOpen,
       new DidOpenTextDocumentParams(
           new TextDocumentItem(uri.toString(), dartLanguageId, 1, content)),
     );
@@ -333,7 +337,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     PublishDiagnosticsParams diagnosticParams;
     await channel.serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == 'textDocument/publishDiagnostics') {
+          message.method == Method.textDocument_publishDiagnostics) {
         // TODO(dantup): Make a better way to extract params without copying
         // this map into all places. Although the spec says the `params` field
         // for `NotificationMessage` is `Array<any> | Object` it also says that

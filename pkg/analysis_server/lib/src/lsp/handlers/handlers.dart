@@ -20,8 +20,8 @@ abstract class MessageHandler<P, R> {
 
   MessageHandler(this.server);
 
-  /// The message types that this handler can handle.
-  String get handlesMessage;
+  /// The method that this handler can handle.
+  Method get handlesMessage;
 
   P convertParams(Map<String, dynamic> json);
 
@@ -58,7 +58,7 @@ abstract class MessageHandler<P, R> {
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
-  Map<String, MessageHandler> _messageHandlers = {};
+  Map<Method, MessageHandler> _messageHandlers = {};
 
   ServerStateMessageHandler(this.server) {
     // All server states support shutdown and exit.
@@ -76,14 +76,18 @@ abstract class ServerStateMessageHandler {
         : handleUnknownMessage(message);
   }
 
-  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
+  bool _isOptionalRequest(IncomingMessage message) {
     // Messages that start with $/ are optional and can be silently ignored
     // if we don't know how to handle them.
-    final isOptionalRequest = message.method.startsWith(r'$/');
+    final stringValue = message.method.toJson();
+    return stringValue is String && stringValue.startsWith(r'$/');
+  }
+
+  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
     // TODO(dantup): How should we handle unknown notifications that do
     // *not* start with $/?
     // https://github.com/Microsoft/language-server-protocol/issues/608
-    if (!isOptionalRequest) {
+    if (!_isOptionalRequest(message)) {
       throw new ResponseError(
           ErrorCodes.MethodNotFound, 'Unknown method ${message.method}', null);
     }
@@ -98,7 +102,7 @@ abstract class ServerStateMessageHandler {
     _messageHandlers[handler.handlesMessage] = handler;
   }
 
-  reject(String type, ErrorCodes code, String message) {
-    registerHandler(new RejectMessageHandler(server, type, code, message));
+  reject(Method method, ErrorCodes code, String message) {
+    registerHandler(new RejectMessageHandler(server, method, code, message));
   }
 }

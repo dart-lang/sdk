@@ -15,7 +15,7 @@ import 'package:analyzer/source/line_info.dart';
 
 class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   HoverHandler(LspAnalysisServer server) : super(server);
-  String get handlesMessage => 'textDocument/hover';
+  Method get handlesMessage => Method.textDocument_hover;
 
   @override
   TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>

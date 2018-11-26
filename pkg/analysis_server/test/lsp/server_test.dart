@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,7 +18,7 @@ main() {
 class ServerTest extends AbstractLspAnalysisServerTest {
   test_shutdown_before_after_initialize() async {
     await initialize();
-    final request = makeRequest('shutdown', null);
+    final request = makeRequest(Method.shutdown, null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNull);
@@ -25,7 +26,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   test_shutdown_before_intialize() async {
-    final request = makeRequest('shutdown', null);
+    final request = makeRequest(Method.shutdown, null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNull);
@@ -34,7 +35,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   test_unknown_dollar_notification_are_silently_ignored() async {
     await initialize();
-    final notification = makeNotification(r'$/randomNotification', null);
+    final notification =
+        makeNotification(new Method.fromJson(r'$/randomNotification'), null);
     final firstError = channel.errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
@@ -61,7 +63,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   test_unknown_request() async {
     await initialize();
-    final request = makeRequest('randomRequest', null);
+    final request = makeRequest(new Method.fromJson('randomRequest'), null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);

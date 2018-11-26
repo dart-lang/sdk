@@ -12,7 +12,7 @@ class InitializeMessageHandler
     extends MessageHandler<InitializeParams, InitializeResult> {
   InitializeMessageHandler(LspAnalysisServer server) : super(server);
 
-  String get handlesMessage => 'initialize';
+  Method get handlesMessage => Method.initialize;
 
   @override
   InitializeParams convertParams(Map<String, dynamic> json) =>
