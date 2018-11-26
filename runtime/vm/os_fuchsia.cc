@@ -269,7 +269,7 @@ void OS::Abort() {
 }
 
 void OS::Exit(int code) {
-  UNIMPLEMENTED();
+  exit(code);
 }
 
 }  // namespace dart
