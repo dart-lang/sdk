@@ -31,7 +31,8 @@ void main([List<String> args]) async {
 const ruleFootMatter = '''
 In addition, rules can be further distinguished by *maturity*.  Unqualified
 rules are considered stable, while others may be marked **experimental**
-to indicate that they are under review.
+to indicate that they are under review.  Lints that are marked as **deprecated**
+should not be used and are subject to removal in future Linter releases.
 
 Rules can be selectively enabled in the analyzer using
 [analysis options](https://pub.dartlang.org/packages/analyzer)
@@ -147,6 +148,17 @@ class Generator {
     }
   }
 
+  String get maturityString {
+    switch (rule.maturity) {
+      case Maturity.deprecated:
+        return '<span style="color:orangered;font-weight:bold;" >$maturity</span>';
+      case Maturity.experimental:
+        return '<span style="color:hotpink;font-weight:bold;" >$maturity</span>';
+      default:
+        return maturity;
+    }
+  }
+
   String _generate() => '''
 <!doctype html>
 <html>
@@ -167,7 +179,7 @@ class Generator {
          <header>
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
-            <p>Maturity: $maturity</p>
+            <p>Maturity: $maturityString</p>
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
                <li><a href="https://www.dartlang.org/articles/style-guide/">See the <strong>Style Guide</strong></a></li>
