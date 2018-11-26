@@ -10,6 +10,7 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+fragmentation_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
 [ $builder_tag == asan ]
