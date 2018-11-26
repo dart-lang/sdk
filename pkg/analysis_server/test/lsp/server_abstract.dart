@@ -135,11 +135,11 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     }
   }
 
-  Future<List<TextEdit>> formatDocument(Uri uri) async {
+  Future<List<TextEdit>> formatDocument(String fileUri) async {
     var request = makeRequest(
       'textDocument/formatting',
       new DocumentFormattingParams(
-        new TextDocumentIdentifier(uri.toString()),
+        new TextDocumentIdentifier(fileUri),
         new FormattingOptions(2, true), // These currently don't do anything
       ),
     );

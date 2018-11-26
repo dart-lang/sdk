@@ -26,7 +26,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri);
+    final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNull);
   }
 
@@ -35,7 +35,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     await expectLater(
-      formatDocument(mainFileUri),
+      formatDocument(mainFileUri.toString()),
       throwsA(isResponseError(ServerErrorCodes.FileNotOpen)),
     );
   }
@@ -49,7 +49,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri);
+    final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNull);
   }
 
@@ -57,7 +57,8 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     await expectLater(
-      formatDocument(new Uri.file(join(projectFolderPath, 'missing.dart'))),
+      formatDocument(
+          new Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }
@@ -66,7 +67,8 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     await expectLater(
-      formatDocument(Uri.file(join(projectFolderPath, '*'))),
+      // Add some invalid path characters to the end of a valid file:// URI.
+      formatDocument(mainFileUri.toString() + '***'),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }
@@ -75,7 +77,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     await expectLater(
-      formatDocument(Uri.parse('a:/a.a')),
+      formatDocument('a:/a.a'),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }
@@ -96,7 +98,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, contents);
 
-    final formatEdits = await formatDocument(mainFileUri);
+    final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNotNull);
     final formattedContents = applyEdits(contents, formatEdits);
     expect(formattedContents, equals(expected));

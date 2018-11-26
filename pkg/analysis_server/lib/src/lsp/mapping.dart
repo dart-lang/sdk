@@ -160,12 +160,20 @@ String getCompletionDetail(
 
 /// Returns the file system path for a TextDocumentIdentifier.
 String pathOf(lsp.TextDocumentIdentifier doc) {
-  final uri = Uri.parse(doc.uri);
-  if (!uri.isScheme('file')) {
+  final uri = Uri.tryParse(doc.uri);
+  final isValidFileUri = (uri?.isScheme('file') ?? false);
+  if (!isValidFileUri) {
     throw new ResponseError(lsp.ServerErrorCodes.InvalidFilePath,
-        'URI was not a file:// URI', doc.uri);
+        'URI was not a valid file:// URI', doc.uri);
   }
-  return uri.toFilePath();
+  try {
+    return uri.toFilePath();
+  } catch (e) {
+    // Even if tryParse() works and file == scheme, toFilePath() can throw on
+    // Windows if there are invalid characters.
+    throw new ResponseError(lsp.ServerErrorCodes.InvalidFilePath,
+        'File URI did not contain a valid file path', doc.uri);
+  }
 }
 
 lsp.CompletionItemKind suggestionKindToCompletionItemKind(
