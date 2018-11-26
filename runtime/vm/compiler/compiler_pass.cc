@@ -270,9 +270,7 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(AllocateRegisters);
-  if (mode == kJIT) {
-    INVOKE_PASS(ReorderBlocks);
-  }
+  INVOKE_PASS(ReorderBlocks);
 }
 
 COMPILER_PASS(ComputeSSA, {
