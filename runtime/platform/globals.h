@@ -238,6 +238,23 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
+#ifdef _MSC_VER
+#elif __GNUC__
+#define DART_HAS_COMPUTED_GOTO 1
+#else
+#error Automatic compiler detection failed.
+#endif
+
+// LIKELY/UNLIKELY give the compiler branch preditions that may affect block
+// scheduling.
+#ifdef __GNUC__
+#define LIKELY(cond) __builtin_expect((cond), 1)
+#define UNLIKELY(cond) __builtin_expect((cond), 0)
+#else
+#define LIKELY(cond) cond
+#define UNLIKELY(cond) cond
+#endif
+
 // DART_UNUSED indicates to the compiler that a variable or typedef is expected
 // to be unused and disables the related warning.
 #ifdef __GNUC__
