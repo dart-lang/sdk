@@ -9,7 +9,7 @@ import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
-import '../native/native.dart' as native;
+import '../kernel/dart2js_target.dart';
 import '../serialization/serialization.dart';
 
 /// Returns `true` if parameter and returns types should be trusted for
@@ -69,7 +69,7 @@ AnnotationsData processAnnotations(
     FunctionEntity method = element;
     LibraryEntity library = element.library;
     bool platformAnnotationsAllowed = library.canonicalUri.scheme == 'dart' ||
-        native.maybeEnableNative(library.canonicalUri);
+        maybeEnableNative(library.canonicalUri);
 
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;

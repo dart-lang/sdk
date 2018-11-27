@@ -3083,65 +3083,6 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer);
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
 
 /*
- * ======
- * Kernel
- * ======
- */
-
-/**
- * Experimental support for Dart to Kernel parser isolate.
- *
- * TODO(hausner): Document finalized interface.
- *
- */
-
-// TODO(33433): Remove kernel service from the embedding API.
-
-typedef enum {
-  Dart_KernelCompilationStatus_Unknown = -1,
-  Dart_KernelCompilationStatus_Ok = 0,
-  Dart_KernelCompilationStatus_Error = 1,
-  Dart_KernelCompilationStatus_Crash = 2,
-} Dart_KernelCompilationStatus;
-
-typedef struct {
-  Dart_KernelCompilationStatus status;
-  char* error;
-
-  uint8_t* kernel;
-  intptr_t kernel_size;
-} Dart_KernelCompilationResult;
-
-DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
-DART_EXPORT bool Dart_KernelIsolateIsRunning();
-DART_EXPORT Dart_Port Dart_KernelPort();
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernel(const char* script_uri,
-                     const uint8_t* platform_kernel,
-                     const intptr_t platform_kernel_size,
-                     bool incremental_compile,
-                     const char* package_config);
-
-typedef struct {
-  const char* uri;
-  const char* source;
-} Dart_SourceFile;
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile source_files[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme);
-
-DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
-
-#define DART_KERNEL_ISOLATE_NAME "kernel-service"
-
-/*
  * =======
  * Service
  * =======

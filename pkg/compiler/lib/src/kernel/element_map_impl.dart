@@ -41,7 +41,8 @@ import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_model/locals.dart';
-import '../native/native.dart' as native;
+import '../kernel/dart2js_target.dart';
+import '../native/behavior.dart';
 import '../native/resolver.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
@@ -104,7 +105,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final Map<ir.Field, IndexedField> fieldMap = {};
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
-  native.BehaviorBuilder _nativeBehaviorBuilder;
+  BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
 
   Map<KMember, Map<ir.TreeNode, ir.DartType>> staticTypeCacheForTesting;
@@ -817,18 +818,18 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// Looks up [typeName] for use in the spec-string of a `JS` call.
-  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
+  // TODO(johnniwinther): Use this in [NativeBehavior] instead of calling
   // the `ForeignResolver`.
-  native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+  TypeLookup typeLookup({bool resolveAsRaw: true}) {
     return resolveAsRaw
         ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
         : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
   }
 
-  native.TypeLookup _cachedTypeLookupRaw;
-  native.TypeLookup _cachedTypeLookupFull;
+  TypeLookup _cachedTypeLookupRaw;
+  TypeLookup _cachedTypeLookupFull;
 
-  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+  TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
@@ -891,30 +892,30 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return node.arguments.positional[index].accept(new Stringifier());
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  /// Computes the [NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
 
     String codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
 
-    return native.NativeBehavior.ofJsCall(
+    return NativeBehavior.ofJsCall(
         specString,
         codeString,
         typeLookup(resolveAsRaw: true),
@@ -923,28 +924,27 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node) {
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
-    return native.NativeBehavior.ofJsBuiltinCall(
+    return NativeBehavior.ofJsBuiltinCall(
         specString,
         typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
@@ -952,34 +952,34 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the
+  /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global expression has no type.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length > 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global has more than 2 arguments.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
-    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
+    return NativeBehavior.ofJsEmbeddedGlobalCall(
         specString,
         typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
@@ -1332,7 +1332,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     env.addComponent(component);
   }
 
-  native.BehaviorBuilder get nativeBehaviorBuilder =>
+  BehaviorBuilder get nativeBehaviorBuilder =>
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
@@ -1505,7 +1505,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+  NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       {bool isJsInterop}) {
     DartType type = getDartType(field.type);
     List<ConstantValue> metadata = getMetadata(field.annotations);
@@ -1516,14 +1516,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for writing to the native [field].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
+  NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
     DartType type = getDartType(field.type);
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
   }
 
   /// Computes the native behavior for calling [member].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+  NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop}) {
     DartType type;
     if (member is ir.Procedure) {
@@ -1891,8 +1891,8 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 }
 
-/// [native.BehaviorBuilder] for kernel based elements.
-class KernelBehaviorBuilder extends native.BehaviorBuilder {
+/// [BehaviorBuilder] for kernel based elements.
+class KernelBehaviorBuilder extends BehaviorBuilder {
   final ElementEnvironment elementEnvironment;
   final CommonElements commonElements;
   final DiagnosticReporter reporter;
@@ -1998,14 +1998,13 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   CommonElements get commonElements => elementMap.commonElements;
 
   @override
-  native.NativeBehavior computeNativeFieldStoreBehavior(
-      covariant KField field) {
+  NativeBehavior computeNativeFieldStoreBehavior(covariant KField field) {
     ir.Field node = elementMap.getMemberNode(field);
     return elementMap.getNativeBehaviorForFieldStore(node);
   }
 
   @override
-  native.NativeBehavior computeNativeFieldLoadBehavior(covariant KField field,
+  NativeBehavior computeNativeFieldLoadBehavior(covariant KField field,
       {bool isJsInterop}) {
     ir.Field node = elementMap.getMemberNode(field);
     return elementMap.getNativeBehaviorForFieldLoad(node,
@@ -2013,8 +2012,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 
   @override
-  native.NativeBehavior computeNativeMethodBehavior(
-      covariant KFunction function,
+  NativeBehavior computeNativeMethodBehavior(covariant KFunction function,
       {bool isJsInterop}) {
     ir.Member node = elementMap.getMemberNode(function);
     return elementMap.getNativeBehaviorForMethod(node,
@@ -2023,7 +2021,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
   @override
   bool isNativeMethod(covariant KFunction function) {
-    if (!native.maybeEnableNative(function.library.canonicalUri)) return false;
+    if (!maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = elementMap.getMemberNode(function);
     return node.annotations.any((ir.Expression expression) {
       return expression is ir.ConstructorInvocation &&

@@ -246,14 +246,11 @@ config("compiler") {
     ldflags += [ "-pthread" ]
     if (is_clang) {
       if (current_cpu == "arm") {
-        cflags += [ "--target=armv7-linux-gnueabihf" ]
-        ldflags += [ "--target=armv7-linux-gnueabihf" ]
+        cflags += [ "--target=arm-linux-gnueabihf" ]
+        ldflags += [ "--target=arm-linux-gnueabihf" ]
       } else if (current_cpu == "arm64") {
         cflags += [ "--target=aarch64-linux-gnu" ]
         ldflags += [ "--target=aarch64-linux-gnu" ]
-      } else if (current_cpu == "x86") {
-        cflags += [ "--target=i386-linux-gnu" ]
-        ldflags += [ "--target=i386-linux-gnu" ]
       }
     }
   }
@@ -695,7 +692,7 @@ if (is_win) {
       "-Wl,--gc-sections",
     ]
 
-    if (is_clang && !using_sanitizer) {
+    if (is_clang) {
       # Identical code folding to reduce size.
       # Warning: This changes C/C++ semantics of function pointer comparison.
       common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
