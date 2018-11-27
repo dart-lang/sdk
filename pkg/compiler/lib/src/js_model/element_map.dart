@@ -18,7 +18,7 @@ import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField;
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../types/abstract_value_domain.dart';
@@ -92,16 +92,15 @@ abstract class JsToElementMap {
   Name getName(ir.Name name);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
@@ -220,7 +219,7 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns the returned type annotation in the [nativeBehavior].
   AbstractValue typeFromNativeBehavior(
-      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld);
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld);
 }
 
 /// Map from kernel IR nodes to local entities.

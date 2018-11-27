@@ -26,7 +26,8 @@ import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../native/native.dart' as native;
+import '../kernel/dart2js_target.dart';
+import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../types/types.dart';
@@ -379,8 +380,8 @@ class JavaScriptBackend {
 
   final SuperMemberData superMemberData = new SuperMemberData();
 
-  native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
-  native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+  NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
   Tracer tracer;
 
@@ -541,7 +542,7 @@ class JavaScriptBackend {
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
-    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
+    _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
@@ -624,7 +625,7 @@ class JavaScriptBackend {
         commonElements,
         elementEnvironment,
         closedWorld.nativeData);
-    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
@@ -694,10 +695,10 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  native.NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
+  NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
       _nativeResolutionEnqueuer;
 
-  native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
+  NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   /**
    * Unit test hook that returns code of an element as a String.
@@ -741,7 +742,7 @@ class JavaScriptBackend {
   void setAnnotations(LibraryEntity library) {
     AnnotationProcessor processor =
         compiler.frontendStrategy.annotationProcesser;
-    if (native.maybeEnableNative(library.canonicalUri)) {
+    if (maybeEnableNative(library.canonicalUri)) {
       processor.extractNativeAnnotations(library);
     }
     processor.extractJsInteropAnnotations(library);

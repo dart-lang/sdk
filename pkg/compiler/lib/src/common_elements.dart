@@ -13,7 +13,7 @@ import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
-import 'native/native.dart';
+import 'kernel/dart2js_target.dart';
 import 'types/abstract_value_domain.dart';
 import 'universe/selector.dart' show Selector;
 

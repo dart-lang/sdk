@@ -16,7 +16,7 @@ import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
@@ -770,8 +770,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // Strengthen instruction type from annotations to help optimize
     // dependent instructions.
-    native.NativeBehavior nativeBehavior =
-        _nativeData.getNativeMethodBehavior(method);
+    NativeBehavior nativeBehavior = _nativeData.getNativeMethodBehavior(method);
     AbstractValue returnType =
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
