@@ -3707,6 +3707,18 @@ void Class::InjectCIDFields() const {
 
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
+
+#define ADD_SET_FIELD(clazz)                                                   \
+  field_name = Symbols::New(thread, "cid" #clazz "View");                      \
+  field = Field::New(field_name, true, false, true, false, *this,              \
+                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
+                     TokenPosition::kMinSource);                               \
+  value = Smi::New(kTypedData##clazz##ViewCid);                                \
+  field.SetStaticValue(value, true);                                           \
+  AddField(field);
+
+  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
 }
 
