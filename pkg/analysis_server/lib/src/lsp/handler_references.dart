@@ -5,14 +5,17 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
+import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 
 class ReferencesHandler
     extends MessageHandler<ReferenceParams, List<Location>> {
@@ -56,19 +59,28 @@ class ReferencesHandler
     final results = await computer.compute(element, false);
 
     Location toLocation(SearchResult result) {
-      final location = result.location;
-      final lineInfo = server.getLineInfo(location.file);
-
-      if (lineInfo == null) {
-        return null;
-      }
-
-      return new Location(
-        Uri.file(result.location.file).toString(),
-        toRange(lineInfo, location.offset, location.length),
-      );
+      final lineInfo = server.getLineInfo(result.location.file);
+      return searchResultToLocation(result, lineInfo);
     }
 
-    return results.map(toLocation).where((l) => l != null).toList();
+    final referenceResults = convert(results, toLocation).toList();
+
+    if (params.context?.includeDeclaration == true) {
+      // Also include the definition for the symbol at this location.
+      referenceResults.addAll(getDeclarations(unit, offset));
+    }
+
+    return referenceResults;
+  }
+
+  List<Location> getDeclarations(CompilationUnit unit, int offset) {
+    final collector = new NavigationCollectorImpl();
+    computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
+
+    return convert(collector.targets, (NavigationTarget target) {
+      final targetFilePath = collector.files[target.fileIndex];
+      final lineInfo = server.getLineInfo(targetFilePath);
+      return navigationTargetToLocation(targetFilePath, target, lineInfo);
+    }).toList();
   }
 }

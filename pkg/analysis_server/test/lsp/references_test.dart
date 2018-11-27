@@ -16,24 +16,7 @@ main() {
 
 @reflectiveTest
 class ReferencesTest extends AbstractLspAnalysisServerTest {
-  test_references() async {
-    final contents = '''
-    f^oo() {
-      [[foo]]();
-    }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getReferences(mainFileUri, positionFromMarker(contents));
-
-    expect(res, hasLength(1));
-    Location loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
-  }
-
-  test_references_across_files() async {
+  test_acrossFiles_includeDeclaration() async {
     final mainContents = '''
     import 'referenced.dart';
 
@@ -46,7 +29,53 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     /// Ensure the function is on a line that
     /// does not exist in the mainContents file
     /// to ensure we're translating offsets to line/col
-    /// using the correct files LineInfo
+    /// using the correct file's LineInfo
+    /// ...
+    /// ...
+    /// ...
+    /// ...
+    /// ...
+    [[^foo]]() {}
+    ''';
+
+    final referencedFileUri =
+        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(referencedFileUri, withoutMarkers(referencedContents));
+    final res = await getReferences(
+      referencedFileUri,
+      positionFromMarker(referencedContents),
+      includeDeclarations: true,
+    );
+
+    // Ensure both the reference and the declaration are included.
+    expect(res, hasLength(2));
+    expect(
+        res,
+        contains(new Location(
+            mainFileUri.toString(), rangeFromMarkers(mainContents))));
+    expect(
+        res,
+        contains(new Location(referencedFileUri.toString(),
+            rangeFromMarkers(referencedContents))));
+  }
+
+  test_acrossFiles_withoutDeclaration() async {
+    final mainContents = '''
+    import 'referenced.dart';
+
+    main() {
+      [[foo]]();
+    }
+    ''';
+
+    final referencedContents = '''
+    /// Ensure the function is on a line that
+    /// does not exist in the mainContents file
+    /// to ensure we're translating offsets to line/col
+    /// using the correct file's LineInfo
     /// ...
     /// ...
     /// ...
@@ -68,5 +97,25 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     Location loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(mainContents)));
     expect(loc.uri, equals(mainFileUri.toString()));
+  }
+
+  test_singleFile_withoutDeclaration() async {
+    final contents = '''
+    f^oo() {
+      [[foo]]();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        new Location(mainFileUri.toString(), rangeFromMarkers(contents)),
+      ),
+    );
   }
 }

@@ -158,6 +158,18 @@ String getCompletionDetail(
   }
 }
 
+lsp.Location navigationTargetToLocation(String targetFilePath,
+    server.NavigationTarget target, server.LineInfo lineInfo) {
+  if (lineInfo == null) {
+    return null;
+  }
+
+  return new Location(
+    Uri.file(targetFilePath).toString(),
+    toRange(lineInfo, target.offset, target.length),
+  );
+}
+
 /// Returns the file system path for a TextDocumentIdentifier.
 String pathOf(lsp.TextDocumentIdentifier doc) {
   final uri = Uri.tryParse(doc.uri);
@@ -390,5 +402,19 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
     ],
     0, // activeSignature
     null, // activeParameter
+  );
+}
+
+lsp.Location searchResultToLocation(
+    server.SearchResult result, server.LineInfo lineInfo) {
+  final location = result.location;
+
+  if (lineInfo == null) {
+    return null;
+  }
+
+  return new Location(
+    Uri.file(result.location.file).toString(),
+    toRange(lineInfo, location.offset, location.length),
   );
 }

@@ -187,7 +187,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     final request = makeRequest(
       Method.textDocument_references,
       new ReferenceParams(
-        new ReferenceContext(true),
+        new ReferenceContext(includeDeclarations),
         new TextDocumentIdentifier(uri.toString()),
         pos,
       ),

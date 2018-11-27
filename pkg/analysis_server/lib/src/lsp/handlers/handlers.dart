@@ -45,6 +45,12 @@ abstract class MessageHandler<P, R> {
     return handle(params);
   }
 
+  /// Converts an iterable using the provided function and skipping over any
+  /// null values.
+  Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
+    return items.map(converter).where((item) => item != null);
+  }
+
   Future<ResolvedUnitResult> requireUnit(String path) async {
     final result = await server.getResolvedUnit(path);
     if (result?.state != ResultState.VALID) {
