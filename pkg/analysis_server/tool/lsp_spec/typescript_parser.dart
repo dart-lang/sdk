@@ -464,13 +464,13 @@ class Parser {
         // In TS and the spec, literal strings can be types:
         // export const PlainText: 'plaintext' = 'plaintext';
         // trace?: 'off' | 'messages' | 'verbose';
-        // TODO(dantup): Handle them better. For now we'll use `any`.
-        type = Type.Any;
+        // the best we can do is use their base type (string).
+        type = Type.identifier('string');
       } else if (_match([TokenType.NUMBER])) {
         // In TS and the spec, literal numbers can be types:
         // export const Invoked: 1 = 1;
-        // TODO(dantup): Handle them better. For now we'll use `any`.
-        type = Type.Any;
+        // the best we can do is use their base type (number).
+        type = Type.identifier('number');
       } else {
         var typeName = _consume(TokenType.IDENTIFIER, 'Expected identifier');
         final typeArgs = <Type>[];
@@ -512,12 +512,15 @@ class Parser {
       }
     }
     // Remove any duplicate types (for ex. if we map multiple types into dynamic)
-    // we don't want to end up with `dynamic | dynamic`.
-    types = new Map.fromIterable(types).keys.cast<TypeBase>().toList();
-    if (types.length == 1) {
-      return types.single;
+    // we don't want to end up with `dynamic | dynamic`. Key on dartType to
+    // ensure we different types that will map down to the same type.
+    final uniqueTypes = new Map.fromEntries(
+      types.map((t) => new MapEntry(t.dartTypeWithTypeArgs, t)),
+    ).values.toList();
+    if (uniqueTypes.length == 1) {
+      return uniqueTypes.single;
     } else {
-      return new UnionType(types);
+      return new UnionType(uniqueTypes);
     }
   }
 

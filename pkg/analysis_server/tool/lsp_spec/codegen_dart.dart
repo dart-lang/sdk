@@ -219,13 +219,16 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   final consts = namespace.members.cast<Const>().toList();
   final allowsAnyValue = enumClassAllowsAnyValue(namespace.name);
   final constructorName = allowsAnyValue ? '' : '._';
+  final typeOfValues =
+      resolveTypeAlias(consts.first.type, resolveEnumClasses: true);
+
   buffer
     ..writeln('class ${namespace.name} {')
     ..indent()
     ..writeIndentedln('const ${namespace.name}$constructorName(this._value);')
     ..writeIndentedln('const ${namespace.name}.fromJson(this._value);')
     ..writeln()
-    ..writeIndentedln('final Object _value;')
+    ..writeIndentedln('final ${typeOfValues.dartTypeWithTypeArgs} _value;')
     ..writeln()
     ..writeIndentedln('static bool canParse(Object obj) {')
     ..indent();

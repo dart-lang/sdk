@@ -406,7 +406,7 @@ class CodeActionKind {
   const CodeActionKind(this._value);
   const CodeActionKind.fromJson(this._value);
 
-  final Object _value;
+  final String _value;
 
   static bool canParse(Object obj) {
     return obj is String;
@@ -1312,7 +1312,7 @@ class CompletionContext implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('triggerKind') &&
-        true;
+        obj['triggerKind'] is num;
   }
 
   @override
@@ -1598,7 +1598,7 @@ class CompletionItemKind {
   const CompletionItemKind._(this._value);
   const CompletionItemKind.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -1959,7 +1959,7 @@ class CompletionTriggerKind {
   const CompletionTriggerKind._(this._value);
   const CompletionTriggerKind.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -2115,7 +2115,7 @@ class CreateFile implements ToJsonable {
   }
 
   /// A create
-  final dynamic kind;
+  final String kind;
 
   /// Additional options
   final CreateFileOptions options;
@@ -2136,7 +2136,7 @@ class CreateFile implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('kind') &&
-        true &&
+        obj['kind'] is String &&
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
@@ -2237,7 +2237,7 @@ class DeleteFile implements ToJsonable {
   }
 
   /// A delete
-  final dynamic kind;
+  final String kind;
 
   /// Delete options.
   final DeleteFileOptions options;
@@ -2258,7 +2258,7 @@ class DeleteFile implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('kind') &&
-        true &&
+        obj['kind'] is String &&
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }
@@ -2516,7 +2516,7 @@ class DiagnosticSeverity {
   const DiagnosticSeverity._(this._value);
   const DiagnosticSeverity.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -3170,7 +3170,7 @@ class DocumentHighlightKind {
   const DocumentHighlightKind._(this._value);
   const DocumentHighlightKind.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -3909,7 +3909,7 @@ class ErrorCodes {
   const ErrorCodes(this._value);
   const ErrorCodes.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     return obj is num;
@@ -4106,7 +4106,7 @@ class FailureHandlingKind {
   const FailureHandlingKind._(this._value);
   const FailureHandlingKind.fromJson(this._value);
 
-  final Object _value;
+  final String _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -4130,12 +4130,12 @@ class FailureHandlingKind {
 
   /// If the workspace edit contains only textual file changes they are executed
   /// transactional. If resource changes (create, rename or delete file) are
-  /// part of the change the failure handling startegy is abort.
+  /// part of the change the failure handling strategy is abort.
   static const TextOnlyTransactional =
       const FailureHandlingKind._('textOnlyTransactional');
 
   /// The client tries to undo the operations already executed. But there is no
-  /// guaruntee that this is succeeding.
+  /// guarantee that this is succeeding.
   static const Undo = const FailureHandlingKind._('undo');
 
   Object toJson() => _value;
@@ -4154,7 +4154,7 @@ class FileChangeType {
   const FileChangeType._(this._value);
   const FileChangeType.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -4399,7 +4399,7 @@ class FoldingRangeKind {
   const FoldingRangeKind._(this._value);
   const FoldingRangeKind.fromJson(this._value);
 
-  final Object _value;
+  final String _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -4687,7 +4687,7 @@ class InitializeParams implements ToJsonable {
   final String rootUri;
 
   /// The initial trace setting. If omitted trace is disabled ('off').
-  final dynamic trace;
+  final String trace;
 
   /// The workspace folders configured in the client when the server starts.
   /// This property is only available if the client supports workspace folders.
@@ -4847,7 +4847,7 @@ class InsertTextFormat {
   const InsertTextFormat._(this._value);
   const InsertTextFormat.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -5045,7 +5045,7 @@ class MarkupContent implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('kind') &&
-        true &&
+        obj['kind'] is String &&
         obj.containsKey('value') &&
         obj['value'] is String;
   }
@@ -5079,7 +5079,7 @@ class MarkupKind {
   const MarkupKind._(this._value);
   const MarkupKind.fromJson(this._value);
 
-  final Object _value;
+  final String _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -5201,7 +5201,7 @@ class MessageType {
   const MessageType._(this._value);
   const MessageType.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -6030,7 +6030,7 @@ class RenameFile implements ToJsonable {
   }
 
   /// A rename
-  final dynamic kind;
+  final String kind;
 
   /// The new location.
   final String newUri;
@@ -6055,7 +6055,7 @@ class RenameFile implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('kind') &&
-        true &&
+        obj['kind'] is String &&
         obj.containsKey('oldUri') &&
         obj['oldUri'] is String &&
         obj.containsKey('newUri') &&
@@ -6410,7 +6410,7 @@ class ResourceOperationKind {
   const ResourceOperationKind._(this._value);
   const ResourceOperationKind.fromJson(this._value);
 
-  final Object _value;
+  final String _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -7669,7 +7669,7 @@ class SymbolKind {
   const SymbolKind._(this._value);
   const SymbolKind.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -8483,20 +8483,20 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
         preselectSupport);
   }
 
-  /// Client supports commit characters on a completion item.
+  /// The client supports commit characters on a completion item.
   final bool commitCharactersSupport;
 
-  /// Client supports the deprecated property on a completion item.
+  /// The client supports the deprecated property on a completion item.
   final bool deprecatedSupport;
 
-  /// Client supports the follow content formats for the documentation property.
-  /// The order describes the preferred format of the client.
+  /// The client supports the following content formats for the documentation
+  /// property. The order describes the preferred format of the client.
   final List<MarkupKind> documentationFormat;
 
-  /// Client supports the preselect property on a completion item.
+  /// The client supports the preselect property on a completion item.
   final bool preselectSupport;
 
-  /// Client supports snippets as insert text.
+  /// The client supports snippets as insert text.
   ///
   /// A snippet can define tab stops and placeholders with `$1`, `$2` and
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
@@ -8755,7 +8755,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   /// Whether document symbol supports dynamic registration.
   final bool dynamicRegistration;
 
-  /// The client support hierarchical document symbols.
+  /// The client supports hierarchical document symbols.
   final bool hierarchicalDocumentSymbolSupport;
 
   /// Specific capabilities for the `SymbolKind`.
@@ -8933,8 +8933,8 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
         dynamicRegistration, contentFormat);
   }
 
-  /// Client supports the follow content formats for the content property. The
-  /// order describes the preferred format of the client.
+  /// The client supports the follow content formats for the content property.
+  /// The order describes the preferred format of the client.
   final List<MarkupKind> contentFormat;
 
   /// Whether hover supports dynamic registration.
@@ -9209,7 +9209,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   /// Whether rename supports dynamic registration.
   final bool dynamicRegistration;
 
-  /// Client supports testing for validity of rename operations before
+  /// The client supports testing for validity of rename operations before
   /// execution.
   final bool prepareSupport;
 
@@ -9320,8 +9320,8 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
         documentationFormat);
   }
 
-  /// Client supports the follow content formats for the documentation property.
-  /// The order describes the preferred format of the client.
+  /// The client supports the follow content formats for the documentation
+  /// property. The order describes the preferred format of the client.
   final List<MarkupKind> documentationFormat;
 
   Map<String, dynamic> toJson() {
@@ -9908,7 +9908,7 @@ class TextDocumentSaveReason {
   const TextDocumentSaveReason._(this._value);
   const TextDocumentSaveReason.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -10008,7 +10008,7 @@ class TextDocumentSyncKind {
   const TextDocumentSyncKind._(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -10361,7 +10361,7 @@ class WatchKind {
   const WatchKind._(this._value);
   const WatchKind.fromJson(this._value);
 
-  final Object _value;
+  final num _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -10856,7 +10856,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   final bool documentChanges;
 
   /// The failure handling strategy of a client if applying the workspace edit
-  /// failes.
+  /// fails.
   final FailureHandlingKind failureHandling;
 
   /// The resource operations the client supports. Clients should at least
