@@ -2325,11 +2325,19 @@ main() {
   }
 
   test_hasFilesToAnalyze() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+    var c = convertPath('/test/lib/c.dart');
+
     // No files yet, nothing to analyze.
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Add a new file, it should be analyzed.
-    addTestFile('main() {}', priority: false);
+    newFile(a, content: r'''
+import 'b.dart';
+main() {}
+''');
+    driver.addFile(a);
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Wait for idle, nothing to do.
@@ -2337,16 +2345,22 @@ main() {
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Ask to analyze the file, so there is a file to analyze.
-    Future<ResolvedUnitResult> future = driver.getResult(testFile);
+    Future<ResolvedUnitResult> future = driver.getResult(a);
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Once analysis is done, there is nothing to analyze.
     await future;
     expect(driver.hasFilesToAnalyze, isFalse);
 
-    // Change a file, even if not added, it still might affect analysis.
-    driver.changeFile(convertPath('/not/added.dart'));
+    // Change a file that is not added, but referenced, so known.
+    driver.changeFile(b);
     expect(driver.hasFilesToAnalyze, isTrue);
+    await waitForIdleWithoutExceptions();
+    expect(driver.hasFilesToAnalyze, isFalse);
+
+    // Change a file that is not known - neither added, nor referenced.
+    driver.changeFile(c);
+    expect(driver.hasFilesToAnalyze, isFalse);
     await waitForIdleWithoutExceptions();
     expect(driver.hasFilesToAnalyze, isFalse);
 
