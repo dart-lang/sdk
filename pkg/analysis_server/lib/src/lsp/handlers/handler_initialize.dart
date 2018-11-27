@@ -37,9 +37,6 @@ class InitializeMessageHandler
     server.messageHandler =
         new InitializingStateMessageHandler(server, openWorkspacePaths);
 
-    // TODO(dantup): This needs a real implementation. For this request we
-    // should store the client capabilities on this.server and return what
-    // we support.
     return new InitializeResult(new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,

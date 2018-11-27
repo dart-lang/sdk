@@ -12,7 +12,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -28,18 +27,9 @@ class ReferencesHandler
 
   @override
   Future<List<Location>> handle(ReferenceParams params) async {
-    // TODO(dantup): Switch this to requireUnit()/getOffset() which are in a
-    // "future" changeset.
     final path = pathOf(params.textDocument);
-    ResolvedUnitResult result = await server.getResolvedUnit(path);
-    CompilationUnit unit = result?.unit;
-
-    if (unit == null) {
-      return null;
-    }
-
-    final pos = params.position;
-    final offset = result.lineInfo.getOffsetOfLine(pos.line) + pos.character;
+    final result = await requireUnit(path);
+    final offset = toOffset(result.lineInfo, params.position);
 
     Element element = await server.getElementAtOffset(path, offset);
     if (element is ImportElement) {
@@ -67,7 +57,7 @@ class ReferencesHandler
 
     if (params.context?.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
-      referenceResults.addAll(getDeclarations(unit, offset));
+      referenceResults.addAll(getDeclarations(result.unit, offset));
     }
 
     return referenceResults;
