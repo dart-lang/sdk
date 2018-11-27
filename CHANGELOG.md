@@ -1,3 +1,11 @@
+# 0.1.73
+
+* deprecated `prefer_bool_in_asserts` (redundant w/ Dart 2 checks)
+* improved doc generation to highlight deprecated and experimental lints
+* bumped analyzer lower-bound to `0.33.4`
+* bumped SDK lower-bound to `2.1.0`
+* new lint: `unnecessary_await_in_return`
+
 # 0.1.72
 
 * new lint: `use_function_type_syntax_for_parameters`
