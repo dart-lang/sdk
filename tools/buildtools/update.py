@@ -24,7 +24,7 @@ DEPOT_PATH = find_depot_tools.add_depot_tools_to_path()
 
 def Update():
   path = os.path.join(BUILDTOOLS, 'update.sh')
-  command = ['/bin/bash', path, '--clang', '--gn']
+  command = ['/bin/bash', path ]
   return subprocess.call(command, cwd=DART_ROOT)
 
 
@@ -72,9 +72,9 @@ def UpdateClangFormatOnWindows():
   return subprocess.call(download_cmd)
 
 
-# On Mac and Linux we copy clang-format and gn to the place where git cl format
-# expects them to be.
-def CopyClangFormat():
+# On Mac and Linux we symlink clang-format and gn to the place where
+# 'git cl format' expects them to be.
+def LinksForGitCLFormat():
   if sys.platform == 'darwin':
     platform = 'darwin'
     tools = 'mac'
@@ -95,8 +95,8 @@ def CopyClangFormat():
     os.makedirs(dest_dir)
   clang_format_dest = os.path.join(dest_dir, 'clang-format')
   gn_dest = os.path.join(dest_dir, 'gn')
-  shutil.copy2(clang_format, clang_format_dest)
-  shutil.copy2(gn, gn_dest)
+  os.symlink(clang_format, clang_format_dest)
+  os.symlink(gn, gn_dest)
   return 0
 
 
@@ -113,7 +113,7 @@ def main(argv):
     return UpdateClangFormatOnWindows()
   if Update() != 0:
     return 1
-  return CopyClangFormat()
+  return LinksForGitCLFormat()
 
 
 if __name__ == '__main__':
