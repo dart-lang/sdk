@@ -222,19 +222,6 @@ abstract class _StringBase implements String {
   static String _createOneByteString(List<int> charCodes, int start, int len) {
     // It's always faster to do this in Dart than to call into the runtime.
     var s = _OneByteString._allocate(len);
-
-    // Special case for _Uint8ArrayView.
-    final cid = ClassID.getID(charCodes);
-    if (identical(cid, ClassID.cidUint8ArrayView)) {
-      if (start >= 0 && len >= 0) {
-        for (int i = 0; i < len; i++) {
-          s._setAt(i, charCodes[start + i]);
-        }
-        return s;
-      }
-    }
-
-    // Fall through to normal case.
     for (int i = 0; i < len; i++) {
       s._setAt(i, charCodes[start + i]);
     }

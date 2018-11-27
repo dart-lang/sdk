@@ -2692,22 +2692,6 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineLoadClassId(FlowGraph* flow_graph,
-                              Instruction* call,
-                              GraphEntryInstr* graph_entry,
-                              FunctionEntryInstr** entry,
-                              Instruction** last) {
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  auto load_cid = new (Z)
-      LoadClassIdInstr(call->PushArgumentAt(0)->value()->CopyWithType(Z));
-  flow_graph->InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
-  *last = load_cid;
-  return true;
-}
-
 // Adds an explicit bounds check for a typed getter/setter.
 static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
                                                Instruction* call,
@@ -3621,8 +3605,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
                               entry, last, can_speculate);
-    case MethodRecognizer::kClassIDgetID:
-      return InlineLoadClassId(flow_graph, call, graph_entry, entry, last);
     default:
       break;
   }

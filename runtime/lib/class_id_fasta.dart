@@ -14,5 +14,4 @@ class ClassID {
   static final int cidImmutableArray = 0;
   static final int cidOneByteString = 0;
   static final int cidTwoByteString = 0;
-  static final int cidUint8ArrayView = 0;
 }

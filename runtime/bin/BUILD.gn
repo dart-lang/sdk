@@ -342,7 +342,9 @@ template("dart_io") {
                  "..:dart_config",
                  "..:dart_os_config",
                ] + extra_configs
-    public_configs = [ "..:dart_public_config" ]
+    public_configs = [
+      "..:dart_public_config",
+    ]
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
