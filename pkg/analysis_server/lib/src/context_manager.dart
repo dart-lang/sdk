@@ -899,8 +899,7 @@ class ContextManagerImpl implements ContextManager {
         convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
-  void _checkForAnalysisOptionsUpdate(
-      String path, ContextInfo info, ChangeType changeType) {
+  void _checkForAnalysisOptionsUpdate(String path, ContextInfo info) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       AnalysisDriver driver = info.analysisDriver;
       if (driver == null) {
@@ -909,39 +908,29 @@ class ContextManagerImpl implements ContextManager {
         // yet created a driver for that context.
         return;
       }
-      String contextRoot = info.folder.path;
-      ContextBuilder builder =
-          callbacks.createContextBuilder(info.folder, defaultContextOptions);
-      AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
-          contextRoot: driver.contextRoot);
-      SourceFactory factory = builder.createSourceFactory(contextRoot, options);
-      driver.configure(analysisOptions: options, sourceFactory: factory);
       // TODO(brianwilkerson) Set exclusion patterns.
       _analyzeAnalysisOptionsFile(driver, path);
+      _updateAnalysisOptions(info);
     }
   }
 
-  void _checkForPackagespecUpdate(
-      String path, ContextInfo info, Folder folder) {
+  void _checkForPackagespecUpdate(String path, ContextInfo info) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
     if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
-      String contextRoot = info.folder.path;
-      ContextBuilder builder =
-          callbacks.createContextBuilder(info.folder, defaultContextOptions);
       AnalysisDriver driver = info.analysisDriver;
-      if (driver != null) {
-        AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
-            contextRoot: driver.contextRoot);
-        SourceFactory factory =
-            builder.createSourceFactory(contextRoot, options);
-        driver.configure(analysisOptions: options, sourceFactory: factory);
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
       }
+
+      _updateAnalysisOptions(info);
     }
   }
 
-  void _checkForPubspecUpdate(
-      String path, ContextInfo info, ChangeType changeType) {
+  void _checkForPubspecUpdate(String path, ContextInfo info) {
     if (_isPubspec(path)) {
       AnalysisDriver driver = info.analysisDriver;
       if (driver == null) {
@@ -951,6 +940,7 @@ class ContextManagerImpl implements ContextManager {
         return;
       }
       _analyzePubspecFile(driver, path);
+      _updateAnalysisOptions(info);
     }
   }
 
@@ -1424,9 +1414,9 @@ class ContextManagerImpl implements ContextManager {
           }
         }
     }
-    _checkForPackagespecUpdate(path, info, info.folder);
-    _checkForAnalysisOptionsUpdate(path, info, type);
-    _checkForPubspecUpdate(path, info, type);
+    _checkForPackagespecUpdate(path, info);
+    _checkForAnalysisOptionsUpdate(path, info);
+    _checkForPubspecUpdate(path, info);
   }
 
   /**
@@ -1553,6 +1543,17 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
+  }
+
+  void _updateAnalysisOptions(ContextInfo info) {
+    AnalysisDriver driver = info.analysisDriver;
+    String contextRoot = info.folder.path;
+    ContextBuilder builder =
+        callbacks.createContextBuilder(info.folder, defaultContextOptions);
+    AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
+        contextRoot: driver.contextRoot);
+    SourceFactory factory = builder.createSourceFactory(contextRoot, options);
+    driver.configure(analysisOptions: options, sourceFactory: factory);
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {

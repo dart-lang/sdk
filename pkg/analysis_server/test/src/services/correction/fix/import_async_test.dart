@@ -20,7 +20,7 @@ class ImportAsyncTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_ASYNC;
 
   test_future() async {
-    newFile(pubspecPath, content: '''
+    updateTestPubspecFile('''
 environment:
   sdk: ^2.0.0
 ''');
@@ -35,7 +35,7 @@ Future<int> zero() async => 0;
   }
 
   test_stream() async {
-    newFile(pubspecPath, content: '''
+    updateTestPubspecFile('''
 environment:
   sdk: ^2.0.0
 ''');

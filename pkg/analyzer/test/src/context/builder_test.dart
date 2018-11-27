@@ -801,6 +801,23 @@ linter:
     expect(root.optionsFilePath, equals(filePath));
   }
 
+  void test_getAnalysisOptions_sdkVersionConstraint() {
+    var projectPath = convertPath('/test');
+    newFile(join(projectPath, AnalysisEngine.PUBSPEC_YAML_FILE), content: '''
+environment:
+  sdk: ^2.1.0
+''');
+
+    var options = builder.getAnalysisOptions(projectPath);
+    expect(options.sdkVersionConstraint.toString(), '^2.1.0');
+  }
+
+  void test_getAnalysisOptions_sdkVersionConstraint_any_noOptionsFile() {
+    var projectPath = convertPath('/test');
+    var options = builder.getAnalysisOptions(projectPath);
+    expect(options.sdkVersionConstraint, isNull);
+  }
+
   void test_getOptionsFile_explicit() {
     String path = convertPath('/some/directory/path');
     String filePath = convertPath('/options/analysis.yaml');

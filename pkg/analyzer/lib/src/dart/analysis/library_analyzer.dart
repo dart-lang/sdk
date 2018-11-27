@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -26,7 +25,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -68,11 +66,6 @@ class LibraryAnalyzer {
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
 
   final Set<ConstantEvaluationTarget> _constants = new Set();
-
-  /// The cached version range for the SDK specified in `pubspec.yaml`, or
-  /// [noSpecifiedRange] if there is no `pubspec.yaml` or if it does not contain
-  /// an SDK range. Use [versionConstraintFromPubspec] to access this field.
-  VersionConstraint _versionConstraintFromPubspec;
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -173,20 +166,6 @@ class LibraryAnalyzer {
     return results;
   }
 
-  VersionConstraint versionConstraintFromPubspec() {
-    if (_versionConstraintFromPubspec == null) {
-      _versionConstraintFromPubspec = noSpecifiedRange;
-      File pubspecFile = _findPubspecFile(_library);
-      if (pubspecFile != null) {
-        SdkConstraintExtractor extractor =
-            new SdkConstraintExtractor(pubspecFile);
-        _versionConstraintFromPubspec =
-            extractor.constraint() ?? noSpecifiedRange;
-      }
-    }
-    return _versionConstraintFromPubspec;
-  }
-
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
@@ -261,14 +240,15 @@ class LibraryAnalyzer {
           new UnusedLocalElementsVerifier(errorListener, usedElements);
       unit.accept(visitor);
     }
+
     //
-    // Find code that uses features from an SDK that is newer than the minimum
-    // version allowed in the pubspec.yaml file.
+    // Find code that uses features from an SDK version that does not satisfy
+    // the SDK constraints specified in analysis options.
     //
-    VersionRange versionRange = versionConstraintFromPubspec();
-    if (!identical(versionRange, noSpecifiedRange)) {
+    var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
+    if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = new SdkConstraintVerifier(
-          errorReporter, _libraryElement, _typeProvider, versionRange);
+          errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
       unit.accept(verifier);
     }
   }
@@ -400,20 +380,6 @@ class LibraryAnalyzer {
     var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
     unit.accept(dependenciesFinder);
     _constants.addAll(dependenciesFinder.dependencies);
-  }
-
-  File _findPubspecFile(FileState file) {
-    ResourceProvider resourceProvider =
-        _libraryElement.session?.resourceProvider;
-    Folder folder = resourceProvider?.getFile(file.path)?.parent;
-    while (folder != null) {
-      File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (pubspecFile.exists) {
-        return pubspecFile;
-      }
-      folder = folder.parent;
-    }
-    return null;
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>

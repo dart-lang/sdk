@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart' show Context;
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -28,13 +27,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
-
-  /// Return the path of the pubspec file that would be a sibling of the test
-  /// file.
-  String get pubspecPath {
-    Context context = resourceProvider.pathContext;
-    return context.join(context.dirname(testFile), 'pubspec.yaml');
-  }
 
   void addTestSource(String code, [Uri uri]) {
     testCode = code;

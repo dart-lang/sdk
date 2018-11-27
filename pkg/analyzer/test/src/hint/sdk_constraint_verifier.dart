@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../generated/resolver_test_case.dart';
 import '../../generated/test_support.dart';
@@ -14,10 +16,10 @@ class SdkConstraintVerifierTest extends ResolverTestCase {
 
   verifyVersion(String version, String source,
       {List<ErrorCode> errorCodes}) async {
-    newFile('/pubspec.yaml', content: '''
-environment:
-  sdk: ^$version
-''');
+    driver.configure(
+        analysisOptions: AnalysisOptionsImpl()
+          ..sdkVersionConstraint = VersionConstraint.parse(version));
+
     TestAnalysisResult result = await computeTestAnalysisResult(source);
     GatheringErrorListener listener = new GatheringErrorListener();
     listener.addAll(result.errors);

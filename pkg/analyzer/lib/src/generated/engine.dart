@@ -40,6 +40,7 @@ import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
 export 'package:analyzer/src/generated/timestamped_data.dart'
@@ -1310,6 +1311,12 @@ abstract class AnalysisOptions {
   bool get previewDart2;
 
   /**
+   * The version range for the SDK specified in `pubspec.yaml`, or `null` if
+   * there is no `pubspec.yaml` or if it does not contain an SDK range.
+   */
+  VersionConstraint get sdkVersionConstraint;
+
+  /**
    * Return the opaque signature of the options.
    *
    * The length of the list is guaranteed to equal [signatureLength].
@@ -1403,6 +1410,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The cached [signature].
    */
   Uint32List _signature;
+
+  @override
+  VersionConstraint sdkVersionConstraint;
 
   @override
   @deprecated
@@ -1528,6 +1538,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
     patchPaths = options.patchPaths;
+    sdkVersionConstraint = options.sdkVersionConstraint;
   }
 
   bool get analyzeFunctionBodies {
@@ -1674,6 +1685,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   Uint32List get signature {
     if (_signature == null) {
       ApiSignature buffer = new ApiSignature();
+
+      // Append environment.
+      if (sdkVersionConstraint != null) {
+        buffer.addString(sdkVersionConstraint.toString());
+      }
 
       // Append boolean flags.
       buffer.addBool(enableLazyAssignmentOperators);

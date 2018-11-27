@@ -40,8 +40,7 @@ class UpdateSdkConstraintsTest extends FixProcessorTest {
   }
 
   testUpdate({String from, String to}) async {
-    String pubspecPath = this.pubspecPath;
-    newFile(pubspecPath, content: '''
+    updateTestPubspecFile('''
 environment:
   sdk: $from
 ''');
@@ -51,6 +50,6 @@ Future<int> zero() async => 0;
     await assertHasFix('''
 environment:
   sdk: $to
-''', target: pubspecPath);
+''', target: testPubspecPath);
   }
 }

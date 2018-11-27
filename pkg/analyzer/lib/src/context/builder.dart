@@ -34,6 +34,7 @@ import 'package:analyzer/src/generated/package_build.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/workspace.dart';
+import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -502,6 +503,16 @@ class ContextBuilder {
     } else {
       verbose('Using default analysis options');
     }
+
+    var pubspecFile = _findPubspecFile(path);
+    if (pubspecFile != null) {
+      var extractor = new SdkConstraintExtractor(pubspecFile);
+      var sdkVersionConstraint = extractor.constraint();
+      if (sdkVersionConstraint != null) {
+        options.sdkVersionConstraint = sdkVersionConstraint;
+      }
+    }
+
     return options;
   }
 
@@ -532,6 +543,24 @@ class ContextBuilder {
       if (file.exists) {
         return file;
       }
+    }
+    return null;
+  }
+
+  /**
+   * Return the `pubspec.yaml` file that should be used when analyzing code in
+   * the directory with the given [path], possibly `null`.
+   */
+  File _findPubspecFile(String path) {
+    var resource = resourceProvider.getResource(path);
+    while (resource != null) {
+      if (resource is Folder) {
+        File pubspecFile = resource.getChildAssumingFile('pubspec.yaml');
+        if (pubspecFile.exists) {
+          return pubspecFile;
+        }
+      }
+      resource = resource.parent;
     }
     return null;
   }

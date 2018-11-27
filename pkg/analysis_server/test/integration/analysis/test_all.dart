@@ -15,6 +15,8 @@ import 'get_navigation_test.dart' as get_navigation_test;
 import 'get_reachable_sources_test.dart' as get_reachable_sources_test;
 import 'highlights2_test.dart' as highlights2_test;
 import 'highlights_test.dart' as highlights_test;
+import 'hint_sdk_version_async_exported_from_core_test.dart'
+    as hint_sdk_version_async_exported_from_core_test;
 import 'lint_test.dart' as lint_test;
 import 'navigation_test.dart' as navigation_test;
 import 'occurrences_test.dart' as occurrences_test;
@@ -47,6 +49,7 @@ main() {
     get_reachable_sources_test.main();
     highlights2_test.main();
     highlights_test.main();
+    hint_sdk_version_async_exported_from_core_test.main();
     lint_test.main();
     navigation_test.main();
     occurrences_test.main();

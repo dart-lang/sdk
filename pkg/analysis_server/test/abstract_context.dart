@@ -50,6 +50,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisSession get session => driver.currentSession;
 
+  /// The file system specific `/home/test/pubspec.yaml` path.
+  String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
+
   void addFlutterPackage() {
     addMetaPackage();
     Folder libFolder = configureFlutterPackage(resourceProvider);
@@ -122,6 +125,12 @@ test:file:///home/test/lib
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
+  }
+
+  /// Update `/home/test/pubspec.yaml` and create the driver.
+  void updateTestPubspecFile(String content) {
+    newFile(testPubspecPath, content: content);
+    _createDriver();
   }
 
   void _addTestPackageDependency(String name, String rootPath) {
