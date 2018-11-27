@@ -14,8 +14,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
-import 'package:analyzer/src/generated/bazel.dart';
-import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show KytheEntry, KytheVName;
 

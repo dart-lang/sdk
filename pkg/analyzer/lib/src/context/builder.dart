@@ -26,22 +26,21 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/gn.dart';
-import 'package:analyzer/src/generated/package_build.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer/src/workspace/package_build.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -297,12 +296,12 @@ class ContextBuilder {
       // Bazel workspaces that include package files are treated like normal
       // (non-Bazel) directories. But may still use package:build.
       return PackageBuildWorkspace.find(resourceProvider, rootPath, this) ??
-          _BasicWorkspace.find(resourceProvider, rootPath, this);
+          BasicWorkspace.find(resourceProvider, rootPath, this);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??= PackageBuildWorkspace.find(resourceProvider, rootPath, this);
-    return workspace ?? _BasicWorkspace.find(resourceProvider, rootPath, this);
+    return workspace ?? BasicWorkspace.find(resourceProvider, rootPath, this);
   }
 
   /**
@@ -548,24 +547,6 @@ class ContextBuilder {
   }
 
   /**
-   * Return the `pubspec.yaml` file that should be used when analyzing code in
-   * the directory with the given [path], possibly `null`.
-   */
-  File _findPubspecFile(String path) {
-    var resource = resourceProvider.getResource(path);
-    while (resource != null) {
-      if (resource is Folder) {
-        File pubspecFile = resource.getChildAssumingFile('pubspec.yaml');
-        if (pubspecFile.exists) {
-          return pubspecFile;
-        }
-      }
-      resource = resource.parent;
-    }
-    return null;
-  }
-
-  /**
    * Create a [Packages] object for a 'package' directory ([folder]).
    *
    * Package names are resolved as relative to sub-directories of the package
@@ -660,6 +641,24 @@ class ContextBuilder {
         return packagesCfgFile;
       }
       parentDir = parentDir.parent;
+    }
+    return null;
+  }
+
+  /**
+   * Return the `pubspec.yaml` file that should be used when analyzing code in
+   * the directory with the given [path], possibly `null`.
+   */
+  File _findPubspecFile(String path) {
+    var resource = resourceProvider.getResource(path);
+    while (resource != null) {
+      if (resource is Folder) {
+        File pubspecFile = resource.getChildAssumingFile('pubspec.yaml');
+        if (pubspecFile.exists) {
+          return pubspecFile;
+        }
+      }
+      resource = resource.parent;
     }
     return null;
   }
@@ -836,77 +835,5 @@ class EmbedderYamlLocator {
       // File can't be read.
       return null;
     }
-  }
-}
-
-/**
- * Information about a default Dart workspace.
- */
-class _BasicWorkspace extends Workspace {
-  /**
-   * The [ResourceProvider] by which paths are converted into [Resource]s.
-   */
-  final ResourceProvider provider;
-
-  /**
-   * The absolute workspace root path.
-   */
-  final String root;
-
-  final ContextBuilder _builder;
-
-  Map<String, List<Folder>> _packageMap;
-
-  Packages _packages;
-
-  _BasicWorkspace._(this.provider, this.root, this._builder);
-
-  @override
-  Map<String, List<Folder>> get packageMap {
-    _packageMap ??= _builder.convertPackagesToMap(packages);
-    return _packageMap;
-  }
-
-  Packages get packages {
-    _packages ??= _builder.createPackageMap(root);
-    return _packages;
-  }
-
-  @override
-  UriResolver get packageUriResolver =>
-      new PackageMapUriResolver(provider, packageMap);
-
-  @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
-    if (summaryData != null) {
-      throw new UnsupportedError(
-          'Summary files are not supported in a basic workspace.');
-    }
-    List<UriResolver> resolvers = <UriResolver>[];
-    if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
-    }
-    resolvers.add(packageUriResolver);
-    resolvers.add(new ResourceUriResolver(provider));
-    return new SourceFactory(resolvers, packages, provider);
-  }
-
-  /**
-   * Find the basic workspace that contains the given [path].
-   */
-  static _BasicWorkspace find(
-      ResourceProvider provider, String path, ContextBuilder builder) {
-    Context context = provider.pathContext;
-
-    // Ensure that the path is absolute and normalized.
-    if (!context.isAbsolute(path)) {
-      throw new ArgumentError('not absolute: $path');
-    }
-    path = context.normalize(path);
-    Resource resource = provider.getResource(path);
-    if (resource is File) {
-      path = resource.parent.path;
-    }
-    return new _BasicWorkspace._(provider, path, builder);
   }
 }

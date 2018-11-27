@@ -15,6 +15,7 @@ import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
 import 'task/test_all.dart' as task;
 import 'util/test_all.dart' as util;
+import 'workspace/test_all.dart' as workspace;
 
 /// Utility for manually running all tests.
 main() {
@@ -30,5 +31,6 @@ main() {
     summary.main();
     task.main();
     util.main();
+    workspace.main();
   }, name: 'src');
 }

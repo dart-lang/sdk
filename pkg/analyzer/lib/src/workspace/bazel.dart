@@ -10,9 +10,9 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
 /**
