@@ -49,7 +49,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final bool _inGenerativeConstructor;
 
   LocalsHandler _locals;
-  FieldInitializationScope _fields;
+  FieldInitializationScope _fieldScope;
   final SideEffectsBuilder _sideEffectsBuilder;
   final Map<JumpTarget, List<LocalsHandler>> _breaksFor =
       <JumpTarget, List<LocalsHandler>>{};
@@ -71,7 +71,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   KernelTypeGraphBuilder(this._options, this._closedWorld, this._inferrer,
       this._analyzedMember, this._analyzedNode, this._localsMap,
-      [this._locals, this._fields, Map<Local, FieldEntity> capturedAndBoxed])
+      [this._locals,
+      this._fieldScope,
+      Map<Local, FieldEntity> capturedAndBoxed])
       : this._types = _inferrer.types,
         this._memberData = _inferrer.dataOfMember(_analyzedMember),
         // TODO(johnniwinther): Should side effects also be tracked for field
@@ -86,7 +88,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             : <Local, FieldEntity>{} {
     if (_locals != null) return;
 
-    _fields = _inGenerativeConstructor ? new FieldInitializationScope() : null;
+    _fieldScope =
+        _inGenerativeConstructor ? new FieldInitializationScope() : null;
     _locals = new LocalsHandler(_analyzedNode);
   }
 
@@ -99,12 +102,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   bool get inLoop => _loopLevel > 0;
 
   bool get _isThisExposed {
-    return _inGenerativeConstructor ? _fields.isThisExposed : true;
+    return _inGenerativeConstructor ? _fieldScope.isThisExposed : true;
   }
 
   void _markThisAsExposed() {
     if (_inGenerativeConstructor) {
-      _fields.isThisExposed = true;
+      _fieldScope.isThisExposed = true;
     }
   }
 
@@ -141,7 +144,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           if (!selector.isSetter &&
               _isInClassOrSubclass(field) &&
               field.isAssignable &&
-              _fields.readField(field) == null &&
+              _fieldScope.readField(field) == null &&
               getFieldInitializer(_elementMap, field) == null) {
             // If the field is being used before this constructor
             // actually had a chance to initialize it, say it can be
@@ -198,7 +201,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   void initializationIsIndefinite() {
     if (_inGenerativeConstructor) {
-      _fields.isIndefinite = true;
+      _fieldScope.isIndefinite = true;
     }
   }
 
@@ -257,7 +260,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _elementMap.elementEnvironment.forEachLocalClassMember(cls,
           (MemberEntity member) {
         if (member.isField && member.isInstanceMember && member.isAssignable) {
-          TypeInformation type = _fields.readField(member);
+          TypeInformation type = _fieldScope.readField(member);
           MemberDefinition definition = _elementMap.getMemberDefinition(member);
           assert(definition.kind == MemberKind.regular);
           ir.Field node = definition.node;
@@ -291,7 +294,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   visitFieldInitializer(ir.FieldInitializer node) {
     TypeInformation rhsType = visit(node.value);
     FieldEntity field = _elementMap.getField(node.field);
-    _fields.updateField(field, rhsType);
+    _fieldScope.updateField(field, rhsType);
     _inferrer.recordTypeOfField(field, rhsType);
     return null;
   }
@@ -456,24 +459,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     bool simpleCondition =
         handleCondition(node.condition, positiveTests, negativeTests);
     LocalsHandler localsBefore = _locals;
-    FieldInitializationScope fieldScopeBefore = _fields;
+    FieldInitializationScope fieldScopeBefore = _fieldScope;
 
     _locals = new LocalsHandler.from(localsBefore, node);
     _updateIsChecks(positiveTests, negativeTests);
     LocalsHandler localsAfterCondition = _locals;
-    FieldInitializationScope fieldScopeAfterThen = _fields;
+    FieldInitializationScope fieldScopeAfterThen = _fieldScope;
 
     _locals = new LocalsHandler.from(localsBefore, node);
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
     visit(node.message);
 
     LocalsHandler localsAfterMessage = _locals;
-    FieldInitializationScope fieldScopeAfterMessage = _fields;
+    FieldInitializationScope fieldScopeAfterMessage = _fieldScope;
     localsAfterMessage.seenReturnOrThrow = true;
     _locals = localsBefore.mergeDiamondFlow(
         _inferrer, localsAfterCondition, localsAfterMessage);
-    _fields = fieldScopeBefore?.mergeDiamondFlow(
+    _fieldScope = fieldScopeBefore?.mergeDiamondFlow(
         _inferrer, fieldScopeAfterThen, fieldScopeAfterMessage);
     return null;
   }
@@ -535,15 +538,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         changed = false;
         for (ir.SwitchCase switchCase in node.cases) {
           LocalsHandler localsBeforeCase = _locals;
-          FieldInitializationScope fieldScopeBeforeCase = _fields;
+          FieldInitializationScope fieldScopeBeforeCase = _fieldScope;
           _locals = new LocalsHandler.from(localsBeforeCase, switchCase);
-          _fields = new FieldInitializationScope.from(fieldScopeBeforeCase);
+          _fieldScope = new FieldInitializationScope.from(fieldScopeBeforeCase);
           visit(switchCase);
           LocalsHandler localsAfterCase = _locals;
           changed = localsBeforeCase.mergeAll(_inferrer, [localsAfterCase]) ||
               changed;
           _locals = localsBeforeCase;
-          _fields = fieldScopeBeforeCase;
+          _fieldScope = fieldScopeBeforeCase;
         }
       } while (changed);
       _locals.endLoop(_inferrer, node);
@@ -551,7 +554,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       continueTargets.forEach(_clearBreaksAndContinues);
     } else {
       LocalsHandler localsBeforeCase = _locals;
-      FieldInitializationScope fieldScopeBeforeCase = _fields;
+      FieldInitializationScope fieldScopeBeforeCase = _fieldScope;
       List<LocalsHandler> localsToMerge = <LocalsHandler>[];
       bool hasDefaultCase = false;
 
@@ -566,7 +569,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       localsBeforeCase.mergeAfterBreaks(_inferrer, localsToMerge,
           keepOwnLocals: !hasDefaultCase);
       _locals = localsBeforeCase;
-      _fields = fieldScopeBeforeCase;
+      _fieldScope = fieldScopeBeforeCase;
     }
     _clearBreaksAndContinues(jumpTarget);
     return null;
@@ -1029,14 +1032,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _loopLevel++;
     bool changed = false;
     LocalsHandler localsBefore = _locals;
-    FieldInitializationScope fieldScopeBefore = _fields;
+    FieldInitializationScope fieldScopeBefore = _fieldScope;
     localsBefore.startLoop(_inferrer, node);
     do {
       // Setup (and clear in case of multiple iterations of the loop)
       // the lists of breaks and continues seen in the loop.
       _setupBreaksAndContinues(target);
       _locals = new LocalsHandler.from(localsBefore, node);
-      _fields = new FieldInitializationScope.from(fieldScopeBefore);
+      _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
       logic();
       changed = localsBefore.mergeAll(_inferrer, _getLoopBackEdges(target));
     } while (changed);
@@ -1045,7 +1048,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     bool keepOwnLocals = node is! ir.DoStatement;
     _locals = localsBefore.mergeAfterBreaks(_inferrer, _getBreaks(target),
         keepOwnLocals: keepOwnLocals);
-    _fields = fieldScopeBefore;
+    _fieldScope = fieldScopeBefore;
     _clearBreaksAndContinues(target);
     return null;
   }
@@ -1311,7 +1314,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           MemberEntity single = targets.first;
           if (single.isField) {
             FieldEntity field = single;
-            _fields.updateField(field, rhsType);
+            _fieldScope.updateField(field, rhsType);
           }
         }
       }
@@ -1397,26 +1400,26 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     bool simpleCondition =
         handleCondition(node.condition, positiveTests, negativeTests);
     LocalsHandler localsBefore = _locals;
-    FieldInitializationScope fieldScopeBefore = _fields;
+    FieldInitializationScope fieldScopeBefore = _fieldScope;
     _locals = new LocalsHandler.from(localsBefore, node);
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     _updateIsChecks(positiveTests, negativeTests);
     visit(node.then);
 
     LocalsHandler localsAfterThen = _locals;
-    FieldInitializationScope fieldScopeAfterThen = _fields;
+    FieldInitializationScope fieldScopeAfterThen = _fieldScope;
     _locals = new LocalsHandler.from(localsBefore, node);
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     if (simpleCondition) {
       _updateIsChecks(negativeTests, positiveTests);
     }
     visit(node.otherwise);
     LocalsHandler localsAfterElse = _locals;
-    FieldInitializationScope fieldScopeAfterElse = _fields;
+    FieldInitializationScope fieldScopeAfterElse = _fieldScope;
 
     _locals = localsBefore.mergeDiamondFlow(
         _inferrer, localsAfterThen, localsAfterElse);
-    _fields = fieldScopeBefore?.mergeDiamondFlow(
+    _fieldScope = fieldScopeBefore?.mergeDiamondFlow(
         _inferrer, fieldScopeAfterThen, fieldScopeAfterElse);
     return null;
   }
@@ -1454,9 +1457,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       visit(node.left, conditionContext: _accumulateIsChecks);
       LocalsHandler localsBefore = _locals;
-      FieldInitializationScope fieldScopeBefore = _fields;
+      FieldInitializationScope fieldScopeBefore = _fieldScope;
       _locals = new LocalsHandler.from(localsBefore, node);
-      _fields = new FieldInitializationScope.from(fieldScopeBefore);
+      _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
       _updateIsChecks(_positiveIsChecks, _negativeIsChecks);
 
       LocalsHandler narrowed;
@@ -1480,8 +1483,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _positiveIsChecks.removeWhere(invalidatedInRightHandSide);
         _negativeIsChecks.removeWhere(invalidatedInRightHandSide);
       }
-      _locals = localsBefore.mergeDiamondFlow(_inferrer, _locals, null);
-      _fields = fieldScopeBefore?.mergeDiamondFlow(_inferrer, _fields, null);
+      _locals = localsBefore.mergeFlow(_inferrer, _locals);
+      _fieldScope = fieldScopeBefore;
       return _types.boolType;
     } else if (node.operator == '||') {
       _conditionIsSimple = false;
@@ -1490,15 +1493,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       bool isSimple =
           handleCondition(node.left, positiveIsChecks, negativeIsChecks);
       LocalsHandler localsBefore = _locals;
-      FieldInitializationScope fieldScopeBefore = _fields;
+      FieldInitializationScope fieldScopeBefore = _fieldScope;
       _locals = new LocalsHandler.from(_locals, node);
-      _fields = new FieldInitializationScope.from(fieldScopeBefore);
+      _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
       if (isSimple) {
         _updateIsChecks(negativeIsChecks, positiveIsChecks);
       }
       visit(node.right, conditionContext: false);
-      _locals = localsBefore.mergeDiamondFlow(_inferrer, _locals, null);
-      _fields = fieldScopeBefore?.mergeDiamondFlow(_inferrer, _fields, null);
+      _locals = localsBefore.mergeFlow(_inferrer, _locals);
+      _fieldScope = fieldScopeBefore;
       return _types.boolType;
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,
@@ -1514,21 +1517,21 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         handleCondition(node.condition, positiveTests, negativeTests);
     LocalsHandler localsBefore = _locals;
     _locals = new LocalsHandler.from(localsBefore, node);
-    FieldInitializationScope fieldScopeBefore = _fields;
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    FieldInitializationScope fieldScopeBefore = _fieldScope;
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     _updateIsChecks(positiveTests, negativeTests);
     TypeInformation firstType = visit(node.then);
     LocalsHandler localsAfterThen = _locals;
-    FieldInitializationScope fieldScopeAfterThen = _fields;
+    FieldInitializationScope fieldScopeAfterThen = _fieldScope;
     _locals = new LocalsHandler.from(localsBefore, node);
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
     TypeInformation secondType = visit(node.otherwise);
     LocalsHandler localsAfterElse = _locals;
-    FieldInitializationScope fieldScopeAfterElse = _fields;
+    FieldInitializationScope fieldScopeAfterElse = _fieldScope;
     _locals = localsBefore.mergeDiamondFlow(
         _inferrer, localsAfterThen, localsAfterElse);
-    _fields = fieldScopeBefore?.mergeDiamondFlow(
+    _fieldScope = fieldScopeBefore?.mergeDiamondFlow(
         _inferrer, fieldScopeAfterThen, fieldScopeAfterElse);
     return _types.allocateDiamondPhi(firstType, secondType);
   }
@@ -1580,7 +1583,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     LocalsHandler closureLocals =
         new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
     FieldInitializationScope closureFieldScope =
-        new FieldInitializationScope.from(_fields);
+        new FieldInitializationScope.from(_fieldScope);
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         _options,
         _closedWorld,
@@ -1653,30 +1656,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitTryCatch(ir.TryCatch node) {
     LocalsHandler localsBefore = _locals;
-    FieldInitializationScope fieldScopeBefore = _fields;
+    FieldInitializationScope fieldScopeBefore = _fieldScope;
     _locals = new LocalsHandler.from(localsBefore, node,
         isTry: true, useOtherTryBlock: false);
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     initializationIsIndefinite();
     visit(node.body);
     LocalsHandler localsAfterBody = _locals;
-    FieldInitializationScope fieldScopeAfterBody = _fields;
-
-    _locals = localsBefore.mergeDiamondFlow(_inferrer, localsAfterBody, null);
-    _fields = fieldScopeBefore?.mergeDiamondFlow(
-        _inferrer, fieldScopeAfterBody, null);
+    _locals = localsBefore.mergeFlow(_inferrer, localsAfterBody);
+    _fieldScope = fieldScopeBefore;
     for (ir.Catch catchBlock in node.catches) {
       LocalsHandler localsBeforeCatch = _locals;
-      FieldInitializationScope fieldScopeBeforeCatch = _fields;
+      FieldInitializationScope fieldScopeBeforeCatch = _fieldScope;
       _locals = new LocalsHandler.from(localsBeforeCatch, catchBlock);
-      _fields = new FieldInitializationScope.from(fieldScopeBeforeCatch);
+      _fieldScope = new FieldInitializationScope.from(fieldScopeBeforeCatch);
       visit(catchBlock);
       LocalsHandler localsAfterCatch = _locals;
-      FieldInitializationScope fieldScopeAfterCatch = _fields;
-      _locals =
-          localsBeforeCatch.mergeDiamondFlow(_inferrer, localsAfterCatch, null);
-      _fields = fieldScopeBeforeCatch?.mergeDiamondFlow(
-          _inferrer, fieldScopeAfterCatch, null);
+      _locals = localsBeforeCatch.mergeFlow(_inferrer, localsAfterCatch);
+      _fieldScope = fieldScopeBeforeCatch;
     }
     return null;
   }
@@ -1684,17 +1681,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitTryFinally(ir.TryFinally node) {
     LocalsHandler localsBefore = _locals;
-    FieldInitializationScope fieldScopeBefore = _fields;
+    FieldInitializationScope fieldScopeBefore = _fieldScope;
     _locals = new LocalsHandler.from(localsBefore, node,
         isTry: true, useOtherTryBlock: false);
-    _fields = new FieldInitializationScope.from(fieldScopeBefore);
+    _fieldScope = new FieldInitializationScope.from(fieldScopeBefore);
     initializationIsIndefinite();
     visit(node.body);
     LocalsHandler localsAfterBody = _locals;
-    FieldInitializationScope fieldScopeAfterBody = _fields;
-    _locals = localsBefore.mergeDiamondFlow(_inferrer, localsAfterBody, null);
-    _fields = fieldScopeBefore?.mergeDiamondFlow(
-        _inferrer, fieldScopeAfterBody, null);
+    _locals = localsBefore.mergeFlow(_inferrer, localsAfterBody);
+    _fieldScope = fieldScopeBefore;
     visit(node.finalizer);
     return null;
   }

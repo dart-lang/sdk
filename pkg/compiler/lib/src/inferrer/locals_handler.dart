@@ -144,9 +144,11 @@ class FieldInitializationScope {
     fields?.forEach(f);
   }
 
+  /// Returns the join between [thenScope] and [elseScope] which models the
+  /// flow through either [thenScope] or [elseScope].
   FieldInitializationScope mergeDiamondFlow(InferrerEngine inferrer,
       FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
-    if (elseScope == null) return this;
+    assert(elseScope != null);
 
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
     // know the code following won'TypeInformation do anything.
@@ -154,7 +156,7 @@ class FieldInitializationScope {
     if (isIndefinite) return this;
 
     FieldInitializationScope otherScope =
-        (elseScope == null || elseScope.fields == null) ? this : elseScope;
+        elseScope.fields == null ? this : elseScope;
 
     thenScope.forEach((FieldEntity field, TypeInformation type) {
       TypeInformation otherType = otherScope.readField(field);
@@ -329,17 +331,15 @@ class LocalsHandler {
     update(inferrer, capturedAndBoxed, local, newType, node, type);
   }
 
-  LocalsHandler mergeDiamondFlow(InferrerEngine inferrer,
-      LocalsHandler thenBranch, LocalsHandler elseBranch) {
-    seenReturnOrThrow = thenBranch.seenReturnOrThrow &&
-        elseBranch != null &&
-        elseBranch.seenReturnOrThrow;
-    seenBreakOrContinue = thenBranch.seenBreakOrContinue &&
-        elseBranch != null &&
-        elseBranch.seenBreakOrContinue;
-    if (aborts) return this;
+  /// Returns the join between this locals handler and [other] which models the
+  /// flow through either this or [other].
+  LocalsHandler mergeFlow(InferrerEngine inferrer, LocalsHandler other) {
+    seenReturnOrThrow = false;
+    seenBreakOrContinue = false;
 
-    void mergeOneBranch(LocalsHandler other) {
+    if (other.aborts) {
+      return this;
+    } else {
       other._locals.forEachOwnLocal((Local local, TypeInformation type) {
         TypeInformation myType = _locals[local];
         if (myType == null) return; // Variable is only defined in [other].
@@ -347,6 +347,19 @@ class LocalsHandler {
         _locals[local] = inferrer.types.allocateDiamondPhi(myType, type);
       });
     }
+    return this;
+  }
+
+  /// Returns the join between [thenBranch] and [elseBranch] which models the
+  /// flow through either [thenBranch] or [elseBranch].
+  LocalsHandler mergeDiamondFlow(InferrerEngine inferrer,
+      LocalsHandler thenBranch, LocalsHandler elseBranch) {
+    assert(elseBranch != null);
+    seenReturnOrThrow =
+        thenBranch.seenReturnOrThrow && elseBranch.seenReturnOrThrow;
+    seenBreakOrContinue =
+        thenBranch.seenBreakOrContinue && elseBranch.seenBreakOrContinue;
+    if (aborts) return this;
 
     void inPlaceUpdateOneBranch(LocalsHandler other) {
       other._locals.forEachOwnLocal((Local local, TypeInformation type) {
@@ -358,10 +371,7 @@ class LocalsHandler {
     }
 
     if (thenBranch.aborts) {
-      if (elseBranch == null) return this;
       inPlaceUpdateOneBranch(elseBranch);
-    } else if (elseBranch == null) {
-      mergeOneBranch(thenBranch);
     } else if (elseBranch.aborts) {
       inPlaceUpdateOneBranch(thenBranch);
     } else {
