@@ -144,12 +144,14 @@ class FieldInitializationScope {
     fields?.forEach(f);
   }
 
-  void mergeDiamondFlow(InferrerEngine inferrer,
+  FieldInitializationScope mergeDiamondFlow(InferrerEngine inferrer,
       FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
+    if (elseScope == null) return this;
+
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
     // know the code following won'TypeInformation do anything.
-    if (isThisExposed) return;
-    if (isIndefinite) return;
+    if (isThisExposed) return this;
+    if (isIndefinite) return this;
 
     FieldInitializationScope otherScope =
         (elseScope == null || elseScope.fields == null) ? this : elseScope;
@@ -162,6 +164,7 @@ class FieldInitializationScope {
 
     isThisExposed = thenScope.isThisExposed || elseScope.isThisExposed;
     isIndefinite = thenScope.isIndefinite || elseScope.isIndefinite;
+    return this;
   }
 }
 
@@ -246,7 +249,6 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
  */
 class LocalsHandler {
   final VariableScope locals;
-  final FieldInitializationScope fieldScope;
   LocalsHandler tryBlock;
   bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
@@ -257,28 +259,24 @@ class LocalsHandler {
 
   bool get inTryBlock => tryBlock != null;
 
-  LocalsHandler.internal(
-      ir.Node block, this.fieldScope, this.locals, this.tryBlock);
+  LocalsHandler.internal(ir.Node block, this.locals, this.tryBlock);
 
-  LocalsHandler(ir.Node block, [this.fieldScope])
+  LocalsHandler(ir.Node block)
       : locals = new VariableScope(block, isTry: false),
         tryBlock = null;
 
   LocalsHandler.from(LocalsHandler other, ir.Node block,
       {bool isTry: false, bool useOtherTryBlock: true})
-      : locals = new VariableScope(block, isTry: isTry, parent: other.locals),
-        fieldScope = new FieldInitializationScope.from(other.fieldScope) {
+      : locals = new VariableScope(block, isTry: isTry, parent: other.locals) {
     tryBlock = useOtherTryBlock ? other.tryBlock : this;
   }
 
   LocalsHandler.deepCopyOf(LocalsHandler other)
       : locals = new VariableScope.deepCopyOf(other.locals),
-        fieldScope = new FieldInitializationScope.from(other.fieldScope),
         tryBlock = other.tryBlock;
 
   LocalsHandler.topLevelCopyOf(LocalsHandler other)
       : locals = new VariableScope.topLevelCopyOf(other.locals),
-        fieldScope = new FieldInitializationScope.from(other.fieldScope),
         tryBlock = other.tryBlock;
 
   TypeInformation use(InferrerEngine inferrer,
@@ -330,19 +328,15 @@ class LocalsHandler {
     update(inferrer, capturedAndBoxed, local, newType, node, type);
   }
 
-  void mergeDiamondFlow(InferrerEngine inferrer, LocalsHandler thenBranch,
-      LocalsHandler elseBranch) {
-    if (fieldScope != null && elseBranch != null) {
-      fieldScope.mergeDiamondFlow(
-          inferrer, thenBranch.fieldScope, elseBranch.fieldScope);
-    }
+  LocalsHandler mergeDiamondFlow(InferrerEngine inferrer,
+      LocalsHandler thenBranch, LocalsHandler elseBranch) {
     seenReturnOrThrow = thenBranch.seenReturnOrThrow &&
         elseBranch != null &&
         elseBranch.seenReturnOrThrow;
     seenBreakOrContinue = thenBranch.seenBreakOrContinue &&
         elseBranch != null &&
         elseBranch.seenBreakOrContinue;
-    if (aborts) return;
+    if (aborts) return this;
 
     void mergeOneBranch(LocalsHandler other) {
       other.locals.forEachOwnLocal((Local local, TypeInformation type) {
@@ -363,7 +357,7 @@ class LocalsHandler {
     }
 
     if (thenBranch.aborts) {
-      if (elseBranch == null) return;
+      if (elseBranch == null) return this;
       inPlaceUpdateOneBranch(elseBranch);
     } else if (elseBranch == null) {
       mergeOneBranch(thenBranch);
@@ -391,6 +385,7 @@ class LocalsHandler {
         if (!thenBranch.locals.updates(local)) mergeLocal(local);
       });
     }
+    return this;
   }
 
   /**
@@ -423,7 +418,8 @@ class LocalsHandler {
    * where [:this:] is the [LocalsHandler] for the paths through the
    * labeled statement that do not break out.
    */
-  void mergeAfterBreaks(InferrerEngine inferrer, List<LocalsHandler> handlers,
+  LocalsHandler mergeAfterBreaks(
+      InferrerEngine inferrer, List<LocalsHandler> handlers,
       {bool keepOwnLocals: true}) {
     ir.Node level = locals.block;
     // Use a separate locals handler to perform the merge in, so that Phi
@@ -456,6 +452,7 @@ class LocalsHandler {
     });
     seenReturnOrThrow =
         allBranchesAbort && (!keepOwnLocals || seenReturnOrThrow);
+    return this;
   }
 
   /**
@@ -518,10 +515,6 @@ class LocalsHandler {
         locals[variable] = newType;
       }
     });
-  }
-
-  void updateField(FieldEntity element, TypeInformation type) {
-    fieldScope.updateField(element, type);
   }
 
   String toString() {
