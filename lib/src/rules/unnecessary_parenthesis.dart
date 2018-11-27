@@ -71,6 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parent is BinaryExpression) return;
       if (parent is ConditionalExpression) return;
       if (parent is CascadeExpression) return;
+      if (parent is FunctionExpressionInvocation) return;
       if (parent.precedence < node.expression.precedence) {
         rule.reportLint(node);
         return;
