@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Declare method return types.';
@@ -63,6 +64,16 @@ class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static const LintCode functionCode = const LintCode(
+      "always_declare_return_types",
+      "The function {0} should have a return type but doesn't.",
+      correction: "Try adding a return type to the function.");
+
+  static const LintCode methodCode = const LintCode(
+      "always_declare_return_types",
+      "The method {0} should have a return type but doesn't.",
+      correction: "Try adding a return type to the method.");
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -70,14 +81,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null) {
-      rule.reportLint(node.name);
+      rule.reportLint(node.name,
+          arguments: [node.name.name], errorCode: functionCode);
     }
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
-      rule.reportLint(node.name);
+      rule.reportLint(node.name,
+          arguments: [node.name.name], errorCode: functionCode);
     }
   }
 
@@ -86,7 +99,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isSetter &&
         node.returnType == null &&
         node.name.token.type != TokenType.INDEX_EQ) {
-      rule.reportLint(node.name);
+      rule.reportLint(node.name,
+          arguments: [node.name.name], errorCode: methodCode);
     }
   }
 }
