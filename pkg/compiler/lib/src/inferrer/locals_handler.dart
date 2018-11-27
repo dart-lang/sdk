@@ -292,27 +292,9 @@ class LocalsHandler {
   }
 
   void update(InferrerEngine inferrer, Map<Local, FieldEntity> capturedAndBoxed,
-      Local local, TypeInformation type, ir.Node node, DartType staticType,
-      {bool isSetIfNull: false}) {
+      Local local, TypeInformation type, ir.Node node, DartType staticType) {
     assert(type != null);
-    if (!inferrer.options.assignmentCheckPolicy.isIgnored) {
-      type = inferrer.types.narrowType(type, staticType);
-    }
-    updateLocal() {
-      TypeInformation currentType = locals[local];
-
-      if (isSetIfNull && currentType != null) {
-        // If-null assignments may return either the new or the original value
-        // narrowed to non-null.
-        type = inferrer.types.addPhiInput(
-            local,
-            inferrer.types.allocatePhi(
-                locals.block, local, inferrer.types.narrowNotNull(currentType),
-                isTry: locals.isTry),
-            type);
-      }
-      locals[local] = type;
-    }
+    type = inferrer.types.narrowType(type, staticType);
 
     FieldEntity field = capturedAndBoxed[local];
     if (field != null) {
@@ -334,20 +316,18 @@ class LocalsHandler {
       }
       // Update the current handler unconditionally with the new
       // type.
-      updateLocal();
+      locals[local] = type;
     } else {
-      updateLocal();
+      locals[local] = type;
     }
   }
 
   void narrow(InferrerEngine inferrer, Map<Local, FieldEntity> capturedAndBoxed,
-      Local local, DartType type, ir.Node node,
-      {bool isSetIfNull: false}) {
+      Local local, DartType type, ir.Node node) {
     TypeInformation existing = use(inferrer, capturedAndBoxed, local);
     TypeInformation newType =
         inferrer.types.narrowType(existing, type, isNullable: false);
-    update(inferrer, capturedAndBoxed, local, newType, node, type,
-        isSetIfNull: isSetIfNull);
+    update(inferrer, capturedAndBoxed, local, newType, node, type);
   }
 
   void mergeDiamondFlow(InferrerEngine inferrer, LocalsHandler thenBranch,

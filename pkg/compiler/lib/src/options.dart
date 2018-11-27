@@ -430,18 +430,13 @@ class CheckPolicy {
   /// Whether the type assertion should be emitted and checked.
   final bool isEmitted;
 
-  /// Whether the type assertion should be ignored.
-  final bool isIgnored;
-
-  const CheckPolicy(
-      {this.isTrusted: false, this.isEmitted: false, this.isIgnored: false});
+  const CheckPolicy({this.isTrusted: false, this.isEmitted: false});
 
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
-  static const ignored = const CheckPolicy(isIgnored: true);
 
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
-      'isEmitted=$isEmitted,isIgnored=$isIgnored)';
+      'isEmitted=$isEmitted)';
 }
 
 String _extractStringOption(
