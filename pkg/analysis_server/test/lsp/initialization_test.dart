@@ -38,7 +38,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_initialize_cannot_be_called_twice() async {
+  test_initialize_onlyAllowedOnce() async {
     await initialize();
     final response = await initialize();
     expect(response, isNotNull);
@@ -48,7 +48,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         response.error.code, equals(ServerErrorCodes.ServerAlreadyInitialized));
   }
 
-  test_notifications_before_initialize_are_silently_dropped() async {
+  test_uninitialized_dropsNotifications() async {
     final notification =
         makeNotification(new Method.fromJson('randomNotification'), null);
     final nextNotification = channel.errorNotificationsFromServer.first;
@@ -67,7 +67,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(didTimeout, isTrue);
   }
 
-  test_requests_before_initialize_are_rejected_and_logged() async {
+  test_uninitialized_rejectsRequests() async {
     final request = makeRequest(new Method.fromJson('randomRequest'), null);
     final logParams = await expectErrorNotification<LogMessageParams>(() async {
       final response = await channel.sendRequestToServer(request);

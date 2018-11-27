@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
-  test_diagnostics_after_document_changes() async {
+  test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
 
@@ -29,7 +29,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     expect(updatedDiagnostics, hasLength(1));
   }
 
-  test_diagnostics_notifications() async {
+  test_initialAnalysis() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
     await initialize();

@@ -28,54 +28,30 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     });
   }
 
-  test_signature_help_named() async {
+  test_formats_markdown() async {
     final content = '''
     /// Does foo.
-    foo(String s, {bool b = true}) {
+    foo(String s, int i) {
       foo(^);
     }
     ''';
-
-    final expectedLabel = 'foo(String s, {bool b = true})';
+    final expectedLabel = 'foo(String s, int i)';
     final expectedDoc = 'Does foo.';
 
-    await initializeSupportingMarkupContent();
+    await initializeSupportingMarkupContent([MarkupKind.Markdown]);
     await testSignature(
       content,
       expectedLabel,
       expectedDoc,
       [
         new ParameterInformation('String s', null),
-        new ParameterInformation('bool b = true', null),
+        new ParameterInformation('int i', null),
       ],
+      expectedFormat: MarkupKind.Markdown,
     );
   }
 
-  test_signature_help_named_multiple() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, {bool b = true, bool a}) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
-    final expectedDoc = 'Does foo.';
-
-    await initializeSupportingMarkupContent();
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        new ParameterInformation('String s', null),
-        new ParameterInformation('bool b = true', null),
-        new ParameterInformation('bool a', null),
-      ],
-    );
-  }
-
-  test_signature_help_no_markupcontent_support() async {
+  test_formats_notSupported() async {
     final content = '''
     /// Does foo.
     foo(String s, int i) {
@@ -98,54 +74,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_signature_help_optional() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, [bool b = true]) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, [bool b = true])';
-    final expectedDoc = 'Does foo.';
-
-    await initializeSupportingMarkupContent();
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        new ParameterInformation('String s', null),
-        new ParameterInformation('bool b = true', null),
-      ],
-    );
-  }
-
-  test_signature_help_optional_multiple() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, [bool b = true, bool a]) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, [bool b = true, bool a])';
-    final expectedDoc = 'Does foo.';
-
-    await initializeSupportingMarkupContent();
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        new ParameterInformation('String s', null),
-        new ParameterInformation('bool b = true', null),
-        new ParameterInformation('bool a', null),
-      ],
-    );
-  }
-
-  test_signature_help_plain_text() async {
+  test_formats_plainTextOnly() async {
     final content = '''
     /// Does foo.
     foo(String s, int i) {
@@ -168,7 +97,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_signature_help_plain_text_preferred() async {
+  test_formats_plainTextPreferred() async {
     final content = '''
     /// Does foo.
     foo(String s, int i) {
@@ -195,7 +124,101 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_signature_help_simple() async {
+  test_params_multipleNamed() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool b = true, bool a}) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
+    final expectedDoc = 'Does foo.';
+
+    await initializeSupportingMarkupContent();
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('bool b = true', null),
+        new ParameterInformation('bool a', null),
+      ],
+    );
+  }
+
+  test_params_multipleOptional() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, [bool b = true, bool a]) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, [bool b = true, bool a])';
+    final expectedDoc = 'Does foo.';
+
+    await initializeSupportingMarkupContent();
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('bool b = true', null),
+        new ParameterInformation('bool a', null),
+      ],
+    );
+  }
+
+  test_params_named() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool b = true}) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool b = true})';
+    final expectedDoc = 'Does foo.';
+
+    await initializeSupportingMarkupContent();
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('bool b = true', null),
+      ],
+    );
+  }
+
+  test_params_optional() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, [bool b = true]) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, [bool b = true])';
+    final expectedDoc = 'Does foo.';
+
+    await initializeSupportingMarkupContent();
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('bool b = true', null),
+      ],
+    );
+  }
+
+  test_simple() async {
     final content = '''
     /// Does foo.
     foo(String s, int i) {

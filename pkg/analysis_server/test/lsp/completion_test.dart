@@ -16,88 +16,7 @@ main() {
 
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest {
-  test_completion_deprecated_not_supported() async {
-    final content = '''
-    class MyClass {
-      @deprecated
-      String abcdefghij;
-    }
-
-    main() {
-      MyClass a;
-      a.abc^
-    }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'abcdefghij');
-    expect(item.deprecated, isNull);
-    // If the does not say it supports the deprecated flag, we should show
-    // '(deprecated)' in the details.
-    expect(item.detail.toLowerCase(), contains('deprecated'));
-  }
-
-  test_completion_deprecated_supported() async {
-    final content = '''
-    class MyClass {
-      @deprecated
-      String abcdefghij;
-    }
-
-    main() {
-      MyClass a;
-      a.abc^
-    }
-    ''';
-
-    await initialize(textDocumentCapabilities: {
-      'completion': {
-        'completionItem': {
-          'deprecatedSupport': true,
-        }
-      },
-    });
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'abcdefghij');
-    expect(item.deprecated, isTrue);
-    // If the client says it supports the deprecated flag, we should not show
-    // deprecated in the details.
-    expect(item.detail, isNot(contains('deprecated')));
-  }
-
-  test_completion_getter_setter() async {
-    final content = '''
-    class MyClass {
-      String get justGetter => '';
-      String set justSetter(String value) {}
-      String get getterAndSetter => '';
-      String set getterAndSetter(String value) {}
-    }
-
-    main() {
-      MyClass a;
-      a.^
-    }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final getter = res.singleWhere((c) => c.label == 'justGetter');
-    final setter = res.singleWhere((c) => c.label == 'justSetter');
-    final both = res.singleWhere((c) => c.label == 'getterAndSetter');
-    expect(getter.detail, equals('String'));
-    expect(setter.detail, equals('String'));
-    expect(both.detail, equals('String'));
-    [getter, setter, both].forEach((item) {
-      expect(item.kind, equals(CompletionItemKind.Property));
-    });
-  }
-
-  test_completion_kinds_defaults() async {
+  test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'));
     newFolder(join(projectFolderPath, 'folder'));
 
@@ -117,7 +36,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(builtin.kind, equals(CompletionItemKind.Module));
   }
 
-  test_completion_kinds_imports() async {
+  test_completionKinds_imports() async {
     final content = "import '^';";
 
     // Tell the server we support some specific CompletionItemKinds.
@@ -143,7 +62,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(builtin.kind, equals(CompletionItemKind.Module));
   }
 
-  test_completion_kinds_only_include_client_supported() async {
+  test_completionKinds_supportedSubset() async {
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -176,7 +95,36 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_completion_not_in_string() async {
+  test_gettersAndSetters() async {
+    final content = '''
+    class MyClass {
+      String get justGetter => '';
+      String set justSetter(String value) {}
+      String get getterAndSetter => '';
+      String set getterAndSetter(String value) {}
+    }
+
+    main() {
+      MyClass a;
+      a.^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final getter = res.singleWhere((c) => c.label == 'justGetter');
+    final setter = res.singleWhere((c) => c.label == 'justSetter');
+    final both = res.singleWhere((c) => c.label == 'getterAndSetter');
+    expect(getter.detail, equals('String'));
+    expect(setter.detail, equals('String'));
+    expect(both.detail, equals('String'));
+    [getter, setter, both].forEach((item) {
+      expect(item.kind, equals(CompletionItemKind.Property));
+    });
+  }
+
+  test_insideString() async {
     final content = '''
     var a = "This is ^a test"
     ''';
@@ -187,7 +135,59 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  test_completion_snippet_not_supported() async {
+  test_isDeprecated_notSupported() async {
+    final content = '''
+    class MyClass {
+      @deprecated
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    expect(item.deprecated, isNull);
+    // If the does not say it supports the deprecated flag, we should show
+    // '(deprecated)' in the details.
+    expect(item.detail.toLowerCase(), contains('deprecated'));
+  }
+
+  test_isDeprecated_supported() async {
+    final content = '''
+    class MyClass {
+      @deprecated
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^
+    }
+    ''';
+
+    await initialize(textDocumentCapabilities: {
+      'completion': {
+        'completionItem': {
+          'deprecatedSupport': true,
+        }
+      },
+    });
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    expect(item.deprecated, isTrue);
+    // If the client says it supports the deprecated flag, we should not show
+    // deprecated in the details.
+    expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  test_plainText_simple() async {
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -211,7 +211,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(updated, contains('a.abcdefghij'));
   }
 
-  test_completion_snippet_supported() async {
+  test_snippet_simple() async {
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -243,7 +243,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
   }
 
   @failingTest
-  test_completion_snippet_with_selection() async {
+  test_snippet_withSelection() async {
     // TODO(dantup): Implement snippet functionality + test.
     // Like above, but one that actually has a selectionOffset and results in
     // a snippet with tabstop.

@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
-  test_shutdown_before_after_initialize() async {
+  test_shutdown_initialized() async {
     await initialize();
     final request = makeRequest(Method.shutdown, null);
     final response = await channel.sendRequestToServer(request);
@@ -25,7 +25,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  test_shutdown_before_intialize() async {
+  test_shutdown_uninitialized() async {
     final request = makeRequest(Method.shutdown, null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
@@ -33,7 +33,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  test_unknown_dollar_notification_are_silently_ignored() async {
+  test_unknownNotifications_silentlyDropped() async {
     await initialize();
     final notification =
         makeNotification(new Method.fromJson(r'$/randomNotification'), null);
@@ -53,20 +53,21 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(didTimeout, isTrue);
   }
 
-  @failingTest
-  test_unknown_dollar_request_not_responded_to() async {
-    // TODO(dantup): Fix this test up when we know how we're supposed to handle
-    // unknown $/ requests.
-    // https://github.com/Microsoft/language-server-protocol/issues/607
-    fail('TODO(dantup)');
-  }
-
-  test_unknown_request() async {
+  test_unknownRequest_rejected() async {
     await initialize();
     final request = makeRequest(new Method.fromJson('randomRequest'), null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
+    expect(response.error.code, equals(ErrorCodes.MethodNotFound));
     expect(response.result, isNull);
+  }
+
+  @failingTest
+  test_unknownRequest_silentlyDropped /*??*/ () async {
+    // TODO(dantup): Fix this test up when we know how we're supposed to handle
+    // unknown $/ requests.
+    // https://github.com/Microsoft/language-server-protocol/issues/607
+    fail('TODO(dantup)');
   }
 }
