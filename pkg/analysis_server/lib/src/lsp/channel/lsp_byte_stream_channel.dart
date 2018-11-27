@@ -11,6 +11,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /**
  * Instances of the class [LspByteStreamServerChannel] implement an
@@ -22,6 +23,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   final IOSink _output;
 
+  final InstrumentationService _instrumentationService;
+
   /**
    * Completer that will be signalled when the input stream is closed.
    */
@@ -32,7 +35,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
    */
   bool _closeRequested = false;
 
-  LspByteStreamServerChannel(this._input, this._output);
+  LspByteStreamServerChannel(
+      this._input, this._output, this._instrumentationService);
 
   /**
    * Future that will be completed when the input stream is closed.
@@ -80,8 +84,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       return;
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      // TODO(dantup): This...
-      //_instrumentationService.logRequest(data);
+      _instrumentationService.logRequest(data);
       final Map<String, Object> json = jsonDecode(data);
       if (RequestMessage.canParse(json)) {
         onMessage(RequestMessage.fromJson(json));
@@ -111,8 +114,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       _write(asciiEncodedHeader);
       _write(utf8EncodedBody);
 
-      // TODO(dantup): This...
-      //_instrumentationService.logResponse(jsonEncoded);
+      _instrumentationService.logResponse(jsonEncodedBody);
     });
   }
 

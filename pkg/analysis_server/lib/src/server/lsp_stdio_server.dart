@@ -32,8 +32,8 @@ class LspStdioAnalysisServer {
    * Return a future that will be completed when stdin closes.
    */
   Future serveStdio() {
-    LspByteStreamServerChannel serverChannel =
-        new LspByteStreamServerChannel(stdin, stdout);
+    LspByteStreamServerChannel serverChannel = new LspByteStreamServerChannel(
+        stdin, stdout, socketServer.instrumentationService);
     socketServer.createAnalysisServer(serverChannel);
     return serverChannel.closed;
   }
