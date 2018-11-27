@@ -8,7 +8,7 @@
 import 'dart:io';
 
 import 'package:dart2js_info/proto_info_codec.dart';
-import 'package:dart2js_info/src/util.dart';
+import 'package:dart2js_info/src/io.dart';
 
 main(args) async {
   if (args.length != 2) {

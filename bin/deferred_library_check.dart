@@ -39,7 +39,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart2js_info/deferred_library_check.dart';
-import 'package:dart2js_info/src/util.dart';
+import 'package:dart2js_info/src/io.dart';
 import 'package:yaml/yaml.dart';
 
 Future main(List<String> args) async {

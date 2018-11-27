@@ -4,10 +4,6 @@
 
 library dart2js_info.src.util;
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:dart2js_info/info.dart';
 
 import 'graph.dart';
@@ -148,9 +144,4 @@ String recursiveDiagnosticString(Measurements measurements, Metric metric) {
 
   helper(metric);
   return sb.toString();
-}
-
-Future<AllInfo> infoFromFile(String fileName) async {
-  var file = await new File(fileName).readAsString();
-  return new AllInfoJsonCodec().decode(jsonDecode(file));
 }

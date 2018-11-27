@@ -63,7 +63,7 @@ import 'dart:io';
 import 'dart:math' show max;
 
 import 'package:dart2js_info/info.dart';
-import 'package:dart2js_info/src/util.dart';
+import 'package:dart2js_info/src/io.dart';
 import 'package:yaml/yaml.dart';
 
 main(args) async {

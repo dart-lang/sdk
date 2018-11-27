@@ -1,3 +1,8 @@
+## 0.5.16
+
+* Split out IO dependency from `util.dart`, so all other utilities can be used
+  on any platform.
+
 ## 0.5.15
 
 * Add `BasicInfo.resetIds` to free internal cache used for id uniqueness.

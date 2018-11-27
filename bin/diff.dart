@@ -4,6 +4,7 @@
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/diff.dart';
+import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
 
 /// A command-line tool that computes the diff between two info files.

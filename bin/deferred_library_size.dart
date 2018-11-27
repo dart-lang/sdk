@@ -8,7 +8,7 @@ library dart2js_info.bin.deferred_library_size;
 import 'dart:math';
 
 import 'package:dart2js_info/info.dart';
-import 'package:dart2js_info/src/util.dart';
+import 'package:dart2js_info/src/io.dart';
 
 main(args) async {
   // TODO(het): Would be faster to only parse the 'outputUnits' part
