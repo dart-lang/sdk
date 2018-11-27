@@ -248,8 +248,8 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler {
-  final VariableScope locals;
-  LocalsHandler tryBlock;
+  final VariableScope _locals;
+  LocalsHandler _tryBlock;
   bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
 
@@ -257,27 +257,28 @@ class LocalsHandler {
     return seenReturnOrThrow || seenBreakOrContinue;
   }
 
-  bool get inTryBlock => tryBlock != null;
+  bool get inTryBlock => _tryBlock != null;
 
-  LocalsHandler.internal(ir.Node block, this.locals, this.tryBlock);
+  LocalsHandler.internal(ir.Node block, this._locals, this._tryBlock);
 
   LocalsHandler(ir.Node block)
-      : locals = new VariableScope(block, isTry: false),
-        tryBlock = null;
+      : _locals = new VariableScope(block, isTry: false),
+        _tryBlock = null;
 
   LocalsHandler.from(LocalsHandler other, ir.Node block,
       {bool isTry: false, bool useOtherTryBlock: true})
-      : locals = new VariableScope(block, isTry: isTry, parent: other.locals) {
-    tryBlock = useOtherTryBlock ? other.tryBlock : this;
+      : _locals =
+            new VariableScope(block, isTry: isTry, parent: other._locals) {
+    _tryBlock = useOtherTryBlock ? other._tryBlock : this;
   }
 
   LocalsHandler.deepCopyOf(LocalsHandler other)
-      : locals = new VariableScope.deepCopyOf(other.locals),
-        tryBlock = other.tryBlock;
+      : _locals = new VariableScope.deepCopyOf(other._locals),
+        _tryBlock = other._tryBlock;
 
   LocalsHandler.topLevelCopyOf(LocalsHandler other)
-      : locals = new VariableScope.topLevelCopyOf(other.locals),
-        tryBlock = other.tryBlock;
+      : _locals = new VariableScope.topLevelCopyOf(other._locals),
+        _tryBlock = other._tryBlock;
 
   TypeInformation use(InferrerEngine inferrer,
       Map<Local, FieldEntity> capturedAndBoxed, Local local) {
@@ -285,7 +286,7 @@ class LocalsHandler {
     if (field != null) {
       return inferrer.typeOfMember(field);
     } else {
-      return locals[local];
+      return _locals[local];
     }
   }
 
@@ -303,20 +304,20 @@ class LocalsHandler {
       // potential types after we have left it. We update the parent
       // of the try block so that, at exit of the try block, we get
       // the right phi for it.
-      TypeInformation existing = tryBlock.locals.parent[local];
+      TypeInformation existing = _tryBlock._locals.parent[local];
       if (existing != null) {
         TypeInformation phiType = inferrer.types.allocatePhi(
-            tryBlock.locals.block, local, existing,
-            isTry: tryBlock.locals.isTry);
+            _tryBlock._locals.block, local, existing,
+            isTry: _tryBlock._locals.isTry);
         TypeInformation inputType =
             inferrer.types.addPhiInput(local, phiType, type);
-        tryBlock.locals.parent[local] = inputType;
+        _tryBlock._locals.parent[local] = inputType;
       }
       // Update the current handler unconditionally with the new
       // type.
-      locals[local] = type;
+      _locals[local] = type;
     } else {
-      locals[local] = type;
+      _locals[local] = type;
     }
   }
 
@@ -339,20 +340,20 @@ class LocalsHandler {
     if (aborts) return this;
 
     void mergeOneBranch(LocalsHandler other) {
-      other.locals.forEachOwnLocal((Local local, TypeInformation type) {
-        TypeInformation myType = locals[local];
+      other._locals.forEachOwnLocal((Local local, TypeInformation type) {
+        TypeInformation myType = _locals[local];
         if (myType == null) return; // Variable is only defined in [other].
         if (type == myType) return;
-        locals[local] = inferrer.types.allocateDiamondPhi(myType, type);
+        _locals[local] = inferrer.types.allocateDiamondPhi(myType, type);
       });
     }
 
     void inPlaceUpdateOneBranch(LocalsHandler other) {
-      other.locals.forEachOwnLocal((Local local, TypeInformation type) {
-        TypeInformation myType = locals[local];
+      other._locals.forEachOwnLocal((Local local, TypeInformation type) {
+        TypeInformation myType = _locals[local];
         if (myType == null) return; // Variable is only defined in [other].
         if (type == myType) return;
-        locals[local] = type;
+        _locals[local] = type;
       });
     }
 
@@ -365,24 +366,25 @@ class LocalsHandler {
       inPlaceUpdateOneBranch(thenBranch);
     } else {
       void mergeLocal(Local local) {
-        TypeInformation myType = locals[local];
+        TypeInformation myType = _locals[local];
         if (myType == null) return;
-        TypeInformation elseType = elseBranch.locals[local];
-        TypeInformation thenType = thenBranch.locals[local];
+        TypeInformation elseType = elseBranch._locals[local];
+        TypeInformation thenType = thenBranch._locals[local];
         if (thenType == elseType) {
-          locals[local] = thenType;
+          _locals[local] = thenType;
         } else {
-          locals[local] = inferrer.types.allocateDiamondPhi(thenType, elseType);
+          _locals[local] =
+              inferrer.types.allocateDiamondPhi(thenType, elseType);
         }
       }
 
-      thenBranch.locals.forEachOwnLocal((Local local, _) {
+      thenBranch._locals.forEachOwnLocal((Local local, _) {
         mergeLocal(local);
       });
-      elseBranch.locals.forEachOwnLocal((Local local, _) {
+      elseBranch._locals.forEachOwnLocal((Local local, _) {
         // Discard locals we already processed when iterating over
         // [thenBranch]'s locals.
-        if (!thenBranch.locals.updates(local)) mergeLocal(local);
+        if (!thenBranch._locals.updates(local)) mergeLocal(local);
       });
     }
     return this;
@@ -421,34 +423,34 @@ class LocalsHandler {
   LocalsHandler mergeAfterBreaks(
       InferrerEngine inferrer, List<LocalsHandler> handlers,
       {bool keepOwnLocals: true}) {
-    ir.Node level = locals.block;
+    ir.Node level = _locals.block;
     // Use a separate locals handler to perform the merge in, so that Phi
     // creation does not invalidate previous type knowledge while we might
     // still look it up.
     LocalsHandler merged =
-        new LocalsHandler.from(this, level, isTry: locals.isTry);
+        new LocalsHandler.from(this, level, isTry: _locals.isTry);
     Set<Local> seenLocals = new Setlet<Local>();
     bool allBranchesAbort = true;
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
-      merged.mergeHandler(inferrer, handler, seenLocals);
+      merged._mergeHandler(inferrer, handler, seenLocals);
     }
     // If we want to keep own locals, we merge [seenLocals] from [this] into
     // [merged] to update the Phi nodes with original values.
     if (keepOwnLocals && !seenReturnOrThrow) {
       for (Local variable in seenLocals) {
-        TypeInformation originalType = locals[variable];
+        TypeInformation originalType = _locals[variable];
         if (originalType != null) {
-          merged.locals[variable] = inferrer.types
-              .addPhiInput(variable, merged.locals[variable], originalType);
+          merged._locals[variable] = inferrer.types
+              .addPhiInput(variable, merged._locals[variable], originalType);
         }
       }
     }
     // Clean up Phi nodes with single input and store back result into
     // actual locals handler.
-    merged.locals.forEachOwnLocal((Local variable, TypeInformation type) {
-      locals[variable] = inferrer.types.simplifyPhi(level, variable, type);
+    merged._locals.forEachOwnLocal((Local variable, TypeInformation type) {
+      _locals[variable] = inferrer.types.simplifyPhi(level, variable, type);
     });
     seenReturnOrThrow =
         allBranchesAbort && (!keepOwnLocals || seenReturnOrThrow);
@@ -461,24 +463,24 @@ class LocalsHandler {
    * unless the local is already present in the set [seen]. This effectively
    * overwrites the current type knowledge in this handler.
    */
-  bool mergeHandler(InferrerEngine inferrer, LocalsHandler other,
+  bool _mergeHandler(InferrerEngine inferrer, LocalsHandler other,
       [Set<Local> seen]) {
     if (other.seenReturnOrThrow) return false;
     bool changed = false;
-    other.locals.forEachLocalUntilNode(locals.block, (local, otherType) {
-      TypeInformation myType = locals[local];
+    other._locals.forEachLocalUntilNode(_locals.block, (local, otherType) {
+      TypeInformation myType = _locals[local];
       if (myType == null) return;
       TypeInformation newType;
       if (seen != null && !seen.contains(local)) {
         newType = inferrer.types
-            .allocatePhi(locals.block, local, otherType, isTry: locals.isTry);
+            .allocatePhi(_locals.block, local, otherType, isTry: _locals.isTry);
         seen.add(local);
       } else {
         newType = inferrer.types.addPhiInput(local, myType, otherType);
       }
       if (newType != myType) {
         changed = true;
-        locals[local] = newType;
+        _locals[local] = newType;
       }
     });
     return changed;
@@ -492,27 +494,27 @@ class LocalsHandler {
     bool changed = false;
     assert(!seenReturnOrThrow);
     handlers.forEach((other) {
-      changed = mergeHandler(inferrer, other) || changed;
+      changed = _mergeHandler(inferrer, other) || changed;
     });
     return changed;
   }
 
   void startLoop(InferrerEngine inferrer, ir.Node loop) {
-    locals.forEachLocal((Local variable, TypeInformation type) {
+    _locals.forEachLocal((Local variable, TypeInformation type) {
       TypeInformation newType =
           inferrer.types.allocateLoopPhi(loop, variable, type, isTry: false);
       if (newType != type) {
-        locals[variable] = newType;
+        _locals[variable] = newType;
       }
     });
   }
 
   void endLoop(InferrerEngine inferrer, ir.Node loop) {
-    locals.forEachLocal((Local variable, TypeInformation type) {
+    _locals.forEachLocal((Local variable, TypeInformation type) {
       TypeInformation newType =
           inferrer.types.simplifyPhi(loop, variable, type);
       if (newType != type) {
-        locals[variable] = newType;
+        _locals[variable] = newType;
       }
     });
   }
@@ -520,7 +522,7 @@ class LocalsHandler {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('LocalsHandler(');
-    sb.write('locals=$locals');
+    sb.write('locals=$_locals');
     sb.write(')');
     return sb.toString();
   }

@@ -1470,7 +1470,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       visit(node.right, conditionContext: _accumulateIsChecks);
       if (oldAccumulateIsChecks) {
         bool invalidatedInRightHandSide(IsCheck check) {
-          return narrowed.locals[check.local] != _locals.locals[check.local];
+          TypeInformation narrowedType =
+              narrowed.use(_inferrer, _capturedAndBoxed, check.local);
+          TypeInformation currentType =
+              _locals.use(_inferrer, _capturedAndBoxed, check.local);
+          return narrowedType != currentType;
         }
 
         _positiveIsChecks.removeWhere(invalidatedInRightHandSide);
@@ -1549,9 +1553,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         if (variable == info.thisLocal) {
           _inferrer.recordTypeOfField(field, thisType);
         }
+        TypeInformation localType =
+            _locals.use(_inferrer, _capturedAndBoxed, variable);
         // The type is null for type parameters.
-        if (_locals.locals[variable] == null) return;
-        _inferrer.recordTypeOfField(field, _locals.locals[variable]);
+        if (localType != null) {
+          _inferrer.recordTypeOfField(field, localType);
+        }
       }
       _capturedVariables.add(variable);
     });
