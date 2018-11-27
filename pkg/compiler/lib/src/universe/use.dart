@@ -46,6 +46,11 @@ class DynamicUse {
     if (receiverConstraint != null) {
       var constraint = receiverConstraint;
       if (constraint is StrongModeConstraint) {
+        if (constraint.isThis) {
+          sb.write('<');
+        } else if (constraint.isExact) {
+          sb.write('=');
+        }
         sb.write(constraint.cls.name);
       } else {
         sb.write(constraint);
