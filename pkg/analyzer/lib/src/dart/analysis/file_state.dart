@@ -214,10 +214,25 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   /**
+   * Return `true` if the file is a stub created for a library in the provided
+   * external summary store.
+   */
+  bool get isExternalLibrary {
+    return _fsState.externalSummaries != null &&
+        _fsState.externalSummaries.linkedMap.containsKey(uriStr);
+  }
+
+  /**
    * Return `true` if the file does not have a `library` directive, and has a
    * `part of` directive, so is probably a part.
    */
-  bool get isPart => _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
+  bool get isPart {
+    if (_fsState.externalSummaries != null &&
+        _fsState.externalSummaries.unlinkedMap.containsKey(uriStr)) {
+      return !_fsState.externalSummaries.linkedMap.containsKey(uriStr);
+    }
+    return _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
+  }
 
   /**
    * Return `true` if the file is the "unresolved" file, which does not have

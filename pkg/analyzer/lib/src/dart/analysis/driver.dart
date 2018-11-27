@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart' as results;
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
@@ -24,6 +25,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -185,6 +187,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * [getResult] to the [Completer]s to report the result.
    */
   final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
+
+  /**
+   * The mapping from the files for which analysis was requested using
+   * [getResolvedLibrary] to the [Completer]s to report the result.
+   */
+  final _requestedLibraries =
+      <String, List<Completer<ResolvedLibraryResult>>>{};
 
   /**
    * The task that discovers available files.  If this field is not `null`,
@@ -468,6 +477,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_requestedLibraries.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_discoverAvailableFilesTask != null &&
         !_discoverAvailableFilesTask.isCompleted) {
       return AnalysisDriverPriority.interactive;
@@ -725,6 +737,83 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return unitResult.element.library;
   }
 
+  /**
+   * Return a [Future] that completes with a [ResolvedLibraryResult] for the
+   * Dart library file with the given [path].  If the file is not a Dart file
+   * or cannot be analyzed, the [Future] completes with `null`.
+   *
+   * Throw [ArgumentError] if the given [path] is not the defining compilation
+   * unit for a library (that is, is a part of a library).
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   *
+   * Invocation of this method causes the analysis state to transition to
+   * "analyzing" (if it is not in that state already), the driver will produce
+   * the resolution result for it, which is consistent with the current file
+   * state (including new states of the files previously reported using
+   * [changeFile]), prior to the next time the analysis state transitions
+   * to "idle".
+   */
+  Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
+    _throwIfNotAbsolutePath(path);
+    if (!_fsState.hasUri(path)) {
+      return new Future.value();
+    }
+
+    FileState file = _fsState.getFileForPath(path);
+
+    if (file.isExternalLibrary) {
+      return Future.value(
+        ResolvedLibraryResultImpl.external(currentSession, file.uri),
+      );
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $path');
+    }
+
+    // Schedule analysis.
+    var completer = new Completer<ResolvedLibraryResult>();
+    _requestedLibraries
+        .putIfAbsent(path, () => <Completer<ResolvedLibraryResult>>[])
+        .add(completer);
+    _scheduler.notify(this);
+    return completer.future;
+  }
+
+  /**
+   * Return a [Future] that completes with a [ResolvedLibraryResult] for the
+   * Dart library file with the given [uri].
+   *
+   * Throw [ArgumentError] if the given [uri] is not the defining compilation
+   * unit for a library (that is, is a part of a library).
+   *
+   * Invocation of this method causes the analysis state to transition to
+   * "analyzing" (if it is not in that state already), the driver will produce
+   * the resolution result for it, which is consistent with the current file
+   * state (including new states of the files previously reported using
+   * [changeFile]), prior to the next time the analysis state transitions
+   * to "idle".
+   */
+  Future<ResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
+    FileState file = _fsState.getFileForUri(uri);
+
+    if (file.isExternalLibrary) {
+      return Future.value(
+        ResolvedLibraryResultImpl.external(currentSession, file.uri),
+      );
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $uri');
+    }
+
+    // The file is a local file, we can get the result.
+    return getResolvedLibrary(file.path);
+  }
+
   ApiSignature getResolvedUnitKeyByPath(String path) {
     _throwIfNotAbsolutePath(path);
     ApiSignature signature = getUnitKeyByPath(path);
@@ -953,6 +1042,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       } catch (exception, stackTrace) {
         _fileTracker.fileWasAnalyzed(path);
         _requestedFiles.remove(path).forEach((completer) {
+          completer.completeError(exception, stackTrace);
+        });
+      }
+      return;
+    }
+
+    // Analyze a requested library.
+    if (_requestedLibraries.isNotEmpty) {
+      String path = _requestedLibraries.keys.first;
+      try {
+        var result = _computeResolvedLibrary(path);
+        _requestedLibraries.remove(path).forEach((completer) {
+          completer.complete(result);
+        });
+      } catch (exception, stackTrace) {
+        _requestedLibraries.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
         });
       }
@@ -1256,7 +1361,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           if (!_fsState.getFileForUri(Uri.parse('dart:async')).exists) {
             return _newMissingDartLibraryResult(file, 'dart:async');
           }
-          libraryContext = await _createLibraryContext(library);
+          libraryContext = _createLibraryContext(library);
 
           LibraryAnalyzer analyzer = new LibraryAnalyzer(
               analysisOptions,
@@ -1267,7 +1372,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.resynthesizer,
               library,
               _resourceProvider);
-          Map<FileState, UnitAnalysisResult> results = await analyzer.analyze();
+          Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
           List<int> bytes;
           CompilationUnit resolvedUnit;
@@ -1319,6 +1424,62 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return analysisResult._index;
   }
 
+  /**
+   * Return the newly computed resolution result of the library with the
+   * given [path].
+   */
+  ResolvedLibraryResultImpl _computeResolvedLibrary(String path) {
+    FileState library = _fsState.getFileForPath(path);
+
+    return _logger.run('Compute resolved library $path', () {
+      _testView.numOfAnalyzedLibraries++;
+      var libraryContext = _createLibraryContext(library);
+
+      LibraryAnalyzer analyzer = new LibraryAnalyzer(
+          analysisOptions,
+          declaredVariables,
+          sourceFactory,
+          libraryContext.isLibraryUri,
+          libraryContext.analysisContext,
+          libraryContext.resynthesizer,
+          library,
+          _resourceProvider);
+      Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
+      var resolvedUnits = <ResolvedUnitResult>[];
+
+      for (var unitFile in unitResults.keys) {
+        if (unitFile.path != null) {
+          var unitResult = unitResults[unitFile];
+          resolvedUnits.add(
+            new AnalysisResult(
+              this,
+              _sourceFactory,
+              unitFile.path,
+              unitFile.uri,
+              unitFile.exists,
+              unitFile.content,
+              unitFile.lineInfo,
+              unitFile.isPart,
+              null,
+              unitResult.unit,
+              unitResult.errors,
+              null,
+            ),
+          );
+        }
+      }
+
+      return new ResolvedLibraryResultImpl(
+        currentSession,
+        library.path,
+        library.uri,
+        resolvedUnits.first.libraryElement,
+        libraryContext.analysisContext.typeProvider,
+        resolvedUnits,
+      );
+    });
+  }
+
   Future<UnitElementResult> _computeUnitElement(String path,
       {bool asIsIfPartWithoutLibrary: false}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -1335,7 +1496,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    LibraryContext libraryContext = await _createLibraryContext(library);
+    LibraryContext libraryContext = _createLibraryContext(library);
     try {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
@@ -1389,9 +1550,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Return the context in which the [library] should be analyzed.
    */
-  Future<LibraryContext> _createLibraryContext(FileState library) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  LibraryContext _createLibraryContext(FileState library) {
     _testView.numOfCreatedLibraryContexts++;
     return new LibraryContext.forSingleLibrary(
         library,
@@ -1955,7 +2114,7 @@ class AnalysisDriverTestView {
     FileState library = driver.fsState.getFileForPath(libraryPath);
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    LibraryContext libraryContext = await driver._createLibraryContext(library);
+    LibraryContext libraryContext = driver._createLibraryContext(library);
     try {
       return libraryContext.store;
     } finally {
@@ -1975,7 +2134,7 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult extends FileResult implements results.ResolveResult {
+class AnalysisResult extends FileResult implements results.ResolvedUnitResult {
   static final _UNCHANGED = new AnalysisResult(
       null, null, null, null, null, null, null, null, null, null, null, null);
 

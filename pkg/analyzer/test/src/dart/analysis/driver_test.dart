@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart' as results;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1570,6 +1571,89 @@ class Test {}
     expect(driver.test.numOfCreatedLibraryContexts, 0);
     expect(coreLibrary, isNotNull);
     expect(coreLibrary.getType('Object'), isNotNull);
+  }
+
+  test_getResolvedLibrary_external() async {
+    var a1 = _p('/aaa/lib/a1.dart');
+    var a2 = _p('/aaa/lib/a2.dart');
+
+    var a1UriStr = 'package:aaa/a1.dart';
+    var a2UriStr = 'package:aaa/a2.dart';
+
+    provider.newFile(a1, "part 'a2.dart';  class A {}");
+    provider.newFile(a2, "part of 'a1.dart';");
+
+    // Build the store with the library.
+    var store = await createAnalysisDriver().test.getSummaryStore(a1);
+    expect(store.unlinkedMap.keys, contains(a1UriStr));
+    expect(store.unlinkedMap.keys, contains(a2UriStr));
+    expect(store.linkedMap.keys, contains(a1UriStr));
+
+    var driver = createAnalysisDriver(externalSummaries: store);
+    var libraryElement = await driver.getLibraryByUri(a1UriStr);
+    var classA = libraryElement.library.getType('A');
+
+    var resolvedLibrary = await driver.getResolvedLibrary(a1);
+    expect(resolvedLibrary, isNotNull);
+    expect(resolvedLibrary.state, results.ResultState.NOT_A_FILE);
+    expect(() {
+      resolvedLibrary.getElementDeclaration(classA);
+    }, throwsStateError);
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(() async {
+      await driver.getResolvedLibrary(a2);
+    }, throwsArgumentError);
+  }
+
+  test_getResolvedLibraryByUri_external() async {
+    var a1 = _p('/aaa/lib/a1.dart');
+    var a2 = _p('/aaa/lib/a2.dart');
+
+    var a1UriStr = 'package:aaa/a1.dart';
+    var a2UriStr = 'package:aaa/a2.dart';
+
+    var a1Uri = Uri.parse(a1UriStr);
+    var a2Uri = Uri.parse(a2UriStr);
+
+    provider.newFile(a1, "part 'a2.dart';  class A {}");
+    provider.newFile(a2, "part of 'a1.dart';");
+
+    // Build the store with the library.
+    var store = await createAnalysisDriver().test.getSummaryStore(a1);
+    expect(store.unlinkedMap.keys, contains(a1UriStr));
+    expect(store.unlinkedMap.keys, contains(a2UriStr));
+    expect(store.linkedMap.keys, contains(a1UriStr));
+
+    var driver = createAnalysisDriver(externalSummaries: store);
+    var libraryElement = await driver.getLibraryByUri(a1UriStr);
+    var classA = libraryElement.library.getType('A');
+
+    {
+      var resolvedLibrary = await driver.getResolvedLibraryByUri(a1Uri);
+      expect(resolvedLibrary, isNotNull);
+      expect(resolvedLibrary.state, results.ResultState.NOT_A_FILE);
+      expect(() {
+        resolvedLibrary.getElementDeclaration(classA);
+      }, throwsStateError);
+    }
+
+    // We can also get the result from the session.
+    {
+      var session = driver.currentSession;
+      var resolvedLibrary =
+          await session.getResolvedLibraryByElement(libraryElement);
+      expect(resolvedLibrary, isNotNull);
+      expect(resolvedLibrary.state, results.ResultState.NOT_A_FILE);
+      expect(() {
+        resolvedLibrary.getElementDeclaration(classA);
+      }, throwsStateError);
+    }
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(() async {
+      await driver.getResolvedLibraryByUri(a2Uri);
+    }, throwsArgumentError);
   }
 
   test_getResult() async {

@@ -130,6 +130,20 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
+    _checkConsistency();
+    return _driver.getResolvedLibrary(path);
+  }
+
+  @override
+  Future<ResolvedLibraryResult> getResolvedLibraryByElement(
+      LibraryElement element) {
+    _checkConsistency();
+    _checkElementOfThisSession(element);
+    return _driver.getResolvedLibraryByUri(element.source.uri);
+  }
+
+  @override
   Future<SourceKind> getSourceKind(String path) {
     _checkConsistency();
     return _driver.getSourceKind(path);
@@ -162,5 +176,14 @@ class AnalysisSessionImpl implements AnalysisSession {
     if (_driver.currentSession != this) {
       throw new InconsistentAnalysisException();
     }
+  }
+
+  void _checkElementOfThisSession(Element element) {
+    // TODO(scheglov) Requires 2.2 implementation
+//    if (element.session != this) {
+//      throw new ArgumentError(
+//          '(${element.runtimeType}) $element was not produced by '
+//          'this session.');
+//    }
   }
 }
