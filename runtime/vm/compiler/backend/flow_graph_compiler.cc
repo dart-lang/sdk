@@ -270,11 +270,11 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
   // Entry-points cannot be merged because they must have assembly
   // prologue emitted which should not be included in any block they jump to.
-  return !block->IsCatchBlockEntry() && !block->HasNonRedundantParallelMove() &&
+  return !block->IsGraphEntry() && !block->IsFunctionEntry() &&
+         !block->IsCatchBlockEntry() && !block->IsOsrEntry() &&
+         !block->IsIndirectEntry() && !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
-         !block->IsIndirectEntry() && !block->IsFunctionEntry() &&
-         !block->IsOsrEntry();
+         !block->next()->AsGoto()->HasNonRedundantParallelMove();
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {

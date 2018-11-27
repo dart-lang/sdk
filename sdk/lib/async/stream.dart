@@ -1423,7 +1423,8 @@ abstract class Stream<T> {
    * with a [RangeError].
    */
   Future<T> elementAt(int index) {
-    if (index is! int || index < 0) throw new ArgumentError(index);
+    ArgumentError.checkNotNull(index, "index");
+    RangeError.checkNotNegative(index, "index");
     _Future<T> future = new _Future<T>();
     StreamSubscription subscription;
     int elementIndex = 0;

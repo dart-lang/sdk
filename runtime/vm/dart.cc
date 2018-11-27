@@ -143,12 +143,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         "a sim* architecture.");
 #endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
 
-#if defined(TARGET_OS_WINDOWS)
-    // TODO(34393): The interpreter currently relies on computed gotos, which
-    // aren't supported on Windows.
-    return strdup("--enable-interpreter is not supported on Windows.");
-#endif  // defined(TARGET_OS_WINDOWS)
-
     FLAG_use_field_guards = false;
   }
 

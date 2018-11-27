@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "vm/globals.h"
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_OS_WINDOWS)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/interpreter.h"
 
@@ -31,7 +31,6 @@ DEFINE_FLAG(uint64_t,
             trace_interpreter_after,
             ULLONG_MAX,
             "Trace interpreter execution after instruction count reached.");
-
 DEFINE_FLAG(charp,
             interpreter_trace_file,
             NULL,
@@ -40,9 +39,6 @@ DEFINE_FLAG(uint64_t,
             interpreter_trace_file_max_bytes,
             100 * MB,
             "Maximum size in bytes of the interpreter trace file");
-
-#define LIKELY(cond) __builtin_expect((cond), 1)
-#define UNLIKELY(cond) __builtin_expect((cond), 0)
 
 // InterpreterSetjmpBuffer are linked together, and the last created one
 // is referenced by the Interpreter. When an exception is thrown, the exception
@@ -1286,6 +1282,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 
 // Decode opcode and A part of the given value and dispatch to the
 // corresponding bytecode handler.
+#ifdef DART_HAS_COMPUTED_GOTO
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
@@ -1293,6 +1290,15 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
     TRACE_INSTRUCTION                                                          \
     goto* dispatch[op & 0xFF];                                                 \
   } while (0)
+#else
+#define DISPATCH_OP(val)                                                       \
+  do {                                                                         \
+    op = (val);                                                                \
+    rA = ((op >> 8) & 0xFF);                                                   \
+    TRACE_INSTRUCTION                                                          \
+    goto SwitchDispatch;                                                       \
+  } while (0)
+#endif
 
 // Fetch next operation from PC, increment program counter and dispatch.
 #define DISPATCH() DISPATCH_OP(*pc++)
@@ -1580,14 +1586,6 @@ RawObject* Interpreter::Call(RawFunction* function,
                              intptr_t argc,
                              RawObject* const* argv,
                              Thread* thread) {
-  // Dispatch used to interpret bytecode. Contains addresses of
-  // labels of bytecode handlers. Handlers themselves are defined below.
-  static const void* dispatch[] = {
-#define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
-      KERNEL_BYTECODES_LIST(TARGET)
-#undef TARGET
-  };
-
   // Interpreter state (see constants_kbc.h for high-level overview).
   uint32_t* pc;    // Program Counter: points to the next op to execute.
   RawObject** FP;  // Frame Pointer.
@@ -1688,8 +1686,26 @@ RawObject* Interpreter::Call(RawFunction* function,
   Function& function_h = Function::Handle();
 #endif
 
-  // Enter the dispatch loop.
-  DISPATCH();
+#ifdef DART_HAS_COMPUTED_GOTO
+  static const void* dispatch[] = {
+#define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
+      KERNEL_BYTECODES_LIST(TARGET)
+#undef TARGET
+  };
+  DISPATCH();  // Enter the dispatch loop.
+#else
+  DISPATCH();  // Enter the dispatch loop.
+SwitchDispatch:
+  switch (op & 0xFF) {
+#define TARGET(name, fmt, fmta, fmtb, fmtc)                                    \
+  case KernelBytecode::k##name:                                                \
+    goto bc##name;
+    KERNEL_BYTECODES_LIST(TARGET)
+#undef TARGET
+    default:
+      FATAL1("Undefined opcode: %d\n", op);
+  }
+#endif
 
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
@@ -3033,4 +3049,4 @@ void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_OS_WINDOWS)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

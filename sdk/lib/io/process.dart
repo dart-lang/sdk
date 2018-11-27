@@ -43,9 +43,7 @@ class _ProcessUtils {
  * cross-platform issues.
  */
 void exit(int code) {
-  if (code is! int) {
-    throw new ArgumentError("Integer value for exit code expected");
-  }
+  ArgumentError.checkNotNull(code, "code");
   if (!_EmbedderConfig._mayExit) {
     throw new UnsupportedError(
         "This embedder disallows calling dart:io's exit()");
@@ -66,9 +64,7 @@ void exit(int code) {
  * exit code.
  */
 void set exitCode(int code) {
-  if (code is! int) {
-    throw new ArgumentError("Integer value for exit code expected");
-  }
+  ArgumentError.checkNotNull(code, "code");
   _ProcessUtils._setExitCode(code);
 }
 

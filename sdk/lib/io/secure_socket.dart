@@ -581,21 +581,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
     }
-    if (requestedPort is! int) {
-      throw new ArgumentError("requestedPort is not an int");
-    }
+    ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
-      throw new ArgumentError("requestedPort is not in the range 0..65535");
+      throw ArgumentError("requestedPort is not in the range 0..65535");
     }
-    if (requestClientCertificate is! bool) {
-      throw new ArgumentError("requestClientCertificate is not a bool");
-    }
-    if (requireClientCertificate is! bool) {
-      throw new ArgumentError("requireClientCertificate is not a bool");
-    }
-    if (onBadCertificate != null && onBadCertificate is! Function) {
-      throw new ArgumentError("onBadCertificate is not null or a Function");
-    }
+    ArgumentError.checkNotNull(
+        requestClientCertificate, "requestClientCertificate");
+    ArgumentError.checkNotNull(
+        requireClientCertificate, "requireClientCertificate");
   }
 
   int get port => _socket.port;

@@ -363,7 +363,7 @@ class _BufferingStreamSubscription<T>
     if (_cancelOnError) {
       _state |= _STATE_WAIT_FOR_CANCEL;
       _cancel();
-      if (_cancelFuture is Future &&
+      if (_cancelFuture != null &&
           !identical(_cancelFuture, Future._nullFuture)) {
         _cancelFuture.whenComplete(sendError);
       } else {
@@ -392,7 +392,7 @@ class _BufferingStreamSubscription<T>
 
     _cancel();
     _state |= _STATE_WAIT_FOR_CANCEL;
-    if (_cancelFuture is Future &&
+    if (_cancelFuture != null &&
         !identical(_cancelFuture, Future._nullFuture)) {
       _cancelFuture.whenComplete(sendDone);
     } else {

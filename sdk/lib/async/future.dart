@@ -224,9 +224,6 @@ abstract class Future<T> {
       var result = computation();
       if (result is Future<T>) {
         return result;
-      } else if (result is Future) {
-        // TODO(lrn): Remove this case for Dart 2.0.
-        return new _Future<T>.immediate(result);
       } else {
         return new _Future<T>.value(result);
       }

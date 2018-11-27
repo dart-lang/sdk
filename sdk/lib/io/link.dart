@@ -162,10 +162,7 @@ class _Link extends FileSystemEntity implements Link {
   Uint8List _rawPath;
 
   _Link(String path) {
-    if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} '
-          'is not a String');
-    }
+    ArgumentError.checkNotNull(path, 'path');
     _path = path;
     _rawPath = FileSystemEntity._toUtf8Array(path);
   }

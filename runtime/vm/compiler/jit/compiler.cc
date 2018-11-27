@@ -110,7 +110,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
     FLAG_precompiled_mode = true;
-    FLAG_reorder_basic_blocks = false;
+    FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
 
