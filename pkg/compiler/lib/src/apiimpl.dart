@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:convert' show utf8;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show LibrariesSpecification, TargetLibrariesSpecification, LibraryInfo;
+    show getSupportedLibraryNames;
 
 import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show GenericTask, Measurer;
@@ -54,7 +54,7 @@ class CompilerImpl extends Compiler {
   Future setupSdk() {
     var future = new Future.value(null);
     _Environment env = environment;
-    if (env.librariesSpecification == null) {
+    if (env.supportedLibraries == null) {
       future = future.then((_) {
         Uri specificationUri = options.librariesSpecificationUri;
         return provider.readFromUri(specificationUri).then((api.Input spec) {
@@ -69,10 +69,9 @@ class CompilerImpl extends Compiler {
 
           // TODO(sigmund): would be nice to front-load some of the CFE option
           // processing and parse this .json file only once.
-          env.librariesSpecification =
-              LibrariesSpecification.parse(specificationUri, json)
-                  .specificationFor(
-                      options.compileForServer ? "dart2js_server" : "dart2js");
+          env.supportedLibraries = getSupportedLibraryNames(specificationUri,
+                  json, options.compileForServer ? "dart2js_server" : "dart2js")
+              .toSet();
         });
       });
     }
@@ -181,8 +180,7 @@ class CompilerImpl extends Compiler {
 
 class _Environment implements Environment {
   final Map<String, String> definitions;
-
-  TargetLibrariesSpecification librariesSpecification;
+  Set<String> supportedLibraries;
 
   _Environment(this.definitions);
 
@@ -195,10 +193,7 @@ class _Environment implements Environment {
 
     // Private libraries are not exposed to the users.
     if (libraryName.startsWith("_")) return null;
-    LibraryInfo info = librariesSpecification.libraryInfoFor(libraryName);
-    if (info != null && info.isSupported) {
-      return "true";
-    }
+    if (supportedLibraries.contains(libraryName)) return "true";
     return null;
   }
 }

@@ -2750,9 +2750,10 @@ void Class::AddInvocationDispatcher(const String& target_name,
     i++;
   }
   if (i == dispatchers.Length()) {
-    const intptr_t new_len = cache.Length() == 0
-                                 ? Class::kInvocationDispatcherEntrySize
-                                 : cache.Length() * 2;
+    const intptr_t new_len =
+        cache.Length() == 0
+            ? static_cast<intptr_t>(Class::kInvocationDispatcherEntrySize)
+            : cache.Length() * 2;
     cache ^= Array::Grow(cache, new_len);
     set_invocation_dispatcher_cache(cache);
   }
