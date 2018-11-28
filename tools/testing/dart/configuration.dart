@@ -112,6 +112,7 @@ class TestConfiguration {
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
+  bool get keepGeneratedFiles => configuration.keepGeneratedFiles;
   bool get useSdk => configuration.useSdk;
   bool get useFastStartup => configuration.useFastStartup;
   bool get useEnableAsserts => configuration.enableAsserts;

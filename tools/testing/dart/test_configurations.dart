@@ -167,7 +167,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     DebugLogger.close();
-    TestUtils.deleteTempSnapshotDirectory(configurations[0]);
+    if (!firstConf.keepGeneratedFiles) {
+      TestUtils.deleteTempSnapshotDirectory(configurations[0]);
+    }
   }
 
   var eventListener = <EventListener>[];

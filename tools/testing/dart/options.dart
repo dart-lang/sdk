@@ -191,6 +191,8 @@ currently.''',
     new _Option.bool(
         'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
         hide: true),
+    new _Option.bool('keep_generated_files', 'Keep any generated files.',
+        abbr: 'k'),
     new _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
     new _Option(
         'progress',
@@ -648,6 +650,7 @@ compiler.''',
                     useAnalyzerFastaParser:
                         data["analyzer_use_fasta_parser"] as bool,
                     useBlobs: data["use_blobs"] as bool,
+                    keepGeneratedFiles: data["keep_generated_files"] as bool,
                     useSdk: data["use_sdk"] as bool,
                     useFastStartup: data["fast_startup"] as bool,
                     useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
