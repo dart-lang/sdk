@@ -1,3 +1,7 @@
+## 0.33.5
+* Deprecated `AstNode.getAncestor` and introduced
+  `AstNode.thisOrAncestorMatching` as its replacement.
+
 ## 0.33.0
 * Support handling 'class C with M', with extends missing.
 * Report ABSTRACT_SUPER_MEMBER_REFERENCE as an error.

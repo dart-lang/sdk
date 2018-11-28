@@ -532,6 +532,7 @@ abstract class AstNode implements SyntacticEntity {
    * returns `true`, or `null` if there is no such ancestor. Note that this node
    * will never be returned.
    */
+  @deprecated
   E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
 
   /**
@@ -545,6 +546,12 @@ abstract class AstNode implements SyntacticEntity {
    * If the value is `null`, the property will effectively be removed.
    */
   void setProperty(String name, Object value);
+
+  /**
+   * Return either this node or the most immediate ancestor of this node for
+   * which the [predicate] returns `true`, or `null` if there is no such node.
+   */
+  E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate);
 
   /**
    * Return a textual description of this node in a form approximating valid
