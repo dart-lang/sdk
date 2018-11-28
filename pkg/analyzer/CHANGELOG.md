@@ -1,3 +1,6 @@
+## 0.33.5
+* Add AnalysisSession.getResolvedLibrary()/ByElement() APIs.
+
 ## 0.33.4
 * Add a hint when either Future or Stream are imported from dart:core in a package that is expected to work with an SDK before 2.1 where they were required to be imported from dart:async.
 * Add a new "deprecated" maturity for lints
