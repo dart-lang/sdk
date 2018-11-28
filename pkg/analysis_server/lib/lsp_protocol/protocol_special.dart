@@ -163,7 +163,6 @@ abstract class ServerErrorCodes {
   static const ServerAlreadyInitialized = const ErrorCodes(-32002);
   static const InvalidFilePath = const ErrorCodes(-32003);
   static const InvalidFileLineCol = const ErrorCodes(-32004);
-  static const FileNotOpen = const ErrorCodes(-32005);
 }
 
 abstract class ToJsonable {

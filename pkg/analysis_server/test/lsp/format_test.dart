@@ -22,7 +22,6 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   print('test');
 }
 ''';
-    await newFile(mainFilePath, content: contents);
     await initialize();
     await openFile(mainFileUri, contents);
 
@@ -30,27 +29,11 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
-  test_fileNotOpen() async {
-    // TODO(dantup): This test turns out ot be invalid. LSP spec says:
-    // "Note that a server's ability to fulfill requests is independent of
-    // whether a text document is open or closed"
-    // Need to review any instances that rely on files being open (and add
-    // additional tests for this).
-    await newFile(mainFilePath);
-    await initialize();
-
-    await expectLater(
-      formatDocument(mainFileUri.toString()),
-      throwsA(isResponseError(ServerErrorCodes.FileNotOpen)),
-    );
-  }
-
   test_invalidSyntax() async {
     const contents = '''main(((( {
   print('test');
 }
 ''';
-    await newFile(mainFilePath, content: contents);
     await initialize();
     await openFile(mainFileUri, contents);
 
@@ -99,9 +82,29 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   print('test');
 }
 ''';
-    await newFile(mainFilePath, content: contents);
     await initialize();
     await openFile(mainFileUri, contents);
+
+    final formatEdits = await formatDocument(mainFileUri.toString());
+    expect(formatEdits, isNotNull);
+    final formattedContents = applyEdits(contents, formatEdits);
+    expect(formattedContents, equals(expected));
+  }
+
+  test_unopenFile() async {
+    const contents = '''
+    main  ()
+    {
+
+        print('test');
+    }
+    ''';
+    final expected = '''main() {
+  print('test');
+}
+''';
+    await newFile(mainFilePath, content: contents);
+    await initialize();
 
     final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNotNull);

@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -25,14 +24,8 @@ class FormattingHandler
     final path = pathOf(params.textDocument);
     final result = await requireUnit(path);
 
-    final unformattedSource = server.fileContentOverlay[path];
-
-    // If the file has not been opened (added to the overlay) we should not have
-    // been asked to format it.
-    if (unformattedSource == null) {
-      throw new ResponseError(ServerErrorCodes.FileNotOpen,
-          'Cannot format a file that is not open', path);
-    }
+    final unformattedSource = server.fileContentOverlay[path] ??
+        server.resourceProvider.getFile(path).readAsStringSync();
 
     final code =
         new SourceCode(unformattedSource, uri: null, isCompilationUnit: true);

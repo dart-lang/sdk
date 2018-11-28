@@ -39,6 +39,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent([MarkupKind.Markdown]);
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -62,6 +63,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -85,6 +87,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent([MarkupKind.PlainText]);
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -112,6 +115,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     // to provide Markdown.
     await initializeSupportingMarkupContent(
         [MarkupKind.PlainText, MarkupKind.Markdown]);
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -136,6 +140,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent();
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -160,6 +165,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent();
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -184,6 +190,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent();
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -207,6 +214,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent();
+    await openFile(mainFileUri, withoutMarkers(content));
     await testSignature(
       content,
       expectedLabel,
@@ -229,6 +237,30 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedDoc = 'Does foo.';
 
     await initializeSupportingMarkupContent();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('int i', null),
+      ],
+    );
+  }
+
+  test_unopenFile() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await newFile(mainFilePath, content: withoutMarkers(content));
+    await initializeSupportingMarkupContent();
     await testSignature(
       content,
       expectedLabel,
@@ -247,7 +279,6 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     List<ParameterInformation> expectedParams, {
     MarkupKind expectedFormat = MarkupKind.Markdown,
   }) async {
-    await openFile(mainFileUri, withoutMarkers(fileContent));
     final res =
         await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
 

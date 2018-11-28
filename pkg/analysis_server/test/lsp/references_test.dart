@@ -118,4 +118,24 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
       ),
     );
   }
+
+  test_unopenFile() async {
+    final contents = '''
+    f^oo() {
+      [[foo]]();
+    }
+    ''';
+
+    await newFile(mainFilePath, content: withoutMarkers(contents));
+    await initialize();
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        new Location(mainFileUri.toString(), rangeFromMarkers(contents)),
+      ),
+    );
+  }
 }

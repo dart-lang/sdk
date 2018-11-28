@@ -16,6 +16,30 @@ main() {
 
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest {
+  test_unopenFile() async {
+    final content = '''
+    class MyClass {
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^
+    }
+    ''';
+
+    await newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
+    // ignore: deprecated_member_use
+    expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
+    final updated = applyEdits(withoutMarkers(content), [item.textEdit]);
+    expect(updated, contains('a.abcdefghij'));
+  }
+
   test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'));
     newFolder(join(projectFolderPath, 'folder'));

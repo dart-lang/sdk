@@ -187,6 +187,22 @@ String abc
     expect(contents, contains('This is a string.'));
   }
 
+  test_unopenFile() async {
+    final content = '''
+    /// This is a string.
+    String [[a^bc]];
+    ''';
+
+    await newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getStringContents(hover);
+    expect(markup, contains('This is a string.'));
+  }
+
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(
       (t1) => throw 'Hover contents were String, not MarkupContent',
