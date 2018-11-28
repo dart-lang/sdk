@@ -78,11 +78,15 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
       case server.ElementKind.FILE:
         return const [lsp.CompletionItemKind.File];
       case server.ElementKind.FUNCTION:
-      case server.ElementKind.FUNCTION_TYPE_ALIAS:
         return const [lsp.CompletionItemKind.Function];
+      case server.ElementKind.FUNCTION_TYPE_ALIAS:
+        return const [lsp.CompletionItemKind.Class];
       case server.ElementKind.GETTER:
         return const [lsp.CompletionItemKind.Property];
       case server.ElementKind.LABEL:
+        // There isn't really a good CompletionItemKind for labels so we'll
+        // just use the Text option.
+        return const [lsp.CompletionItemKind.Text];
       case server.ElementKind.LIBRARY:
         return const [lsp.CompletionItemKind.Module];
       case server.ElementKind.LOCAL_VARIABLE:
@@ -102,10 +106,77 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
           lsp.CompletionItemKind.Variable,
         ];
       case server.ElementKind.UNIT_TEST_GROUP:
-        return const [lsp.CompletionItemKind.Module];
       case server.ElementKind.UNIT_TEST_TEST:
         return const [lsp.CompletionItemKind.Method];
       default:
+        return null;
+    }
+  }
+
+  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+}
+
+lsp.SymbolKind elementKindToSymbolKind(
+  HashSet<lsp.SymbolKind> clientSupportedSymbolKinds,
+  server.ElementKind kind,
+) {
+  bool isSupported(lsp.SymbolKind kind) =>
+      clientSupportedSymbolKinds.contains(kind);
+
+  List<lsp.SymbolKind> getKindPreferences() {
+    switch (kind) {
+      case server.ElementKind.CLASS:
+      case server.ElementKind.CLASS_TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
+      case server.ElementKind.COMPILATION_UNIT:
+        return const [lsp.SymbolKind.Module];
+      case server.ElementKind.CONSTRUCTOR:
+      case server.ElementKind.CONSTRUCTOR_INVOCATION:
+        return const [lsp.SymbolKind.Constructor];
+      case server.ElementKind.ENUM:
+      case server.ElementKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.Enum];
+      case server.ElementKind.FIELD:
+        return const [lsp.SymbolKind.Field];
+      case server.ElementKind.FILE:
+        return const [lsp.SymbolKind.File];
+      case server.ElementKind.FUNCTION:
+      case server.ElementKind.FUNCTION_INVOCATION:
+        return const [lsp.SymbolKind.Function];
+      case server.ElementKind.FUNCTION_TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
+      case server.ElementKind.GETTER:
+        return const [lsp.SymbolKind.Property];
+      case server.ElementKind.LABEL:
+        // There isn't really a good SymbolKind for labels so we'll
+        // just use the Null option.
+        return const [lsp.SymbolKind.Null];
+      case server.ElementKind.LIBRARY:
+        return const [lsp.SymbolKind.Namespace];
+      case server.ElementKind.LOCAL_VARIABLE:
+        return const [lsp.SymbolKind.Variable];
+      case server.ElementKind.METHOD:
+        return const [lsp.SymbolKind.Method];
+      case server.ElementKind.MIXIN:
+        return const [lsp.SymbolKind.Class];
+      case server.ElementKind.PARAMETER:
+      case server.ElementKind.PREFIX:
+        return const [lsp.SymbolKind.Variable];
+      case server.ElementKind.SETTER:
+        return const [lsp.SymbolKind.Property];
+      case server.ElementKind.TOP_LEVEL_VARIABLE:
+        return const [lsp.SymbolKind.Variable];
+      case server.ElementKind.TYPE_PARAMETER:
+        return const [
+          lsp.SymbolKind.TypeParameter,
+          lsp.SymbolKind.Variable,
+        ];
+      case server.ElementKind.UNIT_TEST_GROUP:
+      case server.ElementKind.UNIT_TEST_TEST:
+        return const [lsp.SymbolKind.Method];
+      default:
+        // TODO(dantup): Do we want an assert here to crash in test runs? It's
+        // valid to return null but we should aim to have everything above.
         return null;
     }
   }

@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'completion_test.dart' as completion_test;
 import 'definition_test.dart' as definition_test;
 import 'diagnostic_test.dart' as diagnostic_test;
+import 'document_symbols_test.dart' as document_symbols_test;
 import 'file_modification_test.dart' as file_modification_test;
 import 'format_test.dart' as format_test;
 import 'hover_test.dart' as hover_test;
@@ -20,6 +21,7 @@ main() {
     completion_test.main();
     definition_test.main();
     diagnostic_test.main();
+    document_symbols_test.main();
     file_modification_test.main();
     format_test.main();
     hover_test.main();

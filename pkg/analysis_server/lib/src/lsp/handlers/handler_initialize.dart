@@ -66,7 +66,7 @@ class InitializeMessageHandler
         null,
         true, // referencesProvider
         null,
-        null,
+        true, // documentSymbolProvider
         null,
         null,
         null,

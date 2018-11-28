@@ -49,27 +49,33 @@ class CompletionHandler
       CompletionParams.fromJson(json);
 
   Future<ErrorOr<List<CompletionItem>>> handle(CompletionParams params) async {
+    final completionCapabilities =
+        server?.clientCapabilities?.textDocument?.completion;
+
+    final clientSupportedCompletionKinds =
+        completionCapabilities?.completionItemKind?.valueSet != null
+            ? new HashSet<CompletionItemKind>.of(
+                completionCapabilities.completionItemKind.valueSet)
+            : defaultSupportedCompletionKinds;
+
     final pos = params.position;
     final path = pathOf(params.textDocument);
     final unit = await path.mapResult(requireUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) => _getItems(unit.result, offset));
+    return offset.mapResult((offset) => _getItems(
+          completionCapabilities,
+          clientSupportedCompletionKinds,
+          unit.result,
+          offset,
+        ));
   }
 
   Future<ErrorOr<List<CompletionItem>>> _getItems(
-      ResolvedUnitResult unit, int offset) async {
-    final completionCapabilities =
-        server.clientCapabilities.textDocument != null
-            ? server.clientCapabilities.textDocument.completion
-            : null;
-
-    final clientSupportedCompletionKinds = completionCapabilities != null &&
-            completionCapabilities.completionItemKind != null &&
-            completionCapabilities.completionItemKind.valueSet != null
-        ? new HashSet<CompletionItemKind>.of(
-            completionCapabilities.completionItemKind.valueSet)
-        : defaultSupportedCompletionKinds;
-
+    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    ResolvedUnitResult unit,
+    int offset,
+  ) async {
     final performance = new CompletionPerformance();
     final completionRequest =
         new CompletionRequestImpl(unit, offset, performance);
