@@ -16,23 +16,6 @@ main() {
 
 @reflectiveTest
 class DefinitionTest extends AbstractLspAnalysisServerTest {
-  test_singleFile() async {
-    final contents = '''
-    [[foo]]() {
-      fo^o();
-    }
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
-
-    expect(res, hasLength(1));
-    Location loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
-  }
-
   test_acrossFiles() async {
     final mainContents = '''
     import 'referenced.dart';
@@ -68,6 +51,23 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     Location loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(referencedContents)));
     expect(loc.uri, equals(referencedFileUri.toString()));
+  }
+
+  test_singleFile() async {
+    final contents = '''
+    [[foo]]() {
+      fo^o();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    Location loc = res.single;
+    expect(loc.range, equals(rangeFromMarkers(contents)));
+    expect(loc.uri, equals(mainFileUri.toString()));
   }
 
   test_unopenFile() async {

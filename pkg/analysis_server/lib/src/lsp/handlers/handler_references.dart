@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -35,6 +35,17 @@ class ReferencesHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult(
         (offset) => _getRefererences(path.result, offset, params, unit.result));
+  }
+
+  List<Location> _getDeclarations(CompilationUnit unit, int offset) {
+    final collector = new NavigationCollectorImpl();
+    computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
+
+    return convert(collector.targets, (NavigationTarget target) {
+      final targetFilePath = collector.files[target.fileIndex];
+      final lineInfo = server.getLineInfo(targetFilePath);
+      return navigationTargetToLocation(targetFilePath, target, lineInfo);
+    }).toList();
   }
 
   Future<ErrorOr<List<Location>>> _getRefererences(String path, int offset,
@@ -69,16 +80,5 @@ class ReferencesHandler
     }
 
     return success(referenceResults);
-  }
-
-  List<Location> _getDeclarations(CompilationUnit unit, int offset) {
-    final collector = new NavigationCollectorImpl();
-    computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
-
-    return convert(collector.targets, (NavigationTarget target) {
-      final targetFilePath = collector.files[target.fileIndex];
-      final lineInfo = server.getLineInfo(targetFilePath);
-      return navigationTargetToLocation(targetFilePath, target, lineInfo);
-    }).toList();
   }
 }

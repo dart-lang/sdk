@@ -209,14 +209,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }, onError: error);
   }
 
-  void showError(String message) {
-    channel.sendNotification(new NotificationMessage(
-      Method.window_showMessage,
-      new ShowMessageParams(MessageType.Error, message),
-      jsonRpcVersion,
-    ));
-  }
-
   void logError(String message) {
     channel.sendNotification(new NotificationMessage(
       Method.window_logMessage,
@@ -281,6 +273,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    */
   bool shouldSendErrorsNotificationFor(String file) {
     return contextManager.isInAnalysisRoot(file);
+  }
+
+  void showError(String message) {
+    channel.sendNotification(new NotificationMessage(
+      Method.window_showMessage,
+      new ShowMessageParams(MessageType.Error, message),
+      jsonRpcVersion,
+    ));
   }
 
   Future<void> shutdown() {

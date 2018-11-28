@@ -23,6 +23,12 @@ abstract class MessageHandler<P, R> {
   /// The method that this handler can handle.
   Method get handlesMessage;
 
+  /// Converts an iterable using the provided function and skipping over any
+  /// null values.
+  Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
+    return items.map(converter).where((item) => item != null);
+  }
+
   P convertParams(Map<String, dynamic> json);
 
   ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
@@ -39,12 +45,6 @@ abstract class MessageHandler<P, R> {
   FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message) {
     final params = convertParams(message.params);
     return handle(params);
-  }
-
-  /// Converts an iterable using the provided function and skipping over any
-  /// null values.
-  Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
-    return items.map(converter).where((item) => item != null);
   }
 
   Future<ErrorOr<ResolvedUnitResult>> requireUnit(String path) async {

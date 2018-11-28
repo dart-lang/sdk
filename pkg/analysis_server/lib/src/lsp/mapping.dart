@@ -27,32 +27,6 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
           _asMarkup(preferredFormats, content));
 }
 
-lsp.MarkupContent _asMarkup(
-    List<lsp.MarkupKind> preferredFormats, String content) {
-  // It's not valid to call this function with a null format, as null formats
-  // do not support MarkupContent. [asStringOrMarkupContent] is probably the
-  // better choice.
-  assert(preferredFormats != null);
-
-  if (content == null) {
-    return null;
-  }
-
-  if (preferredFormats.isEmpty) {
-    preferredFormats.add(lsp.MarkupKind.Markdown);
-  }
-
-  final supportsMarkdown = preferredFormats.contains(lsp.MarkupKind.Markdown);
-  final supportsPlain = preferredFormats.contains(lsp.MarkupKind.PlainText);
-  // Since our PlainText version is actually just Markdown, only advertise it
-  // as PlainText if the client explicitly supports PlainText and not Markdown.
-  final format = supportsPlain && !supportsMarkdown
-      ? lsp.MarkupKind.PlainText
-      : lsp.MarkupKind.Markdown;
-
-  return new lsp.MarkupContent(format, content);
-}
-
 lsp.CompletionItemKind elementKindToCompletionItemKind(
   HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
   server.ElementKind kind,
@@ -262,6 +236,20 @@ ErrorOr<String> pathOf(lsp.TextDocumentIdentifier doc) {
         'File URI did not contain a valid file path',
         doc.uri));
   }
+}
+
+lsp.Location searchResultToLocation(
+    server.SearchResult result, server.LineInfo lineInfo) {
+  final location = result.location;
+
+  if (lineInfo == null) {
+    return null;
+  }
+
+  return new Location(
+    Uri.file(result.location.file).toString(),
+    toRange(lineInfo, location.offset, location.length),
+  );
 }
 
 lsp.CompletionItemKind suggestionKindToCompletionItemKind(
@@ -484,16 +472,28 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   );
 }
 
-lsp.Location searchResultToLocation(
-    server.SearchResult result, server.LineInfo lineInfo) {
-  final location = result.location;
+lsp.MarkupContent _asMarkup(
+    List<lsp.MarkupKind> preferredFormats, String content) {
+  // It's not valid to call this function with a null format, as null formats
+  // do not support MarkupContent. [asStringOrMarkupContent] is probably the
+  // better choice.
+  assert(preferredFormats != null);
 
-  if (lineInfo == null) {
+  if (content == null) {
     return null;
   }
 
-  return new Location(
-    Uri.file(result.location.file).toString(),
-    toRange(lineInfo, location.offset, location.length),
-  );
+  if (preferredFormats.isEmpty) {
+    preferredFormats.add(lsp.MarkupKind.Markdown);
+  }
+
+  final supportsMarkdown = preferredFormats.contains(lsp.MarkupKind.Markdown);
+  final supportsPlain = preferredFormats.contains(lsp.MarkupKind.PlainText);
+  // Since our PlainText version is actually just Markdown, only advertise it
+  // as PlainText if the client explicitly supports PlainText and not Markdown.
+  final format = supportsPlain && !supportsMarkdown
+      ? lsp.MarkupKind.PlainText
+      : lsp.MarkupKind.Markdown;
+
+  return new lsp.MarkupContent(format, content);
 }

@@ -67,23 +67,6 @@ class DocumentSymbolHandler
         (unit) => _getSymbols(clientSupportedSymbolKinds, path.result, unit));
   }
 
-  ErrorOr<List<DocumentSymbol>> _getSymbols(
-    HashSet<SymbolKind> clientSupportedSymbolKinds,
-    String path,
-    ResolvedUnitResult unit,
-  ) {
-    final computer =
-        new DartUnitOutlineComputer(path, unit.lineInfo, unit.unit);
-    final outline = computer.compute();
-
-    return success(
-      outline?.children
-          ?.map((child) =>
-              _convert(clientSupportedSymbolKinds, unit.lineInfo, child))
-          ?.toList(),
-    );
-  }
-
   DocumentSymbol _convert(
     HashSet<SymbolKind> clientSupportedSymbolKinds,
     LineInfo lineInfo,
@@ -100,6 +83,23 @@ class DocumentSymbolHandler
       outline.children
           ?.map(
               (child) => _convert(clientSupportedSymbolKinds, lineInfo, child))
+          ?.toList(),
+    );
+  }
+
+  ErrorOr<List<DocumentSymbol>> _getSymbols(
+    HashSet<SymbolKind> clientSupportedSymbolKinds,
+    String path,
+    ResolvedUnitResult unit,
+  ) {
+    final computer =
+        new DartUnitOutlineComputer(path, unit.lineInfo, unit.unit);
+    final outline = computer.compute();
+
+    return success(
+      outline?.children
+          ?.map((child) =>
+              _convert(clientSupportedSymbolKinds, unit.lineInfo, child))
           ?.toList(),
     );
   }
