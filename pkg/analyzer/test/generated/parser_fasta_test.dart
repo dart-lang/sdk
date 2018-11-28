@@ -191,6 +191,30 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
 
+  void test_mapLiteral() {
+    MapLiteral map = parseExpression('{3: 6}', parseSetLiterals: true);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+    MapLiteralEntry entry = map.entries[0];
+    IntegerLiteral key = entry.key;
+    expect(key.value, 3);
+    IntegerLiteral value = entry.value;
+    expect(value.value, 6);
+  }
+
+  void test_mapLiteral_const() {
+    MapLiteral map = parseExpression('const {3: 6}', parseSetLiterals: true);
+    expect(map.constKeyword, isNotNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+    MapLiteralEntry entry = map.entries[0];
+    IntegerLiteral key = entry.key;
+    expect(key.value, 3);
+    IntegerLiteral value = entry.value;
+    expect(value.value, 6);
+  }
+
   void test_setLiteral() {
     SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNull);
