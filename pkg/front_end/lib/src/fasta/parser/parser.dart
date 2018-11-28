@@ -4231,11 +4231,11 @@ class Parser {
       listener.handleLiteralSet(1, leftBrace, constKeyword, next);
       return next;
     } else if (optional(',', next)) {
-      return parseLiteralSetRest(next, constKeyword, leftBrace);
+      return parseLiteralSetRest(token, constKeyword, leftBrace);
     } else {
       // TODO(danrubel): Consider better recovery
       // rather than just assuming this is a literal map.
-      Token colon = ensureColon(next);
+      Token colon = ensureColon(token);
 
       final old = mayParseFunctionExpressions;
       mayParseFunctionExpressions = true;
