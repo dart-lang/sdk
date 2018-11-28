@@ -25,7 +25,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool> _sourcesFromRealImplementation = new List<bool>();
-  final Set<Uri> _knownSourceUri = new Set<Uri>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
 
@@ -36,6 +35,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final BytesSink _constantsBytesSink;
   BufferedSink _constantsSink;
   BufferedSink _sink;
+  bool includeSources;
 
   List<int> libraryOffsets;
   List<int> classOffsets;
@@ -55,7 +55,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
   /// one.
-  BinaryPrinter(Sink<List<int>> sink, {StringIndexer stringIndexer})
+  BinaryPrinter(Sink<List<int>> sink,
+      {StringIndexer stringIndexer, this.includeSources = true})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
         _constantsBytesSink = new BytesSink(),
@@ -219,11 +220,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     type.accept(this);
   }
 
-  // The currently active file uri where we are writing [TreeNode]s from.  If
-  // this is set to `null` we cannot write file offsets.  The [writeOffset]
-  // helper function will ensure this.
-  Uri _activeFileUri;
-
   // Returns the new active file uri.
   Uri writeUriReference(Uri uri) {
     final int index = _sourceUriIndexer.put(uri);
@@ -323,7 +319,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt32(Tag.ComponentFile);
     writeUInt32(Tag.BinaryFormatVersion);
     indexLinkTable(component);
-    indexUris(component);
     _collectMetadata(component);
     if (_metadataSubsections != null) {
       _writeNodeMetadataImpl(component, componentOffset);
@@ -495,10 +490,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt32(getBufferOffset() + 4); // total size.
   }
 
-  void indexUris(Component component) {
-    _knownSourceUri.addAll(component.uriToSource.keys);
-  }
-
   void writeUriToSource(Map<Uri, Source> uriToSource) {
     _binaryOffsetForSourceTable = getBufferOffset();
 
@@ -511,7 +502,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     Utf8Encoder utf8Encoder = const Utf8Encoder();
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
-      Source source = ((_knownSourceUri.contains(uri) &&
+      Source source = ((includeSources &&
                   _sourcesFromRealImplementation.length > i &&
                   _sourcesFromRealImplementation[i] == true)
               ? uriToSource[uri]
@@ -582,10 +573,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   writeOffset(int offset) {
-    if (_activeFileUri == null) {
-      offset = TreeNode.noOffset;
-    }
-
     // TODO(jensj): Delta-encoding.
     // File offset ranges from -1 and up,
     // but is here saved as unsigned (thus the +1)
@@ -627,11 +614,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
-    // TODO(jensj): We save (almost) the same URI twice.
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
     writeAdditionalExports(node.additionalExports);
@@ -644,8 +627,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     procedureOffsets = <int>[];
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
-
-    _activeFileUri = activeFileUriSaved;
 
     // Fixed-size ints at the end used as an index.
     assert(classOffsets.length > 0);
@@ -716,10 +697,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitTypedef(Typedef node) {
     _variableIndexer ??= new VariableIndexer();
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
@@ -735,8 +713,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     leaveScope(typeParameters: node.typeParametersOfFunctionType);
     leaveScope(typeParameters: node.typeParameters, variableScope: true);
-
-    _activeFileUri = activeFileUriSaved;
   }
 
   void writeAnnotation(Expression annotation) {
@@ -772,10 +748,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -797,8 +770,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.redirectingFactoryConstructors);
     leaveScope(typeParameters: node.typeParameters);
 
-    _activeFileUri = activeFileUriSaved;
-
     assert(procedureOffsets.length > 0);
     for (int offset in procedureOffsets) {
       writeUInt32(offset);
@@ -817,10 +788,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(memberScope: true);
     writeByte(Tag.Constructor);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -835,8 +803,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _variableIndexer.restoreScope(node.function.positionalParameters.length +
         node.function.namedParameters.length);
     writeNodeList(node.initializers);
-
-    _activeFileUri = activeFileUriSaved;
 
     leaveScope(memberScope: true);
   }
@@ -858,10 +824,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(memberScope: true);
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -872,9 +835,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalReference(node.forwardingStubSuperTargetReference);
     writeOptionalReference(node.forwardingStubInterfaceTargetReference);
     writeOptionalNode(node.function);
-
-    _activeFileUri = activeFileUriSaved;
-
     leaveScope(memberScope: true);
 
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
@@ -890,10 +850,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(memberScope: true);
     writeByte(Tag.Field);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
@@ -901,9 +858,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
-
-    _activeFileUri = activeFileUriSaved;
-
     leaveScope(memberScope: true);
   }
 
@@ -918,10 +872,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         memberScope: true,
         variableScope: true);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
-
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
-
+    writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
@@ -935,8 +886,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(node.requiredParameterCount);
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
-
-    _activeFileUri = activeFileUriSaved;
 
     leaveScope(
         typeParameters: node.typeParameters,
