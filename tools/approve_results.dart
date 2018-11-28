@@ -358,10 +358,10 @@ ${parser.usage}""");
 
   // Stop if this is a dry run.
   if (options["no"]) {
-    if (unapprovedBots.length == 1) {
+    if (unapprovedTests.length == 1) {
       print("1 test has a changed result and needs approval");
     } else {
-      print("${unapprovedBots.length} "
+      print("${unapprovedTests.length} "
           "tests have changed results and need approval");
     }
     return;
