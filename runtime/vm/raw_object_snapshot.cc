@@ -1954,67 +1954,51 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
   intptr_t length = Smi::Value(ptr()->length_);  // In elements.
-  intptr_t internal_cid;
   intptr_t bytes;
   switch (cid) {
     case kExternalTypedDataInt8ArrayCid:
-      internal_cid = kTypedDataInt8ArrayCid;
       bytes = length * sizeof(int8_t);
       break;
     case kExternalTypedDataUint8ArrayCid:
-      internal_cid = kTypedDataUint8ArrayCid;
       bytes = length * sizeof(uint8_t);
       break;
     case kExternalTypedDataUint8ClampedArrayCid:
-      internal_cid = kTypedDataUint8ClampedArrayCid;
       bytes = length * sizeof(uint8_t);
       break;
     case kExternalTypedDataInt16ArrayCid:
-      internal_cid = kTypedDataInt16ArrayCid;
       bytes = length * sizeof(int16_t);
       break;
     case kExternalTypedDataUint16ArrayCid:
-      internal_cid = kTypedDataUint16ArrayCid;
       bytes = length * sizeof(uint16_t);
       break;
     case kExternalTypedDataInt32ArrayCid:
-      internal_cid = kTypedDataInt32ArrayCid;
       bytes = length * sizeof(int32_t);
       break;
     case kExternalTypedDataUint32ArrayCid:
-      internal_cid = kTypedDataUint32ArrayCid;
       bytes = length * sizeof(uint32_t);
       break;
     case kExternalTypedDataInt64ArrayCid:
-      internal_cid = kTypedDataInt64ArrayCid;
       bytes = length * sizeof(int64_t);
       break;
     case kExternalTypedDataUint64ArrayCid:
-      internal_cid = kTypedDataUint64ArrayCid;
       bytes = length * sizeof(uint64_t);
       break;
     case kExternalTypedDataFloat32ArrayCid:
-      internal_cid = kTypedDataFloat32ArrayCid;
       bytes = length * sizeof(float);  // NOLINT.
       break;
     case kExternalTypedDataFloat64ArrayCid:
-      internal_cid = kTypedDataFloat64ArrayCid,
       bytes = length * sizeof(double);  // NOLINT.
       break;
     case kExternalTypedDataInt32x4ArrayCid:
-      internal_cid = kTypedDataInt32x4ArrayCid;
       bytes = length * sizeof(int32_t) * 4;
       break;
     case kExternalTypedDataFloat32x4ArrayCid:
-      internal_cid = kTypedDataFloat32x4ArrayCid;
       bytes = length * sizeof(float) * 4;
       break;
     case kExternalTypedDataFloat64x2ArrayCid:
-      internal_cid = kTypedDataFloat64x2ArrayCid;
       bytes = length * sizeof(double) * 2;
       break;
     default:
-      internal_cid = kIllegalCid;
       bytes = 0;
       UNREACHABLE();
   }
