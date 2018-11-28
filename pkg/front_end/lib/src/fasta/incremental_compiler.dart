@@ -622,6 +622,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (LibraryPart part in library.target.parts) {
           Uri partUri = library.uri.resolve(part.partUri);
           Uri fileUri = library.library.fileUri.resolve(part.partUri);
+          if (fileUri.scheme == "package") {
+            // Part was specified via package URI and the resolve above thus
+            // did not go as expected. Translate the package URI to get the
+            // actual file URI.
+            fileUri = uriTranslator.translate(partUri, false);
+          }
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
             builders[partUri] = library;
