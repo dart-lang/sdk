@@ -12,6 +12,18 @@
 
 #### Pub
 
+#### Linter
+
+The linter was bumped to `0.1.73` which introduces the following new lints to the SDK:
+
+* `unnecessary_await_in_return`
+* `use_function_type_syntax_for_parameters`
+* `avoid_returning_null_for_future`
+* `avoid_shadowing_type_parameters`
+
+In addition, `prefer_bool_in_asserts` has been deprecated as its semantics are
+redundant with Dart 2 checks.
+
 #### Other Tools
 
 ## 2.2.0-dev.0.0
