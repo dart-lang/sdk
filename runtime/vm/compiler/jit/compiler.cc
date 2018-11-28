@@ -110,7 +110,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
     FLAG_precompiled_mode = true;
-    FLAG_reorder_basic_blocks = false;
+    FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
 
@@ -1018,7 +1018,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
         // The non-optimizing compiler can get an unhandled exception
         // due to OOM or Stack overflow errors, it should not however
         // bail out.
-        ASSERT(error.IsUnhandledException() ||
+        ASSERT(error.IsUnhandledException() || error.IsUnwindError() ||
                (error.IsLanguageError() &&
                 LanguageError::Cast(error).kind() != Report::kBailout));
         return error.raw();
@@ -1362,7 +1362,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
-    return Precompiler::EvaluateStaticInitializer(field);
+    UNREACHABLE();
   }
 #endif
   ASSERT(field.is_static());
@@ -1436,7 +1436,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
-    return Precompiler::ExecuteOnce(fragment);
+    UNREACHABLE();
   }
 #endif
   LongJumpScope jump;

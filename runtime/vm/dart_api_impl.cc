@@ -1965,6 +1965,18 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
   return Api::ClassId(object) == kClosureCid;
 }
 
+DART_EXPORT bool Dart_IsTearOff(Dart_Handle object) {
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
+  if (obj.IsClosure()) {
+    const Closure& closure = Closure::Cast(obj);
+    const Function& func = Function::Handle(Z, closure.function());
+    return func.IsImplicitClosureFunction();
+  }
+  return false;
+}
+
 DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   intptr_t cid = Api::ClassId(handle);
   return RawObject::IsTypedDataClassId(cid) ||
@@ -5052,7 +5064,7 @@ static void CheckIsEntryPoint(const Class& klass) {
         "because it was not annotated with @pragma('vm:entry-point').\n"
         "ERROR: See "
         "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
-        "aot/entry_point_pragma.md",
+        "aot/entry_point_pragma.md\n",
         String::Handle(klass.UserVisibleName()).ToCString());
     UNREACHABLE();
   }
@@ -5600,105 +5612,6 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
     thread->isolate()->heap()->SetPeer(raw_obj, peer);
   }
   return Api::Success();
-}
-
-// --- Dart Front-End (Kernel) support ---
-
-DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return false;
-#else
-  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  return KernelIsolate::IsKernelIsolate(iso);
-#endif
-}
-
-DART_EXPORT bool Dart_KernelIsolateIsRunning() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return false;
-#else
-  return KernelIsolate::IsRunning();
-#endif
-}
-
-DART_EXPORT Dart_Port Dart_KernelPort() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return false;
-#else
-  return KernelIsolate::KernelPort();
-#endif
-}
-
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernel(const char* script_uri,
-                     const uint8_t* platform_kernel,
-                     intptr_t platform_kernel_size,
-                     bool incremental_compile,
-                     const char* package_config) {
-  API_TIMELINE_DURATION(Thread::Current());
-
-  Dart_KernelCompilationResult result;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileToKernel is unsupported.");
-#else
-  result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                          platform_kernel_size, 0, NULL,
-                                          incremental_compile, package_config);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    Dart_KernelCompilationResult accept_result =
-        KernelIsolate::AcceptCompilation();
-    if (accept_result.status != Dart_KernelCompilationStatus_Ok) {
-      FATAL1(
-          "An error occurred in the CFE while accepting the most recent"
-          " compilation results: %s",
-          accept_result.error);
-    }
-  }
-#endif
-  return result;
-}
-
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile sources[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
-#else
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    if (KernelIsolate::AcceptCompilation().status !=
-        Dart_KernelCompilationStatus_Ok) {
-      FATAL(
-          "An error occurred in the CFE while accepting the most recent"
-          " compilation results.");
-    }
-  }
-#endif
-  return result;
-}
-
-DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
-  Dart_KernelCompilationResult result;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_KernelListDependencies is unsupported.");
-#else
-  result = KernelIsolate::ListDependencies();
-#endif
-  return result;
 }
 
 // --- Service support ---

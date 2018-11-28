@@ -16,7 +16,6 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
-import '../universe/class_set.dart';
 import '../universe/resolution_world_builder.dart';
 import '../world.dart';
 
@@ -74,12 +73,9 @@ class KClosedWorldImpl implements KClosedWorld {
       this.processedMembers,
       this.mixinUses,
       this.typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets,
+      this.classHierarchy,
       this.annotationsData})
-      : _implementedClasses = implementedClasses,
-        classHierarchy = new ClassHierarchyImpl(
-            commonElements, classHierarchyNodes, classSets) {
+      : _implementedClasses = implementedClasses {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         resolutionWorldBuilder, this, options);
   }

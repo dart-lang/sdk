@@ -16,7 +16,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -2055,7 +2055,7 @@ abstract class HForeign extends HInstruction {
   HForeign(AbstractValue type, List<HInstruction> inputs) : super(inputs, type);
 
   bool get isStatement => false;
-  native.NativeBehavior get nativeBehavior => null;
+  NativeBehavior get nativeBehavior => null;
 
   bool canThrow(AbstractValueDomain domain) {
     return sideEffects.hasSideEffects() || sideEffects.dependsOnSomething();
@@ -2065,15 +2065,15 @@ abstract class HForeign extends HInstruction {
 class HForeignCode extends HForeign {
   final js.Template codeTemplate;
   final bool isStatement;
-  final native.NativeBehavior nativeBehavior;
-  native.NativeThrowBehavior throwBehavior;
+  final NativeBehavior nativeBehavior;
+  NativeThrowBehavior throwBehavior;
   final FunctionEntity foreignFunction;
 
   HForeignCode(this.codeTemplate, AbstractValue type, List<HInstruction> inputs,
       {this.isStatement: false,
       SideEffects effects,
-      native.NativeBehavior nativeBehavior,
-      native.NativeThrowBehavior throwBehavior,
+      NativeBehavior nativeBehavior,
+      NativeThrowBehavior throwBehavior,
       this.foreignFunction})
       : this.nativeBehavior = nativeBehavior,
         this.throwBehavior = throwBehavior,
@@ -2084,7 +2084,7 @@ class HForeignCode extends HForeign {
     }
     if (this.throwBehavior == null) {
       this.throwBehavior = (nativeBehavior == null)
-          ? native.NativeThrowBehavior.MAY
+          ? NativeThrowBehavior.MAY
           : nativeBehavior.throwBehavior;
     }
     assert(this.throwBehavior != null);
@@ -2095,12 +2095,8 @@ class HForeignCode extends HForeign {
     }
   }
 
-  HForeignCode.statement(
-      js.Template codeTemplate,
-      List<HInstruction> inputs,
-      SideEffects effects,
-      native.NativeBehavior nativeBehavior,
-      AbstractValue type)
+  HForeignCode.statement(js.Template codeTemplate, List<HInstruction> inputs,
+      SideEffects effects, NativeBehavior nativeBehavior, AbstractValue type)
       : this(codeTemplate, type, inputs,
             isStatement: true,
             effects: effects,

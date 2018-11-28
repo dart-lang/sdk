@@ -13,7 +13,8 @@ import 'kernel_builder.dart'
         FormalParameterBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
-        MetadataBuilder;
+        MetadataBuilder,
+        TypeBuilder;
 
 import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
@@ -46,6 +47,14 @@ class KernelFormalParameterBuilder
         ..fileOffset = charOffset;
     }
     return declaration;
+  }
+
+  KernelFormalParameterBuilder clone(List<TypeBuilder> newTypes) {
+    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
+    // how it should be cloned.  Consider cloning it instead of reusing it.
+    return new KernelFormalParameterBuilder(metadata, modifiers,
+        type?.clone(newTypes), name, hasThis, parent, charOffset)
+      ..kind = kind;
   }
 
   @override

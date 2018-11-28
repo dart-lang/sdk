@@ -195,9 +195,6 @@
     "Dynamic access of 'names'.": 1,
     "Dynamic access of 'isNonLeaf'.": 1
   },
-  "pkg/compiler/lib/src/universe/world_builder.dart": {
-    "Dynamic access of 'cls'.": 1
-  },
   "pkg/compiler/lib/src/elements/names.dart": {
     "Dynamic access of 'library'.": 1
   },

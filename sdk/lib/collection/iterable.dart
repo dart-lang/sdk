@@ -199,7 +199,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E elementAt(int index) {
-    if (index is! int) throw new ArgumentError.notNull("index");
+    ArgumentError.checkNotNull(index, "index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
     for (E element in this) {

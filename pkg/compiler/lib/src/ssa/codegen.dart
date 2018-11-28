@@ -27,7 +27,8 @@ import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
+import '../native/enqueue.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -157,7 +158,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final CompilerOptions _options;
   final CodeEmitterTask _emitter;
-  final native.NativeCodegenEnqueuer _nativeEnqueuer;
+  final NativeCodegenEnqueuer _nativeEnqueuer;
   final CheckedModeHelpers _checkedModeHelpers;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
@@ -2215,7 +2216,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerForeignTypes(HForeign node) {
-    native.NativeBehavior nativeBehavior = node.nativeBehavior;
+    NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
     _nativeEnqueuer.registerNativeBehavior(
         _registry.worldImpact, nativeBehavior, node);

@@ -12,6 +12,18 @@
 
 #### Pub
 
+#### Linter
+
+The linter was bumped to `0.1.73` which introduces the following new lints to the SDK:
+
+* `unnecessary_await_in_return`
+* `use_function_type_syntax_for_parameters`
+* `avoid_returning_null_for_future`
+* `avoid_shadowing_type_parameters`
+
+In addition, `prefer_bool_in_asserts` has been deprecated as its semantics are
+redundant with Dart 2 checks.
+
 #### Other Tools
 
 ## 2.2.0-dev.0.0
@@ -23,6 +35,11 @@
 * The `--categories=*` flag is being replaced. `--categories=all` was only used
   for testing and it is no longer supported. `--categories=Server` continues to
   work at this time but it is deprecated, please use `--server-mode` instead.
+
+* The `--library-root` flag was replaced by `--libraries-spec`. This flag is
+  rarely used by developers invoking dart2js directly. It's important for
+  integrating dart2js with build systems. See `--help` for more details on the
+  new flag.
 
 ## 2.1.0 - 2018-11-15
 

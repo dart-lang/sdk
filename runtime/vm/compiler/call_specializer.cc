@@ -187,6 +187,10 @@ void CallSpecializer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (auto static_call = instr->AsStaticCall()) {
+        // If TFA devirtualized instance calls to static calls we also want to
+        // process them here.
+        VisitStaticCall(static_call);
       } else if (instr->IsPolymorphicInstanceCall()) {
         SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
       }

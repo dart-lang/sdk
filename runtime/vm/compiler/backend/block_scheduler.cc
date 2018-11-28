@@ -55,6 +55,9 @@ void BlockScheduler::AssignEdgeWeights() const {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
+  if (FLAG_precompiled_mode) {
+    return;
+  }
 
   const Array& ic_data_array =
       Array::Handle(flow_graph()->zone(),
@@ -155,6 +158,18 @@ static void Union(GrowableArray<Chain*>* chains,
 }
 
 void BlockScheduler::ReorderBlocks() const {
+  if (FLAG_precompiled_mode) {
+    ReorderBlocksAOT();
+  } else {
+    ReorderBlocksJIT();
+  }
+}
+
+void BlockScheduler::ReorderBlocksJIT() const {
+  if (!FLAG_reorder_basic_blocks) {
+    return;
+  }
+
   // Add every block to a chain of length 1 and compute a list of edges
   // sorted by weight.
   intptr_t block_count = flow_graph()->preorder().length();
@@ -211,6 +226,68 @@ void BlockScheduler::ReorderBlocks() const {
       for (Link* link = chains[i]->first; link != NULL; link = link->next) {
         flow_graph()->CodegenBlockOrder(true)->Add(link->block);
       }
+    }
+  }
+}
+
+// Moves blocks ending in a throw/rethrow, as well as any block post-dominated
+// by such a throwing block, to the end.
+void BlockScheduler::ReorderBlocksAOT() const {
+  if (!FLAG_reorder_basic_blocks) {
+    return;
+  }
+
+  auto& reverse_postorder = flow_graph()->reverse_postorder();
+  const intptr_t block_count = reverse_postorder.length();
+  GrowableArray<bool> is_terminating(block_count);
+  is_terminating.FillWith(false, 0, block_count);
+
+  // Any block in the worklist is marked and any of its unconditional
+  // predecessors need to be marked as well.
+  GrowableArray<BlockEntryInstr*> worklist;
+
+  // Add all throwing blocks to the worklist.
+  for (intptr_t i = 0; i < block_count; ++i) {
+    auto block = reverse_postorder[i];
+    auto last = block->last_instruction();
+    if (last->IsThrow() || last->IsReThrow()) {
+      const intptr_t preorder_nr = block->preorder_number();
+      is_terminating[preorder_nr] = true;
+      worklist.Add(block);
+    }
+  }
+
+  // Follow all indirect predecessors which unconditionally will end up in a
+  // throwing block.
+  while (worklist.length() > 0) {
+    auto block = worklist.RemoveLast();
+    for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
+      auto predecessor = block->PredecessorAt(i);
+      if (predecessor->last_instruction()->IsGoto()) {
+        const intptr_t preorder_nr = predecessor->preorder_number();
+        if (!is_terminating[preorder_nr]) {
+          is_terminating[preorder_nr] = true;
+          worklist.Add(predecessor);
+        }
+      }
+    }
+  }
+
+  // Emit code in reverse postorder but move any throwing blocks to the very
+  // end.
+  auto& codegen_order = *flow_graph()->CodegenBlockOrder(true);
+  for (intptr_t i = 0; i < block_count; ++i) {
+    auto block = reverse_postorder[i];
+    const intptr_t preorder_nr = block->preorder_number();
+    if (!is_terminating[preorder_nr]) {
+      codegen_order.Add(block);
+    }
+  }
+  for (intptr_t i = 0; i < block_count; ++i) {
+    auto block = reverse_postorder[i];
+    const intptr_t preorder_nr = block->preorder_number();
+    if (is_terminating[preorder_nr]) {
+      codegen_order.Add(block);
     }
   }
 }

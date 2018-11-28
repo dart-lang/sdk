@@ -104,8 +104,7 @@ intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
   ASSERT(!async_pc_offset_array->IsNull());
   // We start with the asynchronous gap marker.
   ASSERT(async_code_array->At(0) != Code::null());
-  ASSERT(async_code_array->At(0) ==
-         StubCode::AsynchronousGapMarker_entry()->code());
+  ASSERT(async_code_array->At(0) == StubCode::AsynchronousGapMarker().raw());
   const Object& code_object = Object::Handle(async_code_array->At(1));
   if (code_object.IsCode()) {
     *async_function = Code::Cast(code_object).function();

@@ -26,7 +26,6 @@ class TestConfiguration {
       this.progress,
       this.selectors,
       this.testList,
-      this.appendLogs,
       this.repeat,
       this.batch,
       this.batchDart2JS,
@@ -34,6 +33,7 @@ class TestConfiguration {
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
+      this.noStatus,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -41,8 +41,6 @@ class TestConfiguration {
       this.skipCompilation,
       this.useKernelBytecode,
       this.writeDebugLog,
-      this.writeTestOutcomeLog,
-      this.writeResultLog,
       this.writeResults,
       this.writeLogs,
       this.drtPath,
@@ -78,7 +76,6 @@ class TestConfiguration {
 
   // Boolean flags.
 
-  final bool appendLogs;
   final bool batch;
   final bool batchDart2JS;
   final bool copyCoreDumps;
@@ -86,6 +83,7 @@ class TestConfiguration {
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
+  final bool noStatus;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -93,8 +91,6 @@ class TestConfiguration {
   final bool skipCompilation;
   final bool useKernelBytecode;
   final bool writeDebugLog;
-  final bool writeTestOutcomeLog;
-  final bool writeResultLog;
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
@@ -116,6 +112,7 @@ class TestConfiguration {
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
+  bool get keepGeneratedFiles => configuration.keepGeneratedFiles;
   bool get useSdk => configuration.useSdk;
   bool get useFastStartup => configuration.useFastStartup;
   bool get useEnableAsserts => configuration.enableAsserts;

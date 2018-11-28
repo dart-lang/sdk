@@ -4,7 +4,7 @@
 
 // SharedOptions=--enable-experiment=set-literals
 
-import "dart:collection" show LinkedHashSet;
+import "dart:collection" show HashSet, LinkedHashSet;
 
 import "package:expect/expect.dart";
 

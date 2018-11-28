@@ -3,12 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
-#
-# Note: Sections in this file are normalized so we can update them with
-# automated tools. Please add any new status lines affecting those two compilers
-# in the existing sections, if possible keep the alphabetic ordering. If we are
-# missing a section you need, please reach out to sigmund@ to see the best way
-# to add them.
 
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 
@@ -129,6 +123,7 @@ mirrors/native_class_test: CompileTimeError
 mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
 
 [ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
+async/timer_regress22626_test: Skip # Timing dependent
 isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]

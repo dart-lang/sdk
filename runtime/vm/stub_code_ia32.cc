@@ -330,7 +330,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  __ Call(*StubCode::AllocateArray_entry());
+  __ Call(StubCode::AllocateArray());
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).

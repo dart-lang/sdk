@@ -58,10 +58,8 @@ void Assembler::call(const ExternalLabel* label) {
   call(TMP);
 }
 
-void Assembler::CallPatchable(const StubEntry& stub_entry,
-                              Code::EntryKind entry_kind) {
+void Assembler::CallPatchable(const Code& target, Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -69,20 +67,18 @@ void Assembler::CallPatchable(const StubEntry& stub_entry,
   call(FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
+void Assembler::CallWithEquivalence(const Code& target,
                                     const Object& equivalence,
                                     Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx = object_pool_wrapper().FindObject(target, equivalence);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
   call(FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::Call(const StubEntry& stub_entry) {
+void Assembler::Call(const Code& target) {
   ASSERT(constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -878,13 +874,11 @@ void Assembler::j(Condition condition, Label* label, bool near) {
   }
 }
 
-void Assembler::J(Condition condition,
-                  const StubEntry& stub_entry,
-                  Register pp) {
+void Assembler::J(Condition condition, const Code& target, Register pp) {
   Label no_jump;
   // Negate condition.
   j(static_cast<Condition>(condition ^ 1), &no_jump, kNearJump);
-  Jmp(stub_entry, pp);
+  Jmp(target, pp);
   Bind(&no_jump);
 }
 
@@ -921,9 +915,8 @@ void Assembler::jmp(const ExternalLabel* label) {
   jmp(TMP);
 }
 
-void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
+void Assembler::JmpPatchable(const Code& target, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -932,9 +925,8 @@ void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   jmp(TMP);
 }
 
-void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
+void Assembler::Jmp(const Code& target, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -1401,7 +1393,8 @@ void Assembler::Stop(const char* message) {
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
     LoadImmediate(RDI, Immediate(message_address));
-    call(&StubCode::PrintStopMessage_entry()->label());
+    ExternalLabel label(StubCode::PrintStopMessage().EntryPoint());
+    call(&label);
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
   }

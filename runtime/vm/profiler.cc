@@ -622,8 +622,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
 #if !defined(TARGET_ARCH_DBC)
       RawCode* marker = PCMarker(in_interpreted_frame);
-      if (marker == StubCode::InvokeDartCode_entry()->code() ||
-          marker == StubCode::InvokeDartCodeFromBytecode_entry()->code()) {
+      if (marker == StubCode::InvokeDartCode().raw() ||
+          marker == StubCode::InvokeDartCodeFromBytecode().raw()) {
         // During the prologue of a function, CallerPC will return the caller's
         // caller. For most frames, the missing PC will be added during profile
         // processing. However, during this stack walk, it can cause us to fail

@@ -159,12 +159,14 @@ class NativeCodeOracle {
   Type handleNativeProcedure(
       Member member, EntryPointsListener entryPointsListener) {
     Type returnType = null;
+    bool nullable = null;
 
     for (var annotation in member.annotations) {
       ParsedPragma pragma = _matcher.parsePragma(annotation);
       if (pragma == null) continue;
       if (pragma is ParsedResultTypeByTypePragma ||
-          pragma is ParsedResultTypeByPathPragma) {
+          pragma is ParsedResultTypeByPathPragma ||
+          pragma is ParsedNonNullableResultType) {
         // We can only use the 'vm:exact-result-type' pragma on methods in core
         // libraries for safety reasons. See 'result_type_pragma.md', detail 1.2
         // for explanation.
@@ -177,7 +179,7 @@ class NativeCodeOracle {
         var type = pragma.type;
         if (type is InterfaceType) {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
-          break;
+          continue;
         }
         throw "ERROR: Invalid return type for native method: ${pragma.type}";
       } else if (pragma is ParsedResultTypeByPathPragma) {
@@ -192,16 +194,22 @@ class NativeCodeOracle {
         // Error is thrown on the next line if the class is not found.
         Class klass = _libraryIndex.getClass(libName, klassName);
         Type concreteClass = entryPointsListener.addAllocatedClass(klass);
-
         returnType = concreteClass;
-        break;
+      } else if (pragma is ParsedNonNullableResultType) {
+        nullable = false;
       }
+    }
+
+    if (returnType != null && nullable != null) {
+      throw 'ERROR: Cannot have both, @pragma("$kExactResultTypePragmaName") '
+          'and @pragma("$kNonNullableResultType"), annotating the same member.';
     }
 
     if (returnType != null) {
       return returnType;
     } else {
-      return new Type.fromStatic(member.function.returnType);
+      final coneType = new Type.cone(member.function.returnType);
+      return nullable == false ? coneType : new Type.nullable(coneType);
     }
   }
 }

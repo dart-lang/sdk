@@ -89,6 +89,10 @@ abstract class Timer {
 
   /**
    * Cancels the timer.
+   *
+   * Once a [Timer] has been canceled, the callback function will not be called
+   * by the timer. Calling [cancel] more than once on a [Timer] is allowed, and
+   * will have no further effect.
    */
   void cancel();
 

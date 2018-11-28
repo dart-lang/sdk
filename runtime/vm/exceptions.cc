@@ -449,8 +449,7 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
         (*pending_deopts)[i].set_pc(program_counter);
 
         // Jump to the deopt stub instead of the catch handler.
-        program_counter =
-            StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint();
+        program_counter = StubCode::DeoptimizeLazyFromThrow().EntryPoint();
         if (FLAG_trace_deoptimization) {
           THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
                     frame_pointer);
@@ -517,7 +516,7 @@ static void JumpToExceptionHandler(Thread* thread,
   thread->set_active_exception(exception_object);
   thread->set_active_stacktrace(stacktrace_object);
   thread->set_resume_pc(remapped_pc);
-  uword run_exception_pc = StubCode::RunExceptionHandler_entry()->EntryPoint();
+  uword run_exception_pc = StubCode::RunExceptionHandler().EntryPoint();
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
                           frame_pointer, false /* do not clear deopt */);
 }
@@ -564,8 +563,8 @@ void Exceptions::JumpToFrame(Thread* thread,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
   typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
-  ExcpHandler func = reinterpret_cast<ExcpHandler>(
-      StubCode::JumpToFrame_entry()->EntryPoint());
+  ExcpHandler func =
+      reinterpret_cast<ExcpHandler>(StubCode::JumpToFrame().EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = OSThread::GetCurrentStackPointer() - 1024;

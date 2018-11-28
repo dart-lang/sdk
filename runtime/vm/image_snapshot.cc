@@ -268,8 +268,12 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   }
 
   // Append the direct-mapped RO data objects after the clustered snapshot.
+  offset_space_ = vm ? V8SnapshotProfileWriter::kVmData
+                     : V8SnapshotProfileWriter::kIsolateData;
   WriteROData(clustered_stream);
 
+  offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
+                     : V8SnapshotProfileWriter::kIsolateText;
   WriteText(clustered_stream, vm);
 }
 
@@ -278,14 +282,19 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
   // Heap page starts here.
 
+  intptr_t section_start = stream->Position();
+
   stream->WriteWord(next_data_offset_);  // Data length.
   COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
   stream->Align(OS::kMaxPreferredCodeAlignment);
+
+  ASSERT(stream->Position() - section_start == Image::kHeaderSize);
 
   // Heap page objects start here.
 
   for (intptr_t i = 0; i < objects_.length(); i++) {
     const Object& obj = *objects_[i].obj_;
+    AutoTraceImage(section_start, stream, "ROData");
 
     NoSafepointScope no_safepoint;
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
@@ -370,9 +379,20 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   ObjectStore* object_store = Isolate::Current()->object_store();
 
   TypeTestingStubFinder tts;
+  intptr_t offset = Image::kHeaderSize;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
     const Code& code = *instructions_[i].code_;
+
+    if (profile_writer_ != nullptr) {
+      ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+      profile_writer_->SetObjectTypeAndName({offset_space_, offset},
+                                            "Instructions",
+                                            /*name=*/nullptr);
+      profile_writer_->AttributeBytesTo({offset_space_, offset},
+                                        insns.raw()->Size());
+    }
+    offset += insns.raw()->Size();
 
     ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
 
@@ -595,6 +615,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
+    AutoTraceImage(0, &this->instructions_blob_stream_, "Instructions");
 
     uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
     uword entry = beginning + Instructions::HeaderSize();

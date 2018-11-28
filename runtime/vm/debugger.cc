@@ -2037,7 +2037,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
         break;
       }
       if (async_stack_trace.CodeAtFrame(i) ==
-          StubCode::AsynchronousGapMarker_entry()->code()) {
+          StubCode::AsynchronousGapMarker().raw()) {
         stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
         // The frame immediately below the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -2251,7 +2251,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         break;
       }
       if (async_stack_trace.CodeAtFrame(i) ==
-          StubCode::AsynchronousGapMarker_entry()->code()) {
+          StubCode::AsynchronousGapMarker().raw()) {
         stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
         // The frame immediately below the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -3722,7 +3722,7 @@ void Debugger::RewindToOptimizedFrame(StackFrame* frame,
   }
   Thread* thread = Thread::Current();
   thread->set_resume_pc(frame->pc());
-  uword deopt_stub_pc = StubCode::DeoptForRewind_entry()->EntryPoint();
+  uword deopt_stub_pc = StubCode::DeoptForRewind().EntryPoint();
   Exceptions::JumpToFrame(thread, deopt_stub_pc, frame->sp(), frame->fp(),
                           true /* clear lazy deopt at target */);
   UNREACHABLE();

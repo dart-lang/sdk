@@ -823,21 +823,20 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ movl(EDX, Immediate(argc_tag));
 
-  const StubEntry* stub_entry;
+  const Code* stub;
 
   // There is no lazy-linking support on ia32.
   ASSERT(!link_lazily());
   if (is_bootstrap_native()) {
-    stub_entry = StubCode::CallBootstrapNative_entry();
+    stub = &StubCode::CallBootstrapNative();
   } else if (is_auto_scope()) {
-    stub_entry = StubCode::CallAutoScopeNative_entry();
+    stub = &StubCode::CallAutoScopeNative();
   } else {
-    stub_entry = StubCode::CallNoScopeNative_entry();
+    stub = &StubCode::CallNoScopeNative();
   }
   const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
   __ movl(ECX, Immediate(label.address()));
-  compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,
-                         locs());
+  compiler->GenerateCall(token_pos(), *stub, RawPcDescriptors::kOther, locs());
 
   __ popl(result);
 
@@ -1723,14 +1722,13 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     __ Bind(entry_label());
     const Code& stub = Code::ZoneHandle(
         compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
-    const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction()->locs();
 
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(TokenPosition::kNoSource, stub_entry,
+    compiler->GenerateCall(TokenPosition::kNoSource, stub,
                            RawPcDescriptors::kOther, locs);
     __ MoveRegister(result_, EAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2136,7 +2134,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Bind(&slow_path);
   compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  *StubCode::AllocateArray_entry(),
+                                  StubCode::AllocateArray(),
                                   RawPcDescriptors::kOther, locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -2410,7 +2408,7 @@ class AllocateContextSlowPath
 
     __ movl(EDX, Immediate(instruction()->num_context_variables()));
     compiler->GenerateCall(instruction()->token_pos(),
-                           *StubCode::AllocateContext_entry(),
+                           StubCode::AllocateContext(),
                            RawPcDescriptors::kOther, locs);
     ASSERT(instruction()->locs()->out(0).reg() == EAX);
     compiler->RestoreLiveRegisters(instruction()->locs());
@@ -2458,7 +2456,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == EAX);
 
   __ movl(EDX, Immediate(num_context_variables()));
-  compiler->GenerateCall(token_pos(), *StubCode::AllocateContext_entry(),
+  compiler->GenerateCall(token_pos(), StubCode::AllocateContext(),
                          RawPcDescriptors::kOther, locs());
 }
 
@@ -6165,15 +6163,13 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
-  const StubEntry stub_entry(stub);
-  compiler->GenerateCall(token_pos(), stub_entry, RawPcDescriptors::kOther,
-                         locs());
+  compiler->GenerateCall(token_pos(), stub, RawPcDescriptors::kOther, locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  __ Call(*StubCode::DebugStepCheck_entry());
+  __ Call(StubCode::DebugStepCheck());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
 }

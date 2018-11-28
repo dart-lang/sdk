@@ -20,7 +20,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -628,7 +627,7 @@ class Assembler : public AssemblerBase {
   void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
-  void jmp(const StubEntry& stub_entry);
+  void jmp(const Code& code);
 
   // Issue memory to memory move through a TMP register.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -689,12 +688,12 @@ class Assembler : public AssemblerBase {
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
-  void JmpPatchable(const StubEntry& stub_entry, Register pp);
-  void Jmp(const StubEntry& stub_entry, Register pp = PP);
-  void J(Condition condition, const StubEntry& stub_entry, Register pp);
-  void CallPatchable(const StubEntry& stub_entry,
+  void JmpPatchable(const Code& code, Register pp);
+  void Jmp(const Code& code, Register pp = PP);
+  void J(Condition condition, const Code& code, Register pp);
+  void CallPatchable(const Code& code,
                      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
-  void Call(const StubEntry& stub_entry);
+  void Call(const Code& stub_entry);
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
@@ -702,7 +701,7 @@ class Assembler : public AssemblerBase {
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(
-      const StubEntry& stub_entry,
+      const Code& code,
       const Object& equivalence,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 

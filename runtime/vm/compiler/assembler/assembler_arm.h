@@ -21,7 +21,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 class RegisterSet;
 
 // Instruction encoding bits.
@@ -656,7 +655,7 @@ class Assembler : public AssemblerBase {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  void Branch(const StubEntry& stub_entry,
+  void Branch(const Code& code,
               ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
@@ -664,20 +663,14 @@ class Assembler : public AssemblerBase {
   void Branch(const Address& address, Condition cond = AL);
 
   void BranchLink(
-      const StubEntry& stub_entry,
-      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
-  void BranchLink(const Code& code,
-                  ObjectPool::Patchability patchable,
-                  Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+      const Code& code,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(
-      const StubEntry& stub_entry,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
-
   void BranchLinkPatchable(
       const Code& code,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -685,7 +678,7 @@ class Assembler : public AssemblerBase {
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(
-      const StubEntry& stub_entry,
+      const Code& code,
       const Object& equivalence,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 

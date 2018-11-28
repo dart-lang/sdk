@@ -261,12 +261,12 @@ config("compiler") {
     cflags += [ "-fcolor-diagnostics" ]
   }
 
-  # C++14 compiler flags setup.
+  # C++11 compiler flags setup.
   # ---------------------------
   if (is_win) {
-    cc_std = [ "/std:c++14" ]
+    cc_std = [ "/std:c++11" ]
   } else {
-    cc_std = [ "-std=c++14" ]
+    cc_std = [ "-std=c++11" ]
   }
   cflags_cc += cc_std
   cflags_objcc += cc_std

@@ -14,21 +14,20 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart';
 
-import '../compiler_new.dart' as api;
-import 'kernel/front_end_adapter.dart';
-import 'kernel/dart2js_target.dart' show Dart2jsTarget;
+import '../../compiler_new.dart' as api;
+import '../common/tasks.dart' show CompilerTask, Measurer;
+import '../common.dart';
+import '../options.dart';
 
-import 'common/tasks.dart' show CompilerTask, Measurer;
-import 'common.dart';
-import 'options.dart';
+import 'front_end_adapter.dart';
+import 'dart2js_target.dart' show Dart2jsTarget;
 
-/// A loader that builds a kernel IR representation of the component.
+/// A task that produces the kernel IR representation of the application.
 ///
 /// It supports loading both .dart source files or pre-compiled .dill files.
-/// When given .dart source files, it invokes the shared frontend
-/// (`package:front_end`) to produce the corresponding kernel IR representation.
-// TODO(sigmund): move this class to a new file under src/kernel/.
-class LibraryLoaderTask extends CompilerTask {
+/// When given .dart source files, it invokes the common front-end (CFE)
+/// to produce the corresponding kernel IR representation.
+class KernelLoaderTask extends CompilerTask {
   final DiagnosticReporter _reporter;
 
   final api.CompilerInput _compilerInput;
@@ -44,15 +43,15 @@ class LibraryLoaderTask extends CompilerTask {
   /// This is used for testing.
   bool forceSerialization = false;
 
-  LibraryLoaderTask(
+  KernelLoaderTask(
       this._options, this._compilerInput, this._reporter, Measurer measurer)
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
-  String get name => 'Library loader';
+  String get name => 'kernel loader';
 
   /// Loads an entire Kernel [Component] from a file on disk.
-  Future<LoadedLibraries> loadLibraries(Uri resolvedUri) {
+  Future<KernelResult> load(Uri resolvedUri) {
     return measure(() async {
       var isDill = resolvedUri.path.endsWith('.dill');
       ir.Component component;
@@ -85,12 +84,11 @@ class LibraryLoaderTask extends CompilerTask {
         component = new ir.Component();
         new BinaryBuilder(data).readComponent(component);
       }
-      return _createLoadedLibraries(component);
+      return _toResult(component);
     });
   }
 
-  // Only visible for unit testing.
-  LoadedLibraries _createLoadedLibraries(ir.Component component) {
+  KernelResult _toResult(ir.Component component) {
     Uri rootLibraryUri = null;
     Iterable<ir.Library> libraries = component.libraries;
     if (component.mainMethod != null) {
@@ -119,38 +117,27 @@ class LibraryLoaderTask extends CompilerTask {
 
       libraries = libraries.where(seen.contains);
     }
-    return new LoadedLibraries(component, rootLibraryUri,
+    return new KernelResult(component, rootLibraryUri,
         libraries.map((lib) => lib.importUri).toList());
   }
 }
 
-/// Information on the set libraries loaded as a result of a call to
-/// [LibraryLoader.loadLibrary].
-class LoadedLibraries {
-  final ir.Component _component;
-  final Uri _rootLibraryUri;
-  final List<Uri> _libraries;
+/// Result of invoking the CFE to produce the kernel IR.
+class KernelResult {
+  final ir.Component component;
 
-  LoadedLibraries(this._component, this._rootLibraryUri, this._libraries) {
+  /// The [Uri] of the root library containing main.
+  final Uri rootLibraryUri;
+
+  /// Returns the [Uri]s of all libraries that have been loaded that are
+  /// reachable from the [rootLibraryUri].
+  ///
+  /// Note that [component] may contain some libraries that are excluded here.
+  final Iterable<Uri> libraries;
+
+  KernelResult(this.component, this.rootLibraryUri, this.libraries) {
     assert(rootLibraryUri != null);
   }
 
-  /// Returns the root component for the loaded libraries.
-  ir.Component get component => _component;
-
-  /// The [Uri] of the root library.
-  Uri get rootLibraryUri => _rootLibraryUri;
-
-  /// Returns the [Uri]s of all libraries that have been loaded.
-  Iterable<Uri> get libraries => _libraries;
-
-  /// Returns `true` if a library with canonical [uri] was loaded in this bulk.
-  bool containsLibrary(Uri uri) {
-    return _libraries.contains(uri);
-  }
-
-  /// Applies all library [Uri]s in this bulk to [f].
-  void forEachLibrary(f(Uri Uri)) => _libraries.forEach(f);
-
-  String toString() => 'root=$_rootLibraryUri,libraries=${_libraries}';
+  String toString() => 'root=$rootLibraryUri,libraries=${libraries}';
 }

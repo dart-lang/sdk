@@ -76,12 +76,31 @@ bool File::IsClosed() {
 }
 
 MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(handle_->fd() >= 0);
+  ASSERT(length > 0);
+  int prot = PROT_NONE;
+  switch (type) {
+    case kReadOnly:
+      prot = PROT_READ;
+      break;
+    case kReadExecute:
+      prot = PROT_READ | PROT_EXEC;
+      break;
+    default:
+      return NULL;
+  }
+  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
+  if (addr == MAP_FAILED) {
+    return NULL;
+  }
+  return new MappedMemory(addr, length);
 }
 
 void MappedMemory::Unmap() {
-  UNIMPLEMENTED();
+  int result = munmap(address_, size_);
+  ASSERT(result == 0);
+  address_ = 0;
+  size_ = 0;
 }
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {

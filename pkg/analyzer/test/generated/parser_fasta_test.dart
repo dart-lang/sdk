@@ -48,7 +48,56 @@ typedef analyzer.Token ParseFunction(analyzer.Token token);
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
-    with ClassMemberParserTestMixin {}
+    with ClassMemberParserTestMixin {
+  void test_parseClassMember_operator_gtgtgt() {
+    final sourceText = 'class C { bool operator >>>(other) => false; }';
+
+    // ---------------------------------------------------
+    // TODO(danrubel): Replace this section with a call to parseCompilationUnit
+    // once '>>>' token support is enabled permanently.
+
+    var source = new StringSource(sourceText, 'parser_test_StringSource.dart');
+    GatheringErrorListener errorListener =
+        new GatheringErrorListener(checkRanges: true);
+
+    // Scan tokens
+    StringScanner scanner = new StringScanner(sourceText, includeComments: true)
+      ..enableGtGtGt = true;
+    Token tokens = scanner.tokenize();
+    expect(scanner.hasErrors, isFalse);
+
+    // Run parser
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+    fasta.Parser parser = new fasta.Parser(null);
+    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
+    parser.listener = astBuilder;
+    astBuilder.parser = parser;
+    parser.parseUnit(tokens);
+
+    CompilationUnitImpl unit = astBuilder.pop();
+    expect(unit, isNotNull);
+    unit.localDeclarations = astBuilder.localDeclarations;
+    errorListener.assertNoErrors();
+
+    // ---------------------------------------------------
+
+    ClassDeclaration declaration = unit.declarations[0];
+    ClassMember member = declaration.members[0];
+    expect(member, isNotNull);
+    expect(member, new TypeMatcher<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, '>>>');
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].

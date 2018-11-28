@@ -96,6 +96,8 @@ abstract class Type extends TypeExpr {
     dartType = _normalizeDartType(dartType);
     if ((dartType == const DynamicType()) || (dartType == const VoidType())) {
       return const AnyType();
+    } else if (dartType == const BottomType()) {
+      return new Type.empty();
     } else {
       return new ConeType(dartType);
     }

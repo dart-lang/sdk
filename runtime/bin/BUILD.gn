@@ -157,6 +157,8 @@ template("build_gen_snapshot") {
       "dfe.cc",
       "dfe.h",
       "gen_snapshot.cc",
+      "kernel_isolate.cc",
+      "kernel_isolate.h",
       "options.cc",
       "options.h",
       "vmservice_impl.cc",
@@ -340,6 +342,7 @@ template("dart_io") {
                  "..:dart_config",
                  "..:dart_os_config",
                ] + extra_configs
+    public_configs = [ "..:dart_public_config" ]
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -714,6 +717,8 @@ template("dart_executable") {
                 "dart_embedder_api_impl.cc",
                 "error_exit.cc",
                 "error_exit.h",
+                "kernel_isolate.cc",
+                "kernel_isolate.h",
                 "main.cc",
                 "main_options.cc",
                 "main_options.h",
@@ -936,6 +941,8 @@ executable("run_vm_tests") {
               "dfe.h",
               "error_exit.cc",
               "error_exit.h",
+              "kernel_isolate.cc",
+              "kernel_isolate.h",
               "run_vm_tests.cc",
               "snapshot_utils.cc",
               "snapshot_utils.h",

@@ -27,10 +27,10 @@ void CodeBreakpoint::PatchCode() {
   switch (breakpoint_kind_) {
     case RawPcDescriptors::kIcCall:
     case RawPcDescriptors::kUnoptStaticCall:
-      stub_target = StubCode::ICCallBreakpoint_entry()->code();
+      stub_target = StubCode::ICCallBreakpoint().raw();
       break;
     case RawPcDescriptors::kRuntimeCall:
-      stub_target = StubCode::RuntimeCallBreakpoint_entry()->code();
+      stub_target = StubCode::RuntimeCallBreakpoint().raw();
       break;
     default:
       UNREACHABLE();

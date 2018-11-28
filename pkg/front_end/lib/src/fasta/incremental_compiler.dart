@@ -81,7 +81,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Set<Uri> invalidatedUris = new Set<Uri>();
 
   DillTarget dillLoadedData;
-  Map<Uri, Source> dillLoadedDataUriToSource = <Uri, Source>{};
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
@@ -206,7 +205,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
         dillLoadedData.loader.builders.remove(uri);
-        dillLoadedDataUriToSource.remove(uri);
         userBuilders?.remove(uri);
       }
 
@@ -234,8 +232,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               c.fileSystem),
           false,
           dillLoadedData,
-          uriTranslator,
-          uriToSource: c.uriToSource);
+          uriTranslator);
       userCode.loader.hierarchy = hierarchy;
 
       for (LibraryBuilder library in reusedLibraries) {
@@ -265,9 +262,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> compiledLibraries =
           new List<Library>.from(userCode.loader.libraries);
-      Map<Uri, Source> uriToSource =
-          new Map<Uri, Source>.from(dillLoadedDataUriToSource);
-      uriToSource.addAll(userCode.uriToSource);
       Procedure mainMethod = componentWithDill == null
           ? data.userLoadedUriMain
           : componentWithDill.mainMethod;
@@ -287,13 +281,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode = userCodeOld;
       }
 
-      Map<Uri, Source> optionalUriToSource = context.options.embedSourceText
-          ? uriToSource
-          : uriToSource.map((uri, source) => MapEntry<Uri, Source>(
-              uri, new Source(source.lineStarts, const <int>[])));
       // This is the incremental component.
       return context.options.target.configureComponent(new Component(
-          libraries: outputLibraries, uriToSource: optionalUriToSource))
+          libraries: outputLibraries,
+          uriToSource: componentWithDill.uriToSource))
         ..mainMethod = mainMethod;
     });
   }
@@ -347,7 +338,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.target;
         removedLibraries.add(lib);
         dillLoadedData.loader.builders.remove(uri);
-        dillLoadedDataUriToSource.remove(uri);
         userBuilders?.remove(uri);
       }
     }
@@ -387,8 +377,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (initializationBytes != null) {
         ticker.logMs("Read $initializeFromDillUri");
 
-        Set<Uri> sdkUris = data.component.uriToSource.keys.toSet();
-
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
         new BinaryBuilder(initializationBytes, disableLazyReading: true)
@@ -412,10 +400,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         bytesLength += initializationBytes.length;
         data.userLoadedUriMain = data.component.mainMethod;
         data.includeUserLoadedLibraries = true;
-        for (Uri uri in data.component.uriToSource.keys) {
-          if (sdkUris.contains(uri)) continue;
-          dillLoadedDataUriToSource[uri] = data.component.uriToSource[uri];
-        }
       }
     }
     return bytesLength;
@@ -622,6 +606,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (LibraryPart part in library.target.parts) {
           Uri partUri = library.uri.resolve(part.partUri);
           Uri fileUri = library.library.fileUri.resolve(part.partUri);
+          if (fileUri.scheme == "package") {
+            // Part was specified via package URI and the resolve above thus
+            // did not go as expected. Translate the package URI to get the
+            // actual file URI.
+            fileUri = uriTranslator.translate(partUri, false);
+          }
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
             builders[partUri] = library;

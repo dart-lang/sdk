@@ -412,6 +412,7 @@ class ObjectPointerVisitor;
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \
   V(ClassID, "ClassID")                                                        \
+  V(getID, "getID")                                                            \
   V(DartIsVM, "dart.isVM")                                                     \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
@@ -456,6 +457,7 @@ class ObjectPointerVisitor;
   V(DebugProcedureName, ":Eval")                                               \
   V(DebugClassName, "#DebugClass")                                             \
   V(vm_entry_point, "vm:entry-point")                                          \
+  V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(Get, "get")                                                                \
   V(Set, "set")                                                                \

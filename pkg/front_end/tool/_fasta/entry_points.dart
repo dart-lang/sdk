@@ -227,8 +227,7 @@ class CompileTask {
 
   KernelTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator) {
-    return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator,
-        uriToSource: c.uriToSource);
+    return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {

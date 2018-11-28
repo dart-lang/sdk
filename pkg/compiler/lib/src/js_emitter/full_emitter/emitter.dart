@@ -1718,7 +1718,7 @@ class Emitter extends js_emitter.EmitterBase {
     mapping.addAll(_closedWorld.outputUnitData
         .computeDeferredMap(compiler.options, _elementEnvironment));
     compiler.outputProvider.createOutputSink(
-        compiler.options.deferredMapUri.path, '', OutputType.info)
+        compiler.options.deferredMapUri.path, '', OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

@@ -2911,27 +2911,49 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   return result.raw();
 }
 
-bool Function::FindPragma(Isolate* I,
-                          const String& pragma_name,
-                          Object* options) const {
-  if (!has_pragma()) return false;
+bool Library::FindPragma(Thread* T,
+                         const Object& obj,
+                         const String& pragma_name,
+                         Object* options) const {
+  auto I = T->isolate();
+  auto Z = T->zone();
+  auto& lib = Library::Handle(Z);
+  if (obj.IsClass()) {
+    auto& klass = Class::Cast(obj);
+    if (!klass.has_pragma()) return false;
+    lib = klass.library();
+  } else if (obj.IsFunction()) {
+    auto& function = Function::Cast(obj);
+    if (!function.has_pragma()) return false;
+    lib = Class::Handle(Z, function.Owner()).library();
+  } else if (obj.IsField()) {
+    auto& field = Field::Cast(obj);
+    if (!field.has_pragma()) return false;
+    lib = Class::Handle(Z, field.Owner()).library();
+  } else {
+    UNREACHABLE();
+  }
 
-  auto& klass = Class::Handle(Owner());
-  auto& lib = Library::Handle(klass.library());
+  Object& metadata_obj = Object::Handle(Z, lib.GetMetadata(obj));
+  if (metadata_obj.IsUnwindError()) {
+    Report::LongJump(UnwindError::Cast(metadata_obj));
+  }
 
-  auto& pragma_class =
-      Class::Handle(Isolate::Current()->object_store()->pragma_class());
+  // If there is a compile-time error while evaluating the metadata, we will
+  // simply claim there was no @pramga annotation.
+  if (metadata_obj.IsNull() || metadata_obj.IsLanguageError()) {
+    return false;
+  }
+  ASSERT(metadata_obj.IsArray());
+
+  auto& metadata = Array::Cast(metadata_obj);
+  auto& pragma_class = Class::Handle(Z, I->object_store()->pragma_class());
   auto& pragma_name_field =
-      Field::Handle(pragma_class.LookupField(Symbols::name()));
+      Field::Handle(Z, pragma_class.LookupField(Symbols::name()));
   auto& pragma_options_field =
-      Field::Handle(pragma_class.LookupField(Symbols::options()));
+      Field::Handle(Z, pragma_class.LookupField(Symbols::options()));
 
-  Array& metadata = Array::Handle();
-  metadata ^= lib.GetMetadata(Function::Handle(raw()));
-
-  if (metadata.IsNull()) return false;
-
-  auto& pragma = Object::Handle();
+  auto& pragma = Object::Handle(Z);
   for (intptr_t i = 0; i < metadata.Length(); ++i) {
     pragma = metadata.At(i);
     if (pragma.clazz() != pragma_class.raw() ||
@@ -3684,6 +3706,18 @@ void Class::InjectCIDFields() const {
   AddField(field);
 
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
+
+#define ADD_SET_FIELD(clazz)                                                   \
+  field_name = Symbols::New(thread, "cid" #clazz "View");                      \
+  field = Field::New(field_name, true, false, true, false, *this,              \
+                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
+                     TokenPosition::kMinSource);                               \
+  value = Smi::New(kTypedData##clazz##ViewCid);                                \
+  field.SetStaticValue(value, true);                                           \
+  AddField(field);
+
+  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
 }
@@ -5857,10 +5891,10 @@ bool Function::HasCode() const {
   NoSafepointScope no_safepoint;
   ASSERT(raw_ptr()->code_ != Code::null());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  return raw_ptr()->code_ != StubCode::LazyCompile().raw();
 #else
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  return raw_ptr()->code_ != StubCode::LazyCompile().raw() &&
+         raw_ptr()->code_ != StubCode::InterpretCall().raw();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5914,7 +5948,7 @@ void Function::AttachBytecode(const Bytecode& value) const {
 
   if (FLAG_enable_interpreter) {
     // Set the code entry_point to InterpretCall stub.
-    SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+    SetInstructions(StubCode::InterpretCall());
   }
 }
 
@@ -5931,10 +5965,10 @@ bool Function::HasCode(RawFunction* function) {
   NoSafepointScope no_safepoint;
   ASSERT(function->ptr()->code_ != Code::null());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  return function->ptr()->code_ != StubCode::LazyCompile().raw();
 #else
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  return function->ptr()->code_ != StubCode::LazyCompile().raw() &&
+         function->ptr()->code_ != StubCode::InterpretCall().raw();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5947,7 +5981,7 @@ void Function::ClearCode() const {
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 
-  SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  SetInstructions(StubCode::LazyCompile());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -6008,10 +6042,10 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
     // Set the lazy compile or interpreter call stub code.
     if (FLAG_enable_interpreter && HasBytecode()) {
       TIR_Print("Switched to interpreter call stub for %s\n", ToCString());
-      SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+      SetInstructions(StubCode::InterpretCall());
     } else {
       TIR_Print("Switched to lazy compile stub for %s\n", ToCString());
-      SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+      SetInstructions(StubCode::LazyCompile());
     }
     return;
   }
@@ -7413,8 +7447,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
-  result.SetInstructionsSafe(
-      Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructionsSafe(StubCode::LazyCompile());
   if (kind == RawFunction::kClosureFunction ||
       kind == RawFunction::kImplicitClosureFunction) {
     ASSERT(space == Heap::kOld);
@@ -12467,7 +12500,7 @@ void Library::CheckFunctionFingerprints() {
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
   }
 
-#define CHECK_FINGERPRINTS2(class_name, function_name, dest, type, fp)         \
+#define CHECK_FINGERPRINTS2(class_name, function_name, dest, fp)               \
   CHECK_FINGERPRINTS(class_name, function_name, dest, fp)
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -14993,8 +15026,7 @@ void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code =
-      Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  const Code& new_code = StubCode::FixCallersTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 }
@@ -15004,8 +15036,7 @@ void Code::DisableStubCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code =
-      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  const Code& new_code = StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 #else
@@ -22157,8 +22188,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code_object.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
+      } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -22246,8 +22276,7 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
+      } else if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance

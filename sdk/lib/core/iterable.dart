@@ -638,7 +638,7 @@ abstract class Iterable<E> {
    * Some iterables may have more a efficient way to find the element.
    */
   E elementAt(int index) {
-    if (index is! int) throw new ArgumentError.notNull("index");
+    ArgumentError.checkNotNull(index, "index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
     for (E element in this) {

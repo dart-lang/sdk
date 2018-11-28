@@ -10,8 +10,8 @@ cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline).
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline).
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
@@ -22,6 +22,18 @@ dart/data_uri_import_test/none: SkipByDesign
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
+
+[ $system == macos ]
+# Tests failing or crashing are sometimes reported as timeout on MacOS. See issues 35268 and 35275.
+cc/ArrayNew_Overflow_Crash: Crash, Fail, Timeout # These tests are expected to crash on all platforms
+cc/CodeImmutability: Crash, Fail, Timeout # These tests are expected to crash on all platforms
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash, Timeout # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash, Timeout # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash, Timeout # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash, Timeout # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
+
+[ $system == macos && ($compiler == dartk || $compiler == dartkb) && $runtime == vm ]
+cc/Class_ComputeEndTokenPos: Crash, Timeout # May also time out on MacOS (issues 35268 and 35275).
 
 [ $mode == debug ]
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
@@ -314,3 +326,9 @@ dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-tri
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
+
+[ $compiler != dartkp || $arch == arm || $arch == arm64 ]
+dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host).
+
+[ $compiler == dartkp ]
+dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.

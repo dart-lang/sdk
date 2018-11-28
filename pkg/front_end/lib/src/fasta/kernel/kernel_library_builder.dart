@@ -420,16 +420,29 @@ class KernelLibraryBuilder
 
       /// Helper function that returns `true` if a type variable with a name
       /// from [typeVariableNames] is referenced in [type].
-      bool usesTypeVariables(KernelNamedTypeBuilder type) {
-        List<KernelTypeBuilder> typeArguments = type.arguments;
-        if (typeArguments != null && typeVariables != null) {
-          for (KernelTypeBuilder argument in typeArguments) {
-            if (typeVariableNames.contains(argument.name)) {
-              return true;
-            } else if (argument is KernelNamedTypeBuilder) {
-              if (usesTypeVariables(argument)) return true;
+      bool usesTypeVariables(KernelTypeBuilder type) {
+        if (type is KernelNamedTypeBuilder) {
+          if (type.declaration is KernelTypeVariableBuilder) {
+            return typeVariableNames.contains(type.declaration.name);
+          }
+
+          List<KernelTypeBuilder> typeArguments = type.arguments;
+          if (typeArguments != null && typeVariables != null) {
+            for (KernelTypeBuilder argument in typeArguments) {
+              if (usesTypeVariables(argument)) {
+                return true;
+              }
             }
           }
+        } else if (type is KernelFunctionTypeBuilder) {
+          if (type.formals != null) {
+            for (FormalParameterBuilder formal in type.formals) {
+              if (usesTypeVariables(formal.type)) {
+                return true;
+              }
+            }
+          }
+          return usesTypeVariables(type.returnType);
         }
         return false;
       }

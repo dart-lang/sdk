@@ -393,6 +393,9 @@ class AdbDevice {
  * Helper to list all adb devices available.
  */
 class AdbHelper {
+  // This particular device seems to be flakily going offline / having problems.
+  static const blackListedDeviceIds = const <String>['06ada00c003b6f92'];
+
   static RegExp _deviceLineRegexp =
       new RegExp(r'^([a-zA-Z0-9_-]+)[ \t]+device$', multiLine: true);
 
@@ -405,6 +408,7 @@ class AdbHelper {
       return _deviceLineRegexp
           .allMatches(result.stdout as String)
           .map((Match m) => m.group(1))
+          .where((String deviceId) => !blackListedDeviceIds.contains(deviceId))
           .toList();
     });
   }

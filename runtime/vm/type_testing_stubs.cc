@@ -105,21 +105,20 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
 
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
       type.raw() == Type::VoidType()) {
-    return Code::InstructionsOf(StubCode::TopTypeTypeTest_entry()->code());
+    return StubCode::TopTypeTypeTest().instructions();
   }
 
   if (type.IsTypeRef()) {
-    return Code::InstructionsOf(StubCode::TypeRefTypeTest_entry()->code());
+    return StubCode::TypeRefTypeTest().instructions();
   }
 
   if (type.IsType() || type.IsTypeParameter()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
-    return Code::InstructionsOf(
-        should_specialize ? StubCode::LazySpecializeTypeTest_entry()->code()
-                          : StubCode::DefaultTypeTest_entry()->code());
+    return should_specialize ? StubCode::LazySpecializeTypeTest().instructions()
+                             : StubCode::DefaultTypeTest().instructions();
   } else {
     ASSERT(type.IsBoundedType() || type.IsMixinAppType());
-    return Code::InstructionsOf(StubCode::UnreachableTypeTest_entry()->code());
+    return StubCode::UnreachableTypeTest().instructions();
   }
 }
 
@@ -145,11 +144,11 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
-    return Code::InstructionsOf(StubCode::TypeRefTypeTest_entry()->code());
+    return StubCode::TypeRefTypeTest().instructions();
   }
 
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType()) {
-    return Code::InstructionsOf(StubCode::TopTypeTypeTest_entry()->code());
+    return StubCode::TopTypeTypeTest().instructions();
   }
 
   if (type.IsCanonical()) {
@@ -168,14 +167,13 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
         array_.Add(instr_);
       } else {
         // Fall back to default.
-        instr_ =
-            Code::InstructionsOf(StubCode::DefaultTypeTest_entry()->code());
+        instr_ = StubCode::DefaultTypeTest().instructions();
       }
 #else
       // In the precompiled runtime we cannot lazily create new optimized type
       // testing stubs, so if we cannot find one, we'll just return the default
       // one.
-      instr_ = Code::InstructionsOf(StubCode::DefaultTypeTest_entry()->code());
+      instr_ = StubCode::DefaultTypeTest().instructions();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       return instr_.raw();
     }
@@ -199,23 +197,23 @@ TypeTestingStubFinder::TypeTestingStubFinder()
 RawInstructions* TypeTestingStubFinder::LookupByAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
-  code_ = StubCode::DefaultTypeTest_entry()->code();
+  code_ = StubCode::DefaultTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::LazySpecializeTypeTest_entry()->code();
+  code_ = StubCode::LazySpecializeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::TopTypeTypeTest_entry()->code();
+  code_ = StubCode::TopTypeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::TypeRefTypeTest_entry()->code();
+  code_ = StubCode::TypeRefTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::UnreachableTypeTest_entry()->code();
+  code_ = StubCode::UnreachableTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
@@ -227,23 +225,23 @@ RawInstructions* TypeTestingStubFinder::LookupByAddresss(
 const char* TypeTestingStubFinder::StubNameFromAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
-  code_ = StubCode::DefaultTypeTest_entry()->code();
+  code_ = StubCode::DefaultTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Default";
   }
-  code_ = StubCode::LazySpecializeTypeTest_entry()->code();
+  code_ = StubCode::LazySpecializeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_LazySpecialize";
   }
-  code_ = StubCode::TopTypeTypeTest_entry()->code();
+  code_ = StubCode::TopTypeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Top";
   }
-  code_ = StubCode::TypeRefTypeTest_entry()->code();
+  code_ = StubCode::TypeRefTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Ref";
   }
-  code_ = StubCode::UnreachableTypeTest_entry()->code();
+  code_ = StubCode::UnreachableTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Unreachable";
   }

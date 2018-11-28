@@ -5,8 +5,7 @@
 /// This library exports all API from Kernel that can be used throughout fasta.
 library fasta.kernel_api;
 
-export 'package:kernel/type_algebra.dart'
-    show Substitution, instantiateToBounds, substitute;
+export 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 export 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -19,6 +18,8 @@ export 'package:kernel/transformations/flags.dart' show TransformerFlag;
 export 'package:kernel/text/ast_to_text.dart' show NameSystem;
 
 export 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+export 'package:kernel/src/bounds_checks.dart' show instantiateToBounds;
 
 import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 

@@ -26,8 +26,8 @@ import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../library_loader.dart' show LoadedLibraries;
-import '../native/native.dart' as native;
+import '../kernel/dart2js_target.dart';
+import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../types/types.dart';
@@ -318,14 +318,6 @@ class JavaScriptBackend {
   final Map<MemberEntity, jsAst.Expression> generatedCode =
       <MemberEntity, jsAst.Expression>{};
 
-  /// If [true], the compiler will emit code that logs whenever a method is
-  /// called. When TRACE_METHOD is 'console' this will be logged
-  /// directly in the JavaScript console. When TRACE_METHOD is 'post' the
-  /// information will be sent to a server via a POST request.
-  static const String TRACE_METHOD = const String.fromEnvironment('traceCalls');
-  static const bool TRACE_CALLS =
-      TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
-
   Namer _namer;
 
   Namer get namer {
@@ -388,8 +380,8 @@ class JavaScriptBackend {
 
   final SuperMemberData superMemberData = new SuperMemberData();
 
-  native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
-  native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+  NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
   Tracer tracer;
 
@@ -550,7 +542,7 @@ class JavaScriptBackend {
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
-    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
+    _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
@@ -633,7 +625,7 @@ class JavaScriptBackend {
         commonElements,
         elementEnvironment,
         closedWorld.nativeData);
-    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
@@ -703,10 +695,10 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  native.NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
+  NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
       _nativeResolutionEnqueuer;
 
-  native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
+  NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   /**
    * Unit test hook that returns code of an element as a String.
@@ -750,25 +742,13 @@ class JavaScriptBackend {
   void setAnnotations(LibraryEntity library) {
     AnnotationProcessor processor =
         compiler.frontendStrategy.annotationProcesser;
-    if (native.maybeEnableNative(library.canonicalUri)) {
+    if (maybeEnableNative(library.canonicalUri)) {
       processor.extractNativeAnnotations(library);
     }
     processor.extractJsInteropAnnotations(library);
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
-    }
-  }
-
-  /// This method is called when all new libraries loaded through
-  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
-  /// have been computed.
-  void onLibrariesLoaded(
-      CommonElements commonElements, LoadedLibraries loadedLibraries) {
-    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-      assert(loadedLibraries.containsLibrary(Uris.dart_core));
-      assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
-      assert(loadedLibraries.containsLibrary(Uris.dart__js_helper));
     }
   }
 

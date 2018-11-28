@@ -67,7 +67,7 @@ class Simulator {
   uword get_pc() const { return reinterpret_cast<uword>(pc_); }
 
   enum IntrinsicId {
-#define V(test_class_name, test_function_name, enum_name, type, fp)            \
+#define V(test_class_name, test_function_name, enum_name, fp)                  \
   k##enum_name##Intrinsic,
     ALL_INTRINSICS_LIST(V) GRAPH_INTRINSICS_LIST(V)
 #undef V

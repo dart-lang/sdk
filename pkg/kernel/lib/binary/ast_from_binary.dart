@@ -1155,7 +1155,10 @@ class BinaryBuilder {
     var flags = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+    assert(() {
+      debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+      return true;
+    }());
     var targetReference = readMemberReference();
     var typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;

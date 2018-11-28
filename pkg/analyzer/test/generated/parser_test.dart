@@ -6919,6 +6919,15 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.rightBracket, isNotNull);
   }
 
+  void test_parseMapLiteral_multiple_trailing_comma() {
+    MapLiteral literal = parseMapLiteral(null, null, "{'a' : b, 'x' : y,}");
+    expect(literal, isNotNull);
+    assertNoErrors();
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(2));
+    expect(literal.rightBracket, isNotNull);
+  }
+
   void test_parseMapLiteral_single() {
     MapLiteral literal = parseMapLiteral(null, null, "{'x' : y}");
     expect(literal, isNotNull);

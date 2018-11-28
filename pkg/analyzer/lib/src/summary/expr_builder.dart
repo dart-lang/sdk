@@ -711,7 +711,12 @@ class ExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
-    _push(AstTestFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
+    var typeArg = typeArguments == null
+        ? resynthesizer.typeProvider.dynamicType
+        : typeArguments.arguments[0].type;
+    var staticType = resynthesizer.typeProvider.listType.instantiate([typeArg]);
+    _push(AstTestFactory.listLiteral2(Keyword.CONST, typeArguments, elements)
+      ..staticType = staticType);
   }
 
   void _pushLocalFunctionReference() {
@@ -770,7 +775,16 @@ class ExprBuilder {
       Expression key = _pop();
       entries.insert(0, AstTestFactory.mapLiteralEntry2(key, value));
     }
-    _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
+    var keyType = typeArguments == null
+        ? resynthesizer.typeProvider.dynamicType
+        : typeArguments.arguments[0].type;
+    var valueType = typeArguments == null
+        ? resynthesizer.typeProvider.dynamicType
+        : typeArguments.arguments[1].type;
+    var staticType =
+        resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
+    _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries)
+      ..staticType = staticType);
   }
 
   void _pushPrefix(TokenType operator) {
