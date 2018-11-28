@@ -50,10 +50,10 @@ class LspSocketServer {
           'Server already started',
           null);
       serverChannel.sendNotification(new NotificationMessage(
-          Method.window_showMessage,
-          Either2<List<dynamic>, dynamic>.t2(
-              new ShowMessageParams(MessageType.Error, error.message)),
-          jsonRpcVersion));
+        Method.window_showMessage,
+        new ShowMessageParams(MessageType.Error, error.message),
+        jsonRpcVersion,
+      ));
       serverChannel.listen((IncomingMessage message) {
         if (message is RequestMessage) {
           serverChannel.sendResponse(

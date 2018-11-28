@@ -34,14 +34,7 @@ abstract class MessageHandler<P, R> {
     // TODO: Change the return type here to something that can be an R or an error
     // and stop throwing ResponseError's but return them instead.
 
-    // TODO(dantup): We'll need to tweak this when we have a handler that takes
-    // a list as its params (if there aren't any, we should "improve" the type
-    // to not be an Either2 during codegen).
-    final params = message.params.map(
-      (_) => throw 'Expected dynamic, got List<dynamic>',
-      (params) => convertParams(params),
-    );
-
+    final params = convertParams(message.params);
     return handle(params);
   }
 

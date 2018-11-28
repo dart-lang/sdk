@@ -61,10 +61,12 @@ String getImprovedType(String interfaceName, String fieldName) {
     },
     "NotificationMessage": {
       "method": "Method",
+      "params": "object",
     },
     "RequestMessage": {
       "method": "Method",
-    }
+      "params": "object",
+    },
   };
 
   final interface = _improvedTypeMappings[interfaceName];

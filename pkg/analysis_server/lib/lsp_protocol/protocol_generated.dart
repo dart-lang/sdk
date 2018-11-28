@@ -5083,18 +5083,18 @@ class MarkupKind {
 
   static bool canParse(Object obj) {
     switch (obj) {
-      case 'plaintext':
-      case 'markdown':
+      case r'plaintext':
+      case r'markdown':
         return true;
     }
     return false;
   }
 
   /// Plain text is supported as a content format
-  static const PlainText = const MarkupKind._('plaintext');
+  static const PlainText = const MarkupKind._(r'plaintext');
 
   /// Markdown is supported as a content format
-  static const Markdown = const MarkupKind._('markdown');
+  static const Markdown = const MarkupKind._(r'markdown');
 
   Object toJson() => _value;
 
@@ -5242,7 +5242,7 @@ class Method {
   const Method._(this._value);
   const Method.fromJson(this._value);
 
-  final Object _value;
+  final String _value;
 
   static bool canParse(Object obj) {
     switch (obj) {
@@ -5451,12 +5451,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   static NotificationMessage fromJson(Map<String, dynamic> json) {
     final method =
         json['method'] != null ? Method.fromJson(json['method']) : null;
-    final params = (json['params'] is List &&
-            (json['params'].length == 0 ||
-                json['params'].every((item) => true)))
-        ? new Either2<List<dynamic>, dynamic>.t1(
-            json['params']?.map((item) => item)?.cast<dynamic>()?.toList())
-        : (new Either2<List<dynamic>, dynamic>.t2(json['params']));
+    final params = json['params'];
     final jsonrpc = json['jsonrpc'];
     return new NotificationMessage(method, params, jsonrpc);
   }
@@ -5467,7 +5462,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   final Method method;
 
   /// The notification's params.
-  final Either2<List<dynamic>, dynamic> params;
+  final dynamic params;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -6338,12 +6333,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
             : (throw '''${json['id']} was not one of (num, String)'''));
     final method =
         json['method'] != null ? Method.fromJson(json['method']) : null;
-    final params = (json['params'] is List &&
-            (json['params'].length == 0 ||
-                json['params'].every((item) => true)))
-        ? new Either2<List<dynamic>, dynamic>.t1(
-            json['params']?.map((item) => item)?.cast<dynamic>()?.toList())
-        : (new Either2<List<dynamic>, dynamic>.t2(json['params']));
+    final params = json['params'];
     final jsonrpc = json['jsonrpc'];
     return new RequestMessage(id, method, params, jsonrpc);
   }
@@ -6356,7 +6346,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   final Method method;
 
   /// The method's params.
-  final Either2<List<dynamic>, dynamic> params;
+  final dynamic params;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};

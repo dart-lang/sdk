@@ -7,11 +7,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'dart_test.dart' as dart_test;
 import 'json_test.dart' as json_test;
 import 'markdown_test.dart' as markdown_test;
+import 'typescript_test.dart' as typescript_test;
 
 main() {
   defineReflectiveSuite(() {
     dart_test.main();
     json_test.main();
     markdown_test.main();
+    typescript_test.main();
   }, name: 'lsp-tool');
 }

@@ -211,18 +211,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void showError(String message) {
     channel.sendNotification(new NotificationMessage(
-        Method.window_showMessage,
-        Either2<List<dynamic>, dynamic>.t2(
-            new ShowMessageParams(MessageType.Error, message)),
-        jsonRpcVersion));
+      Method.window_showMessage,
+      new ShowMessageParams(MessageType.Error, message),
+      jsonRpcVersion,
+    ));
   }
 
   void logError(String message) {
     channel.sendNotification(new NotificationMessage(
-        Method.window_logMessage,
-        Either2<List<dynamic>, dynamic>.t2(
-            new LogMessageParams(MessageType.Error, message)),
-        jsonRpcVersion));
+      Method.window_logMessage,
+      new LogMessageParams(MessageType.Error, message),
+      jsonRpcVersion,
+    ));
   }
 
   void sendErrorResponse(IncomingMessage message, ResponseError error) {
@@ -333,9 +333,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             Uri.file(result.path).toString(), serverErrors);
         // TODO(dantup): Move all these method names to constants.
         final message = new NotificationMessage(
-            Method.textDocument_publishDiagnostics,
-            Either2<List<dynamic>, dynamic>.t2(params),
-            jsonRpcVersion);
+          Method.textDocument_publishDiagnostics,
+          params,
+          jsonRpcVersion,
+        );
         analysisServer.sendNotification(message);
       }
     });

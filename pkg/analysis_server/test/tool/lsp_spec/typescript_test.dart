@@ -121,7 +121,7 @@ interface ResponseError<D> {
 
     test('parses an interface with Arrays in Array<T> format', () {
       final String input = '''
-export interface RequestMessage {
+export interface MyMessage {
 	/**
 	 * The method's params.
 	 */

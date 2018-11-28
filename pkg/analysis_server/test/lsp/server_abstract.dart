@@ -121,7 +121,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     final notificationFromServer = await firstError.timeout(timeout);
 
     expect(notificationFromServer, isNotNull);
-    return notificationFromServer.params.map((t2) => t2 as T, (t2) => t2 as T);
+    return notificationFromServer.params as T;
   }
 
   /// Sends a request to the server and unwraps the result. Throws if the
@@ -240,14 +240,12 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   }
 
   NotificationMessage makeNotification(Method method, ToJsonable params) {
-    return new NotificationMessage(
-        method, Either2<List<dynamic>, dynamic>.t2(params), jsonRpcVersion);
+    return new NotificationMessage(method, params, jsonRpcVersion);
   }
 
   RequestMessage makeRequest(Method method, ToJsonable params) {
     final id = Either2<num, String>.t1(_id++);
-    return new RequestMessage(
-        id, method, Either2<List<dynamic>, dynamic>.t2(params), jsonRpcVersion);
+    return new RequestMessage(id, method, params, jsonRpcVersion);
   }
 
   Future openFile(Uri uri, String content) async {
@@ -338,14 +336,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     await channel.serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        // TODO(dantup): Make a better way to extract params without copying
-        // this map into all places. Although the spec says the `params` field
-        // for `NotificationMessage` is `Array<any> | Object` it also says that
-        // for `textDocument/publishDiagnostics` it is `PublishDiagnosticsParams`.
-        diagnosticParams = message.params.map(
-          (_) => throw 'Expected dynamic, got List<dynamic>',
-          (params) => params,
-        );
+        diagnosticParams = message.params;
 
         return diagnosticParams.uri == uri.toString();
       }
