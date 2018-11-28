@@ -2643,7 +2643,6 @@ void main() {
   }
 
   test_intLiteralInDoubleContext_const_exact() async {
-    // TODO(mfairhurst): get the commented out assertions to pass.
     Source source = addSource(r'''
 class C {
   const C(double x)

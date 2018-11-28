@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,9 +9,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
@@ -25,6 +27,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverResolutionTest);
+    defineReflectiveTests(DriverResolutionWithExperimentsTest);
   });
 }
 
@@ -8848,4 +8851,38 @@ main() {
   }
 
 //  String _p(String path) => convertPath(path);
+}
+
+/**
+ * Resolution tests that are run with all of the experiments enabled.
+ */
+@reflectiveTest
+class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
+  AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions()
+    ..enabledExperiments = Experiments.activeExperimentNames;
+
+  test_binaryExpression_gtGtGt() async {
+    addTestFile('''
+class A {
+  A operator >>>(int amount) => this;
+}
+f(A a) {
+  a >>> 3;
+}
+''');
+    var result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    MethodDeclaration declaration =
+        (unit.declarations[0] as ClassDeclaration).members[0];
+    ExecutableElement operatorElement = declaration.declaredElement;
+    expect(operatorElement.name, '>>>');
+    ExpressionStatement statement =
+        ((unit.declarations[1] as FunctionDeclaration).functionExpression.body
+                as BlockFunctionBody)
+            .block
+            .statements[0];
+    BinaryExpression binary = statement.expression;
+    expect(binary.operator.type, TokenType.GT_GT_GT);
+    expect(binary.staticElement, operatorElement);
+  }
 }
