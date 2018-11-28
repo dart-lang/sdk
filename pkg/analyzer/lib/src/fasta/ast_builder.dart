@@ -915,7 +915,7 @@ class AstBuilder extends StackListener {
         constKeyword, typeArguments, leftBracket, entries, rightBracket));
   }
 
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     assert(optional(':', colon));
     debugEvent("LiteralMapEntry");
 

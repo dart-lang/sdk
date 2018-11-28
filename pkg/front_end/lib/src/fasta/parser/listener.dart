@@ -678,9 +678,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("LibraryName");
   }
 
-  void beginLiteralMapEntry(Token token) {}
-
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     logEvent("LiteralMapEntry");
   }
 

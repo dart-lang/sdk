@@ -341,12 +341,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginLiteralMapEntry(Token token) {
-    super.beginLiteralMapEntry(token);
-    begin('LiteralMapEntry');
-  }
-
-  @override
   void beginLiteralString(Token token) {
     super.beginLiteralString(token);
     begin('LiteralString');
@@ -846,12 +840,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     end('LibraryName');
     super.endLibraryName(libraryKeyword, semicolon);
-  }
-
-  @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
-    end('LiteralMapEntry');
-    super.endLiteralMapEntry(colon, endToken);
   }
 
   @override

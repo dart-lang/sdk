@@ -844,7 +844,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     debugEvent("LiteralMapEntry", colon);
     state.pop(); // Value.
     state.popPushNull("%LiteralMapEntry%", colon); // Key.

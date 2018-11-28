@@ -4206,7 +4206,7 @@ class Parser {
   }
 
   /// This method parses the portion of a set or map literal that starts with
-  /// the left curly brace.
+  /// the left curly brace when there are no leading type arguments.
   Token parseLiteralSetOrMapSuffix(final Token start, Token constKeyword) {
     if (!enableSetLiterals) {
       // TODO(danrubel): remove this once set literals are permanent
@@ -4221,30 +4221,29 @@ class Parser {
       return rightBrace;
     }
 
-    final old = mayParseFunctionExpressions;
+    bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    final originalListener = listener;
-    listener = new ForwardingListener();
-
-    // Skip over the first expression to determine if this is a set or map.
-    // TODO(danrubel): Consider removing listener.beginLiteralMapEntry
-    // so that the expression could be parsed without lookahead
-    // regardless of whether this is a set or map literal.
     Token token = parseExpression(leftBrace);
-    Token next = token.next;
-
-    listener = originalListener;
     mayParseFunctionExpressions = old;
 
-    if (optional(',', next) || optional('}', next)) {
-      return parseLiteralSetSuffix(start, constKeyword);
-    } else if (optional(':', next)) {
-      return parseLiteralMapSuffix(start, constKeyword);
+    Token next = token.next;
+    if (optional('}', next)) {
+      listener.handleLiteralSet(1, leftBrace, constKeyword, next);
+      return next;
+    } else if (optional(',', next)) {
+      return parseLiteralSetRest(token, constKeyword, leftBrace);
     } else {
-      // Recovery: This could be either a literal set or a literal map
       // TODO(danrubel): Consider better recovery
-      // rather than just assuming this is a malformed literal map.
-      return parseLiteralMapSuffix(start, constKeyword);
+      // rather than just assuming this is a literal map.
+      Token colon = ensureColon(token);
+
+      final old = mayParseFunctionExpressions;
+      mayParseFunctionExpressions = true;
+      token = parseExpression(colon);
+      mayParseFunctionExpressions = old;
+
+      listener.handleLiteralMapEntry(colon, token.next);
+      return parseLiteralMapRest(token, constKeyword, leftBrace);
     }
   }
 
@@ -4263,27 +4262,42 @@ class Parser {
   Token parseLiteralMapSuffix(Token token, Token constKeyword) {
     Token beginToken = token = token.next;
     assert(optional('{', beginToken));
-    int count = 0;
+    if (optional('}', token.next)) {
+      token = token.next;
+      listener.handleLiteralMap(0, beginToken, constKeyword, token);
+      return token;
+    }
+
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    token = parseMapLiteralEntry(token);
+    mayParseFunctionExpressions = old;
+
+    return parseLiteralMapRest(token, constKeyword, beginToken);
+  }
+
+  /// Parse a literal map after the first entry.
+  Token parseLiteralMapRest(Token token, Token constKeyword, Token beginToken) {
+    int count = 1;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
-      if (optional('}', token.next)) {
-        token = token.next;
+      Token next = token.next;
+      Token comma;
+      if (optional(',', next)) {
+        comma = token = next;
+        next = token.next;
+      }
+      if (optional('}', next)) {
+        token = next;
         break;
       }
-      token = parseMapLiteralEntry(token);
-      Token next = token.next;
-      ++count;
-      if (!optional(',', next)) {
-        if (optional('}', next)) {
-          token = next;
-          break;
-        }
+      if (comma == null) {
         // Recovery
         if (looksLikeExpressionStart(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
-          next = rewriteAndRecover(
+          token = rewriteAndRecover(
               token,
               fasta.templateExpectedButGot.withArguments(','),
               new SyntheticToken(TokenType.COMMA, next.offset));
@@ -4295,7 +4309,8 @@ class Parser {
           break;
         }
       }
-      token = next;
+      token = parseMapLiteralEntry(token);
+      ++count;
     }
     assert(optional('}', token));
     mayParseFunctionExpressions = old;
@@ -4323,27 +4338,42 @@ class Parser {
 
     Token beginToken = token = token.next;
     assert(optional('{', beginToken));
-    int count = 0;
+    if (optional('}', token.next)) {
+      token = token.next;
+      listener.handleLiteralSet(0, beginToken, constKeyword, token);
+      return token;
+    }
+
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    token = parseExpression(token);
+    mayParseFunctionExpressions = old;
+
+    return parseLiteralSetRest(token, constKeyword, beginToken);
+  }
+
+  /// Parse a literal set after the first expression.
+  Token parseLiteralSetRest(Token token, Token constKeyword, Token beginToken) {
+    int count = 1;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
-      if (optional('}', token.next)) {
-        token = token.next;
+      Token next = token.next;
+      Token comma;
+      if (optional(',', next)) {
+        comma = token = next;
+        next = token.next;
+      }
+      if (optional('}', next)) {
+        token = next;
         break;
       }
-      token = parseExpression(token);
-      Token next = token.next;
-      ++count;
-      if (!optional(',', next)) {
-        if (optional('}', next)) {
-          token = next;
-          break;
-        }
+      if (comma == null) {
         // Recovery
         if (looksLikeExpressionStart(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
-          next = rewriteAndRecover(
+          token = rewriteAndRecover(
               token,
               fasta.templateExpectedButGot.withArguments(','),
               new SyntheticToken(TokenType.COMMA, next.offset));
@@ -4355,7 +4385,8 @@ class Parser {
           break;
         }
       }
-      token = next;
+      token = parseExpression(token);
+      ++count;
     }
     assert(optional('}', token));
     mayParseFunctionExpressions = old;
@@ -4434,14 +4465,13 @@ class Parser {
   /// ;
   /// ```
   Token parseMapLiteralEntry(Token token) {
-    listener.beginLiteralMapEntry(token.next);
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
     token = parseExpression(token);
     Token colon = ensureColon(token);
     token = parseExpression(colon);
-    listener.endLiteralMapEntry(colon, token.next);
+    listener.handleLiteralMapEntry(colon, token.next);
     return token;
   }
 
