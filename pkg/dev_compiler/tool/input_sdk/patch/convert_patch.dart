@@ -495,3 +495,13 @@ class Utf8Decoder {
     return null;
   }();
 }
+
+@patch
+int _scanOneByteCharacters(List<int> units, int from, int endIndex) {
+  final to = endIndex;
+  for (var i = from; i < to; i++) {
+    final unit = units[i];
+    if ((unit & _ONE_BYTE_LIMIT) != unit) return i - from;
+  }
+  return to - from;
+}

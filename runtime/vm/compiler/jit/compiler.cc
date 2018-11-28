@@ -1362,7 +1362,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
-    return Precompiler::EvaluateStaticInitializer(field);
+    UNREACHABLE();
   }
 #endif
   ASSERT(field.is_static());
@@ -1436,7 +1436,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
-    return Precompiler::ExecuteOnce(fragment);
+    UNREACHABLE();
   }
 #endif
   LongJumpScope jump;

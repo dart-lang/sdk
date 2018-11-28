@@ -239,9 +239,6 @@ class Precompiler : public ValueObject {
                                    Zone* zone,
                                    const Function& function);
 
-  static RawObject* EvaluateStaticInitializer(const Field& field);
-  static RawObject* ExecuteOnce(SequenceNode* fragment);
-
   static RawFunction* CompileStaticInitializer(const Field& field);
 
   // Returns true if get:runtimeType is not overloaded by any class.

@@ -26,7 +26,6 @@ class TestConfiguration {
       this.progress,
       this.selectors,
       this.testList,
-      this.appendLogs,
       this.repeat,
       this.batch,
       this.batchDart2JS,
@@ -42,8 +41,6 @@ class TestConfiguration {
       this.skipCompilation,
       this.useKernelBytecode,
       this.writeDebugLog,
-      this.writeTestOutcomeLog,
-      this.writeResultLog,
       this.writeResults,
       this.writeLogs,
       this.drtPath,
@@ -79,7 +76,6 @@ class TestConfiguration {
 
   // Boolean flags.
 
-  final bool appendLogs;
   final bool batch;
   final bool batchDart2JS;
   final bool copyCoreDumps;
@@ -95,8 +91,6 @@ class TestConfiguration {
   final bool skipCompilation;
   final bool useKernelBytecode;
   final bool writeDebugLog;
-  final bool writeTestOutcomeLog;
-  final bool writeResultLog;
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;

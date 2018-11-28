@@ -60,25 +60,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var printTiming = firstConf.printTiming;
   var listTests = firstConf.listTests;
   var listStatusFiles = firstConf.listStatusFiles;
-
   var reportInJson = firstConf.reportInJson;
 
   Browser.resetBrowserConfiguration = firstConf.resetBrowser;
-
-  if (!firstConf.appendLogs) {
-    var files = [
-      new File(TestUtils.flakyFileName),
-      new File(TestUtils.testOutcomeFileName)
-    ];
-    for (var file in files) {
-      if (file.existsSync()) {
-        file.deleteSync();
-      }
-    }
-  }
-
-  DebugLogger.init(firstConf.writeDebugLog ? TestUtils.debugLogFilePath : null,
-      append: firstConf.appendLogs);
+  DebugLogger.init(firstConf.writeDebugLog ? TestUtils.debugLogFilePath : null);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -202,7 +187,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       eventListener.add(new StatusFileUpdatePrinter());
     }
     eventListener.add(new SummaryPrinter());
-    eventListener.add(new FlakyLogWriter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
       // into '@@@'-annotated sections.
@@ -221,14 +205,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     if (progressIndicator == Progress.status) {
       eventListener.add(new TimedProgressPrinter());
     }
-  }
-
-  if (firstConf.writeTestOutcomeLog) {
-    eventListener.add(new TestOutcomeLogWriter());
-  }
-
-  if (firstConf.writeResultLog) {
-    eventListener.add(new ResultLogWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.writeResults) {

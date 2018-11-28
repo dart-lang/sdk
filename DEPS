@@ -95,7 +95,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_rev": "5b9c7c73fc5d25bfd3c529e723f4b9f0120ef5aa",
+  "linter_tag": "0.1.73",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
@@ -271,7 +271,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       Var("dart_git") + "json_rpc_2.git" + "@" + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
-      Var("dart_git") + "linter.git" + "@" + Var("linter_rev"),
+      Var("dart_git") + "linter.git" + "@" + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
       Var("dart_git") + "logging.git" + "@" + Var("logging_tag"),
   Var("dart_root") + "/third_party/pkg/markdown":
