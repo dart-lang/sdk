@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -21,21 +22,25 @@ class DefinitionHandler
   TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
       TextDocumentPositionParams.fromJson(json);
 
-  Future<List<Location>> handle(TextDocumentPositionParams params) async {
+  Future<ErrorOr<List<Location>>> handle(
+      TextDocumentPositionParams params) async {
+    final pos = params.position;
     final path = pathOf(params.textDocument);
-    final result = await requireUnit(path);
-    final offset = toOffset(result.lineInfo, params.position);
+    final unit = await path.mapResult(requireUnit);
+    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
-    computeDartNavigation(
-        server.resourceProvider, collector, result.unit, offset, 0);
+    return offset.mapResult((offset) {
+      NavigationCollectorImpl collector = new NavigationCollectorImpl();
+      computeDartNavigation(
+          server.resourceProvider, collector, unit.result.unit, offset, 0);
 
-    Location toLocation(NavigationTarget target) {
-      final targetFilePath = collector.files[target.fileIndex];
-      final lineInfo = server.getLineInfo(targetFilePath);
-      return navigationTargetToLocation(targetFilePath, target, lineInfo);
-    }
+      Location toLocation(NavigationTarget target) {
+        final targetFilePath = collector.files[target.fileIndex];
+        final lineInfo = server.getLineInfo(targetFilePath);
+        return navigationTargetToLocation(targetFilePath, target, lineInfo);
+      }
 
-    return convert(collector.targets, toLocation).toList();
+      return success(convert(collector.targets, toLocation).toList());
+    });
   }
 }

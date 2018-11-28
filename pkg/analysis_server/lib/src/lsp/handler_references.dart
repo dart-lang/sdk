@@ -6,12 +6,14 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -26,11 +28,17 @@ class ReferencesHandler
       ReferenceParams.fromJson(json);
 
   @override
-  Future<List<Location>> handle(ReferenceParams params) async {
+  Future<ErrorOr<List<Location>>> handle(ReferenceParams params) async {
+    final pos = params.position;
     final path = pathOf(params.textDocument);
-    final result = await requireUnit(path);
-    final offset = toOffset(result.lineInfo, params.position);
+    final unit = await path.mapResult(requireUnit);
+    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    return offset.mapResult(
+        (offset) => _getRefererences(path.result, offset, params, unit.result));
+  }
 
+  Future<ErrorOr<List<Location>>> _getRefererences(String path, int offset,
+      ReferenceParams params, ResolvedUnitResult unit) async {
     Element element = await server.getElementAtOffset(path, offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
@@ -42,7 +50,7 @@ class ReferencesHandler
       element = (element as PropertyAccessorElement).variable;
     }
     if (element == null) {
-      return null;
+      return success();
     }
 
     final computer = new ElementReferencesComputer(server.searchEngine);
@@ -57,13 +65,13 @@ class ReferencesHandler
 
     if (params.context?.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
-      referenceResults.addAll(getDeclarations(result.unit, offset));
+      referenceResults.addAll(_getDeclarations(unit.unit, offset));
     }
 
-    return referenceResults;
+    return success(referenceResults);
   }
 
-  List<Location> getDeclarations(CompilationUnit unit, int offset) {
+  List<Location> _getDeclarations(CompilationUnit unit, int offset) {
     final collector = new NavigationCollectorImpl();
     computeDartNavigation(server.resourceProvider, collector, unit, offset, 0);
 

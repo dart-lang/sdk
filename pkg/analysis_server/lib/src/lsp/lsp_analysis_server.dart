@@ -187,12 +187,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         try {
           final result = await messageHandler.handleMessage(message);
-          if (message is RequestMessage) {
-            channel.sendResponse(
-                new ResponseMessage(message.id, result, null, jsonRpcVersion));
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
+          } else if (message is RequestMessage) {
+            channel.sendResponse(new ResponseMessage(
+                message.id, result.result, null, jsonRpcVersion));
           }
-        } on ResponseError catch (error) {
-          sendErrorResponse(message, error);
         } catch (error, stackTrace) {
           sendErrorResponse(
               message,

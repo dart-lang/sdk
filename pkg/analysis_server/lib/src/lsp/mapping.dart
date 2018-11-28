@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/protocol_server.dart' as server
@@ -171,20 +172,24 @@ lsp.Location navigationTargetToLocation(String targetFilePath,
 }
 
 /// Returns the file system path for a TextDocumentIdentifier.
-String pathOf(lsp.TextDocumentIdentifier doc) {
+ErrorOr<String> pathOf(lsp.TextDocumentIdentifier doc) {
   final uri = Uri.tryParse(doc.uri);
   final isValidFileUri = (uri?.isScheme('file') ?? false);
   if (!isValidFileUri) {
-    throw new ResponseError(lsp.ServerErrorCodes.InvalidFilePath,
-        'URI was not a valid file:// URI', doc.uri);
+    return new ErrorOr<String>.error(new ResponseError(
+        lsp.ServerErrorCodes.InvalidFilePath,
+        'URI was not a valid file:// URI',
+        doc.uri));
   }
   try {
-    return uri.toFilePath();
+    return new ErrorOr<String>.success(uri.toFilePath());
   } catch (e) {
     // Even if tryParse() works and file == scheme, toFilePath() can throw on
     // Windows if there are invalid characters.
-    throw new ResponseError(lsp.ServerErrorCodes.InvalidFilePath,
-        'File URI did not contain a valid file path', doc.uri);
+    return new ErrorOr<String>.error(new ResponseError(
+        lsp.ServerErrorCodes.InvalidFilePath,
+        'File URI did not contain a valid file path',
+        doc.uri));
   }
 }
 
@@ -322,15 +327,18 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
-int toOffset(server.LineInfo lineInfo, lsp.Position pos) {
+ErrorOr<int> toOffset(server.LineInfo lineInfo, lsp.Position pos) {
   if (pos.line > lineInfo.lineCount) {
-    throw new lsp.ResponseError(lsp.ServerErrorCodes.InvalidFileLineCol,
-        'Invalid line number', pos.line);
+    return new ErrorOr<int>.error(new lsp.ResponseError(
+        lsp.ServerErrorCodes.InvalidFileLineCol,
+        'Invalid line number',
+        pos.line));
   }
   // TODO(dantup): Is there any way to validate the character? We could ensure
   // it's less than the offset of the next line, but that would only work for
   // all lines except the last one.
-  return lineInfo.getOffsetOfLine(pos.line) + pos.character;
+  return new ErrorOr<int>.success(
+      lineInfo.getOffsetOfLine(pos.line) + pos.character);
 }
 
 lsp.Position toPosition(server.CharacterLocation location) {

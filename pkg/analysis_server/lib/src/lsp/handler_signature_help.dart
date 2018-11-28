@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -19,21 +20,25 @@ class SignatureHelpHandler
   TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
       TextDocumentPositionParams.fromJson(json);
 
-  Future<SignatureHelp> handle(TextDocumentPositionParams params) async {
+  Future<ErrorOr<SignatureHelp>> handle(
+      TextDocumentPositionParams params) async {
+    final pos = params.position;
     final path = pathOf(params.textDocument);
-    final result = await requireUnit(path);
-    final offset = toOffset(result.lineInfo, params.position);
+    final unit = await path.mapResult(requireUnit);
+    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
-    final computer = new DartUnitSignatureComputer(result.unit, offset);
-    if (computer.offsetIsValid) {
-      final signature = computer.compute();
-      if (signature != null) {
-        final formats = server?.clientCapabilities?.textDocument?.signatureHelp
-            ?.signatureInformation?.documentationFormat;
-        return toSignatureHelp(formats, signature);
+    return offset.mapResult((offset) {
+      final computer = new DartUnitSignatureComputer(unit.result.unit, offset);
+      if (!computer.offsetIsValid) {
+        return success(); // No error, just no valid hover.
       }
-    }
-
-    return null;
+      final signature = computer.compute();
+      if (signature == null) {
+        return success(); // No error, just no valid hover.
+      }
+      final formats = server?.clientCapabilities?.textDocument?.signatureHelp
+          ?.signatureInformation?.documentationFormat;
+      return success(toSignatureHelp(formats, signature));
+    });
   }
 }

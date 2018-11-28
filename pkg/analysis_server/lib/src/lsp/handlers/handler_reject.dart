@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
@@ -20,7 +21,7 @@ class RejectMessageHandler extends MessageHandler<Object, void> {
   void convertParams(Map<String, dynamic> json) => null;
 
   @override
-  void handle(void _) {
-    throw new ResponseError(errorCode, errorMessage, null);
+  ErrorOr<void> handle(void _) {
+    return error(errorCode, errorMessage, null);
   }
 }

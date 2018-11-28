@@ -18,7 +18,7 @@ class InitializeMessageHandler
   InitializeParams convertParams(Map<String, dynamic> json) =>
       InitializeParams.fromJson(json);
 
-  InitializeResult handle(InitializeParams params) {
+  ErrorOr<InitializeResult> handle(InitializeParams params) {
     final openWorkspacePaths = <String>[];
 
     if (params.workspaceFolders != null) {
@@ -37,7 +37,7 @@ class InitializeMessageHandler
     server.messageHandler =
         new InitializingStateMessageHandler(server, openWorkspacePaths);
 
-    return new InitializeResult(new ServerCapabilities(
+    return success(new InitializeResult(new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,
           TextDocumentSyncKind.Incremental,
@@ -79,6 +79,6 @@ class InitializeMessageHandler
         null,
         null,
         null,
-        null));
+        null)));
   }
 }

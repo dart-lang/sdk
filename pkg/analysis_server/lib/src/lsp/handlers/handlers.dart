@@ -25,15 +25,18 @@ abstract class MessageHandler<P, R> {
 
   P convertParams(Map<String, dynamic> json);
 
-  FutureOr<R> handle(P params);
+  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
+      new ErrorOr<R>.error(new ResponseError(code, message, data));
+
+  ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
+      new ErrorOr<R>.error(error.error);
+
+  FutureOr<ErrorOr<R>> handle(P params);
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<R> handleMessage(IncomingMessage message) {
-    // TODO: Change the return type here to something that can be an R or an error
-    // and stop throwing ResponseError's but return them instead.
-
+  FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message) {
     final params = convertParams(message.params);
     return handle(params);
   }
@@ -44,14 +47,15 @@ abstract class MessageHandler<P, R> {
     return items.map(converter).where((item) => item != null);
   }
 
-  Future<ResolvedUnitResult> requireUnit(String path) async {
+  Future<ErrorOr<ResolvedUnitResult>> requireUnit(String path) async {
     final result = await server.getResolvedUnit(path);
     if (result?.state != ResultState.VALID) {
-      throw new ResponseError(
-          ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
-    return result;
+    return success(result);
   }
+
+  ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
 }
 
 /// A message handler that handles all messages for a given server state.
@@ -65,43 +69,50 @@ abstract class ServerStateMessageHandler {
     registerHandler(new ExitMessageHandler(server));
   }
 
+  ErrorOr<Object> failure<Object>(
+          ErrorCodes code, String message, Object data) =>
+      new ErrorOr<Object>.error(new ResponseError(code, message, data));
+
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<Object> handleMessage(IncomingMessage message) async {
+  FutureOr<ErrorOr<Object>> handleMessage(IncomingMessage message) async {
     final handler = _messageHandlers[message.method];
     return handler != null
         ? handler.handleMessage(message)
         : handleUnknownMessage(message);
   }
 
-  bool _isOptionalRequest(IncomingMessage message) {
-    // Messages that start with $/ are optional and can be silently ignored
-    // if we don't know how to handle them.
-    final stringValue = message.method.toJson();
-    return stringValue is String && stringValue.startsWith(r'$/');
-  }
-
-  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
     // TODO(dantup): How should we handle unknown notifications that do
     // *not* start with $/?
     // https://github.com/Microsoft/language-server-protocol/issues/608
     if (!_isOptionalRequest(message)) {
-      throw new ResponseError(
+      return failure(
           ErrorCodes.MethodNotFound, 'Unknown method ${message.method}', null);
     }
-    return null;
+    return success();
   }
 
   registerHandler(MessageHandler handler) {
-    if (handler.handlesMessage == null) {
-      throw 'Unable to register handler ${handler.runtimeType} because it does '
-          'not declare which messages it can handle';
-    }
+    assert(
+        handler.handlesMessage != null,
+        'Unable to register handler ${handler.runtimeType} because it does '
+        'not declare which messages it can handle');
+
     _messageHandlers[handler.handlesMessage] = handler;
   }
 
   reject(Method method, ErrorCodes code, String message) {
     registerHandler(new RejectMessageHandler(server, method, code, message));
+  }
+
+  ErrorOr<Object> success<Object>([Object t]) => new ErrorOr<Object>.success(t);
+
+  bool _isOptionalRequest(IncomingMessage message) {
+    // Messages that start with $/ are optional and can be silently ignored
+    // if we don't know how to handle them.
+    final stringValue = message.method.toJson();
+    return stringValue is String && stringValue.startsWith(r'$/');
   }
 }

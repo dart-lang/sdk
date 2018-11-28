@@ -5,9 +5,11 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:dart_style/dart_style.dart';
 
 class FormattingHandler
@@ -20,10 +22,7 @@ class FormattingHandler
   DocumentFormattingParams convertParams(Map<String, dynamic> json) =>
       DocumentFormattingParams.fromJson(json);
 
-  Future<List<TextEdit>> handle(DocumentFormattingParams params) async {
-    final path = pathOf(params.textDocument);
-    final result = await requireUnit(path);
-
+  ErrorOr<List<TextEdit>> formatFile(String path, ResolvedUnitResult unit) {
     final unformattedSource = server.fileContentOverlay[path] ??
         server.resourceProvider.getFile(path).readAsStringSync();
 
@@ -37,22 +36,29 @@ class FormattingHandler
       // use seeing edits on every save with invalid code (if LSP gains the
       // ability to pass a context to know if the format was manually invoked
       // we may wish to change this to return an error for that case).
-      return null;
+      return success();
     }
     final formattedSource = formattedResult.text;
 
     if (formattedSource == unformattedSource) {
-      return null;
+      return success();
     }
 
     // We don't currently support returning "minimal" edits, we just replace
     // entire document.
-    final end = result.lineInfo.getLocation(unformattedSource.length);
-    return [
+    final end = unit.lineInfo.getLocation(unformattedSource.length);
+    return success([
       new TextEdit(
         new Range(new Position(0, 0), toPosition(end)),
         formattedSource,
       )
-    ];
+    ]);
+  }
+
+  Future<ErrorOr<List<TextEdit>>> handle(
+      DocumentFormattingParams params) async {
+    final path = pathOf(params.textDocument);
+    final unit = await path.mapResult(requireUnit);
+    return unit.mapResult((unit) => formatFile(path.result, unit));
   }
 }

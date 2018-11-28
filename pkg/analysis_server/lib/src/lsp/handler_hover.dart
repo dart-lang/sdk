@@ -5,12 +5,14 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
@@ -21,13 +23,12 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
       TextDocumentPositionParams.fromJson(json);
 
-  Future<Hover> handle(TextDocumentPositionParams params) async {
+  Future<ErrorOr<Hover>> handle(TextDocumentPositionParams params) async {
+    final pos = params.position;
     final path = pathOf(params.textDocument);
-    final result = await requireUnit(path);
-    final offset = toOffset(result.lineInfo, params.position);
-
-    final hover = new DartUnitHoverComputer(result.unit, offset).compute();
-    return toHover(result.lineInfo, hover);
+    final unit = await path.mapResult(requireUnit);
+    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    return offset.mapResult((offset) => _getHover(unit.result, offset));
   }
 
   Hover toHover(LineInfo lineInfo, HoverInformation hover) {
@@ -74,5 +75,10 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       asStringOrMarkupContent(formats, content.toString().trimRight()),
       toRange(lineInfo, hover.offset, hover.length),
     );
+  }
+
+  ErrorOr<Hover> _getHover(ResolvedUnitResult unit, int offset) {
+    final hover = new DartUnitHoverComputer(unit.unit, offset).compute();
+    return success(toHover(unit.lineInfo, hover));
   }
 }

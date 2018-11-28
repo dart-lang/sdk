@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -13,6 +14,7 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
@@ -46,11 +48,16 @@ class CompletionHandler
   CompletionParams convertParams(Map<String, dynamic> json) =>
       CompletionParams.fromJson(json);
 
-  Future<List<CompletionItem>> handle(CompletionParams params) async {
+  Future<ErrorOr<List<CompletionItem>>> handle(CompletionParams params) async {
+    final pos = params.position;
     final path = pathOf(params.textDocument);
-    final result = await requireUnit(path);
-    final offset = toOffset(result.lineInfo, params.position);
+    final unit = await path.mapResult(requireUnit);
+    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    return offset.mapResult((offset) => _getItems(unit.result, offset));
+  }
 
+  Future<ErrorOr<List<CompletionItem>>> _getItems(
+      ResolvedUnitResult unit, int offset) async {
     final completionCapabilities =
         server.clientCapabilities.textDocument != null
             ? server.clientCapabilities.textDocument.completion
@@ -65,23 +72,23 @@ class CompletionHandler
 
     final performance = new CompletionPerformance();
     final completionRequest =
-        new CompletionRequestImpl(result, offset, performance);
+        new CompletionRequestImpl(unit, offset, performance);
 
     try {
       CompletionContributor contributor = new DartCompletionManager();
       final items = await contributor.computeSuggestions(completionRequest);
-      return items
+      return success(items
           .map((item) => toCompletionItem(
                 completionCapabilities,
                 clientSupportedCompletionKinds,
-                result.lineInfo,
+                unit.lineInfo,
                 item,
                 completionRequest.replacementOffset,
                 completionRequest.replacementLength,
               ))
-          .toList();
+          .toList());
     } on AbortCompletion {
-      return [];
+      return success([]);
     }
   }
 }

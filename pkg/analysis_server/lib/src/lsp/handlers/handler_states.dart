@@ -46,12 +46,12 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
+  ErrorOr<void> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      return null;
+      return success();
     }
-    throw new ResponseError(
+    return failure(
         ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before the server is initialized '
         'and the client has sent the initialized notification',
@@ -65,12 +65,12 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<Object> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      return null;
+      return success();
     }
-    throw new ResponseError(
+    return failure(
         ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request',
         null);
