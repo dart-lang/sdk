@@ -62,6 +62,7 @@ class LibraryCycle {
     for (var user in _directUsers) {
       user.invalidate();
     }
+    _directUsers.clear();
   }
 
   @override
@@ -116,8 +117,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     // Append direct referenced cycles.
     for (var node in scc) {
       var file = node.file;
-      _appendDirectlyReference(cycle, signature, file.importedFiles);
-      _appendDirectlyReference(cycle, signature, file.exportedFiles);
+      _appendDirectlyReferenced(cycle, signature, file.importedFiles);
+      _appendDirectlyReferenced(cycle, signature, file.exportedFiles);
     }
 
     // Fill the cycle with libraries.
@@ -151,7 +152,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     return nodesOfFiles.putIfAbsent(file, () => new _LibraryNode(this, file));
   }
 
-  void _appendDirectlyReference(
+  void _appendDirectlyReferenced(
     LibraryCycle cycle,
     ApiSignature signature,
     List<FileState> directlyReferenced,
