@@ -1190,8 +1190,9 @@ class FixProcessor {
     String filePath;
     if (prefixElement == null) {
       targetUnit = unit.declaredElement;
-      CompilationUnitMember enclosingMember = node.getAncestor((node) =>
-          node is CompilationUnitMember && node.parent is CompilationUnit);
+      CompilationUnitMember enclosingMember = node.thisOrAncestorMatching(
+          (node) =>
+              node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
         return;
       }
@@ -2009,8 +2010,9 @@ class FixProcessor {
     String filePath;
     if (prefixElement == null) {
       targetUnit = unit.declaredElement;
-      CompilationUnitMember enclosingMember = node.getAncestor((node) =>
-          node is CompilationUnitMember && node.parent is CompilationUnit);
+      CompilationUnitMember enclosingMember = node.thisOrAncestorMatching(
+          (node) =>
+              node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
         return;
       }
@@ -2845,7 +2847,7 @@ class FixProcessor {
       references = findLocalElementReferences(root, element);
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
-        AstNode root = node.getAncestor((node) =>
+        AstNode root = node.thisOrAncestorMatching((node) =>
             node.parent is ClassOrMixinDeclaration ||
             node.parent is CompilationUnit);
         references = findLocalElementReferences(root, element);

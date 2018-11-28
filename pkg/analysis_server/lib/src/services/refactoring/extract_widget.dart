@@ -103,7 +103,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     AstNode astNode = _expression ?? _method ?? _statements.first;
-    _enclosingUnitMember = astNode.getAncestor((n) {
+    _enclosingUnitMember = astNode.thisOrAncestorMatching((n) {
       return n is CompilationUnitMember && n.parent is CompilationUnit;
     });
 

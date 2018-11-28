@@ -776,7 +776,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       node.thisOrAncestorOfType<DoStatement>() != null;
 
   bool _inForLoop(AstNode node) =>
-      node.getAncestor((p) => p is ForStatement || p is ForEachStatement) !=
+      node.thisOrAncestorMatching(
+          (p) => p is ForStatement || p is ForEachStatement) !=
       null;
 
   bool _inLoop(AstNode node) =>

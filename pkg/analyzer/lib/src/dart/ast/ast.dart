@@ -899,14 +899,9 @@ abstract class AstNodeImpl implements AstNode {
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
   @override
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) {
-    // TODO(brianwilkerson) It is a bug that this method can return `this`.
-    AstNode node = this;
-    while (node != null && !predicate(node)) {
-      node = node.parent;
-    }
-    return node as E;
-  }
+  @deprecated
+  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) =>
+      thisOrAncestorMatching(predicate);
 
   @override
   E getProperty<E>(String name) {
@@ -931,6 +926,16 @@ abstract class AstNodeImpl implements AstNode {
       }
       _propertyMap[name] = value;
     }
+  }
+
+  @override
+  E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
+    // TODO(brianwilkerson) It is a bug that this method can return `this`.
+    AstNode node = this;
+    while (node != null && !predicate(node)) {
+      node = node.parent;
+    }
+    return node as E;
   }
 
   @override

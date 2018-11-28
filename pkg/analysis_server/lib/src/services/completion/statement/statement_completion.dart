@@ -159,8 +159,8 @@ class StatementCompletionProcessor {
     if (node == null) {
       return NO_COMPLETION;
     }
-    node = node
-        .getAncestor((n) => n is Statement || _isNonStatementDeclaration(n));
+    node = node.thisOrAncestorMatching(
+        (n) => n is Statement || _isNonStatementDeclaration(n));
     if (node == null) {
       return _complete_simpleEnter() ? completion : NO_COMPLETION;
     }
@@ -860,7 +860,7 @@ class StatementCompletionProcessor {
       argList = _selectedNode(at: parenError.offset)
           .thisOrAncestorOfType<ArgumentList>();
     }
-    if (argList?.getAncestor((n) => n == node) == null) {
+    if (argList?.thisOrAncestorMatching((n) => n == node) == null) {
       return false;
     }
     int previousInsertions = _lengthOfInsertions();

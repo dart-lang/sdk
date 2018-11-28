@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -162,7 +162,7 @@ class FindNode {
     var node = new NodeLocator2(index).searchWithin(unit);
     expect(node, isNotNull);
 
-    var result = node.getAncestor(predicate);
+    var result = node.thisOrAncestorMatching(predicate);
     expect(result, isNotNull);
     return result;
   }

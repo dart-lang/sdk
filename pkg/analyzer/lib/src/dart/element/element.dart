@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -3119,7 +3119,7 @@ abstract class ElementImpl implements Element {
     if (node == null) {
       return null;
     }
-    return node.getAncestor(predicate);
+    return node.thisOrAncestorMatching(predicate);
   }
 
   /// Return `true` if this element has the given [modifier] associated with it.
