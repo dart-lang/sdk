@@ -23,6 +23,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final StringIndexer stringIndexer;
   ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
+  bool _currentlyInNonimplementation = false;
+  final List<bool> _sourcesFromRealImplementation = new List<bool>();
   final Set<Uri> _knownSourceUri = new Set<Uri>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
@@ -226,6 +228,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   Uri writeUriReference(Uri uri) {
     final int index = _sourceUriIndexer.put(uri);
     writeUInt30(index);
+    if (!_currentlyInNonimplementation) {
+      if (_sourcesFromRealImplementation.length <= index) {
+        _sourcesFromRealImplementation.length = index + 1;
+      }
+      _sourcesFromRealImplementation[index] = true;
+    }
     return uri;
   }
 
@@ -503,9 +511,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     Utf8Encoder utf8Encoder = const Utf8Encoder();
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
-      Source source =
-          (_knownSourceUri.contains(uri) ? uriToSource[uri] : null) ??
-              new Source(<int>[], const <int>[]);
+      Source source = ((_knownSourceUri.contains(uri) &&
+                  _sourcesFromRealImplementation.length > i &&
+                  _sourcesFromRealImplementation[i] == true)
+              ? uriToSource[uri]
+              : null) ??
+          new Source(<int>[], const <int>[]);
 
       writeByteList(utf8Encoder.convert(uri == null ? "" : "$uri"));
       writeByteList(source.source);
@@ -753,6 +764,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitClass(Class node) {
     classOffsets.add(getBufferOffset());
 
+    if (node.isAnonymousMixin) _currentlyInNonimplementation = true;
+
     int flags = _encodeClassFlags(node.flags, node.level);
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
@@ -791,6 +804,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
+    _currentlyInNonimplementation = false;
   }
 
   static final Name _emptyName = new Name('');
@@ -834,6 +848,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
+
+    final bool currentlyInNonimplementationSaved =
+        _currentlyInNonimplementation;
+    if (node.isNoSuchMethodForwarder || node.isSyntheticForwarder) {
+      _currentlyInNonimplementation = true;
+    }
+
     enterScope(memberScope: true);
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
@@ -856,6 +877,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     leaveScope(memberScope: true);
 
+    _currentlyInNonimplementation = currentlyInNonimplementationSaved;
     assert((node.forwardingStubSuperTarget != null) ||
         !(node.isForwardingStub && node.function.body != null));
   }

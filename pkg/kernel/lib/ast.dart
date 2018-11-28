@@ -5695,7 +5695,7 @@ class Source {
   /// number. The returned line contains no line separators.
   String getTextLine(int line) {
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
-    if (source == null) return null;
+    if (source == null || source.isEmpty) return null;
 
     cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.

@@ -133,9 +133,9 @@ class KernelTarget extends TargetImplementation {
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
-      {Map<Uri, Source> uriToSource, MetadataCollector metadataCollector})
+      {MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
-        uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
+        uriToSource = CompilerContext.current.uriToSource,
         metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
@@ -350,7 +350,6 @@ class KernelTarget extends TargetImplementation {
     }
 
     this.uriToSource.forEach(copySource);
-    dillTarget.loader.uriToSource.forEach(copySource);
 
     Component component = CompilerContext.current.options.target
         .configureComponent(new Component(
