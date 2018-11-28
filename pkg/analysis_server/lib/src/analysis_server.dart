@@ -342,16 +342,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     return driver?.getCachedResult(path);
   }
 
-  /// Return a [Future] that completes with the resolved [CompilationUnit] for
-  /// the Dart file with the given [path], or with `null` if the file is not a
-  /// Dart file or cannot be resolved.
-  Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    ResolvedUnitResult result = await getResolvedUnit(path);
-    return result?.unit;
-  }
-
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
     _performance.logRequest(request);

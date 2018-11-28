@@ -62,8 +62,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(response, isResponseSuccess('0'));
     // verify that unit is resolved eventually
     await server.onAnalysisComplete;
-    var unit = await serverRef.getResolvedCompilationUnit(file);
-    expect(unit, isNotNull);
+    var resolvedUnit = await serverRef.getResolvedUnit(file);
+    expect(resolvedUnit, isNotNull);
   }
 
   test_setAnalysisRoots_included_nonexistentFolder() async {
@@ -76,8 +76,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     // Non-existence of /project_a should not prevent files in /project_b
     // from being analyzed.
     await server.onAnalysisComplete;
-    var unit = await serverRef.getResolvedCompilationUnit(fileB);
-    expect(unit, isNotNull);
+    var resolvedUnit = await serverRef.getResolvedUnit(fileB);
+    expect(resolvedUnit, isNotNull);
   }
 
   test_setAnalysisRoots_included_notAbsolute() async {
