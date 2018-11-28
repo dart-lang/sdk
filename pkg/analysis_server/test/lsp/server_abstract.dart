@@ -146,6 +146,20 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return expectSuccessfulResponseTo(request);
   }
 
+  Future<List<TextEdit>> formatOnType(
+      String fileUri, Position pos, String character) async {
+    final request = makeRequest(
+      Method.textDocument_onTypeFormatting,
+      new DocumentOnTypeFormattingParams(
+        new TextDocumentIdentifier(fileUri),
+        pos,
+        character,
+        new FormattingOptions(2, true), // These currently don't do anything
+      ),
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
       {CompletionContext context}) async {
     final request = makeRequest(

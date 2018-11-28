@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handler_references.dart';
 import 'package:analysis_server/src/lsp/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handler_text_document_changes.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -33,6 +34,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new DefinitionHandler(server));
     registerHandler(new ReferencesHandler(server));
     registerHandler(new FormattingHandler(server));
+    registerHandler(new FormatOnTypeHandler(server));
   }
 }
 

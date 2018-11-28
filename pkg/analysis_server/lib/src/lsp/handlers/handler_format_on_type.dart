@@ -12,14 +12,14 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
-class FormattingHandler
-    extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
-  FormattingHandler(LspAnalysisServer server) : super(server);
-  Method get handlesMessage => Method.textDocument_formatting;
+class FormatOnTypeHandler
+    extends MessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>> {
+  FormatOnTypeHandler(LspAnalysisServer server) : super(server);
+  Method get handlesMessage => Method.textDocument_onTypeFormatting;
 
   @override
-  DocumentFormattingParams convertParams(Map<String, dynamic> json) =>
-      DocumentFormattingParams.fromJson(json);
+  DocumentOnTypeFormattingParams convertParams(Map<String, dynamic> json) =>
+      DocumentOnTypeFormattingParams.fromJson(json);
 
   ErrorOr<List<TextEdit>> formatFile(String path, ResolvedUnitResult unit) {
     final unformattedSource = server.fileContentOverlay[path] ??
@@ -29,7 +29,7 @@ class FormattingHandler
   }
 
   Future<ErrorOr<List<TextEdit>>> handle(
-      DocumentFormattingParams params) async {
+      DocumentOnTypeFormattingParams params) async {
     final path = pathOf(params.textDocument);
     final unit = await path.mapResult(requireUnit);
     return unit.mapResult((unit) => formatFile(path.result, unit));

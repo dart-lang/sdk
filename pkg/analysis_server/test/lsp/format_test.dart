@@ -29,6 +29,28 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
+  test_formatOnType_simple() async {
+    const contents = '''
+    main  ()
+    {
+
+        print('test');
+    ^}
+    ''';
+    final expected = '''main() {
+  print('test');
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+
+    final formatEdits = await formatOnType(
+        mainFileUri.toString(), positionFromMarker(contents), '}');
+    expect(formatEdits, isNotNull);
+    final formattedContents = applyEdits(contents, formatEdits);
+    expect(formattedContents, equals(expected));
+  }
+
   test_invalidSyntax() async {
     const contents = '''main(((( {
   print('test');

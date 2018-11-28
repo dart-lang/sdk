@@ -71,8 +71,8 @@ class InitializeMessageHandler
         null,
         null,
         true, // documentFormattingProvider
-        null,
-        null,
+        false, // documentRangeFormattingProvider
+        new DocumentOnTypeFormattingOptions('}', [';']),
         null,
         null,
         null,
