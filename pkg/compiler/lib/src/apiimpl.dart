@@ -82,7 +82,7 @@ class CompilerImpl extends Compiler {
   }
 
   Future<bool> run(Uri uri) {
-    Duration setupDuration = measurer.wallClock.elapsed;
+    Duration setupDuration = measurer.elapsedWallClock;
     return selfTask.measureSubtask("impl.run", () {
       return setupSdk().then((_) {
         return super.run(uri);
@@ -103,8 +103,8 @@ class CompilerImpl extends Compiler {
 
   void computeTimings(Duration setupDuration, StringBuffer timings) {
     timings.writeln("Timings:");
-    Duration totalDuration = measurer.wallClock.elapsed;
-    Duration asyncDuration = measurer.asyncWallClock.elapsed;
+    Duration totalDuration = measurer.elapsedWallClock;
+    Duration asyncDuration = measurer.elapsedAsyncWallClock;
     Duration cumulatedDuration = Duration.zero;
     List<_TimingData> timingData = [];
     for (final task in tasks) {
