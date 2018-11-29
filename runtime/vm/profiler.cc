@@ -1142,8 +1142,11 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
-  OS::PrintErr("Dumping native stack trace for thread %" Px "\n",
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
+  Isolate* isolate = Isolate::Current();
+  const char* name = isolate == NULL ? NULL : isolate->name();
+  OS::PrintErr("thread=%" Pd ", isolate=%s(%p)\n",
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
+               isolate);
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");

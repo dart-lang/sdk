@@ -1540,7 +1540,7 @@ TimelineEvent* TimelineEventBlock::StartEvent() {
     OSThread* os_thread = OSThread::Current();
     ASSERT(os_thread != NULL);
     intptr_t tid = OSThread::ThreadIdToIntPtr(os_thread->id());
-    OS::PrintErr("StartEvent in block %p for thread %" Px "\n", this, tid);
+    OS::PrintErr("StartEvent in block %p for thread %" Pd "\n", this, tid);
   }
   return &events_[length_++];
 }
