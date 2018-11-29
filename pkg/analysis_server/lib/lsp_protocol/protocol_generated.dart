@@ -7566,7 +7566,8 @@ class SymbolInformation implements ToJsonable {
   }
   static SymbolInformation fromJson(Map<String, dynamic> json) {
     final name = json['name'];
-    final kind = json['kind'];
+    final kind =
+        json['kind'] != null ? SymbolKind.fromJson(json['kind']) : null;
     final deprecated = json['deprecated'];
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
@@ -7585,7 +7586,7 @@ class SymbolInformation implements ToJsonable {
   final bool deprecated;
 
   /// The kind of this symbol.
-  final num kind;
+  final SymbolKind kind;
 
   /// The location of this symbol. The location's range is used by a tool to
   /// reveal the location in the editor. If the symbol is selected in the tool
@@ -7621,7 +7622,7 @@ class SymbolInformation implements ToJsonable {
         obj.containsKey('name') &&
         obj['name'] is String &&
         obj.containsKey('kind') &&
-        obj['kind'] is num &&
+        SymbolKind.canParse(obj['kind']) &&
         obj.containsKey('location') &&
         Location.canParse(obj['location']);
   }

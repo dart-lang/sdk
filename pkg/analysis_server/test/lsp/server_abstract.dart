@@ -184,7 +184,8 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
-  Future<List<DocumentSymbol>> getDocumentSymbols(String fileUri) async {
+  Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
+      getDocumentSymbols(String fileUri) async {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       new DocumentSymbolParams(
