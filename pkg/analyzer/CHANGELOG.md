@@ -1,4 +1,4 @@
-## 0.33.5
+## 0.33.6
 * Deprecated `AstNode.getAncestor` and introduced
   `AstNode.thisOrAncestorMatching` as its replacement.
 
