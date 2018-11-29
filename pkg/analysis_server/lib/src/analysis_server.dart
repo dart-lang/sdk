@@ -396,12 +396,12 @@ class AnalysisServer extends AbstractAnalysisServer {
         resourceProvider.pathContext.normalize(path) == path;
   }
 
-  /// Trigger reanalysis of all files in the given list of analysis [roots], or
-  /// everything if the analysis roots is `null`.
-  void reanalyze(List<Resource> roots) {
-    // Instruct the contextDirectoryManager to rebuild all contexts from
-    // scratch.
-    contextManager.refresh(roots);
+  /// Read all files, resolve all URIs, and perform required analysis in
+  /// all current analysis drivers.
+  void reanalyze() {
+    for (var driver in driverMap.values) {
+      driver.resetUriResolution();
+    }
   }
 
   /// Send the given [notification] to the client.

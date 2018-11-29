@@ -172,6 +172,9 @@ class _GeneratedUriResolverMock implements UriResolver {
   Uri Function(Source) restoreAbsoluteFunction;
 
   @override
+  void clearCache() {}
+
+  @override
   noSuchMethod(Invocation invocation) {
     throw new StateError('Unexpected invocation of ${invocation.memberName}');
   }
