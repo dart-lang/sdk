@@ -443,12 +443,6 @@
     "Dynamic access of 'name'.": 4,
     "Dynamic access of 'isIndex'.": 1
   },
-  "pkg/compiler/lib/src/hash/sha1.dart": {
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of '&'.": 2,
-    "Dynamic invocation of 'unary-'.": 1,
-    "Dynamic invocation of '-'.": 1
-  },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
     "Dynamic access of 'superclass'.": 1,
     "Dynamic access of 'needsTearOff'.": 1
