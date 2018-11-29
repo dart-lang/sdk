@@ -130,7 +130,7 @@ String compileTemplate(String name, int index, String template, String tip,
   bool hasLabeler = false;
   void ensureLabeler() {
     if (hasLabeler) return;
-    conversions.add("DummyTypeLabeler labeler = new DummyTypeLabeler();");
+    conversions.add("TypeLabeler labeler = new TypeLabeler();");
     hasLabeler = true;
   }
 

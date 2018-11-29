@@ -122,7 +122,7 @@ Message _withArgumentsAmbiguousSupertypes(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -177,7 +177,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsArgumentTypeNotAssignable(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -1043,7 +1043,7 @@ const Code<Message Function(Constant _constant)> codeConstEvalDuplicateKey =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalDuplicateKey,
@@ -1104,7 +1104,7 @@ const Code<Message Function(DartType _type)> codeConstEvalFreeTypeParameter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalFreeTypeParameter(DartType _type) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeConstEvalFreeTypeParameter,
@@ -1142,7 +1142,7 @@ const Code<
 Message _withArgumentsConstEvalInvalidBinaryOperandType(
     String string, Constant _constant, DartType _type, DartType _type2) {
   if (string.isEmpty) throw 'No string provided';
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1184,7 +1184,7 @@ const Code<Message Function(String string, Constant _constant)>
 Message _withArgumentsConstEvalInvalidMethodInvocation(
     String string, Constant _constant) {
   if (string.isEmpty) throw 'No string provided';
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidMethodInvocation,
@@ -1241,7 +1241,7 @@ const Code<Message Function(Constant _constant)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
     Constant _constant) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidStringInterpolationOperand,
@@ -1270,7 +1270,7 @@ const Code<Message Function(Constant _constant)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidSymbolName(Constant _constant) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidSymbolName,
@@ -1304,7 +1304,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidType(
     Constant _constant, DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1967,7 +1967,7 @@ const Code<Message Function(DartType _type, String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -3301,7 +3301,7 @@ const Code<Message Function(DartType _type, String name, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFactoryRedirecteeInvalidReturnType(
     DartType _type, String name, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -3631,7 +3631,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopElementTypeNotAssignable(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -3683,7 +3683,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopTypeNotIterable(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -3769,7 +3769,7 @@ const Code<Message Function(DartType _type)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
     DartType _type) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeGenericFunctionTypeInferredAsActualTypeArgument,
@@ -4065,7 +4065,7 @@ const Code<Message Function(DartType _type)> codeImplicitCallOfNonMethod =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeImplicitCallOfNonMethod,
@@ -4164,7 +4164,7 @@ const Code<Message Function(DartType _type, String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgument(DartType _type, String name) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -4201,7 +4201,7 @@ const Code<Message Function(DartType _type, String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInReturnType(
     DartType _type, String name) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -4244,7 +4244,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInSupertype(
     DartType _type, String name, String name2, String name3) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -4291,7 +4291,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(
     DartType _type, String name, String name2, String name3) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -4332,7 +4332,7 @@ const Code<Message Function(DartType _type, String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInferred(
     DartType _type, String name) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -4550,7 +4550,7 @@ Message _withArgumentsInitializingFormalTypeMismatch(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -4932,7 +4932,7 @@ const Code<Message Function(DartType _type, String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
     DartType _type, String name) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -5106,7 +5106,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidAssignment(DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5172,7 +5172,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastFunctionExpr(DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5207,7 +5207,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralList(DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5242,7 +5242,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralMap(DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5278,7 +5278,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLocalFunction(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5313,7 +5313,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastNewExpr(DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5348,7 +5348,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastStaticMethod(DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -5384,7 +5384,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastTopLevelFunction(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -6028,7 +6028,7 @@ const Code<Message Function(DartType _type, DartType _type2, DartType _type3)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinApplicationIncompatibleSupertype(
     DartType _type, DartType _type2, DartType _type3) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   List<Object> type3Parts = labeler.labelType(_type3);
@@ -6068,7 +6068,7 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeMixinInferenceNoMatchingClass,
@@ -6789,7 +6789,7 @@ Message _withArgumentsOverrideTypeMismatchParameter(
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -6833,7 +6833,7 @@ Message _withArgumentsOverrideTypeMismatchReturnType(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -7309,7 +7309,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -7345,7 +7345,7 @@ Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -7382,7 +7382,7 @@ Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -8085,7 +8085,7 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSwitchExpressionNotAssignable(
     DartType _type, DartType _type2) {
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
@@ -8501,7 +8501,7 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedGetter =
 Message _withArgumentsUndefinedGetter(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeUndefinedGetter,
@@ -8536,7 +8536,7 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedMethod =
 Message _withArgumentsUndefinedMethod(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeUndefinedMethod,
@@ -8571,7 +8571,7 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedSetter =
 Message _withArgumentsUndefinedSetter(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  DummyTypeLabeler labeler = new DummyTypeLabeler();
+  TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(codeUndefinedSetter,

@@ -1,6 +1,7 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:22:56: Error: Inferred type argument 'test::NotA' violates the corresponding type variable bound of 'C::'.
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:22:56: Error: Inferred type argument 'NotA' violates the corresponding type variable bound of 'C::'.
+//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //       new /*error:COULD_NOT_INFER*/ /*@typeArgs=NotA*/ C(myF);
 //                                                        ^
@@ -8,7 +9,8 @@
 // class C<T extends A> {
 //         ^
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:25: Error: Inferred type argument 'test::NotA' violates the corresponding type variable bound of 'C'.
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:25: Error: Inferred type argument 'NotA' violates the corresponding type variable bound of 'C'.
+//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   var /*@type=C<NotA>*/ x =
 //                         ^
@@ -18,12 +20,14 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:22:56: Error: Inferred type argument 'test::NotA' violates the corresponding type variable bound of 'C::'.
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:22:56: Error: Inferred type argument 'NotA' violates the corresponding type variable bound of 'C::'.
+//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //       new /*error:COULD_NOT_INFER*/ /*@typeArgs=NotA*/ C(myF);
 //                                                        ^
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:25: Error: Inferred type argument 'test::NotA' violates the corresponding type variable bound of 'C'.
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:25: Error: Inferred type argument 'NotA' violates the corresponding type variable bound of 'C'.
+//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   var /*@type=C<NotA>*/ x =
 //                         ^

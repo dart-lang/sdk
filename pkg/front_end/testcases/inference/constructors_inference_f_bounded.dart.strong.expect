@@ -1,6 +1,7 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'test::Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
 //                                                                                                              ^
@@ -8,7 +9,8 @@
 // class Pair<T extends Clonable<T>, U extends Clonable<U>> {
 //            ^
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'test::Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
 //                                                                                                              ^
@@ -18,12 +20,14 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'test::Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
 //                                                                                                              ^
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'test::Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Inferred type argument 'Clonable<dynamic>' violates the corresponding type variable bound of 'Pair::_'.
+//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
 //                                                                                                              ^

@@ -11,7 +11,7 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
 
-import 'kernel/dummy_type_labeler.dart';
+import 'kernel/type_labeler.dart';
 
 import 'severity.dart' show Severity;
 

@@ -1,6 +1,7 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/call.dart:29:31: Error: Cannot invoke an instance of '#lib1::CallableGetter' because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/call.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //   var string5 = callableGetter(1);
 //                               ^
@@ -37,7 +38,8 @@
 //   var nothing8 = callable.call.call.call();
 //                                         ^
 //
-// pkg/front_end/testcases/call.dart:44:32: Error: Cannot invoke an instance of '#lib1::CallableGetter' because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/call.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //   var nothing9 = callableGetter();
 //                                ^
@@ -107,7 +109,8 @@ static method main() → dynamic {
   dynamic string3 = callable.{self::Callable::call}.call(1);
   dynamic string4 = callable.{self::Callable::call}.call.call(1);
   self::CallableGetter callableGetter = new self::CallableGetter::•();
-  dynamic string5 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/call.dart:29:31: Error: Cannot invoke an instance of '#lib1::CallableGetter' because it declares 'call' to be something other than a method.
+  dynamic string5 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+ - 'CallableGetter' is from 'pkg/front_end/testcases/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var string5 = callableGetter(1);
                               ^" in callableGetter.{self::CallableGetter::call}(1);
@@ -122,7 +125,8 @@ Try changing 'call' to a method or explicitly invoke 'call'.
   dynamic nothing6 = callable.{self::Callable::call}();
   dynamic nothing7 = callable.{self::Callable::call}.call();
   dynamic nothing8 = callable.{self::Callable::call}.call.call();
-  dynamic nothing9 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/call.dart:44:32: Error: Cannot invoke an instance of '#lib1::CallableGetter' because it declares 'call' to be something other than a method.
+  dynamic nothing9 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+ - 'CallableGetter' is from 'pkg/front_end/testcases/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var nothing9 = callableGetter();
                                ^" in callableGetter.{self::CallableGetter::call}();

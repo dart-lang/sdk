@@ -1,7 +1,7 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type '<T extends dart.core::Object = dynamic>(T) → T' can't be assigned to a variable of type '(dart.core::int) → dart.core::int'.
-// Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) → dart.core::int'.
+// pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
 //   func = f.call;
 //            ^
 
@@ -11,8 +11,8 @@ import "dart:core" as core;
 
 static method test(<T extends core::Object = dynamic>(T) → T f) → void {
   (core::int) → core::int func;
-  func = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type '<T extends dart.core::Object = dynamic>(T) \u8594 T' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.
+  func = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
   func = f.call;
            ^" in f.call as{TypeError} (core::int) → core::int;
 }

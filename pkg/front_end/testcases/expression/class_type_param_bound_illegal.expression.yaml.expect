@@ -1,5 +1,5 @@
 Errors: {
-  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Type argument 'main::A::T' violates the corresponding type variable bound of 'hasBound'.
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Type argument 'T' violates the corresponding type variable bound of 'hasBound'.
   Try changing type arguments so that they conform to the bounds.
   hasBound<T>()
   ^

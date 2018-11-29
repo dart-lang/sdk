@@ -1,14 +1,17 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'M0 with M1' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'M0 with M1' can't implement both 'I<int>' and 'I<dynamic>'
+//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart'.
 // class A extends M0<int> with M1, M2 {}
 //       ^
 //
-// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'M0 with M1, M2' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'M0 with M1, M2' can't implement both 'I<int>' and 'I<dynamic>'
+//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart'.
 // class A extends M0<int> with M1, M2 {}
 //       ^
 //
-// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'A' can't implement both '#lib1::I<dart.core::int>' and '#lib1::I<dynamic>'
+// pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart:15:7: Error: 'A' can't implement both 'I<int>' and 'I<dynamic>'
+//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_2.dart'.
 // class A extends M0<int> with M1, M2 {}
 //       ^
 
