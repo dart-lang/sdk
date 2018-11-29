@@ -326,7 +326,7 @@ abstract class KernelClassBuilder
           }
         }
 
-        library.reportTypeArgumentIssues(message, charOffset, typeParameter);
+        library.reportTypeArgumentIssue(message, charOffset, typeParameter);
       }
     }
   }
@@ -361,7 +361,7 @@ abstract class KernelClassBuilder
                 argument, getGenericTypeName(issue.enclosingType));
           }
 
-          library.reportTypeArgumentIssues(
+          library.reportTypeArgumentIssue(
               message, parameter.fileOffset, typeParameter);
         }
       }
