@@ -3308,3 +3308,15 @@ GenericFunctionTypeInferredAsActualTypeArgument:
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }
+
+# These two message templates are used for constructing supplemental text
+# about the origins of raw interface types in error messages containing types.
+TypeOrigin:
+  template: "'#name' is from '#uri'."
+  frontendInternal: true
+  external: test/type_labeler_test.dart
+
+TypeOriginWithFileUri:
+  template: "'#name' is from '#uri' ('#uri2')."
+  frontendInternal: true
+  external: test/type_labeler_test.dart

@@ -8476,6 +8476,55 @@ Message _withArgumentsTypeNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)> templateTypeOrigin =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate: r"""'#name' is from '#uri'.""",
+        withArguments: _withArgumentsTypeOrigin);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)> codeTypeOrigin =
+    const Code<Message Function(String name, Uri uri_)>(
+  "TypeOrigin",
+  templateTypeOrigin,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeOrigin(String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String uri = relativizeUri(uri_);
+  return new Message(codeTypeOrigin,
+      message: """'${name}' is from '${uri}'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateTypeOriginWithFileUri =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate: r"""'#name' is from '#uri' ('#uri2').""",
+        withArguments: _withArgumentsTypeOriginWithFileUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeTypeOriginWithFileUri =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+  "TypeOriginWithFileUri",
+  templateTypeOriginWithFileUri,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeOriginWithFileUri(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeTypeOriginWithFileUri,
+      message: """'${name}' is from '${uri}' ('${uri2}').""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeVariableDuplicatedName =
     messageTypeVariableDuplicatedName;
 
