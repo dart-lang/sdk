@@ -35,6 +35,8 @@ import '../../api_prototype/file_system.dart';
 import '../../base/instrumentation.dart'
     show Instrumentation, InstrumentationValueLiteral;
 
+import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+
 import '../builder/builder.dart'
     show
         ClassBuilder,
@@ -602,14 +604,10 @@ class SourceLoader<L> extends Loader<L> {
       }
     }
     ticker.logMs("Found cycles");
-    Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>.from([
-      coreLibrary["bool"],
-      coreLibrary["int"],
-      coreLibrary["num"],
-      coreLibrary["double"],
-      coreLibrary["String"],
-      coreLibrary["Null"],
-    ]);
+    Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>();
+    for (int i = 0; i < blacklistedCoreClasses.length; i++) {
+      blackListedClasses.add(coreLibrary[blacklistedCoreClasses[i]]);
+    }
     for (ClassBuilder cls in classes) {
       if (cls.library.loader != this) continue;
       Set<ClassBuilder> directSupertypes = new Set<ClassBuilder>();
