@@ -69,7 +69,7 @@ Future<int> zero() async => 0;
 
   test_lessThan_explicitImportOfCore() async {
     await verifyVersion('2.0.0', '''
-import 'dart:core';
+import 'dart:core' show Future, int;
 
 Future<int> zero() async => 0;
 ''', errorCodes: [HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE]);
@@ -101,5 +101,29 @@ part of lib;
 
 Future<int> zero() async => 0;
 ''', errorCodes: [HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE]);
+  }
+
+  test_lessThan_onlyReferencedInExport_hide() async {
+    await verifyVersion('2.0.0', '''
+export 'dart:async' hide Future;
+''');
+  }
+
+  test_lessThan_onlyReferencedInExport_show() async {
+    await verifyVersion('2.0.0', '''
+export 'dart:async' show Future;
+''');
+  }
+
+  test_lessThan_onlyReferencedInImport_hide() async {
+    await verifyVersion('2.0.0', '''
+import 'dart:core' hide Future;
+''');
+  }
+
+  test_lessThan_onlyReferencedInImport_show() async {
+    await verifyVersion('2.0.0', '''
+import 'dart:core' show Future;
+''');
   }
 }
