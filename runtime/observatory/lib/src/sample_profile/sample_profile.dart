@@ -830,6 +830,8 @@ class SampleProfile extends M.SampleProfile {
   }
 
   Stream<double> loadProgress(ServiceObjectOwner owner, ServiceMap profile) {
+    Logger.root.info('sampling counters ${profile['counters']}');
+
     var progress = new StreamController<double>.broadcast();
 
     (() async {

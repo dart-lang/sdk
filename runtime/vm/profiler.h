@@ -30,22 +30,26 @@ class AllocationSampleBuffer;
 class SampleBuffer;
 class ProfileTrieNode;
 
+#define PROFILER_COUNTERS(V)                                                   \
+  V(bail_out_unknown_task)                                                     \
+  V(bail_out_jump_to_exception_handler)                                        \
+  V(bail_out_check_isolate)                                                    \
+  V(single_frame_sample_deoptimizing)                                          \
+  V(single_frame_sample_register_check)                                        \
+  V(single_frame_sample_get_and_validate_stack_bounds)                         \
+  V(stack_walker_native)                                                       \
+  V(stack_walker_dart_exit)                                                    \
+  V(stack_walker_dart)                                                         \
+  V(stack_walker_none)                                                         \
+  V(incomplete_sample_fp_bounds)                                               \
+  V(incomplete_sample_fp_step)                                                 \
+  V(incomplete_sample_bad_pc)                                                  \
+  V(failure_native_allocation_sample)
+
 struct ProfilerCounters {
-  // Count of bail out reasons:
-  ALIGN8 int64_t bail_out_unknown_task;
-  ALIGN8 int64_t bail_out_jump_to_exception_handler;
-  ALIGN8 int64_t bail_out_check_isolate;
-  // Count of single frame sampling reasons:
-  ALIGN8 int64_t single_frame_sample_deoptimizing;
-  ALIGN8 int64_t single_frame_sample_register_check;
-  ALIGN8 int64_t single_frame_sample_get_and_validate_stack_bounds;
-  // Count of stack walkers used:
-  ALIGN8 int64_t stack_walker_native;
-  ALIGN8 int64_t stack_walker_dart_exit;
-  ALIGN8 int64_t stack_walker_dart;
-  ALIGN8 int64_t stack_walker_none;
-  // Count of failed checks:
-  ALIGN8 int64_t failure_native_allocation_sample;
+#define DECLARE_PROFILER_COUNTER(name) ALIGN8 int64_t name;
+  PROFILER_COUNTERS(DECLARE_PROFILER_COUNTER)
+#undef DECLARE_PROFILER_COUNTER
 };
 
 class Profiler : public AllStatic {
