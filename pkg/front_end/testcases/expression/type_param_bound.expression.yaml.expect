@@ -1,9 +1,10 @@
 Errors: {
-  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Type argument 'T' violates the corresponding type variable bound of 'hasBound'.
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Type argument 'T' doesn't conform to the bound 'Bound' of the type variable 'T' on 'hasBound'.
+   - 'Bound' is from 'pkg/front_end/testcases/expression/main.dart'.
   Try changing type arguments so that they conform to the bounds.
   hasBound<T>()
   ^
-  pkg/front_end/testcases/expression/main.dart:36:15: Context: Bound of this variable is violated.
+  pkg/front_end/testcases/expression/main.dart:36:15: Context: This is the type variable whose bound isn't conformed to.
   void hasBound<T extends Bound>() {}
                 ^
 }

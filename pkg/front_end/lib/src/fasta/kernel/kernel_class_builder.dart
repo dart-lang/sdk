@@ -314,12 +314,16 @@ abstract class KernelClassBuilder
             message =
                 templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
                     argument,
+                    typeParameter.bound,
+                    typeParameter.name,
                     getGenericTypeName(issue.enclosingType),
                     supertype.classNode.name,
                     name);
           } else {
             message = templateIncorrectTypeArgumentInSupertype.withArguments(
                 argument,
+                typeParameter.bound,
+                typeParameter.name,
                 getGenericTypeName(issue.enclosingType),
                 supertype.classNode.name,
                 name);
@@ -358,7 +362,10 @@ abstract class KernelClassBuilder
             typeParameter = null;
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, getGenericTypeName(issue.enclosingType));
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                getGenericTypeName(issue.enclosingType));
           }
 
           library.reportTypeArgumentIssue(

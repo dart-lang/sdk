@@ -195,6 +195,13 @@ String compileTemplate(String name, int index, String template, String tip,
         conversions.add("name3 = demangleMixinApplicationName(name3);");
         break;
 
+      case "name4":
+        parameters.add("String name4");
+        conversions.add("if (name4.isEmpty) throw 'No name provided';");
+        arguments.add("'name4': name4");
+        conversions.add("name4 = demangleMixinApplicationName(name4);");
+        break;
+
       case "lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");

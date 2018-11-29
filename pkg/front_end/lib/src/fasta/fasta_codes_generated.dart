@@ -4146,203 +4146,282 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
+        String name,
         String
-            name)> templateIncorrectTypeArgument = const Template<
-        Message Function(DartType _type, String name)>(
+            name2)> templateIncorrectTypeArgument = const Template<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>(
     messageTemplate:
-        r"""Type argument '#type' violates the corresponding type variable bound of '#name'.""",
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
     tipTemplate:
         r"""Try changing type arguments so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgument);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeIncorrectTypeArgument =
-    const Code<Message Function(DartType _type, String name)>(
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>
+    codeIncorrectTypeArgument = const Code<
+            Message Function(
+                DartType _type, DartType _type2, String name, String name2)>(
         "IncorrectTypeArgument", templateIncorrectTypeArgument,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgument(DartType _type, String name) {
+Message _withArgumentsIncorrectTypeArgument(
+    DartType _type, DartType _type2, String name, String name2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
   String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgument,
       message:
-          """Type argument '${type}' violates the corresponding type variable bound of '${name}'.""" +
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}'.""" +
               labeler.originMessages,
       tip: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name});
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
+        String name,
         String
-            name)> templateIncorrectTypeArgumentInReturnType = const Template<
-        Message Function(DartType _type, String name)>(
+            name2)> templateIncorrectTypeArgumentInReturnType = const Template<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>(
     messageTemplate:
-        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the return type.""",
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type.""",
     tipTemplate:
         r"""Try changing type arguments so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInReturnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeIncorrectTypeArgumentInReturnType =
-    const Code<Message Function(DartType _type, String name)>(
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>
+    codeIncorrectTypeArgumentInReturnType = const Code<
+            Message Function(
+                DartType _type, DartType _type2, String name, String name2)>(
         "IncorrectTypeArgumentInReturnType",
         templateIncorrectTypeArgumentInReturnType,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInReturnType(
-    DartType _type, String name) {
+    DartType _type, DartType _type2, String name, String name2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
   String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInReturnType,
       message:
-          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the return type.""" +
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the return type.""" +
               labeler.originMessages,
       tip: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name});
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
         String name,
         String name2,
+        String name3,
         String
-            name3)> templateIncorrectTypeArgumentInSupertype = const Template<
-        Message Function(
-            DartType _type, String name, String name2, String name3)>(
+            name4)> templateIncorrectTypeArgumentInSupertype = const Template<
+        Message Function(DartType _type, DartType _type2, String name,
+            String name2, String name3, String name4)>(
     messageTemplate:
-        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'.""",
     tipTemplate:
         r"""Try changing type arguments so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInSupertype);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            DartType _type, String name, String name2, String name3)>
+        Message Function(DartType _type, DartType _type2, String name,
+            String name2, String name3, String name4)>
     codeIncorrectTypeArgumentInSupertype = const Code<
-            Message Function(
-                DartType _type, String name, String name2, String name3)>(
+            Message Function(DartType _type, DartType _type2, String name,
+                String name2, String name3, String name4)>(
         "IncorrectTypeArgumentInSupertype",
         templateIncorrectTypeArgumentInSupertype,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInSupertype(
-    DartType _type, String name, String name2, String name3) {
+Message _withArgumentsIncorrectTypeArgumentInSupertype(DartType _type,
+    DartType _type2, String name, String name2, String name3, String name4) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   if (name3.isEmpty) throw 'No name provided';
   name3 = demangleMixinApplicationName(name3);
+  if (name4.isEmpty) throw 'No name provided';
+  name4 = demangleMixinApplicationName(name4);
   String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInSupertype,
       message:
-          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""" +
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the supertype '${name3}' of class '${name4}'.""" +
               labeler.originMessages,
-      tip: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+      tip:
+          """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2,
+        'name3': name3,
+        'name4': name4
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
         String name,
         String name2,
+        String name3,
         String
-            name3)> templateIncorrectTypeArgumentInSupertypeInferred = const Template<
-        Message Function(DartType _type, String name, String name2,
-            String name3)>(
+            name4)> templateIncorrectTypeArgumentInSupertypeInferred = const Template<
+        Message Function(
+            DartType _type,
+            DartType _type2,
+            String name,
+            String name2,
+            String name3,
+            String
+                name4)>(
     messageTemplate:
-        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'.""",
     tipTemplate:
         r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInSupertypeInferred);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            DartType _type, String name, String name2, String name3)>
+        Message Function(DartType _type, DartType _type2, String name,
+            String name2, String name3, String name4)>
     codeIncorrectTypeArgumentInSupertypeInferred = const Code<
-            Message Function(
-                DartType _type, String name, String name2, String name3)>(
+            Message Function(DartType _type, DartType _type2, String name,
+                String name2, String name3, String name4)>(
         "IncorrectTypeArgumentInSupertypeInferred",
         templateIncorrectTypeArgumentInSupertypeInferred,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(
-    DartType _type, String name, String name2, String name3) {
+Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(DartType _type,
+    DartType _type2, String name, String name2, String name3, String name4) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   if (name3.isEmpty) throw 'No name provided';
   name3 = demangleMixinApplicationName(name3);
+  if (name4.isEmpty) throw 'No name provided';
+  name4 = demangleMixinApplicationName(name4);
   String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInSupertypeInferred,
       message:
-          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""" +
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the supertype '${name3}' of class '${name4}'.""" +
               labeler.originMessages,
-      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+      tip:
+          """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2,
+        'name3': name3,
+        'name4': name4
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
+        String name,
         String
-            name)> templateIncorrectTypeArgumentInferred = const Template<
-        Message Function(DartType _type,
-            String name)>(
+            name2)> templateIncorrectTypeArgumentInferred = const Template<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>(
     messageTemplate:
-        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name'.""",
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
     tipTemplate:
         r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInferred);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeIncorrectTypeArgumentInferred =
-    const Code<Message Function(DartType _type, String name)>(
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>
+    codeIncorrectTypeArgumentInferred = const Code<
+            Message Function(
+                DartType _type, DartType _type2, String name, String name2)>(
         "IncorrectTypeArgumentInferred", templateIncorrectTypeArgumentInferred,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInferred(
-    DartType _type, String name) {
+    DartType _type, DartType _type2, String name, String name2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
   String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInferred,
       message:
-          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}'.""" +
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}'.""" +
               labeler.originMessages,
       tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name});
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4353,7 +4432,7 @@ const Code<Null> codeIncorrectTypeArgumentVariable =
 const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
     "IncorrectTypeArgumentVariable",
     severity: Severity.context,
-    message: r"""Bound of this variable is violated.""");
+    message: r"""This is the type variable whose bound isn't conformed to.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInferredPackageUri =

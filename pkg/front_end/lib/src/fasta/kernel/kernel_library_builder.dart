@@ -1395,10 +1395,10 @@ class KernelLibraryBuilder
         assert(enclosingName != null);
         if (issueInferred) {
           message = templateIncorrectTypeArgumentInferred.withArguments(
-              argument, enclosingName);
+              argument, typeParameter.bound, typeParameter.name, enclosingName);
         } else {
           message = templateIncorrectTypeArgument.withArguments(
-              argument, enclosingName);
+              argument, typeParameter.bound, typeParameter.name, enclosingName);
         }
       }
 
@@ -1471,7 +1471,10 @@ class KernelLibraryBuilder
             typeParameter = null;
           } else {
             message = templateIncorrectTypeArgumentInReturnType.withArguments(
-                argument, getGenericTypeName(issue.enclosingType));
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                getGenericTypeName(issue.enclosingType));
           }
 
           reportTypeArgumentIssue(message, offset, typeParameter);
