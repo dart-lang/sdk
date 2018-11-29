@@ -16,6 +16,8 @@ import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
+import '../base/libraries_specification.dart' show LibrariesSpecification;
+
 import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/fasta_codes.dart' show messageMissingMain;
@@ -38,8 +40,6 @@ export '../api_prototype/file_system.dart'
 export '../api_prototype/kernel_generator.dart' show kernelForProgram;
 
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
-
-export '../base/libraries_specification.dart';
 
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -166,4 +166,24 @@ Object tokenToString(Object value) {
   } else {
     return value;
   }
+}
+
+/// Retrieve the name of the libraries that are supported by [target] according
+/// to the libraries specification [json] file.
+///
+/// Dart2js uses these names to determine the value of library environment
+/// constants, such as `const bool.fromEnvironment("dart.library.io")`.
+// TODO(sigmund): refactor dart2js so that we can retrieve this data later in
+// the compilation pipeline. At that point we can get it from the CFE
+// results directly and completely hide the libraries specification file from
+// dart2js.
+// TODO(sigmund): delete after all constant evaluation is done in the CFE, as
+// this data will no longer be needed on the dart2js side.
+Iterable<String> getSupportedLibraryNames(
+    Uri librariesSpecificationUri, String json, String target) {
+  return LibrariesSpecification.parse(librariesSpecificationUri, json)
+      .specificationFor(target)
+      .allLibraries
+      .where((l) => l.isSupported)
+      .map((l) => l.name);
 }

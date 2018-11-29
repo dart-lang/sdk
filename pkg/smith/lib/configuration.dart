@@ -259,6 +259,7 @@ class Configuration {
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
+        keepGeneratedFiles: boolOption("keep-generated-files"),
         useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
         useDart2JSOldFrontEnd: boolOption("dart2js-old-frontend"),
         useFastStartup: boolOption("fast-startup"),
@@ -314,6 +315,9 @@ class Configuration {
   // TODO(rnystrom): What is this?
   final bool useBlobs;
 
+  // Keep generated files (instead of deleting them).
+  final bool keepGeneratedFiles;
+
   // TODO(rnystrom): Remove these when Dart 1.0 is no longer supported.
   final bool useDart2JSWithKernel;
   final bool useDart2JSOldFrontEnd;
@@ -339,6 +343,7 @@ class Configuration {
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
       bool useBlobs,
+      bool keepGeneratedFiles,
       bool useDart2JSWithKernel,
       bool useDart2JSOldFrontEnd,
       bool useFastStartup,
@@ -357,6 +362,7 @@ class Configuration {
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
+        keepGeneratedFiles = keepGeneratedFiles ?? false,
         useDart2JSWithKernel = useDart2JSWithKernel ?? false,
         useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,
         useFastStartup = useFastStartup ?? false,
@@ -384,6 +390,7 @@ class Configuration {
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
+      keepGeneratedFiles == other.keepGeneratedFiles &&
       useDart2JSWithKernel == other.useDart2JSWithKernel &&
       useDart2JSOldFrontEnd == other.useDart2JSOldFrontEnd &&
       useFastStartup == other.useFastStartup &&
@@ -418,7 +425,8 @@ class Configuration {
       (useFastStartup ? 2048 : 0) ^
       (useHotReload ? 4096 : 0) ^
       (useHotReloadRollback ? 8192 : 0) ^
-      (useSdk ? 16384 : 0);
+      (useSdk ? 16384 : 0) ^
+      (keepGeneratedFiles ? 32768 : 0);
 
   String toString() {
     var buffer = new StringBuffer();
@@ -444,6 +452,7 @@ class Configuration {
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useBlobs) fields.add("use-blobs");
+    if (keepGeneratedFiles) fields.add("keep-generated-files");
     if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
     if (useDart2JSOldFrontEnd) fields.add("dart2js-old-frontend");
     if (useFastStartup) fields.add("fast-startup");
@@ -506,6 +515,10 @@ class Configuration {
     }
     if (useBlobs || other.useBlobs) {
       fields.add("useBlobs $useBlobs ${other.useBlobs}");
+    }
+    if (keepGeneratedFiles || other.keepGeneratedFiles) {
+      fields.add(
+          "keepGeneratedFiles $keepGeneratedFiles ${other.keepGeneratedFiles}");
     }
     if (useDart2JSWithKernel || other.useDart2JSWithKernel) {
       fields.add("useDart2JSWithKernel "

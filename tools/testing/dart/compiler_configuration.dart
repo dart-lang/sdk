@@ -622,7 +622,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     commands.add(
         computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
 
-    if (previewDart2) {
+    if (previewDart2 && !_configuration.keepGeneratedFiles) {
       commands.add(computeRemoveKernelFileCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -630,8 +630,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     if (!_configuration.useBlobs) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
-      commands.add(computeRemoveAssemblyCommand(
-          tempDir, arguments, environmentOverrides));
+      if (!_configuration.keepGeneratedFiles) {
+        commands.add(computeRemoveAssemblyCommand(
+            tempDir, arguments, environmentOverrides));
+      }
     }
 
     return new CommandArtifact(
