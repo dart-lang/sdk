@@ -248,9 +248,6 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     printer.PrintBlocks();
   }
 
-  // Prepare for register allocation (cf. FinalizeGraph).
-  graph->RemoveRedefinitions();
-
   // Ensure loop hierarchy has been computed.
   GrowableArray<BitVector*> dominance_frontier;
   graph->ComputeDominators(&dominance_frontier);
@@ -480,17 +477,14 @@ class BlockBuilder : public ValueObject {
   Environment* fall_through_env_;
 };
 
-static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
-                                    BlockBuilder* builder,
-                                    Definition* array,
-                                    Definition* index,
-                                    const Slot& length_field) {
+static void PrepareIndexedOp(BlockBuilder* builder,
+                             Definition* array,
+                             Definition* index,
+                             const Slot& length_field) {
   Definition* length = builder->AddDefinition(new LoadFieldInstr(
       new Value(array), length_field, TokenPosition::kNoSource));
-  Definition* safe_index =
-      flow_graph->CreateCheckBound(length, index, DeoptId::kNone);
-  builder->AddDefinition(safe_index);
-  return safe_index;
+  builder->AddInstruction(new CheckArrayBoundInstr(
+      new Value(length), new Value(index), DeoptId::kNone));
 }
 
 static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
@@ -502,8 +496,8 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   Definition* index = builder.AddParameter(1);
   Definition* array = builder.AddParameter(2);
 
-  index = PrepareIndexedOp(flow_graph, &builder, array, index,
-                           Slot::GetLengthFieldForArrayCid(array_cid));
+  PrepareIndexedOp(&builder, array, index,
+                   Slot::GetLengthFieldForArrayCid(array_cid));
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
@@ -580,8 +574,8 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  index = PrepareIndexedOp(flow_graph, &builder, array, index,
-                           Slot::GetLengthFieldForArrayCid(array_cid));
+  PrepareIndexedOp(&builder, array, index,
+                   Slot::GetLengthFieldForArrayCid(array_cid));
 
   // Value check/conversion.
   switch (array_cid) {
@@ -775,9 +769,7 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
 
   Definition* index = builder.AddParameter(1);
   Definition* str = builder.AddParameter(2);
-
-  index =
-      PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
+  PrepareIndexedOp(&builder, str, index, Slot::String_length());
 
   // For external strings: Load external data.
   if (cid == kExternalOneByteStringCid) {
@@ -958,8 +950,8 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   Definition* index = builder.AddParameter(1);
   Definition* growable_array = builder.AddParameter(2);
 
-  index = PrepareIndexedOp(flow_graph, &builder, growable_array, index,
-                           Slot::GrowableObjectArray_length());
+  PrepareIndexedOp(&builder, growable_array, index,
+                   Slot::GrowableObjectArray_length());
 
   Definition* backing_store = builder.AddDefinition(
       new LoadFieldInstr(new Value(growable_array),
@@ -989,8 +981,7 @@ bool Intrinsifier::Build_ObjectArraySetIndexedUnchecked(FlowGraph* flow_graph) {
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  index = PrepareIndexedOp(flow_graph, &builder, array, index,
-                           Slot::Array_length());
+  PrepareIndexedOp(&builder, array, index, Slot::Array_length());
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
@@ -1020,8 +1011,7 @@ bool Intrinsifier::Build_GrowableArraySetIndexedUnchecked(
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  index = PrepareIndexedOp(flow_graph, &builder, array, index,
-                           Slot::GrowableObjectArray_length());
+  PrepareIndexedOp(&builder, array, index, Slot::GrowableObjectArray_length());
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
       new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));

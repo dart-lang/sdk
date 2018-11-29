@@ -1196,6 +1196,25 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   return true;
 }
 
+void AotCallSpecializer::ReplaceArrayBoundChecks(FlowGraph* flow_graph) {
+  Zone* zone = Thread::Current()->zone();
+
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      if (CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound()) {
+        GenericCheckBoundInstr* new_check = new (zone) GenericCheckBoundInstr(
+            new (zone) Value(check->length()->definition()),
+            new (zone) Value(check->index()->definition()), check->deopt_id());
+        flow_graph->InsertBefore(check, new_check, check->env(),
+                                 FlowGraph::kEffect);
+        it.RemoveCurrentFromGraph();
+      }
+    }
+  }
+}
+
 #endif  // DART_PRECOMPILER
 
 }  // namespace dart

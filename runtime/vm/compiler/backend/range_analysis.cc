@@ -106,8 +106,7 @@ void RangeAnalysis::CollectValues() {
             shift_int64_ops_.Add(defn->AsShiftIntegerOp());
           }
         }
-      }
-      if (current->IsCheckArrayBound()) {
+      } else if (current->IsCheckArrayBound()) {
         bounds_checks_.Add(current->AsCheckArrayBound());
       }
     }
@@ -840,9 +839,6 @@ class BoundsCheckGeneralizer {
     // certain preconditions. Start by emitting this preconditions.
     scheduler_.Start();
 
-    // AOT should only see non-deopting GenericCheckBound.
-    ASSERT(!FLAG_precompiled_mode);
-
     ConstantInstr* max_smi =
         flow_graph_->GetConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
     for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
@@ -892,7 +888,6 @@ class BoundsCheckGeneralizer {
     if (binary_op != NULL) {
       binary_op->set_can_overflow(false);
     }
-    check->ReplaceUsesWith(check->index()->definition());
     check->RemoveFromGraph();
   }
 
@@ -1347,7 +1342,6 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) {
-        check->ReplaceUsesWith(check->index()->definition());
         check->RemoveFromGraph();
       } else if (try_generalization) {
         generalizer.TryGeneralize(check, array_length);

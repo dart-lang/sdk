@@ -1256,7 +1256,6 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   } else if (current->IsCheckEitherNonSmi()) {
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckArrayBound()) {
-    ASSERT(!FLAG_precompiled_mode);  // AOT uses non-deopting GenericCheckBound
     current->AsCheckArrayBound()->set_licm_hoisted(true);
   } else if (current->IsTestCids()) {
     current->AsTestCids()->set_licm_hoisted(true);

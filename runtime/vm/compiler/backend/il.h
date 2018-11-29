@@ -7205,15 +7205,10 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
-// Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
-// returns the "safe" index when
-//   0 <= index < length
-// or otherwise deoptimizes (viz. speculative).
-class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
+      : TemplateInstruction(deopt_id),
         generalized_(false),
         licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
@@ -7231,7 +7226,7 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   void mark_generalized() { generalized_ = true; }
 
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
@@ -7252,15 +7247,10 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 
-// Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
-// returns the "safe" index when
-//   0 <= index < length
-// or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
+class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+      : TemplateInstruction(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
   }

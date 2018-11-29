@@ -2357,16 +2357,25 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Instruction* call,
                                        intptr_t array_cid,
                                        Definition** array,
-                                       Definition** index,
-                                       Instruction** cursor) {
+                                       Definition* index,
+                                       Instruction** cursor,
+                                       bool can_speculate) {
   // Insert array length load and bounds check.
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
       new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
       call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
-  *index = flow_graph->CreateCheckBound(length, *index, call->deopt_id());
-  *cursor =
-      flow_graph->AppendTo(*cursor, *index, call->env(), FlowGraph::kValue);
+
+  Instruction* bounds_check = NULL;
+  if (can_speculate) {
+    bounds_check = new (Z) CheckArrayBoundInstr(
+        new (Z) Value(length), new (Z) Value(index), call->deopt_id());
+  } else {
+    bounds_check = new (Z) GenericCheckBoundInstr(
+        new (Z) Value(length), new (Z) Value(index), call->deopt_id());
+  }
+  *cursor = flow_graph->AppendTo(*cursor, bounds_check, call->env(),
+                                 FlowGraph::kEffect);
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
@@ -2392,7 +2401,8 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
                              Definition* receiver,
                              GraphEntryInstr* graph_entry,
                              FunctionEntryInstr** entry,
-                             Instruction** last) {
+                             Instruction** last,
+                             bool can_speculate) {
   intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
 
   Definition* array = receiver;
@@ -2403,8 +2413,8 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array,
-                                     &index, &cursor);
+  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
+                                     &cursor, can_speculate);
 
   intptr_t deopt_id = DeoptId::kNone;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
@@ -2529,8 +2539,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     }
   }
 
-  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array,
-                                     &index, &cursor);
+  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
+                                     &cursor, /* can_speculate= */ true);
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
@@ -2704,7 +2714,7 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
                                                intptr_t array_cid,
                                                intptr_t view_cid,
                                                Definition* array,
-                                               Definition** byte_index,
+                                               Definition* byte_index,
                                                Instruction** cursor) {
   ASSERT(array_cid != kDynamicCid);
 
@@ -2736,19 +2746,19 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
   }
 
   // Check adjusted_length > 0.
-  // TODO(ajcbik): this is a synthetic check that cannot
-  // be directly linked to a use, is that a sign of wrong use?
   ConstantInstr* zero = flow_graph->GetConstant(Smi::Handle(Z, Smi::New(0)));
-  Definition* check =
-      flow_graph->CreateCheckBound(adjusted_length, zero, call->deopt_id());
-  *cursor =
-      flow_graph->AppendTo(*cursor, check, call->env(), FlowGraph::kValue);
+  *cursor = flow_graph->AppendTo(
+      *cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
+                                   new (Z) Value(zero), call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
 
   // Check 0 <= byte_index < adjusted_length.
-  *byte_index = flow_graph->CreateCheckBound(adjusted_length, *byte_index,
-                                             call->deopt_id());
-  *cursor = flow_graph->AppendTo(*cursor, *byte_index, call->env(),
-                                 FlowGraph::kValue);
+  *cursor = flow_graph->AppendTo(
+      *cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
+                                   new (Z) Value(byte_index), call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
 }
 
 // Emits preparatory code for a typed getter/setter.
@@ -2856,7 +2866,7 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
       !flow_graph->isolate()->can_use_strong_mode_types();
   if (needs_bounds_check) {
     PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
-                                       array, &index, &cursor);
+                                       array, index, &cursor);
   }
 
   // Generates a template for the load, either a dynamic conditional
@@ -2955,7 +2965,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       !flow_graph->isolate()->can_use_strong_mode_types();
   if (needs_bounds_check) {
     PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
-                                       array, &index, &cursor);
+                                       array, index, &cursor);
   }
 
   // Prepare additional checks.
@@ -3126,8 +3136,11 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
 
   // Bounds check.
-  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
-  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+  cursor = flow_graph->AppendTo(
+      cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(length), new (Z) Value(index),
+                                   call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
 
   // For external strings: Load backing store.
   if (cid == kExternalOneByteStringCid) {
@@ -3188,11 +3201,10 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
   if (cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
     return false;
-  } else if ((cid != kOneByteStringCid) && (cid != kTwoByteStringCid) &&
-             (cid != kExternalOneByteStringCid) &&
-             (cid != kExternalTwoByteStringCid)) {
-    return false;
   }
+  ASSERT((cid == kOneByteStringCid) || (cid == kTwoByteStringCid) ||
+         (cid == kExternalOneByteStringCid) ||
+         (cid == kExternalTwoByteStringCid));
   Definition* str = receiver;
   Definition* index = call->ArgumentAt(1);
 
@@ -3566,6 +3578,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
 
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
+
   switch (kind) {
     // Recognized [] operators.
     case MethodRecognizer::kImmutableArrayGetIndexed:
@@ -3579,35 +3592,35 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
       return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last);
+                              entry, last, can_speculate);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last);
+                              entry, last, can_speculate);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last);
+                              entry, last, can_speculate);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) {
         return false;
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last);
+                              entry, last, can_speculate);
     case MethodRecognizer::kInt64ArrayGetIndexed:
     case MethodRecognizer::kUint64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last);
+                              entry, last, can_speculate);
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last);
     default:
