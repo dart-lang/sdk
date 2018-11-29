@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::String x = self::identity;
+static field core::String y = self::identityObject;
+static field core::String z = self::identityList;
+static method identity<T extends core::Object = dynamic>(self::identity::T t) → self::identity::T
+  return t;
+static method identityObject<T extends core::Object = dynamic>(self::identityObject::T t) → self::identityObject::T
+  return t;
+static method identityList<T extends core::List<self::identityList::T> = dynamic>(self::identityList::T t) → self::identityList::T
+  return t;
+static method main() → dynamic {}
