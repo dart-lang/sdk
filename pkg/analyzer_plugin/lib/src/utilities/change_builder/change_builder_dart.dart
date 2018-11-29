@@ -472,10 +472,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
       // TO-DO
       write(prefix2);
-      writeln('// TODO: implement $memberName');
+      write('// TODO: implement $memberName');
 
       if (isSetter) {
         if (invokeSuper) {
+          writeln();
           write(prefix2);
           selectAll(() {
             write('super.');
@@ -485,9 +486,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             write(';');
           });
           writeln();
+        } else {
+          selectHere();
+          writeln();
         }
       } else if (returnType.isVoid) {
         if (invokeSuper) {
+          writeln();
           write(prefix2);
           selectAll(() {
             write('super.');
@@ -502,8 +507,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             write(');');
           });
           writeln();
+        } else {
+          selectHere();
+          writeln();
         }
       } else {
+        writeln();
         write(prefix2);
         if (invokeSuper) {
           selectAll(() {

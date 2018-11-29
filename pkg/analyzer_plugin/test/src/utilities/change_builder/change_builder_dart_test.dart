@@ -1532,6 +1532,27 @@ class B extends A {
     );
   }
 
+  test_writeOverride_method_returnVoid_abstract() async {
+    await _assertWriteOverride(
+      content: '''
+abstract class A {
+  void test();
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'test',
+      expected: '''
+  @override
+  void test() {
+    // TODO: implement test
+  }
+''',
+      displayText: 'test() { … }',
+      selection: new SourceRange(109, 0),
+    );
+  }
+
   test_writeOverride_method_voidAsTypeArgument_abstract() async {
     await _assertWriteOverride(
       content: '''
@@ -1593,6 +1614,7 @@ class B extends A {
   }
 ''',
       displayText: 'value(int value) { … }',
+      selection: new SourceRange(133, 0),
     );
   }
 
