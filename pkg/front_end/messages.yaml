@@ -55,7 +55,7 @@
 # `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
 #  units or code points.
 #
-# `#name`, `#name2`, `#name3`: names (as strings).
+# `#name`, `#name2`, `#name3`, `#name4`: names (as strings).
 #
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
@@ -3223,7 +3223,7 @@ SyntheticToken:
   frontendInternal: true
 
 IncorrectTypeArgument:
-  template: "Type argument '#type' violates the corresponding type variable bound of '#name'."
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
   tip: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
@@ -3231,7 +3231,7 @@ IncorrectTypeArgument:
     main() { new C<String>(); }
 
 IncorrectTypeArgumentInSupertype:
-  template: "Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'."
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
   tip: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
@@ -3239,7 +3239,7 @@ IncorrectTypeArgumentInSupertype:
     class B extends A<String> {}
 
 IncorrectTypeArgumentInReturnType:
-  template: "Type argument '#type' violates the corresponding type variable bound of '#name' in the return type."
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
   tip: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
@@ -3247,7 +3247,7 @@ IncorrectTypeArgumentInReturnType:
     A<String> foo() => null;
 
 IncorrectTypeArgumentInferred:
-  template: "Inferred type argument '#type' violates the corresponding type variable bound of '#name'."
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
   tip: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
@@ -3255,7 +3255,7 @@ IncorrectTypeArgumentInferred:
     main() { foo("bar"); }
 
 IncorrectTypeArgumentInSupertypeInferred:
-  template: "Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'."
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
   tip: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
@@ -3263,7 +3263,7 @@ IncorrectTypeArgumentInSupertypeInferred:
     class B extends A {}
 
 IncorrectTypeArgumentVariable:
-  template: "Bound of this variable is violated."
+  template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
 InferredPackageUri:
@@ -3308,3 +3308,15 @@ GenericFunctionTypeInferredAsActualTypeArgument:
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }
+
+# These two message templates are used for constructing supplemental text
+# about the origins of raw interface types in error messages containing types.
+TypeOrigin:
+  template: "'#name' is from '#uri'."
+  frontendInternal: true
+  external: test/type_labeler_test.dart
+
+TypeOriginWithFileUri:
+  template: "'#name' is from '#uri' ('#uri2')."
+  frontendInternal: true
+  external: test/type_labeler_test.dart

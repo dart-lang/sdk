@@ -174,7 +174,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     }
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
-            "$className::$constructorName", uri),
+            "$className.$constructorName", uri),
         -1,
         null);
   }

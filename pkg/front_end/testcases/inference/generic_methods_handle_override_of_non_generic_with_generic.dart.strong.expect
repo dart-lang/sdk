@@ -7,7 +7,7 @@
 //   /*@topType=dynamic*/ m(/*@topType=dynamic*/ x) => x;
 //                        ^
 //
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:54: Error: The parameter 'x' of the method 'D::m' has type 'test::D::m::T', which does not match the corresponding type in the overridden method, 'dynamic'.
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:54: Error: The parameter 'x' of the method 'D.m' has type 'T', which does not match the corresponding type in the overridden method, 'dynamic'.
 // Change to a supertype of 'dynamic', or, for a covariant parameter, a subtype.
 //           T /*@error=OverrideTypeMismatchParameter*/ x) =>
 //                                                      ^
@@ -22,8 +22,8 @@
 //   dynamic g(int x) => x;
 //           ^
 //
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:18:54: Error: The parameter 'x' of the method 'D::g' has type 'test::D::g::T', which does not match the corresponding type in the overridden method, 'dart.core::int'.
-// Change to a supertype of 'dart.core::int', or, for a covariant parameter, a subtype.
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:18:54: Error: The parameter 'x' of the method 'D.g' has type 'T', which does not match the corresponding type in the overridden method, 'int'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
 //           T /*@error=OverrideTypeMismatchParameter*/ x) =>
 //                                                      ^
 // pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
@@ -36,7 +36,7 @@
 //   T /*@error=OverrideTypeVariablesMismatch*/ m<T>(
 //                                              ^
 //
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:54: Error: The parameter 'x' of the method 'D::m' has type 'test::D::m::T', which does not match the corresponding type in the overridden method, 'dynamic'.
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:54: Error: The parameter 'x' of the method 'D.m' has type 'T', which does not match the corresponding type in the overridden method, 'dynamic'.
 // Change to a supertype of 'dynamic', or, for a covariant parameter, a subtype.
 //           T /*@error=OverrideTypeMismatchParameter*/ x) =>
 //                                                      ^
@@ -45,8 +45,8 @@
 //   T /*@error=OverrideTypeVariablesMismatch*/ g<T>(
 //                                              ^
 //
-// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:18:54: Error: The parameter 'x' of the method 'D::g' has type 'test::D::g::T', which does not match the corresponding type in the overridden method, 'dart.core::int'.
-// Change to a supertype of 'dart.core::int', or, for a covariant parameter, a subtype.
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:18:54: Error: The parameter 'x' of the method 'D.g' has type 'T', which does not match the corresponding type in the overridden method, 'int'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
 //           T /*@error=OverrideTypeMismatchParameter*/ x) =>
 //                                                      ^
 

@@ -783,8 +783,13 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 }
 
 bool DartUtils::SetOriginalWorkingDirectory() {
+  // If we happen to re-initialize the Dart VM multiple times, make sure to free
+  // the old string (allocated by getcwd()) before setting a new one.
+  if (original_working_directory != nullptr) {
+    free(const_cast<char*>(original_working_directory));
+  }
   original_working_directory = Directory::CurrentNoScope();
-  return original_working_directory != NULL;
+  return original_working_directory != nullptr;
 }
 
 Dart_Handle DartUtils::GetCanonicalizableWorkingDirectory() {

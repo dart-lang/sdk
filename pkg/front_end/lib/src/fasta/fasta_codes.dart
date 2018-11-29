@@ -7,11 +7,11 @@ library fasta.codes;
 import 'package:kernel/ast.dart'
     show Constant, DartType, demangleMixinApplicationName;
 
-import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
-
 import '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
+
+import 'kernel/type_labeler.dart';
 
 import 'severity.dart' show Severity;
 

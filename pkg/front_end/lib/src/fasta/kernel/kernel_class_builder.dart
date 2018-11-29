@@ -314,19 +314,23 @@ abstract class KernelClassBuilder
             message =
                 templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
                     argument,
+                    typeParameter.bound,
+                    typeParameter.name,
                     getGenericTypeName(issue.enclosingType),
                     supertype.classNode.name,
                     name);
           } else {
             message = templateIncorrectTypeArgumentInSupertype.withArguments(
                 argument,
+                typeParameter.bound,
+                typeParameter.name,
                 getGenericTypeName(issue.enclosingType),
                 supertype.classNode.name,
                 name);
           }
         }
 
-        library.reportTypeArgumentIssues(message, charOffset, typeParameter);
+        library.reportTypeArgumentIssue(message, charOffset, typeParameter);
       }
     }
   }
@@ -358,10 +362,13 @@ abstract class KernelClassBuilder
             typeParameter = null;
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, getGenericTypeName(issue.enclosingType));
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                getGenericTypeName(issue.enclosingType));
           }
 
-          library.reportTypeArgumentIssues(
+          library.reportTypeArgumentIssue(
               message, parameter.fileOffset, typeParameter);
         }
       }
@@ -1030,10 +1037,8 @@ abstract class KernelClassBuilder
       // a type which is a subtype of the parameter it overrides.
     } else {
       // Report an error.
-      // TODO(ahe): The double-colon notation shouldn't be used in error
-      // messages.
       String declaredMemberName =
-          '${declaredMember.enclosingClass.name}::${declaredMember.name.name}';
+          '${declaredMember.enclosingClass.name}.${declaredMember.name.name}';
       Message message;
       int fileOffset;
       if (declaredParameter == null) {

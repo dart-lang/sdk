@@ -8,7 +8,9 @@
 //     yield* x;
 //     ^^^^^
 //
-// pkg/front_end/testcases/statements.dart:14:23: Error: The type 'dart.core::List<dynamic>' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+// pkg/front_end/testcases/statements.dart:14:23: Error: The type 'List<dynamic>' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'List' is from 'dart:core'.
+//  - 'Stream' is from 'dart:async'.
 //   await for (var x in []) {
 //                       ^
 
@@ -36,7 +38,9 @@ static method foo() → dynamic {
   }
 }
 static method bar() → dynamic async {
-  await for (dynamic x in let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/statements.dart:14:23: Error: The type 'dart.core::List<dynamic>' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+  await for (dynamic x in let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/statements.dart:14:23: Error: The type 'List<dynamic>' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'List' is from 'dart:core'.
+ - 'Stream' is from 'dart:async'.
   await for (var x in []) {
                       ^" in <dynamic>[] as{TypeError} asy::Stream<dynamic>) {
     yield x;

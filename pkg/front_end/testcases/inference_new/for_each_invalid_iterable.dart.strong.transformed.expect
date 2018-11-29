@@ -20,13 +20,15 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         core::String s;
-        for (final dynamic #t1 in let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t1 in let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
   for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
                                                     ^" in s as{TypeError} core::Iterable<dynamic>) {
           core::int x = #t1 as{TypeError} core::int;
         }
         {
-          dynamic :stream = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+          dynamic :stream = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
   await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
                                                           ^" in s as{TypeError} asy::Stream<dynamic>;
           asy::_asyncStarListenHelper(:stream, :async_op);
@@ -53,13 +55,15 @@ static method test() → dynamic /* originally async */ {
             }
         }
         core::int y;
-        for (final dynamic #t8 in let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t8 in let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
   for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
                                                 ^" in s as{TypeError} core::Iterable<dynamic>) {
           y = #t8 as{TypeError} core::int;
         }
         {
-          dynamic :stream = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+          dynamic :stream = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
   await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
                                                       ^" in s as{TypeError} asy::Stream<dynamic>;
           asy::_asyncStarListenHelper(:stream, :async_op);

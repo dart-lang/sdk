@@ -1,7 +1,8 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/future_then_upwards_2.dart:21:51: Error: A value of type 'test::MyFuture<dart.core::double>' can't be assigned to a variable of type 'test::MyFuture<dart.core::int>'.
-// Try changing the type of the left hand side, or casting the right hand side to 'test::MyFuture<dart.core::int>'.
+// pkg/front_end/testcases/inference/future_then_upwards_2.dart:21:51: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'MyFuture<int>'.
+//  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards_2.dart'.
+// Try changing the type of the left hand side, or casting the right hand side to 'MyFuture<int>'.
 //   MyFuture<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
 //                                                   ^
 
@@ -30,8 +31,9 @@ class MyFuture<T extends core::Object = dynamic> extends core::Object implements
 }
 static method main() → void {
   self::MyFuture<core::double> f = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3);
-  self::MyFuture<core::int> f2 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/future_then_upwards_2.dart:21:51: Error: A value of type 'test::MyFuture<dart.core::double>' can't be assigned to a variable of type 'test::MyFuture<dart.core::int>'.
-Try changing the type of the left hand side, or casting the right hand side to 'test::MyFuture<dart.core::int>'.
+  self::MyFuture<core::int> f2 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/future_then_upwards_2.dart:21:51: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'MyFuture<int>'.
+ - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards_2.dart'.
+Try changing the type of the left hand side, or casting the right hand side to 'MyFuture<int>'.
   MyFuture<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
                                                   ^" in f as{TypeError} self::MyFuture<core::int>;
   self::MyFuture<core::num> f3 = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3) as self::MyFuture<core::double>;
