@@ -83,7 +83,7 @@ class CompilerImpl extends Compiler {
 
   Future<bool> run(Uri uri) {
     Duration setupDuration = measurer.wallClock.elapsed;
-    return selfTask.measureSubtask("CompilerImpl.run", () {
+    return selfTask.measureSubtask("impl.run", () {
       return setupSdk().then((_) {
         return super.run(uri);
       }).then((bool success) {
@@ -106,20 +106,33 @@ class CompilerImpl extends Compiler {
     Duration totalDuration = measurer.wallClock.elapsed;
     Duration asyncDuration = measurer.asyncWallClock.elapsed;
     Duration cumulatedDuration = Duration.zero;
+    List<_TimingData> timingData = [];
     for (final task in tasks) {
-      String running = task.isRunning ? "*" : "";
+      String running = task.isRunning ? "*" : " ";
       Duration duration = task.duration;
       if (duration != Duration.zero) {
         cumulatedDuration += duration;
-        timings.writeln('    $running${task.name}:'
-            ' ${_formatMs(duration.inMilliseconds)}');
+        int milliseconds = duration.inMilliseconds;
+        timingData.add(_TimingData('   $running${task.name}:', milliseconds,
+            milliseconds * 100 / totalDuration.inMilliseconds));
         for (String subtask in task.subtasks) {
           int subtime = task.getSubtaskTime(subtask);
-          String running = task.getSubtaskIsRunning(subtask) ? "*" : "";
-          timings.writeln(
-              '    $running${task.name} > $subtask: ${_formatMs(subtime)}');
+          String running = task.getSubtaskIsRunning(subtask) ? "*" : " ";
+          timingData.add(_TimingData('   $running${task.name} > $subtask:',
+              subtime, subtime * 100 / totalDuration.inMilliseconds));
         }
       }
+    }
+    int longestDescription = timingData
+        .map((d) => d.description.length)
+        .fold(0, (a, b) => a < b ? b : a);
+    for (var data in timingData) {
+      var ms = _formatMs(data.milliseconds);
+      var padding =
+          " " * (longestDescription + 10 - data.description.length - ms.length);
+      var percentPadding = data.percent < 10 ? " " : "";
+      timings.writeln('${data.description}$padding $ms '
+          '$percentPadding(${data.percent.toStringAsFixed(1)}%)');
     }
     Duration unaccountedDuration =
         totalDuration - cumulatedDuration - setupDuration - asyncDuration;
@@ -205,3 +218,11 @@ class _Environment implements Environment {
 /// For example 'dart:html' has the environment variable 'dart.library.html' set
 /// to "true".
 const String _dartLibraryEnvironmentPrefix = 'dart.library.';
+
+class _TimingData {
+  final String description;
+  final int milliseconds;
+  final double percent;
+
+  _TimingData(this.description, this.milliseconds, this.percent);
+}

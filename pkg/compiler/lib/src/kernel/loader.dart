@@ -72,7 +72,7 @@ class KernelLoaderTask extends CompilerTask {
             _options.packageConfig);
         component = await fe.compile(
             initializedCompilerState,
-            _options.verbose,
+            false,
             new CompilerFileSystem(_compilerInput),
             (e) => reportFrontEndMessage(_reporter, e),
             resolvedUri);

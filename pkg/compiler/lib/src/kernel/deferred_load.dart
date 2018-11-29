@@ -22,17 +22,19 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
 
   Iterable<ImportEntity> _findImportsTo(ir.NamedNode node, String nodeName,
       ir.Library enclosingLibrary, LibraryEntity library) {
-    List<ImportEntity> imports = [];
-    ir.Library source = _elementMap.getLibraryNode(library);
-    for (ir.LibraryDependency dependency in source.dependencies) {
-      if (dependency.isExport) continue;
-      if (!_isVisible(dependency.combinators, nodeName)) continue;
-      if (enclosingLibrary == dependency.targetLibrary ||
-          additionalExports(dependency.targetLibrary).contains(node)) {
-        imports.add(_elementMap.getImport(dependency));
+    return measureSubtask('find-imports', () {
+      List<ImportEntity> imports = [];
+      ir.Library source = _elementMap.getLibraryNode(library);
+      for (ir.LibraryDependency dependency in source.dependencies) {
+        if (dependency.isExport) continue;
+        if (!_isVisible(dependency.combinators, nodeName)) continue;
+        if (enclosingLibrary == dependency.targetLibrary ||
+            additionalExports(dependency.targetLibrary).contains(node)) {
+          imports.add(_elementMap.getImport(dependency));
+        }
       }
-    }
-    return imports;
+      return imports;
+    });
   }
 
   @override
