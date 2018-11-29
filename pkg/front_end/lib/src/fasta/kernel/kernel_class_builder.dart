@@ -1030,10 +1030,8 @@ abstract class KernelClassBuilder
       // a type which is a subtype of the parameter it overrides.
     } else {
       // Report an error.
-      // TODO(ahe): The double-colon notation shouldn't be used in error
-      // messages.
       String declaredMemberName =
-          '${declaredMember.enclosingClass.name}::${declaredMember.name.name}';
+          '${declaredMember.enclosingClass.name}.${declaredMember.name.name}';
       Message message;
       int fileOffset;
       if (declaredParameter == null) {

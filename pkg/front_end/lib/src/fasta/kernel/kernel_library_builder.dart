@@ -1682,13 +1682,9 @@ class KernelLibraryBuilder
         constructedType, typeEnvironment,
         allowSuperBounded: false);
     if (issues != null) {
-      String constructedTypeName = "${klass.name}::${constructor.name.name}";
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
-        String enclosingName = issue.enclosingType == constructedType
-            ? constructedTypeName
-            : getGenericTypeName(issue.enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1702,10 +1698,10 @@ class KernelLibraryBuilder
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, enclosingName);
+                argument, getGenericTypeName(issue.enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, enclosingName);
+                argument, getGenericTypeName(issue.enclosingType));
           }
         }
 
@@ -1727,13 +1723,9 @@ class KernelLibraryBuilder
         constructedType, typeEnvironment,
         allowSuperBounded: false);
     if (issues != null) {
-      String constructedTypeName = "${klass.name}::${factory.name.name}";
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
-        String enclosingName = issue.enclosingType == constructedType
-            ? constructedTypeName
-            : getGenericTypeName(issue.enclosingType);
 
         Message message;
         if (argument is FunctionType && argument.typeParameters.length > 0) {
@@ -1747,10 +1739,10 @@ class KernelLibraryBuilder
         } else {
           if (inferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument, enclosingName);
+                argument, getGenericTypeName(issue.enclosingType));
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, enclosingName);
+                argument, getGenericTypeName(issue.enclosingType));
           }
         }
 
@@ -1776,7 +1768,7 @@ class KernelLibraryBuilder
       if (klass == null) {
         targetName = "${node.target.name.name}";
       } else {
-        targetName = "${klass.name}::${node.target.name.name}";
+        targetName = "${klass.name}.${node.target.name.name}";
       }
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
@@ -1864,7 +1856,7 @@ class KernelLibraryBuilder
         }
         targetName += ">";
       }
-      targetName += "::${name.name}";
+      targetName += ".${name.name}";
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
