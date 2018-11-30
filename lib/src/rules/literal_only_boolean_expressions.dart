@@ -105,8 +105,7 @@ class LiteralOnlyBooleanExpressions extends LintRule
             name: 'literal_only_boolean_expressions',
             description: _desc,
             details: _details,
-            group: Group.errors,
-            maturity: Maturity.experimental);
+            group: Group.errors);
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
