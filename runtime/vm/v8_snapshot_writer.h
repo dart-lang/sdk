@@ -11,6 +11,7 @@
 #include "vm/allocation.h"
 #include "vm/hash_map.h"
 #include "vm/json_writer.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -29,10 +30,7 @@ struct StringToIntMapTraits {
 
   static Key KeyOf(Pair pair) { return pair.key; }
 
-  static size_t Hashcode(Key key) {
-    /// SAMIR_TODO
-    return 0;
-  }
+  static size_t Hashcode(Key key) { return String::Hash(key, strlen(key)); }
 
   static bool IsKeyEqual(Pair x, Key y) { return strcmp(x.key, y) == 0; }
 };
@@ -51,6 +49,22 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
   typedef std::pair<IdSpace, intptr_t> ObjectId;
 
+  struct Reference {
+    ObjectId to_object_id;
+    enum {
+      kElement,
+      kProperty,
+    } reference_type;
+    intptr_t offset_or_name;
+  };
+
+  enum ConstantStrings {
+    kUnknownString = 0,
+    kPropertyString = 1,
+    kObjectString = 2,
+    kArtificialRootString = 3,
+  };
+
 #if !defined(DART_PRECOMPILER)
   explicit V8SnapshotProfileWriter(Zone* zone) {}
   virtual ~V8SnapshotProfileWriter() {}
@@ -59,8 +73,9 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
                             const char* type,
                             const char* name) {}
   void AttributeBytesTo(ObjectId object_id, size_t num_bytes) {}
-  void AttributeReferenceTo(ObjectId object_id, ObjectId to_object_id) {}
+  void AttributeReferenceTo(ObjectId object_id, Reference reference) {}
   void AddRoot(ObjectId object_id) {}
+  intptr_t EnsureString(const char* str) { return 0; }
 #else
   explicit V8SnapshotProfileWriter(Zone* zone);
   virtual ~V8SnapshotProfileWriter() {}
@@ -80,7 +95,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   // Records that a reference to the object with id 'to_object_id' was written
   // in order to serialize the object with id 'object_id'. This does not affect
   // the number of bytes charged to 'object_id'.
-  void AttributeReferenceTo(ObjectId object_id, ObjectId to_object_id);
+  void AttributeReferenceTo(ObjectId object_id, Reference reference);
 
   // Marks an object as being a root in the graph. Used for analysis of the
   // graph.
@@ -89,12 +104,15 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   // Write to a file in the V8 Snapshot Profile (JSON/.heapsnapshot) format.
   void Write(const char* file);
 
+  intptr_t EnsureString(const char* str);
+
  private:
   static constexpr intptr_t kNumNodeFields = 5;
   static constexpr intptr_t kNumEdgeFields = 3;
 
   struct EdgeInfo {
-    // 'type' and 'name_or_index' aren't supported yet.
+    intptr_t type;
+    intptr_t name_or_index;
     ObjectId to_node;
   };
 
@@ -131,17 +149,9 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   static NodeInfo ArtificialRoot();
 
   NodeInfo* EnsureId(ObjectId object_id);
-  intptr_t EnsureString(const char* str);
   static intptr_t NodeIdFor(ObjectId id) {
     return (id.second << kIdSpaceBits) | id.first;
   }
-
-  enum ConstantStrings {
-    kUnknownString = 0,
-    kPropertyString = 1,
-    kObjectString = 2,
-    kArtificialRootString = 3,
-  };
 
   enum ConstantEdgeTypes {
     kContext = 0,
