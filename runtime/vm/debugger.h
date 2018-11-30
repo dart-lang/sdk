@@ -32,7 +32,6 @@ class Isolate;
 class JSONArray;
 class JSONStream;
 class ObjectPointerVisitor;
-class RemoteObjectCache;
 class BreakpointLocation;
 class StackFrame;
 
@@ -469,12 +468,9 @@ class Debugger {
     kStepOverAsyncSuspension,
   };
 
-  typedef void EventHandler(ServiceEvent* event);
-
-  Debugger();
+  explicit Debugger(Isolate* isolate);
   ~Debugger();
 
-  void Initialize(Isolate* isolate);
   void NotifyIsolateCreated();
   void Shutdown();
 
@@ -540,9 +536,6 @@ class Debugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Called from Runtime when a breakpoint in Dart code is reached.
-  void BreakpointCallback();
-
   // Returns true if there is at least one breakpoint set in func or code.
   // Checks for both user-defined and internal temporary breakpoints.
   // This may be called from different threads, therefore do not use the,
@@ -572,26 +565,8 @@ class Debugger {
   // to query local variables in the returned stack.
   DebuggerStackTrace* StackTraceFrom(const class StackTrace& dart_stacktrace);
 
-  RawArray* GetInstanceFields(const Instance& obj);
-  RawArray* GetStaticFields(const Class& cls);
-  RawArray* GetLibraryFields(const Library& lib);
-  RawArray* GetGlobalFields(const Library& lib);
-
-  intptr_t CacheObject(const Object& obj);
-  RawObject* GetCachedObject(intptr_t obj_id);
-  bool IsValidObjectId(intptr_t obj_id);
-
-  Dart_Port GetIsolateId() { return isolate_id_; }
-
-  static void SetEventHandler(EventHandler* handler);
-
   // Utility functions.
   static const char* QualifiedFunctionName(const Function& func);
-
-  RawObject* GetInstanceField(const Class& cls,
-                              const String& field_name,
-                              const Instance& object);
-  RawObject* GetStaticField(const Class& cls, const String& field_name);
 
   // Pause execution for a breakpoint.  Called from generated code.
   RawError* PauseBreakpoint();
@@ -717,11 +692,6 @@ class Debugger {
   bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                               const Instance& exc);
 
-  void CollectLibraryFields(const GrowableObjectArray& field_list,
-                            const Library& lib,
-                            const String& prefix,
-                            bool include_private_fields);
-
   // Handles any events which pause vm execution.  Breakpoints,
   // interrupts, etc.
   void Pause(ServiceEvent* event);
@@ -750,8 +720,6 @@ class Debugger {
   void SetAsyncSteppingFramePointer();
 
   Isolate* isolate_;
-  Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
-  bool initialized_;
 
   // ID number generator.
   intptr_t next_id_;
@@ -775,9 +743,6 @@ class Debugger {
   // paused for breakpoints, isolate interruption, and (sometimes)
   // exceptions.
   ServiceEvent* pause_event_;
-
-  // An id -> object map.  Valid only while IsPaused().
-  RemoteObjectCache* obj_cache_;
 
   // Current stack trace. Valid only while IsPaused().
   DebuggerStackTrace* stack_trace_;
@@ -805,8 +770,6 @@ class Debugger {
   Breakpoint* synthetic_async_breakpoint_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
-
-  static EventHandler* event_handler_;
 
   friend class Isolate;
   friend class BreakpointLocation;
