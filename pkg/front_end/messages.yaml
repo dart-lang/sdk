@@ -3233,6 +3233,14 @@ IncorrectTypeArgument:
     class C<T extends num> {}
     main() { new C<String>(); }
 
+IncorrectTypeArgumentQualified:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class C<T> { foo<U extends num>() {} }
+    main() { new C<String>().foo<String>(); }
+
 IncorrectTypeArgumentInSupertype:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
   tip: "Try changing type arguments so that they conform to the bounds."
@@ -3256,6 +3264,14 @@ IncorrectTypeArgumentInferred:
   script: >
     void foo<T extends num>(T t) {}
     main() { foo("bar"); }
+
+IncorrectTypeArgumentQualifiedInferred:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: >
+    class C<T> { foo<U extends num>(U u) {} }
+    main() { new C<String>().foo(""); }
 
 IncorrectTypeArgumentInSupertypeInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."

@@ -4428,6 +4428,123 @@ Message _withArgumentsIncorrectTypeArgumentInferred(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        DartType _type3,
+        String
+            name2)> templateIncorrectTypeArgumentQualified = const Template<
+        Message Function(
+            DartType _type,
+            DartType _type2,
+            String name,
+            DartType _type3,
+            String
+                name2)>(
+    messageTemplate:
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentQualified);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)> codeIncorrectTypeArgumentQualified =
+    const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, String name2)>(
+        "IncorrectTypeArgumentQualified",
+        templateIncorrectTypeArgumentQualified,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentQualified(DartType _type,
+    DartType _type2, String name, DartType _type3, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentQualified,
+      message:
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}.${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        DartType _type3,
+        String
+            name2)> templateIncorrectTypeArgumentQualifiedInferred = const Template<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)>
+    codeIncorrectTypeArgumentQualifiedInferred = const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, String name2)>(
+        "IncorrectTypeArgumentQualifiedInferred",
+        templateIncorrectTypeArgumentQualifiedInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentQualifiedInferred(DartType _type,
+    DartType _type2, String name, DartType _type3, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentQualifiedInferred,
+      message:
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}.${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIncorrectTypeArgumentVariable =
     messageIncorrectTypeArgumentVariable;
 

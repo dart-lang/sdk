@@ -76,6 +76,8 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInReturnType,
         templateIncorrectTypeArgumentInferred,
+        templateIncorrectTypeArgumentQualified,
+        templateIncorrectTypeArgumentQualifiedInferred,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
@@ -1373,7 +1375,7 @@ class KernelLibraryBuilder
   }
 
   void reportTypeArgumentIssues(List<TypeArgumentIssue> issues, int offset,
-      {bool inferred, String targetName}) {
+      {bool inferred, DartType targetReceiver, String targetName}) {
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
@@ -1389,16 +1391,38 @@ class KernelLibraryBuilder
         }
         typeParameter = null;
       } else {
-        String enclosingName = issue.enclosingType == null
-            ? targetName
-            : getGenericTypeName(issue.enclosingType);
-        assert(enclosingName != null);
-        if (issueInferred) {
-          message = templateIncorrectTypeArgumentInferred.withArguments(
-              argument, typeParameter.bound, typeParameter.name, enclosingName);
+        if (issue.enclosingType == null && targetReceiver != null) {
+          if (issueInferred) {
+            message =
+                templateIncorrectTypeArgumentQualifiedInferred.withArguments(
+                    argument,
+                    typeParameter.bound,
+                    typeParameter.name,
+                    targetReceiver,
+                    targetName);
+          } else {
+            message = templateIncorrectTypeArgumentQualified.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                targetReceiver,
+                targetName);
+          }
         } else {
-          message = templateIncorrectTypeArgument.withArguments(
-              argument, typeParameter.bound, typeParameter.name, enclosingName);
+          String enclosingName = issue.enclosingType == null
+              ? targetName
+              : getGenericTypeName(issue.enclosingType);
+          assert(enclosingName != null);
+          if (issueInferred) {
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                enclosingName);
+          } else {
+            message = templateIncorrectTypeArgument.withArguments(argument,
+                typeParameter.bound, typeParameter.name, enclosingName);
+          }
         }
       }
 
@@ -1569,14 +1593,15 @@ class KernelLibraryBuilder
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         parameters, arguments, typeEnvironment);
     if (issues != null) {
-      String targetName;
-      if (klass == null) {
-        targetName = "${node.target.name.name}";
-      } else {
-        targetName = "${klass.name}.${node.target.name.name}";
+      DartType targetReceiver;
+      if (klass != null) {
+        targetReceiver = new InterfaceType(klass);
       }
+      String targetName = node.target.name.name;
       reportTypeArgumentIssues(issues, node.fileOffset,
-          inferred: inferred, targetName: targetName);
+          inferred: inferred,
+          targetReceiver: targetReceiver,
+          targetName: targetName);
     }
   }
 
@@ -1627,17 +1652,10 @@ class KernelLibraryBuilder
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         instantiatedMethodParameters, arguments.types, typeEnvironment);
     if (issues != null) {
-      String targetName = "${klass.name}";
-      if (klassArguments.length > 0) {
-        targetName += "<${klassArguments[0]}";
-        for (int i = 1; i < klassArguments.length; ++i) {
-          targetName += ", ${klassArguments[i]}";
-        }
-        targetName += ">";
-      }
-      targetName += ".${name.name}";
       reportTypeArgumentIssues(issues, offset,
-          inferred: inferred, targetName: targetName);
+          inferred: inferred,
+          targetReceiver: receiverType,
+          targetName: name.name);
     }
   }
 
