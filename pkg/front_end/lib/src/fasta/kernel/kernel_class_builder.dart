@@ -944,9 +944,9 @@ abstract class KernelClassBuilder
         interfaceFunction?.typeParameters?.length) {
       library.addProblem(
           templateOverrideTypeVariablesMismatch.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -981,9 +981,9 @@ abstract class KernelClassBuilder
           if (declaredBound != substitution.substituteType(interfaceBound)) {
             library.addProblem(
                 templateOverrideTypeVariablesMismatch.withArguments(
-                    "${declaredMember.enclosingClass.name}::"
+                    "${declaredMember.enclosingClass.name}."
                     "${declaredMember.name.name}",
-                    "${interfaceMember.enclosingClass.name}::"
+                    "${interfaceMember.enclosingClass.name}."
                     "${interfaceMember.name.name}"),
                 declaredMember.fileOffset,
                 noLength,
@@ -1115,9 +1115,9 @@ abstract class KernelClassBuilder
         interfaceFunction.positionalParameters.length) {
       library.addProblem(
           templateOverrideFewerPositionalArguments.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -1134,9 +1134,9 @@ abstract class KernelClassBuilder
         declaredFunction.requiredParameterCount) {
       library.addProblem(
           templateOverrideMoreRequiredArguments.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -1176,9 +1176,9 @@ abstract class KernelClassBuilder
         interfaceFunction.namedParameters.length) {
       library.addProblem(
           templateOverrideFewerNamedArguments.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -1213,10 +1213,10 @@ abstract class KernelClassBuilder
         if (!declaredNamedParameters.moveNext()) {
           library.addProblem(
               templateOverrideMismatchNamedParameter.withArguments(
-                  "${declaredMember.enclosingClass.name}::"
+                  "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
                   interfaceNamedParameters.current.name,
-                  "${interfaceMember.enclosingClass.name}::"
+                  "${interfaceMember.enclosingClass.name}."
                   "${interfaceMember.name.name}"),
               declaredMember.fileOffset,
               noLength,
