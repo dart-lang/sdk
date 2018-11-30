@@ -599,7 +599,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   Isolate.spawn, or the argument to Isolate.spawnUri canonicalized by the
  *   library tag handler of the parent isolate.
  *   The callback is responsible for loading the program by a call to
- *   Dart_LoadScript or Dart_LoadScriptFromKernel.
+ *   Dart_LoadScriptFromKernel.
  * \param main The name of the main entry point this isolate will
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
@@ -2831,26 +2831,18 @@ typedef enum {
  *
  * Dart_kScriptTag
  *
- * This tag indicates that the root script should be loaded from
- * 'url'.  If the 'library' parameter is not null, it is the url of the
- * package map that should be used when loading.  Once the root
- * script is loaded, the embedder should call Dart_LoadScript to
- * install the root script in the VM.  The return value should be an
- * error or null.
+ * No longer used.
  *
  * Dart_kSourceTag
  *
- * This tag is used to load a file referenced by Dart language "part
- * of" directive.  Once the file's source is loaded, the embedder
- * should call Dart_LoadSource to provide the file contents to the VM.
- * The return value should be an error or null.
+ * No longer used.
  *
  * Dart_kImportTag
  *
- * This tag is used to load a script referenced by Dart language
- * "import" directive.  Once the script is loaded, the embedder should
- * call Dart_LoadLibrary to provide the script source to the VM.  The
- * return value should be an error or null.
+ * This tag is used to load a library from IsolateMirror.loadUri. The embedder
+ * should call Dart_LoadLibraryFromKernel to provide the library to the VM. The
+ * return value should be an error or library (the result from
+ * Dart_LoadLibraryFromKernel).
  *
  * Dart_kKernelTag
  *
@@ -2859,7 +2851,8 @@ typedef enum {
  * of an application is needed and the VM is 'use dart front end' mode.
  * The dart front end typically compiles all the scripts, imports and part
  * files into one intermediate file hence we don't use the source/import or
- * script tags.
+ * script tags. The return value should be an error or a TypedData containing
+ * the kernel bytes.
  *
  * Dart_kImportExtensionTag
  *

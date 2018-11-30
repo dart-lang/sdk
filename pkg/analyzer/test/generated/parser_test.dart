@@ -3212,8 +3212,14 @@ class Foo {
     createParser('external factory C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, 21, 1)]);
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY
+              : ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY,
+          21,
+          1)
+    ]);
   }
 
   void test_externalConstructorWithBody_named() {

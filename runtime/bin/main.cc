@@ -1011,7 +1011,11 @@ void main(int argc, char** argv) {
   }
   DartUtils::SetEnvironment(Options::environment());
 
-  InitializeCrashpadClient();
+  if (Options::suppress_core_dump()) {
+    Platform::SetCoreDumpResourceLimit(0);
+  } else {
+    InitializeCrashpadClient();
+  }
 
   Loader::InitOnce();
 

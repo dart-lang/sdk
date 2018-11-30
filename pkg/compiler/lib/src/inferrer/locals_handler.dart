@@ -88,7 +88,7 @@ class VariableScope {
         f(variable, type);
       });
     }
-    if (block == node) return;
+    if (node != null && block == node) return;
     if (parent != null) parent.forEachLocalUntilNode(node, f, seenLocals);
   }
 
@@ -101,9 +101,37 @@ class VariableScope {
     return variables.containsKey(variable);
   }
 
+  String toStructuredText(String indent) {
+    StringBuffer sb = new StringBuffer();
+    _toStructuredText(sb, indent);
+    return sb.toString();
+  }
+
+  void _toStructuredText(StringBuffer sb, String indent) {
+    sb.write('VariableScope($hashCode) [');
+    String blockText = block.toString().replaceAll('\n', ' ');
+    if (blockText.length > 20) {
+      blockText = blockText.substring(0, 17) + '...';
+    }
+    sb.write('\n${indent}  block: '
+        '(${block.runtimeType}:${block.hashCode})${blockText}');
+    if (variables != null) {
+      sb.write('\n${indent}  variables:');
+      variables.forEach((Local local, TypeInformation type) {
+        sb.write('\n${indent}    $local: ');
+        sb.write(type.toStructuredText('${indent}      '));
+      });
+    }
+    if (parent != null) {
+      sb.write('\n${indent}  parent:');
+      parent._toStructuredText(sb, '${indent}     ');
+    }
+    sb.write(']');
+  }
+
   String toString() {
     String rest = parent == null ? "null" : parent.toString();
-    return '$variables $rest';
+    return '{$variables} $rest';
   }
 }
 
@@ -255,8 +283,7 @@ class LocalsHandler {
   LocalsHandler(ir.Node block)
       : _locals = new VariableScope(block, isTry: false);
 
-  LocalsHandler.from(LocalsHandler other, ir.Node block,
-      {bool isTry: false, bool useOtherTryBlock: true})
+  LocalsHandler.from(LocalsHandler other, ir.Node block, {bool isTry: false})
       : _locals = new VariableScope(block, isTry: isTry, parent: other._locals);
 
   LocalsHandler.deepCopyOf(LocalsHandler other)
@@ -299,7 +326,8 @@ class LocalsHandler {
   /// from both are merged with a phi type.
   LocalsHandler mergeFlow(InferrerEngine inferrer, LocalsHandler other,
       {bool inPlace: false}) {
-    other._locals.forEachOwnLocal((Local local, TypeInformation type) {
+    other._locals.forEachLocalUntilNode(_locals.block,
+        (Local local, TypeInformation type) {
       TypeInformation myType = _locals[local];
       if (myType == null) return; // Variable is only defined in [other].
       if (type == myType) return;
@@ -327,10 +355,10 @@ class LocalsHandler {
       }
     }
 
-    thenBranch._locals.forEachOwnLocal((Local local, _) {
+    thenBranch._locals.forEachLocalUntilNode(_locals.block, (Local local, _) {
       mergeLocal(local);
     });
-    elseBranch._locals.forEachOwnLocal((Local local, _) {
+    elseBranch._locals.forEachLocalUntilNode(_locals.block, (Local local, _) {
       // Discard locals we already processed when iterating over
       // [thenBranch]'s locals.
       if (!thenBranch._locals.updates(local)) mergeLocal(local);
@@ -395,7 +423,8 @@ class LocalsHandler {
     }
     // Clean up Phi nodes with single input and store back result into
     // actual locals handler.
-    merged._locals.forEachOwnLocal((Local variable, TypeInformation type) {
+    merged._locals.forEachLocalUntilNode(_locals.block,
+        (Local variable, TypeInformation type) {
       _locals[variable] = inferrer.types.simplifyPhi(level, variable, type);
     });
     return this;
@@ -459,6 +488,19 @@ class LocalsHandler {
         _locals[variable] = newType;
       }
     });
+  }
+
+  String toStructuredText(String indent) {
+    StringBuffer sb = new StringBuffer();
+    _toStructuredText(sb, indent);
+    return sb.toString();
+  }
+
+  void _toStructuredText(StringBuffer sb, String indent) {
+    sb.write('LocalsHandler($hashCode) [');
+    sb.write('\n${indent}  locals:');
+    _locals._toStructuredText(sb, '${indent}    ');
+    sb.write('\n]');
   }
 
   String toString() {

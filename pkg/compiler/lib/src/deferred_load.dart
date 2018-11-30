@@ -785,19 +785,21 @@ abstract class DeferredLoadTask extends CompilerTask {
   void cleanup() {}
 
   void beforeResolution(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    for (Uri uri in libraries) {
-      LibraryEntity library = elementEnvironment.lookupLibrary(uri);
-      reporter.withCurrentElement(library, () {
-        checkForDeferredErrorCases(library);
-        for (ImportEntity import in elementEnvironment.getImports(library)) {
-          if (import.isDeferred) {
-            _deferredImportDescriptions[import] =
-                new ImportDescription(import, library, rootLibraryUri);
-            isProgramSplit = true;
+    measureSubtask('prepare', () {
+      for (Uri uri in libraries) {
+        LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+        reporter.withCurrentElement(library, () {
+          checkForDeferredErrorCases(library);
+          for (ImportEntity import in elementEnvironment.getImports(library)) {
+            if (import.isDeferred) {
+              _deferredImportDescriptions[import] =
+                  new ImportDescription(import, library, rootLibraryUri);
+              isProgramSplit = true;
+            }
           }
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   /// Detects errors like duplicate uses of a prefix or using the old deferred

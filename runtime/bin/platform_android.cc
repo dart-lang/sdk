@@ -10,6 +10,7 @@
 #include <errno.h>        // NOLINT
 #include <signal.h>       // NOLINT
 #include <string.h>       // NOLINT
+#include <sys/resource.h>
 #include <sys/utsname.h>  // NOLINT
 #include <unistd.h>       // NOLINT
 
@@ -165,6 +166,11 @@ const char* Platform::ResolveExecutablePath() {
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   exit(exit_code);
+}
+
+void Platform::SetCoreDumpResourceLimit(int value) {
+  rlimit limit = {static_cast<rlim_t>(value), static_cast<rlim_t>(value)};
+  setrlimit(RLIMIT_CORE, &limit);
 }
 
 }  // namespace bin

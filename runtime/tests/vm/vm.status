@@ -23,20 +23,6 @@ dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
-[ $system == macos ]
-cc/AllocGeneric_Overflow: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/ArrayNew_Overflow_Crash: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/Class_ComputeEndTokenPos: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/CodeImmutability: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/DartGeneratedArrayLiteralMessages: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/FullSnapshot1: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/IsolateReload_PendingStaticCall_NSMToDefined: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/SNPrint_BadArgs: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-cc/FullSnapshot1: Timeout # On MacOS the segfault handler can hang, see http://dartbug.com/35275
-
 [ $mode == debug ]
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 

@@ -260,7 +260,7 @@ testIsCheck19(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck20:Union([exact=JSString], [exact=JSUInt31])*/
+/*element: testIsCheck20:[exact=JSUInt31]*/
 testIsCheck20() {
   var c = topLevelGetter();
   if (c != null && c is! bool && c is! int) {
@@ -272,7 +272,7 @@ testIsCheck20() {
   }
 }
 
-/*element: testIsCheck21:[null|subclass=Object]*/
+/*element: testIsCheck21:Union([subclass=JSArray], [subclass=JSInt])*/
 testIsCheck21(/*[null|subclass=Object]*/ a) {
   if (a is int || a is List) {
     return a;
@@ -281,7 +281,7 @@ testIsCheck21(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck22:[null|subclass=Object]*/
+/*element: testIsCheck22:Union([subclass=JSArray], [subclass=JSInt])*/
 testIsCheck22(/*[null|subclass=Object]*/ a) {
   return (a is int || a is List) ? a : 42;
 }

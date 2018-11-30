@@ -4,10 +4,10 @@
 library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
+import 'dart:convert' show utf8;
 
 import '../ast.dart';
 import 'tag.dart';
-import 'dart:convert';
 import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
 
@@ -107,24 +107,58 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeStringTable(StringIndexer indexer) {
     _binaryOffsetForStringTable = getBufferOffset();
 
+    // Containers for the utf8 encoded strings.
+    final List<Uint8List> data = new List<Uint8List>();
+    int totalLength = 0;
+    const int minLength = 1 << 16;
+    Uint8List buffer;
+    int index = 0;
+
     // Write the end offsets.
     writeUInt30(indexer.index.length);
-    int endOffset = 0;
-    List<List<int>> data =
-        new List<List<int>>.filled(indexer.index.length, null);
-    int i = 0;
-    Utf8Encoder utf8Encoder = const Utf8Encoder();
     for (String key in indexer.index.keys) {
-      List<int> utf8Bytes = utf8Encoder.convert(key);
-      data[i] = utf8Bytes;
-      endOffset += utf8Bytes.length;
-      writeUInt30(endOffset);
-      i++;
+      if (key.isNotEmpty) {
+        int requiredMinLength = key.length;
+        int allocateMinLength = requiredMinLength * 3;
+        int newIndex;
+        while (true) {
+          if (buffer == null || index + requiredMinLength >= buffer.length) {
+            int newLength = minLength;
+            if (allocateMinLength > newLength) newLength = allocateMinLength;
+            if (buffer != null && index > 0) {
+              data.add(new Uint8List.view(buffer.buffer, 0, index));
+            }
+            index = 0;
+            buffer = new Uint8List(newLength);
+          }
+          newIndex = NotQuiteString.writeUtf8(buffer, index, key);
+          if (newIndex != -1) break;
+          requiredMinLength = allocateMinLength;
+        }
+        if (newIndex < 0) {
+          // Utf8 encoding failed.
+          if (buffer != null && index > 0) {
+            data.add(new Uint8List.view(buffer.buffer, 0, index));
+            buffer = null;
+            index = 0;
+          }
+          List<int> converted = utf8.encoder.convert(key);
+          data.add(converted);
+          totalLength += converted.length;
+        } else {
+          totalLength += newIndex - index;
+          index = newIndex;
+        }
+      }
+      writeUInt30(totalLength);
+    }
+    if (buffer != null && index > 0) {
+      data.add(Uint8List.view(buffer.buffer, 0, index));
     }
 
     // Write the UTF-8 encoded strings.
-    for (var entry in data) {
-      writeBytes(entry);
+    for (int i = 0; i < data.length; ++i) {
+      writeBytes(data[i]);
     }
   }
 
@@ -235,13 +269,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
     writeUInt30(items.length);
-    items.forEach(writeItem);
+    for (int i = 0; i < items.length; ++i) {
+      writeItem(items[i]);
+    }
   }
 
   void writeNodeList(List<Node> nodes) {
     final len = nodes.length;
     writeUInt30(len);
-    for (var i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       final node = nodes[i];
       writeNode(node);
     }
@@ -279,16 +315,22 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void indexLinkTable(Component component) {
     _canonicalNameList = <CanonicalName>[];
-    void visitCanonicalName(CanonicalName node) {
-      node.index = _canonicalNameList.length;
-      _canonicalNameList.add(node);
-      node.children.forEach(visitCanonicalName);
-    }
-
-    for (var library in component.libraries) {
+    for (int i = 0; i < component.libraries.length; ++i) {
+      Library library = component.libraries[i];
       if (!shouldWriteLibraryCanonicalNames(library)) continue;
-      visitCanonicalName(library.canonicalName);
+      _indexLinkTableInternal(library.canonicalName);
       _knownCanonicalNameNonRootTops.add(library.canonicalName);
+    }
+  }
+
+  void _indexLinkTableInternal(CanonicalName node) {
+    node.index = _canonicalNameList.length;
+    _canonicalNameList.add(node);
+    Iterable<CanonicalName> children = node.childrenOrNull;
+    if (children != null) {
+      for (CanonicalName child in children) {
+        _indexLinkTableInternal(child);
+      }
     }
   }
 
@@ -304,7 +346,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   bool shouldWriteLibraryCanonicalNames(Library library) => true;
 
   void writeCanonicalNameEntry(CanonicalName node) {
-    var parent = node.parent;
+    CanonicalName parent = node.parent;
     if (parent.isRoot) {
       writeUInt30(0);
     } else {
@@ -357,7 +399,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void _writeNodeMetadataImpl(Node node, int nodeOffset) {
-    for (var subsection in _metadataSubsections) {
+    for (_MetadataSubsection subsection in _metadataSubsections) {
       final repository = subsection.repository;
       final value = repository.mapping[node];
       if (value == null) {
@@ -390,9 +432,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       _typeParameterIndexer.enter(typeParameters);
     }
     if (memberScope) {
-      _variableIndexer = new VariableIndexer();
+      _variableIndexer = null;
     }
     if (variableScope) {
+      _variableIndexer ??= new VariableIndexer();
       _variableIndexer.pushScope();
     }
   }
@@ -438,13 +481,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     // RList<MetadataMapping> metadataMappings
     _binaryOffsetForMetadataMappings = getBufferOffset();
-    for (var subsection in _metadataSubsections) {
+    for (_MetadataSubsection subsection in _metadataSubsections) {
       // UInt32 tag
       writeUInt32(stringIndexer.put(subsection.repository.tag));
 
       // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
       final mappingLength = subsection.metadataMapping.length;
-      for (var i = 0; i < mappingLength; i += 2) {
+      for (int i = 0; i < mappingLength; i += 2) {
         writeUInt32(subsection.metadataMapping[i]); // node offset
         writeUInt32(subsection.metadataMapping[i + 1]); // metadata offset
       }
@@ -455,7 +498,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   /// Write all of some of the libraries of the [component].
   void writeLibraries(Component component) {
-    component.libraries.forEach(writeNode);
+    for (int i = 0; i < component.libraries.length; ++i) {
+      writeNode(component.libraries[i]);
+    }
   }
 
   void writeComponentIndex(Component component, List<Library> libraries) {
@@ -499,7 +544,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     // Write data.
     int i = 0;
-    Utf8Encoder utf8Encoder = const Utf8Encoder();
+    Uint8List buffer = new Uint8List(1 << 16);
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
       Source source = ((includeSources &&
@@ -509,15 +554,32 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
               : null) ??
           new Source(<int>[], const <int>[]);
 
-      writeByteList(utf8Encoder.convert(uri == null ? "" : "$uri"));
+      String uriAsString = uri == null ? "" : "$uri";
+      if (uriAsString.length * 3 < buffer.length) {
+        int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
+        if (length < 0) {
+          // Utf8 encoding failed.
+          writeByteList(utf8.encoder.convert(uriAsString));
+        } else {
+          writeUInt30(length);
+          for (int j = 0; j < length; j++) {
+            writeByte(buffer[j]);
+          }
+        }
+      } else {
+        // Uncommon case with very long url.
+        writeByteList(utf8.encoder.convert(uriAsString));
+      }
+
       writeByteList(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;
-      lineStarts.forEach((lineStart) {
+      for (int j = 0; j < lineStarts.length; ++j) {
+        int lineStart = lineStarts[j];
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
-      });
+      }
       i++;
     }
 
@@ -615,28 +677,33 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri);
+    enterScope(memberScope: true);
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
     writeAdditionalExports(node.additionalExports);
     writeLibraryParts(node);
+    leaveScope(memberScope: true);
+
     writeNodeList(node.typedefs);
-    classOffsets = <int>[];
+    classOffsets = new List<int>();
     writeNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeNodeList(node.fields);
-    procedureOffsets = <int>[];
+    procedureOffsets = new List<int>();
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
     // Fixed-size ints at the end used as an index.
     assert(classOffsets.length > 0);
-    for (int offset in classOffsets) {
+    for (int i = 0; i < classOffsets.length; ++i) {
+      int offset = classOffsets[i];
       writeUInt32(offset);
     }
     writeUInt32(classOffsets.length - 1);
 
     assert(procedureOffsets.length > 0);
-    for (int offset in procedureOffsets) {
+    for (int i = 0; i < procedureOffsets.length; ++i) {
+      int offset = procedureOffsets[i];
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
@@ -648,7 +715,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         : <LibraryDependency, int>{};
     writeUInt30(library.dependencies.length);
     for (int i = 0; i < library.dependencies.length; ++i) {
-      var importNode = library.dependencies[i];
+      LibraryDependency importNode = library.dependencies[i];
       _libraryDependencyIndex[importNode] = i;
       writeLibraryDependency(importNode);
     }
@@ -681,7 +748,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeLibraryParts(Library library) {
     writeUInt30(library.parts.length);
     for (int i = 0; i < library.parts.length; ++i) {
-      var partNode = library.parts[i];
+      LibraryPart partNode = library.parts[i];
       writeLibraryPart(partNode);
     }
   }
@@ -695,7 +762,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void visitTypedef(Typedef node) {
-    _variableIndexer ??= new VariableIndexer();
+    enterScope(memberScope: true);
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
@@ -713,17 +780,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     leaveScope(typeParameters: node.typeParametersOfFunctionType);
     leaveScope(typeParameters: node.typeParameters, variableScope: true);
+    leaveScope(memberScope: true);
   }
 
   void writeAnnotation(Expression annotation) {
-    _variableIndexer ??= new VariableIndexer();
     writeNode(annotation);
   }
 
   void writeAnnotationList(List<Expression> annotations) {
     final len = annotations.length;
     writeUInt30(len);
-    for (var i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       final annotation = annotations[i];
       writeAnnotation(annotation);
     }
@@ -756,7 +823,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(flags);
     writeStringReference(node.name ?? '');
 
+    enterScope(memberScope: true);
     writeAnnotationList(node.annotations);
+    leaveScope(memberScope: true);
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeOptionalNode(node.supertype);
@@ -771,7 +840,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
-    for (int offset in procedureOffsets) {
+    for (int i = 0; i < procedureOffsets.length; ++i) {
+      int offset = procedureOffsets[i];
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
@@ -800,6 +870,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
     // Parameters are in scope in the initializers.
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.restoreScope(node.function.positionalParameters.length +
         node.function.namedParameters.length);
     writeNodeList(node.initializers);
@@ -943,9 +1014,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     enterScope(typeParameters: node.typeParameters, variableScope: true);
-    var oldLabels = _labelIndexer;
+    LabelIndexer oldLabels = _labelIndexer;
     _labelIndexer = null;
-    var oldCases = _switchCaseIndexer;
+    SwitchCaseIndexer oldCases = _switchCaseIndexer;
     _switchCaseIndexer = null;
     // Note: FunctionNode has no tag.
     writeOffset(node.fileOffset);
@@ -973,7 +1044,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitVariableGet(VariableGet node) {
-    assert(_variableIndexer != null);
+    _variableIndexer ??= new VariableIndexer();
     int index = _variableIndexer[node.variable];
     assert(index != null);
     if (index & Tag.SpecializedPayloadMask == index &&
@@ -985,15 +1056,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(Tag.VariableGet);
       writeOffset(node.fileOffset);
       writeUInt30(node.variable.binaryOffsetNoTag);
-      writeUInt30(_variableIndexer[node.variable]);
+      writeUInt30(index);
       writeOptionalNode(node.promotedType);
     }
   }
 
   @override
   void visitVariableSet(VariableSet node) {
-    assert(_variableIndexer != null);
+    _variableIndexer ??= new VariableIndexer();
     int index = _variableIndexer[node.variable];
+    assert(index != null);
     if (index & Tag.SpecializedPayloadMask == index) {
       writeByte(Tag.SpecializedVariableSet + index);
       writeOffset(node.fileOffset);
@@ -1003,7 +1075,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(Tag.VariableSet);
       writeOffset(node.fileOffset);
       writeUInt30(node.variable.binaryOffsetNoTag);
-      writeUInt30(_variableIndexer[node.variable]);
+      writeUInt30(index);
       writeNode(node.value);
     }
   }
@@ -1314,9 +1386,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLet(Let node) {
     writeByte(Tag.Let);
+    _variableIndexer ??= new VariableIndexer();
+    _variableIndexer.pushScope();
     writeVariableDeclaration(node.variable);
     writeNode(node.body);
-    --_variableIndexer.stackHeight;
+    _variableIndexer.popScope();
   }
 
   @override
@@ -1354,6 +1428,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitBlock(Block node) {
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeByte(Tag.Block);
     writeNodeList(node.statements);
@@ -1362,6 +1437,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitAssertBlock(AssertBlock node) {
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeByte(Tag.AssertBlock);
     writeNodeList(node.statements);
@@ -1424,6 +1500,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitForStatement(ForStatement node) {
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
@@ -1436,6 +1513,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitForInStatement(ForInStatement node) {
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
@@ -1511,6 +1589,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitCatch(Catch node) {
     // Note: there is no tag on Catch.
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeOffset(node.fileOffset);
     writeNode(node.guard);
@@ -1555,6 +1634,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.initializer);
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
+    _variableIndexer ??= new VariableIndexer();
     _variableIndexer.declare(node);
   }
 
@@ -1914,15 +1994,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 typedef bool LibraryFilter(Library _);
 
 class VariableIndexer {
-  final Map<VariableDeclaration, int> index = <VariableDeclaration, int>{};
-  final List<int> scopes = <int>[];
+  Map<VariableDeclaration, int> index;
+  List<int> scopes;
   int stackHeight = 0;
 
   void declare(VariableDeclaration node) {
+    index ??= <VariableDeclaration, int>{};
     index[node] = stackHeight++;
   }
 
   void pushScope() {
+    scopes ??= new List<int>();
     scopes.add(stackHeight);
   }
 
@@ -1935,7 +2017,7 @@ class VariableIndexer {
   }
 
   int operator [](VariableDeclaration node) {
-    return index[node];
+    return index == null ? null : index[node];
   }
 }
 
@@ -1959,7 +2041,7 @@ class SwitchCaseIndexer {
   int stackHeight = 0;
 
   void enter(SwitchStatement node) {
-    for (var caseNode in node.cases) {
+    for (SwitchCase caseNode in node.cases) {
       index[caseNode] = stackHeight++;
     }
   }
@@ -2021,7 +2103,8 @@ class TypeParameterIndexer {
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
-    for (var parameter in typeParameters) {
+    for (int i = 0; i < typeParameters.length; ++i) {
+      TypeParameter parameter = typeParameters[i];
       index[parameter] = stackHeight;
       ++stackHeight;
     }
@@ -2029,7 +2112,9 @@ class TypeParameterIndexer {
 
   void exit(List<TypeParameter> typeParameters) {
     stackHeight -= typeParameters.length;
-    typeParameters.forEach(index.remove);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      index.remove(typeParameters[i]);
+    }
   }
 
   int operator [](TypeParameter parameter) =>
@@ -2045,7 +2130,7 @@ class StringIndexer {
   }
 
   int put(String string) {
-    var result = index[string];
+    int result = index[string];
     if (result == null) {
       result = index.length;
       index[string] = result;
@@ -2065,7 +2150,7 @@ class UriIndexer {
   }
 
   int put(Uri uri) {
-    var result = index[uri];
+    int result = index[uri];
     if (result == null) {
       result = index.length;
       index[uri] = result;
@@ -2198,5 +2283,66 @@ class BytesSink implements Sink<List<int>> {
   @override
   void close() {
     // Nothing to do.
+  }
+}
+
+class NotQuiteString {
+  /**
+   * Write [source] string into [target] starting at index [index].
+   *
+   * Optionally only write part of the input [source] starting at [start] and
+   * ending at [end].
+   *
+   * The output space needed is at most [source.length] * 3.
+   *
+   * Returns
+   *  * Non-negative on success (the new index in [target]).
+   *  * -1 when [target] doesn't have enough space. Note that [target] can be
+   *    poluted starting at [index].
+   *  * -2 on input error, i.e. an unpaired lead or tail surrogate.
+   */
+  static int writeUtf8(List<int> target, int index, String source,
+      [int start = 0, int end]) {
+    RangeError.checkValidIndex(index, target, null, target.length);
+    end = RangeError.checkValidRange(start, end, source.length);
+    if (start == end) return index;
+    int i = start;
+    int length = target.length;
+    do {
+      int codeUnit = source.codeUnitAt(i++);
+      while (codeUnit < 128) {
+        if (index >= length) return -1;
+        target[index++] = codeUnit;
+        if (i >= end) return index;
+        codeUnit = source.codeUnitAt(i++);
+      }
+      if (codeUnit < 0x800) {
+        index += 2;
+        if (index > length) return -1;
+        target[index - 2] = 0xC0 | (codeUnit >> 6);
+        target[index - 1] = 0x80 | (codeUnit & 0x3f);
+      } else if (codeUnit & 0xF800 != 0xD800) {
+        // Not a surrogate.
+        index += 3;
+        if (index > length) return -1;
+        target[index - 3] = 0xE0 | (codeUnit >> 12);
+        target[index - 2] = 0x80 | ((codeUnit >> 6) & 0x3f);
+        target[index - 1] = 0x80 | (codeUnit & 0x3f);
+      } else {
+        if (codeUnit >= 0xDC00) return -2; // Unpaired tail surrogate.
+        if (i >= end) return -2; // Unpaired lead surrogate.
+        int nextChar = source.codeUnitAt(i++);
+        if (nextChar & 0xFC00 != 0xDC00) return -2; // Unpaired lead surrogate.
+        index += 4;
+        if (index > length) return -1;
+        codeUnit = (codeUnit & 0x3FF) + 0x40;
+        target[index - 4] = 0xF0 | (codeUnit >> 8);
+        target[index - 3] = 0x80 | ((codeUnit >> 2) & 0x3F);
+        target[index - 2] =
+            0x80 | (((codeUnit & 3) << 4) | ((nextChar & 0x3FF) >> 6));
+        target[index - 1] = 0x80 | (nextChar & 0x3f);
+      }
+    } while (i < end);
+    return index;
   }
 }

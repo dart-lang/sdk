@@ -1124,8 +1124,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
   result->BuildName(name_prefix);
 #if !defined(PRODUCT)
-  result->debugger_ = new Debugger();
-  result->debugger_->Initialize(result);
+  result->debugger_ = new Debugger(result);
 #endif
   if (FLAG_trace_isolates) {
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {

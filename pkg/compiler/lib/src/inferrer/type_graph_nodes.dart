@@ -227,14 +227,14 @@ abstract class TypeInformation {
     _assignments = null;
   }
 
-  String toStructuredTest() {
+  String toStructuredText(String indent) {
     StringBuffer sb = new StringBuffer();
-    _toStructuredText(sb, '');
+    _toStructuredText(sb, indent, new Set<TypeInformation>());
     return sb.toString();
   }
 
-  void _toStructuredText(StringBuffer sb, String indent) {
-    sb.write(indent);
+  void _toStructuredText(
+      StringBuffer sb, String indent, Set<TypeInformation> seen) {
     sb.write(toString());
   }
 }
@@ -1838,22 +1838,19 @@ class PhiElementTypeInformation extends TypeInformation {
     return inferrer.types.computeTypeMask(assignments);
   }
 
-  String toString() => 'Phi $variable $type';
+  String toString() => 'Phi($hashCode) $variable $type';
 
-  void _toStructuredText(StringBuffer sb, String indent) {
-    sb.write(indent);
-    sb.write(toString());
-    if (branchNode != null) {
-      String context = '$branchNode'.replaceAll('\n', ' ');
-      if (context.length > 80) {
-        context = context.substring(0, 77) + '...';
-      }
-      sb.write(': $context');
-    } else {
+  void _toStructuredText(
+      StringBuffer sb, String indent, Set<TypeInformation> seen) {
+    if (seen.add(this)) {
+      sb.write('${toString()} [');
       for (TypeInformation assignment in assignments) {
-        sb.write('\n');
-        assignment._toStructuredText(sb, '$indent  ');
+        sb.write('\n$indent  ');
+        assignment._toStructuredText(sb, '$indent  ', seen);
       }
+      sb.write(' ]');
+    } else {
+      sb.write('${toString()} [ ... ]');
     }
   }
 

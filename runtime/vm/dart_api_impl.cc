@@ -1535,7 +1535,7 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   const char* error;
   if (iso->object_store()->root_library() == Library::null()) {
-    // The embedder should have called Dart_LoadScript by now.
+    // The embedder should have called Dart_LoadScriptFromKernel by now.
     error = "Missing root library";
   } else {
     error = iso->MakeRunnable();
@@ -4946,45 +4946,6 @@ DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
   return Api::NewHandle(T, String::New(resolved_uri));
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-// NOTE: Need to pass 'result' as a parameter here in order to avoid
-// warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
-// which shows up because of the use of setjmp.
-static void CompileSource(Thread* thread,
-                          const Library& lib,
-                          const Script& script,
-                          Dart_Handle* result) {
-  bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
-                            script.kind() == RawScript::kLibraryTag);
-  if (update_lib_status) {
-    lib.SetLoadInProgress();
-  }
-  ASSERT(thread != NULL);
-  const Error& error =
-      Error::Handle(thread->zone(), Compiler::Compile(lib, script));
-  if (error.IsNull()) {
-    *result = Api::NewHandle(thread, lib.raw());
-  } else {
-    *result = Api::NewHandle(thread, error.raw());
-    // Compilation errors are not Dart instances, so just mark the library
-    // as having failed to load without providing an error instance.
-    lib.SetLoadError(Object::null_instance());
-  }
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle resolved_url,
-                                        Dart_Handle source,
-                                        intptr_t line_offset,
-                                        intptr_t column_offset) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  return Api::NewError("%s: Should not be called in Dart 2", CURRENT_FUNC);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
 DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
                                                   intptr_t buffer_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5254,18 +5215,6 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
   return error_in;
 }
 
-DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle resolved_url,
-                                         Dart_Handle source,
-                                         intptr_t line_offset,
-                                         intptr_t column_offset) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  return Api::NewError("%s: Should not be called in Dart 2", CURRENT_FUNC);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
 DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
                                                    intptr_t buffer_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5295,51 +5244,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   delete program;
 
   return Api::NewHandle(T, result.raw());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
-DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
-                                                  Dart_Handle import,
-                                                  Dart_Handle prefix) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
-  const Library& library_vm = Api::UnwrapLibraryHandle(Z, library);
-  if (library_vm.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  const Library& import_vm = Api::UnwrapLibraryHandle(Z, import);
-  if (import_vm.IsNull()) {
-    RETURN_TYPE_ERROR(Z, import, Library);
-  }
-  const Object& prefix_object = Object::Handle(Z, Api::UnwrapHandle(prefix));
-  const String& prefix_vm =
-      prefix_object.IsNull() ? Symbols::Empty() : String::Cast(prefix_object);
-  if (prefix_vm.IsNull()) {
-    RETURN_TYPE_ERROR(Z, prefix, String);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  const String& prefix_symbol = String::Handle(Z, Symbols::New(T, prefix_vm));
-  const Namespace& import_ns = Namespace::Handle(
-      Z, Namespace::New(import_vm, Object::null_array(), Object::null_array()));
-  if (prefix_vm.Length() == 0) {
-    library_vm.AddImport(import_ns);
-  } else {
-    LibraryPrefix& library_prefix = LibraryPrefix::Handle();
-    library_prefix = library_vm.LookupLocalLibraryPrefix(prefix_symbol);
-    if (!library_prefix.IsNull()) {
-      library_prefix.AddImport(import_ns);
-    } else {
-      library_prefix =
-          LibraryPrefix::New(prefix_symbol, import_ns, false, library_vm);
-      library_vm.AddObject(library_prefix, prefix_symbol);
-    }
-  }
-  return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5376,94 +5280,6 @@ DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
   }
 
   return Api::NewHandle(T, Array::MakeFixedLength(result));
-}
-
-DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
-                                        Dart_Handle url,
-                                        Dart_Handle resolved_url,
-                                        Dart_Handle source,
-                                        intptr_t line_offset,
-                                        intptr_t column_offset) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-  if (::Dart_IsNull(resolved_url)) {
-    resolved_url = url;
-  }
-  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
-  if (resolved_url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, resolved_url, String);
-  }
-  const String& source_str = Api::UnwrapStringHandle(Z, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, source, String);
-  }
-  if (line_offset < 0) {
-    return Api::NewError("%s: argument 'line_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  if (column_offset < 0) {
-    return Api::NewError("%s: argument 'column_offset' must be positive number",
-                         CURRENT_FUNC);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  NoHeapGrowthControlScope no_growth_control;
-
-  const Script& script =
-      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
-                                    RawScript::kSourceTag));
-  script.SetLocationOffset(line_offset, column_offset);
-  Dart_Handle result;
-  CompileSource(T, lib, script, &result);
-  return result;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
-DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
-                                              Dart_Handle url,
-                                              Dart_Handle patch_source) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-  const String& source_str = Api::UnwrapStringHandle(Z, patch_source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, patch_source, String);
-  }
-  CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
-
-  NoHeapGrowthControlScope no_growth_control;
-
-  const Script& script = Script::Handle(
-      Z, Script::New(url_str, url_str, source_str, RawScript::kPatchTag));
-  Dart_Handle result;
-  CompileSource(T, lib, script, &result);
-  return result;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Finalizes classes and invokes Dart core library function that completes

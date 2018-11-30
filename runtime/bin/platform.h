@@ -90,6 +90,8 @@ class Platform {
 
   static DART_NORETURN void Exit(int exit_code);
 
+  static void SetCoreDumpResourceLimit(int value);
+
  private:
   // The path to the executable.
   static const char* executable_name_;

@@ -671,7 +671,7 @@ const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
-    analyzerCodes: <String>["CATCH_SYNTAX"],
+    index: 84,
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -684,7 +684,7 @@ const Code<Null> codeCatchSyntaxExtraParameters =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
     "CatchSyntaxExtraParameters",
-    analyzerCodes: <String>["CATCH_SYNTAX"],
+    index: 83,
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -3141,7 +3141,7 @@ const Code<Null> codeExternalConstructorWithBody =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalConstructorWithBody = const MessageCode(
     "ExternalConstructorWithBody",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 87,
     message: r"""External constructors can't have a body.""",
     tip:
         r"""Try removing the body of the constructor, or removing the keyword 'external'.""");
@@ -3174,7 +3174,7 @@ const Code<Null> codeExternalFactoryRedirection =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryRedirection = const MessageCode(
     "ExternalFactoryRedirection",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 85,
     message: r"""A redirecting factory can't be external.""",
     tip: r"""Try removing the 'external' modifier.""");
 
@@ -3184,7 +3184,7 @@ const Code<Null> codeExternalFactoryWithBody = messageExternalFactoryWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryWithBody = const MessageCode(
     "ExternalFactoryWithBody",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 86,
     message: r"""External factories can't have a body.""",
     tip:
         r"""Try removing the body of the factory, or removing the keyword 'external'.""");
@@ -3391,6 +3391,9 @@ const MessageCode messageFastaUsageLong =
   --dump-ir
     Print compiled libraries in Kernel source notation.
 
+  --omit-platform
+    Exclude the platform from the serialized dill file.
+
   --bytecode
     Generate bytecode. Supported only for SDK platform compilation.
 
@@ -3463,7 +3466,7 @@ const Code<Null> codeFinalAndVar = messageFinalAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
-    analyzerCodes: <String>["FINAL_AND_VAR"],
+    index: 81,
     message: r"""Members can't be declared to be both 'final' and 'var'.""",
     tip: r"""Try removing the keyword 'var'.""");
 
@@ -4425,6 +4428,123 @@ Message _withArgumentsIncorrectTypeArgumentInferred(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        DartType _type3,
+        String
+            name2)> templateIncorrectTypeArgumentQualified = const Template<
+        Message Function(
+            DartType _type,
+            DartType _type2,
+            String name,
+            DartType _type3,
+            String
+                name2)>(
+    messageTemplate:
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentQualified);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)> codeIncorrectTypeArgumentQualified =
+    const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, String name2)>(
+        "IncorrectTypeArgumentQualified",
+        templateIncorrectTypeArgumentQualified,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentQualified(DartType _type,
+    DartType _type2, String name, DartType _type3, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentQualified,
+      message:
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}.${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        DartType _type3,
+        String
+            name2)> templateIncorrectTypeArgumentQualifiedInferred = const Template<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)>
+    codeIncorrectTypeArgumentQualifiedInferred = const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, String name2)>(
+        "IncorrectTypeArgumentQualifiedInferred",
+        templateIncorrectTypeArgumentQualifiedInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentQualifiedInferred(DartType _type,
+    DartType _type2, String name, DartType _type3, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentQualifiedInferred,
+      message:
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}.${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIncorrectTypeArgumentVariable =
     messageIncorrectTypeArgumentVariable;
 
@@ -4548,7 +4668,7 @@ const Code<Null> codeInitializedVariableInForEach =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInitializedVariableInForEach = const MessageCode(
     "InitializedVariableInForEach",
-    analyzerCodes: <String>["INITIALIZED_VARIABLE_IN_FOR_EACH"],
+    index: 82,
     message: r"""The loop variable in a for-each loop can't be initialized.""",
     tip:
         r"""Try removing the initializer, or using a different kind of loop.""");

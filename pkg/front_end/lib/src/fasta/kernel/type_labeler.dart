@@ -45,11 +45,12 @@ import '../fasta_codes.dart'
 /// raw types with numeric markers in Dart comments (e.g. `/*1*/`) to
 /// distinguish different types with the same name. This is used in diagnostic
 /// messages to indicate the origins of types occurring in the message.
-class TypeLabeler
-    implements DartTypeVisitor<List<Object>>, ConstantVisitor<List<Object>> {
+class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   List<LabeledClassName> names = <LabeledClassName>[];
   Map<String, List<LabeledClassName>> nameMap =
       <String, List<LabeledClassName>>{};
+
+  List<Object> result;
 
   /// Pretty-print a type.
   /// When all types and constants appearing in the same message have been
@@ -58,7 +59,9 @@ class TypeLabeler
   List<Object> labelType(DartType type) {
     // TODO(askesc): Remove null check when we are completely null clean here.
     if (type == null) return ["null-type"];
-    return type.accept(this);
+    result = [];
+    type.accept(this);
+    return result;
   }
 
   /// Pretty-print a constant.
@@ -68,7 +71,9 @@ class TypeLabeler
   List<Object> labelConstant(Constant constant) {
     // TODO(askesc): Remove null check when we are completely null clean here.
     if (constant == null) return ["null-constant"];
-    return constant.accept(this);
+    result = [];
+    constant.accept(this);
+    return result;
   }
 
   /// Get a textual description of the origins of the raw types appearing in
@@ -113,22 +118,33 @@ class TypeLabeler
     }
   }
 
-  List<Object> defaultDartType(DartType type) => null;
-  List<Object> visitTypedefType(TypedefType node) => null;
+  void defaultDartType(DartType type) {}
+  void visitTypedefType(TypedefType node) {}
 
-  // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
-  List<Object> visitInvalidType(InvalidType node) => ["invalid-type"];
+  void visitInvalidType(InvalidType node) {
+    // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
+    result.add("invalid-type");
+  }
 
-  // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
-  List<Object> visitBottomType(BottomType node) => ["bottom-type"];
+  void visitBottomType(BottomType node) {
+    // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
+    result.add("bottom-type");
+  }
 
-  List<Object> visitDynamicType(DynamicType node) => ["dynamic"];
-  List<Object> visitVoidType(VoidType node) => ["void"];
-  List<Object> visitTypeParameterType(TypeParameterType node) =>
-      [node.parameter.name];
+  void visitDynamicType(DynamicType node) {
+    result.add("dynamic");
+  }
 
-  List<Object> visitFunctionType(FunctionType node) {
-    List<Object> result = node.returnType.accept(this);
+  void visitVoidType(VoidType node) {
+    result.add("void");
+  }
+
+  void visitTypeParameterType(TypeParameterType node) {
+    result.add(node.parameter.name);
+  }
+
+  void visitFunctionType(FunctionType node) {
+    node.returnType.accept(this);
     result.add(" Function");
     if (node.typeParameters.isNotEmpty) {
       result.add("<");
@@ -140,7 +156,7 @@ class TypeLabeler
           // Bound was not specified, and therefore should not be printed.
         } else {
           result.add(" extends ");
-          result.addAll(param.bound.accept(this));
+          param.bound.accept(this);
         }
       }
       result.add(">");
@@ -149,7 +165,7 @@ class TypeLabeler
     bool first = true;
     for (int i = 0; i < node.requiredParameterCount; i++) {
       if (!first) result.add(", ");
-      result.addAll(node.positionalParameters[i].accept(this));
+      node.positionalParameters[i].accept(this);
       first = false;
     }
     if (node.positionalParameters.length > node.requiredParameterCount) {
@@ -160,7 +176,7 @@ class TypeLabeler
           i < node.positionalParameters.length;
           i++) {
         if (!first) result.add(", ");
-        result.addAll(node.positionalParameters[i].accept(this));
+        node.positionalParameters[i].accept(this);
         first = false;
       }
       result.add("]");
@@ -171,90 +187,99 @@ class TypeLabeler
       first = true;
       for (int i = 0; i < node.namedParameters.length; i++) {
         if (!first) result.add(", ");
-        result.addAll(node.namedParameters[i].type.accept(this));
+        node.namedParameters[i].type.accept(this);
         result.add(" ${node.namedParameters[i].name}");
         first = false;
       }
       result.add("}");
     }
     result.add(")");
-    return result;
   }
 
-  List<Object> visitInterfaceType(InterfaceType node) {
-    List<Object> result = [nameForClass(node.classNode)];
+  void visitInterfaceType(InterfaceType node) {
+    result.add(nameForClass(node.classNode));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
       for (DartType typeArg in node.typeArguments) {
         if (!first) result.add(", ");
-        result.addAll(typeArg.accept(this));
+        typeArg.accept(this);
         first = false;
       }
       result.add(">");
     }
-    return result;
   }
 
-  List<Object> defaultConstant(Constant node) => null;
+  void defaultConstant(Constant node) {}
 
-  List<Object> visitNullConstant(NullConstant node) => [node];
-  List<Object> visitBoolConstant(BoolConstant node) => [node];
-  List<Object> visitIntConstant(IntConstant node) => [node];
-  List<Object> visitDoubleConstant(DoubleConstant node) => [node];
-  List<Object> visitSymbolConstant(SymbolConstant node) => [node];
-  List<Object> visitStringConstant(StringConstant node) =>
-      [json.encode(node.value)];
+  void visitNullConstant(NullConstant node) {
+    result.add(node);
+  }
 
-  List<Object> visitInstanceConstant(InstanceConstant node) {
-    List<Object> result =
-        new InterfaceType(node.klass, node.typeArguments).accept(this);
+  void visitBoolConstant(BoolConstant node) {
+    result.add(node);
+  }
+
+  void visitIntConstant(IntConstant node) {
+    result.add(node);
+  }
+
+  void visitDoubleConstant(DoubleConstant node) {
+    result.add(node);
+  }
+
+  void visitSymbolConstant(SymbolConstant node) {
+    result.add(node);
+  }
+
+  void visitStringConstant(StringConstant node) {
+    result.add(json.encode(node.value));
+  }
+
+  void visitInstanceConstant(InstanceConstant node) {
+    new InterfaceType(node.klass, node.typeArguments).accept(this);
     result.add(" {");
     bool first = true;
     for (Field field in node.klass.fields) {
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      result.addAll(node.fieldValues[field.reference].accept(this));
+      node.fieldValues[field.reference].accept(this);
       first = false;
     }
     result.add("}");
-    return result;
   }
 
-  List<Object> visitListConstant(ListConstant node) {
-    List<Object> result = ["<"];
-    result.addAll(node.typeArgument.accept(this));
+  void visitListConstant(ListConstant node) {
+    result.add("<");
+    node.typeArgument.accept(this);
     result.add(">[");
     bool first = true;
     for (Constant constant in node.entries) {
       if (!first) result.add(", ");
-      result.addAll(constant.accept(this));
+      constant.accept(this);
       first = false;
     }
     result.add("]");
-    return result;
   }
 
-  List<Object> visitMapConstant(MapConstant node) {
-    List<Object> result = ["<"];
-    result.addAll(node.keyType.accept(this));
+  void visitMapConstant(MapConstant node) {
+    result.add("<");
+    node.keyType.accept(this);
     result.add(", ");
-    result.addAll(node.valueType.accept(this));
+    node.valueType.accept(this);
     result.add(">{");
     bool first = true;
     for (ConstantMapEntry entry in node.entries) {
       if (!first) result.add(", ");
-      result.addAll(entry.key.accept(this));
+      entry.key.accept(this);
       result.add(": ");
-      result.addAll(entry.value.accept(this));
+      entry.value.accept(this);
       first = false;
     }
     result.add("}");
-    return result;
   }
 
-  List<Object> visitTearOffConstant(TearOffConstant node) {
-    List<Object> result = [];
+  void visitTearOffConstant(TearOffConstant node) {
     Procedure procedure = node.procedure;
     Class classNode = procedure.enclosingClass;
     if (classNode != null) {
@@ -262,27 +287,24 @@ class TypeLabeler
       result.add(".");
     }
     result.add(procedure.name.name);
-    return result;
   }
 
-  List<Object> visitPartialInstantiationConstant(
-      PartialInstantiationConstant node) {
-    List<Object> result = node.tearOffConstant.accept(this);
+  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+    node.tearOffConstant.accept(this);
     if (node.types.isNotEmpty) {
       result.add("<");
       bool first = true;
       for (DartType typeArg in node.types) {
         if (!first) result.add(", ");
-        result.addAll(typeArg.accept(this));
+        typeArg.accept(this);
         first = false;
       }
       result.add(">");
     }
-    return result;
   }
 
-  List<Object> visitTypeLiteralConstant(TypeLiteralConstant node) {
-    return node.type.accept(this);
+  void visitTypeLiteralConstant(TypeLiteralConstant node) {
+    node.type.accept(this);
   }
 }
 

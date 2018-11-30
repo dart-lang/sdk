@@ -287,6 +287,10 @@ void Platform::Exit(int exit_code) {
   ::ExitProcess(exit_code);
 }
 
+void Platform::SetCoreDumpResourceLimit(int value) {
+  // Not supported.
+}
+
 }  // namespace bin
 }  // namespace dart
 

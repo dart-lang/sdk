@@ -176,6 +176,7 @@ class ArgumentError extends Error {
   /**
    * Throws if [argument] is `null`.
    */
+  @Since("2.1")
   static void checkNotNull(Object argument, [String name]) {
     if (argument == null) throw ArgumentError.notNull(name);
   }

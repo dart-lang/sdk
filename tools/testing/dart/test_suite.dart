@@ -483,6 +483,9 @@ class VMTestSuite extends TestSuite {
   }
 
   void _addTest(ExpectationSet testExpectations, String testName) {
+    var fullName = 'cc/$testName';
+    var expectations = testExpectations.expectations(fullName);
+
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
       final dfePath = new Path("$buildDir/gen/kernel-service.dart.snapshot")
@@ -491,13 +494,14 @@ class VMTestSuite extends TestSuite {
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$dfePath');
     }
+    if (expectations.contains(Expectation.crash)) {
+      args.insert(0, '--suppress-core-dump');
+    }
 
     args.add(testName);
 
     var command = Command.process(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
-    var fullName = 'cc/$testName';
-    var expectations = testExpectations.expectations(fullName);
     enqueueNewTestCase(fullName, [command], expectations);
   }
 
@@ -828,15 +832,16 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var commands =
-          makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
       var expectations = testExpectations.expectations(testName);
+      var isCrashExpected = expectations.contains(Expectation.crash);
+      var commands = makeCommands(info, vmOptionsVariant, allVmOptions,
+          commonArguments, isCrashExpected);
       enqueueNewTestCase(testName, commands, expectations, info);
     }
   }
 
   List<Command> makeCommands(TestInformation info, int vmOptionsVariant,
-      List<String> vmOptions, List<String> args) {
+      List<String> vmOptions, List<String> args, bool isCrashExpected) {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
@@ -897,8 +902,8 @@ class StandardTestSuite extends TestSuite {
     }
 
     return commands
-      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
-          this, compilationArtifact, runtimeArguments, environment));
+      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(this,
+          compilationArtifact, runtimeArguments, environment, isCrashExpected));
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {

@@ -43,10 +43,11 @@ class LimitedBinaryPrinter extends BinaryPrinter {
     return predicate(library);
   }
 
-  @override
   void writeLibraries(Component component) {
-    var librariesToWrite = component.libraries.where(predicate).toList();
-    writeList(librariesToWrite, writeNode);
+    for (int i = 0; i < component.libraries.length; ++i) {
+      Library library = component.libraries[i];
+      if (predicate(library)) writeNode(library);
+    }
   }
 
   @override

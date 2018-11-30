@@ -487,9 +487,6 @@ functionality is publicly exposed.
   * sdk patch files are hardcoded in the codebase in
     `lib/src/js_backend/backend.dart` (see `_patchLocations`).
 
-  * package resolution is specified with a `.packages` file, which is parsed
-    using the `package_config` package.
-
   * `lib/src/resolved_uri_translator.dart`: has the logic to translate all these
     URIs when they are encountered by the library loader.
 

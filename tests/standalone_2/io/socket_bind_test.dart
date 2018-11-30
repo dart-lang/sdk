@@ -100,16 +100,20 @@ testListenCloseListenClose(String host) async {
 
   // The second socket should have kept the OS socket alive. We can therefore
   // test if it is working correctly.
-  asyncStart();
-  socket2.first.then((socket) async {
-    await socket.drain();
-    await socket.close();
-    asyncEnd();
+
+  // For robustness we ignore any clients unrelated to this test.
+  final receivedClientPorts = <int>[];
+  socket2.listen((Socket client) async {
+    receivedClientPorts.add(client.remotePort);
+    await Future.wait([client.drain(), client.close()]);
   });
 
-  Socket client = await Socket.connect(host, socket2.port);
+  final client = await Socket.connect(host, socket2.port);
+  final clientPort = client.port;
   await client.close();
   await client.drain();
+
+  Expect.isTrue(receivedClientPorts.contains(clientPort));
 
   // Close the second server socket.
   await socket2.close();

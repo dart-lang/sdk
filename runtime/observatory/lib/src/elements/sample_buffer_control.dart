@@ -220,7 +220,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
   List<Element> _createTagSelect() {
     var values = M.SampleProfileTag.values;
     if (!_profileVM) {
-      values = const [M.SampleProfileTag.userOnly, M.SampleProfileTag.none];
+      values = const [M.SampleProfileTag.userOnly, M.SampleProfileTag.vmOnly, M.SampleProfileTag.none];
     }
     var s;
     return [

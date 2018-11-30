@@ -214,7 +214,7 @@ abstract class Compiler {
   //
   // The resulting future will complete with true if the compilation
   // succeeded.
-  Future<bool> run(Uri uri) => selfTask.measureSubtask("Compiler.run", () {
+  Future<bool> run(Uri uri) => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
 
         return new Future.sync(() => runInternal(uri))
@@ -386,8 +386,9 @@ abstract class Compiler {
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    selfTask.measureSubtask("Compiler.compileFromKernel", () {
-      JClosedWorld closedWorld = computeClosedWorld(rootLibraryUri, libraries);
+    selfTask.measureSubtask("compileFromKernel", () {
+      JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
+          () => computeClosedWorld(rootLibraryUri, libraries));
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);
@@ -440,14 +441,14 @@ abstract class Compiler {
    * Empty the [enqueuer] queue.
    */
   void emptyQueue(Enqueuer enqueuer, {void onProgress(Enqueuer enqueuer)}) {
-    selfTask.measureSubtask("Compiler.emptyQueue", () {
+    selfTask.measureSubtask("emptyQueue", () {
       enqueuer.forEach((WorkItem work) {
         if (onProgress != null) {
           onProgress(enqueuer);
         }
         reporter.withCurrentElement(
             work.element,
-            () => selfTask.measureSubtask("world.applyImpact", () {
+            () => selfTask.measureSubtask("applyImpact", () {
                   enqueuer.applyImpact(
                       selfTask.measureSubtask("work.run", () => work.run()),
                       impactSource: work.element);
@@ -459,7 +460,7 @@ abstract class Compiler {
   void processQueue(ElementEnvironment elementEnvironment, Enqueuer enqueuer,
       FunctionEntity mainMethod,
       {void onProgress(Enqueuer enqueuer)}) {
-    selfTask.measureSubtask("Compiler.processQueue", () {
+    selfTask.measureSubtask("processQueue", () {
       enqueuer.open(
           impactStrategy,
           mainMethod,

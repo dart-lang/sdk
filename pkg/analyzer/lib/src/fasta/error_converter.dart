@@ -47,10 +47,6 @@ class FastaErrorReporter {
             length,
             [lexeme()]);
         return;
-      case "CATCH_SYNTAX":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CATCH_SYNTAX, offset, length);
-        return;
       case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
         errorReporter?.reportErrorForOffset(
             StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
@@ -101,19 +97,11 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
         return;
-      case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
       case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "FINAL_AND_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FINAL_AND_VAR, offset, length);
         return;
       case "FINAL_NOT_INITIALIZED":
         String name = arguments['name'];
@@ -139,10 +127,6 @@ class FastaErrorReporter {
       case "ILLEGAL_CHARACTER":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
-        return;
-      case "INITIALIZED_VARIABLE_IN_FOR_EACH":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, offset, length);
         return;
       case "INVALID_ASSIGNMENT":
         var type1 = arguments['type'];
