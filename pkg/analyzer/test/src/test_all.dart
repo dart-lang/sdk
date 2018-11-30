@@ -8,14 +8,13 @@ import 'command_line/test_all.dart' as command_line;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'fasta/test_all.dart' as fasta;
-import 'hint/test_all.dart' as hint;
 import 'lint/test_all.dart' as lint;
+import 'options/test_all.dart' as options;
 import 'pubspec/test_all.dart' as pubspec;
 import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
 import 'task/test_all.dart' as task;
 import 'util/test_all.dart' as util;
-import 'workspace/test_all.dart' as workspace;
 
 /// Utility for manually running all tests.
 main() {
@@ -24,13 +23,12 @@ main() {
     context.main();
     dart.main();
     fasta.main();
-    hint.main();
     lint.main();
+    options.main();
     pubspec.main();
     source.main();
     summary.main();
     task.main();
     util.main();
-    workspace.main();
   }, name: 'src');
 }
