@@ -4,10 +4,10 @@
 library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
+import 'dart:convert' show utf8;
 
 import '../ast.dart';
 import 'tag.dart';
-import 'dart:convert';
 import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
 
@@ -107,24 +107,58 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeStringTable(StringIndexer indexer) {
     _binaryOffsetForStringTable = getBufferOffset();
 
+    // Containers for the utf8 encoded strings.
+    final List<Uint8List> data = new List<Uint8List>();
+    int totalLength = 0;
+    const int minLength = 1 << 16;
+    Uint8List buffer;
+    int index = 0;
+
     // Write the end offsets.
     writeUInt30(indexer.index.length);
-    int endOffset = 0;
-    List<List<int>> data =
-        new List<List<int>>.filled(indexer.index.length, null);
-    int i = 0;
-    Utf8Encoder utf8Encoder = const Utf8Encoder();
     for (String key in indexer.index.keys) {
-      List<int> utf8Bytes = utf8Encoder.convert(key);
-      data[i] = utf8Bytes;
-      endOffset += utf8Bytes.length;
-      writeUInt30(endOffset);
-      i++;
+      if (key.isNotEmpty) {
+        int requiredMinLength = key.length;
+        int allocateMinLength = requiredMinLength * 3;
+        int newIndex;
+        while (true) {
+          if (buffer == null || index + requiredMinLength >= buffer.length) {
+            int newLength = minLength;
+            if (allocateMinLength > newLength) newLength = allocateMinLength;
+            if (buffer != null && index > 0) {
+              data.add(new Uint8List.view(buffer.buffer, 0, index));
+            }
+            index = 0;
+            buffer = new Uint8List(newLength);
+          }
+          newIndex = NotQuiteString.writeUtf8(buffer, index, key);
+          if (newIndex != -1) break;
+          requiredMinLength = allocateMinLength;
+        }
+        if (newIndex < 0) {
+          // Utf8 encoding failed.
+          if (buffer != null && index > 0) {
+            data.add(new Uint8List.view(buffer.buffer, 0, index));
+            buffer = null;
+            index = 0;
+          }
+          List<int> converted = utf8.encoder.convert(key);
+          data.add(converted);
+          totalLength += converted.length;
+        } else {
+          totalLength += newIndex - index;
+          index = newIndex;
+        }
+      }
+      writeUInt30(totalLength);
+    }
+    if (buffer != null && index > 0) {
+      data.add(Uint8List.view(buffer.buffer, 0, index));
     }
 
     // Write the UTF-8 encoded strings.
-    for (var entry in data) {
-      writeBytes(entry);
+    for (int i = 0; i < data.length; ++i) {
+      writeBytes(data[i]);
     }
   }
 
@@ -499,7 +533,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     // Write data.
     int i = 0;
-    Utf8Encoder utf8Encoder = const Utf8Encoder();
+    Uint8List buffer = new Uint8List(1 << 16);
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
       Source source = ((includeSources &&
@@ -509,7 +543,23 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
               : null) ??
           new Source(<int>[], const <int>[]);
 
-      writeByteList(utf8Encoder.convert(uri == null ? "" : "$uri"));
+      String uriAsString = uri == null ? "" : "$uri";
+      if (uriAsString.length * 3 < buffer.length) {
+        int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
+        if (length < 0) {
+          // Utf8 encoding failed.
+          writeByteList(utf8.encoder.convert(uriAsString));
+        } else {
+          writeUInt30(length);
+          for (int j = 0; j < length; j++) {
+            writeByte(buffer[j]);
+          }
+        }
+      } else {
+        // Uncommon case with very long url.
+        writeByteList(utf8.encoder.convert(uriAsString));
+      }
+
       writeByteList(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
@@ -2198,5 +2248,66 @@ class BytesSink implements Sink<List<int>> {
   @override
   void close() {
     // Nothing to do.
+  }
+}
+
+class NotQuiteString {
+  /**
+   * Write [source] string into [target] starting at index [index].
+   *
+   * Optionally only write part of the input [source] starting at [start] and
+   * ending at [end].
+   *
+   * The output space needed is at most [source.length] * 3.
+   *
+   * Returns
+   *  * Non-negative on success (the new index in [target]).
+   *  * -1 when [target] doesn't have enough space. Note that [target] can be
+   *    poluted starting at [index].
+   *  * -2 on input error, i.e. an unpaired lead or tail surrogate.
+   */
+  static int writeUtf8(List<int> target, int index, String source,
+      [int start = 0, int end]) {
+    RangeError.checkValidIndex(index, target, null, target.length);
+    end = RangeError.checkValidRange(start, end, source.length);
+    if (start == end) return index;
+    var i = start;
+    var length = target.length;
+    do {
+      int codeUnit = source.codeUnitAt(i++);
+      while (codeUnit < 128) {
+        if (index >= length) return -1;
+        target[index++] = codeUnit;
+        if (i >= end) return index;
+        codeUnit = source.codeUnitAt(i++);
+      }
+      if (codeUnit < 0x800) {
+        index += 2;
+        if (index > length) return -1;
+        target[index - 2] = 0xC0 | (codeUnit >> 6);
+        target[index - 1] = 0x80 | (codeUnit & 0x3f);
+      } else if (codeUnit & 0xF800 != 0xD800) {
+        // Not a surrogate.
+        index += 3;
+        if (index > length) return -1;
+        target[index - 3] = 0xE0 | (codeUnit >> 12);
+        target[index - 2] = 0x80 | ((codeUnit >> 6) & 0x3f);
+        target[index - 1] = 0x80 | (codeUnit & 0x3f);
+      } else {
+        if (codeUnit >= 0xDC00) return -2; // Unpaired tail surrogate.
+        if (i >= end) return -2; // Unpaired lead surrogate.
+        int nextChar = source.codeUnitAt(i++);
+        if (nextChar & 0xFC00 != 0xDC00) return -2; // Unpaired lead surrogate.
+        index += 4;
+        if (index > length) return -1;
+        codeUnit = (codeUnit & 0x3FF) + 0x40;
+        target[index - 4] = 0xF0 | (codeUnit >> 8);
+        target[index - 3] = 0x80 | ((codeUnit >> 2) & 0x3F);
+        target[index - 2] =
+            0x80 | (((codeUnit & 3) << 4) | ((nextChar & 0x3FF) >> 6));
+        target[index - 1] = 0x80 | (nextChar & 0x3f);
+      }
+    } while (i < end);
+    return index;
   }
 }
