@@ -239,6 +239,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
   "--dump-ir": false,
   "--exclude-source": false,
+  "--omit-platform": false,
   "--fatal": ",",
   "--help": false,
   "--legacy": "--legacy-mode",
@@ -308,6 +309,8 @@ ProcessedOptions analyzeCommandLine(
 
   final bool excludeSource = options["--exclude-source"];
 
+  final bool omitPlatform = options["--omit-platform"];
+
   final Uri packages = options["--packages"];
 
   final Set<String> fatal =
@@ -367,6 +370,7 @@ ProcessedOptions analyzeCommandLine(
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
+          ..omitPlatform = omitPlatform
           ..verbose = verbose
           ..verify = verify
           ..bytecode = bytecode,
@@ -401,6 +405,7 @@ ProcessedOptions analyzeCommandLine(
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..embedSourceText = !excludeSource
     ..debugDump = dumpIr
+    ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify;
 

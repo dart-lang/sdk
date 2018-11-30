@@ -159,6 +159,8 @@ class ProcessedOptions {
 
   bool get debugDump => _raw.debugDump;
 
+  bool get omitPlatform => _raw.omitPlatform;
+
   bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
 
   bool get embedSourceText => _raw.embedSourceText;
