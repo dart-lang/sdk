@@ -7,6 +7,7 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow  # Does many call
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow  # Does many calls
 LibTest/core/List/List_class_A01_t02: Pass, Slow  # Does many calls
 LibTest/io/RawDatagramSocket/close_A01_t01: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/singleWhere_A03_t01: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
