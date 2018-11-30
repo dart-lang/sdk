@@ -1849,8 +1849,14 @@ final Matcher isAnalysisOverridesParams = new LazyMatcher(() =>
 
 /**
  * analysis.reanalyze params
+ *
+ * {
+ *   "roots": optional List<FilePath>
+ * }
  */
-final Matcher isAnalysisReanalyzeParams = isNull;
+final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.reanalyze params", null,
+        optionalFields: {"roots": isListOf(isFilePath)}));
 
 /**
  * analysis.reanalyze result

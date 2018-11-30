@@ -3164,55 +3164,6 @@ var A = B;
     } on ArgumentError {}
   }
 
-  test_resetUriResolution() async {
-    var a = convertPath('/aaa/lib/a.dart');
-    var b = convertPath('/bbb/lib/b.dart');
-
-    newFile(a, content: '');
-    newFile(b, content: r'''
-import 'package:aaa/a.dart'; // ignore: unused_import
-A a;
-''');
-
-    // Subscribe for errors.
-    driver.addFile(b);
-
-    // `package:aaa/a.dart` does not define class `A`.
-    // So, there is an error in `b.dart`.
-    await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
-    expect(allResults[0].path, b);
-    expect(allResults[0].errors, hasLength(1));
-
-    // Create generated file for `package:aaa/a.dart`.
-    var aUri = Uri.parse('package:aaa/a.dart');
-    var aGeneratedPath = convertPath('/generated/aaa/lib/a2.dart');
-    var aGeneratedFile = newFile(aGeneratedPath, content: 'class A {}');
-
-    // Configure UriResolver to provide this generated file.
-    generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => aGeneratedFile.createSource(actualUri);
-    generatedUriResolver.restoreAbsoluteFunction = (source) {
-      String path = source.fullName;
-      if (path == a || path == aGeneratedPath) {
-        return aUri;
-      } else {
-        return null;
-      }
-    };
-
-    // Reset URI resolution, and analyze.
-    allResults.clear();
-    driver.resetUriResolution();
-
-    // `package:aaa/a.dart` is resolved differently now, so the new list of
-    // errors for `b.dart` (the empty list) is reported.
-    await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
-    expect(allResults[0].path, b);
-    expect(allResults[0].errors, isEmpty);
-  }
-
   test_results_order() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');

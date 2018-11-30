@@ -20,6 +20,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -319,8 +320,23 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Response reanalyze(Request request) {
     server.options.analytics?.sendEvent('analysis', 'reanalyze');
 
-    server.reanalyze();
-
+    AnalysisReanalyzeParams params =
+        new AnalysisReanalyzeParams.fromRequest(request);
+    List<String> roots = params.roots;
+    if (roots == null || roots.isNotEmpty) {
+      List<String> includedPaths = server.contextManager.includedPaths;
+      List<Resource> rootResources = null;
+      if (roots != null) {
+        rootResources = <Resource>[];
+        for (String rootPath in roots) {
+          if (!includedPaths.contains(rootPath)) {
+            return new Response.invalidAnalysisRoot(request, rootPath);
+          }
+          rootResources.add(server.resourceProvider.getResource(rootPath));
+        }
+      }
+      server.reanalyze(rootResources);
+    }
     //
     // Restart all of the plugins. This is an async operation that will happen
     // in the background.

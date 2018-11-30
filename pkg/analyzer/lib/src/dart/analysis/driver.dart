@@ -1317,16 +1317,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Reset URI resolution, read again all files, build files graph, and ensure
-   * that for all added files new results are reported.
-   */
-  void resetUriResolution() {
-    _fsState.resetUriResolution();
-    _fileTracker.scheduleAllAddedFiles();
-    _changeHook();
-  }
-
-  /**
    * Implementation for [changeFile].
    */
   void _changeFile(String path) {

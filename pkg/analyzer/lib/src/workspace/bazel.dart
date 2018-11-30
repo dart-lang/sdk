@@ -58,11 +58,6 @@ class BazelPackageUriResolver extends UriResolver {
         _context = workspace.provider.pathContext;
 
   @override
-  void clearCache() {
-    _sourceCache.clear();
-  }
-
-  @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     return _sourceCache.putIfAbsent(uri, () {
       if (uri.scheme != 'package') {

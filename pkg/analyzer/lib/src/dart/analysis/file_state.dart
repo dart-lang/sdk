@@ -961,22 +961,17 @@ class FileSystemState {
   }
 
   /**
-   * Reset URI resolution, and forget all files. So, the next time any file is
-   * requested, it will be read, and its whole (potentially different) graph
-   * will be built.
-   */
-  void resetUriResolution() {
-    _sourceFactory.clearCache();
-    _fileContentCache.clear();
-    _clearFiles();
-  }
-
-  /**
    * Remove the file with the given [path].
    */
   void removeFile(String path) {
     markFileForReading(path);
-    _clearFiles();
+    _uriToFile.clear();
+    knownFilePaths.clear();
+    knownFiles.clear();
+    _pathToFiles.clear();
+    _pathToCanonicalFile.clear();
+    _partToLibraries.clear();
+    _subtypedNameToFiles.clear();
   }
 
   void _addFileWithPath(String path, FileState file) {
@@ -989,17 +984,6 @@ class FileSystemState {
       fileStamp++;
     }
     files.add(file);
-  }
-
-  /// Clear all [FileState] data - all maps from path or URI, etc.
-  void _clearFiles() {
-    _uriToFile.clear();
-    knownFilePaths.clear();
-    knownFiles.clear();
-    _pathToFiles.clear();
-    _pathToCanonicalFile.clear();
-    _partToLibraries.clear();
-    _subtypedNameToFiles.clear();
   }
 }
 
@@ -1092,10 +1076,6 @@ class _FileContentCache {
       _pathToFile[path] = file;
     }
     return file;
-  }
-
-  void clear() {
-    _pathToFile.clear();
   }
 
   /**

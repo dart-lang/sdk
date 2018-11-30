@@ -436,8 +436,8 @@ class Server {
     return _send("analysis.getReachableSources", params);
   }
 
-  void sendAnalysisReanalyze() {
-    var params = new AnalysisReanalyzeParams().toJson();
+  void sendAnalysisReanalyze({List<String> roots}) {
+    var params = new AnalysisReanalyzeParams(roots: roots).toJson();
     _send("analysis.reanalyze", params);
   }
 
