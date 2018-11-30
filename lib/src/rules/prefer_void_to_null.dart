@@ -51,8 +51,7 @@ class PreferVoidToNull extends LintRule implements NodeLintRuleWithContext {
             name: 'prefer_void_to_null',
             description: _desc,
             details: _details,
-            group: Group.errors,
-            maturity: Maturity.experimental);
+            group: Group.errors);
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
