@@ -130,6 +130,7 @@ class SourceClassBuilder extends KernelClassBuilder {
           }
         } else if (declaration is KernelFunctionBuilder) {
           Member function = declaration.build(library);
+          function.parent = cls;
           if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }

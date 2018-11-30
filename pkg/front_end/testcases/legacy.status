@@ -107,6 +107,7 @@ regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
 regress/issue_34563: RuntimeError # Test execution after recovery
 regress/issue_35177: RuntimeError
+regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics

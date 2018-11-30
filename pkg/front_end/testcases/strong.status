@@ -133,6 +133,7 @@ regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
 regress/issue_34563: RuntimeError # Test execution after recovery
 regress/issue_35177: RuntimeError
+regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
