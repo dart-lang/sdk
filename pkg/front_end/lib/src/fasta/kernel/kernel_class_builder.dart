@@ -64,6 +64,7 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
+        templateDuplicatedDeclarationUse,
         templateFactoryRedirecteeHasTooFewPositionalParameters,
         templateFactoryRedirecteeInvalidReturnType,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
@@ -99,6 +100,8 @@ import '../fasta_codes.dart'
 import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart' show unexpected, unhandled, unimplemented;
+
+import '../scope.dart' show AmbiguousBuilder;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
@@ -460,6 +463,18 @@ abstract class KernelClassBuilder
                 }
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
+              } else if (targetBuilder is AmbiguousBuilder) {
+                Message message = templateDuplicatedDeclarationUse
+                    .withArguments(redirectionTarget.fullNameForErrors);
+                if (declaration.isConst) {
+                  addProblem(message, declaration.charOffset, noLength);
+                } else {
+                  addProblem(message, declaration.charOffset, noLength);
+                }
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
               } else {
                 Message message = templateRedirectionTargetNotFound
                     .withArguments(redirectionTarget.fullNameForErrors);
@@ -1495,6 +1510,12 @@ abstract class KernelClassBuilder
       //   class B implements A {}
       //
       target = targetBuilder.member.function;
+    } else if (redirectionTarget.target is AmbiguousBuilder) {
+      // Multiple definitions with the same name: An error has already been
+      // issued.
+      // TODO(http://dartbug.com/35294): Unfortunate error; see also
+      // https://dart-review.googlesource.com/c/sdk/+/85390/.
+      return null;
     } else {
       unhandled("${redirectionTarget.target}", "computeRedirecteeType",
           charOffset, fileUri);
