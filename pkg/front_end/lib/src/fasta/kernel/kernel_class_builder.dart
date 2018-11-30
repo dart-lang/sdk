@@ -416,58 +416,67 @@ abstract class KernelClassBuilder
       List<String> names = constructors.keys.toList();
       for (String name in names) {
         Declaration declaration = constructors[name];
-        if (declaration.parent != this) {
-          unexpected(
-              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
-        }
-        if (declaration is KernelRedirectingFactoryBuilder) {
-          // Compute the immediate redirection target, not the effective.
-          ConstructorReferenceBuilder redirectionTarget =
-              declaration.redirectionTarget;
-          if (redirectionTarget != null) {
-            Declaration targetBuilder = redirectionTarget.target;
-            addRedirectingConstructor(declaration, library);
-            if (targetBuilder is ProcedureBuilder) {
-              List<DartType> typeArguments = declaration.typeArguments;
-              if (typeArguments == null) {
-                // TODO(32049) If type arguments aren't specified, they should
-                // be inferred.  Currently, the inference is not performed.
-                // The code below is a workaround.
-                typeArguments = new List<DartType>.filled(
-                    targetBuilder.target.enclosingClass.typeParameters.length,
-                    const DynamicType(),
-                    growable: true);
+        do {
+          if (declaration.parent != this) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          }
+          if (declaration is KernelRedirectingFactoryBuilder) {
+            // Compute the immediate redirection target, not the effective.
+            ConstructorReferenceBuilder redirectionTarget =
+                declaration.redirectionTarget;
+            if (redirectionTarget != null) {
+              Declaration targetBuilder = redirectionTarget.target;
+              if (declaration.next == null) {
+                // Only the first one (that is, the last on in the linked list)
+                // is actually in the kernel tree. This call creates a StaticGet
+                // to [declaration.target] in a field `_redirecting#` which is
+                // only legal to do to things in the kernel tree.
+                addRedirectingConstructor(declaration, library);
               }
-              declaration.setRedirectingFactoryBody(
-                  targetBuilder.target, typeArguments);
-            } else if (targetBuilder is DillMemberBuilder) {
-              List<DartType> typeArguments = declaration.typeArguments;
-              if (typeArguments == null) {
-                // TODO(32049) If type arguments aren't specified, they should
-                // be inferred.  Currently, the inference is not performed.
-                // The code below is a workaround.
-                typeArguments = new List<DartType>.filled(
-                    targetBuilder.target.enclosingClass.typeParameters.length,
-                    const DynamicType(),
-                    growable: true);
-              }
-              declaration.setRedirectingFactoryBody(
-                  targetBuilder.member, typeArguments);
-            } else {
-              Message message = templateRedirectionTargetNotFound
-                  .withArguments(redirectionTarget.fullNameForErrors);
-              if (declaration.isConst) {
-                addProblem(message, declaration.charOffset, noLength);
+              if (targetBuilder is ProcedureBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.target.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.target, typeArguments);
+              } else if (targetBuilder is DillMemberBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.target.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.member, typeArguments);
               } else {
-                addProblem(message, declaration.charOffset, noLength);
+                Message message = templateRedirectionTargetNotFound
+                    .withArguments(redirectionTarget.fullNameForErrors);
+                if (declaration.isConst) {
+                  addProblem(message, declaration.charOffset, noLength);
+                } else {
+                  addProblem(message, declaration.charOffset, noLength);
+                }
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
               }
-              // CoreTypes aren't computed yet, and this is the outline
-              // phase. So we can't and shouldn't create a method body.
-              declaration.body = new RedirectingFactoryBody.unresolved(
-                  redirectionTarget.fullNameForErrors);
             }
           }
-        }
+          declaration = declaration.next;
+        } while (declaration != null);
       }
     }
     return count;
@@ -1719,9 +1728,12 @@ abstract class KernelClassBuilder
     Iterable<String> names = constructors.keys;
     for (String name in names) {
       Declaration constructor = constructors[name];
-      if (constructor is KernelRedirectingFactoryBuilder) {
-        checkRedirectingFactory(constructor, typeEnvironment);
-      }
+      do {
+        if (constructor is KernelRedirectingFactoryBuilder) {
+          checkRedirectingFactory(constructor, typeEnvironment);
+        }
+        constructor = constructor.next;
+      } while (constructor != null);
     }
   }
 

@@ -28,13 +28,14 @@ class MutableScope {
   /// level scope.
   Scope parent;
 
-  final String debugName;
+  final String classNameOrDebugName;
 
-  MutableScope(this.local, this.setters, this.parent, this.debugName) {
-    assert(debugName != null);
+  MutableScope(
+      this.local, this.setters, this.parent, this.classNameOrDebugName) {
+    assert(classNameOrDebugName != null);
   }
 
-  String toString() => "Scope($debugName, ${local.keys})";
+  String toString() => "Scope($classNameOrDebugName, ${local.keys})";
 }
 
 class Scope extends MutableScope {
@@ -128,7 +129,8 @@ class Scope extends MutableScope {
     Declaration builder = map[name];
     if (builder == null) return null;
     if (builder.next != null) {
-      return new AmbiguousBuilder(name, builder, charOffset, fileUri);
+      return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
+          builder, charOffset, fileUri);
     } else if (!isInstanceScope && builder.isInstanceMember) {
       return null;
     } else {

@@ -251,8 +251,8 @@ class KernelLibraryBuilder
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
-    Scope constructorScope = new Scope(constructors, null, null, "constructors",
-        isModifiable: false);
+    Scope constructorScope =
+        new Scope(constructors, null, null, className, isModifiable: false);
     bool isMixinDeclaration = false;
     if (modifiers & mixinDeclarationMask != 0) {
       isMixinDeclaration = true;
@@ -531,7 +531,7 @@ class KernelLibraryBuilder
             new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
                 scope.withTypeVariables(typeVariables),
                 "mixin $fullname ", isModifiable: false),
-            new Scope(<String, MemberBuilder>{}, null, null, "constructors",
+            new Scope(<String, MemberBuilder>{}, null, null, fullname,
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],

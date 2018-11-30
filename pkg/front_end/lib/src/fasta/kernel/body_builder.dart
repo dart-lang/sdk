@@ -3289,6 +3289,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     String errorName;
+    LocatedMessage message;
     if (type is ClassBuilder<TypeBuilder, Object>) {
       if (type is EnumBuilder<TypeBuilder, Object>) {
         return buildProblem(fasta.messageEnumInstantiation,
@@ -3299,6 +3300,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Member target = b?.target;
       if (b == null) {
         // Not found. Reported below.
+      } else if (b is ProblemBuilder) {
+        message = b.message.withLocation(uri, charOffset, noLength);
       } else if (b.isConstructor) {
         if (type.isAbstract) {
           return new InvalidConstructorInvocationJudgment(
@@ -3362,7 +3365,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             forest.literalNull(null)..fileOffset = charOffset,
             errorName,
             arguments,
-            nameLastToken.charOffset),
+            nameLastToken.charOffset,
+            message: message),
         arguments)
       ..fileOffset = arguments.fileOffset;
   }
