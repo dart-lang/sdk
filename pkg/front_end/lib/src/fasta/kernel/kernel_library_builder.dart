@@ -1125,6 +1125,7 @@ class KernelLibraryBuilder
           return unhandled(
               "null", forwarder.name.name, origin.fileOffset, origin.fileUri);
         }
+        if (originNamed.initializer == null) continue;
         forwarderNamed.initializer = cloner.clone(originNamed.initializer);
         forwarderNamed.initializer.parent = forwarderNamed;
       }
