@@ -56,7 +56,7 @@ ifNotThenElseNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   }
 }
 
-/*element: ifThenNotNullComplexCheck:[null|exact=JSUInt31]*/
+/*element: ifThenNotNullComplexCheck:[exact=JSUInt31]*/
 ifThenNotNullComplexCheck(
     int /*[null|exact=JSUInt31]*/ a, int /*[null|exact=JSUInt31]*/ b) {
   if (a != null && a /*invoke: [exact=JSUInt31]*/ != b) {
