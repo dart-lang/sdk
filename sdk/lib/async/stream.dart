@@ -2016,6 +2016,7 @@ abstract class StreamTransformer<S, T> {
    *     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
    * ```
    */
+  @Since("2.1")
   factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
       _StreamBindTransformer<S, T>;
 

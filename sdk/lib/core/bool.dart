@@ -55,16 +55,19 @@ class bool {
   ///
   /// Returns `true` if both this and [other] are `true`, and `false` otherwise.
   //TODO(lrn): Remove "as bool" in Dart 2.
+  @Since("2.1")
   bool operator &(bool other) => (other as bool) && this;
 
   /// The logical disjunction ("inclusive or") of this and [other].
   ///
   /// Returns `true` if either this or [other] is `true`, and `false` otherwise.
+  @Since("2.1")
   bool operator |(bool other) => (other as bool) || this;
 
   /// The logical exclusive disjunction ("exclusive or") of this and [other].
   ///
   /// Returns whether this and [other] are neither both `true` nor both `false`.
+  @Since("2.1")
   bool operator ^(bool other) => !(other as bool) == this;
 
   /**

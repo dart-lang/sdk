@@ -169,6 +169,7 @@ import "dart:convert"
 import "dart:math" show Random; // Used by List.shuffle.
 import "dart:typed_data" show Uint8List, Uint16List, Endian;
 
+@Since("2.1")
 export "dart:async" show Future, Stream;
 
 part "annotations.dart";
