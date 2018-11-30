@@ -56,11 +56,10 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = _BREAK_OUTSIDE_OF_LOOP;
 
-  static const ParserErrorCode CATCH_SYNTAX = const ParserErrorCode(
-      'CATCH_SYNTAX',
-      "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
-      correction:
-          "No types are needed, the first is given by 'on', the second is always 'StackTrace'.");
+  static const ParserErrorCode CATCH_SYNTAX = _CATCH_SYNTAX;
+
+  static const ParserErrorCode CATCH_SYNTAX_EXTRA_PARAMETERS =
+      _CATCH_SYNTAX_EXTRA_PARAMETERS;
 
   static const ParserErrorCode CLASS_IN_CLASS = _CLASS_IN_CLASS;
 
@@ -202,12 +201,15 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
   static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY =
-      const ParserErrorCode('EXTERNAL_CONSTRUCTOR_WITH_BODY',
-          "External constructors can't have a body.",
-          correction: "Try removing the body of the constructor, or "
-              "removing the keyword 'external'.");
+      _EXTERNAL_CONSTRUCTOR_WITH_BODY;
 
   static const ParserErrorCode EXTERNAL_ENUM = _EXTERNAL_ENUM;
+
+  static const ParserErrorCode EXTERNAL_FACTORY_REDIRECTION =
+      _EXTERNAL_FACTORY_REDIRECTION;
+
+  static const ParserErrorCode EXTERNAL_FACTORY_WITH_BODY =
+      _EXTERNAL_FACTORY_WITH_BODY;
 
   static const ParserErrorCode EXTERNAL_FIELD = _EXTERNAL_FIELD;
 
@@ -256,10 +258,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode FINAL_AND_COVARIANT = _FINAL_AND_COVARIANT;
 
-  static const ParserErrorCode FINAL_AND_VAR = const ParserErrorCode(
-      'FINAL_AND_VAR',
-      "Members can't be declared to be both 'final' and 'var'.",
-      correction: "Try removing the keyword 'var'.");
+  static const ParserErrorCode FINAL_AND_VAR = _FINAL_AND_VAR;
 
   static const ParserErrorCode FINAL_CLASS = const ParserErrorCode(
       'FINAL_CLASS', "Classes can't be declared to be 'final'.",
@@ -313,10 +312,7 @@ class ParserErrorCode extends ErrorCode {
       _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 
   static const ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH =
-      const ParserErrorCode('INITIALIZED_VARIABLE_IN_FOR_EACH',
-          "The loop variable in a for-each loop can't be initialized.",
-          correction:
-              "Try removing the initializer, or using a different kind of loop.");
+      _INITIALIZED_VARIABLE_IN_FOR_EACH;
 
   static const ParserErrorCode INVALID_AWAIT_IN_FOR = _INVALID_AWAIT_IN_FOR;
 

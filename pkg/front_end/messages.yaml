@@ -654,9 +654,10 @@ ExternalAfterStatic:
     - "class C { static external f(); }"
 
 ExternalConstructorWithBody:
+  index: 87
   template: "External constructors can't have a body."
   tip: "Try removing the body of the constructor, or removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY
   script:
     - "class C { external C() {} }"
 
@@ -666,9 +667,10 @@ ExternalConstructorWithFieldInitializers:
   analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
 
 ExternalFactoryWithBody:
+  index: 86
   template: "External factories can't have a body."
   tip: "Try removing the body of the factory, or removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  analyzerCode: ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY
   script:
     - "class C { external factory C() {} }"
 
@@ -757,9 +759,10 @@ FinalAndCovariant:
     - "class C { final covariant f = 5; }"
 
 FinalAndVar:
+  index: 81
   template: "Members can't be declared to be both 'final' and 'var'."
   tip: "Try removing the keyword 'var'."
-  analyzerCode: FINAL_AND_VAR
+  analyzerCode: ParserErrorCode.FINAL_AND_VAR
   script:
     - "class C { final var x = 5; }"
     - "class C { var final x = 5; }"
@@ -899,9 +902,10 @@ LabelNotFound:
     - "switch (0) {case 0: continue L;}"
 
 InitializedVariableInForEach:
+  index: 82
   template: "The loop variable in a for-each loop can't be initialized."
   tip: "Try removing the initializer, or using a different kind of loop."
-  analyzerCode: INITIALIZED_VARIABLE_IN_FOR_EACH
+  analyzerCode: ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH
   statement:
     - "for (int a = 0 in <int>[10]) {}"
 
@@ -1217,18 +1221,20 @@ SetterWithWrongNumberOfFormals:
   analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 
 CatchSyntax:
+  index: 84
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
-  analyzerCode: CATCH_SYNTAX
+  analyzerCode: ParserErrorCode.CATCH_SYNTAX
   statement:
     - "try {} catch {}"
     - "try {} catch () {}"
     - "try {} catch (e,) {}"
 
 CatchSyntaxExtraParameters:
+  index: 83
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
-  analyzerCode: CATCH_SYNTAX
+  analyzerCode: ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS
   statement:
     - "try {} catch (e, s, x) {}"
 
@@ -2745,9 +2751,10 @@ ColonInPlaceOfIn:
   analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
 
 ExternalFactoryRedirection:
+  index: 85
   template: "A redirecting factory can't be external."
   tip: "Try removing the 'external' modifier."
-  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  analyzerCode: ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION
 
 ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."

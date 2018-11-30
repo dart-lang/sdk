@@ -671,7 +671,7 @@ const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
-    analyzerCodes: <String>["CATCH_SYNTAX"],
+    index: 84,
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -684,7 +684,7 @@ const Code<Null> codeCatchSyntaxExtraParameters =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
     "CatchSyntaxExtraParameters",
-    analyzerCodes: <String>["CATCH_SYNTAX"],
+    index: 83,
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -3141,7 +3141,7 @@ const Code<Null> codeExternalConstructorWithBody =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalConstructorWithBody = const MessageCode(
     "ExternalConstructorWithBody",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 87,
     message: r"""External constructors can't have a body.""",
     tip:
         r"""Try removing the body of the constructor, or removing the keyword 'external'.""");
@@ -3174,7 +3174,7 @@ const Code<Null> codeExternalFactoryRedirection =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryRedirection = const MessageCode(
     "ExternalFactoryRedirection",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 85,
     message: r"""A redirecting factory can't be external.""",
     tip: r"""Try removing the 'external' modifier.""");
 
@@ -3184,7 +3184,7 @@ const Code<Null> codeExternalFactoryWithBody = messageExternalFactoryWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryWithBody = const MessageCode(
     "ExternalFactoryWithBody",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 86,
     message: r"""External factories can't have a body.""",
     tip:
         r"""Try removing the body of the factory, or removing the keyword 'external'.""");
@@ -3466,7 +3466,7 @@ const Code<Null> codeFinalAndVar = messageFinalAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
-    analyzerCodes: <String>["FINAL_AND_VAR"],
+    index: 81,
     message: r"""Members can't be declared to be both 'final' and 'var'.""",
     tip: r"""Try removing the keyword 'var'.""");
 
@@ -4668,7 +4668,7 @@ const Code<Null> codeInitializedVariableInForEach =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInitializedVariableInForEach = const MessageCode(
     "InitializedVariableInForEach",
-    analyzerCodes: <String>["INITIALIZED_VARIABLE_IN_FOR_EACH"],
+    index: 82,
     message: r"""The loop variable in a for-each loop can't be initialized.""",
     tip:
         r"""Try removing the initializer, or using a different kind of loop.""");
