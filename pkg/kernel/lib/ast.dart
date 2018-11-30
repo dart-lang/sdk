@@ -383,16 +383,20 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
-    for (var typedef_ in typedefs) {
+    for (int i = 0; i < typedefs.length; ++i) {
+      Typedef typedef_ = typedefs[i];
       canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
     }
-    for (var field in fields) {
+    for (int i = 0; i < fields.length; ++i) {
+      Field field = fields[i];
       canonicalName.getChildFromMember(field).bindTo(field.reference);
     }
-    for (var member in procedures) {
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var class_ in classes) {
+    for (int i = 0; i < classes.length; ++i) {
+      Class class_ = classes[i];
       canonicalName.getChild(class_.name).bindTo(class_.reference);
       class_.computeCanonicalNames();
     }
@@ -878,16 +882,20 @@ class Class extends NamedNode implements FileUriNode {
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
-    for (var member in fields) {
+    for (int i = 0; i < fields.length; ++i) {
+      Field member = fields[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in procedures) {
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in constructors) {
+    for (int i = 0; i < constructors.length; ++i) {
+      Constructor member = constructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in redirectingFactoryConstructors) {
+    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
+      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -5450,8 +5458,8 @@ class Component extends TreeNode {
   }
 
   void computeCanonicalNames() {
-    for (var library in libraries) {
-      computeCanonicalNamesForLibrary(library);
+    for (int i = 0; i < libraries.length; ++i) {
+      computeCanonicalNamesForLibrary(libraries[i]);
     }
   }
 

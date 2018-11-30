@@ -269,13 +269,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
     writeUInt30(items.length);
-    items.forEach(writeItem);
+    for (int i = 0; i < items.length; ++i) {
+      writeItem(items[i]);
+    }
   }
 
   void writeNodeList(List<Node> nodes) {
     final len = nodes.length;
     writeUInt30(len);
-    for (var i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       final node = nodes[i];
       writeNode(node);
     }
@@ -313,16 +315,22 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void indexLinkTable(Component component) {
     _canonicalNameList = <CanonicalName>[];
-    void visitCanonicalName(CanonicalName node) {
-      node.index = _canonicalNameList.length;
-      _canonicalNameList.add(node);
-      node.children.forEach(visitCanonicalName);
-    }
-
-    for (var library in component.libraries) {
+    for (int i = 0; i < component.libraries.length; ++i) {
+      Library library = component.libraries[i];
       if (!shouldWriteLibraryCanonicalNames(library)) continue;
-      visitCanonicalName(library.canonicalName);
+      _indexLinkTableInternal(library.canonicalName);
       _knownCanonicalNameNonRootTops.add(library.canonicalName);
+    }
+  }
+
+  void _indexLinkTableInternal(CanonicalName node) {
+    node.index = _canonicalNameList.length;
+    _canonicalNameList.add(node);
+    Iterable<CanonicalName> children = node.childrenOrNull;
+    if (children != null) {
+      for (CanonicalName child in children) {
+        _indexLinkTableInternal(child);
+      }
     }
   }
 
@@ -338,7 +346,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   bool shouldWriteLibraryCanonicalNames(Library library) => true;
 
   void writeCanonicalNameEntry(CanonicalName node) {
-    var parent = node.parent;
+    CanonicalName parent = node.parent;
     if (parent.isRoot) {
       writeUInt30(0);
     } else {
@@ -391,7 +399,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void _writeNodeMetadataImpl(Node node, int nodeOffset) {
-    for (var subsection in _metadataSubsections) {
+    for (_MetadataSubsection subsection in _metadataSubsections) {
       final repository = subsection.repository;
       final value = repository.mapping[node];
       if (value == null) {
@@ -473,13 +481,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     // RList<MetadataMapping> metadataMappings
     _binaryOffsetForMetadataMappings = getBufferOffset();
-    for (var subsection in _metadataSubsections) {
+    for (_MetadataSubsection subsection in _metadataSubsections) {
       // UInt32 tag
       writeUInt32(stringIndexer.put(subsection.repository.tag));
 
       // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
       final mappingLength = subsection.metadataMapping.length;
-      for (var i = 0; i < mappingLength; i += 2) {
+      for (int i = 0; i < mappingLength; i += 2) {
         writeUInt32(subsection.metadataMapping[i]); // node offset
         writeUInt32(subsection.metadataMapping[i + 1]); // metadata offset
       }
@@ -490,7 +498,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   /// Write all of some of the libraries of the [component].
   void writeLibraries(Component component) {
-    component.libraries.forEach(writeNode);
+    for (int i = 0; i < component.libraries.length; ++i) {
+      writeNode(component.libraries[i]);
+    }
   }
 
   void writeComponentIndex(Component component, List<Library> libraries) {
@@ -565,10 +575,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;
-      lineStarts.forEach((lineStart) {
+      for (int j = 0; j < lineStarts.length; ++j) {
+        int lineStart = lineStarts[j];
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
-      });
+      }
       i++;
     }
 
@@ -674,23 +685,25 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(memberScope: true);
 
     writeNodeList(node.typedefs);
-    classOffsets = <int>[];
+    classOffsets = new List<int>();
     writeNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeNodeList(node.fields);
-    procedureOffsets = <int>[];
+    procedureOffsets = new List<int>();
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
     // Fixed-size ints at the end used as an index.
     assert(classOffsets.length > 0);
-    for (int offset in classOffsets) {
+    for (int i = 0; i < classOffsets.length; ++i) {
+      int offset = classOffsets[i];
       writeUInt32(offset);
     }
     writeUInt32(classOffsets.length - 1);
 
     assert(procedureOffsets.length > 0);
-    for (int offset in procedureOffsets) {
+    for (int i = 0; i < procedureOffsets.length; ++i) {
+      int offset = procedureOffsets[i];
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
@@ -702,7 +715,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         : <LibraryDependency, int>{};
     writeUInt30(library.dependencies.length);
     for (int i = 0; i < library.dependencies.length; ++i) {
-      var importNode = library.dependencies[i];
+      LibraryDependency importNode = library.dependencies[i];
       _libraryDependencyIndex[importNode] = i;
       writeLibraryDependency(importNode);
     }
@@ -735,7 +748,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeLibraryParts(Library library) {
     writeUInt30(library.parts.length);
     for (int i = 0; i < library.parts.length; ++i) {
-      var partNode = library.parts[i];
+      LibraryPart partNode = library.parts[i];
       writeLibraryPart(partNode);
     }
   }
@@ -777,7 +790,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeAnnotationList(List<Expression> annotations) {
     final len = annotations.length;
     writeUInt30(len);
-    for (var i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       final annotation = annotations[i];
       writeAnnotation(annotation);
     }
@@ -827,7 +840,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
-    for (int offset in procedureOffsets) {
+    for (int i = 0; i < procedureOffsets.length; ++i) {
+      int offset = procedureOffsets[i];
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
@@ -1000,9 +1014,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     enterScope(typeParameters: node.typeParameters, variableScope: true);
-    var oldLabels = _labelIndexer;
+    LabelIndexer oldLabels = _labelIndexer;
     _labelIndexer = null;
-    var oldCases = _switchCaseIndexer;
+    SwitchCaseIndexer oldCases = _switchCaseIndexer;
     _switchCaseIndexer = null;
     // Note: FunctionNode has no tag.
     writeOffset(node.fileOffset);
@@ -1990,7 +2004,7 @@ class VariableIndexer {
   }
 
   void pushScope() {
-    scopes ??= <int>[];
+    scopes ??= new List<int>();
     scopes.add(stackHeight);
   }
 
@@ -2027,7 +2041,7 @@ class SwitchCaseIndexer {
   int stackHeight = 0;
 
   void enter(SwitchStatement node) {
-    for (var caseNode in node.cases) {
+    for (SwitchCase caseNode in node.cases) {
       index[caseNode] = stackHeight++;
     }
   }
@@ -2089,7 +2103,8 @@ class TypeParameterIndexer {
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
-    for (var parameter in typeParameters) {
+    for (int i = 0; i < typeParameters.length; ++i) {
+      TypeParameter parameter = typeParameters[i];
       index[parameter] = stackHeight;
       ++stackHeight;
     }
@@ -2097,7 +2112,9 @@ class TypeParameterIndexer {
 
   void exit(List<TypeParameter> typeParameters) {
     stackHeight -= typeParameters.length;
-    typeParameters.forEach(index.remove);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      index.remove(typeParameters[i]);
+    }
   }
 
   int operator [](TypeParameter parameter) =>
@@ -2113,7 +2130,7 @@ class StringIndexer {
   }
 
   int put(String string) {
-    var result = index[string];
+    int result = index[string];
     if (result == null) {
       result = index.length;
       index[string] = result;
@@ -2133,7 +2150,7 @@ class UriIndexer {
   }
 
   int put(Uri uri) {
-    var result = index[uri];
+    int result = index[uri];
     if (result == null) {
       result = index.length;
       index[uri] = result;
@@ -2289,8 +2306,8 @@ class NotQuiteString {
     RangeError.checkValidIndex(index, target, null, target.length);
     end = RangeError.checkValidRange(start, end, source.length);
     if (start == end) return index;
-    var i = start;
-    var length = target.length;
+    int i = start;
+    int length = target.length;
     do {
       int codeUnit = source.codeUnitAt(i++);
       while (codeUnit < 128) {
