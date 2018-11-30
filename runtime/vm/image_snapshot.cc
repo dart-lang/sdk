@@ -294,7 +294,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
   for (intptr_t i = 0; i < objects_.length(); i++) {
     const Object& obj = *objects_[i].obj_;
-    AutoTraceImage(obj, section_start, stream);
+    AutoTraceImage(section_start, stream, "ROData");
 
     NoSafepointScope no_safepoint;
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
@@ -615,7 +615,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
-    AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
+    AutoTraceImage(0, &this->instructions_blob_stream_, "Instructions");
 
     uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
     uword entry = beginning + Instructions::HeaderSize();

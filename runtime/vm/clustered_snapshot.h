@@ -14,7 +14,6 @@
 #include "vm/hash_map.h"
 #include "vm/heap/heap.h"
 #include "vm/object.h"
-#include "vm/raw_object_fields.h"
 #include "vm/snapshot.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
@@ -237,8 +236,7 @@ class Serializer : public StackResource {
   }
   void Align(intptr_t alignment) { stream_.Align(alignment); }
 
- private:
-  intptr_t WriteRefId(RawObject* object) {
+  void WriteRef(RawObject* object, bool is_root = false) {
     intptr_t id = 0;
     if (!object->IsHeapObject()) {
       RawSmi* smi = Smi::RawCast(object);
@@ -253,75 +251,35 @@ class Serializer : public StackResource {
       id = heap_->GetObjectId(object);
       if (id == 0) {
         if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-          return WriteRefId(Object::null());
+          WriteRef(Object::null());
+          return;
         }
 #if !defined(DART_PRECOMPILED_RUNTIME)
         if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-          return WriteRefId(Object::null());
+          WriteRef(Object::null());
+          return;
         }
 #endif  // !DART_PRECOMPILED_RUNTIME
         if (object->IsSendPort()) {
           // TODO(rmacnak): Do a better job of resetting fields in
           // precompilation and assert this is unreachable.
-          return WriteRefId(Object::null());
+          WriteRef(Object::null());
+          return;
         }
         FATAL("Missing ref");
       }
     }
-    return id;
-  }
 
- public:
-  void WriteRootRef(RawObject* object) {
-    intptr_t id = WriteRefId(object);
     WriteUnsigned(id);
-    if (profile_writer_ != nullptr) {
-      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id});
-    }
-  }
 
-  void WriteElementRef(RawObject* object, intptr_t index) {
-    intptr_t id = WriteRefId(object);
-    WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
-      profile_writer_->AttributeReferenceTo(
-          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-          {{V8SnapshotProfileWriter::kSnapshot, id},
-           V8SnapshotProfileWriter::Reference::kElement,
-           index});
-    }
-  }
-
-  void WritePropertyRef(RawObject* object, const char* property) {
-    intptr_t id = WriteRefId(object);
-    WriteUnsigned(id);
-    if (profile_writer_ != nullptr) {
-      profile_writer_->AttributeReferenceTo(
-          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-          {{V8SnapshotProfileWriter::kSnapshot, id},
-           V8SnapshotProfileWriter::Reference::kProperty,
-           profile_writer_->EnsureString(property)});
-    }
-  }
-
-  void WriteOffsetRef(RawObject* object, intptr_t offset) {
-    intptr_t id = WriteRefId(object);
-    WriteUnsigned(id);
-    if (profile_writer_ != nullptr) {
-      const char* property = offsets_table_->FieldNameForOffset(
-          object_currently_writing_.cid_, offset);
-      if (property != nullptr) {
+      if (object_currently_writing_id_ != 0) {
         profile_writer_->AttributeReferenceTo(
-            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-            {{V8SnapshotProfileWriter::kSnapshot, id},
-             V8SnapshotProfileWriter::Reference::kProperty,
-             profile_writer_->EnsureString(property)});
+            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_id_},
+            {V8SnapshotProfileWriter::kSnapshot, id});
       } else {
-        profile_writer_->AttributeReferenceTo(
-            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-            {{V8SnapshotProfileWriter::kSnapshot, id},
-             V8SnapshotProfileWriter::Reference::kElement,
-             offset});
+        ASSERT(is_root);
+        profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id});
       }
     }
   }
@@ -331,8 +289,7 @@ class Serializer : public StackResource {
     RawObject** from = obj->from();
     RawObject** to = obj->to_snapshot(kind(), args...);
     for (RawObject** p = from; p <= to; p++) {
-      WriteOffsetRef(*p, (p - reinterpret_cast<RawObject**>(obj->ptr())) *
-                             sizeof(RawObject*));
+      WriteRef(*p);
     }
   }
 
@@ -343,6 +300,10 @@ class Serializer : public StackResource {
     for (RawObject** p = from; p <= to; p++) {
       Push(*p);
     }
+  }
+
+  void WriteRootRef(RawObject* object) {
+    WriteRef(object, /* is_root = */ true);
   }
 
   void WriteTokenPosition(TokenPosition pos) {
@@ -385,13 +346,8 @@ class Serializer : public StackResource {
   bool vm_;
 
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
-  struct ProfilingObject {
-    RawObject* object_ = nullptr;
-    intptr_t id_ = 0;
-    intptr_t stream_start_ = 0;
-    intptr_t cid_ = -1;
-  } object_currently_writing_;
-  OffsetsTable* offsets_table_ = nullptr;
+  intptr_t object_currently_writing_id_ = 0;
+  intptr_t object_currently_writing_start_ = 0;
 
 #if defined(SNAPSHOT_BACKTRACE)
   RawObject* current_parent_;
@@ -407,13 +363,13 @@ class Serializer : public StackResource {
 #define AutoTraceObjectName(obj, str)                                          \
   SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, str)
 
-#define WriteFieldValue(field, value) s->WritePropertyRef(value, #field);
+#define WriteField(obj, field) s->WriteRef(obj->ptr()->field);
+
+#define WriteFieldValue(field, value) s->WriteRef(value);
 
 #define WriteFromTo(obj, ...) s->WriteFromTo(obj, ##__VA_ARGS__);
 
 #define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
-
-#define WriteField(obj, field) s->WritePropertyRef(obj->ptr()->field, #field)
 
 struct SerializerWritingObjectScope {
   SerializerWritingObjectScope(Serializer* serializer,

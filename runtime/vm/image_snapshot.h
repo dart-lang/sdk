@@ -13,8 +13,6 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
-#include "vm/object.h"
-#include "vm/reusable_handles.h"
 #include "vm/v8_snapshot_writer.h"
 
 namespace dart {
@@ -186,10 +184,10 @@ class ImageWriter : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 
-#define AutoTraceImage(object, section_offset, stream)                         \
+#define AutoTraceImage(section_offset, stream, type_name)                      \
   auto AutoTraceImagObjectScopeVar##__COUNTER__ =                              \
       TraceImageObjectScope<std::remove_pointer<decltype(stream)>::type>(      \
-          this, section_offset, stream, object);
+          this, section_offset, stream, type_name);
 
 template <typename T>
 class TraceImageObjectScope {
@@ -197,22 +195,15 @@ class TraceImageObjectScope {
   TraceImageObjectScope(ImageWriter* writer,
                         intptr_t section_offset,
                         const T* stream,
-                        const Object& object)
+                        const char* type)
       : writer_(writer),
         stream_(stream),
         section_offset_(section_offset),
         start_offset_(stream_->Position() - section_offset) {
     if (writer_->profile_writer_ != nullptr) {
-      Thread* thread = Thread::Current();
-      REUSABLE_CLASS_HANDLESCOPE(thread);
-      REUSABLE_STRING_HANDLESCOPE(thread);
-      Class& klass = thread->ClassHandle();
-      String& name = thread->StringHandle();
-      klass = object.clazz();
-      name = klass.UserVisibleName();
       ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
       writer_->profile_writer_->SetObjectTypeAndName(
-          {writer_->offset_space_, start_offset_}, name.ToCString(), nullptr);
+          {writer_->offset_space_, start_offset_}, type, nullptr);
     }
   }
 

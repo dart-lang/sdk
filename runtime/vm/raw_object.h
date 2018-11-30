@@ -267,7 +267,6 @@ enum class MemoryOrder {
   friend class InterpreterHelpers;                                             \
   friend class Simulator;                                                      \
   friend class SimulatorHelpers;                                               \
-  friend class OffsetsTable;                                                   \
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
 
@@ -879,7 +878,6 @@ class RawObject {
   friend class Precompiler;         // GetClassId
   friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
-  friend class OffsetsTable;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

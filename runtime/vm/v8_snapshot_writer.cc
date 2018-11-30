@@ -57,7 +57,7 @@ void V8SnapshotProfileWriter::SetObjectTypeAndName(ObjectId object_id,
   info->type = type_id;
 
   if (name != nullptr) {
-    info->name = EnsureString(OS::SCreate(zone_, "[%s] %s", type, name));
+    info->name = EnsureString(name);
   } else {
     info->name = EnsureString(type);
   }
@@ -69,16 +69,18 @@ void V8SnapshotProfileWriter::AttributeBytesTo(ObjectId object_id,
 }
 
 void V8SnapshotProfileWriter::AttributeReferenceTo(ObjectId object_id,
-                                                   Reference reference) {
-  EnsureId(reference.to_object_id);
+                                                   ObjectId to_object_id) {
+  EnsureId(to_object_id);
   NodeInfo* info = EnsureId(object_id);
 
-  ASSERT(reference.offset_or_name >= 0);
-  info->edges->Add({
-      reference.reference_type == Reference::kElement ? kElement : kProperty,
-      reference.offset_or_name,
-      reference.to_object_id,
-  });
+#if defined(DEBUG)
+  // We should never add a reference twice.
+  for (intptr_t i = 0; i < info->edges->length(); ++i) {
+    ASSERT(info->edges->At(i).to_node != object_id);
+  }
+#endif
+
+  info->edges->Add(EdgeInfo{to_object_id});
   ++edge_count_;
 }
 
@@ -132,8 +134,9 @@ void V8SnapshotProfileWriter::WriteNodeInfo(JSONWriter* writer,
 
 void V8SnapshotProfileWriter::WriteEdgeInfo(JSONWriter* writer,
                                             const EdgeInfo& info) {
-  writer->PrintValue64(info.type);
-  writer->PrintValue64(info.name_or_index);
+  writer->PrintValue64(kProperty);  // type, not really used atm
+  writer->PrintValue64(
+      kPropertyString);  // name_or_index, not really used either
   writer->PrintValue64(nodes_.LookupValue(info.to_node).offset);
   writer->PrintNewline();
 }
@@ -232,8 +235,8 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     writer->OpenArray("edges");
 
     // Write references from the artificial root to the actual roots.
-    for (intptr_t i = 0; i < roots_.length(); ++i) {
-      WriteEdgeInfo(writer, {kElement, i, roots_[i]});
+    for (ObjectId root : roots_) {
+      WriteEdgeInfo(writer, {root});
     }
 
     ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
