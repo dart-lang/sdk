@@ -242,13 +242,17 @@ void InductionVarAnalysis::Classify(LoopInfo* loop, Definition* def) {
     }
   } else if (def->IsPhi()) {
     induc = TransferPhi(loop, def);
-  } else if (def->IsRedefinition() || def->IsBox() || def->IsUnbox() ||
-             def->IsConstraint()) {
-    induc = Lookup(loop, def->InputAt(0)->definition());  // pass-through
   } else if (def->IsBinaryIntegerOp()) {
     induc = TransferBinary(loop, def);
   } else if (def->IsUnaryIntegerOp()) {
     induc = TransferUnary(loop, def);
+  } else if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
+    induc = Lookup(loop, def->InputAt(0)->definition());  // pass-through
+  } else {
+    Definition* orig = def->OriginalDefinition();
+    if (orig != def) {
+      induc = Lookup(loop, orig);  // pass-through
+    }
   }
   // Successfully classified?
   if (induc != nullptr) {
@@ -281,14 +285,19 @@ void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
       InductionVar* update = nullptr;
       if (def->IsPhi()) {
         update = SolvePhi(loop, def);
-      } else if (def->IsRedefinition() || def->IsBox() || def->IsUnbox()) {
-        update = LookupCycle(def->InputAt(0)->definition());  // pass-through
-      } else if (def->IsConstraint()) {
-        update = SolveConstraint(loop, def, init);
       } else if (def->IsBinaryIntegerOp()) {
         update = SolveBinary(loop, def, init);
       } else if (def->IsUnaryIntegerOp()) {
         update = SolveUnary(loop, def, init);
+      } else if (def->IsConstraint()) {
+        update = SolveConstraint(loop, def, init);
+      } else if (def->IsBox() || def->IsUnbox()) {
+        update = LookupCycle(def->InputAt(0)->definition());  // pass-through
+      } else {
+        Definition* orig = def->OriginalDefinition();
+        if (orig != def) {
+          update = LookupCycle(orig);  // pass-through
+        }
       }
       // Continue cycle?
       if (update == nullptr) {
@@ -425,7 +434,7 @@ InductionVar* InductionVarAnalysis::SolveBinary(LoopInfo* loop,
           return Add(c, y);
         }
       }
-      break;
+      return nullptr;
     case Token::kSUB:
       if (InductionVar::IsInvariant(x)) {
         InductionVar* c = LookupCycle(def->InputAt(1)->definition());
@@ -449,11 +458,10 @@ InductionVar* InductionVarAnalysis::SolveBinary(LoopInfo* loop,
           return Sub(c, y);
         }
       }
-      break;
+      return nullptr;
     default:
-      break;
+      return nullptr;
   }
-  return nullptr;
 }
 
 InductionVar* InductionVarAnalysis::SolveUnary(LoopInfo* loop,

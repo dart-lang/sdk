@@ -463,11 +463,16 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+  while (defn->IsRedefinition() || defn->IsAssertAssignable() ||
+         defn->IsCheckArrayBound() || defn->IsGenericCheckBound()) {
     if (defn->IsRedefinition()) {
       defn = defn->AsRedefinition()->value()->definition();
-    } else {
+    } else if (defn->IsAssertAssignable()) {
       defn = defn->AsAssertAssignable()->value()->definition();
+    } else if (defn->IsCheckArrayBound()) {
+      defn = defn->AsCheckArrayBound()->index()->definition();
+    } else {
+      defn = defn->AsGenericCheckBound()->index()->definition();
     }
   }
   return defn;
@@ -4798,9 +4803,9 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Instruction* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant(RangeBoundary::FromDefinition(length()->definition()))
-             ? NULL
+             ? index()->definition()
              : this;
 }
 
