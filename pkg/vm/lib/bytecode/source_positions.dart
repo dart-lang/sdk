@@ -4,7 +4,7 @@
 
 library vm.bytecode.source_positions;
 
-import 'dart:io' show BytesBuilder;
+import 'bytecode_serialization.dart' show BufferedWriter, BufferedReader;
 
 /// Maintains mapping between bytecode instructions and source positions.
 class SourcePositions {
@@ -24,20 +24,28 @@ class SourcePositions {
     }
   }
 
-  List<int> toBytes() {
-    final write = new BufferedWriter();
-    write.writePackedUInt30(mapping.length);
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedUInt30(mapping.length);
     final encodePC = new PackedUInt30DeltaEncoder();
     final encodeOffset = new SLEB128DeltaEncoder();
     mapping.forEach((int pc, int fileOffset) {
-      encodePC.write(write, pc);
-      encodeOffset.write(write, fileOffset);
+      encodePC.write(writer, pc);
+      encodeOffset.write(writer, fileOffset);
     });
-    return write.buffer.takeBytes();
   }
 
-  SourcePositions.fromBytes(List<int> bytes) {
-    final reader = new BufferedReader(bytes);
+  void write(BufferedWriter writer) {
+    // TODO(alexmarkov): write source positions in a separate section
+    BufferedWriter contentsWriter = new BufferedWriter.fromWriter(writer);
+    writeContents(contentsWriter);
+
+    final contents = contentsWriter.takeBytes();
+    writer.writePackedUInt30(contents.length);
+    writer.writeBytes(contents);
+  }
+
+  SourcePositions.read(BufferedReader reader) {
+    reader.readPackedUInt30(); // Contents length in bytes.
     final int length = reader.readPackedUInt30();
     final decodePC = new PackedUInt30DeltaDecoder();
     final decodeOffset = new SLEB128DeltaDecoder();
@@ -54,84 +62,6 @@ class SourcePositions {
   Map<int, String> getBytecodeAnnotations() {
     return mapping.map((int pc, int fileOffset) =>
         new MapEntry(pc, 'source position $fileOffset'));
-  }
-}
-
-class BufferedWriter {
-  final BytesBuilder buffer = new BytesBuilder();
-
-  void writePackedUInt30(int value) {
-    if ((value >> 30) != 0) {
-      throw 'Value $value is out of range';
-    }
-    if (value < 0x80) {
-      buffer.addByte(value);
-    } else if (value < 0x4000) {
-      buffer.addByte((value >> 8) | 0x80);
-      buffer.addByte(value & 0xFF);
-    } else {
-      buffer.addByte((value >> 24) | 0xC0);
-      buffer.addByte((value >> 16) & 0xFF);
-      buffer.addByte((value >> 8) & 0xFF);
-      buffer.addByte(value & 0xFF);
-    }
-  }
-
-  void writeSLEB128(int value) {
-    bool last = false;
-    do {
-      int part = value & 0x7f;
-      value >>= 7;
-      if ((value == 0 && (part & 0x40) == 0) ||
-          (value == -1 && (part & 0x40) != 0)) {
-        last = true;
-      } else {
-        part |= 0x80;
-      }
-      buffer.addByte(part);
-    } while (!last);
-  }
-}
-
-class BufferedReader {
-  final List<int> _buffer;
-  int _pos = 0;
-
-  BufferedReader(this._buffer);
-
-  int readByte() => _buffer[_pos++];
-
-  int readPackedUInt30() {
-    var byte = readByte();
-    if (byte & 0x80 == 0) {
-      // 0xxxxxxx
-      return byte;
-    } else if (byte & 0x40 == 0) {
-      // 10xxxxxx
-      return ((byte & 0x3F) << 8) | readByte();
-    } else {
-      // 11xxxxxx
-      return ((byte & 0x3F) << 24) |
-          (readByte() << 16) |
-          (readByte() << 8) |
-          readByte();
-    }
-  }
-
-  int readSLEB128() {
-    int value = 0;
-    int shift = 0;
-    int part = 0;
-    do {
-      part = readByte();
-      value |= (part & 0x7f) << shift;
-      shift += 7;
-    } while ((part & 0x80) != 0);
-    const int kBitsPerInt = 64;
-    if ((shift < kBitsPerInt) && ((part & 0x40) != 0)) {
-      value |= (-1) << shift;
-    }
-    return value;
   }
 }
 

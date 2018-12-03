@@ -1358,6 +1358,7 @@ class RawKernelProgramInfo : public RawObject {
   RawExternalTypedData* metadata_mappings_;
   RawArray* scripts_;
   RawArray* constants_;
+  RawArray* bytecode_component_;
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
   RawExternalTypedData* constants_table_;

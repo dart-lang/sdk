@@ -413,6 +413,9 @@ class Printer extends Visitor<Null> {
     writeSpaced('=');
     inner.writeMemberReferenceFromReference(component.mainMethodName);
     endLine(';');
+    if (showMetadata) {
+      inner.writeMetadata(component);
+    }
     for (var library in component.libraries) {
       if (library.isExternal) {
         if (!showExternal) {

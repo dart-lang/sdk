@@ -625,6 +625,8 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForStringTable; // Read backwards.
     _readMetadataMappings(component, index.binaryOffsetForMetadataPayloads);
 
+    _associateMetadata(component, _componentStartOffset);
+
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
     component.uriToSource.addAll(uriToSource);
@@ -641,8 +643,6 @@ class BinaryBuilder {
     var mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     component.mainMethodName ??= mainMethod;
-
-    _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }

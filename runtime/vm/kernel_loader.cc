@@ -348,6 +348,10 @@ void KernelLoader::InitializeFields() {
     script = LoadScriptAt(index);
     scripts.SetAt(index, script);
   }
+
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    bytecode_metadata_helper_.ReadBytecodeComponent();
+  }
 }
 
 KernelLoader::KernelLoader(const Script& script,

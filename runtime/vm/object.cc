@@ -12336,6 +12336,11 @@ RawClass* KernelProgramInfo::InsertClass(Thread* thread,
   return result.raw();
 }
 
+void KernelProgramInfo::set_bytecode_component(
+    const Array& bytecode_component) const {
+  StorePointer(&raw_ptr()->bytecode_component_, bytecode_component.raw());
+}
+
 RawError* Library::CompileAll(bool ignore_error /* = false */) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -18760,7 +18765,9 @@ void TypeParameter::set_type_state(int8_t state) const {
 const char* TypeParameter::ToCString() const {
   const char* name_cstr = String::Handle(Name()).ToCString();
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  const char* bound_cstr = String::Handle(upper_bound.Name()).ToCString();
+  const char* bound_cstr = upper_bound.IsNull()
+                               ? "<null>"
+                               : String::Handle(upper_bound.Name()).ToCString();
   if (IsFunctionTypeParameter()) {
     const char* format =
         "TypeParameter: name %s; index: %d; function: %s; bound: %s";

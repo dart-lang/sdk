@@ -4153,6 +4153,11 @@ class KernelProgramInfo : public Object {
                         const Smi& name_index,
                         const Class& klass) const;
 
+  RawArray* bytecode_component() const {
+    return raw_ptr()->bytecode_component_;
+  }
+  void set_bytecode_component(const Array& bytecode_component) const;
+
  private:
   static RawKernelProgramInfo* New();
 
