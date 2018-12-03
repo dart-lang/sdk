@@ -1,3 +1,7 @@
+## 0.33.6+1-dev
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+
 ## 0.33.6
 * Deprecated `AstNode.getAncestor` and introduced
   `AstNode.thisOrAncestorMatching` as its replacement.

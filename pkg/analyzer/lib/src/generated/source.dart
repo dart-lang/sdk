@@ -769,6 +769,12 @@ class UriKind implements Comparable<UriKind> {
  * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
  * absolute URI.
+ *
+ * NOTICE: in a future breaking change release of the analyzer, a method
+ * `void clearCache()` will be added.  Clients that implement, but do not
+ * extend, this class, can prepare for the breaking change by adding an
+ * implementation of this method that clears any cached URI resolution
+ * information.
  */
 abstract class UriResolver {
   /**
