@@ -215,6 +215,8 @@ vm_sources = [
   "random.h",
   "raw_object.cc",
   "raw_object.h",
+  "raw_object_fields.cc",
+  "raw_object_fields.h",
   "raw_object_snapshot.cc",
   "regexp.cc",
   "regexp.h",
