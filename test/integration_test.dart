@@ -821,8 +821,9 @@ defineTests() {
         registerLintRules();
         expect(
             configuredLints,
-            unorderedEquals(
-                Analyzer.facade.registeredRules.map((r) => r.name)));
+            unorderedEquals(Analyzer.facade.registeredRules
+                .where((r) => r.maturity != Maturity.deprecated)
+                .map((r) => r.name)));
       });
     });
   });
