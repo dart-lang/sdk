@@ -216,6 +216,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// invocations are to be resolved in a separate step.
   final List<Expression> redirectingFactoryInvocations = <Expression>[];
 
+  /// Variables with metadata.  Their types need to be inferred late, for
+  /// example, in [finishFunction].
+  List<VariableDeclaration> variablesWithMetadata;
+
+  /// More than one variable declared in a single statement that has metadata.
+  /// Their types need to be inferred late, for example, in [finishFunction].
+  List<List<VariableDeclaration>> multiVariablesWithMetadata;
+
   BodyBuilder(
       this.library,
       this.member,
@@ -547,7 +555,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       _typeInferrer.inferMetadata(this, annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
-      annotations.forEach((annotation) => field.addAnnotation(annotation));
+      for (int i = 0; i < annotations.length; i++) {
+        field.addAnnotation(annotations[i]);
+      }
       for (int i = 1; i < fields.length; i++) {
         // We have to clone the annotations on the remaining fields.
         field = fields[i].target;
@@ -559,6 +569,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     resolveRedirectingFactoryTargets();
+    finishVariableMetadata();
   }
 
   @override
@@ -833,6 +844,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     resolveRedirectingFactoryTargets();
+    finishVariableMetadata();
   }
 
   void resolveRedirectingFactoryTargets() {
@@ -924,6 +936,36 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     redirectingFactoryInvocations.clear();
   }
 
+  void finishVariableMetadata() {
+    List<VariableDeclaration> variablesWithMetadata =
+        this.variablesWithMetadata;
+    this.variablesWithMetadata = null;
+    List<List<VariableDeclaration>> multiVariablesWithMetadata =
+        this.multiVariablesWithMetadata;
+    this.multiVariablesWithMetadata = null;
+
+    if (variablesWithMetadata != null) {
+      for (int i = 0; i < variablesWithMetadata.length; i++) {
+        _typeInferrer?.inferMetadata(
+            this, variablesWithMetadata[i].annotations);
+      }
+    }
+    if (multiVariablesWithMetadata != null) {
+      for (int i = 0; i < multiVariablesWithMetadata.length; i++) {
+        List<VariableDeclaration> variables = multiVariablesWithMetadata[i];
+        List<Expression> annotations = variables.first.annotations;
+        _typeInferrer?.inferMetadata(this, annotations);
+        for (int i = 1; i < variables.length; i++) {
+          cloner ??= new CloneVisitor();
+          VariableDeclaration variable = variables[i];
+          for (int i = 0; i < annotations.length; i++) {
+            variable.addAnnotation(cloner.clone(annotations[i]));
+          }
+        }
+      }
+    }
+  }
+
   @override
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
@@ -972,6 +1014,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       temporaryParent = new ListLiteral(expressions);
     }
     resolveRedirectingFactoryTargets();
+    finishVariableMetadata();
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -2042,9 +2085,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       VariableDeclaration variable = node;
       if (annotations != null) {
-        for (Expression annotation in annotations) {
-          variable.addAnnotation(annotation);
+        for (int i = 0; i < annotations.length; i++) {
+          variable.addAnnotation(annotations[i]);
         }
+        (variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
       }
       push(variable);
     } else {
@@ -2059,17 +2103,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return;
       }
       if (annotations != null) {
-        bool isFirstVariable = true;
-        for (VariableDeclarationJudgment variable in variables) {
-          for (Expression annotation in annotations) {
-            variable.addAnnotation(annotation);
-          }
-          if (isFirstVariable) {
-            isFirstVariable = false;
-          } else {
-            variable.infersAnnotations = false;
-          }
+        VariableDeclaration first = variables.first;
+        for (int i = 0; i < annotations.length; i++) {
+          first.addAnnotation(annotations[i]);
         }
+        (multiVariablesWithMetadata ??= <List<VariableDeclaration>>[])
+            .add(variables);
       }
       push(forest.variablesDeclaration(variables, uri));
     }

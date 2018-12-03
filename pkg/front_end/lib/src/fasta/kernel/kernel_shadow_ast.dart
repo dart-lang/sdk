@@ -24,8 +24,6 @@ import 'package:kernel/ast.dart' as kernel show Expression, Initializer;
 
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/clone.dart' show CloneVisitor;
-
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../base/instrumentation.dart'
@@ -1800,12 +1798,6 @@ class VariableDeclarationJudgment extends VariableDeclaration
   // TODO(ahe): Investigate if this can be removed.
   final bool _isLocalFunction;
 
-  /// The same [annotations] list is used for all [VariableDeclarationJudgment]s
-  /// of a variable declaration statement. But we need to perform inference
-  /// only once. So, we set this flag to `false` for the second and subsequent
-  /// judgments.
-  bool infersAnnotations = true;
-
   VariableDeclarationJudgment(String name, this._functionNestingLevel,
       {this.forSyntheticToken: false,
       Expression initializer,
@@ -1838,8 +1830,6 @@ class VariableDeclarationJudgment extends VariableDeclaration
         _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
-
-  List<Expression> get annotationJudgments => annotations;
 
   Expression get initializerJudgment => initializer;
 
