@@ -68,4 +68,13 @@ void main() {
         ;
     Expect.isNull(o);
   }<int>(42);
+
+  <T extends Set<num>>() {
+    // Regression test for http://dartbug.com/35300.
+    // The `Set<Null>` type is not assignable to `T extends Set<num>`,
+    // so we don't make this a set. You can't assign a map to `T`.
+    T o //
+    = {}; //# 28: compile-time error
+    ;
+  }();
 }

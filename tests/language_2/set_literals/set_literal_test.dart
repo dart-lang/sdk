@@ -13,7 +13,7 @@ void main() {
   test();
 }
 
-void test<S extends Set<num>, I extends Iterable<num>>() {
+void test() {
   checkSet<T>(Object o, List elements) {
     Expect.type<LinkedHashSet<T>>(o);
     Set<T> set = o;
@@ -24,8 +24,6 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Object iterableContext<T>(Iterable<T> object) => object;
   Object foSetContext<T>(FutureOr<Set<T>> object) => object;
   Object foIterableContext<T>(FutureOr<Iterable<T>> object) => object;
-  Object sContext(S object) => object;
-  Object iContext(I object) => object;
 
   // Empty literal, no type arguments.
   // No context.
@@ -40,8 +38,6 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   checkSet<int>(iterableContext<int>({}), []);
   checkSet<int>(foSetContext<int>({}), []);
   checkSet<int>(foIterableContext<int>({}), []);
-  checkSet<num>(sContext({}), []);
-  checkSet<num>(iContext({}), []);
 
   // Non-empty set literal, no type argument.
   // No context.
@@ -61,14 +57,10 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   checkSet<num>(iterableContext<num>({1}), [1]);
   checkSet<num>(foSetContext<num>({1}), [1]);
   checkSet<num>(foIterableContext<num>({1}), [1]);
-  checkSet<num>(sContext({1}), [1]);
-  checkSet<num>(iContext({1}), [1]);
   checkSet<num>(setContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
   checkSet<num>(iterableContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
   checkSet<num>(foSetContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
   checkSet<num>(foIterableContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(sContext({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(iContext({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
 
   // Non-empty set literal with type argument.
   checkSet<num>(<num>{1}, [1]);
