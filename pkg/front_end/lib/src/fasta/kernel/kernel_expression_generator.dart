@@ -311,8 +311,8 @@ class KernelVariableUseGenerator extends KernelGenerator
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var fact = helper.typePromoter
-        .getFactForAccess(variable, helper.functionNestingLevel);
-    var scope = helper.typePromoter.currentScope;
+        ?.getFactForAccess(variable, helper.functionNestingLevel);
+    var scope = helper.typePromoter?.currentScope;
     var read = new VariableGetJudgment(variable, fact, scope)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -322,7 +322,7 @@ class KernelVariableUseGenerator extends KernelGenerator
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
+    helper.typePromoter?.mutateVariable(variable, helper.functionNestingLevel);
     var write = variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
         : new VariableSet(variable, value)

@@ -12,6 +12,10 @@
 * Bug fixes: #35162, #35230, #34733, #34741, #33553, #35090, #32815, #34387,
   #34495, #35043, #33553, #34906, #34489.
 
+## 0.33.6+1-dev
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+
 ## 0.33.6
 * Deprecated `AstNode.getAncestor` and introduced
   `AstNode.thisOrAncestorMatching` as its replacement.

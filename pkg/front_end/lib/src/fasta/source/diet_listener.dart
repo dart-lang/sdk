@@ -591,7 +591,7 @@ class DietListener extends StackListener {
     // member, since that provides better error recovery.
     InterfaceType thisType = currentClass?.target?.thisType;
     var typeInferrer = library.disableTypeInference
-        ? typeInferenceEngine.createDisabledTypeInferrer()
+        ? null
         : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred

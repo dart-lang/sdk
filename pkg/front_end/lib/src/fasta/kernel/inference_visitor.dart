@@ -312,7 +312,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         ..parent = node;
     }
     if (node._declaresVariable) {
-      inferrer.inferMetadataKeepingHelper(variable.annotations);
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
       var variableGet = new VariableGet(tempVar)
@@ -1261,30 +1260,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitVariableDeclarationJudgment(VariableDeclarationJudgment node) {
-    if (node.annotationJudgments.isNotEmpty) {
-      if (node.infersAnnotations) {
-        inferrer.inferMetadataKeepingHelper(node.annotationJudgments);
-      }
-
-      // After the inference was done on the annotations, we may clone them for
-      // this instance of VariableDeclaration in order to avoid having the same
-      // annotation node for two VariableDeclaration nodes in a situation like
-      // the following:
-      //
-      //     class Foo { const Foo(List<String> list); }
-      //
-      //     @Foo(const [])
-      //     var x, y;
-      CloneVisitor cloner = new CloneVisitor();
-      for (int i = 0; i < node.annotations.length; ++i) {
-        kernel.Expression annotation = node.annotations[i];
-        if (annotation.parent != node) {
-          node.annotations[i] = cloner.clone(annotation);
-          node.annotations[i].parent = node;
-        }
-      }
-    }
-
     var initializerJudgment = node.initializerJudgment;
     var declaredType = node._implicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;

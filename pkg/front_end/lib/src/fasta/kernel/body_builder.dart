@@ -216,6 +216,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// invocations are to be resolved in a separate step.
   final List<Expression> redirectingFactoryInvocations = <Expression>[];
 
+  /// Variables with metadata.  Their types need to be inferred late, for
+  /// example, in [finishFunction].
+  List<VariableDeclaration> variablesWithMetadata;
+
+  /// More than one variable declared in a single statement that has metadata.
+  /// Their types need to be inferred late, for example, in [finishFunction].
+  List<List<VariableDeclaration>> multiVariablesWithMetadata;
+
   BodyBuilder(
       this.library,
       this.member,
@@ -260,6 +268,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 : field.parent,
             field.parent is KernelClassBuilder ? field.parent : null,
             typeInferrer);
+
+  bool get legacyMode => library.loader.target.legacyMode;
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is KernelConstructorBuilder;
@@ -525,7 +535,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // Error reporting and recovery is handled elsewhere.
         } else {
           field.initializer = initializer;
-          _typeInferrer.inferFieldInitializer(
+          _typeInferrer?.inferFieldInitializer(
               this,
               field.hasTypeInferredFromInitializer ? null : field.builtType,
               initializer);
@@ -544,10 +554,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     List<Expression> annotations = pop();
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, annotations);
+      _typeInferrer?.inferMetadata(this, annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
-      annotations.forEach((annotation) => field.addAnnotation(annotation));
+      for (int i = 0; i < annotations.length; i++) {
+        field.addAnnotation(annotations[i]);
+      }
       for (int i = 1; i < fields.length; i++) {
         // We have to clone the annotations on the remaining fields.
         field = fields[i].target;
@@ -559,6 +571,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     resolveRedirectingFactoryTargets();
+    finishVariableMetadata();
   }
 
   @override
@@ -671,7 +684,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer.inferInitializer(this, initializer);
+    _typeInferrer?.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, this);
     } else {
@@ -696,7 +709,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void finishFunction(List<Expression> annotations, FormalParameters formals,
       AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    typePromoter.finished();
+    typePromoter?.finished();
 
     KernelFunctionBuilder builder = member;
     if (formals?.parameters != null) {
@@ -710,13 +723,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                   // https://github.com/dart-lang/sdk/issues/32289
                   null);
           realParameter.initializer = initializer..parent = realParameter;
-          _typeInferrer.inferParameterInitializer(
+          _typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
         }
       }
     }
 
-    _typeInferrer.inferFunctionBody(
+    _typeInferrer?.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
 
     // For async, async*, and sync* functions with declared return types, we
@@ -729,7 +742,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // enabled.
     // This particular behaviour can be observed when running the fasta perf
     // benchmarks.
-    if (!library.loader.target.legacyMode && builder.returnType != null) {
+    if (!legacyMode && builder.returnType != null) {
       DartType returnType = builder.function.returnType;
       // We use the same trick in each case below. For example to decide whether
       // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
@@ -819,7 +832,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Member target = builder.target;
-    _typeInferrer.inferMetadata(this, annotations);
+    _typeInferrer?.inferMetadata(this, annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -833,6 +846,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     resolveRedirectingFactoryTargets();
+    finishVariableMetadata();
   }
 
   void resolveRedirectingFactoryTargets() {
@@ -846,8 +860,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Procedure initialTarget = invocation.target;
       Expression replacementNode;
 
-      RedirectionTarget redirectionTarget = getRedirectionTarget(initialTarget,
-          legacyMode: library.loader.target.legacyMode);
+      RedirectionTarget redirectionTarget =
+          getRedirectionTarget(initialTarget, legacyMode: legacyMode);
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
@@ -924,10 +938,40 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     redirectingFactoryInvocations.clear();
   }
 
+  void finishVariableMetadata() {
+    List<VariableDeclaration> variablesWithMetadata =
+        this.variablesWithMetadata;
+    this.variablesWithMetadata = null;
+    List<List<VariableDeclaration>> multiVariablesWithMetadata =
+        this.multiVariablesWithMetadata;
+    this.multiVariablesWithMetadata = null;
+
+    if (variablesWithMetadata != null) {
+      for (int i = 0; i < variablesWithMetadata.length; i++) {
+        _typeInferrer?.inferMetadata(
+            this, variablesWithMetadata[i].annotations);
+      }
+    }
+    if (multiVariablesWithMetadata != null) {
+      for (int i = 0; i < multiVariablesWithMetadata.length; i++) {
+        List<VariableDeclaration> variables = multiVariablesWithMetadata[i];
+        List<Expression> annotations = variables.first.annotations;
+        _typeInferrer?.inferMetadata(this, annotations);
+        for (int i = 1; i < variables.length; i++) {
+          cloner ??= new CloneVisitor();
+          VariableDeclaration variable = variables[i];
+          for (int i = 0; i < annotations.length; i++) {
+            variable.addAnnotation(cloner.clone(annotations[i]));
+          }
+        }
+      }
+    }
+  }
+
   @override
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
-    _typeInferrer.inferMetadata(this, expressions);
+    _typeInferrer?.inferMetadata(this, expressions);
 
     // The invocation of [resolveRedirectingFactoryTargets] below may change the
     // root nodes of the annotation expressions.  We need to have a parent of
@@ -972,6 +1016,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       temporaryParent = new ListLiteral(expressions);
     }
     resolveRedirectingFactoryTargets();
+    finishVariableMetadata();
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -1016,7 +1061,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     ReturnJudgment fakeReturn = new ReturnJudgment(null, expression);
 
-    _typeInferrer.inferFunctionBody(
+    _typeInferrer?.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
@@ -1242,7 +1287,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void beginBinaryExpression(Token token) {
     if (optional("&&", token) || optional("||", token)) {
       Expression lhs = popForValue();
-      typePromoter.enterLogicalExpression(lhs, token.stringValue);
+      typePromoter?.enterLogicalExpression(lhs, token.stringValue);
       push(lhs);
     }
   }
@@ -1296,7 +1341,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression receiver = pop();
     Expression logicalExpression =
         forest.logicalExpression(receiver, token, argument);
-    typePromoter.exitLogicalExpression(argument, logicalExpression);
+    typePromoter?.exitLogicalExpression(argument, logicalExpression);
     push(logicalExpression);
   }
 
@@ -1393,8 +1438,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             .withLocation(uri, charOffset, length);
       }
     }
-    if (library.loader.target.legacyMode &&
-        constantContext == ConstantContext.none) {
+    if (legacyMode && constantContext == ConstantContext.none) {
       addProblem(message.messageObject, message.charOffset, message.length,
           wasHandled: true, context: context);
       return new SyntheticExpressionJudgment(
@@ -1665,9 +1709,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
       // wasn't the case, we could always use [VariableUseGenerator].
       if (declaration.isFinal) {
-        Object fact = typePromoter.getFactForAccess(
+        Object fact = typePromoter?.getFactForAccess(
             declaration.target, functionNestingLevel);
-        Object scope = typePromoter.currentScope;
+        Object scope = typePromoter?.currentScope;
         return new ReadOnlyAccessGenerator(
             this,
             token,
@@ -1849,7 +1893,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     int value = int.tryParse(token.lexeme);
-    if (library.loader.target.legacyMode) {
+    if (legacyMode) {
       if (value == null) {
         push(unhandled(
             'large integer', 'handleLiteralInt', token.charOffset, uri));
@@ -1902,7 +1946,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endThenStatement(Token token) {
-    typePromoter.enterElse();
+    typePromoter?.enterElse();
     super.endThenStatement(token);
   }
 
@@ -1911,7 +1955,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement elsePart = popStatementIfNotNull(elseToken);
     Statement thenPart = popStatement();
     Expression condition = pop();
-    typePromoter.exitConditional();
+    typePromoter?.exitConditional();
     push(forest.ifStatement(ifToken, condition, thenPart, elseToken, elsePart));
   }
 
@@ -2042,9 +2086,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       VariableDeclaration variable = node;
       if (annotations != null) {
-        for (Expression annotation in annotations) {
-          variable.addAnnotation(annotation);
+        for (int i = 0; i < annotations.length; i++) {
+          variable.addAnnotation(annotations[i]);
         }
+        (variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
       }
       push(variable);
     } else {
@@ -2059,17 +2104,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return;
       }
       if (annotations != null) {
-        bool isFirstVariable = true;
-        for (VariableDeclarationJudgment variable in variables) {
-          for (Expression annotation in annotations) {
-            variable.addAnnotation(annotation);
-          }
-          if (isFirstVariable) {
-            isFirstVariable = false;
-          } else {
-            variable.infersAnnotations = false;
-          }
+        VariableDeclaration first = variables.first;
+        for (int i = 0; i < annotations.length; i++) {
+          first.addAnnotation(annotations[i]);
         }
+        (multiVariablesWithMetadata ??= <List<VariableDeclaration>>[])
+            .add(variables);
       }
       push(forest.variablesDeclaration(variables, uri));
     }
@@ -2252,7 +2292,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             lengthOfSpan(leftBracket, leftBracket.endGroup));
       } else {
         typeArgument = buildDartType(typeArguments.single);
-        if (!library.loader.target.legacyMode) {
+        if (!legacyMode) {
           typeArgument =
               instantiateToBounds(typeArgument, coreTypes.objectClass);
         }
@@ -2308,7 +2348,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
-        if (!library.loader.target.legacyMode) {
+        if (!legacyMode) {
           keyType = instantiateToBounds(keyType, coreTypes.objectClass);
           valueType = instantiateToBounds(valueType, coreTypes.objectClass);
         }
@@ -2504,7 +2544,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         forest.isExpression(operand, isOperator, not, type);
     library.checkBoundsInType(type, typeEnvironment, isOperator.charOffset);
     if (operand is VariableGet) {
-      typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
+      typePromoter?.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
     if (constantContext != ConstantContext.none) {
@@ -2522,7 +2562,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginConditionalExpression(Token question) {
     Expression condition = popForValue();
-    typePromoter.enterThen(condition);
+    typePromoter?.enterThen(condition);
     push(condition);
     super.beginConditionalExpression(question);
   }
@@ -2530,7 +2570,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleConditionalExpressionColon() {
     Expression then = popForValue();
-    typePromoter.enterElse();
+    typePromoter?.enterElse();
     push(then);
     super.handleConditionalExpressionColon();
   }
@@ -2541,7 +2581,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression elseExpression = popForValue();
     Expression thenExpression = pop();
     Expression condition = pop();
-    typePromoter.exitConditional();
+    typePromoter?.exitConditional();
     push(forest.conditionalExpression(
         condition, question, thenExpression, colon, elseExpression));
   }
@@ -2631,7 +2671,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
-        _typeInferrer.inferMetadata(this, annotations);
+        _typeInferrer?.inferMetadata(this, annotations);
       }
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
@@ -3017,7 +3057,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int charLength: noLength}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
-    if (!library.loader.target.legacyMode || !isRedirectingFactory(target)) {
+    if (!legacyMode || !isRedirectingFactory(target)) {
       List<TypeParameter> typeParameters = target.function.typeParameters;
       if (target is Constructor) {
         assert(!target.enclosingClass.isAbstract);
@@ -3120,7 +3160,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (types.length == 0) {
         // Expected `typeParameters.length` type arguments, but none given, so
         // we fill in dynamic in legacy mode, and use type inference otherwise.
-        if (library.loader.target.legacyMode) {
+        if (legacyMode) {
           for (int i = 0; i < typeParameters.length; i++) {
             types.add(const DynamicType());
           }
@@ -3321,7 +3361,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         Expression invocation;
 
-        if (library.loader.target.legacyMode && isRedirectingFactory(target)) {
+        if (legacyMode && isRedirectingFactory(target)) {
           // In legacy mode the checks that are done in [buildStaticInvocation]
           // on the initial target of a redirecting factory invocation should
           // be skipped. So we build the invocation nodes directly here without
@@ -3674,8 +3714,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable =
           new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
       TypePromotionFact fact =
-          typePromoter.getFactForAccess(variable, functionNestingLevel);
-      TypePromotionScope scope = typePromoter.currentScope;
+          typePromoter?.getFactForAccess(variable, functionNestingLevel);
+      TypePromotionScope scope = typePromoter?.currentScope;
       syntheticAssignment = lvalue.buildAssignment(
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
@@ -4101,7 +4141,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     KernelTypeVariableBuilder variable = new KernelTypeVariableBuilder(
         name.name, library, name.charOffset, null);
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, annotations);
+      _typeInferrer?.inferMetadata(this, annotations);
       for (Expression annotation in annotations) {
         variable.parameter.addAnnotation(annotation);
       }
@@ -4136,7 +4176,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // Peek to leave type parameters on top of stack.
     List<KernelTypeVariableBuilder> typeVariables = peek();
 
-    if (!library.loader.target.legacyMode) {
+    if (!legacyMode) {
       List<KernelTypeBuilder> calculatedBounds = calculateBounds(
           typeVariables,
           library.loader.target.dynamicType,
@@ -4209,8 +4249,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     int charOffset = forest.readOffset(expression);
     Severity severity = message.code.severity;
     if (severity == Severity.error ||
-        severity == Severity.errorLegacyWarning &&
-            !library.loader.target.legacyMode) {
+        severity == Severity.errorLegacyWarning && !legacyMode) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, charOffset, length),
           context: context);
@@ -4392,7 +4431,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               ..fileOffset = assignmentOffset))
           ..fileOffset = assignmentOffset;
       } else {
-        if (!library.loader.target.legacyMode &&
+        if (!legacyMode &&
             formalType != null &&
             !typeEnvironment.isSubtypeOf(formalType, builder.field.type)) {
           library.addProblem(
@@ -4503,9 +4542,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             unresolved.fileUri,
             unresolved.charOffset,
             typeParameter.name.length);
-        if (!nonInstanceAccessIsError &&
-            !isConstant &&
-            library.loader.target.legacyMode) {
+        if (!nonInstanceAccessIsError && !isConstant && legacyMode) {
           // This is a warning in legacy mode.
           addProblem(message.messageObject, message.charOffset, message.length);
           suppressMessage = true;
