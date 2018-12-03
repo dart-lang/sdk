@@ -312,7 +312,8 @@ void _writeField(IndentableStringBuffer buffer, Field field) {
 }
 
 void _writeFromJsonCode(
-    IndentableStringBuffer buffer, TypeBase type, String valueCode) {
+    IndentableStringBuffer buffer, TypeBase type, String valueCode,
+    {bool allowsNull}) {
   type = resolveTypeAlias(type);
 
   if (_isSimpleType(type)) {
@@ -324,18 +325,20 @@ void _writeFromJsonCode(
   } else if (type is ArrayType) {
     // Lists need to be mapped so we can recursively call (they may need fromJson).
     buffer.write("$valueCode?.map((item) => ");
-    _writeFromJsonCode(buffer, type.elementType, 'item');
+    _writeFromJsonCode(buffer, type.elementType, 'item',
+        allowsNull: allowsNull);
     buffer
         .write(')?.cast<${type.elementType.dartTypeWithTypeArgs}>()?.toList()');
   } else if (type is UnionType) {
-    _writeFromJsonCodeForUnion(buffer, type, valueCode);
+    _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
     buffer.write("$valueCode");
   }
 }
 
 void _writeFromJsonCodeForUnion(
-    IndentableStringBuffer buffer, UnionType union, String valueCode) {
+    IndentableStringBuffer buffer, UnionType union, String valueCode,
+    {bool allowsNull}) {
   // Write a check against each type, eg.:
   // x is y ? new Either.tx(x) : (...)
   var hasIncompleteCondition = false;
@@ -352,7 +355,8 @@ void _writeFromJsonCodeForUnion(
 
     // The code to construct a value with this "side" of the union.
     buffer.write('new ${union.dartTypeWithTypeArgs}.t${i + 1}(');
-    _writeFromJsonCode(buffer, type, valueCode); // Call recursively!
+    _writeFromJsonCode(buffer, type, valueCode,
+        allowsNull: allowsNull); // Call recursively!
     buffer.write(')');
 
     // If we output the type condition at the top, prepare for the next condition.
@@ -367,6 +371,10 @@ void _writeFromJsonCodeForUnion(
   // Fill the final parens with a throw because if we fell through all of the
   // cases then the value we had didn't match any of the types in the union.
   if (hasIncompleteCondition) {
+    if (allowsNull) {
+      buffer.write('$valueCode == null ? null : (');
+      unclosedParens++;
+    }
     buffer.write(
         "throw '''\${$valueCode} was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'''");
   }
@@ -382,7 +390,8 @@ void _writeFromJsonConstructor(
     ..indent();
   for (final field in allFields) {
     buffer.writeIndented('final ${field.name} = ');
-    _writeFromJsonCode(buffer, field.type, "json['${field.name}']");
+    _writeFromJsonCode(buffer, field.type, "json['${field.name}']",
+        allowsNull: field.allowsNull || field.allowsUndefined);
     buffer.writeln(';');
   }
   buffer

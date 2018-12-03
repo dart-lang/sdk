@@ -109,6 +109,18 @@ main() {
       expect(message.jsonrpc, "test");
       expect(message.method, Method.shutdown);
     });
+
+    test('parses JSON with nulls for unions that allow null', () {
+      final input = '{"id":null,"jsonrpc":"test"}';
+      final message = ResponseMessage.fromJson(jsonDecode(input));
+      expect(message.id, isNull);
+    });
+
+    test('parses JSON with nulls for unions that allow null', () {
+      final input = '{"method":"test","jsonrpc":"test"}';
+      final message = NotificationMessage.fromJson(jsonDecode(input));
+      expect(message.params, isNull);
+    });
   });
 
   test('objects with lists can round-trip through to json and back', () {

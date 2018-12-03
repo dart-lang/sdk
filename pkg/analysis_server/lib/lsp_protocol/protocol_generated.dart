@@ -1370,7 +1370,9 @@ class CompletionItem implements ToJsonable {
                 json['documentation'] != null
                     ? MarkupContent.fromJson(json['documentation'])
                     : null)
-            : (throw '''${json['documentation']} was not one of (String, MarkupContent)'''));
+            : (json['documentation'] == null
+                ? null
+                : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
     final deprecated = json['deprecated'];
     final preselect = json['preselect'];
     final sortText = json['sortText'];
@@ -5524,7 +5526,9 @@ class ParameterInformation implements ToJsonable {
                 json['documentation'] != null
                     ? MarkupContent.fromJson(json['documentation'])
                     : null)
-            : (throw '''${json['documentation']} was not one of (String, MarkupContent)'''));
+            : (json['documentation'] == null
+                ? null
+                : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
     return new ParameterInformation(label, documentation);
   }
 
@@ -6513,7 +6517,9 @@ class ResponseMessage implements Message, ToJsonable {
         ? new Either2<num, String>.t1(json['id'])
         : (json['id'] is String
             ? new Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (num, String)'''));
+            : (json['id'] == null
+                ? null
+                : (throw '''${json['id']} was not one of (num, String)''')));
     final result = json['result'];
     final error = json['error'] != null
         ? ResponseError.fromJson<dynamic>(json['error'])
@@ -6657,7 +6663,9 @@ class ServerCapabilities implements ToJsonable {
         : (json['textDocumentSync'] is num
             ? new Either2<TextDocumentSyncOptions, num>.t2(
                 json['textDocumentSync'])
-            : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, num)'''));
+            : (json['textDocumentSync'] == null
+                ? null
+                : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, num)''')));
     final hoverProvider = json['hoverProvider'];
     final completionProvider = json['completionProvider'] != null
         ? CompletionOptions.fromJson(json['completionProvider'])
@@ -6683,7 +6691,9 @@ class ServerCapabilities implements ToJsonable {
                 json['codeActionProvider'] != null
                     ? CodeActionOptions.fromJson(json['codeActionProvider'])
                     : null)
-            : (throw '''${json['codeActionProvider']} was not one of (bool, CodeActionOptions)'''));
+            : (json['codeActionProvider'] == null
+                ? null
+                : (throw '''${json['codeActionProvider']} was not one of (bool, CodeActionOptions)''')));
     final codeLensProvider = json['codeLensProvider'] != null
         ? CodeLensOptions.fromJson(json['codeLensProvider'])
         : null;
@@ -6701,7 +6711,9 @@ class ServerCapabilities implements ToJsonable {
             ? new Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
                 ? RenameOptions.fromJson(json['renameProvider'])
                 : null)
-            : (throw '''${json['renameProvider']} was not one of (bool, RenameOptions)'''));
+            : (json['renameProvider'] == null
+                ? null
+                : (throw '''${json['renameProvider']} was not one of (bool, RenameOptions)''')));
     final documentLinkProvider = json['documentLinkProvider'] != null
         ? DocumentLinkOptions.fromJson(json['documentLinkProvider'])
         : null;
@@ -7046,7 +7058,9 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
         ? new Either2<String, bool>.t1(json['changeNotifications'])
         : (json['changeNotifications'] is bool
             ? new Either2<String, bool>.t2(json['changeNotifications'])
-            : (throw '''${json['changeNotifications']} was not one of (String, bool)'''));
+            : (json['changeNotifications'] == null
+                ? null
+                : (throw '''${json['changeNotifications']} was not one of (String, bool)''')));
     return new ServerCapabilitiesWorkspaceFolders(
         supported, changeNotifications);
   }
@@ -7444,7 +7458,9 @@ class SignatureInformation implements ToJsonable {
                 json['documentation'] != null
                     ? MarkupContent.fromJson(json['documentation'])
                     : null)
-            : (throw '''${json['documentation']} was not one of (String, MarkupContent)'''));
+            : (json['documentation'] == null
+                ? null
+                : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
     final parameters = json['parameters']
         ?.map(
             (item) => item != null ? ParameterInformation.fromJson(item) : null)
@@ -10917,10 +10933,10 @@ class WorkspaceEdit implements ToJsonable {
                     : (CreateFile.canParse(item)
                         ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(
                             item != null ? CreateFile.fromJson(item) : null)
-                        : (RenameFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)''')))))
+                        : (RenameFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
-            : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)'''));
+            : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
     return new WorkspaceEdit(changes, documentChanges);
   }
 
