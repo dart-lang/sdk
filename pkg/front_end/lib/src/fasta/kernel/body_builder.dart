@@ -590,7 +590,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
-          if (formal.hasThis) {
+          if (formal.isInitializingFormal) {
             Initializer initializer;
             if (member.isExternal) {
               initializer = buildInvalidInitializer(
@@ -994,7 +994,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     for (int i = 0; i < parameters.positionalParameters.length; i++) {
       VariableDeclaration formal = parameters.positionalParameters[i];
       formals[i] = new KernelFormalParameterBuilder(
-          null, 0, null, formal.name, false, library, formal.fileOffset)
+          null, 0, null, formal.name, library, formal.fileOffset)
         ..declaration = formal;
     }
     enterLocalScope(
@@ -2612,7 +2612,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       parameter = new KernelFormalParameterBuilder(null, modifiers,
-          type?.builder, name?.name, false, library, offsetForToken(nameToken));
+          type?.builder, name?.name, library, offsetForToken(nameToken));
     }
     VariableDeclaration variable =
         parameter.build(library, functionNestingLevel);

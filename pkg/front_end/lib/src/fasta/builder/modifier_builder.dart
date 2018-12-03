@@ -11,6 +11,8 @@ import '../modifier.dart'
         covariantMask,
         externalMask,
         finalMask,
+        hasInitializerMask,
+        initializingFormalMask,
         namedMixinApplicationMask,
         staticMask;
 
@@ -43,6 +45,10 @@ abstract class ModifierBuilder extends Declaration {
   bool get isNamedMixinApplication {
     return (modifiers & namedMixinApplicationMask) != 0;
   }
+
+  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
+
+  bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
   bool get isClassMember => false;
 

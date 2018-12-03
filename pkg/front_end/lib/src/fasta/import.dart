@@ -80,7 +80,7 @@ class Import {
     });
     if (prefixBuilder != null) {
       Declaration existing =
-          importer.addBuilder(prefix, prefixBuilder, charOffset);
+          importer.addBuilder(prefix, prefixBuilder, prefixCharOffset);
       if (existing == prefixBuilder) {
         importer.addToScope(prefix, prefixBuilder, prefixCharOffset, true);
       }

@@ -145,8 +145,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         wasHandled: wasHandled, context: context);
   }
 
-  void prepareTopLevelInference() {}
-
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't
   /// declared. The [scope] should be used for that. This method is used to

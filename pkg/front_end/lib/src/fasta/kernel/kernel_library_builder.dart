@@ -91,6 +91,8 @@ import '../loader.dart' show Loader;
 import '../modifier.dart'
     show
         abstractMask,
+        hasInitializerMask,
+        initializingFormalMask,
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
@@ -134,6 +136,7 @@ import 'kernel_builder.dart'
         LoadLibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NameIterator,
         PrefixBuilder,
         ProcedureBuilder,
         QualifiedName,
@@ -591,11 +594,14 @@ class KernelLibraryBuilder
       int charOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
-    var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
-        charOffset, initializerTokenForInference, hasInitializer);
-    addBuilder(name, builder, charOffset);
+    if (hasInitializer) {
+      modifiers |= hasInitializerMask;
+    }
+    KernelFieldBuilder field = new KernelFieldBuilder(metadata, type, name,
+        modifiers, this, charOffset, initializerTokenForInference);
+    addBuilder(name, field, charOffset);
     loader.target.metadataCollector
-        ?.setDocumentationComment(builder.target, documentationComment);
+        ?.setDocumentationComment(field.target, documentationComment);
   }
 
   void addConstructor(
@@ -814,8 +820,12 @@ class KernelLibraryBuilder
       String name,
       bool hasThis,
       int charOffset) {
-    return new KernelFormalParameterBuilder(
-        metadata, modifiers, type, name, hasThis, this, charOffset);
+    if (hasThis) {
+      modifiers |= initializingFormalMask;
+    }
+    KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
+        metadata, modifiers, type, name, this, charOffset);
+    return formal;
   }
 
   KernelTypeVariableBuilder addTypeVariable(
@@ -1308,7 +1318,10 @@ class KernelLibraryBuilder
   @override
   void applyPatches() {
     if (!isPatch) return;
-    origin.forEach((String name, Declaration member) {
+    NameIterator originDeclarations = origin.nameIterator;
+    while (originDeclarations.moveNext()) {
+      String name = originDeclarations.name;
+      Declaration member = originDeclarations.current;
       bool isSetter = member.isSetter;
       Declaration patch = isSetter ? scope.setters[name] : scope.local[name];
       if (patch != null) {
@@ -1326,8 +1339,11 @@ class KernelLibraryBuilder
           scopeBuilder.addMember(name, member);
         }
       }
-    });
-    forEach((String name, Declaration member) {
+    }
+    NameIterator patchDeclarations = nameIterator;
+    while (patchDeclarations.moveNext()) {
+      String name = patchDeclarations.name;
+      Declaration member = patchDeclarations.current;
       // We need to inject all non-patch members into the origin library. This
       // should only apply to private members.
       if (member.isPatch) {
@@ -1337,15 +1353,16 @@ class KernelLibraryBuilder
       } else {
         origin.exportMemberFromPatch(name, member);
       }
-    });
+    }
   }
 
   int finishPatchMethods() {
     if (!isPatch) return 0;
     int count = 0;
-    forEach((String name, Declaration member) {
-      count += member.finishPatch();
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      count += iterator.current.finishPatch();
+    }
     return count;
   }
 
@@ -1662,7 +1679,9 @@ class KernelLibraryBuilder
 
   void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
     if (loader.target.legacyMode) return;
-    forEach((String name, Declaration declaration) {
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Declaration declaration = iterator.current;
       if (declaration is KernelFieldBuilder) {
         checkBoundsInField(declaration.target, typeEnvironment);
       } else if (declaration is KernelProcedureBuilder) {
@@ -1670,8 +1689,7 @@ class KernelLibraryBuilder
       } else if (declaration is KernelClassBuilder) {
         declaration.checkBoundsInOutline(typeEnvironment);
       }
-    });
-
+    }
     inferredTypes.clear();
   }
 }
