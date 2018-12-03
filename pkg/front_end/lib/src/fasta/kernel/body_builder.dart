@@ -535,7 +535,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // Error reporting and recovery is handled elsewhere.
         } else {
           field.initializer = initializer;
-          _typeInferrer.inferFieldInitializer(
+          _typeInferrer?.inferFieldInitializer(
               this,
               field.hasTypeInferredFromInitializer ? null : field.builtType,
               initializer);
@@ -554,7 +554,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     List<Expression> annotations = pop();
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, annotations);
+      _typeInferrer?.inferMetadata(this, annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       for (int i = 0; i < annotations.length; i++) {
@@ -684,7 +684,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer.inferInitializer(this, initializer);
+    _typeInferrer?.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, this);
     } else {
@@ -709,7 +709,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void finishFunction(List<Expression> annotations, FormalParameters formals,
       AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    typePromoter.finished();
+    typePromoter?.finished();
 
     KernelFunctionBuilder builder = member;
     if (formals?.parameters != null) {
@@ -723,13 +723,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                   // https://github.com/dart-lang/sdk/issues/32289
                   null);
           realParameter.initializer = initializer..parent = realParameter;
-          _typeInferrer.inferParameterInitializer(
+          _typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
         }
       }
     }
 
-    _typeInferrer.inferFunctionBody(
+    _typeInferrer?.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
 
     // For async, async*, and sync* functions with declared return types, we
@@ -832,7 +832,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Member target = builder.target;
-    _typeInferrer.inferMetadata(this, annotations);
+    _typeInferrer?.inferMetadata(this, annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -971,7 +971,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
-    _typeInferrer.inferMetadata(this, expressions);
+    _typeInferrer?.inferMetadata(this, expressions);
 
     // The invocation of [resolveRedirectingFactoryTargets] below may change the
     // root nodes of the annotation expressions.  We need to have a parent of
@@ -1061,7 +1061,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     ReturnJudgment fakeReturn = new ReturnJudgment(null, expression);
 
-    _typeInferrer.inferFunctionBody(
+    _typeInferrer?.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
@@ -1287,7 +1287,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void beginBinaryExpression(Token token) {
     if (optional("&&", token) || optional("||", token)) {
       Expression lhs = popForValue();
-      typePromoter.enterLogicalExpression(lhs, token.stringValue);
+      typePromoter?.enterLogicalExpression(lhs, token.stringValue);
       push(lhs);
     }
   }
@@ -1341,7 +1341,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression receiver = pop();
     Expression logicalExpression =
         forest.logicalExpression(receiver, token, argument);
-    typePromoter.exitLogicalExpression(argument, logicalExpression);
+    typePromoter?.exitLogicalExpression(argument, logicalExpression);
     push(logicalExpression);
   }
 
@@ -1709,9 +1709,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
       // wasn't the case, we could always use [VariableUseGenerator].
       if (declaration.isFinal) {
-        Object fact = typePromoter.getFactForAccess(
+        Object fact = typePromoter?.getFactForAccess(
             declaration.target, functionNestingLevel);
-        Object scope = typePromoter.currentScope;
+        Object scope = typePromoter?.currentScope;
         return new ReadOnlyAccessGenerator(
             this,
             token,
@@ -1946,7 +1946,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endThenStatement(Token token) {
-    typePromoter.enterElse();
+    typePromoter?.enterElse();
     super.endThenStatement(token);
   }
 
@@ -1955,7 +1955,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement elsePart = popStatementIfNotNull(elseToken);
     Statement thenPart = popStatement();
     Expression condition = pop();
-    typePromoter.exitConditional();
+    typePromoter?.exitConditional();
     push(forest.ifStatement(ifToken, condition, thenPart, elseToken, elsePart));
   }
 
@@ -2544,7 +2544,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         forest.isExpression(operand, isOperator, not, type);
     library.checkBoundsInType(type, typeEnvironment, isOperator.charOffset);
     if (operand is VariableGet) {
-      typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
+      typePromoter?.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
     if (constantContext != ConstantContext.none) {
@@ -2562,7 +2562,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginConditionalExpression(Token question) {
     Expression condition = popForValue();
-    typePromoter.enterThen(condition);
+    typePromoter?.enterThen(condition);
     push(condition);
     super.beginConditionalExpression(question);
   }
@@ -2570,7 +2570,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleConditionalExpressionColon() {
     Expression then = popForValue();
-    typePromoter.enterElse();
+    typePromoter?.enterElse();
     push(then);
     super.handleConditionalExpressionColon();
   }
@@ -2581,7 +2581,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression elseExpression = popForValue();
     Expression thenExpression = pop();
     Expression condition = pop();
-    typePromoter.exitConditional();
+    typePromoter?.exitConditional();
     push(forest.conditionalExpression(
         condition, question, thenExpression, colon, elseExpression));
   }
@@ -2671,7 +2671,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
-        _typeInferrer.inferMetadata(this, annotations);
+        _typeInferrer?.inferMetadata(this, annotations);
       }
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
@@ -3714,8 +3714,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable =
           new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
       TypePromotionFact fact =
-          typePromoter.getFactForAccess(variable, functionNestingLevel);
-      TypePromotionScope scope = typePromoter.currentScope;
+          typePromoter?.getFactForAccess(variable, functionNestingLevel);
+      TypePromotionScope scope = typePromoter?.currentScope;
       syntheticAssignment = lvalue.buildAssignment(
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
@@ -4141,7 +4141,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     KernelTypeVariableBuilder variable = new KernelTypeVariableBuilder(
         name.name, library, name.charOffset, null);
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, annotations);
+      _typeInferrer?.inferMetadata(this, annotations);
       for (Expression annotation in annotations) {
         variable.parameter.addAnnotation(annotation);
       }

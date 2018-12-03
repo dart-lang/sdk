@@ -44,6 +44,6 @@ class KernelBodyBuilder extends BodyBuilder {
 
   @override
   void enterThenForTypePromotion(Expression condition) {
-    typePromoter.enterThen(condition);
+    typePromoter?.enterThen(condition);
   }
 }

@@ -457,9 +457,6 @@ abstract class TypeInferrer {
       InterfaceType thisType,
       KernelLibraryBuilder library) = ShadowTypeInferrer.private;
 
-  factory TypeInferrer.disabled(TypeSchemaEnvironment typeSchemaEnvironment) =
-      TypeInferrerDisabled.private;
-
   KernelLibraryBuilder get library;
 
   /// Gets the [TypePromoter] that can be used to perform type promotion within
@@ -496,50 +493,6 @@ abstract class TypeInferrer {
   /// expression.
   void inferParameterInitializer(InferenceHelper helper,
       kernel.Expression initializer, DartType declaredType);
-}
-
-/// Implementation of [TypeInferrer] which doesn't do any type inference.
-///
-/// This is intended for profiling, to ensure that type inference and type
-/// promotion do not slow down compilation too much.
-class TypeInferrerDisabled extends TypeInferrer {
-  @override
-  final typePromoter = new TypePromoter.disabled();
-
-  @override
-  final TypeSchemaEnvironment typeSchemaEnvironment;
-
-  TypeInferrerDisabled.private(this.typeSchemaEnvironment)
-      : super.private(null);
-
-  @override
-  KernelLibraryBuilder get library => null;
-
-  @override
-  Uri get uri => null;
-
-  @override
-  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
-      kernel.Expression initializer) {}
-
-  @override
-  void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body) {}
-
-  @override
-  void inferInitializer(
-      InferenceHelper helper, kernel.Initializer initializer) {}
-
-  @override
-  void inferMetadata(
-      InferenceHelper helper, List<kernel.Expression> annotations) {}
-
-  @override
-  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {}
-
-  @override
-  void inferParameterInitializer(InferenceHelper helper,
-      kernel.Expression initializer, DartType declaredType) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].

@@ -231,10 +231,6 @@ abstract class TypeInferenceEngine {
 
   TypeInferenceEngine(this.instrumentation, this.legacyMode);
 
-  /// Creates a disabled type inferrer (intended for debugging and profiling
-  /// only).
-  TypeInferrer createDisabledTypeInferrer();
-
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(

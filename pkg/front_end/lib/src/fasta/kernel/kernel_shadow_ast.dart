@@ -1560,10 +1560,6 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
       : super(instrumentation, legacyMode);
 
   @override
-  TypeInferrer createDisabledTypeInferrer() =>
-      new TypeInferrer.disabled(typeSchemaEnvironment);
-
-  @override
   ShadowTypeInferrer createLocalTypeInferrer(
       Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
     return new TypeInferrer(this, uri, false, thisType, library);
