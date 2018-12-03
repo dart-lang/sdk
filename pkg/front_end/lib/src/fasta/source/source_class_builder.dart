@@ -26,7 +26,6 @@ import '../kernel/kernel_builder.dart'
     show
         ConstructorReferenceBuilder,
         Declaration,
-        FieldBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
@@ -242,10 +241,9 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructorScopeBuilder.addMember(name, memberBuilder);
   }
 
-  @override
   void prepareTopLevelInference() {
     scope.forEach((String name, Declaration declaration) {
-      if (declaration is FieldBuilder) {
+      if (declaration is KernelFieldBuilder) {
         declaration.prepareTopLevelInference();
       }
     });

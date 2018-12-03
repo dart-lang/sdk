@@ -37,16 +37,6 @@ import '../../base/instrumentation.dart'
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
-import '../builder/builder.dart'
-    show
-        ClassBuilder,
-        Declaration,
-        EnumBuilder,
-        FieldBuilder,
-        LibraryBuilder,
-        NamedTypeBuilder,
-        TypeBuilder;
-
 import '../export.dart' show Export;
 
 import '../import.dart' show Import;
@@ -81,7 +71,16 @@ import '../fasta_codes.dart' as fasta_codes;
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
 
-import '../kernel/kernel_builder.dart' show KernelProcedureBuilder;
+import '../kernel/kernel_builder.dart'
+    show
+        ClassBuilder,
+        Declaration,
+        EnumBuilder,
+        KernelFieldBuilder,
+        KernelProcedureBuilder,
+        LibraryBuilder,
+        NamedTypeBuilder,
+        TypeBuilder;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -929,7 +928,7 @@ class SourceLoader<L> extends Loader<L> {
         Iterator<Declaration> iterator = library.iterator;
         while (iterator.moveNext()) {
           Declaration member = iterator.current;
-          if (member is FieldBuilder) {
+          if (member is KernelFieldBuilder) {
             member.prepareTopLevelInference();
           }
         }

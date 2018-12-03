@@ -82,7 +82,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   Field get target => field;
 
-  @override
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
     var typeInferrer = library.loader.typeInferenceEngine
