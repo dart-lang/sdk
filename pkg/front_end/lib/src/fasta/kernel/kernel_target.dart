@@ -233,11 +233,13 @@ class KernelTarget extends TargetImplementation {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        library.forEach((String name, Declaration member) {
+        Iterator<Declaration> iterator = library.iterator;
+        while (iterator.moveNext()) {
+          Declaration member = iterator.current;
           if (member is SourceClassBuilder && !member.isPatch) {
             result.add(member);
           }
-        });
+        }
       }
     });
     return result;
@@ -385,24 +387,23 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        library.forEach((String name, Declaration declaration) {
-          while (declaration != null) {
-            if (declaration is SourceClassBuilder) {
-              Class cls = declaration.target;
-              if (cls != objectClass) {
-                cls.supertype ??= objectClass.asRawSupertype;
-                declaration.supertype ??=
-                    new KernelNamedTypeBuilder("Object", null)
-                      ..bind(objectClassBuilder);
-              }
-              if (declaration.isMixinApplication) {
-                cls.mixedInType = declaration.mixedInType.buildMixedInType(
-                    library, declaration.charOffset, declaration.fileUri);
-              }
+        Iterator<Declaration> iterator = library.iterator;
+        while (iterator.moveNext()) {
+          Declaration declaration = iterator.current;
+          if (declaration is SourceClassBuilder) {
+            Class cls = declaration.target;
+            if (cls != objectClass) {
+              cls.supertype ??= objectClass.asRawSupertype;
+              declaration.supertype ??=
+                  new KernelNamedTypeBuilder("Object", null)
+                    ..bind(objectClassBuilder);
             }
-            declaration = declaration.next;
+            if (declaration.isMixinApplication) {
+              cls.mixedInType = declaration.mixedInType.buildMixedInType(
+                  library, declaration.charOffset, declaration.fileUri);
+            }
           }
-        });
+        }
       }
     });
     ticker.logMs("Installed Object as implicit superclass");

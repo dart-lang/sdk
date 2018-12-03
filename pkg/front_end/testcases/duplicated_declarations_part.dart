@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part "duplicated_declarations_part.dart";
+part of "duplicated_declarations.dart";
 
 import 'duplicated_declarations_lib.dart' as Typedef;
 
@@ -18,22 +18,22 @@ typedef void OldTypedef();
 
 typedef Object OldTypedef();
 
-var field = "1st";
+var field = "3rd";
 
-var field = "2nd";
+var field = 4;
+
+var field = 5.0;
 
 main() {
-  "1st";
+  "3rd";
 }
 
 main() {
-  "2nd";
+  "4th";
 }
 
-foo() {
-  main();
-  print(field);
-  C.s();
+main() {
+  "5th";
 }
 
 class C {
@@ -62,9 +62,8 @@ class C {
   static f() => s;
 }
 
-class Sub extends C {
-  Sub() : super(null);
-  m() => super.m();
+class C {
+  C._();
 }
 
 class C {
@@ -84,24 +83,6 @@ enum Enum {
   c,
 }
 
-enum AnotherEnum {
+enum Enum {
   a,
-  b,
-  c,
-  _name,
-  index,
-  toString,
-  values,
-}
-
-useAnotherEnum() {
-  <String, Object>{
-    "AnotherEnum.a": AnotherEnum.a,
-    "AnotherEnum.b": AnotherEnum.b,
-    "AnotherEnum.c": AnotherEnum.c,
-    "AnotherEnum._name": AnotherEnum._name,
-    "AnotherEnum.index": AnotherEnum.index,
-    "AnotherEnum.toString": AnotherEnum.toString,
-    "AnotherEnum.values": AnotherEnum.values,
-  };
 }

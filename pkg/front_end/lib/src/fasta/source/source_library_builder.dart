@@ -23,6 +23,7 @@ import '../builder/builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NameIterator,
         PrefixBuilder,
         ProcedureBuilder,
         QualifiedName,
@@ -72,7 +73,7 @@ import '../import.dart' show Import;
 
 import '../configuration.dart' show Configuration;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unexpected, unhandled;
 
 import 'source_loader.dart' show SourceLoader;
 
@@ -515,9 +516,16 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             ? currentDeclaration.setters
             : currentDeclaration.members);
     Declaration existing = members[name];
+    if (declaration.next != null && declaration.next != existing) {
+      unexpected(
+          "${declaration.next.fileUri}@${declaration.next.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
     declaration.next = existing;
     if (declaration is PrefixBuilder && existing is PrefixBuilder) {
-      assert(existing.next == null);
+      assert(existing.next is! PrefixBuilder);
       Declaration deferred;
       Declaration other;
       if (declaration.deferred) {
@@ -552,7 +560,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         }
       }
       addProblem(templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset, fullName.length, fileUri,
+          charOffset, fullName.length, declaration.fileUri,
           context: <LocatedMessage>[
             templateDuplicatedDeclarationCause
                 .withArguments(fullName)
@@ -587,12 +595,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   R build(LibraryBuilder coreLibrary) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
-    forEach((String name, Declaration declaration) {
-      do {
-        buildBuilder(declaration, coreLibrary);
-        declaration = declaration.next;
-      } while (declaration != null);
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      buildBuilder(iterator.current, coreLibrary);
+    }
     for (List list in implementationBuilders) {
       String name = list[0];
       Declaration declaration = list[1];
@@ -720,15 +726,47 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     }
     part.validatePart(this, usedParts);
-    part.forEach((String name, Declaration declaration) {
+    NameIterator partDeclarations = part.nameIterator;
+    while (partDeclarations.moveNext()) {
+      String name = partDeclarations.name;
+      Declaration declaration = partDeclarations.current;
+
       if (declaration.next != null) {
-        // TODO(ahe): This shouldn't be necessary as setters have been added to
-        // their own scope.
-        assert(declaration.next.next == null);
-        addBuilder(name, declaration.next, declaration.next.charOffset);
+        List<Declaration> duplicated = <Declaration>[];
+        while (declaration.next != null) {
+          duplicated.add(declaration);
+          partDeclarations.moveNext();
+          declaration = partDeclarations.current;
+        }
+        duplicated.add(declaration);
+        // Handle duplicated declarations in the part.
+        //
+        // Duplicated declarations are handled by creating a linked list using
+        // the `next` field. This is preferred over making all scope entries be
+        // a `List<Declaration>`.
+        //
+        // We maintain the linked list so that the last entry is easy to
+        // recognize (it's `next` field is null). This means that it is
+        // reversed with respect to source code order. Since kernel doesn't
+        // allow duplicated declarations, we ensure that we only add the first
+        // declaration to the kernel tree.
+        //
+        // Since the duplicated declarations are stored in reverse order, we
+        // iterate over them in reverse order as this is simpler and normally
+        // not a problem. However, in this case we need to call [addBuilder] in
+        // source order as it would otherwise create cycles.
+        //
+        // We also need to be careful preserving the order of the links. The
+        // part library still keeps these declarations in its scope so that
+        // DietListener can find them.
+        for (int i = duplicated.length; i > 0; i--) {
+          Declaration declaration = duplicated[i - 1];
+          addBuilder(name, declaration, declaration.charOffset);
+        }
+      } else {
+        addBuilder(name, declaration, declaration.charOffset);
       }
-      addBuilder(name, declaration, declaration.charOffset);
-    });
+    }
     types.addAll(part.types);
     constructorReferences.addAll(part.constructorReferences);
     part.partOfLibrary = this;
@@ -737,7 +775,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void buildInitialScopes() {
-    forEach(addToExportScope);
+    NameIterator iterator = nameIterator;
+    while (iterator.moveNext()) {
+      addToExportScope(iterator.name, iterator.current);
+    }
   }
 
   void addImportsToScope() {
@@ -798,9 +839,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   int resolveConstructors(_) {
     int count = 0;
-    forEach((String name, Declaration member) {
-      count += member.resolveConstructors(this);
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      count += iterator.current.resolveConstructors(this);
+    }
     return count;
   }
 
@@ -819,9 +861,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
-    forEach((String name, Declaration member) {
-      member.instrumentTopLevelInference(instrumentation);
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      iterator.current.instrumentTopLevelInference(instrumentation);
+    }
   }
 
   @override
