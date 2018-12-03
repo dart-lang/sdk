@@ -262,7 +262,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);

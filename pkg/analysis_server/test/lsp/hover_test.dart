@@ -193,7 +193,7 @@ String abc
     String [[a^bc]];
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);

@@ -25,7 +25,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    await newFile(mainFilePath, content: content);
+    newFile(mainFilePath, content: content);
     await initialize(textDocumentCapabilities: {
       'documentSymbol': {
         'hierarchicalDocumentSymbolSupport': true,
@@ -71,7 +71,7 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    await newFile(mainFilePath, content: content);
+    newFile(mainFilePath, content: content);
     await initialize();
 
     final result = await getDocumentSymbols(mainFileUri.toString());

@@ -77,7 +77,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(contents));
+    newFile(mainFilePath, content: withoutMarkers(contents));
     await initialize();
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 

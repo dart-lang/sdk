@@ -259,7 +259,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final expectedLabel = 'foo(String s, int i)';
     final expectedDoc = 'Does foo.';
 
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initializeSupportingMarkupContent();
     await testSignature(
       content,

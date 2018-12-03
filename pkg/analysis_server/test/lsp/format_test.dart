@@ -125,7 +125,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   print('test');
 }
 ''';
-    await newFile(mainFilePath, content: contents);
+    newFile(mainFilePath, content: contents);
     await initialize();
 
     final formatEdits = await formatDocument(mainFileUri.toString());

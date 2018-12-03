@@ -126,7 +126,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(contents));
+    newFile(mainFilePath, content: withoutMarkers(contents));
     await initialize();
     final res = await getReferences(mainFileUri, positionFromMarker(contents));
 
