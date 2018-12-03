@@ -453,7 +453,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   bool get isEligibleForTopLevelInference {
     if (formals != null) {
       for (var formal in formals) {
-        if (formal.type == null && formal.hasThis) return true;
+        if (formal.type == null && formal.isInitializingFormal) return true;
       }
     }
     return false;
@@ -472,7 +472,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     }
     if (!library.disableTypeInference && isEligibleForTopLevelInference) {
       for (KernelFormalParameterBuilder formal in formals) {
-        if (formal.type == null && formal.hasThis) {
+        if (formal.type == null && formal.isInitializingFormal) {
           formal.declaration.type = null;
         }
       }

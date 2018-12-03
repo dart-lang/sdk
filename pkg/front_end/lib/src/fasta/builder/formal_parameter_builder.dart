@@ -25,13 +25,10 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
 
   final String name;
 
-  /// True if this parameter is on the form `this.name`.
-  final bool hasThis;
-
   FormalParameterKind kind = FormalParameterKind.mandatory;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      this.hasThis, LibraryBuilder compilationUnit, int charOffset)
+      LibraryBuilder compilationUnit, int charOffset)
       : super(compilationUnit, charOffset);
 
   String get debugName => "FormalParameterBuilder";

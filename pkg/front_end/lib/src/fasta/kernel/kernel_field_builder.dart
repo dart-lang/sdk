@@ -33,7 +33,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
   Token initializerTokenForInference;
-  final bool hasInitializer;
 
   KernelFieldBuilder(
       this.metadata,
@@ -42,8 +41,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       int modifiers,
       Declaration compilationUnit,
       int charOffset,
-      this.initializerTokenForInference,
-      this.hasInitializer)
+      this.initializerTokenForInference)
       : field = new ShadowField(null, type == null,
             fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset,

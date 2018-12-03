@@ -91,6 +91,8 @@ import '../loader.dart' show Loader;
 import '../modifier.dart'
     show
         abstractMask,
+        hasInitializerMask,
+        initializingFormalMask,
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
@@ -592,11 +594,14 @@ class KernelLibraryBuilder
       int charOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
-    var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
-        charOffset, initializerTokenForInference, hasInitializer);
-    addBuilder(name, builder, charOffset);
+    if (hasInitializer) {
+      modifiers |= hasInitializerMask;
+    }
+    KernelFieldBuilder field = new KernelFieldBuilder(metadata, type, name,
+        modifiers, this, charOffset, initializerTokenForInference);
+    addBuilder(name, field, charOffset);
     loader.target.metadataCollector
-        ?.setDocumentationComment(builder.target, documentationComment);
+        ?.setDocumentationComment(field.target, documentationComment);
   }
 
   void addConstructor(
@@ -815,8 +820,12 @@ class KernelLibraryBuilder
       String name,
       bool hasThis,
       int charOffset) {
-    return new KernelFormalParameterBuilder(
-        metadata, modifiers, type, name, hasThis, this, charOffset);
+    if (hasThis) {
+      modifiers |= initializingFormalMask;
+    }
+    KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
+        metadata, modifiers, type, name, this, charOffset);
+    return formal;
   }
 
   KernelTypeVariableBuilder addTypeVariable(
