@@ -13789,19 +13789,14 @@ RawArray* ICData::FindFreeIndex(intptr_t* index) const {
   // when searching.
   const intptr_t len = Length() - 1;
   Array& data = Array::Handle(ic_data());
-  *index = len;
   for (intptr_t i = 0; i < len; i++) {
     if (IsSentinelAt(i)) {
       *index = i;
-      break;
+      return data.raw();
     }
   }
-  if (*index < len) {
-    // We've found a free slot.
-    return data.raw();
-  }
   // Append case.
-  ASSERT(*index == len);
+  *index = len;
   ASSERT(*index >= 0);
   // Grow array.
   const intptr_t new_len = data.Length() + TestEntryLength();
