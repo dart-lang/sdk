@@ -5,9 +5,6 @@
 #ifndef RUNTIME_BIN_ISOLATE_DATA_H_
 #define RUNTIME_BIN_ISOLATE_DATA_H_
 
-#include <memory>
-#include <utility>
-
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -43,37 +40,13 @@ class IsolateData {
   char* package_root;
   char* packages_file;
 
-  const std::shared_ptr<uint8_t>& kernel_buffer() const {
-    return kernel_buffer_;
-  }
-
+  const uint8_t* kernel_buffer() const { return kernel_buffer_; }
   intptr_t kernel_buffer_size() const { return kernel_buffer_size_; }
-
-  // Associate the given kernel buffer with this IsolateData without giving it
-  // ownership of the buffer.
-  void SetKernelBufferUnowned(uint8_t* buffer, intptr_t size) {
-    ASSERT(kernel_buffer_.get() == NULL);
-    kernel_buffer_ = std::shared_ptr<uint8_t>(buffer, FreeUnownedKernelBuffer);
+  void set_kernel_buffer(uint8_t* buffer, intptr_t size, bool take_ownership) {
+    ASSERT(kernel_buffer_ == NULL);
+    kernel_buffer_ = buffer;
     kernel_buffer_size_ = size;
-  }
-
-  // Associate the given kernel buffer with this IsolateData and give it
-  // ownership of the buffer. This IsolateData is the first one to own the
-  // buffer.
-  void SetKernelBufferNewlyOwned(uint8_t* buffer, intptr_t size) {
-    ASSERT(kernel_buffer_.get() == NULL);
-    kernel_buffer_ = std::shared_ptr<uint8_t>(buffer, free);
-    kernel_buffer_size_ = size;
-  }
-
-  // Associate the given kernel buffer with this IsolateData and give it
-  // ownership of the buffer. The buffer is already owned by another
-  // IsolateData.
-  void SetKernelBufferAlreadyOwned(std::shared_ptr<uint8_t> buffer,
-                                   intptr_t size) {
-    ASSERT(kernel_buffer_.get() == NULL);
-    kernel_buffer_ = std::move(buffer);
-    kernel_buffer_size_ = size;
+    owns_kernel_buffer_ = take_ownership;
   }
 
   void UpdatePackagesFile(const char* packages_file_) {
@@ -118,10 +91,9 @@ class IsolateData {
   AppSnapshot* app_snapshot_;
   MallocGrowableArray<char*>* dependencies_;
   char* resolved_packages_config_;
-  std::shared_ptr<uint8_t> kernel_buffer_;
+  uint8_t* kernel_buffer_;
   intptr_t kernel_buffer_size_;
-
-  static void FreeUnownedKernelBuffer(uint8_t*) {}
+  bool owns_kernel_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

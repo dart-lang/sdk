@@ -230,10 +230,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
           isolate->spawn_count_monitor(), isolate->spawn_count(),
           utf8_package_root, utf8_package_config, paused.value(), fatal_errors,
           on_exit_port, on_error_port);
-
-      // Since this is a call to Isolate.spawn, copy the parent isolate's code.
-      state->isolate_flags()->copy_parent_code = true;
-
       ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
 
       isolate->IncrementSpawnCount();
@@ -360,9 +356,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     Dart_IsolateFlags* flags = state->isolate_flags();
     flags->enable_asserts = checked.value();
   }
-
-  // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
-  state->isolate_flags()->copy_parent_code = false;
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
 

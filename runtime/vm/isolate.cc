@@ -779,7 +779,6 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = false;
-  api_flags->copy_parent_code = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -790,7 +789,6 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
 #undef INIT_FROM_FIELD
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = should_load_vmservice();
-  api_flags->copy_parent_code = false;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
