@@ -150,7 +150,7 @@ a parameter:
   "jsonrpc": "2.0",
   "method": "streamListen",
   "params": {
-    "streamId": "GC",
+    "streamId": "GC"
   },
   "id": "2"
 }
