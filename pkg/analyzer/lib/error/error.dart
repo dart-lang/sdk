@@ -413,6 +413,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.FACTORY_WITHOUT_BODY,
   ParserErrorCode.FACTORY_WITH_INITIALIZERS,
   ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+  ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
   ParserErrorCode.FINAL_AND_COVARIANT,
   ParserErrorCode.FINAL_AND_VAR,
   ParserErrorCode.FINAL_CLASS,

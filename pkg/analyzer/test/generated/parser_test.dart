@@ -3890,6 +3890,41 @@ class Wrong<T> {
     ]);
   }
 
+  void test_invalidConstructorSuperAssignment() {
+    createParser("C() : super = 42;");
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 5)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1),
+            expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 16, 2),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 16, 2),
+            expectedError(
+                ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, 16, 0),
+          ]);
+  }
+
+  void test_invalidConstructorSuperFieldAssignment() {
+    createParser("C() : super.a = 42;");
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(
+                ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
+                12,
+                1)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1),
+            expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 16, 2),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 16, 2),
+            expectedError(
+                ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, 16, 0),
+          ]);
+  }
+
   void test_invalidHexEscape_invalidDigit() {
     StringLiteral literal = parseExpression("'not \\x0 a'",
         errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 5, 3)]);

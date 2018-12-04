@@ -411,6 +411,7 @@ dartdevc:
       isolate:
         uri: "isolate/isolate.dart"
         patches: "../../pkg/dev_compiler/tool/input_sdk/patch/isolate_patch.dart"
+        supported: false
 
       mirrors:
         uri: "mirrors/mirrors.dart"

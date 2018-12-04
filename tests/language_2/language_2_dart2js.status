@@ -5,8 +5,6 @@
 
 [ $compiler == dart2js ]
 arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-async_star/async_star_await_for_test: RuntimeError
-async_star/async_star_cancel_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bit_operations_test: RuntimeError, OK # non JS number semantics
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351

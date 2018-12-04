@@ -98,6 +98,7 @@
       "third_party/observatory_pub_packages/packages/",
       "tools/sdks/dart-sdk/",
       "pkg/async_helper/",
+      "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/expect/",
       "pkg/front_end/",

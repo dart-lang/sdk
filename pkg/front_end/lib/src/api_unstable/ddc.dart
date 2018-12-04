@@ -56,6 +56,7 @@ Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
     Uri sdkSummary,
     Uri packagesFile,
+    Uri librariesSpecificationUri,
     List<Uri> inputSummaries,
     Target target,
     {FileSystem fileSystem}) async {
@@ -71,6 +72,7 @@ Future<InitializedCompilerState> initializeCompiler(
   if (oldState != null &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
+      oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       listEqual(oldState.options.inputSummaries, inputSummaries)) {
     // Reuse old state.
 
@@ -91,6 +93,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
+    ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance;
 

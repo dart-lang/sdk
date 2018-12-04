@@ -256,6 +256,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
       _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR;
 
+  static const ParserErrorCode FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS =
+      _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS;
+
   static const ParserErrorCode FINAL_AND_COVARIANT = _FINAL_AND_COVARIANT;
 
   static const ParserErrorCode FINAL_AND_VAR = _FINAL_AND_VAR;

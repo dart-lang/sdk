@@ -16,7 +16,7 @@ import '../js_model/js_world.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
-import 'strategies.dart';
+import '../util/sink_adapter.dart';
 import 'serialization.dart';
 
 void serializeGlobalTypeInferenceResults(
@@ -53,6 +53,9 @@ class SerializationTask extends CompilerTask {
 
   void serialize(GlobalTypeInferenceResults results) {
     measureSubtask('serialize dill', () {
+      // TODO(sigmund): remove entirely: we will do this immediately as soon as
+      // we get the component in the kernel/loader.dart task once we refactor
+      // how we apply our modular kernel transformation for super mixin calls.
       compiler.reporter.log('Writing dill to ${compiler.options.outputUri}');
       api.BinaryOutputSink dillOutput =
           compiler.outputProvider.createBinarySink(compiler.options.outputUri);

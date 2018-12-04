@@ -10,7 +10,6 @@ import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import '../../compiler_new.dart' as api;
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
 import '../js_model/js_world.dart';
@@ -18,6 +17,7 @@ import '../options.dart';
 import '../source_file_provider.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
+import '../util/sink_adapter.dart';
 import 'serialization.dart';
 import 'task.dart';
 
@@ -128,21 +128,5 @@ class ObjectsInMemorySerializationStrategy
     DataSource source = new ObjectSource(data, useDataKinds: useDataKinds);
     return deserializeGlobalTypeInferenceResults(options, reporter, environment,
         abstractValueStrategy, component, source);
-  }
-}
-
-class BinaryOutputSinkAdapter implements Sink<List<int>> {
-  api.BinaryOutputSink output;
-
-  BinaryOutputSinkAdapter(this.output);
-
-  @override
-  void add(List<int> data) {
-    output.write(data);
-  }
-
-  @override
-  void close() {
-    output.close();
   }
 }

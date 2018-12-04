@@ -625,12 +625,23 @@ class AstBuilder extends StackListener {
         SimpleIdentifier fieldName;
         Expression left = initializerObject.leftHandSide;
         if (left is PropertyAccess) {
-          var thisExpression = left.target as ThisExpression;
-          thisKeyword = thisExpression.thisKeyword;
-          period = left.operator;
+          Expression target = left.target;
+          if (target is ThisExpression) {
+            thisKeyword = target.thisKeyword;
+            period = left.operator;
+          } else {
+            assert(target is SuperExpression);
+            // Recovery:
+            // Parser has reported FieldInitializedOutsideDeclaringClass.
+          }
           fieldName = left.propertyName;
+        } else if (left is SimpleIdentifier) {
+          fieldName = left;
         } else {
-          fieldName = left as SimpleIdentifier;
+          // Recovery:
+          // Parser has reported invalid assignment.
+          SuperExpression superExpression = left;
+          fieldName = ast.simpleIdentifier(superExpression.superKeyword);
         }
         initializers.add(ast.constructorFieldInitializer(
             thisKeyword,

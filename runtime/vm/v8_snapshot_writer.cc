@@ -75,7 +75,9 @@ void V8SnapshotProfileWriter::AttributeReferenceTo(ObjectId object_id,
 
   ASSERT(reference.offset_or_name >= 0);
   info->edges->Add({
-      reference.reference_type == Reference::kElement ? kElement : kProperty,
+      static_cast<intptr_t>(reference.reference_type == Reference::kElement
+                                ? kElement
+                                : kProperty),
       reference.offset_or_name,
       reference.to_object_id,
   });

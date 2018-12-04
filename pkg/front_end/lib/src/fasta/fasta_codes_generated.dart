@@ -3440,6 +3440,17 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFieldInitializedOutsideDeclaringClass =
+    messageFieldInitializedOutsideDeclaringClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFieldInitializedOutsideDeclaringClass = const MessageCode(
+    "FieldInitializedOutsideDeclaringClass",
+    index: 88,
+    message: r"""A field can only be initialized in it's declaring class""",
+    tip: r"""Try moving the field initialization into the constructor body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializerOutsideConstructor =
     messageFieldInitializerOutsideConstructor;
 
