@@ -290,6 +290,11 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
       final elementDartType = elementType.dartTypeWithTypeArgs;
       buffer.write(
           'listEqual(${field.name}, other.${field.name}, ($elementDartType a, $elementDartType b) => a == b) && ');
+    } else if (type is MapType) {
+      final valueType = type.valueType;
+      final valueDartType = valueType.dartTypeWithTypeArgs;
+      buffer.write(
+          'mapEqual(${field.name}, other.${field.name}, ($valueDartType a, $valueDartType b) => a == b) && ');
     } else {
       buffer.write('${field.name} == other.${field.name} && ');
     }
@@ -323,12 +328,22 @@ void _writeFromJsonCode(
     buffer.write(
         "$valueCode != null ? ${type.dartType}.fromJson${type.typeArgsString}($valueCode) : null");
   } else if (type is ArrayType) {
-    // Lists need to be mapped so we can recursively call (they may need fromJson).
+    // Lists need to be map()'d so we can recursively call writeFromJsonCode
+    // as they may need fromJson on each element.
     buffer.write("$valueCode?.map((item) => ");
     _writeFromJsonCode(buffer, type.elementType, 'item',
         allowsNull: allowsNull);
     buffer
         .write(')?.cast<${type.elementType.dartTypeWithTypeArgs}>()?.toList()');
+  } else if (type is MapType) {
+    // Maps need to be map()'d so we can recursively call writeFromJsonCode as
+    // they may need fromJson on each key or value.
+    buffer.write('$valueCode?.map((key, value) => new MapEntry(');
+    _writeFromJsonCode(buffer, type.indexType, 'key', allowsNull: allowsNull);
+    buffer.write(', ');
+    _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
+    buffer.write(
+        '))?.cast<${type.indexType.dartTypeWithTypeArgs}, ${type.valueType.dartTypeWithTypeArgs}>()');
   } else if (type is UnionType) {
     _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
@@ -546,6 +561,18 @@ void _writeTypeCheckCondition(
           .write(' && ($valueCode.length == 0 || $valueCode.every((item) => ');
       _writeTypeCheckCondition(buffer, 'item', type.elementType);
       buffer.write('))');
+    }
+    buffer.write(')');
+  } else if (type is MapType) {
+    buffer.write('($valueCode is Map');
+    if (resolvedDartType != 'dynamic') {
+      buffer
+        ..write(' && ($valueCode.length == 0 || (')
+        ..write('$valueCode.keys.every((item) => ');
+      _writeTypeCheckCondition(buffer, 'item', type.indexType);
+      buffer..write('&& $valueCode.values.every((item) => ');
+      _writeTypeCheckCondition(buffer, 'item', type.valueType);
+      buffer.write(')))');
     }
     buffer.write(')');
   } else if (type is UnionType) {

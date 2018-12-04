@@ -79,7 +79,7 @@ import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart' show listEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart' show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonEncoder = const JsonEncoder.withIndent('    ');

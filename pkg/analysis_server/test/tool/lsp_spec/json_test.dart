@@ -153,4 +153,21 @@ main() {
     expect(restoredObj.endCharacter, equals(obj.endCharacter));
     expect(restoredObj.kind, equals(obj.kind));
   });
+
+  test('objects with maps can round-trip through to json and back', () {
+    final start = new Position(1, 1);
+    final end = new Position(2, 2);
+    final range = new Range(start, end);
+    final obj = new WorkspaceEdit(<String, List<TextEdit>>{
+      'fileA': [new TextEdit(range, 'text A')],
+      'fileB': [new TextEdit(range, 'text B')]
+    }, null);
+    final String json = jsonEncode(obj);
+    final restoredObj = WorkspaceEdit.fromJson(jsonDecode(json));
+
+    expect(restoredObj.documentChanges, equals(obj.documentChanges));
+    expect(restoredObj.changes, equals(obj.changes));
+    expect(restoredObj.changes.keys, equals(obj.changes.keys));
+    expect(restoredObj.changes.values, equals(obj.changes.values));
+  });
 }

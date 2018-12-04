@@ -16,6 +16,10 @@ bool isNullType(TypeBase t) => t is Type && t.name == 'null';
 
 bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
 
+/// A fabricated field name for indexers in case they result in generation
+/// of type names for inline types.
+const fieldNameForIndexer = 'indexer';
+
 List<AstNode> parseFile(String input) {
   final scanner = new Scanner(input);
   final tokens = scanner.scan();
@@ -41,6 +45,19 @@ class ArrayType extends TypeBase {
   String get dartType => 'List';
   @override
   String get typeArgsString => '<${elementType.dartTypeWithTypeArgs}>';
+}
+
+class MapType extends TypeBase {
+  final TypeBase indexType;
+  final TypeBase valueType;
+
+  MapType(this.indexType, this.valueType);
+
+  @override
+  String get dartType => 'Map';
+  @override
+  String get typeArgsString =>
+      '<${indexType.dartTypeWithTypeArgs}, ${valueType.dartTypeWithTypeArgs}>';
 }
 
 class AstNode {
@@ -115,6 +132,18 @@ class InlineInterface extends Interface {
     String name,
     List<Member> members,
   ) : super(null, new Token.identifier(name), [], [], members);
+}
+
+class Indexer extends Member {
+  final TypeBase indexType;
+  final TypeBase valueType;
+  Indexer(
+    Comment comment,
+    this.indexType,
+    this.valueType,
+  ) : super(comment);
+
+  String get name => fieldNameForIndexer;
 }
 
 class Interface extends AstNode {
@@ -202,6 +231,20 @@ class Parser {
     return Const(leadingComment, name, type, value);
   }
 
+  Indexer _indexer(String containerName, Comment leadingComment) {
+    final indexer = _field(containerName, leadingComment);
+    _consume(TokenType.RIGHT_BRACKET, 'Expected ]');
+    _consume(TokenType.COLON, 'Expected :');
+
+    TypeBase type;
+    type = _type(containerName, fieldNameForIndexer, improveTypes: true);
+
+    //_consume(TokenType.RIGHT_BRACE, 'Expected }');
+    _match([TokenType.SEMI_COLON]);
+
+    return new Indexer(leadingComment, indexer.type, type);
+  }
+
   /// Ensures the next token is [type] and moves to the next, throwing [message]
   /// if not.
   Token _consume(TokenType type, String message) {
@@ -259,13 +302,8 @@ class Parser {
     _consume(TokenType.COLON, 'Expected :');
     TypeBase type;
     Token value;
-    type = _type(containerName, name.lexeme, includeUndefined: canBeUndefined);
-
-    // Handle improved type mappings for things that aren't very tight in the spec.
-    final improvedTypeName = getImprovedType(containerName, name.lexeme);
-    if (improvedTypeName != null) {
-      type = new Type.identifier(improvedTypeName);
-    }
+    type = _type(containerName, name.lexeme,
+        includeUndefined: canBeUndefined, improveTypes: true);
 
     // Some fields have weird comments like this in the spec:
     //     {@link MessageType}
@@ -373,14 +411,7 @@ class Parser {
     if (_match([TokenType.CONST_KEYWORD])) {
       return _const(containerName, leadingComment);
     } else if (_match([TokenType.LEFT_BRACKET])) {
-      // TODO(dantup): Support (or not?) indexers...
-      while (true) {
-        if (_match([TokenType.SEMI_COLON])) {
-          break;
-        }
-        _advance();
-      }
-      return null;
+      return _indexer(containerName, leadingComment);
     } else {
       return _field(containerName, leadingComment);
     }
@@ -428,8 +459,12 @@ class Parser {
     }
   }
 
-  TypeBase _type(String containerName, String fieldName,
-      {bool includeUndefined = false}) {
+  TypeBase _type(
+    String containerName,
+    String fieldName, {
+    bool includeUndefined = false,
+    bool improveTypes = false,
+  }) {
     var types = <TypeBase>[];
     if (includeUndefined) {
       types.add(Type.Undefined);
@@ -451,11 +486,17 @@ class Parser {
         // Some of the inline interfaces have trailing commas (and some do not!)
         _match([TokenType.COMMA]);
 
-        // Add a synthetic interface to the parsers list of nodes to represent this type.
-        final generatedName = _joinNames(containerName, fieldName);
-        _nodes.add(new InlineInterface(generatedName, members));
-        // Record the type as a simple type that references this interface.
-        type = new Type.identifier(generatedName);
+        // If we have a single member that is an indexer type, we can use a Map.
+        if (members.length == 1 && members.single is Indexer) {
+          Indexer indexer = members.single;
+          type = new MapType(indexer.indexType, indexer.valueType);
+        } else {
+          // Add a synthetic interface to the parsers list of nodes to represent this type.
+          final generatedName = _joinNames(containerName, fieldName);
+          _nodes.add(new InlineInterface(generatedName, members));
+          // Record the type as a simple type that references this interface.
+          type = new Type.identifier(generatedName);
+        }
       } else if (_match([TokenType.LEFT_PAREN])) {
         // Some types are in (parens), so we just parse the contents as a nested type.
         type = _type(containerName, fieldName);
@@ -511,17 +552,26 @@ class Parser {
         break;
       }
     }
+
     // Remove any duplicate types (for ex. if we map multiple types into dynamic)
     // we don't want to end up with `dynamic | dynamic`. Key on dartType to
     // ensure we different types that will map down to the same type.
     final uniqueTypes = new Map.fromEntries(
       types.map((t) => new MapEntry(t.dartTypeWithTypeArgs, t)),
     ).values.toList();
-    if (uniqueTypes.length == 1) {
-      return uniqueTypes.single;
-    } else {
-      return new UnionType(uniqueTypes);
+
+    var type = uniqueTypes.length == 1
+        ? uniqueTypes.single
+        : new UnionType(uniqueTypes);
+
+    // Handle improved type mappings for things that aren't very tight in the spec.
+    if (improveTypes) {
+      final improvedTypeName = getImprovedType(containerName, fieldName);
+      if (improvedTypeName != null) {
+        type = new Type.identifier(improvedTypeName);
+      }
     }
+    return type;
   }
 
   TypeAlias _typeAlias(Comment leadingComment) {

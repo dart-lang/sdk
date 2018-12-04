@@ -146,6 +146,24 @@ export interface MyMessage {
       expect(union.types[1], isSimpleType('object'));
     });
 
+    test('parses an interface with a map into a MapType', () {
+      final String input = '''
+export interface WorkspaceEdit {
+	changes: { [uri: string]: TextEdit[]; };
+}
+    ''';
+      final List<AstNode> output = parseFile(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('changes'));
+      expect(field.type,
+          isMapOf(isSimpleType('string'), isArrayOf(isSimpleType('TextEdit'))));
+    });
+
     test('flags nullable undefined values', () {
       final String input = '''
 export interface A {

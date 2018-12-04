@@ -14,7 +14,7 @@ import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual;
+    show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonEncoder = const JsonEncoder.withIndent('    ');
@@ -10916,9 +10916,14 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 class WorkspaceEdit implements ToJsonable {
   WorkspaceEdit(this.changes, this.documentChanges);
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
-    final changes = json['changes'] != null
-        ? WorkspaceEditChanges.fromJson(json['changes'])
-        : null;
+    final changes = json['changes']
+        ?.map((key, value) => new MapEntry(
+            key,
+            value
+                ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
+                ?.cast<TextEdit>()
+                ?.toList()))
+        ?.cast<String, List<TextEdit>>();
     final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].length == 0 || json['documentChanges'].every((item) => TextDocumentEdit.canParse(item))))
         ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(json['documentChanges']
             ?.map(
@@ -10941,7 +10946,7 @@ class WorkspaceEdit implements ToJsonable {
   }
 
   /// Holds changes to existing resources.
-  final WorkspaceEditChanges changes;
+  final Map<String, List<TextEdit>> changes;
 
   /// Depending on the client capability
   /// `workspace.workspaceEdit.resourceOperations` document changes are either
@@ -10978,7 +10983,8 @@ class WorkspaceEdit implements ToJsonable {
   @override
   bool operator ==(other) {
     if (other is WorkspaceEdit) {
-      return changes == other.changes &&
+      return mapEqual(changes, other.changes,
+              (List<TextEdit> a, List<TextEdit> b) => a == b) &&
           documentChanges == other.documentChanges &&
           true;
     }
@@ -10990,38 +10996,6 @@ class WorkspaceEdit implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, changes.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class WorkspaceEditChanges implements ToJsonable {
-  static WorkspaceEditChanges fromJson(Map<String, dynamic> json) {
-    return new WorkspaceEditChanges();
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
-    return __result;
-  }
-
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
-  }
-
-  @override
-  bool operator ==(other) {
-    if (other is WorkspaceEditChanges) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 

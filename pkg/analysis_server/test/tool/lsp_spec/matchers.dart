@@ -45,7 +45,7 @@ class ArrayTypeMatcher extends Matcher {
   }
 
   Description describe(Description description) =>
-      description.add('an ArrayType').addDescriptionOf(_elementTypeMatcher);
+      description.add('an array of ').addDescriptionOf(_elementTypeMatcher);
 
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
@@ -56,6 +56,26 @@ class ArrayTypeMatcher extends Matcher {
       return mismatchDescription.add('is not an ArrayType');
     }
   }
+}
+
+Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
+    new MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
+
+class MapTypeMatcher extends Matcher {
+  final Matcher _indexMatcher, _valueMatcher;
+  const MapTypeMatcher(this._indexMatcher, this._valueMatcher);
+
+  bool matches(item, Map matchState) {
+    return item is MapType &&
+        _indexMatcher.matches(item.indexType, matchState) &&
+        _valueMatcher.matches(item.valueType, matchState);
+  }
+
+  Description describe(Description description) => description
+      .add('a MapType where index is ')
+      .addDescriptionOf(_indexMatcher)
+      .add(' and value is ')
+      .addDescriptionOf(_valueMatcher);
 }
 
 Matcher isResponseError(ErrorCodes code) => const TypeMatcher<ResponseError>()
