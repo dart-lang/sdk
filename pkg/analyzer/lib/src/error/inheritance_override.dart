@@ -366,7 +366,7 @@ class _ClassVerifier {
       if (getter.element.kind == ElementKind.GETTER) {
         // TODO(scheglov) We should separate getters and setters.
         var setter = interface.map[new Name(libraryUri, '${name.name}=')];
-        if (setter != null) {
+        if (setter != null && setter.parameters.length == 1) {
           var getterType = getter.returnType;
           var setterType = setter.parameters[0].type;
           if (!typeSystem.isAssignableTo(getterType, setterType)) {

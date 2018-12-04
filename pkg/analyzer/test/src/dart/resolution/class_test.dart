@@ -1301,6 +1301,32 @@ class B extends A {
     assertNoTestErrors();
   }
 
+  test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_0() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_2() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo(String p1, String p2) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    ]);
+  }
+
   test_error_mismatchedGetterAndSetterTypes_superGetter() async {
     addTestFile(r'''
 class A {
