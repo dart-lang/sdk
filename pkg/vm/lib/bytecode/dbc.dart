@@ -19,6 +19,9 @@ const int stableBytecodeFormatVersion = 1;
 /// runtime/vm/constants_kbc.h.
 const int futureBytecodeFormatVersion = stableBytecodeFormatVersion + 1;
 
+/// Alignment of bytecode instructions.
+const int bytecodeInstructionsAlignment = 4;
+
 enum Opcode {
   kTrap,
 

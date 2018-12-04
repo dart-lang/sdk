@@ -267,6 +267,7 @@ enum class MemoryOrder {
   friend class InterpreterHelpers;                                             \
   friend class Simulator;                                                      \
   friend class SimulatorHelpers;                                               \
+  friend class OffsetsTable;                                                   \
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
 
@@ -878,6 +879,7 @@ class RawObject {
   friend class Precompiler;         // GetClassId
   friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
+  friend class OffsetsTable;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -1358,6 +1360,7 @@ class RawKernelProgramInfo : public RawObject {
   RawExternalTypedData* metadata_mappings_;
   RawArray* scripts_;
   RawArray* constants_;
+  RawArray* bytecode_component_;
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
   RawExternalTypedData* constants_table_;

@@ -1081,7 +1081,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages writable.
-  WriteProtectCode(false);
+  if (finalize) WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = GetCurrentUsage();
@@ -1186,7 +1186,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages read-only.
-  WriteProtectCode(true);
+  if (finalize) WriteProtectCode(true);
 
   int64_t end = OS::GetCurrentMonotonicMicros();
 

@@ -34,7 +34,11 @@ runTestCase(Uri source) async {
     generateBytecode(component, omitAssertSourcePositions: true);
   });
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+
+  // Remove absolute library URIs.
+  actual = actual.replaceAll(new Uri.file(pkgVmDir).toString(), '#pkg/vm');
+
   compareResultWithExpectationsFile(source, actual);
 }
 

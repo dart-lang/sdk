@@ -381,7 +381,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  ComplexAssignmentJudgment(this.rhs) : super(null);
+  ComplexAssignmentJudgment._(this.rhs) : super._(null);
 
   String toString() {
     var parts = _getToStringParts();
@@ -513,9 +513,9 @@ abstract class ComplexAssignmentJudgmentWithReceiver
   /// Indicates whether this assignment uses `super`.
   final bool isSuper;
 
-  ComplexAssignmentJudgmentWithReceiver(
+  ComplexAssignmentJudgmentWithReceiver._(
       this.receiver, Expression rhs, this.isSuper)
-      : super(rhs);
+      : super._(rhs);
 
   @override
   List<String> _getToStringParts() {
@@ -845,8 +845,8 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   /// If `-1`, then there is no separate location for invalid assignment.
   final int assignmentOffset;
 
-  IllegalAssignmentJudgment(Expression rhs, {this.assignmentOffset: -1})
-      : super(rhs) {
+  IllegalAssignmentJudgment._(Expression rhs, {this.assignmentOffset: -1})
+      : super._(rhs) {
     rhs.parent = this;
   }
 
@@ -867,9 +867,9 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// In an assignment to an index expression, the index expression.
   final Expression index;
 
-  IndexAssignmentJudgment(Expression receiver, this.index, Expression rhs,
+  IndexAssignmentJudgment._(Expression receiver, this.index, Expression rhs,
       {bool isSuper: false})
-      : super(receiver, rhs, isSuper);
+      : super._(receiver, rhs, isSuper);
 
   Arguments _getInvocationArguments(
       ShadowTypeInferrer inferrer, Expression invocation) {
@@ -918,13 +918,12 @@ Expression checkWebIntLiteralsErrorIfUnexact(
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper
+  return inferrer.helper.desugarSyntheticExpression(inferrer.helper
       .buildProblem(
           templateWebLiteralCannotBeRepresentedExactly.withArguments(
               text, nearest),
           charOffset,
-          length)
-      .desugared;
+          length));
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
@@ -1236,9 +1235,9 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// expression that guards the access; otherwise `null`.
   ConditionalExpression nullAwareGuard;
 
-  PropertyAssignmentJudgment(Expression receiver, Expression rhs,
+  PropertyAssignmentJudgment._(Expression receiver, Expression rhs,
       {bool isSuper: false})
-      : super(receiver, rhs, isSuper);
+      : super._(receiver, rhs, isSuper);
 
   @override
   List<String> _getToStringParts() {
@@ -1307,7 +1306,7 @@ abstract class StatementJudgment extends Statement {
 
 /// Concrete shadow object representing an assignment to a static variable.
 class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
-  StaticAssignmentJudgment(Expression rhs) : super(rhs);
+  StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -1419,9 +1418,9 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   final Member constructor;
   final Arguments arguments;
 
-  InvalidConstructorInvocationJudgment(
+  InvalidConstructorInvocationJudgment._(
       kernel.Expression desugared, this.constructor, this.arguments)
-      : super(desugared);
+      : super._(desugared);
 
   ArgumentsJudgment get argumentJudgments => arguments;
 
@@ -1436,8 +1435,8 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
 class InvalidWriteJudgment extends SyntheticExpressionJudgment {
   final Expression expression;
 
-  InvalidWriteJudgment(kernel.Expression desugared, this.expression)
-      : super(desugared);
+  InvalidWriteJudgment._(kernel.Expression desugared, this.expression)
+      : super._(desugared);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1453,7 +1452,7 @@ class InvalidWriteJudgment extends SyntheticExpressionJudgment {
 class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   DartType inferredType;
 
-  SyntheticExpressionJudgment(Expression desugared)
+  SyntheticExpressionJudgment._(Expression desugared)
       : super(new VariableDeclaration('_', initializer: new NullLiteral()),
             desugared);
 
@@ -1757,7 +1756,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 }
 
 class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
-  VariableAssignmentJudgment(Expression rhs) : super(rhs);
+  VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -1856,9 +1855,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
 class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
   final ArgumentsJudgment argumentsJudgment;
 
-  UnresolvedTargetInvocationJudgment(
+  UnresolvedTargetInvocationJudgment._(
       kernel.Expression desugared, this.argumentsJudgment)
-      : super(desugared);
+      : super._(desugared);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1872,9 +1871,9 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
   final bool isCompound;
   final Expression rhs;
 
-  UnresolvedVariableAssignmentJudgment(
+  UnresolvedVariableAssignmentJudgment._(
       kernel.Expression desugared, this.isCompound, this.rhs)
-      : super(desugared);
+      : super._(desugared);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1976,4 +1975,58 @@ class _UnfinishedCascade extends Expression {
   transformChildren(v) => unsupported("transformChildren", -1, null);
 
   visitChildren(v) => unsupported("visitChildren", -1, null);
+}
+
+class SyntheticWrapper {
+  static Expression wrapIllegalAssignment(Expression rhs,
+      {int assignmentOffset: -1}) {
+    return new IllegalAssignmentJudgment._(rhs,
+        assignmentOffset: assignmentOffset);
+  }
+
+  static Expression wrapIndexAssignment(
+      Expression receiver, Expression index, Expression rhs,
+      {bool isSuper: false}) {
+    return new IndexAssignmentJudgment._(receiver, index, rhs,
+        isSuper: isSuper);
+  }
+
+  static Expression wrapInvalidConstructorInvocation(
+      kernel.Expression desugared, Member constructor, Arguments arguments) {
+    return new InvalidConstructorInvocationJudgment._(
+        desugared, constructor, arguments);
+  }
+
+  static Expression wrapInvalidWrite(
+      Expression desugared, Expression expression) {
+    return new InvalidWriteJudgment._(desugared, expression);
+  }
+
+  static Expression wrapPropertyAssignment(Expression receiver, Expression rhs,
+      {bool isSuper: false}) {
+    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper);
+  }
+
+  static Expression wrapStaticAssignment(Expression rhs) {
+    return new StaticAssignmentJudgment._(rhs);
+  }
+
+  static Expression wrapSyntheticExpression(Expression desugared) {
+    return new SyntheticExpressionJudgment._(desugared);
+  }
+
+  static Expression wrapUnresolvedTargetInvocation(
+      Expression desugared, Arguments arguments) {
+    return new UnresolvedTargetInvocationJudgment._(desugared, arguments);
+  }
+
+  static Expression wrapUnresolvedVariableAssignment(
+      Expression desugared, bool isCompound, Expression rhs) {
+    return new UnresolvedVariableAssignmentJudgment._(
+        desugared, isCompound, rhs);
+  }
+
+  static Expression wrapVariableAssignment(Expression rhs) {
+    return new VariableAssignmentJudgment._(rhs);
+  }
 }

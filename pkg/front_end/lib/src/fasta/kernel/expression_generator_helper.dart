@@ -150,4 +150,18 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void reportDuplicatedDeclaration(
       Declaration existing, String name, int charOffset);
+
+  Expression wrapSyntheticExpression(Expression node, int charOffset);
+
+  Expression wrapInvalidConstructorInvocation(Expression desugared,
+      Member constructor, Arguments arguments, int charOffset);
+
+  Expression wrapInvalidWrite(
+      Expression desugared, Expression expression, int charOffset);
+
+  Expression wrapUnresolvedTargetInvocation(
+      Expression desugared, Arguments arguments, int charOffset);
+
+  Expression wrapUnresolvedVariableAssignment(
+      Expression desugared, bool isCompound, Expression rhs, int charOffset);
 }

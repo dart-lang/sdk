@@ -783,12 +783,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper
-                  .buildProblem(
-                      errorTemplate.withArguments(name.name, receiverType),
-                      fileOffset,
-                      length)
-                  .desugared)
+              helper.desugarSyntheticExpression(helper.buildProblem(
+                  errorTemplate.withArguments(name.name, receiverType),
+                  fileOffset,
+                  length)))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1285,10 +1283,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         var name = named[1].name;
-        var error = helper
-            .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                named[1].fileOffset, name.length)
-            .desugared;
+        var error = helper.desugarSyntheticExpression(helper.buildProblem(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length));
         arguments.named = [new kernel.NamedExpression(named[1].name, error)];
         formalTypes.removeLast();
         actualTypes.removeLast();
@@ -1303,10 +1301,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           var prevNamedExpression = seenNames[name];
-          prevNamedExpression.value = helper
-              .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                  expression.fileOffset, name.length)
-              .desugared
+          prevNamedExpression.value = helper.desugarSyntheticExpression(
+              helper.buildProblem(
+                  templateDuplicatedNamedArgument.withArguments(name),
+                  expression.fileOffset,
+                  name.length))
             ..parent = prevNamedExpression;
           formalTypes.removeAt(namedTypeIndex);
           actualTypes.removeAt(namedTypeIndex);

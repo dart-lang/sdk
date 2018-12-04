@@ -169,6 +169,11 @@ class TranslationHelper {
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
 
+  RawArray* GetBytecodeComponent() const { return info_.bytecode_component(); }
+  void SetBytecodeComponent(const Array& bytecode_component) {
+    info_.set_bytecode_component(bytecode_component);
+  }
+
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
   // if asked.  The result will be available in [name_to_modify] and it is also
@@ -793,6 +798,9 @@ class MetadataHelper {
   // or -1 if there is no metadata.
   // Assumes metadata is accesses for nodes in linear order most of the time.
   intptr_t GetNextMetadataPayloadOffset(intptr_t node_offset);
+
+  // Returns metadata associated with component.
+  intptr_t GetComponentMetadataPayloadOffset();
 
   KernelReaderHelper* helper_;
   TranslationHelper& translation_helper_;

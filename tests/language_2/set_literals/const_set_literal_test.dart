@@ -12,7 +12,7 @@ void main() {
   test();
 }
 
-void test<S extends Set<num>, I extends Iterable<num>>() {
+void test() {
   checkSet<T>(Object o, List elements) {
     Expect.type<Set<T>>(o);
     Set<T> set = o;
@@ -25,8 +25,6 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Object iterableContext<T>(Iterable<T> object) => object;
   Object foSetContext<T>(FutureOr<Set<T>> object) => object;
   Object foIterableContext<T>(FutureOr<Set<T>> object) => object;
-  Object sContext(S object) => object;
-  Object iContext(I object) => object;
 
   // Empty literal, no type arguments.
   // No context.
@@ -41,44 +39,38 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   checkSet<int>(iterableContext<int>(const {}), []);
   checkSet<int>(foSetContext<int>(const {}), []);
   checkSet<int>(foIterableContext<int>(const {}), []);
-  checkSet<num>(sContext(const {}), []);
-  checkSet<num>(iContext(const {}), []);
 
   // Non-empty set literal, no type argument.
   // No context.
   checkSet<int>(const {1}, [1]);
-  checkSet<int>(const {3, 1, 2, 4, 1, 4}, [3, 1, 2, 4]);
+  checkSet<int>(const {3, 1, 2, 4}, [3, 1, 2, 4]);
   // Set context with no inferred type argument.
   checkSet<int>(setContext(const {1}), [1]);
   checkSet<int>(iterableContext(const {1}), [1]);
   checkSet<int>(foSetContext(const {1}), [1]);
   checkSet<int>(foIterableContext(const {1}), [1]);
-  checkSet<int>(setContext(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<int>(iterableContext(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
+  checkSet<int>(setContext(const {3, 1, 2, 4}), [3, 1, 2, 4]);
+  checkSet<int>(iterableContext(const {3, 1, 2, 4}), [3, 1, 2, 4]);
   checkSet<int>(foSetContext(const {1}), [1]);
   checkSet<int>(foIterableContext(const {1}), [1]);
   // Specific set context.
   checkSet<num>(setContext<num>(const {1}), [1]);
-  checkSet<num>(sContext(const {1}), [1]);
   checkSet<num>(iterableContext<num>(const {1}), [1]);
-  checkSet<num>(iContext(const {1}), [1]);
   checkSet<num>(foSetContext<num>(const {1}), [1]);
   checkSet<num>(foIterableContext<num>(const {1}), [1]);
-  checkSet<num>(setContext<num>(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(sContext(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(iterableContext<num>(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(iContext(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(foSetContext<num>(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(foIterableContext<num>(const {3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
+  checkSet<num>(setContext<num>(const {3, 1, 2, 4}), [3, 1, 2, 4]);
+  checkSet<num>(iterableContext<num>(const {3, 1, 2, 4}), [3, 1, 2, 4]);
+  checkSet<num>(foSetContext<num>(const {3, 1, 2, 4}), [3, 1, 2, 4]);
+  checkSet<num>(foIterableContext<num>(const {3, 1, 2, 4}), [3, 1, 2, 4]);
 
   // Non-empty set literal with type argument.
   checkSet<num>(const <num>{1}, [1]);
-  checkSet<num>(const <num>{3, 1, 2, 4, 1, 4}, [3, 1, 2, 4]);
+  checkSet<num>(const <num>{3, 1, 2, 4}, [3, 1, 2, 4]);
 
   // Integers, String and symbols work, even if they override ==.
-  checkSet<String>(const {"foo", "bar", "foo"}, ["foo", "bar"]);
-  checkSet<Symbol>(const {#foo, #bar, #foo}, [#foo, #bar]);
-  checkSet<Symbol>(const {#_foo, #_bar, #_foo}, [#_foo, #_bar]);
+  checkSet<String>(const {"foo", "bar"}, ["foo", "bar"]);
+  checkSet<Symbol>(const {#foo, #bar}, [#foo, #bar]);
+  checkSet<Symbol>(const {#_foo, #_bar}, [#_foo, #_bar]);
   const object = Object();
   checkSet<Object>(const {#foo, 1, "string", object, true},
       [#foo, 1, "string", object, true]);
@@ -111,14 +103,23 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Expect.type<Set<Object>>(o5);
   Expect.notType<Set<Set<Object>>>(o5);
 
-  // Adding an equal element later does nothing.
+  // User defined constant class.
   const o6 = {
     Something(1, "a"),
     Something(2, "a"),
     Something(1, "b"),
     Something(2, "b"),
   };
-  Expect.equals("1:a,2:a", o6.toList().join(","));
+  Expect.equals("1:a,2:a,1:b,2:b", o6.toList().join(","));
+
+  // Canonicalization of constant sets takes ordering into account,
+  // that is, o7 and o8 cannot be the same object.
+  const o7 = {1, 2, 3};
+  const o8 = {3, 2, 1};
+  Expect.notIdentical(o7, o8);
+  // But o7 and o9 must be identical.
+  const o9 = {1, 2, 3};
+  Expect.identical(o7, o9);
 }
 
 class Something {

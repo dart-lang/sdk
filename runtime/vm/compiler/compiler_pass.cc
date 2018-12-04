@@ -262,11 +262,6 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
-#if defined(DART_PRECOMPILER)
-  if (mode == kAOT) {
-    INVOKE_PASS(ReplaceArrayBoundChecksForAOT);
-  }
-#endif
   INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(AllocateRegisters);
@@ -346,7 +341,7 @@ COMPILER_PASS(LICM, {
   DEBUG_ASSERT(flow_graph->VerifyRedefinitions());
   LICM licm(flow_graph);
   licm.Optimize();
-  flow_graph->RemoveRedefinitions();
+  flow_graph->RemoveRedefinitions(/*keep_checks*/ true);
 });
 
 COMPILER_PASS(DSE, { DeadStoreElimination::Optimize(flow_graph); });
@@ -445,11 +440,6 @@ COMPILER_PASS(FinalizeGraph, {
   flow_graph->function().set_inlining_depth(state->inlining_depth);
   flow_graph->RemoveRedefinitions();
 });
-
-#if defined(DART_PRECOMPILER)
-COMPILER_PASS(ReplaceArrayBoundChecksForAOT,
-              { AotCallSpecializer::ReplaceArrayBoundChecks(flow_graph); })
-#endif
 
 }  // namespace dart
 

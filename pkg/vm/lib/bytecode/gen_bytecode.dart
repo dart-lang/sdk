@@ -23,11 +23,13 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 import 'assembler.dart';
+import 'bytecode_serialization.dart' show StringTable;
 import 'constant_pool.dart';
 import 'dbc.dart';
 import 'exceptions.dart';
 import 'local_vars.dart' show LocalVariables;
 import 'nullability_detector.dart' show NullabilityDetector;
+import 'object_table.dart' show ObjectHandle, ObjectTable, NameAndType;
 import 'recognized_methods.dart' show RecognizedMethods;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
@@ -37,13 +39,16 @@ import '../metadata/bytecode.dart';
 // exception.
 const String symbolForTypeCast = ' in type cast';
 
-void generateBytecode(Component component,
-    {bool dropAST: false,
-    bool emitSourcePositions: false,
-    bool omitAssertSourcePositions: false,
-    bool useFutureBytecodeFormat: false,
-    Map<String, String> environmentDefines,
-    ErrorReporter errorReporter}) {
+void generateBytecode(
+  Component component, {
+  bool dropAST: false,
+  bool emitSourcePositions: false,
+  bool omitAssertSourcePositions: false,
+  bool useFutureBytecodeFormat: false,
+  Map<String, String> environmentDefines,
+  ErrorReporter errorReporter,
+  List<Library> libraries,
+}) {
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
@@ -53,19 +58,25 @@ void generateBytecode(Component component,
   final constantsBackend =
       new VmConstantsBackend(environmentDefines, coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
-  new BytecodeGenerator(
-          component,
-          coreTypes,
-          hierarchy,
-          typeEnvironment,
-          constantsBackend,
-          emitSourcePositions,
-          omitAssertSourcePositions,
-          useFutureBytecodeFormat,
-          errorReporter)
-      .visitComponent(component);
+  libraries ??= component.libraries;
+  final bytecodeGenerator = new BytecodeGenerator(
+      component,
+      coreTypes,
+      hierarchy,
+      typeEnvironment,
+      constantsBackend,
+      emitSourcePositions,
+      omitAssertSourcePositions,
+      useFutureBytecodeFormat,
+      errorReporter);
+  for (var library in libraries) {
+    bytecodeGenerator.visitLibrary(library);
+  }
   if (dropAST) {
-    new DropAST().visitComponent(component);
+    final astRemover = new DropAST(component);
+    for (var library in libraries) {
+      astRemover.visitLibrary(library);
+    }
   }
 }
 
@@ -81,6 +92,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
+  final int formatVersion;
+  StringTable stringTable;
+  ObjectTable objectTable;
   NullabilityDetector nullabilityDetector;
 
   Class enclosingClass;
@@ -100,9 +114,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Map<TryFinally, List<FinallyBlock>> finallyBlocks;
   List<Label> yieldPoints;
   Map<TreeNode, int> contextLevels;
-  List<ClosureBytecode> closures;
+  List<ClosureDeclaration> closures;
   Set<Field> initializedFields;
-  List<Reference> nullableFields;
+  List<ObjectHandle> nullableFields;
   ConstantPool cp;
   ConstantEmitter constantEmitter;
   BytecodeAssembler asm;
@@ -120,13 +134,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.omitAssertSourcePositions,
       this.useFutureBytecodeFormat,
       this.errorReporter)
-      : recognizedMethods = new RecognizedMethods(typeEnvironment) {
+      : recognizedMethods = new RecognizedMethods(typeEnvironment),
+        formatVersion = useFutureBytecodeFormat
+            ? futureBytecodeFormatVersion
+            : stableBytecodeFormatVersion {
     nullabilityDetector = new NullabilityDetector(recognizedMethods);
     component.addMetadataRepository(metadata);
-  }
 
-  @override
-  visitComponent(Component node) => node.visitChildren(this);
+    metadata.bytecodeComponent = new BytecodeComponent(formatVersion);
+    metadata.mapping[component] = metadata.bytecodeComponent;
+
+    stringTable = metadata.bytecodeComponent.stringTable;
+    objectTable = metadata.bytecodeComponent.objectTable;
+    objectTable.coreTypes = coreTypes;
+  }
 
   @override
   visitLibrary(Library node) {
@@ -330,10 +351,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _generateNodeList(node.initializers);
 
     if (!isRedirecting) {
-      nullableFields = <Reference>[];
+      nullableFields = <ObjectHandle>[];
       for (var field in node.enclosingClass.fields) {
         if (!field.isStatic && !initializedFields.contains(field)) {
-          nullableFields.add(field.reference);
+          nullableFields.add(objectTable.getHandle(field));
         }
       }
       initializedFields = null; // No more initialized fields, please.
@@ -819,10 +840,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     finallyBlocks = <TryFinally, List<FinallyBlock>>{};
     yieldPoints = null; // Initialized when entering sync-yielding closure.
     contextLevels = <TreeNode, int>{};
-    closures = <ClosureBytecode>[];
+    closures = <ClosureDeclaration>[];
     initializedFields = null; // Tracked for constructors only.
-    nullableFields = const <Reference>[];
-    cp = new ConstantPool();
+    nullableFields = const <ObjectHandle>[];
+    cp = new ConstantPool(stringTable, objectTable);
     constantEmitter = new ConstantEmitter(cp);
     asm = new BytecodeAssembler();
     savedAssemblers = <BytecodeAssembler>[];
@@ -861,17 +882,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void end(Member node) {
     if (!hasErrors) {
-      final formatVersion = useFutureBytecodeFormat
-          ? futureBytecodeFormatVersion
-          : stableBytecodeFormatVersion;
-      metadata.mapping[node] = new BytecodeMetadata(
-          formatVersion,
-          cp,
-          asm.bytecode,
-          asm.exceptionsTable,
-          asm.sourcePositions,
-          nullableFields,
-          closures);
+      metadata.mapping[node] = new MemberBytecode(cp, asm.bytecode,
+          asm.exceptionsTable, asm.sourcePositions, nullableFields, closures);
     }
 
     typeEnvironment.thisType = null;
@@ -1282,7 +1294,29 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     function.positionalParameters.forEach(_evaluateDefaultParameterValue);
     locals.sortedNamedParameters.forEach(_evaluateDefaultParameterValue);
 
-    final int closureFunctionIndex = cp.addClosureFunction(name, function);
+    final int closureIndex = closures.length;
+    objectTable.declareClosure(function, enclosingMember, closureIndex);
+    final List<NameAndType> parameters = function.positionalParameters
+        .followedBy(function.namedParameters)
+        .map((v) => new NameAndType(objectTable.getNameHandle(null, v.name),
+            objectTable.getHandle(v.type)))
+        .toList();
+    final ClosureDeclaration closure = new ClosureDeclaration(
+        objectTable
+            .getHandle(savedIsClosure ? parentFunction : enclosingMember),
+        objectTable.getNameHandle(null, name),
+        function.typeParameters
+            .map((tp) => new NameAndType(
+                objectTable.getNameHandle(null, tp.name),
+                objectTable.getHandle(tp.bound)))
+            .toList(),
+        function.requiredParameterCount,
+        function.namedParameters.length,
+        parameters,
+        objectTable.getHandle(function.returnType));
+    closures.add(closure);
+
+    final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
 
     _genPrologue(node, function);
 
@@ -1325,8 +1359,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     locals.leaveScope();
 
-    closures.add(new ClosureBytecode(closureFunctionIndex, asm.bytecode,
-        asm.exceptionsTable, asm.sourcePositions));
+    closure.bytecode = new ClosureBytecode(
+        asm.bytecode, asm.exceptionsTable, asm.sourcePositions);
 
     _popAssemblerState();
     yieldPoints = savedYieldPoints;
@@ -2119,7 +2153,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitPushNull();
       }
       args =
-          new Arguments(node.arguments.positional, named: node.arguments.named);
+          new Arguments(node.arguments.positional, named: node.arguments.named)
+            ..parent = node;
     }
     _genArguments(null, args);
     _genStaticCallWithArgs(target, args, isFactory: target.isFactory);
@@ -3087,14 +3122,8 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 class DropAST extends Transformer {
   BytecodeMetadataRepository metadata;
 
-  @override
-  TreeNode visitComponent(Component node) {
-    metadata = node.metadata[new BytecodeMetadataRepository().tag];
-    if (metadata != null) {
-      return super.visitComponent(node);
-    }
-    return node;
-  }
+  DropAST(Component component)
+      : metadata = component.metadata[new BytecodeMetadataRepository().tag];
 
   @override
   TreeNode defaultMember(Member node) {
@@ -3123,7 +3152,8 @@ class DropAST extends Transformer {
     return node;
   }
 
-  bool _hasBytecode(Member node) => metadata.mapping.containsKey(node);
+  bool _hasBytecode(Member node) =>
+      metadata != null && metadata.mapping.containsKey(node);
 }
 
 typedef void GenerateContinuation();

@@ -1567,6 +1567,12 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
   }
 }
 
+intptr_t MetadataHelper::GetComponentMetadataPayloadOffset() {
+  const intptr_t kComponentNodeOffset = 0;
+  return GetNextMetadataPayloadOffset(kComponentNodeOffset -
+                                      helper_->data_program_offset_);
+}
+
 DirectCallMetadataHelper::DirectCallMetadataHelper(KernelReaderHelper* helper)
     : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
 
