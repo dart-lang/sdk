@@ -95,6 +95,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_FACTORY_REDIRECTION,
   _EXTERNAL_FACTORY_WITH_BODY,
   _EXTERNAL_CONSTRUCTOR_WITH_BODY,
+  _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -300,6 +301,12 @@ const ParserErrorCode _FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode(
     'FACTORY_TOP_LEVEL_DECLARATION',
     r"Top-level declarations can't be declared to be 'factory'.",
     correction: "Try removing the keyword 'factory'.");
+
+const ParserErrorCode _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS =
+    const ParserErrorCode('FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
+        r"A field can only be initialized in it's declaring class",
+        correction:
+            "Try moving the field initialization into the constructor body.");
 
 const ParserErrorCode _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
     const ParserErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',

@@ -3895,13 +3895,7 @@ class Wrong<T> {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
-        ? [
-            // TODO(danrubel): Improve recovery
-            //expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 5),
-
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
-            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 6),
-          ]
+        ? [expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 5)]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1),
             expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 16, 2),
@@ -3917,14 +3911,10 @@ class Wrong<T> {
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
         ? [
-            // TODO(danrubel): Improve recovery
-            //expectedError(
-            //    ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
-            //    12,
-            //    1)
-
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1),
-            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 8),
+            expectedError(
+                ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
+                12,
+                1)
           ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1),

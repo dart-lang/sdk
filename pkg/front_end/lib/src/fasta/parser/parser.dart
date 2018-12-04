@@ -2538,7 +2538,14 @@ class Parser {
         token = next;
         next = token.next;
       }
-      if (!optional('(', next)) {
+      if (optional('=', next)) {
+        if (optional('super', token)) {
+          // parseExpression will report error on assignment to super
+        } else {
+          reportRecoverableError(
+              token, fasta.messageFieldInitializedOutsideDeclaringClass);
+        }
+      } else if (!optional('(', next)) {
         reportRecoverableError(
             next, fasta.templateExpectedAfterButGot.withArguments('('));
         rewriter.insertParens(token, false);
