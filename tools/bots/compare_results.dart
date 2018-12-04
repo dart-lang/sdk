@@ -40,14 +40,17 @@ class Result {
 class Event {
   final Result before;
   final Result after;
+  final Result approved;
 
-  Event(this.before, this.after);
+  Event(this.before, this.after, this.approved);
 
   bool get isNew => before == null;
   bool get isNewPassing => before == null && after.matches;
   bool get isNewFailing => before == null && !after.matches;
   bool get changed => !unchanged;
   bool get unchanged => before != null && before.outcome == after.outcome;
+  bool get isApproved => approved != null && approved.outcome == after.outcome;
+  bool get isUnapproved => !isApproved;
   bool get remainedPassing => before.matches && after.matches;
   bool get remainedFailing => !before.matches && !after.matches;
   bool get flaked => after.flaked;
@@ -75,22 +78,29 @@ class Event {
 
 bool firstSection = true;
 
-bool search(String description, String searchFor, List<Event> events,
-    ArgResults options) {
+bool search(String description, String searchForStatus,
+    String searchForApproval, List<Event> events, ArgResults options) {
   bool judgement = false;
   bool beganSection = false;
   int count = options["count"] != null ? int.parse(options["count"]) : null;
   final configurations =
       events.map((event) => event.after.configuration).toSet();
   for (final event in events) {
-    if (searchFor == "passing" &&
+    if (searchForStatus == "passing" &&
         (event.after.flaked || !event.after.matches)) {
       continue;
     }
-    if (searchFor == "flaky" && !event.after.flaked) {
+    if (searchForStatus == "flaky" && !event.after.flaked) {
       continue;
     }
-    if (searchFor == "failing" && (event.after.flaked || event.after.matches)) {
+    if (searchForStatus == "failing" &&
+        (event.after.flaked || event.after.matches)) {
+      continue;
+    }
+    if (searchForApproval == "approved" && !event.isApproved) {
+      continue;
+    }
+    if (searchForApproval == "unapproved" && !event.isUnapproved) {
       continue;
     }
     if (options["unchanged"] && !event.unchanged) continue;
@@ -156,6 +166,8 @@ bool search(String description, String searchFor, List<Event> events,
 
 main(List<String> args) async {
   final parser = new ArgParser();
+  parser.addFlag("approved",
+      abbr: 'A', negatable: false, help: "Show approved tests.");
   parser.addFlag("changed",
       abbr: 'c',
       negatable: false,
@@ -180,6 +192,8 @@ main(List<String> args) async {
       negatable: false);
   parser.addFlag("passing",
       abbr: 'p', negatable: false, help: "Show passing tests.");
+  parser.addFlag("unapproved",
+      abbr: 'U', negatable: false, help: "Show unapproved tests.");
   parser.addFlag("unchanged",
       abbr: 'u',
       negatable: false,
@@ -192,8 +206,9 @@ main(List<String> args) async {
   final options = parser.parse(args);
   if (options["help"]) {
     print("""
-Usage: compare_results.dart [OPTION]... [BEFORE] [AFTER]
+Usage: compare_results.dart [OPTION]... BEFORE AFTER [APPROVED]
 Compare the old and new test results and list tests that pass the filters.
+Three-way compare with the approved results if provided.
 All tests are listed if no filters are given.
 
 The options are as follows:
@@ -210,8 +225,9 @@ ${parser.usage}""");
   }
 
   final parameters = options.rest;
-  if (parameters.length != 2) {
-    print("error: Expected two parameters (results before and results after)");
+  if (parameters.length != 2 && parameters.length != 3) {
+    print("error: Expected two or three parameters "
+        "(results before, results after, and (optionally) approved results)");
     exitCode = 2;
     return;
   }
@@ -219,6 +235,9 @@ ${parser.usage}""");
   // Load the input and the flakiness data if specified.
   final before = await loadResultsMap(parameters[0]);
   final after = await loadResultsMap(parameters[1]);
+  final approved = 3 <= parameters.length
+      ? await loadResultsMap(parameters[2])
+      : <String, Map<String, dynamic>>{};
   final flakinessData = options["flakiness-data"] != null
       ? await loadResultsMap(options["flakiness-data"])
       : <String, Map<String, dynamic>>{};
@@ -230,60 +249,91 @@ ${parser.usage}""");
   for (final name in names) {
     final mapBefore = before[name];
     final mapAfter = after[name];
+    final mapApproved = approved[name];
     final resultBefore = mapBefore != null
         ? new Result.fromMap(mapBefore, flakinessData[name])
         : null;
     final resultAfter = new Result.fromMap(mapAfter, flakinessData[name]);
-    final event = new Event(resultBefore, resultAfter);
+    final resultApproved = mapApproved != null
+        ? new Result.fromMap(mapApproved, flakinessData[name])
+        : null;
+    final event = new Event(resultBefore, resultAfter, resultApproved);
     events.add(event);
   }
 
+  final filterDescriptions = {
+    "passing": {
+      "unchanged": "continued to pass",
+      "changed": "began passing",
+      null: "passed",
+    },
+    "flaky": {
+      "unchanged": "are known to flake but didn't",
+      "changed": "flaked",
+      null: "are known to flake",
+    },
+    "failing": {
+      "unchanged": "continued to fail",
+      "changed": "began failing",
+      null: "failed",
+    },
+    null: {
+      "unchanged": "had the same result",
+      "changed": "changed result",
+      null: "ran",
+    },
+  };
+
+  final searchForStatuses =
+      ["passing", "flaky", "failing"].where((option) => options[option]);
+
+  final approvalDescriptions = {
+    "passing": {
+      "approved": " (approved)",
+      "unapproved": " (should be approved)",
+      null: "",
+    },
+    "flaky": {
+      "approved": " (approved result)",
+      "unapproved": " (unapproved result)",
+      null: "",
+    },
+    "failing": {
+      "approved": " (approved)",
+      "unapproved": " (needs approval)",
+      null: "",
+    },
+    null: {
+      "approved": " (approved)",
+      "unapproved": " (needs approval)",
+      null: "",
+    },
+  };
+
+  final searchForApprovals =
+      ["approved", "unapproved"].where((option) => options[option]);
+
   // Report tests matching the filters.
   bool judgement = false;
-  if (options["passing"] || options["flaky"] || options["failing"]) {
-    if (options["passing"]) {
-      String sectionHeader;
-      if (options["unchanged"]) {
-        sectionHeader = "The following tests continued to pass:";
-      } else if (options["changed"]) {
-        sectionHeader = "The following tests began passing:";
-      } else {
-        sectionHeader = "The following tests passed:";
+  for (final searchForStatus
+      in searchForStatuses.isNotEmpty ? searchForStatuses : <String>[null]) {
+    for (final searchForApproval in searchForApprovals.isNotEmpty
+        ? searchForApprovals
+        : <String>[null]) {
+      final searchForChanged = options["unchanged"]
+          ? "unchanged"
+          : options["changed"] ? "changed" : null;
+      final aboutStatus = filterDescriptions[searchForStatus][searchForChanged];
+      final aboutApproval =
+          approvalDescriptions[searchForStatus][searchForApproval];
+      final sectionHeader = "The following tests $aboutStatus$aboutApproval:";
+      bool possibleJudgement = search(
+          sectionHeader, searchForStatus, searchForApproval, events, options);
+      if ((searchForStatus == null || searchForStatus == "failing") &&
+          (searchForApproval == null || searchForApproval == "unapproved")) {
+        judgement = possibleJudgement;
       }
-      search(sectionHeader, "passing", events, options);
     }
-    if (options["flaky"]) {
-      String sectionHeader;
-      if (options["unchanged"]) {
-        sectionHeader = "The following tests are known to flake but didn't:";
-      } else if (options["changed"]) {
-        sectionHeader = "The following tests flaked:";
-      } else {
-        sectionHeader = "The following tests are known to flake:";
-      }
-      search(sectionHeader, "flaky", events, options);
-    }
-    if (options["failing"]) {
-      String sectionHeader;
-      if (options["unchanged"]) {
-        sectionHeader = "The following tests continued to fail:";
-      } else if (options["changed"]) {
-        sectionHeader = "The following tests began failing:";
-      } else {
-        sectionHeader = "The following tests failed:";
-      }
-      judgement = search(sectionHeader, "failing", events, options);
-    }
-  } else {
-    String sectionHeader;
-    if (options["unchanged"]) {
-      sectionHeader = "The following tests had the same result:";
-    } else if (options["changed"]) {
-      sectionHeader = "The following tests changed result:";
-    } else {
-      sectionHeader = "The following tests ran:";
-    }
-    judgement = search(sectionHeader, null, events, options);
   }
 
   // Exit 1 only if --judgement and any test failed.
