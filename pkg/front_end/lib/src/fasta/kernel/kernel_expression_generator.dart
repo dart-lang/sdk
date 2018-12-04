@@ -106,7 +106,6 @@ import 'kernel_ast_api.dart'
         SuperMethodInvocationJudgment,
         SuperPropertyGetJudgment,
         SuperPropertySet,
-        SyntheticExpressionJudgment,
         TreeNode,
         TypeParameter,
         UnresolvedVariableAssignmentJudgment,
@@ -239,22 +238,26 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   @override
   Expression makeInvalidRead() {
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
-        forest.literalNull(token),
-        plainNameForRead,
-        forest.argumentsEmpty(noLocation),
-        offsetForToken(token),
-        isGetter: true));
+    return helper.wrapSyntheticExpression(
+        helper.throwNoSuchMethodError(
+            forest.literalNull(token),
+            plainNameForRead,
+            forest.argumentsEmpty(noLocation),
+            offsetForToken(token),
+            isGetter: true),
+        offsetForToken(token));
   }
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
-        forest.literalNull(token),
-        plainNameForRead,
-        forest.arguments(<Expression>[value], noLocation),
-        offsetForToken(token),
-        isSetter: true));
+    return helper.wrapSyntheticExpression(
+        helper.throwNoSuchMethodError(
+            forest.literalNull(token),
+            plainNameForRead,
+            forest.arguments(<Expression>[value], noLocation),
+            offsetForToken(token),
+            isSetter: true),
+        offsetForToken(token));
   }
 
   Expression _makeSimpleRead() => _makeRead(null);
@@ -1254,10 +1257,11 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
-        super.expression = new SyntheticExpressionJudgment(
+        super.expression = helper.wrapSyntheticExpression(
             forest.throwExpression(
                 null, forest.literalString(declaration.message.message, token))
-              ..fileOffset = offset);
+              ..fileOffset = offset,
+            offset);
       } else {
         super.expression = forest.literalType(
             helper.buildDartType(
@@ -1272,13 +1276,15 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
-        forest.literalNull(token),
-        plainNameForRead,
-        forest.arguments(<Expression>[value], null)
-          ..fileOffset = value.fileOffset,
-        offsetForToken(token),
-        isSetter: true));
+    return helper.wrapSyntheticExpression(
+        helper.throwNoSuchMethodError(
+            forest.literalNull(token),
+            plainNameForRead,
+            forest.arguments(<Expression>[value], null)
+              ..fileOffset = value.fileOffset,
+            offsetForToken(token),
+            isSetter: true),
+        offsetForToken(token));
   }
 
   @override
@@ -1430,11 +1436,12 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
     return new UnresolvedVariableAssignmentJudgment(
-      buildError(forest.arguments(<Expression>[value], token), isSetter: true)
-          .desugared,
-      isCompound,
-      value,
-    )..fileOffset = token.charOffset;
+        helper.desugarSyntheticExpression(buildError(
+            forest.arguments(<Expression>[value], token),
+            isSetter: true)),
+        isCompound,
+        value)
+      ..fileOffset = token.charOffset;
   }
 }
 

@@ -573,12 +573,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
     int intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = inferrer.helper
-          .buildProblem(
+      Expression replacement = inferrer.helper.desugarSyntheticExpression(
+          inferrer.helper.buildProblem(
               templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
               node.fileOffset,
-              node.literal.length)
-          .desugared;
+              node.literal.length));
       node.parent.replaceChild(node, replacement);
       node.inferredType = const BottomType();
       return null;
@@ -850,13 +849,12 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           }
           int intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = inferrer.helper
-                .buildProblem(
+            Expression error = inferrer.helper.desugarSyntheticExpression(
+                inferrer.helper.buildProblem(
                     templateIntegerLiteralIsOutOfRange
                         .withArguments(receiver.literal),
                     receiver.fileOffset,
-                    receiver.literal.length)
-                .desugared;
+                    receiver.literal.length));
             node.parent.replaceChild(node, error);
             node.inferredType = const BottomType();
             return null;

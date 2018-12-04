@@ -150,4 +150,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void reportDuplicatedDeclaration(
       Declaration existing, String name, int charOffset);
+
+  Expression wrapSyntheticExpression(Expression node, int charOffset);
 }

@@ -918,13 +918,12 @@ Expression checkWebIntLiteralsErrorIfUnexact(
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper
+  return inferrer.helper.desugarSyntheticExpression(inferrer.helper
       .buildProblem(
           templateWebLiteralCannotBeRepresentedExactly.withArguments(
               text, nearest),
           charOffset,
-          length)
-      .desugared;
+          length));
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.

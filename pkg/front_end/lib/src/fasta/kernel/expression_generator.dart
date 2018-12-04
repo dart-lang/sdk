@@ -71,7 +71,6 @@ import 'kernel_ast_api.dart'
         Member,
         Name,
         Procedure,
-        SyntheticExpressionJudgment,
         UnresolvedTargetInvocationJudgment,
         VariableDeclaration;
 
@@ -185,10 +184,8 @@ abstract class Generator implements ExpressionGenerator {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper
-            .buildProblem(
-                messageInvalidInitializer, offset, lengthForToken(token))
-            .desugared,
+        helper.desugarSyntheticExpression(helper.buildProblem(
+            messageInvalidInitializer, offset, lengthForToken(token))),
         offset);
   }
 
@@ -668,7 +665,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
   /// to [ExpressionGeneratorHelper.throwNoSuchMethodError] if it is used.
-  SyntheticExpressionJudgment buildError(Arguments arguments,
+  Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
 
   Name get name => unsupported("name", offsetForToken(token), uri);
@@ -680,8 +677,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(
-        buildError(forest.argumentsEmpty(token), isSetter: true).desugared);
+    return helper.buildInvalidInitializer(helper.desugarSyntheticExpression(
+        buildError(forest.argumentsEmpty(token), isSetter: true)));
   }
 
   @override
@@ -773,7 +770,9 @@ abstract class ErroneousExpressionGenerator implements Generator {
           arguments, helper.buildDartTypeArguments(typeArguments));
     }
     return new InvalidConstructorInvocationJudgment(
-        buildError(arguments).desugared, null, arguments);
+        helper.desugarSyntheticExpression(buildError(arguments)),
+        null,
+        arguments);
   }
 }
 
@@ -792,22 +791,25 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   @override
   Expression doInvocation(int charOffset, Arguments arguments) {
     return new UnresolvedTargetInvocationJudgment(
-        buildError(arguments, offset: charOffset).desugared, arguments)
+        helper.desugarSyntheticExpression(
+            buildError(arguments, offset: charOffset)),
+        arguments)
       ..fileOffset = arguments.fileOffset;
   }
 
   @override
-  SyntheticExpressionJudgment buildError(Arguments arguments,
+  Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
-        forest.literalNull(null)..fileOffset = offset,
-        plainNameForRead,
-        arguments,
-        offset,
-        isGetter: isGetter,
-        isSetter: isSetter))
-      ..fileOffset = offset;
+    return helper.wrapSyntheticExpression(
+        helper.throwNoSuchMethodError(
+            forest.literalNull(null)..fileOffset = offset,
+            plainNameForRead,
+            arguments,
+            offset,
+            isGetter: isGetter,
+            isSetter: isSetter),
+        offset);
   }
 
   @override
@@ -1135,11 +1137,13 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
-        forest.literalNull(null)..fileOffset = offset,
-        plainNameForRead,
-        arguments,
-        offsetForToken(token)));
+    return helper.wrapSyntheticExpression(
+        helper.throwNoSuchMethodError(
+            forest.literalNull(null)..fileOffset = offset,
+            plainNameForRead,
+            arguments,
+            offsetForToken(token)),
+        offsetForToken(token));
   }
 
   @override
@@ -1181,7 +1185,7 @@ abstract class ParserErrorGenerator implements Generator {
   @override
   void printOn(StringSink sink) {}
 
-  SyntheticExpressionJudgment buildProblem() {
+  Expression buildProblem() {
     return helper.buildProblem(message, offsetForToken(token), noLength,
         suppressMessage: true);
   }
@@ -1222,7 +1226,8 @@ abstract class ParserErrorGenerator implements Generator {
   Expression makeInvalidWrite(Expression value) => buildProblem();
 
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(buildProblem().desugared);
+    return helper.buildInvalidInitializer(
+        helper.desugarSyntheticExpression(buildProblem()));
   }
 
   Expression doInvocation(int offset, Arguments arguments) {

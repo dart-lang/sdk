@@ -505,7 +505,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, noLength).desugared,
+        helper.desugarSyntheticExpression(
+            helper.buildProblem(message, charOffset, noLength)),
         charOffset);
     initializers.add(error..parent = constructor);
     initializers.add(lastInitializer);
@@ -529,10 +530,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       } else if (constructor.initializers.isNotEmpty) {
         Initializer first = constructor.initializers.first;
         Initializer error = helper.buildInvalidInitializer(
-            helper
-                .buildProblem(
-                    messageThisInitializerNotAlone, first.fileOffset, noLength)
-                .desugared,
+            helper.desugarSyntheticExpression(helper.buildProblem(
+                messageThisInitializerNotAlone, first.fileOffset, noLength)),
             first.fileOffset);
         initializers.add(error..parent = constructor);
       } else {
