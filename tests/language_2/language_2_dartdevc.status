@@ -183,8 +183,6 @@ compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
-conditional_import_string_test: CompileTimeError # Test is broken
-conditional_import_test: CompileTimeError # Test is broken
 config_import_test: RuntimeError
 const_cast1_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
