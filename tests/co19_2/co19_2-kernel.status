@@ -3,8 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 LibTest/io/Stdin/readLineSync_A03_t02: Pass, Fail # https://github.com/dart-lang/co19/issues/184
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow  # Does many calls
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow  # Does many calls
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, ExtraSlow  # https://github.com/dart-lang/sdk/issues/35316
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, ExtraSlow  # https://github.com/dart-lang/sdk/issues/35316
 LibTest/core/List/List_class_A01_t02: Pass, Slow  # Does many calls
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/186
 LibTest/io/RawDatagramSocket/close_A01_t01: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/195
@@ -329,8 +329,8 @@ LibTest/io/HttpClientRequest/headers_A03_t01: RuntimeError, Pass
 LibTest/io/Stdout/writeCharCode_A01_t03: Timeout, Pass
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
 LibTest/io/Link/renameSync_A02_t01: RuntimeError, Pass
 LibTest/io/Process/start_A01_t01: RuntimeError
 LibTest/io/Process/start_A02_t01: RuntimeError
@@ -420,9 +420,9 @@ LibTest/io/Link/stat_A01_t01: RuntimeError
 LibTest/isolate/Isolate/spawn_A06_t03: Crash, Pass
 
 [ $runtime == vm && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass, Slow  # https://github.com/dart-lang/co19/issues/198
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass, Slow  # https://github.com/dart-lang/co19/issues/198
-LibTest/core/List/List_class_A01_t02: Timeout, Pass, Slow  # https://github.com/dart-lang/co19/issues/198
+LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass, ExtraSlow  # https://github.com/dart-lang/co19/issues/198 https://github.com/dart-lang/sdk/issues/35316
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass, ExtraSlow  # https://github.com/dart-lang/co19/issues/198 https://github.com/dart-lang/sdk/issues/35316
+LibTest/core/List/List_class_A01_t02: Timeout, Pass, ExtraSlow  # https://github.com/dart-lang/co19/issues/198 https://github.com/dart-lang/sdk/issues/35316
 LibTest/io/Directory/watch_A01_t02: RuntimeError, Pass
 LibTest/io/Directory/watch_A02_t01: RuntimeError, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t03: RuntimeError, Pass
