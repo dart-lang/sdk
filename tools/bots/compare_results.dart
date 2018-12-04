@@ -34,7 +34,7 @@ class Result {
         flaked = flakinessData != null &&
             flakinessData["outcomes"].contains(map["result"]);
 
-  String get key => "$name:$configuration";
+  String get key => "$configuration:$name";
 }
 
 class Event {
@@ -78,8 +78,14 @@ class Event {
 
 bool firstSection = true;
 
-bool search(String description, String searchForStatus,
-    String searchForApproval, List<Event> events, ArgResults options) {
+bool search(
+    String description,
+    String searchForStatus,
+    String searchForApproval,
+    List<Event> events,
+    ArgResults options,
+    Map<String, Map<String, dynamic>> logs,
+    List<String> logSection) {
   bool judgement = false;
   bool beganSection = false;
   int count = options["count"] != null ? int.parse(options["count"]) : null;
@@ -106,7 +112,7 @@ bool search(String description, String searchForStatus,
     if (options["unchanged"] && !event.unchanged) continue;
     if (options["changed"] && !event.changed) continue;
     if (!beganSection) {
-      if (options["human"]) {
+      if (options["human"] && !options["logs-only"]) {
         if (!firstSection) {
           print("");
         }
@@ -134,30 +140,30 @@ bool search(String description, String searchForStatus,
         break;
       }
     }
-    if (options["human"]) {
-      if (options["verbose"]) {
-        String expected =
-            after.matches ? "" : ", expected ${after.expectation}";
+    String output;
+    if (options["verbose"]) {
+      if (options["human"]) {
+        String expect = after.matches ? "" : ", expected ${after.expectation}";
         if (before == null || before.outcome == after.outcome) {
-          print("${name} ${event.description} "
-              "(${event.after.outcome}${expected})");
+          output = "$name ${event.description} "
+              "(${event.after.outcome}${expect})";
         } else {
-          print("${name} ${event.description} "
-              "(${event.before?.outcome} -> ${event.after.outcome}${expected})");
+          output = "name ${event.description} "
+              "(${event.before?.outcome} -> ${event.after.outcome}${expect})";
         }
       } else {
-        print(name);
-      }
-    } else {
-      if (options["verbose"]) {
-        print("$name "
-            "${before?.outcome} ${after.outcome} "
+        output = "$name ${before?.outcome} ${after.outcome} "
             "${before?.expectation} ${after.expectation} "
             "${before?.matches} ${after.matches} "
-            "${before?.flaked} ${after.flaked}");
-      } else {
-        print(name);
+            "${before?.flaked} ${after.flaked}";
       }
+    }
+    if (logs != null) {
+      final log = logs[event.after.key];
+      if (log != null) logSection?.add("\n\nLog for $output\n${log["log"]}");
+    }
+    if (!options["logs-only"]) {
+      print(output);
     }
   }
 
@@ -202,6 +208,11 @@ main(List<String> args) async {
       abbr: "v",
       help: "Show the old and new result for each test",
       negatable: false);
+  parser.addOption("logs",
+      abbr: "l", help: "Path to file holding logs of failing tests.");
+  parser.addFlag("logs-only",
+      help: "Only print logs of failing tests, no other output",
+      negatable: false);
 
   final options = parser.parse(args);
   if (options["help"]) {
@@ -238,6 +249,9 @@ ${parser.usage}""");
   final approved = 3 <= parameters.length
       ? await loadResultsMap(parameters[2])
       : <String, Map<String, dynamic>>{};
+  final logs = options['logs'] == null
+      ? <String, Map<String, dynamic>>{}
+      : await loadResultsMap(options['logs']);
   final flakinessData = options["flakiness-data"] != null
       ? await loadResultsMap(options["flakiness-data"])
       : <String, Map<String, dynamic>>{};
@@ -314,6 +328,7 @@ ${parser.usage}""");
       ["approved", "unapproved"].where((option) => options[option]);
 
   // Report tests matching the filters.
+  final logSection = <String>[];
   bool judgement = false;
   for (final searchForStatus
       in searchForStatuses.isNotEmpty ? searchForStatuses : <String>[null]) {
@@ -327,8 +342,9 @@ ${parser.usage}""");
       final aboutApproval =
           approvalDescriptions[searchForStatus][searchForApproval];
       final sectionHeader = "The following tests $aboutStatus$aboutApproval:";
-      bool possibleJudgement = search(
-          sectionHeader, searchForStatus, searchForApproval, events, options);
+      final logSectionArg = searchForStatus == "failing" ? logSection : null;
+      bool possibleJudgement = search(sectionHeader, searchForStatus,
+          searchForApproval, events, options, logs, logSectionArg);
       if ((searchForStatus == null || searchForStatus == "failing") &&
           (searchForApproval == null || searchForApproval == "unapproved")) {
         judgement = possibleJudgement;
@@ -336,20 +352,23 @@ ${parser.usage}""");
     }
   }
 
+  if (logSection.isNotEmpty) {
+    print(logSection.join());
+  }
   // Exit 1 only if --judgement and any test failed.
   if (options["judgement"]) {
-    if (options["human"] && !firstSection) {
+    if (options["human"] && !options["logs-only"] && !firstSection) {
       print("");
     }
     String oldNew =
         options["unchanged"] ? "old " : options["changed"] ? "new " : "";
     if (judgement) {
-      if (options["human"]) {
+      if (options["human"] && !options["logs-only"]) {
         print("There were ${oldNew}test failures.");
       }
       exitCode = 1;
     } else {
-      if (options["human"]) {
+      if (options["human"] && !options["logs-only"]) {
         print("No ${oldNew}test failures were found.");
       }
     }
