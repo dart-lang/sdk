@@ -97,12 +97,7 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 import 'forest.dart' show Forest;
 
 import 'kernel_shadow_ast.dart' as shadow
-    show
-        InvalidConstructorInvocationJudgment,
-        InvalidWriteJudgment,
-        SyntheticExpressionJudgment,
-        UnresolvedTargetInvocationJudgment,
-        UnresolvedVariableAssignmentJudgment;
+    show SyntheticExpressionJudgment, SyntheticWrapper;
 
 import 'redirecting_factory_body.dart'
     show
@@ -4763,7 +4758,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression wrapSyntheticExpression(Expression desugared, int charOffset) {
-    return new shadow.SyntheticExpressionJudgment(desugared)
+    return shadow.SyntheticWrapper.wrapSyntheticExpression(desugared)
       ..fileOffset = charOffset;
   }
 
@@ -4776,7 +4771,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidConstructorInvocation(Expression desugared,
       Member constructor, Arguments arguments, int charOffset) {
-    return new shadow.InvalidConstructorInvocationJudgment(
+    return shadow.SyntheticWrapper.wrapInvalidConstructorInvocation(
         desugared, constructor, arguments)
       ..fileOffset = charOffset;
   }
@@ -4784,21 +4779,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidWrite(
       Expression desugared, Expression expression, int charOffset) {
-    return new shadow.InvalidWriteJudgment(desugared, expression)
+    return shadow.SyntheticWrapper.wrapInvalidWrite(desugared, expression)
       ..fileOffset = charOffset;
   }
 
   @override
   Expression wrapUnresolvedTargetInvocation(
       Expression desugared, Arguments arguments, int charOffset) {
-    return new shadow.UnresolvedTargetInvocationJudgment(desugared, arguments)
+    return shadow.SyntheticWrapper.wrapUnresolvedTargetInvocation(
+        desugared, arguments)
       ..fileOffset = charOffset;
   }
 
   @override
   Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs, int charOffset) {
-    return new shadow.UnresolvedVariableAssignmentJudgment(
+    return shadow.SyntheticWrapper.wrapUnresolvedVariableAssignment(
         desugared, isCompound, rhs)
       ..fileOffset = charOffset;
   }

@@ -86,8 +86,6 @@ import 'kernel_ast_api.dart'
         Constructor,
         DartType,
         Field,
-        IllegalAssignmentJudgment,
-        IndexAssignmentJudgment,
         Initializer,
         Let,
         LoadLibraryTearOffJudgment,
@@ -96,10 +94,8 @@ import 'kernel_ast_api.dart'
         Name,
         NullAwarePropertyGetJudgment,
         Procedure,
-        PropertyAssignmentJudgment,
         PropertyGet,
         PropertySet,
-        StaticAssignmentJudgment,
         StaticSet,
         SuperMethodInvocation,
         SuperMethodInvocationJudgment,
@@ -107,7 +103,6 @@ import 'kernel_ast_api.dart'
         SuperPropertySet,
         TreeNode,
         TypeParameter,
-        VariableAssignmentJudgment,
         VariableDeclaration,
         VariableDeclarationJudgment,
         VariableGet,
@@ -122,6 +117,9 @@ import 'kernel_builder.dart'
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
+
+import 'kernel_shadow_ast.dart' as shadow
+    show PropertyAssignmentJudgment, SyntheticWrapper;
 
 part 'kernel_expression_generator_impl.dart';
 
@@ -291,7 +289,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   /// Creates a data structure for tracking the desugaring of a complex
   /// assignment expression whose right hand side is [rhs].
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new IllegalAssignmentJudgment(rhs);
+      shadow.SyntheticWrapper.wrapIllegalAssignment(rhs);
 }
 
 abstract class KernelGenerator = Generator with KernelExpressionGenerator;
@@ -340,8 +338,10 @@ class KernelVariableUseGenerator extends KernelGenerator
   }
 
   @override
-  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new VariableAssignmentJudgment(rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
+    return shadow.SyntheticWrapper.wrapVariableAssignment(rhs)
+      ..fileOffset = offsetForToken(token);
+  }
 
   @override
   void printOn(StringSink sink) {
@@ -385,7 +385,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(receiver, rhs);
+      shadow.SyntheticWrapper.wrapPropertyAssignment(receiver, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -498,7 +498,7 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(null, rhs);
+      shadow.SyntheticWrapper.wrapPropertyAssignment(null, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -572,7 +572,8 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
       ..fileOffset = offset;
     if (complexAssignment != null) {
       body = makeLet(receiver, nullAwareGuard);
-      PropertyAssignmentJudgment kernelPropertyAssign = complexAssignment;
+      shadow.PropertyAssignmentJudgment kernelPropertyAssign =
+          complexAssignment;
       kernelPropertyAssign.nullAwareGuard = nullAwareGuard;
       kernelPropertyAssign.desugared = body;
       return kernelPropertyAssign;
@@ -589,7 +590,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(receiverExpression, rhs);
+      shadow.SyntheticWrapper.wrapPropertyAssignment(receiverExpression, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -671,7 +672,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(null, rhs, isSuper: true);
+      shadow.SyntheticWrapper.wrapPropertyAssignment(null, rhs, isSuper: true);
 
   @override
   void printOn(StringSink sink) {
@@ -810,7 +811,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new IndexAssignmentJudgment(receiver, index, rhs);
+      shadow.SyntheticWrapper.wrapIndexAssignment(receiver, index, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -934,7 +935,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new IndexAssignmentJudgment(null, index, rhs);
+      shadow.SyntheticWrapper.wrapIndexAssignment(null, index, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -1071,7 +1072,8 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new IndexAssignmentJudgment(null, index, rhs, isSuper: true);
+      shadow.SyntheticWrapper.wrapIndexAssignment(null, index, rhs,
+          isSuper: true);
 
   @override
   void printOn(StringSink sink) {
@@ -1151,7 +1153,7 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new StaticAssignmentJudgment(rhs);
+      shadow.SyntheticWrapper.wrapStaticAssignment(rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -1235,7 +1237,7 @@ class KernelDeferredAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new StaticAssignmentJudgment(rhs);
+      shadow.SyntheticWrapper.wrapStaticAssignment(rhs);
 }
 
 class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator

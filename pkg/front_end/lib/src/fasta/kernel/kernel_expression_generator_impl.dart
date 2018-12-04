@@ -407,7 +407,7 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
-    return new IllegalAssignmentJudgment(rhs,
+    return shadow.SyntheticWrapper.wrapIllegalAssignment(rhs,
         assignmentOffset: offsetForToken(token));
   }
 
