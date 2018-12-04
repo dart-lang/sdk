@@ -5261,6 +5261,7 @@ class Method {
       case r'client/unregisterCapability':
       case r'workspace/didChangeWatchedFiles':
       case r'workspace/symbol':
+      case r'workspace/executeCommand':
       case r'workspace/applyEdit':
       case r'textDocument/didOpen':
       case r'textDocument/didChange':
@@ -5334,6 +5335,10 @@ class Method {
 
   /// Constant for the 'workspace/symbol' method.
   static const workspace_symbol = const Method._(r'workspace/symbol');
+
+  /// Constant for the 'workspace/executeCommand' method.
+  static const workspace_executeCommand =
+      const Method._(r'workspace/executeCommand');
 
   /// Constant for the 'workspace/applyEdit' method.
   static const workspace_applyEdit = const Method._(r'workspace/applyEdit');
