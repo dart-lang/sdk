@@ -147,14 +147,6 @@ BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
 #undef BOOL_OPTION_DEFINITION
 
 DEFINE_ENUM_OPTION(snapshot_kind, SnapshotKind, snapshot_kind);
-DEFINE_STRING_OPTION_CB(embedder_entry_points_manifest, {
-  Log::PrintErr(
-      "Option --embedder_entry_points_manifest is no longer supported."
-      " Use @pragma(\'vm:entry-point\') instead.\n");
-  exit(kErrorExitCode);
-});
-DEFINE_STRING_OPTION_CB(url_mapping,
-                        { DartUtils::url_mapping->AddArgument(value); });
 DEFINE_CB_OPTION(ProcessEnvironmentOption);
 
 static bool IsSnapshottingForPrecompilation() {
@@ -173,9 +165,6 @@ static void PrintUsage() {
 "  Where to find packages, that is, package:...  imports.                    \n"
 "--packages=<packages_file>                                                  \n"
 "  Where to find a package spec file                                         \n"
-"--url_mapping=<mapping>                                                     \n"
-"  Uses the URL mapping(s) specified on the command line to load the         \n"
-"  libraries.                                                                \n"
 "--dependencies=<output-file>                                                \n"
 "  Generates a Makefile with snapshot output files as targets and all        \n"
 "  transitive imports as sources.                                            \n"
@@ -939,10 +928,6 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
 int main(int argc, char** argv) {
   const int EXTRA_VM_ARGUMENTS = 7;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
-
-  // Initialize the URL mapping array.
-  CommandLineOptions cmdline_url_mapping(argc);
-  DartUtils::url_mapping = &cmdline_url_mapping;
 
   // When running from the command line we assume that we are optimizing for
   // throughput, and therefore use a larger new gen semi space size and a faster
