@@ -86,8 +86,8 @@
 
 % Colors used for for different kinds of text.
 \definecolor{normativeColor}{rgb}{0,0,0}
-\definecolor{commentaryColor}{rgb}{0.6,0.6,0.6}
-\definecolor{rationaleColor}{rgb}{0.6,0.6,0.6}
+\definecolor{commentaryColor}{rgb}{0.5,0.5,0.5}
+\definecolor{rationaleColor}{rgb}{0.5,0.5,0.5}
 
 % Environments for different kinds of text.
 \newenvironment{Q}[1]{{\bf #1}}{}
@@ -165,6 +165,13 @@
   {#1}_1\,\EXTENDS\,{#2}_1,\,\ldots,\ %
   {#1}_{#3}\,\EXTENDS\,{#2}_{#3}}}
 
+% Used to specify comma separated lists of symbols followed by
+% \EXTENDS{}, as needed for type parameter declarations where we do
+% not intend to refer explicitly to the bounds.
+% Parameters: Type parameter name, number of type parameters.
+\newcommand{\TypeParametersNoBounds}[2]{\ensuremath{%
+  {#1}_1\,\EXTENDS\,\ldots,\ \ldots,\ {#1}_{#2}\,\EXTENDS\,\ldots}}
+
 % For consistency, we may as well use this whenever possible.
 \newcommand{\TypeParametersStd}{\TypeParameters{X}{B}{s}}
 
@@ -185,6 +192,11 @@
 \newcommand{\FunctionType}[6]{\leavevmode\par\noindent\code{%
   \ensuremath{#1}{#2}\FUNCTION<\FTTypeParameters{#3}{#4}{#5}>({#6})}}
 
+% Same as \FunctionType except suitable for inline usage, hence omitting
+% the spacer argument.
+\newcommand{\RawFunctionType}[5]{\code{%
+  \ensuremath{#1}\ \FUNCTION<\FTTypeParameters{#2}{#3}{#4}>({#5})}}
+
 % Used to specify function types with positional optionals:
 % Arguments: Return type, spacer, type parameter name, bound name,
 %   number of type parameters, parameter type, number of required parameters,
@@ -193,6 +205,12 @@
   \FunctionType{#1}{#2}{#3}{#4}{#5}{\List{#6}{1}{#7},\ %
     [\List{#6}{{#7}+1}{{#7}+{#8}}]}}
 
+% Same as \FunctionTypePositional except suitable for inline usage,
+% hence omitting the spacer argument.
+\newcommand{\RawFunctionTypePositional}[7]{%
+  \RawFunctionType{#1}{#2}{#3}{#4}{\List{#5}{1}{#6},\ %
+    [\List{#5}{{#6}+1}{{#6}+{#7}}]}}
+
 % Used to specify function types with named parameters:
 % Arguments: Return type, spacer, type parameter name, bound name,
 %   number of type parameters, parameter type, number of required parameters,
@@ -200,6 +218,12 @@
 \newcommand{\FunctionTypeNamed}[9]{%
   \FunctionType{#1}{#2}{#3}{#4}{#5}{\List{#6}{1}{#7},\ %
     \{\PairList{#6}{#8}{{#7}+1}{{#7}+{#9}}\}}}
+
+% Same as \FunctionType except suitable for inline usage, hence omitting
+% the spacer argument.
+\newcommand{\RawFunctionTypeNamed}[8]{%
+  \RawFunctionType{#1}{#2}{#3}{#4}{\List{#5}{1}{#6},\ %
+    \{\PairList{#5}{#7}{{#6}+1}{{#6}+{#8}}\}}}
 
 % Used to specify function types with no optional parameters:
 % Arguments: Return type, spacer, type parameter name, bound name,
@@ -234,6 +258,26 @@
   \ensuremath{{#1}\MoreSignatureSpecificSymbol{#2}}}
 \newcommand{\NotMoreSignatureSpecific}[2]{%
   \ensuremath{{#1}\NotMoreSignatureSpecificSymbol{#2}}}
+
+% Judgment expressing that a subtype relation exists.
+\newcommand{\Subtype}[3]{\ensuremath{{#1}\vdash{#2}\,<:\,{#3}}}
+\newcommand{\SubtypeStd}[2]{\Subtype{\Gamma}{#1}{#2}}
+% Subtype judgment where the environment is omitted (NE: "no environment").
+\newcommand{\SubtypeNE}[2]{\ensuremath{{#1}\,<:\,{#2}}}
+
+% Judgment expressing that a supertype relation exists.
+\newcommand{\Supertype}[3]{\ensuremath{{#1}\vdash{#2}\,:>\,{#3}}}
+\newcommand{\SupertypeStd}[2]{\Supertype{\Gamma}{#1}{#2}}
+
+% Judgment expressing that an assignability relation exists.
+\newcommand{\AssignableRelationSymbol}{\ensuremath{\Longleftrightarrow}}
+\newcommand{\Assignable}[3]{%
+  \ensuremath{{#1}\vdash{#2}\,\AssignableRelationSymbol\,{#3}}}
+\newcommand{\AssignableStd}[2]{\Assignable{\Gamma}{#1}{#2}}
+
+% Semantic function delivering the superinterfaces of a class.
+\newcommand{\Superinterfaces}[1]{\ensuremath{\metavar{Superinterfaces}({#1})}}
+\newcommand{\Superinterface}[2]{{#1}\in\Superinterfaces{#2}}
 
 % ----------------------------------------------------------------------
 % Support for hash valued Location Markers
