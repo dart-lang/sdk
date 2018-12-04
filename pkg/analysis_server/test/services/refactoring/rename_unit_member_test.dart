@@ -644,6 +644,42 @@ void main() {
 ''');
   }
 
+  test_createChange_outsideOfProject_referenceInPart() async {
+    newFile('/home/part.dart', content: r'''
+part of test;
+
+Test test2;
+''');
+
+    // To use file:// URI.
+    testFile = convertPath('/home/test/bin/test.dart');
+
+    await indexTestUnit('''
+library test;
+
+part '../../part.dart';
+
+class Test {}
+
+Test test;
+''');
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    await assertSuccessfulRefactoring('''
+library test;
+
+part '../../part.dart';
+
+class NewName {}
+
+NewName test;
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile);
+  }
+
   test_createChange_PropertyAccessorElement_getter_declaration() async {
     await _test_createChange_PropertyAccessorElement("test {}");
   }

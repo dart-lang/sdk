@@ -92,7 +92,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(searchEngine, change, newName);
+    var processor = new RenameProcessor(workspace, change, newName);
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
@@ -110,7 +110,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     List<SourceReference> nameRefs = getSourceReferences(nameMatches);
     for (SourceReference reference in nameRefs) {
       // ignore references from SDK and pub cache
-      if (!workspace.containsFile(reference.element.source.fullName)) {
+      if (!workspace.containsElement(reference.element)) {
         continue;
       }
       // check the element being renamed is accessible

@@ -786,6 +786,94 @@ main(var a) {
     assertNoFileChange('/lib.dart');
   }
 
+  test_createChange_outsideOfProject_declarationInPackage() async {
+    addPackageFile('aaa', 'aaa.dart', r'''
+class A {
+  void test() {}
+}
+
+void foo(A a) {
+  a.test();
+}
+''');
+    await indexTestUnit('''
+import 'package:aaa/aaa.dart';
+
+class B extends A {
+  void test() {}
+}
+
+main(A a, B b) {
+  a.test();
+  b.test();
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+import 'package:aaa/aaa.dart';
+
+class B extends A {
+  void newName() {}
+}
+
+main(A a, B b) {
+  a.newName();
+  b.newName();
+}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile);
+  }
+
+  test_createChange_outsideOfProject_referenceInPart() async {
+    newFile('/home/part.dart', content: r'''
+part of test;
+
+void foo(A a) {
+  a.test();
+}
+''');
+
+    // To use file:// URI.
+    testFile = convertPath('/home/test/bin/test.dart');
+
+    await indexTestUnit('''
+library test;
+
+part '../../part.dart';
+
+class A {
+  void test() {}
+}
+
+main(A a) {
+  a.test();
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+library test;
+
+part '../../part.dart';
+
+class A {
+  void newName() {}
+}
+
+main(A a) {
+  a.newName();
+}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile);
+  }
+
   test_createChange_PropertyAccessorElement_getter() async {
     await indexTestUnit('''
 class A {

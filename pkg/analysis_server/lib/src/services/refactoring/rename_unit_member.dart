@@ -127,7 +127,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     }
 
     // Rename each element and references to it.
-    var processor = new RenameProcessor(searchEngine, change, newName);
+    var processor = new RenameProcessor(workspace, change, newName);
     for (var element in elements) {
       await processor.renameElement(element);
     }
@@ -136,7 +136,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (_flutterWidgetState != null) {
       _updateFlutterWidgetStateName();
       await new RenameProcessor(
-        searchEngine,
+        workspace,
         change,
         _flutterWidgetStateNewName,
       ).renameElement(_flutterWidgetState);

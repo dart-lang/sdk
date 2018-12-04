@@ -409,6 +409,13 @@ class RefactoringWorkspace {
   RefactoringWorkspace(this.drivers, this.searchEngine);
 
   /**
+   * Whether the [element] is defined in a file that is in a context root.
+   */
+  bool containsElement(Element element) {
+    return containsFile(element.source.fullName);
+  }
+
+  /**
    * Whether the file with the given [path] is in a context root.
    */
   bool containsFile(String path) {
