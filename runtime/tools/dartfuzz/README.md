@@ -57,6 +57,7 @@ where
         jit-[opt-][debug-]dbc   = Dart JIT (simdbc)
         jit-[opt-][debug-]dbc64 = Dart JIT (simdbc64)
         aot-[debug-]x64         = Dart AOT (x64)
+        aot-[debug-]arm32       = Dart AOT (simarm)
         aot-[debug-]arm64       = Dart AOT (simarm64)
         kbc-int-[debug-]x64     = Dart KBC (interpreted bytecode)
         kbc-mix-[debug-]x64     = Dart KBC (mixed-mode bytecode)
