@@ -629,8 +629,12 @@ class AstBuilder extends StackListener {
           thisKeyword = thisExpression.thisKeyword;
           period = left.operator;
           fieldName = left.propertyName;
+        } else if (left is SimpleIdentifier) {
+          fieldName = left;
         } else {
-          fieldName = left as SimpleIdentifier;
+          // Recovery:
+          // Parser has reported invalid assignment.
+          fieldName = ast.simpleIdentifier(left.beginToken);
         }
         initializers.add(ast.constructorFieldInitializer(
             thisKeyword,
