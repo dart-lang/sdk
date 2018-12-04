@@ -553,7 +553,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000a)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000b)
 
 typedef struct {
   int32_t version;
@@ -564,6 +564,7 @@ typedef struct {
   Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
   bool unsafe_trust_strong_mode_types;
+  bool copy_parent_code;
 } Dart_IsolateFlags;
 
 /**

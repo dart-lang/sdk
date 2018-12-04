@@ -166,9 +166,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     ASSERT(kernel_service_buffer != NULL);
     isolate_data =
         new bin::IsolateData(script_uri, package_root, packages_config, NULL);
-    isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
-                                    kernel_service_buffer_size,
-                                    false /* take_ownership */);
+    isolate_data->SetKernelBufferUnowned(
+        const_cast<uint8_t*>(kernel_service_buffer),
+        kernel_service_buffer_size);
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, main, kernel_service_buffer, kernel_service_buffer_size,
         flags, isolate_data, error);

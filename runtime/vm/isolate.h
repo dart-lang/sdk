@@ -133,7 +133,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
 //
-//       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//       V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
