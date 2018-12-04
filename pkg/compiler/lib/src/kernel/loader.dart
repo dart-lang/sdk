@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
@@ -18,6 +19,7 @@ import '../../compiler_new.dart' as api;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../common.dart';
 import '../options.dart';
+import '../util/sink_adapter.dart';
 
 import 'front_end_adapter.dart';
 import 'dart2js_target.dart' show Dart2jsTarget;
@@ -31,6 +33,7 @@ class KernelLoaderTask extends CompilerTask {
   final DiagnosticReporter _reporter;
 
   final api.CompilerInput _compilerInput;
+  final api.CompilerOutput _compilerOutput;
 
   final CompilerOptions _options;
 
@@ -43,8 +46,8 @@ class KernelLoaderTask extends CompilerTask {
   /// This is used for testing.
   bool forceSerialization = false;
 
-  KernelLoaderTask(
-      this._options, this._compilerInput, this._reporter, Measurer measurer)
+  KernelLoaderTask(this._options, this._compilerInput, this._compilerOutput,
+      this._reporter, Measurer measurer)
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
@@ -78,6 +81,20 @@ class KernelLoaderTask extends CompilerTask {
             resolvedUri);
       }
       if (component == null) return null;
+
+      if (_options.cfeOnly) {
+        measureSubtask('serialize dill', () {
+          _reporter.log('Writing dill to ${_options.outputUri}');
+          api.BinaryOutputSink dillOutput =
+              _compilerOutput.createBinarySink(_options.outputUri);
+          BinaryOutputSinkAdapter irSink =
+              new BinaryOutputSinkAdapter(dillOutput);
+          BinaryPrinter printer = new BinaryPrinter(irSink);
+          printer.writeComponentFile(component);
+          irSink.close();
+        });
+      }
+
       if (forceSerialization) {
         // TODO(johnniwinther): Remove this when #34942 is fixed.
         List<int> data = serializeComponent(component);

@@ -62,6 +62,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// If this is set, the compilation stops after type inference.
   Uri writeDataUri;
 
+  /// Whether to run only the CFE and emit the generated kernel file in
+  /// [outputUri].
+  bool cfeOnly = false;
+
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   Map<String, String> environment = const <String, String>{};
@@ -332,7 +336,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
-      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=');
+      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..cfeOnly = _hasOption(options, Flags.cfeOnly);
   }
 
   void validate() {

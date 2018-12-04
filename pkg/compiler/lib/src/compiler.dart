@@ -168,8 +168,8 @@ abstract class Compiler {
     enqueuer = backend.makeEnqueuer();
 
     tasks = [
-      kernelLoader =
-          new KernelLoaderTask(options, provider, reporter, measurer),
+      kernelLoader = new KernelLoaderTask(
+          options, provider, _outputProvider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
@@ -255,6 +255,7 @@ abstract class Compiler {
       if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
         return;
       }
+      if (options.cfeOnly) return;
       _mainLibraryUri = result.rootLibraryUri;
 
       frontendStrategy.registerLoadedLibraries(result);
