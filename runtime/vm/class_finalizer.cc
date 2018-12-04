@@ -2245,6 +2245,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Top level classes are always fully loaded.
   if (!cls.IsTopLevel() && cls.kernel_offset() > 0) {
     kernel::KernelLoader::FinishLoading(cls);
+    if (cls.is_finalized()) {
+      return;
+    }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
