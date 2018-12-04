@@ -150,6 +150,7 @@
       "tests/standalone/",
       "tests/standalone_2/",
       "pkg/async_helper/",
+      "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/expect/",
       "pkg/front_end/",

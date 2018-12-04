@@ -39,13 +39,16 @@ import '../metadata/bytecode.dart';
 // exception.
 const String symbolForTypeCast = ' in type cast';
 
-void generateBytecode(Component component,
-    {bool dropAST: false,
-    bool emitSourcePositions: false,
-    bool omitAssertSourcePositions: false,
-    bool useFutureBytecodeFormat: false,
-    Map<String, String> environmentDefines,
-    ErrorReporter errorReporter}) {
+void generateBytecode(
+  Component component, {
+  bool dropAST: false,
+  bool emitSourcePositions: false,
+  bool omitAssertSourcePositions: false,
+  bool useFutureBytecodeFormat: false,
+  Map<String, String> environmentDefines,
+  ErrorReporter errorReporter,
+  List<Library> libraries,
+}) {
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
@@ -55,19 +58,25 @@ void generateBytecode(Component component,
   final constantsBackend =
       new VmConstantsBackend(environmentDefines, coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
-  new BytecodeGenerator(
-          component,
-          coreTypes,
-          hierarchy,
-          typeEnvironment,
-          constantsBackend,
-          emitSourcePositions,
-          omitAssertSourcePositions,
-          useFutureBytecodeFormat,
-          errorReporter)
-      .visitComponent(component);
+  libraries ??= component.libraries;
+  final bytecodeGenerator = new BytecodeGenerator(
+      component,
+      coreTypes,
+      hierarchy,
+      typeEnvironment,
+      constantsBackend,
+      emitSourcePositions,
+      omitAssertSourcePositions,
+      useFutureBytecodeFormat,
+      errorReporter);
+  for (var library in libraries) {
+    bytecodeGenerator.visitLibrary(library);
+  }
   if (dropAST) {
-    new DropAST().visitComponent(component);
+    final astRemover = new DropAST(component);
+    for (var library in libraries) {
+      astRemover.visitLibrary(library);
+    }
   }
 }
 
@@ -139,9 +148,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     objectTable = metadata.bytecodeComponent.objectTable;
     objectTable.coreTypes = coreTypes;
   }
-
-  @override
-  visitComponent(Component node) => node.visitChildren(this);
 
   @override
   visitLibrary(Library node) {
@@ -3116,14 +3122,8 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 class DropAST extends Transformer {
   BytecodeMetadataRepository metadata;
 
-  @override
-  TreeNode visitComponent(Component node) {
-    metadata = node.metadata[new BytecodeMetadataRepository().tag];
-    if (metadata != null) {
-      return super.visitComponent(node);
-    }
-    return node;
-  }
+  DropAST(Component component)
+      : metadata = component.metadata[new BytecodeMetadataRepository().tag];
 
   @override
   TreeNode defaultMember(Member node) {
@@ -3152,7 +3152,8 @@ class DropAST extends Transformer {
     return node;
   }
 
-  bool _hasBytecode(Member node) => metadata.mapping.containsKey(node);
+  bool _hasBytecode(Member node) =>
+      metadata != null && metadata.mapping.containsKey(node);
 }
 
 typedef void GenerateContinuation();
