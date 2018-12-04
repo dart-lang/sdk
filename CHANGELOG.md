@@ -1,3 +1,7 @@
+# 0.1.75
+
+* analyzer package dependency bumped to `^0.34.0` 
+
 # 0.1.74
 
 * experimental lints `avoid_positional_boolean_parameters`, `literal_only_boolean_expressions`, `prefer_foreach`, `prefer_void_to_null` promoted to stable
