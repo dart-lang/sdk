@@ -1,3 +1,8 @@
+# 0.1.74
+
+* experimental lints `avoid_positional_boolean_parameters`, `literal_only_boolean_expressions`, `prefer_foreach`, `prefer_void_to_null` promoted to stable
+* `unnecessary_parenthesis` improved to handle function expressions
+
 # 0.1.73
 
 * deprecated `prefer_bool_in_asserts` (redundant w/ Dart 2 checks)
