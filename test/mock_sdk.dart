@@ -142,6 +142,10 @@ abstract class Map<K, V> extends Object {
   V putIfAbsent(K key, V ifAbsent());
 }
 
+abstract class Set<E> implements Iterable<E> {
+  Set<R> cast<R>();
+}
+
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
