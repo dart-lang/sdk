@@ -96,7 +96,13 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_shadow_ast.dart' as shadow show SyntheticExpressionJudgment;
+import 'kernel_shadow_ast.dart' as shadow
+    show
+        InvalidConstructorInvocationJudgment,
+        InvalidWriteJudgment,
+        SyntheticExpressionJudgment,
+        UnresolvedTargetInvocationJudgment,
+        UnresolvedVariableAssignmentJudgment;
 
 import 'redirecting_factory_body.dart'
     show
@@ -3076,11 +3082,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           isConst || constantContext != ConstantContext.none && target.isConst;
       if ((isConst || constantContext == ConstantContext.inferred) &&
           !target.isConst) {
-        return new InvalidConstructorInvocationJudgment(
+        return wrapInvalidConstructorInvocation(
             desugarSyntheticExpression(buildProblem(
                 fasta.messageNonConstConstructor, charOffset, charLength)),
             target,
-            arguments);
+            arguments,
+            charOffset);
       }
       ConstructorInvocation node = new ConstructorInvocation(
           target, forest.castArguments(arguments),
@@ -3095,11 +3102,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             constantContext != ConstantContext.none && procedure.isConst;
         if ((isConst || constantContext == ConstantContext.inferred) &&
             !procedure.isConst) {
-          return new InvalidConstructorInvocationJudgment(
+          return wrapInvalidConstructorInvocation(
               desugarSyntheticExpression(buildProblem(
                   fasta.messageNonConstFactory, charOffset, charLength)),
               target,
-              arguments);
+              arguments,
+              charOffset);
         }
         StaticInvocation node = FactoryConstructorInvocationJudgment(
             target, forest.castArguments(arguments),
@@ -3339,7 +3347,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         message = b.message.withLocation(uri, charOffset, noLength);
       } else if (b.isConstructor) {
         if (type.isAbstract) {
-          return new InvalidConstructorInvocationJudgment(
+          return wrapInvalidConstructorInvocation(
               evaluateArgumentsBefore(
                   arguments,
                   buildAbstractClassInstantiationError(
@@ -3348,8 +3356,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                       type.name,
                       nameToken.charOffset)),
               target,
-              arguments)
-            ..fileOffset = charOffset;
+              arguments,
+              charOffset);
         }
       }
       if (target is Constructor ||
@@ -3395,15 +3403,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     errorName ??= name;
 
-    return new UnresolvedTargetInvocationJudgment(
+    return wrapUnresolvedTargetInvocation(
         throwNoSuchMethodError(
             forest.literalNull(null)..fileOffset = charOffset,
             errorName,
             arguments,
             nameLastToken.charOffset,
             message: message),
-        arguments)
-      ..fileOffset = arguments.fileOffset;
+        arguments,
+        arguments.fileOffset);
   }
 
   @override
@@ -4763,6 +4771,36 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   Expression desugarSyntheticExpression(Expression node) {
     shadow.SyntheticExpressionJudgment shadowNode = node;
     return shadowNode.desugared;
+  }
+
+  @override
+  Expression wrapInvalidConstructorInvocation(Expression desugared,
+      Member constructor, Arguments arguments, int charOffset) {
+    return new shadow.InvalidConstructorInvocationJudgment(
+        desugared, constructor, arguments)
+      ..fileOffset = charOffset;
+  }
+
+  @override
+  Expression wrapInvalidWrite(
+      Expression desugared, Expression expression, int charOffset) {
+    return new shadow.InvalidWriteJudgment(desugared, expression)
+      ..fileOffset = charOffset;
+  }
+
+  @override
+  Expression wrapUnresolvedTargetInvocation(
+      Expression desugared, Arguments arguments, int charOffset) {
+    return new shadow.UnresolvedTargetInvocationJudgment(desugared, arguments)
+      ..fileOffset = charOffset;
+  }
+
+  @override
+  Expression wrapUnresolvedVariableAssignment(
+      Expression desugared, bool isCompound, Expression rhs, int charOffset) {
+    return new shadow.UnresolvedVariableAssignmentJudgment(
+        desugared, isCompound, rhs)
+      ..fileOffset = charOffset;
   }
 }
 

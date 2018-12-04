@@ -67,11 +67,9 @@ import 'kernel_ast_api.dart'
         DynamicType,
         Expression,
         Initializer,
-        InvalidConstructorInvocationJudgment,
         Member,
         Name,
         Procedure,
-        UnresolvedTargetInvocationJudgment,
         VariableDeclaration;
 
 import 'kernel_builder.dart'
@@ -238,7 +236,7 @@ abstract class Generator implements ExpressionGenerator {
       forest.argumentsSetTypeArguments(
           arguments, helper.buildDartTypeArguments(typeArguments));
     }
-    return new InvalidConstructorInvocationJudgment(
+    return helper.wrapInvalidConstructorInvocation(
         helper.throwNoSuchMethodError(
             forest.literalNull(token),
             helper.constructorNameForDiagnostics(name,
@@ -246,7 +244,8 @@ abstract class Generator implements ExpressionGenerator {
             arguments,
             nameToken.charOffset),
         null,
-        arguments);
+        arguments,
+        offsetForToken(token));
   }
 
   bool get isThisPropertyAccess => false;
@@ -769,10 +768,11 @@ abstract class ErroneousExpressionGenerator implements Generator {
       forest.argumentsSetTypeArguments(
           arguments, helper.buildDartTypeArguments(typeArguments));
     }
-    return new InvalidConstructorInvocationJudgment(
+    return helper.wrapInvalidConstructorInvocation(
         helper.desugarSyntheticExpression(buildError(arguments)),
         null,
-        arguments);
+        arguments,
+        offsetForToken(token));
   }
 }
 
@@ -790,11 +790,11 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
 
   @override
   Expression doInvocation(int charOffset, Arguments arguments) {
-    return new UnresolvedTargetInvocationJudgment(
+    return helper.wrapUnresolvedTargetInvocation(
         helper.desugarSyntheticExpression(
             buildError(arguments, offset: charOffset)),
-        arguments)
-      ..fileOffset = arguments.fileOffset;
+        arguments,
+        arguments.fileOffset);
   }
 
   @override

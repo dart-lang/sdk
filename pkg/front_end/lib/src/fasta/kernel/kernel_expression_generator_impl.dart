@@ -412,11 +412,12 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return new InvalidWriteJudgment(
+    return helper.wrapInvalidWrite(
         helper.desugarSyntheticExpression(helper.buildProblem(
             messageCannotAssignToParenthesizedExpression,
             offsetForToken(token),
             lengthForToken(token))),
-        expression);
+        expression,
+        offsetForToken(token));
   }
 }

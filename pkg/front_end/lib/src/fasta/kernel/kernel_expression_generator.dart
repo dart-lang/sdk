@@ -89,7 +89,6 @@ import 'kernel_ast_api.dart'
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
         Initializer,
-        InvalidWriteJudgment,
         Let,
         LoadLibraryTearOffJudgment,
         Member,
@@ -108,7 +107,6 @@ import 'kernel_ast_api.dart'
         SuperPropertySet,
         TreeNode,
         TypeParameter,
-        UnresolvedVariableAssignmentJudgment,
         VariableAssignmentJudgment,
         VariableDeclaration,
         VariableDeclarationJudgment,
@@ -1433,15 +1431,15 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
     sink.write(name.name);
   }
 
-  UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
+  Expression _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
-    return new UnresolvedVariableAssignmentJudgment(
+    return helper.wrapUnresolvedVariableAssignment(
         helper.desugarSyntheticExpression(buildError(
             forest.arguments(<Expression>[value], token),
             isSetter: true)),
         isCompound,
-        value)
-      ..fileOffset = token.charOffset;
+        value,
+        token.charOffset);
   }
 }
 
