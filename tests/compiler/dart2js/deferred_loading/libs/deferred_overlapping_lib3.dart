@@ -2,6 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: C3:OutputUnit(2, {lib1, lib2})*/
-/*element: C3.:OutputUnit(2, {lib1, lib2})*/
+/*class: C3:OutputUnit(1, {lib1, lib2})*/
+/*element: C3.:OutputUnit(1, {lib1, lib2})*/
 class C3 {}
