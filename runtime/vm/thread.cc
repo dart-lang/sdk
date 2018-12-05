@@ -808,8 +808,14 @@ bool Thread::TopErrorHandlerIsSetJump() const {
   if (long_jump_base_ == nullptr) return false;
   if (top_exit_frame_info_ == 0) return true;
 #if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
-  return true;  // False positives.
+  // False positives: simulator stack and native stack are unordered.
+  return true;
 #else
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // False positives: interpreter stack and native stack are unordered.
+  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
+    return true;
+#endif
   return reinterpret_cast<uword>(long_jump_base_) < top_exit_frame_info_;
 #endif
 }
@@ -818,8 +824,14 @@ bool Thread::TopErrorHandlerIsExitFrame() const {
   if (top_exit_frame_info_ == 0) return false;
   if (long_jump_base_ == nullptr) return true;
 #if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
-  return true;  // False positives.
+  // False positives: simulator stack and native stack are unordered.
+  return true;
 #else
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // False positives: interpreter stack and native stack are unordered.
+  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
+    return true;
+#endif
   return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base_);
 #endif
 }
