@@ -40,12 +40,12 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     expect(suggestion.location.length, length);
   }
 
-  Future<EditDartfixResult> performFix() async {
-    final request = new Request(
-        '33', 'edit.dartfix', new EditDartfixParams([libPath]).toJson());
+  Future<EditDartfixResult> performFix([String requestId = '33']) async {
+    final request = new Request(requestId, 'edit.dartfix',
+        new EditDartfixParams([projectPath]).toJson());
 
     final response = await new EditDartFix(server, request).compute();
-    expect(response.id, '33');
+    expect(response.id, requestId);
 
     return EditDartfixResult.fromResponse(response);
   }
@@ -103,5 +103,23 @@ main() {
   print(new A<String>.from([]));
 }
     ''');
+  }
+
+  test_dartfix_excludedSource() async {
+    await test_dartfix_convertToIntLiteral();
+
+    // Add analysis options to exclude the lib directory then reanalyze
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  exclude:
+    - lib/**
+''');
+    handleSuccessfulRequest(new Request('34', 'analysis.reanalyze'),
+        handler: analysisHandler);
+
+    // Assert no suggestions for excluded source
+    EditDartfixResult result = await performFix('35');
+    expect(result.suggestions, hasLength(0));
+    expect(result.edits, hasLength(0));
   }
 }
