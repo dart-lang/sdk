@@ -88,7 +88,7 @@ class Platform {
   static int GetScriptIndex() { return script_index_; }
   static char** GetArgv() { return argv_; }
 
-  DART_NORETURN static void Exit(int exit_code);
+  static DART_NORETURN void Exit(int exit_code);
 
   static void SetCoreDumpResourceLimit(int value);
 

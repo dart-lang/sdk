@@ -123,9 +123,9 @@ class OS {
   // Cleanup the OS class.
   static void Cleanup();
 
-  DART_NORETURN static void Abort();
+  static DART_NORETURN void Abort();
 
-  DART_NORETURN static DART_NORETURN void Exit(int code);
+  static DART_NORETURN void Exit(int code);
 };
 
 }  // namespace dart

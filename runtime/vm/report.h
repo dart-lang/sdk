@@ -32,19 +32,19 @@ class Report : AllStatic {
   static const bool AfterLocation = true;
 
   // Report an already formatted error via a long jump.
-  DART_NORETURN static void LongJump(const Error& error);
+  static void LongJump(const Error& error);
 
   // Concatenate and report an already formatted error and a new error message.
-  DART_NORETURN static void LongJumpF(const Error& prev_error,
-                                      const Script& script,
-                                      TokenPosition token_pos,
-                                      const char* format,
-                                      ...) PRINTF_ATTRIBUTE(4, 5);
-  DART_NORETURN static void LongJumpV(const Error& prev_error,
-                                      const Script& script,
-                                      TokenPosition token_pos,
-                                      const char* format,
-                                      va_list args);
+  static void LongJumpF(const Error& prev_error,
+                        const Script& script,
+                        TokenPosition token_pos,
+                        const char* format,
+                        ...) PRINTF_ATTRIBUTE(4, 5);
+  static void LongJumpV(const Error& prev_error,
+                        const Script& script,
+                        TokenPosition token_pos,
+                        const char* format,
+                        va_list args);
 
   // Report a warning/jswarning/error/bailout message.
   static void MessageF(Kind kind,

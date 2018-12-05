@@ -619,7 +619,6 @@ RawStackTrace* Exceptions::CurrentStackTrace() {
   return GetStackTraceForException();
 }
 
-DART_NORETURN
 static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
