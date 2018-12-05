@@ -3106,10 +3106,16 @@ class ProgramCompiler extends Object
     if (offset == -1) return null;
     var fileUri = _currentUri;
     if (fileUri == null) return null;
-    var loc = _component.getLocation(fileUri, offset);
-    if (loc == null) return null;
-    return SourceLocation(offset,
-        sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
+    try {
+      var loc = _component.getLocation(fileUri, offset);
+      if (loc == null) return null;
+      return SourceLocation(offset,
+          sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
+    } on StateError catch (_) {
+      // TODO(jmesserly): figure out why this is throwing. Perhaps the file URI
+      // and offset are mismatched and don't correspond to the same source?
+      return null;
+    }
   }
 
   /// Adds a hover comment for Dart node using JS expression [expr], where

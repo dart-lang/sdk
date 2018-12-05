@@ -44,6 +44,10 @@ class DevCompilerConstants {
       // It can also be caused by methods in the evaluator that don't understand
       // unavailable constants.
       return null;
+    } on NoSuchMethodError {
+      // TODO(jmesserly): this is probably the same issue as above, but verify
+      // that it's fixed once Kernel does constant evaluation.
+      return null;
     }
   }
 
