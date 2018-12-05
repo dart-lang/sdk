@@ -3448,7 +3448,8 @@ const MessageCode messageFieldInitializedOutsideDeclaringClass = const MessageCo
     "FieldInitializedOutsideDeclaringClass",
     index: 88,
     message: r"""A field can only be initialized in it's declaring class""",
-    tip: r"""Try moving the field initialization into the constructor body.""");
+    tip:
+        r"""Try passing a value into the superclass constructor, or moving the initialization into the constructor body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializerOutsideConstructor =
@@ -5663,7 +5664,6 @@ const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInitializer = const MessageCode(
     "InvalidInitializer",
-    analyzerCodes: <String>["INVALID_INITIALIZER"],
     message: r"""Not a valid initializer.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 

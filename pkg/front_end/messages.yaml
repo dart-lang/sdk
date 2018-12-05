@@ -936,12 +936,11 @@ InvalidVoid:
 InvalidInitializer:
   template: "Not a valid initializer."
   tip: "To initialize a field, use the syntax 'name = value'."
-  analyzerCode: INVALID_INITIALIZER
 
 FieldInitializedOutsideDeclaringClass:
   index: 88
   template: "A field can only be initialized in it's declaring class"
-  tip: "Try moving the field initialization into the constructor body."
+  tip: "Try passing a value into the superclass constructor, or moving the initialization into the constructor body."
   analyzerCode: ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS
   script:
     - "class A { int a; } class C extends A { C() : super.a = 42; }"

@@ -306,7 +306,7 @@ const ParserErrorCode _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS =
     const ParserErrorCode('FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
         r"A field can only be initialized in it's declaring class",
         correction:
-            "Try moving the field initialization into the constructor body.");
+            "Try passing a value into the superclass constructor, or moving the initialization into the constructor body.");
 
 const ParserErrorCode _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
     const ParserErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
