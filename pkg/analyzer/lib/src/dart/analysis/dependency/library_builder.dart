@@ -179,9 +179,26 @@ class _LibraryBuilder {
   /// The top-level nodes declared in the library.
   final List<DependencyNode> declaredNodes = [];
 
+  /// The precomputed signature of the [uri].
+  ///
+  /// It is mixed into every API token signature, because for example even
+  /// though types of two functions might be the same, their locations
+  /// are different.
+  List<int> uriSignature;
+
+  /// The precomputed signature of the enclosing class name, or `null` if
+  /// outside a class.
+  ///
+  /// It is mixed into every API token signature of every class member, because
+  /// for example even though types of two methods might be the same, their
+  /// locations are different.
+  List<int> enclosingClassNameSignature;
+
   _LibraryBuilder(this.uri, this.units, this.referenceCollector);
 
   Library build() {
+    uriSignature = (ApiSignature()..addString(uri.toString())).toByteList();
+
     _addImports();
     _addExports();
 
@@ -196,6 +213,9 @@ class _LibraryBuilder {
   }
 
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
+    enclosingClassNameSignature =
+        (ApiSignature()..addString(node.name.name)).toByteList();
+
     var hasConstConstructor = node.members.any(
       (m) => m is ConstructorDeclaration && m.constKeyword != null,
     );
@@ -246,18 +266,17 @@ class _LibraryBuilder {
       ));
     }
 
-    var classTokenSignature = _computeTokenSignature(
+    var apiTokenSignature = _computeTokenSignature(
       node.beginToken,
       node.leftBracket,
     );
-    // TODO(scheglov) add library URI
 
     var classNode = DependencyNode(
       DependencyName(uri, node.name.name),
       node is MixinDeclaration
           ? DependencyNodeKind.MIXIN
           : DependencyNodeKind.CLASS,
-      _computeApiDependencies(classTokenSignature, node),
+      _computeApiDependencies(apiTokenSignature, node),
       DependencyNodeDependencies.none,
       classTypeParameters: classTypeParameters,
     );
@@ -266,64 +285,78 @@ class _LibraryBuilder {
     classNode.setClassMembers(classMembers);
 
     declaredNodes.add(classNode);
+    enclosingClassNameSignature = null;
   }
 
   void _addClassTypeAlias(ClassTypeAlias node) {
-    var tokenSignature = _computeNodeTokenSignature(node);
+    var apiTokenSignature = _computeNodeTokenSignature(node);
     declaredNodes.add(DependencyNode(
       DependencyName(uri, node.name.name),
       DependencyNodeKind.CLASS_TYPE_ALIAS,
-      _computeApiDependencies(tokenSignature, node),
+      _computeApiDependencies(apiTokenSignature, node),
       DependencyNodeDependencies.none,
     ));
   }
 
   void _addConstructor(
       List<DependencyNode> classMembers, ConstructorDeclaration node) {
-    var signature = ApiSignature();
-    _appendMetadataTokens(signature, node.metadata);
-    _appendFormalParametersTokens(signature, node.parameters);
-    var tokenSignature = signature.toByteList();
+    var builder = _newApiSignatureBuilder();
+    _appendMetadataTokens(builder, node.metadata);
+    _appendFormalParametersTokens(builder, node.parameters);
+    var apiTokenSignature = builder.toByteList();
 
     classMembers.add(DependencyNode(
       DependencyName(uri, node.name?.name ?? ''),
       DependencyNodeKind.CONSTRUCTOR,
-      _computeApiDependencies(tokenSignature, node),
+      _computeApiDependencies(apiTokenSignature, node),
       DependencyNodeDependencies.none,
     ));
   }
 
   void _addEnum(EnumDeclaration node) {
-    var classMembers = <DependencyNode>[];
+    var enumTokenSignature = _newApiSignatureBuilder().toByteList();
+
+    DependencyNodeDependencies fieldDependencies;
+    {
+      var builder = _newApiSignatureBuilder();
+      builder.addString(node.name.name);
+      _appendTokens(builder, node.leftBracket, node.rightBracket);
+      fieldDependencies =
+          DependencyNodeDependencies(builder.toByteList(), [], [], [], []);
+    }
+
+    var members = <DependencyNode>[];
     for (var constant in node.constants) {
-      classMembers.add(DependencyNode(
+      members.add(DependencyNode(
         DependencyName(uri, constant.name.name),
         DependencyNodeKind.GETTER,
-        DependencyNodeDependencies.none,
+        fieldDependencies,
         DependencyNodeDependencies.none,
       ));
     }
-    classMembers.add(DependencyNode(
+
+    members.add(DependencyNode(
       DependencyName(uri, 'index'),
       DependencyNodeKind.GETTER,
-      DependencyNodeDependencies.none,
+      fieldDependencies,
       DependencyNodeDependencies.none,
     ));
-    classMembers.add(DependencyNode(
+
+    members.add(DependencyNode(
       DependencyName(uri, 'values'),
       DependencyNodeKind.GETTER,
-      DependencyNodeDependencies.none,
+      fieldDependencies,
       DependencyNodeDependencies.none,
     ));
-    classMembers.sort(DependencyNode.compare);
+    members.sort(DependencyNode.compare);
 
     var enumNode = DependencyNode(
       DependencyName(uri, node.name.name),
       DependencyNodeKind.ENUM,
-      DependencyNodeDependencies.none,
+      DependencyNodeDependencies(enumTokenSignature, [], [], [], []),
       DependencyNodeDependencies.none,
     );
-    enumNode.setClassMembers(classMembers);
+    enumNode.setClassMembers(members);
 
     declaredNodes.add(enumNode);
   }
@@ -343,12 +376,12 @@ class _LibraryBuilder {
   void _addFunction(FunctionDeclaration node) {
     var functionExpression = node.functionExpression;
 
-    var signature = ApiSignature();
-    _appendMetadataTokens(signature, node.metadata);
-    _appendNodeTokens(signature, node.returnType);
-    _appendNodeTokens(signature, functionExpression.typeParameters);
-    _appendFormalParametersTokens(signature, functionExpression.parameters);
-    var tokenSignature = signature.toByteList();
+    var builder = _newApiSignatureBuilder();
+    _appendMetadataTokens(builder, node.metadata);
+    _appendNodeTokens(builder, node.returnType);
+    _appendNodeTokens(builder, functionExpression.typeParameters);
+    _appendFormalParametersTokens(builder, functionExpression.parameters);
+    var apiTokenSignature = builder.toByteList();
 
     var rawName = node.name.name;
     var name = DependencyName(uri, node.isSetter ? '$rawName=' : rawName);
@@ -363,10 +396,11 @@ class _LibraryBuilder {
     }
 
     referenceCollector.appendTypeAnnotation(node.returnType);
+    // TODO(scheglov) type parameters (their bounds)
     referenceCollector.appendFormalParameters(
       node.functionExpression.parameters,
     );
-    var api = referenceCollector.finish(tokenSignature);
+    var api = referenceCollector.finish(apiTokenSignature);
 
     var bodyNode = node.functionExpression.body;
     var implTokenSignature = _computeNodeTokenSignature(bodyNode);
@@ -377,17 +411,17 @@ class _LibraryBuilder {
   }
 
   void _addFunctionTypeAlias(FunctionTypeAlias node) {
-    var signature = ApiSignature();
-    _appendMetadataTokens(signature, node.metadata);
-    _appendNodeTokens(signature, node.typeParameters);
-    _appendNodeTokens(signature, node.returnType);
-    _appendFormalParametersTokens(signature, node.parameters);
-    var tokenSignature = signature.toByteList();
+    var builder = _newApiSignatureBuilder();
+    _appendMetadataTokens(builder, node.metadata);
+    _appendNodeTokens(builder, node.typeParameters);
+    _appendNodeTokens(builder, node.returnType);
+    _appendFormalParametersTokens(builder, node.parameters);
+    var apiTokenSignature = builder.toByteList();
 
     declaredNodes.add(DependencyNode(
       DependencyName(uri, node.name.name),
       DependencyNodeKind.FUNCTION_TYPE_ALIAS,
-      _computeApiDependencies(tokenSignature, node),
+      _computeApiDependencies(apiTokenSignature, node),
       DependencyNodeDependencies.none,
     ));
   }
@@ -395,18 +429,18 @@ class _LibraryBuilder {
   void _addGenericTypeAlias(GenericTypeAlias node) {
     var functionType = node.functionType;
 
-    var signature = ApiSignature();
-    _appendMetadataTokens(signature, node.metadata);
-    _appendNodeTokens(signature, node.typeParameters);
-    _appendNodeTokens(signature, functionType.returnType);
-    _appendNodeTokens(signature, functionType.typeParameters);
-    _appendFormalParametersTokens(signature, functionType.parameters);
-    var tokenSignature = signature.toByteList();
+    var builder = _newApiSignatureBuilder();
+    _appendMetadataTokens(builder, node.metadata);
+    _appendNodeTokens(builder, node.typeParameters);
+    _appendNodeTokens(builder, functionType.returnType);
+    _appendNodeTokens(builder, functionType.typeParameters);
+    _appendFormalParametersTokens(builder, functionType.parameters);
+    var apiTokenSignature = builder.toByteList();
 
     declaredNodes.add(DependencyNode(
       DependencyName(uri, node.name.name),
       DependencyNodeKind.GENERIC_TYPE_ALIAS,
-      _computeApiDependencies(tokenSignature, node),
+      _computeApiDependencies(apiTokenSignature, node),
       DependencyNodeDependencies.none,
     ));
   }
@@ -439,12 +473,12 @@ class _LibraryBuilder {
   }
 
   void _addMethod(List<DependencyNode> classMembers, MethodDeclaration node) {
-    var signature = ApiSignature();
-    _appendMetadataTokens(signature, node.metadata);
-    _appendNodeTokens(signature, node.returnType);
-    _appendNodeTokens(signature, node.typeParameters);
-    _appendFormalParametersTokens(signature, node.parameters);
-    var tokenSignature = signature.toByteList();
+    var builder = _newApiSignatureBuilder();
+    _appendMetadataTokens(builder, node.metadata);
+    _appendNodeTokens(builder, node.returnType);
+    _appendNodeTokens(builder, node.typeParameters);
+    _appendFormalParametersTokens(builder, node.parameters);
+    var apiTokenSignature = builder.toByteList();
 
     DependencyNodeKind kind;
     if (node.isGetter) {
@@ -456,8 +490,9 @@ class _LibraryBuilder {
     }
 
     referenceCollector.appendTypeAnnotation(node.returnType);
+    // TODO(scheglov) type parameters (their bounds)
     referenceCollector.appendFormalParameters(node.parameters);
-    var api = referenceCollector.finish(tokenSignature);
+    var api = referenceCollector.finish(apiTokenSignature);
 
     var implTokenSignature = _computeNodeTokenSignature(node.body);
     referenceCollector.appendFunctionBody(node.body);
@@ -504,20 +539,20 @@ class _LibraryBuilder {
     }
 
     for (var variable in variables.variables) {
-      var signature = ApiSignature();
-      signature.addInt(variables.isConst ? 1 : 0); // const flag
-      _appendMetadataTokens(signature, metadata);
+      var builder = _newApiSignatureBuilder();
+      builder.addInt(variables.isConst ? 1 : 0); // const flag
+      _appendMetadataTokens(builder, metadata);
 
-      _appendNodeTokens(signature, variables.type);
+      _appendNodeTokens(builder, variables.type);
       referenceCollector.appendTypeAnnotation(variables.type);
 
       if (appendInitializerToApi) {
-        _appendNodeTokens(signature, variable.initializer);
+        _appendNodeTokens(builder, variable.initializer);
         referenceCollector.appendExpression(variable.initializer);
       }
 
-      var tokenSignature = signature.toByteList();
-      var api = referenceCollector.finish(tokenSignature);
+      var apiTokenSignature = builder.toByteList();
+      var api = referenceCollector.finish(apiTokenSignature);
 
       var rawName = variable.name.name;
       variableNodes.add(
@@ -539,6 +574,31 @@ class _LibraryBuilder {
         );
       }
     }
+  }
+
+  /// Return the signature for all tokens of the [node].
+  List<int> _computeNodeTokenSignature(AstNode node) {
+    if (node == null) {
+      return const <int>[];
+    }
+    return _computeTokenSignature(node.beginToken, node.endToken);
+  }
+
+  /// Return the signature for tokens from [begin] to [end] (both including).
+  List<int> _computeTokenSignature(Token begin, Token end) {
+    var signature = _newApiSignatureBuilder();
+    _appendTokens(signature, begin, end);
+    return signature.toByteList();
+  }
+
+  /// Return a new signature builder, primed with the current context salts.
+  ApiSignature _newApiSignatureBuilder() {
+    var builder = ApiSignature();
+    builder.addBytes(uriSignature);
+    if (enclosingClassNameSignature != null) {
+      builder.addBytes(enclosingClassNameSignature);
+    }
+    return builder;
   }
 
   /// Append tokens of the given [parameters] to the [signature].
@@ -624,21 +684,6 @@ class _LibraryBuilder {
       importPrefixedReferencedNames,
       const [],
     );
-  }
-
-  /// Return the signature for all tokens of the [node].
-  static List<int> _computeNodeTokenSignature(AstNode node) {
-    if (node == null) {
-      return const <int>[];
-    }
-    return _computeTokenSignature(node.beginToken, node.endToken);
-  }
-
-  /// Return the signature for tokens from [begin] to [end] (both including).
-  static List<int> _computeTokenSignature(Token begin, Token end) {
-    var signature = ApiSignature();
-    _appendTokens(signature, begin, end);
-    return signature.toByteList();
   }
 
   /// Return [Combinator]s for the given import or export [directive].

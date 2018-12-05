@@ -18,6 +18,89 @@ main() {
 
 @reflectiveTest
 class DeclaredNodesTest extends BaseDependencyTest {
+  test_api_tokens_include_enclosingClass() async {
+    var library = await buildTestLibrary(a, r'''
+class A {
+  void foo() {}
+}
+
+class B {
+  void foo() {}
+}
+''');
+    _assertDifferentApiTokenSignature(
+      getNode(library, uri: aUri, name: 'foo', memberOf: 'A'),
+      getNode(library, uri: aUri, name: 'foo', memberOf: 'B'),
+    );
+  }
+
+  test_api_tokens_include_enclosingEnum() async {
+    var library = await buildTestLibrary(a, r'''
+enum A {
+  foo
+}
+
+enum B {
+  foo
+}
+''');
+    _assertDifferentApiTokenSignature(
+      getNode(library, uri: aUri, name: 'foo', memberOf: 'A'),
+      getNode(library, uri: aUri, name: 'foo', memberOf: 'B'),
+    );
+    _assertDifferentApiTokenSignature(
+      getNode(library, uri: aUri, name: 'index', memberOf: 'A'),
+      getNode(library, uri: aUri, name: 'index', memberOf: 'B'),
+    );
+    _assertDifferentApiTokenSignature(
+      getNode(library, uri: aUri, name: 'values', memberOf: 'A'),
+      getNode(library, uri: aUri, name: 'values', memberOf: 'B'),
+    );
+  }
+
+  test_api_tokens_include_enclosingLibrary_class() async {
+    var aLib = await buildTestLibrary(a, 'class C {}');
+    var bLib = await buildTestLibrary(b, 'class C {}');
+    _assertDifferentApiTokenSignature(
+      getNode(aLib, uri: aUri, name: 'C'),
+      getNode(bLib, uri: bUri, name: 'C'),
+    );
+  }
+
+  test_api_tokens_include_enclosingLibrary_enum() async {
+    var aLib = await buildTestLibrary(a, 'enum Foo {a, b, c}');
+    var bLib = await buildTestLibrary(b, 'enum Foo {a, b, c}');
+    _assertDifferentApiTokenSignature(
+      getNode(aLib, uri: aUri, name: 'Foo'),
+      getNode(bLib, uri: bUri, name: 'Foo'),
+    );
+  }
+
+  test_api_tokens_include_enclosingLibrary_function() async {
+    var aLib = await buildTestLibrary(a, 'void foo() {}');
+    var bLib = await buildTestLibrary(b, 'void foo() {}');
+    _assertDifferentApiTokenSignature(
+      getNode(aLib, uri: aUri, name: 'foo'),
+      getNode(bLib, uri: bUri, name: 'foo'),
+    );
+  }
+
+  test_api_tokens_include_functionOrMethod() async {
+    var library = await buildTestLibrary(a, r'''
+void foo() {}
+
+class C {
+  void foo() {}
+}
+''');
+    var fooFunction = getNode(library, uri: aUri, name: 'foo');
+    var fooMethod = getNode(library, uri: aUri, name: 'foo', memberOf: 'C');
+    expect(
+      fooFunction.api.tokenSignatureHex,
+      isNot(fooMethod.api.tokenSignatureHex),
+    );
+  }
+
   test_class_constructor() async {
     var library = await buildTestLibrary(a, r'''
 class C {
@@ -1649,6 +1732,13 @@ final bar;
     expect(
       nodeAfter.api.tokenSignatureHex,
       nodeBefore.api.tokenSignatureHex,
+    );
+  }
+
+  static _assertDifferentApiTokenSignature(DependencyNode a, DependencyNode b) {
+    expect(
+      a.api.tokenSignatureHex,
+      isNot(b.api.tokenSignatureHex),
     );
   }
 

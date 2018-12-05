@@ -84,17 +84,23 @@ class BaseDependencyTest extends DriverResolutionTest {
       String typeParameterOf}) {
     var nodes = library.declaredNodes;
     if (memberOf != null) {
-      var class_ = _getNode(nodes, uri: aUri, name: memberOf);
-      expect(class_.kind,
-          anyOf(DependencyNodeKind.CLASS, DependencyNodeKind.MIXIN));
+      var class_ = _getNode(nodes, uri: uri, name: memberOf);
+      expect(
+        class_.kind,
+        anyOf(
+          DependencyNodeKind.CLASS,
+          DependencyNodeKind.ENUM,
+          DependencyNodeKind.MIXIN,
+        ),
+      );
       nodes = class_.classMembers;
     } else if (typeParameterOf != null) {
-      var class_ = _getNode(nodes, uri: aUri, name: typeParameterOf);
+      var class_ = _getNode(nodes, uri: uri, name: typeParameterOf);
       expect(class_.kind,
           anyOf(DependencyNodeKind.CLASS, DependencyNodeKind.MIXIN));
       nodes = class_.classTypeParameters;
     }
-    return _getNode(nodes, uri: aUri, name: name, kind: kind);
+    return _getNode(nodes, uri: uri, name: name, kind: kind);
   }
 
   @override
