@@ -1214,12 +1214,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitTryFinallyJudgment(TryFinallyJudgment node) {
     inferrer.inferStatement(node.body);
-    if (node.catchJudgments != null) {
-      for (var catch_ in node.catchJudgments) {
-        visitCatchJudgment(catch_);
-      }
-      node.body = new TryCatch(node.body, node.catches)..parent = node;
-    }
     inferrer.inferStatement(node.finalizerJudgment);
   }
 

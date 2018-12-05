@@ -1533,12 +1533,8 @@ class TryCatchJudgment extends TryCatch implements StatementJudgment {
 
 /// Concrete shadow object representing a try-finally block in kernel form.
 class TryFinallyJudgment extends TryFinally implements StatementJudgment {
-  final List<Catch> catches;
-
-  TryFinallyJudgment(Statement body, this.catches, Statement finalizer)
+  TryFinallyJudgment(Statement body, Statement finalizer)
       : super(body, finalizer);
-
-  List<CatchJudgment> get catchJudgments => catches?.cast();
 
   StatementJudgment get finalizerJudgment => finalizer;
 

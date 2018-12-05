@@ -479,10 +479,14 @@ class Fangorn extends Forest {
   @override
   Statement tryStatement(Token tryKeyword, Statement body,
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
-    if (finallyBlock != null) {
-      return new TryFinallyJudgment(body, catchClauses, finallyBlock);
+    Statement result = body;
+    if (catchClauses != null) {
+      result = new TryCatchJudgment(result, catchClauses);
     }
-    return new TryCatchJudgment(body, catchClauses ?? const <CatchJudgment>[]);
+    if (finallyBlock != null) {
+      result = new TryFinallyJudgment(result, finallyBlock);
+    }
+    return result;
   }
 
   @override
