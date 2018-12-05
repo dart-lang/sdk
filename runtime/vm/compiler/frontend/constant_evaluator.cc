@@ -376,10 +376,9 @@ void ConstantEvaluator::EvaluateStaticGet() {
       }
       Thread* thread = H.thread();
       const Error& error =
-          Error::Handle(thread->zone(), thread->sticky_error());
+          Error::Handle(thread->zone(), thread->StealStickyError());
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
-        thread->ClearStickyError();
         H.ReportError(error, script_, position, "Not a constant expression.");
         UNREACHABLE();
       }

@@ -21,7 +21,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/tags.h"
 
 namespace dart {
 
@@ -623,6 +622,7 @@ static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   bool use_preallocated_stacktrace = false;
@@ -875,9 +875,10 @@ void Exceptions::ReThrow(Thread* thread,
 }
 
 void Exceptions::PropagateError(const Error& error) {
+  ASSERT(!error.IsNull());
   Thread* thread = Thread::Current();
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
-  ASSERT(thread->top_exit_frame_info() != 0);
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
     // rethrow the exception in the normal fashion.

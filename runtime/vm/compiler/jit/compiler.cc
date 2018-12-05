@@ -168,10 +168,8 @@ void IrregexpCompilationPipeline::ParseFunction(
   const bool multiline = regexp.is_multi_line();
 
   RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-  if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-    // Parsing failures are handled in the RegExp factory constructor.
-    UNREACHABLE();
-  }
+  // Parsing failures are handled in the RegExp factory constructor.
+  RegExpParser::ParseRegExp(pattern, multiline, compile_data);
 
   regexp.set_num_bracket_expressions(compile_data->capture_count);
   if (compile_data->simple) {
@@ -862,7 +860,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       done = true;
     } else {
       // We bailed out or we encountered an error.
-      const Error& error = Error::Handle(thread()->sticky_error());
+      const Error& error = Error::Handle(thread()->StealStickyError());
 
       if (error.raw() == Object::branch_offset_error().raw()) {
         // Compilation failed due to an out of range branch offset in the
@@ -882,12 +880,14 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         done = true;
       }
 
-      // If is is not a background compilation, clear the error if it was not a
-      // real error, but just a bailout. If we're it a background compilation
-      // this will be dealt with in the caller.
       if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        thread()->ClearStickyError();
+        // If is is not a background compilation, discard the error if it was
+        // not a real error, but just a bailout. If we're it a background
+        // compilation this will be dealt with in the caller.
+      } else {
+        // Otherwise, continue propagating.
+        thread()->set_sticky_error(error);
       }
     }
   }
@@ -948,6 +948,8 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
     if (result.IsNull()) {
+      const Error& error = Error::Handle(thread->StealStickyError());
+
       if (Compiler::IsBackgroundCompilation()) {
         // Try again later, background compilation may abort because of
         // state change during compilation.
@@ -955,54 +957,58 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
           THR_Print("Aborted background compilation: %s\n",
                     function.ToFullyQualifiedCString());
         }
-        {
-          // We got an error during compilation.
-          // If it was a bailout, then disable optimization.
-          const Error& error = Error::Handle(thread->StealStickyError());
 
-          if (error.raw() == Object::background_compilation_error().raw()) {
-            if (FLAG_trace_compiler) {
-              THR_Print(
-                  "--> disabling background optimizations for '%s' (will "
-                  "try to re-compile on isolate thread again)\n",
-                  function.ToFullyQualifiedCString());
-            }
-
-            // Ensure we don't attempt to re-compile the function on the
-            // background compiler.
-            function.set_is_background_optimizable(false);
-
-            // Trigger another optimization soon on the main thread.
-            function.SetUsageCounter(optimized
-                                         ? FLAG_optimization_counter_threshold
-                                         : FLAG_compilation_counter_threshold);
-          } else if ((error.IsLanguageError() &&
-                      LanguageError::Cast(error).kind() == Report::kBailout) ||
-                     error.IsUnhandledException()) {
-            if (FLAG_trace_compiler) {
-              THR_Print("--> disabling optimizations for '%s'\n",
-                        function.ToFullyQualifiedCString());
-            }
-            function.SetIsOptimizable(false);
+        // We got an error during compilation.
+        // If it was a bailout, then disable optimization.
+        if (error.raw() == Object::background_compilation_error().raw()) {
+          if (FLAG_trace_compiler) {
+            THR_Print(
+                "--> disabling background optimizations for '%s' (will "
+                "try to re-compile on isolate thread again)\n",
+                function.ToFullyQualifiedCString());
           }
+
+          // Ensure we don't attempt to re-compile the function on the
+          // background compiler.
+          function.set_is_background_optimizable(false);
+
+          // Trigger another optimization soon on the main thread.
+          function.SetUsageCounter(optimized
+                                       ? FLAG_optimization_counter_threshold
+                                       : FLAG_compilation_counter_threshold);
+          return Error::null();
+        } else if (error.IsLanguageError() &&
+                   LanguageError::Cast(error).kind() == Report::kBailout) {
+          if (FLAG_trace_compiler) {
+            THR_Print("--> disabling optimizations for '%s'\n",
+                      function.ToFullyQualifiedCString());
+          }
+          function.SetIsOptimizable(false);
+          return Error::null();
+        } else {
+          // The background compiler does not execute Dart code or handle
+          // isolate messages.
+          ASSERT(!error.IsUnwindError());
+          return error.raw();
         }
-        return Error::null();
       }
       if (optimized) {
-        // Optimizer bailed out. Disable optimizations and never try again.
-        if (trace_compiler) {
-          THR_Print("--> disabling optimizations for '%s'\n",
-                    function.ToFullyQualifiedCString());
-        } else if (FLAG_trace_failed_optimization_attempts) {
-          THR_Print("Cannot optimize: %s\n",
-                    function.ToFullyQualifiedCString());
+        if (error.IsLanguageError() &&
+            LanguageError::Cast(error).kind() == Report::kBailout) {
+          // Optimizer bailed out. Disable optimizations and never try again.
+          if (trace_compiler) {
+            THR_Print("--> disabling optimizations for '%s'\n",
+                      function.ToFullyQualifiedCString());
+          } else if (FLAG_trace_failed_optimization_attempts) {
+            THR_Print("Cannot optimize: %s\n",
+                      function.ToFullyQualifiedCString());
+          }
+          function.SetIsOptimizable(false);
+          return Error::null();
         }
-        function.SetIsOptimizable(false);
-        return Error::null();
+        return error.raw();
       } else {
         ASSERT(!optimized);
-        // We got an error during compilation.
-        const Error& error = Error::Handle(thread->StealStickyError());
         // The non-optimizing compiler can get an unhandled exception
         // due to OOM or Stack overflow errors, it should not however
         // bail out.

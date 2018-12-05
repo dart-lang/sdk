@@ -803,6 +803,28 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
   return -1;
 }
 
+#if defined(DEBUG)
+bool Thread::TopErrorHandlerIsSetJump() const {
+  if (long_jump_base_ == nullptr) return false;
+  if (top_exit_frame_info_ == 0) return true;
+#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+  return true;  // False positives.
+#else
+  return reinterpret_cast<uword>(long_jump_base_) < top_exit_frame_info_;
+#endif
+}
+
+bool Thread::TopErrorHandlerIsExitFrame() const {
+  if (top_exit_frame_info_ == 0) return false;
+  if (long_jump_base_ == nullptr) return true;
+#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+  return true;  // False positives.
+#else
+  return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base_);
+#endif
+}
+#endif  // defined(DEBUG)
+
 bool Thread::IsValidHandle(Dart_Handle object) const {
   return IsValidLocalHandle(object) || IsValidZoneHandle(object) ||
          IsValidScopedHandle(object);

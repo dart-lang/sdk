@@ -28,10 +28,8 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
   // Parse the pattern once in order to throw any format exceptions within
   // the factory constructor. It is parsed again upon compilation.
   RegExpCompileData compileData;
-  if (!RegExpParser::ParseRegExp(pattern, multi_line, &compileData)) {
-    // Parsing failures throw an exception.
-    UNREACHABLE();
-  }
+  // Throws an exception on parsing failure.
+  RegExpParser::ParseRegExp(pattern, multi_line, &compileData);
 
   // Create a RegExp object containing only the initial parameters.
   return RegExpEngine::CreateRegExp(thread, pattern, multi_line, ignore_case);

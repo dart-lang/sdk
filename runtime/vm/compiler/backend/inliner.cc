@@ -587,7 +587,7 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
 
   auto& metadata_or_error = Object::Handle(library.GetMetadata(function));
   if (metadata_or_error.IsError()) {
-    Exceptions::PropagateError(Error::Cast(metadata_or_error));
+    Report::LongJump(Error::Cast(metadata_or_error));
   }
   const Array& metadata = Array::Cast(metadata_or_error);
   if (metadata.Length() > 0) {

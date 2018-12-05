@@ -558,6 +558,13 @@ class Thread : public BaseThread {
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
+#if defined(DEBUG)
+  // For asserts only. Has false positives when running with a simulator or
+  // SafeStack.
+  bool TopErrorHandlerIsSetJump() const;
+  bool TopErrorHandlerIsExitFrame() const;
+#endif
+
   uword vm_tag() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }

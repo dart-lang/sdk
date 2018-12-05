@@ -2856,6 +2856,7 @@ void Isolate::UnscheduleThread(Thread* thread,
   } else {
     ASSERT(thread->api_top_scope_ == NULL);
     ASSERT(thread->zone_ == NULL);
+    ASSERT(thread->sticky_error() == Error::null());
   }
   if (!bypass_safepoint) {
     // Ensure that the thread reports itself as being at a safepoint.

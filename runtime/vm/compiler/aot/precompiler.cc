@@ -2295,7 +2295,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       done = true;
     } else {
       // We bailed out or we encountered an error.
-      const Error& error = Error::Handle(thread()->sticky_error());
+      const Error& error = Error::Handle(thread()->StealStickyError());
 
       if (error.raw() == Object::branch_offset_error().raw()) {
         // Compilation failed due to an out of range branch offset in the
@@ -2327,10 +2327,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         done = true;
       }
 
-      // Clear the error if it was not a real error, but just a bailout.
       if (error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        thread()->ClearStickyError();
+        // Discard the error if it was not a real error, but just a bailout.
+      } else {
+        // Otherwise, continue propagating.
+        thread()->set_sticky_error(error);
       }
       is_compiled = false;
     }

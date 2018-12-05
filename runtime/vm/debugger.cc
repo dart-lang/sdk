@@ -324,7 +324,7 @@ RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (ignore_breakpoints_ || IsPaused()) {
     // We don't let the isolate get interrupted if we are already
     // paused or ignoring breakpoints.
-    return Error::null();
+    return Thread::Current()->StealStickyError();
   }
   ServiceEvent event(isolate_, kind);
   DebuggerStackTrace* trace = CollectStackTrace();
@@ -732,7 +732,9 @@ RawObject* ActivationFrame::GetAsyncCompleter() {
 }
 
 RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
-  Instance& future = Instance::Handle();
+  DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
+
+  Object& future = Object::Handle();
   if (FLAG_sync_async) {
     const Class& completer_cls = Class::Handle(completer.clazz());
     ASSERT(!completer_cls.IsNull());
@@ -741,7 +743,7 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
     ASSERT(!future_getter.IsNull());
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, Instance::Cast(completer));
-    future ^= DartEntry::InvokeFunction(future_getter, args);
+    future = DartEntry::InvokeFunction(future_getter, args);
   } else {
     const Class& sync_completer_cls = Class::Handle(completer.clazz());
     ASSERT(!sync_completer_cls.IsNull());
@@ -750,7 +752,10 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
         Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
             Symbols::CompleterFuture()));
     ASSERT(!future_field.IsNull());
-    future ^= Instance::Cast(completer).GetField(future_field);
+    future = Instance::Cast(completer).GetField(future_field);
+  }
+  if (future.IsError()) {
+    Exceptions::PropagateError(Error::Cast(future));
   }
   if (future.IsNull()) {
     // The completer object may not be fully initialized yet.
@@ -761,7 +766,7 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   const Field& awaiter_field = Field::Handle(
       future_cls.LookupInstanceFieldAllowPrivate(Symbols::_Awaiter()));
   ASSERT(!awaiter_field.IsNull());
-  return future.GetField(awaiter_field);
+  return Instance::Cast(future).GetField(awaiter_field);
 }
 
 RawObject* ActivationFrame::GetAsyncStreamControllerStream() {

@@ -473,8 +473,8 @@ DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
 
 // Result of an invoke may be an unhandled exception, in which case we
 // rethrow it.
-static void CheckResultError(const Object& result) {
-  if (result.IsError()) {
+static void ThrowIfError(const Object& result) {
+  if (!result.IsNull() && result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
 }
@@ -501,7 +501,7 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
   args.SetAt(0, receiver);
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(getter, args));
-  CheckResultError(result);
+  ThrowIfError(result);
   arguments.SetReturn(result);
 }
 
@@ -1013,20 +1013,14 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
       zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
+  ThrowIfError(error);
   arguments.SetReturn(orig_stub);
 }
 #else
 // Gets called from the simulator when the breakpoint is reached.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   const Error& error = Error::Handle(isolate->debugger()->PauseBreakpoint());
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
+  ThrowIfError(error);
 }
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -1036,10 +1030,7 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 #else
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseStepping());
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
+  ThrowIfError(error);
 #endif
 }
 
@@ -1715,7 +1706,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   const Object& result = Object::Handle(                                       \
       zone, DartEntry::InvokeNoSuchMethod(                                     \
                 receiver, target_name, orig_arguments, orig_arguments_desc));  \
-  CheckResultError(result);                                                    \
+  ThrowIfError(result);                                                    \
   arguments.SetReturn(result);
 
 #define CLOSURIZE(some_function)                                               \
@@ -1750,7 +1741,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
       // would perform the closure call.
       const Object& result = Object::Handle(
           zone, DartEntry::InvokeClosure(orig_arguments, orig_arguments_desc));
-      CheckResultError(result);
+      ThrowIfError(result);
       arguments.SetReturn(result);
       return;
     }
@@ -1770,14 +1761,14 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
         getter_arguments.SetAt(0, receiver);
         const Object& getter_result = Object::Handle(
             zone, DartEntry::InvokeFunction(function, getter_arguments));
-        CheckResultError(getter_result);
+        ThrowIfError(getter_result);
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
         const Object& call_result = Object::Handle(
             zone,
             DartEntry::InvokeClosure(orig_arguments, orig_arguments_desc));
-        CheckResultError(call_result);
+        ThrowIfError(call_result);
         arguments.SetReturn(call_result);
         return;
       }
@@ -1810,7 +1801,7 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
       String::Handle(function.QualifiedUserVisibleName());
   const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
       receiver, original_function_name, orig_arguments, orig_arguments_desc));
-  CheckResultError(result);
+  ThrowIfError(result);
   arguments.SetReturn(result);
 }
 
@@ -2010,9 +2001,7 @@ static void HandleOSRRequest(Thread* thread) {
   // it cannot have been removed from the function.
   const Object& result = Object::Handle(
       Compiler::CompileOptimizedFunction(thread, function, osr_id));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
+  ThrowIfError(result);
 
   if (!result.IsNull()) {
     const Code& code = Code::Cast(result);
@@ -2072,10 +2061,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   //  - store buffer overflow
   //  - OOB message (vm-service or dart:isolate)
   const Error& error = Error::Handle(thread->HandleInterrupts());
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
+  ThrowIfError(error);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if ((stack_overflow_flags & Thread::kOsrRequest) != 0) {
@@ -2165,9 +2151,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     } else {
       result = Compiler::CompileFunction(thread, function);
     }
-    if (result.IsError()) {
-      Exceptions::PropagateError(Error::Cast(result));
-    }
+    ThrowIfError(result);
   }
   arguments.SetReturn(function);
 #else
@@ -2587,7 +2571,8 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
-  field.EvaluateInitializer();
+  const Error& result = Error::Handle(zone, field.EvaluateInitializer());
+  ThrowIfError(result);
 }
 
 // Print the stop message.

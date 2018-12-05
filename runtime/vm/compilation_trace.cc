@@ -247,7 +247,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
       (field_.StaticValue() == Object::sentinel().raw())) {
     processed = true;
-    error_ = EvaluateInitializer(field_);
+    error_ = field_.EvaluateInitializer();
     if (error_.IsError()) {
       if (FLAG_trace_compilation_trace) {
         THR_Print(
@@ -301,16 +301,6 @@ RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
     return Object::null();
   }
   return Compiler::CompileFunction(thread_, function);
-}
-
-RawObject* CompilationTraceLoader::EvaluateInitializer(const Field& field) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    field_.EvaluateInitializer();
-    return Error::null();
-  } else {
-    return Thread::Current()->StealStickyError();
-  }
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

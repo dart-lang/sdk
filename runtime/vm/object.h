@@ -3437,7 +3437,7 @@ class Field : public Object {
 
   bool IsUninitialized() const;
 
-  void EvaluateInitializer() const;
+  DART_WARN_UNUSED_RESULT RawError* EvaluateInitializer() const;
 
   RawFunction* PrecompiledInitializer() const {
     return raw_ptr()->initializer_.precompiled_;

@@ -5988,8 +5988,9 @@ void Function::ClearCode() const {
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
   Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  Zone* zone = thread->zone();
 
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, *this));
@@ -6004,6 +6005,7 @@ void Function::SwitchToUnoptimizedCode() const {
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
+  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
@@ -8259,6 +8261,8 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
 RawCode* Function::EnsureHasCode() const {
   if (HasCode()) return CurrentCode();
   Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
   const Object& result =
       Object::Handle(zone, Compiler::CompileFunction(thread, *this));
@@ -8921,31 +8925,29 @@ bool Field::HasPrecompiledInitializer() const {
          raw_ptr()->initializer_.precompiled_->IsFunction();
 }
 
-void Field::EvaluateInitializer() const {
+RawError* Field::EvaluateInitializer() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
     SetStaticValue(Object::transition_sentinel());
     const Object& value =
         Object::Handle(Compiler::EvaluateStaticInitializer(*this));
-    if (value.IsError()) {
+    if (!value.IsNull() && value.IsError()) {
       SetStaticValue(Object::null_instance());
-      Exceptions::PropagateError(Error::Cast(value));
-      UNREACHABLE();
+      return Error::Cast(value).raw();
     }
     ASSERT(value.IsNull() || value.IsInstance());
     SetStaticValue(value.IsNull() ? Instance::null_instance()
                                   : Instance::Cast(value));
-    return;
+    return Error::null();
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);
     Exceptions::ThrowByType(Exceptions::kCyclicInitializationError, ctor_args);
     UNREACHABLE();
-    return;
   }
-  UNREACHABLE();
+  return Error::null();
 }
 
 static intptr_t GetListLength(const Object& value) {
@@ -21947,7 +21949,9 @@ const char* Closure::ToCString() const {
 }
 
 int64_t Closure::ComputeHash() const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  Zone* zone = thread->zone();
   const Function& func = Function::Handle(zone, function());
   uint32_t result = 0;
   if (func.IsImplicitInstanceClosureFunction()) {
