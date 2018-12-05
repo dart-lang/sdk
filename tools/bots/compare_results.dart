@@ -148,7 +148,7 @@ bool search(
           output = "$name ${event.description} "
               "(${event.after.outcome}${expect})";
         } else {
-          output = "name ${event.description} "
+          output = "$name ${event.description} "
               "(${event.before?.outcome} -> ${event.after.outcome}${expect})";
         }
       } else {
