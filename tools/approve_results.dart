@@ -600,6 +600,18 @@ ${parser.usage}""");
   }
   print("");
 
+  // Log who approved these results.
+  final username = Platform.environment["LOGNAME"] ??
+      Platform.environment["USER"] ??
+      Platform.environment["USERNAME"];
+  if (username == null || username == "") {
+    stderr.writeln("error: Your identity could not be established. "
+        "Please set one of the LOGNAME, USER, USERNAME environment variables.");
+    exitCode = 1;
+    return;
+  }
+  final now = new DateTime.now().toUtc().toIso8601String();
+
   // Update approved_results.json for each bot with unapproved changes.
   final outDirectory =
       await Directory.systemTemp.createTemp("approved_results.");
@@ -615,10 +627,19 @@ ${parser.usage}""");
     print("Uploading approved results...");
     final futures = <Future>[];
     for (final String bot in unapprovedBots) {
-      final testsList = testsForBots[bot];
+      Map<String, dynamic> approveData(Test test) {
+        final data = new Map<String, dynamic>.from(test.resultData);
+        if (!test.isApproved) {
+          data["approver"] = username;
+          data["approved_at"] = now;
+        }
+        return data;
+      }
+
+      final dataList = testsForBots[bot].map(approveData).toList();
       final localPath = "${outDirectory.path}/$bot.json";
       await new File(localPath).writeAsString(
-          testsList.map((test) => jsonEncode(test.resultData) + "\n").join(""));
+          dataList.map((data) => jsonEncode(data) + "\n").join(""));
       final remotePath =
           "$approvedResultsStoragePath/$bot/approved_results.json";
       futures.add(cpGsutil(localPath, remotePath)
