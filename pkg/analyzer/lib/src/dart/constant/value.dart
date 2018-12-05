@@ -594,6 +594,19 @@ class DartObjectImpl implements DartObject {
       new DartObjectImpl(typeProvider.boolType, _state.logicalNot());
 
   /**
+   * Return the result of invoking the '&gt;&gt;&gt;' operator on this object
+   * with the [rightOperand]. The [typeProvider] is the type provider used to
+   * find known types.
+   *
+   * Throws an [EvaluationException] if the operator is not appropriate for an
+   * object of this kind.
+   */
+  DartObjectImpl logicalShiftRight(
+          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.intType, _state.logicalShiftRight(rightOperand._state));
+
+  /**
    * Return the result of invoking the '-' operator on this object with the
    * [rightOperand]. The [typeProvider] is the type provider used to find known
    * types.
@@ -1908,6 +1921,20 @@ abstract class InstanceState {
   }
 
   /**
+   * Return the result of invoking the '&gt;&gt;' operator on this object with
+   * the [rightOperand].
+   *
+   * Throws an [EvaluationException] if the operator is not appropriate for an
+   * object of this kind.
+   */
+  IntState logicalShiftRight(InstanceState rightOperand) {
+    assertIntOrNull(this);
+    assertIntOrNull(rightOperand);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  /**
    * Return the result of invoking the '^' operator on this object with the
    * [rightOperand].
    *
@@ -2335,6 +2362,33 @@ class IntState extends NumState {
       return BoolState.from(value.toDouble() <= rightValue);
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @override
+  IntState logicalShiftRight(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue.bitLength > 31) {
+        return UNKNOWN_VALUE;
+      }
+      if (rightValue >= 0) {
+        // TODO(brianwilkerson) After the analyzer package has a minimum SDK
+        // constraint that includes support for the real operator, consider
+        // changing this to the following line:
+        //   return new IntState(value >>> rightValue);
+        return new IntState(value ~/ (1 << rightValue));
+      }
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);

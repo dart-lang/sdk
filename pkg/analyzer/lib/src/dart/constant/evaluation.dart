@@ -1188,6 +1188,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT_GT) {
       return _dartObjectComputer.shiftRight(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.GT_GT_GT) {
+      return _dartObjectComputer.logicalShiftRight(
+          node, leftResult, rightResult);
     } else if (operatorType == TokenType.LT) {
       return _dartObjectComputer.lessThan(node, leftResult, rightResult);
     } else if (operatorType == TokenType.LT_EQ) {
@@ -1931,6 +1934,18 @@ class DartObjectComputer {
     if (evaluationResult != null) {
       try {
         return evaluationResult.logicalNot(_typeProvider);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl logicalShiftRight(BinaryExpression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.logicalShiftRight(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }

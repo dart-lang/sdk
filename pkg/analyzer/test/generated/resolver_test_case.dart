@@ -354,7 +354,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   TypeProvider get typeProvider {
     if (enableNewAnalysisDriver) {
       if (analysisResults.isEmpty) {
-        fail('typeProvider can be called after computing an analysis result.');
+        fail('typeProvider called before computing an analysis result.');
       }
       return analysisResults
           .values.first.unit.declaredElement.context.typeProvider;
@@ -365,10 +365,17 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
 
   /**
    * Return a type system that can be used to test the results of resolution.
-   *
-   * @return a type system
    */
-  TypeSystem get typeSystem => analysisContext2.typeSystem;
+  TypeSystem get typeSystem {
+    if (enableNewAnalysisDriver) {
+      if (analysisResults.isEmpty) {
+        fail('typeSystem called before computing an analysis result.');
+      }
+      return analysisResults.values.first.typeSystem;
+    } else {
+      return analysisContext2.typeSystem;
+    }
+  }
 
   /**
    * Add a source file with the given [filePath] in the root of the file system.
@@ -522,8 +529,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     TestAnalysisResult analysisResult;
     if (enableNewAnalysisDriver) {
       ResolvedUnitResult result = await driver.getResult(source.fullName);
-      analysisResult =
-          new TestAnalysisResult(source, result.unit, result.errors);
+      analysisResult = new TestAnalysisResult(
+          source, result.unit, result.errors, result.typeSystem);
     } else {
       analysisContext2.computeKindOf(source);
       List<Source> libraries = analysisContext2.getLibrariesContaining(source);
@@ -531,7 +538,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
         CompilationUnit unit =
             analysisContext.resolveCompilationUnit2(source, libraries.first);
         List<AnalysisError> errors = analysisContext.computeErrors(source);
-        analysisResult = new TestAnalysisResult(source, unit, errors);
+        analysisResult = new TestAnalysisResult(
+            source, unit, errors, analysisContext2.typeSystem);
       }
     }
     analysisResults[source] = analysisResult;
@@ -943,6 +951,7 @@ class TestAnalysisResult {
   final Source source;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
+  final TypeSystem typeSystem;
 
-  TestAnalysisResult(this.source, this.unit, this.errors);
+  TestAnalysisResult(this.source, this.unit, this.errors, this.typeSystem);
 }

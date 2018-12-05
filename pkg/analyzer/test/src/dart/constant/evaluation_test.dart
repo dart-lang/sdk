@@ -27,6 +27,7 @@ import '../../../generated/test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantVisitorTest);
+    defineReflectiveTests(ConstantVisitorTest_Driver);
   });
 }
 
@@ -369,7 +370,7 @@ const c = false ? 1 : 0;
     CompilationUnit compilationUnit = await resolveSource('''
 const c = false ? 1 : new C();
 ''');
-    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+    _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
         experiments: [Experiments.constantUpdate2018Name]);
   }
@@ -715,5 +716,89 @@ const b = 3;''');
       errorListener.assertErrorsWithCodes(errorCodes);
     }
     return result;
+  }
+}
+
+@reflectiveTest
+class ConstantVisitorTest_Driver extends ConstantVisitorTest {
+  bool get enableNewAnalysisDriver => true;
+
+  test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFFFFFFFF >>> 8;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0xFFFFFF);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_moreBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFFFFFFFF >>> 33;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFFFFFFFF >>> -2;
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFFFFFFFF >>> 0;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0xFFFFFFFF);
+  }
+
+//  @soloTest
+  test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFF >>> 3;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0x1F);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFF >>> 9;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFF >>> -2;
+''');
+    _evaluateConstant(compilationUnit, 'c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+        experiments: [Experiments.constantUpdate2018Name]);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const c = 0xFF >>> 0;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [Experiments.constantUpdate2018Name]);
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0xFF);
   }
 }
