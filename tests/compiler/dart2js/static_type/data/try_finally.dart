@@ -13,9 +13,9 @@ main() {
 
 tryFinally1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     try {
-      /*dynamic*/ c.next;
+      /*Class*/ c.next;
       c = 0;
       if (/*dynamic*/ c is Class) {
         /*Class*/ c.next;

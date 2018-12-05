@@ -49,17 +49,17 @@ if2(Class c1, Class c2) {
       /*Class*/ c2.next;
     } else {
       /*Class*/ c1.next;
-      /*Class*/ c2.next;
+      /*Null*/ c2.next;
     }
   } else {
-    /*Class*/ c1.next;
+    /*Null*/ c1.next;
     /*Class*/ c2.next;
     if (/*Class*/ c2 is Class) {
-      /*Class*/ c1.next;
+      /*Null*/ c1.next;
       /*Class*/ c2.next;
     } else {
-      /*Class*/ c1.next;
-      /*Class*/ c2.next;
+      /*Null*/ c1.next;
+      /*Null*/ c2.next;
     }
   }
 }
@@ -75,17 +75,17 @@ if3(dynamic c1, dynamic c2) {
       /*dynamic*/ c2.next;
     } else {
       /*dynamic*/ c1.next;
-      /*dynamic*/ c2.next;
+      /*Class*/ c2.next;
     }
   } else {
-    /*dynamic*/ c1.next;
+    /*Class*/ c1.next;
     /*dynamic*/ c2.next;
     if (/*dynamic*/ c2 is! Class) {
-      /*dynamic*/ c1.next;
+      /*Class*/ c1.next;
       /*dynamic*/ c2.next;
     } else {
-      /*dynamic*/ c1.next;
-      /*dynamic*/ c2.next;
+      /*Class*/ c1.next;
+      /*Class*/ c2.next;
     }
   }
 }

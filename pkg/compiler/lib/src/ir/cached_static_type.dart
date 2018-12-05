@@ -24,6 +24,9 @@ class CachedStaticType extends StaticTypeBase {
   }
 
   @override
+  ir.DartType visitVariableGet(ir.VariableGet node) => _getStaticType(node);
+
+  @override
   ir.DartType visitPropertyGet(ir.PropertyGet node) => _getStaticType(node);
 
   @override

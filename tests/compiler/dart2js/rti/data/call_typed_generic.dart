@@ -17,6 +17,7 @@ class A<T> {
 test(o) => o is Function(int);
 
 main() {
-  Expect.isTrue(test(new A<int>()));
+  Expect.isFalse(test(new A<int>()));
   Expect.isFalse(test(new A<String>()));
+  new A().call(null); // Use .call to ensure it is live.
 }

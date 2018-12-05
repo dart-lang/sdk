@@ -11,11 +11,14 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
+import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir
+    show RedirectingFactoryBody;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -64,7 +67,58 @@ run(Uri entryPoint, String allowedListPath,
   });
 }
 
-class DynamicVisitor extends StaticTypeVisitor {
+class StaticTypeVisitorBase extends StaticTypeVisitor {
+  VariableScopeModel variableScopeModel;
+
+  StaticTypeVisitorBase(ir.Component component)
+      : super(new ir.TypeEnvironment(
+            new ir.CoreTypes(component), new ir.ClassHierarchy(component),
+            strongMode: true));
+
+  @override
+  bool get useAsserts => false;
+
+  @override
+  Null visitProcedure(ir.Procedure node) {
+    if (node.kind == ir.ProcedureKind.Factory) {
+      if (node.function.body is ir.RedirectingFactoryBody) {
+        // Don't visit redirecting factories.
+        return;
+      }
+    }
+    if (node.name.name.contains('#')) {
+      // Skip synthetic .dill members.
+      return;
+    }
+    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    super.visitProcedure(node);
+    variableScopeModel = null;
+  }
+
+  @override
+  Null visitField(ir.Field node) {
+    if (node.name.name.contains('#')) {
+      // Skip synthetic .dill members.
+      return;
+    }
+    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    super.visitField(node);
+    variableScopeModel = null;
+  }
+
+  @override
+  Null visitConstructor(ir.Constructor node) {
+    if (node.name.name.contains('#')) {
+      // Skip synthetic .dill members.
+      return;
+    }
+    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    super.visitConstructor(node);
+    variableScopeModel = null;
+  }
+}
+
+class DynamicVisitor extends StaticTypeVisitorBase {
   final DiagnosticReporter reporter;
   final ir.Component component;
   final String _allowedListPath;
@@ -75,8 +129,7 @@ class DynamicVisitor extends StaticTypeVisitor {
 
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)
-      : super(new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
+      : super(component);
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
@@ -239,9 +292,13 @@ class DynamicVisitor extends StaticTypeVisitor {
     ir.DartType staticType = node?.accept(this);
     assert(
         node is! ir.Expression ||
-            staticType == _getStaticTypeFromExpression(node),
-        "Static type mismatch for ${node.runtimeType}: "
-        "Found ${staticType}, expected ${_getStaticTypeFromExpression(node)}.");
+            staticType == typeEnvironment.nullType ||
+            typeEnvironment.isSubtypeOf(
+                staticType, _getStaticTypeFromExpression(node)),
+        reportAssertionFailure(
+            node,
+            "Unexpected static type for $node (${node.runtimeType}): "
+            "Found ${staticType}, expected ${_getStaticTypeFromExpression(node)}."));
     return staticType;
   }
 
@@ -260,7 +317,7 @@ class DynamicVisitor extends StaticTypeVisitor {
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
     if (receiverType is ir.DynamicType) {
-      reportError(node, "Dynamic access of '${node.name}'.");
+      registerError(node, "Dynamic access of '${node.name}'.");
     }
   }
 
@@ -268,7 +325,7 @@ class DynamicVisitor extends StaticTypeVisitor {
   void handlePropertySet(
       ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
     if (receiverType is ir.DynamicType) {
-      reportError(node, "Dynamic update to '${node.name}'.");
+      registerError(node, "Dynamic update to '${node.name}'.");
     }
   }
 
@@ -279,11 +336,24 @@ class DynamicVisitor extends StaticTypeVisitor {
       ArgumentTypes argumentTypes,
       ir.DartType returnType) {
     if (receiverType is ir.DynamicType) {
-      reportError(node, "Dynamic invocation of '${node.name}'.");
+      registerError(node, "Dynamic invocation of '${node.name}'.");
     }
   }
 
-  void reportError(ir.Node node, String message) {
+  String reportAssertionFailure(ir.Node node, String message) {
+    SourceSpan span = computeSourceSpanFromTreeNode(node);
+    Uri uri = span.uri;
+    if (uri.scheme == 'org-dartlang-sdk') {
+      span = new SourceSpan(
+          Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
+    }
+    DiagnosticMessage diagnosticMessage =
+        reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
+    reporter.reportError(diagnosticMessage);
+    return message;
+  }
+
+  void registerError(ir.Node node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
     String uriString = relativize(Uri.base, uri, Platform.isWindows);

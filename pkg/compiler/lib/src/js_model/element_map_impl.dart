@@ -1056,7 +1056,8 @@ class JsKernelToElementMap
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
           new ir.CoreTypes(programEnv.mainComponent),
-          new ir.ClassHierarchy(programEnv.mainComponent));
+          new ir.ClassHierarchy(programEnv.mainComponent),
+          strongMode: true);
     }
     return _typeEnvironment;
   }

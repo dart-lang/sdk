@@ -16,11 +16,11 @@ main() {
 
 closure1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     local() {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
-        /*dynamic*/ c.next;
+        /*Class*/ c.next;
       }
       c = 0;
     }
@@ -46,7 +46,7 @@ closure2(dynamic c) {
 
 closure3(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     local() {
       /*dynamic*/ c.next;
     }
@@ -60,7 +60,7 @@ closure3(dynamic c) {
 
 closure4(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     local() {
       /*dynamic*/ c.next;
     }
@@ -78,7 +78,7 @@ closure5(dynamic c) {
   local() {
     /*dynamic*/ c.next;
     if (/*dynamic*/ c is! Class) return;
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
   }
 
   /*dynamic*/ c.next;

@@ -46,6 +46,8 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
+  bool get useAsserts => _options.enableUserAssertions;
+
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
   DartType checkType(ir.DartType irType, TypeUseKind kind) {
     DartType type = elementMap.getDartType(irType);
@@ -527,24 +529,24 @@ class KernelImpactBuilder extends StaticTypeVisitor {
           ? ClassRelation.thisExpression
           : ClassRelation.subtype;
       DartType receiverDartType = elementMap.getDartType(receiverType);
-
+      Object constraint;
+      if (receiverDartType is InterfaceType) {
+        constraint = new StrongModeConstraint(commonElements, _nativeBasicData,
+            receiverDartType.element, relation);
+      }
       ir.Member interfaceTarget = node.interfaceTarget;
       if (interfaceTarget == null) {
         // TODO(johnniwinther): Avoid treating a known function call as a
         // dynamic call when CFE provides a way to distinguish the two.
         impactBuilder.registerDynamicUse(
-            new ConstrainedDynamicUse(selector, null, typeArguments));
-        if (operatorFromString(node.name.name) == null) {
+            new ConstrainedDynamicUse(selector, constraint, typeArguments));
+        if (operatorFromString(node.name.name) == null &&
+            receiverDartType.isDynamic) {
+          // We might implicitly call a getter that returns a function.
           impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
               selector.toCallSelector(), null, typeArguments));
         }
       } else {
-        Object constraint;
-        if (receiverDartType is InterfaceType) {
-          constraint = new StrongModeConstraint(commonElements,
-              _nativeBasicData, receiverDartType.element, relation);
-        }
-
         if (interfaceTarget is ir.Field ||
             interfaceTarget is ir.Procedure &&
                 interfaceTarget.kind == ir.ProcedureKind.Getter) {

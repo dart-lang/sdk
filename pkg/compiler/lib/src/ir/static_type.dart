@@ -9,6 +9,7 @@ import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'scope.dart';
 import 'static_type_base.dart';
+import '../util/util.dart';
 
 /// Enum values for how the target of a static type should be interpreted.
 enum ClassRelation {
@@ -31,8 +32,6 @@ enum ClassRelation {
 /// for each expression once, this class performs the traversal explicitly and
 /// adds 'handleX' hooks for subclasses to handle individual expressions using
 /// the readily compute static types of subexpressions.
-// TODO(johnniwinther): Add improved type promotion to handle negative
-// reasoning.
 abstract class StaticTypeVisitor extends StaticTypeBase {
   Map<ir.Expression, ir.DartType> _cache = {};
 
@@ -41,7 +40,57 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   Map<ir.Expression, ir.DartType> get staticTypeCacheForTesting => _cache;
 
-  VariableScopeModel get variableScopeModel => null;
+  bool get useAsserts;
+
+  VariableScopeModel get variableScopeModel;
+
+  bool completes(ir.DartType type) => type != const ir.BottomType();
+  Set<ir.VariableDeclaration> _currentVariables;
+  Set<ir.VariableDeclaration> _invalidatedVariables =
+      new Set<ir.VariableDeclaration>();
+
+  TypeMap _typeMapBase = const TypeMap();
+  TypeMap _typeMapWhenTrue;
+  TypeMap _typeMapWhenFalse;
+
+  /// Returns the local variable type promotions for when the boolean value of
+  /// the most recent node is not taken into account.
+  TypeMap get typeMap {
+    if (_typeMapBase == null) {
+      _typeMapBase = _typeMapWhenTrue.join(_typeMapWhenFalse);
+      _typeMapWhenTrue = _typeMapWhenFalse = null;
+    }
+    return _typeMapBase;
+  }
+
+  /// Sets the local variable type promotions for when the boolean value of
+  /// the most recent node is not taken into account.
+  void set typeMap(TypeMap value) {
+    _typeMapBase = value;
+    _typeMapWhenTrue = _typeMapWhenFalse = null;
+  }
+
+  /// Returns the local variable type promotions for when the boolean value of
+  /// the most recent node is `true`.
+  TypeMap get typeMapWhenTrue => _typeMapWhenTrue ?? _typeMapBase;
+
+  /// Sets the local variable type promotions for when the boolean value of
+  /// the most recent node is `true`.
+  void set typeMapWhenTrue(TypeMap value) {
+    _typeMapWhenTrue = value;
+    _typeMapBase = null;
+  }
+
+  /// Returns the local variable type promotions for when the boolean value of
+  /// the most recent node is `false`.
+  TypeMap get typeMapWhenFalse => _typeMapWhenFalse ?? _typeMapBase;
+
+  /// Sets the local variable type promotions for when the boolean value of
+  /// the most recent node is `false`.
+  void set typeMapWhenFalse(TypeMap value) {
+    _typeMapWhenFalse = value;
+    _typeMapBase = null;
+  }
 
   @override
   ir.DartType defaultNode(ir.Node node) =>
@@ -422,9 +471,65 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType returnType =
         _computeMethodInvocationType(node, receiverType, argumentTypes);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    if (node.name.name == '==') {
+      ir.Expression left = node.receiver;
+      ir.Expression right = node.arguments.positional[0];
+      TypeMap afterInvocation = typeMap;
+      if (left is ir.VariableGet &&
+          right is ir.NullLiteral &&
+          !_invalidatedVariables.contains(left.variable)) {
+        // If `left == null` is true, we promote the type of the variable to
+        // `Null` by registering that is known _not_ to be of its declared type.
+        typeMapWhenTrue = afterInvocation
+            .promote(left.variable, left.variable.type, isTrue: false);
+        typeMapWhenFalse = afterInvocation
+            .promote(left.variable, left.variable.type, isTrue: true);
+      }
+      if (right is ir.VariableGet &&
+          left is ir.NullLiteral &&
+          !_invalidatedVariables.contains(right.variable)) {
+        // If `null == right` is true, we promote the type of the variable to
+        // `Null` by registering that is known _not_ to be of its declared type.
+        typeMapWhenTrue = afterInvocation
+            .promote(right.variable, right.variable.type, isTrue: false);
+        typeMapWhenFalse = afterInvocation
+            .promote(right.variable, right.variable.type, isTrue: true);
+      }
+    }
     _cache[node] = returnType;
     handleMethodInvocation(node, receiverType, argumentTypes, returnType);
     return returnType;
+  }
+
+  void handleVariableGet(ir.VariableGet node, ir.DartType type) {}
+
+  @override
+  ir.DartType visitVariableGet(ir.VariableGet node) {
+    ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
+    assert(
+        node.promotedType == null ||
+            promotedType == typeEnvironment.nullType ||
+            typeEnvironment.isSubtypeOf(promotedType, node.promotedType),
+        "Unexpected promotion of ${node.variable} in ${node.parent}. "
+        "Expected ${node.promotedType}, found $promotedType");
+    _cache[node] = promotedType;
+    handleVariableGet(node, promotedType);
+    return promotedType;
+  }
+
+  void handleVariableSet(ir.VariableSet node, ir.DartType resultType) {}
+
+  @override
+  ir.DartType visitVariableSet(ir.VariableSet node) {
+    ir.DartType resultType = super.visitVariableSet(node);
+    handleVariableSet(node, resultType);
+    if (!_currentVariables.contains(node.variable)) {
+      _invalidatedVariables.add(node.variable);
+      typeMap = typeMap.remove([node.variable]);
+    } else {
+      typeMap = typeMap.reduce(node, resultType, typeEnvironment);
+    }
+    return resultType;
   }
 
   void handleStaticGet(ir.StaticGet node, ir.DartType resultType) {}
@@ -537,22 +642,71 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) {
-    visitNode(node.left);
-    visitNode(node.right);
+    if (node.operator == '&&') {
+      visitNode(node.left);
+      TypeMap afterLeftWhenTrue = typeMapWhenTrue;
+      TypeMap afterLeftWhenFalse = typeMapWhenFalse;
+      typeMap = afterLeftWhenTrue;
+      visitNode(node.right);
+      TypeMap afterRightWhenTrue = typeMapWhenTrue;
+      TypeMap afterRightWhenFalse = typeMapWhenFalse;
+      typeMapWhenTrue = afterRightWhenTrue;
+      typeMapWhenFalse = afterLeftWhenFalse.join(afterRightWhenFalse);
+    } else {
+      visitNode(node.left);
+      TypeMap afterLeftWhenTrue = typeMapWhenTrue;
+      TypeMap afterLeftWhenFalse = typeMapWhenFalse;
+      typeMap = afterLeftWhenFalse;
+      visitNode(node.right);
+      TypeMap afterRightWhenTrue = typeMapWhenTrue;
+      TypeMap afterRightWhenFalse = typeMapWhenFalse;
+      typeMapWhenTrue = afterLeftWhenTrue.join(afterRightWhenTrue);
+      typeMapWhenFalse = afterRightWhenFalse;
+    }
     return super.visitLogicalExpression(node);
   }
 
   @override
   ir.DartType visitNot(ir.Not node) {
     visitNode(node.operand);
+    TypeMap afterOperandWhenTrue = typeMapWhenTrue;
+    TypeMap afterOperandWhenFalse = typeMapWhenFalse;
+    typeMapWhenTrue = afterOperandWhenFalse;
+    typeMapWhenFalse = afterOperandWhenTrue;
     return super.visitNot(node);
+  }
+
+  ir.DartType _handleConditional(
+      ir.Expression condition, ir.TreeNode then, ir.TreeNode otherwise) {
+    visitNode(condition);
+    TypeMap afterConditionWhenTrue = typeMapWhenTrue;
+    TypeMap afterConditionWhenFalse = typeMapWhenFalse;
+    typeMap = afterConditionWhenTrue;
+    ir.DartType thenType = visitNode(then);
+    TypeMap afterThen = typeMap;
+    typeMap = afterConditionWhenFalse;
+    ir.DartType otherwiseType = visitNode(otherwise);
+    TypeMap afterOtherwise = typeMap;
+    if (completes(thenType) && completes(otherwiseType)) {
+      typeMap = afterThen.join(afterOtherwise);
+      return null;
+    } else if (completes(thenType)) {
+      typeMap = afterThen;
+      return null;
+    } else if (completes(otherwiseType)) {
+      typeMap = afterOtherwise;
+      return null;
+    } else {
+      typeMap = afterThen.join(afterOtherwise);
+      return const ir.BottomType();
+    }
   }
 
   @override
   ir.DartType visitConditionalExpression(ir.ConditionalExpression node) {
-    visitNode(node.condition);
-    visitNode(node.then);
-    visitNode(node.otherwise);
+    // TODO(johnniwinther): Should we return `const ir.BottomType()` if both
+    // branches are failing?
+    _handleConditional(node.condition, node.then, node.otherwise);
     return super.visitConditionalExpression(node);
   }
 
@@ -560,7 +714,16 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitIsExpression(ir.IsExpression node) {
-    visitNode(node.operand);
+    ir.Expression operand = node.operand;
+    visitNode(operand);
+    if (operand is ir.VariableGet &&
+        !_invalidatedVariables.contains(operand.variable)) {
+      TypeMap afterOperand = typeMap;
+      typeMapWhenTrue =
+          afterOperand.promote(operand.variable, node.type, isTrue: true);
+      typeMapWhenFalse =
+          afterOperand.promote(operand.variable, node.type, isTrue: false);
+    }
     handleIsExpression(node);
     return super.visitIsExpression(node);
   }
@@ -591,7 +754,15 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
-  Null visitBlock(ir.Block node) => visitNodes(node.statements);
+  ir.DartType visitBlock(ir.Block node) {
+    ir.DartType type;
+    for (ir.Statement statement in node.statements) {
+      if (!completes(visitNode(statement))) {
+        type = const ir.BottomType();
+      }
+    }
+    return type;
+  }
 
   ir.DartType visitExpressionStatement(ir.ExpressionStatement node) {
     visitNode(node.expression);
@@ -692,10 +863,15 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitFunctionExpression(ir.FunctionExpression node) {
+    ir.DartType returnType = super.visitFunctionExpression(node);
+    Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
+    _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
     visitNode(node.function.body);
     handleFunctionExpression(node);
-    return super.visitFunctionExpression(node);
+    _invalidatedVariables.removeAll(_currentVariables);
+    _currentVariables = _oldVariables;
+    return returnType;
   }
 
   void handleThrow(ir.Throw node) {}
@@ -714,7 +890,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
-  Null visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {}
+  ir.DartType visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    return const ir.BottomType();
+  }
 
   @override
   Null visitLabeledStatement(ir.LabeledStatement node) {
@@ -722,7 +900,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
-  Null visitBreakStatement(ir.BreakStatement node) {}
+  ir.DartType visitBreakStatement(ir.BreakStatement node) {
+    return const ir.BottomType();
+  }
 
   @override
   Null visitYieldStatement(ir.YieldStatement node) {
@@ -775,31 +955,45 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitForStatement(ir.ForStatement node) {
     visitNodes(node.variables);
+    TypeMap beforeLoop = typeMap =
+        typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
     visitNode(node.condition);
-    visitNodes(node.updates);
+    typeMap = typeMapWhenTrue;
     visitNode(node.body);
+    visitNodes(node.updates);
+    typeMap = beforeLoop;
   }
 
   void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType) {}
 
   @override
   Null visitForInStatement(ir.ForInStatement node) {
-    visitNode(node.variable);
     ir.DartType iterableType = visitNode(node.iterable);
+    TypeMap beforeLoop = typeMap =
+        typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
+    visitNode(node.variable);
     visitNode(node.body);
     handleForInStatement(node, iterableType);
+    typeMap = beforeLoop;
   }
 
   @override
   Null visitDoStatement(ir.DoStatement node) {
+    TypeMap beforeLoop = typeMap =
+        typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
     visitNode(node.body);
     visitNode(node.condition);
+    typeMap = beforeLoop;
   }
 
   @override
   Null visitWhileStatement(ir.WhileStatement node) {
+    TypeMap beforeLoop = typeMap =
+        typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
     visitNode(node.condition);
+    typeMap = typeMapWhenTrue;
     visitNode(node.body);
+    typeMap = beforeLoop;
   }
 
   void handleSwitchStatement(ir.SwitchStatement node) {}
@@ -807,20 +1001,28 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitSwitchStatement(ir.SwitchStatement node) {
     visitNode(node.expression);
-    visitNodes(node.cases);
+    TypeMap afterExpression = typeMap;
+    VariableScope scope = variableScopeModel.getScopeFor(node);
+    TypeMap afterStatement = afterExpression.remove(scope.assignedVariables);
+    TypeMap beforeCase =
+        scope.hasContinueSwitch ? afterStatement : afterExpression;
+    for (ir.SwitchCase switchCase in node.cases) {
+      typeMap = beforeCase;
+      visitNode(switchCase);
+    }
     handleSwitchStatement(node);
+    typeMap = afterStatement;
   }
 
   @override
-  Null visitReturnStatement(ir.ReturnStatement node) {
+  ir.DartType visitReturnStatement(ir.ReturnStatement node) {
     visitNode(node.expression);
+    return const ir.BottomType();
   }
 
   @override
-  Null visitIfStatement(ir.IfStatement node) {
-    visitNode(node.condition);
-    visitNode(node.then);
-    visitNode(node.otherwise);
+  ir.DartType visitIfStatement(ir.IfStatement node) {
+    return _handleConditional(node.condition, node.then, node.otherwise);
   }
 
   @override
@@ -863,23 +1065,36 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitAssertStatement(ir.AssertStatement node) {
+    TypeMap beforeCondition = typeMap;
     visitNode(node.condition);
+    TypeMap afterConditionWhenTrue = typeMapWhenTrue;
+    TypeMap afterConditionWhenFalse = typeMapWhenFalse;
+    typeMap = afterConditionWhenFalse;
     visitNode(node.message);
     handleAssertStatement(node);
+    typeMap = useAsserts ? afterConditionWhenTrue : beforeCondition;
   }
 
   void handleFunctionDeclaration(ir.FunctionDeclaration node) {}
 
   @override
   Null visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    TypeMap beforeClosure =
+        typeMap = typeMap.remove(variableScopeModel.assignedVariables);
+    Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
+    _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
     visitNode(node.function.body);
     handleFunctionDeclaration(node);
+    _invalidatedVariables.removeAll(_currentVariables);
+    _currentVariables = _oldVariables;
+    typeMap = beforeClosure;
   }
 
   void handleParameter(ir.VariableDeclaration node) {}
 
   void visitParameter(ir.VariableDeclaration node) {
+    _currentVariables.add(node);
     visitNode(node.initializer);
     handleParameter(node);
   }
@@ -898,9 +1113,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   Null visitProcedure(ir.Procedure node) {
     typeEnvironment.thisType =
         node.enclosingClass != null ? node.enclosingClass.thisType : null;
+    _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
     visitNode(node.function.body);
     handleProcedure(node);
+    _invalidatedVariables.removeAll(_currentVariables);
+    _currentVariables = null;
     typeEnvironment.thisType = null;
   }
 
@@ -909,10 +1127,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitConstructor(ir.Constructor node) {
     typeEnvironment.thisType = node.enclosingClass.thisType;
+    _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
     visitNodes(node.initializers);
     visitNode(node.function.body);
     handleConstructor(node);
+    _invalidatedVariables.removeAll(_currentVariables);
+    _currentVariables = null;
     typeEnvironment.thisType = null;
   }
 
@@ -931,9 +1152,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitVariableDeclaration(ir.VariableDeclaration node) {
+    _currentVariables.add(node);
     ir.DartType type = visitNode(node.initializer);
     if (node.initializer != null &&
-        variableScopeModel != null &&
         variableScopeModel.isEffectivelyFinal(node)) {
       node.type = type;
     }
@@ -946,4 +1167,412 @@ class ArgumentTypes {
   final List<ir.DartType> named;
 
   ArgumentTypes(this.positional, this.named);
+}
+
+/// Type information collected for a single path for a local variable.
+///
+/// This is used to implement guarded type promotion.
+///
+/// The terminology and implementation is based on this paper:
+///
+///   http://www.cs.williams.edu/FTfJP2011/6-Winther.pdf
+///
+class TypeHolder {
+  /// The declared type of the local variable.
+  final ir.DartType declaredType;
+
+  /// The types that the local variable is known to be an instance of.
+  final Set<ir.DartType> trueTypes;
+
+  /// The types that the local variable is known _not_ to be an instance of.
+  final Set<ir.DartType> falseTypes;
+
+  int _hashCode;
+
+  TypeHolder(this.declaredType, this.trueTypes, this.falseTypes);
+
+  /// Computes a single type that soundly represents the promoted type of the
+  /// local variable on this single path.
+  ir.DartType typeOf(ir.TypeEnvironment typeEnvironment) {
+    ir.DartType candidate = declaredType;
+    if (falseTypes != null) {
+      // TODO(johnniwinther): Special-case the `== null` representation to
+      // make it faster.
+      for (ir.DartType type in falseTypes) {
+        if (typeEnvironment.isSubtypeOf(declaredType, type)) {
+          return typeEnvironment.nullType;
+        }
+      }
+    }
+    if (trueTypes != null) {
+      for (ir.DartType type in trueTypes) {
+        if (type == typeEnvironment.nullType) {
+          return type;
+        }
+        if (typeEnvironment.isSubtypeOf(type, candidate)) {
+          candidate = type;
+        } else if (!typeEnvironment.isSubtypeOf(candidate, type)) {
+          // We cannot promote. No single type is most specific.
+          // TODO(johnniwinther): Compute implied types? For instance when the
+          // declared type is `Iterable<String>` and tested type is
+          // `List<dynamic>` we could promote to the implied type `List<String>`.
+          return null;
+        }
+      }
+    }
+    return candidate;
+  }
+
+  int get hashCode {
+    if (_hashCode == null) {
+      _hashCode = Hashing.setHash(falseTypes,
+          Hashing.setHash(trueTypes, Hashing.objectHash(declaredType)));
+    }
+    return _hashCode;
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is TypeHolder &&
+        declaredType == other.declaredType &&
+        equalSets(trueTypes, other.trueTypes) &&
+        equalSets(falseTypes, other.falseTypes);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('TypeHolder(');
+    sb.write('declared=$declaredType');
+    if (trueTypes != null) {
+      sb.write(',true=$trueTypes');
+    }
+    if (falseTypes != null) {
+      sb.write(',false=$falseTypes');
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
+/// Type information for a single local variable on all possible paths.
+///
+/// This is used to implement guarded type promotion.
+///
+/// The terminology and implementation is based on this paper:
+///
+///   http://www.cs.williams.edu/FTfJP2011/6-Winther.pdf
+///
+class TargetInfo {
+  /// The declared type of the local variable.
+  final ir.DartType declaredType;
+
+  /// Collected type information for disjoint paths.
+  final Iterable<TypeHolder> typeHolders;
+
+  /// Types relevant for promotion of the local variable.
+  final Iterable<ir.DartType> typesOfInterest;
+
+  TargetInfo(this.declaredType, this.typeHolders, this.typesOfInterest);
+
+  /// Returns the [TargetInfo] that describes the added type knowledge for the
+  /// local variable. If [isTrue] is `true`, the local variable is known to
+  /// be an instance of [type]. If [isTrue] is `false`, the local variable is
+  /// known _not_ to be an instance of [type].
+  TargetInfo promote(ir.DartType type, {bool isTrue}) {
+    Set<TypeHolder> newTypeHolders = new Set<TypeHolder>();
+
+    bool addTypeHolder(TypeHolder typeHolder) {
+      bool changed = false;
+
+      Set<ir.DartType> addAsCopy(Set<ir.DartType> set, ir.DartType type) {
+        Set<ir.DartType> result;
+        if (set == null) {
+          result = new Set<ir.DartType>();
+        } else if (set.contains(type)) {
+          return set;
+        } else {
+          result = Set<ir.DartType>.from(set);
+        }
+        changed = true;
+        return result..add(type);
+      }
+
+      Set<ir.DartType> trueTypes = typeHolder?.trueTypes;
+      Set<ir.DartType> falseTypes = typeHolder?.falseTypes;
+      if (isTrue) {
+        trueTypes = addAsCopy(trueTypes, type);
+      } else {
+        falseTypes = addAsCopy(falseTypes, type);
+      }
+      // TODO(johnniwinther): Check validity; if the true types are
+      // contradicting, for instance if the local is known to be and instance
+      // of types `int` and `String` simultaneously, then we could flag code
+      // as dead code.
+      newTypeHolders.add(TypeHolder(declaredType, trueTypes, falseTypes));
+      return changed;
+    }
+    /*bool addTypeHolder(TypeHolder typeHolder) {
+      bool changed = true;
+      TypeHolder newTypeHolder;
+      if (typeHolder != null) {
+        if (isTrue) {
+          if (typeHolder.trueTypes == null) {
+            newTypeHolder = new TypeHolder(declaredType,
+                new Set<ir.DartType>()..add(type), typeHolder.falseTypes);
+          } else if (typeHolder.trueTypes.contains(type)) {
+            changed = false;
+            newTypeHolder = typeHolder;
+          } else {
+            newTypeHolder = new TypeHolder(
+                declaredType,
+                new Set<ir.DartType>.from(typeHolder.trueTypes)..add(type),
+                typeHolder.falseTypes);
+          }
+        } else {
+          if (typeHolder.falseTypes == null) {
+            newTypeHolder = new TypeHolder(declaredType, typeHolder.trueTypes,
+                new Set<ir.DartType>()..add(type));
+          } else if (typeHolder.falseTypes.contains(type)) {
+            changed = false;
+            newTypeHolder = typeHolder;
+          } else {
+            newTypeHolder = new TypeHolder(declaredType, typeHolder.trueTypes,
+                new Set<ir.DartType>.from(typeHolder.falseTypes)..add(type));
+          }
+        }
+      } else {
+        if (isTrue) {
+          newTypeHolder = new TypeHolder(
+              declaredType, new Set<ir.DartType>()..add(type), null);
+        } else {
+          newTypeHolder = new TypeHolder(
+              declaredType, null, new Set<ir.DartType>()..add(type));
+        }
+      }
+      // TODO(johnniwinther): Check validity; if the true types are
+      // contradicting, for instance if the local is known to be and instance
+      // of types `int` and `String` simultaneously, then we could flag code
+      // as dead code.
+      newTypeHolders.add(newTypeHolder);
+      return changed;
+    }*/
+
+    bool changed = false;
+    if (typeHolders.isEmpty) {
+      changed |= addTypeHolder(null);
+    } else {
+      for (TypeHolder typeHolder in typeHolders) {
+        changed |= addTypeHolder(typeHolder);
+      }
+    }
+    Iterable<ir.DartType> newTypesOfInterest;
+    if (typesOfInterest.contains(type)) {
+      newTypesOfInterest = typesOfInterest;
+    } else {
+      newTypesOfInterest = new Set<ir.DartType>.from(typesOfInterest)
+        ..add(type);
+      changed = true;
+    }
+    return changed
+        ? new TargetInfo(declaredType, newTypeHolders, newTypesOfInterest)
+        : this;
+  }
+
+  /// Returns the [TargetInfo] that describes that the local is either of [this]
+  /// or the [other] type.
+  TargetInfo join(TargetInfo other) {
+    if (identical(this, other)) return this;
+
+    Set<TypeHolder> newTypeHolders = new Set<TypeHolder>.from(typeHolders);
+    newTypeHolders.addAll(other.typeHolders);
+    Set<ir.DartType> newDeclarationsOfInterest =
+        new Set<ir.DartType>.from(typesOfInterest);
+    newDeclarationsOfInterest.addAll(other.typesOfInterest);
+    return new TargetInfo(
+        declaredType, newTypeHolders, newDeclarationsOfInterest);
+  }
+
+  /// Computes a single type that soundly represents the promoted type of the
+  /// local variable on all possible paths.
+  ir.DartType typeOf(ir.TypeEnvironment typeEnvironment) {
+    ir.DartType candidate = null;
+    for (TypeHolder typeHolder in typeHolders) {
+      ir.DartType type = typeHolder.typeOf(typeEnvironment);
+      if (type == null) {
+        // We cannot promote. No single type is most specific.
+        return null;
+      }
+      if (candidate == null) {
+        candidate = type;
+      } else {
+        if (type == typeEnvironment.nullType) {
+          // Keep the current candidate.
+        } else if (candidate == typeEnvironment.nullType) {
+          candidate = type;
+        } else if (typeEnvironment.isSubtypeOf(candidate, type)) {
+          candidate = type;
+        } else if (!typeEnvironment.isSubtypeOf(type, candidate)) {
+          // We cannot promote. No promoted type of one path is a supertype of
+          // the promoted type from all other paths.
+          // TODO(johnniwinther): Compute a greatest lower bound, instead?
+          return null;
+        }
+      }
+    }
+    return candidate;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('TargetInfo(');
+    sb.write('declaredType=$declaredType,');
+    sb.write('typeHolders=$typeHolders,');
+    sb.write('declarationsOfInterest=$typesOfInterest');
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
+/// Map from local variables to type information used for guarded type
+/// promotion.
+///
+/// The terminology and implementation is based on this paper:
+///
+///   http://www.cs.williams.edu/FTfJP2011/6-Winther.pdf
+///
+class TypeMap {
+  final Map<ir.VariableDeclaration, TargetInfo> _targetInfoMap;
+
+  const TypeMap([this._targetInfoMap = const {}]);
+
+  /// Returns the [TypeMap] that describes the added type knowledge for the
+  /// local [variable]. If [isTrue] is `true`, the local [variable] is known to
+  /// be an instance of [type]. If [isTrue] is `false`, the local [variable] is
+  /// known _not_ to be an instance of [type].
+  TypeMap promote(ir.VariableDeclaration variable, ir.DartType type,
+      {bool isTrue}) {
+    Map<ir.VariableDeclaration, TargetInfo> newInfoMap =
+        new Map<ir.VariableDeclaration, TargetInfo>.from(_targetInfoMap);
+    TargetInfo targetInfo = newInfoMap[variable];
+    bool changed = false;
+    if (targetInfo != null) {
+      TargetInfo result = targetInfo.promote(type, isTrue: isTrue);
+      changed = !identical(targetInfo, result);
+      targetInfo = result;
+    } else {
+      changed = true;
+      Set<ir.DartType> trueTypes =
+          isTrue ? (new Set<ir.DartType>()..add(type)) : null;
+      Set<ir.DartType> falseTypes =
+          isTrue ? null : (new Set<ir.DartType>()..add(type));
+      TypeHolder typeHolder =
+          new TypeHolder(variable.type, trueTypes, falseTypes);
+      targetInfo = new TargetInfo(
+          variable.type, <TypeHolder>[typeHolder], <ir.DartType>[type]);
+    }
+    newInfoMap[variable] = targetInfo;
+    return changed ? new TypeMap(newInfoMap) : this;
+  }
+
+  /// Returns the [TypeMap] that describes that the locals are either of [this]
+  /// or the [other] types.
+  TypeMap join(TypeMap other) {
+    if (identical(this, other)) return this;
+
+    Map<ir.VariableDeclaration, TargetInfo> newInfoMap = {};
+    bool changed = false;
+    _targetInfoMap.forEach((ir.VariableDeclaration variable, TargetInfo info) {
+      TargetInfo otherInfo = other._targetInfoMap[variable];
+      if (otherInfo != null) {
+        TargetInfo result = info.join(otherInfo);
+        changed |= !identical(info, result);
+        newInfoMap[variable] = result;
+      } else {
+        changed = true;
+        newInfoMap[variable] = info;
+      }
+    });
+    other._targetInfoMap
+        .forEach((ir.VariableDeclaration variable, TargetInfo otherInfo) {
+      TargetInfo info = _targetInfoMap[variable];
+      if (info == null) {
+        changed = true;
+        newInfoMap[variable] = otherInfo;
+      }
+    });
+    return changed ? new TypeMap(newInfoMap) : this;
+  }
+
+  /// Returns the [TypeMap] in which all type information for any of the
+  /// [variables] has been removed.
+  TypeMap remove(Iterable<ir.VariableDeclaration> variables) {
+    bool changed = false;
+    Map<ir.VariableDeclaration, TargetInfo> newInfoMap = {};
+    _targetInfoMap.forEach((ir.VariableDeclaration variable, TargetInfo info) {
+      if (!variables.contains(variable)) {
+        newInfoMap[variable] = info;
+      } else {
+        changed = true;
+      }
+    });
+    return changed ? new TypeMap(newInfoMap) : this;
+  }
+
+  /// Returns the [TypeMap] where type information for `node.variable` is
+  /// reduced to the promotions upheld by an assignment to `node.variable` of
+  /// the static [type].
+  TypeMap reduce(ir.VariableSet node, ir.DartType type,
+      ir.TypeEnvironment typeEnvironment) {
+    Map<ir.VariableDeclaration, TargetInfo> newInfoMap = {};
+    bool changed = false;
+    _targetInfoMap.forEach((ir.VariableDeclaration variable, TargetInfo info) {
+      if (variable != node.variable) {
+        newInfoMap[variable] = info;
+      } else if (type != null) {
+        changed = true;
+        Set<ir.DartType> newTypesOfInterest = new Set<ir.DartType>();
+        for (ir.DartType typeOfInterest in info.typesOfInterest) {
+          if (typeEnvironment.isSubtypeOf(type, typeOfInterest)) {
+            newTypesOfInterest.add(typeOfInterest);
+          }
+        }
+        if (newTypesOfInterest.isNotEmpty) {
+          TypeHolder typeHolderIfNonNull =
+              new TypeHolder(info.declaredType, newTypesOfInterest, null);
+          TypeHolder typeHolderIfNull = new TypeHolder(info.declaredType, null,
+              new Set<ir.DartType>()..add(info.declaredType));
+          newInfoMap[variable] = new TargetInfo(
+              info.declaredType,
+              <TypeHolder>[typeHolderIfNonNull, typeHolderIfNull],
+              newTypesOfInterest);
+        }
+      } else {
+        changed = true;
+      }
+    });
+    return changed ? new TypeMap(newInfoMap) : this;
+  }
+
+  /// Computes a single type that soundly represents the promoted type of
+  /// `node.variable` on all possible paths.
+  ir.DartType typeOf(ir.VariableGet node, ir.TypeEnvironment typeEnvironment) {
+    TargetInfo info = _targetInfoMap[node.variable];
+    ir.DartType type;
+    if (info != null) {
+      type = info.typeOf(typeEnvironment);
+    }
+    return type ?? node.promotedType ?? node.variable.type;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('TypeMap(');
+    String comma = '';
+    _targetInfoMap.forEach((ir.VariableDeclaration variable, TargetInfo info) {
+      sb.write('${comma}$variable->$info');
+      comma = ',';
+    });
+    sb.write(')');
+    return sb.toString();
+  }
 }

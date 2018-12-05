@@ -24,7 +24,7 @@ assert1(Class c) {
 
 assert2(Class c) {
   assert(/*Class*/ c /*invoke: bool*/ == null);
-  /*Class*/ c.next;
+  /*Null*/ c.next;
 }
 
 assert3(Class c) {
@@ -38,12 +38,12 @@ assert4(Class c) {
   bool b;
   assert(/*Class*/ c /*invoke: bool*/ == null);
   if (/*bool*/ b) return;
-  /*Class*/ c.next;
+  /*Null*/ c.next;
 }
 
 assert5(dynamic c) {
   assert(/*dynamic*/ c is Class);
-  /*dynamic*/ c.next;
+  /*Class*/ c.next;
 }
 
 assert6(dynamic c) {
@@ -55,7 +55,7 @@ assert7(dynamic c) {
   bool b;
   assert(/*dynamic*/ c is Class);
   if (/*bool*/ b) return;
-  /*dynamic*/ c.next;
+  /*Class*/ c.next;
 }
 
 assert8(dynamic c) {

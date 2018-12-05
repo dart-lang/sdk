@@ -15,8 +15,8 @@ main() {
 
 for1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
-    for (/*dynamic*/ c.next;
+    /*Class*/ c.next;
+    for (/*Class*/ c.next;
         /*dynamic*/ c /*invoke: bool*/ != null;
         /*dynamic*/ c.next) {
       /*dynamic*/ c.next;
@@ -44,7 +44,7 @@ for2(dynamic c) {
 for3(dynamic c) {
   /*dynamic*/ c.next;
   for (/*dynamic*/ c.next; /*dynamic*/ c is Class; /*dynamic*/ c.next) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     c = 0;
     if (/*dynamic*/ c is Class) {
       /*Class*/ c.next;
@@ -55,8 +55,8 @@ for3(dynamic c) {
 
 for4(dynamic c) {
   /*dynamic*/ c.next;
-  for (/*dynamic*/ c.next; /*dynamic*/ c is Class; /*dynamic*/ c.next) {
-    /*dynamic*/ c.next;
+  for (/*dynamic*/ c.next; /*dynamic*/ c is Class; /*Class*/ c.next) {
+    /*Class*/ c.next;
   }
   /*dynamic*/ c.next;
 }

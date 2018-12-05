@@ -47,7 +47,7 @@ positiveDynamic(dynamic cls) {
   if (cls is SubClass) cls.method();
 }
 
-/*element: negativeDynamic:dynamic=[call(0),method(0)],type=[inst:JSBool,is:SubClass]*/
+/*element: negativeDynamic:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass]*/
 negativeDynamic(dynamic cls) {
   if (cls is! SubClass) return;
   cls.method();

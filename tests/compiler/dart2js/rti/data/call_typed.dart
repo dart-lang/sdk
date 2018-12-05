@@ -13,6 +13,6 @@ class A {
 test(o) => o is Function(int);
 
 main() {
-  Expect.isTrue(test(new A()));
+  Expect.isFalse(test(new A()));
   Expect.isFalse(test(null));
 }

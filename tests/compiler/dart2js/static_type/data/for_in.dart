@@ -13,9 +13,9 @@ main() {
 
 forIn1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     // ignore: unused_local_variable
-    for (var b in /*dynamic*/ c.next) {
+    for (var b in /*Class*/ c.next) {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
         /*Class*/ c.next;

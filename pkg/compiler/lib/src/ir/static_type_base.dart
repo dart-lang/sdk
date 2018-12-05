@@ -97,10 +97,6 @@ class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitVariableGet(ir.VariableGet node) =>
-      node.promotedType ?? node.variable.type;
-
-  @override
   ir.DartType visitVariableSet(ir.VariableSet node) {
     return visitNode(node.value);
   }
