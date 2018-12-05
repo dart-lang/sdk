@@ -3683,14 +3683,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       continueTarget.resolveContinues(forest, body);
     }
     VariableDeclaration variable;
-    bool declaresVariable = false;
-    Expression syntheticAssignment;
+    Expression problem;
     if (lvalue is VariableDeclaration) {
-      declaresVariable = true;
       variable = lvalue;
       if (variable.isConst) {
-        addProblem(fasta.messageForInLoopWithConstVariable, variable.fileOffset,
-            variable.name.length);
+        problem = buildProblem(fasta.messageForInLoopWithConstVariable,
+            variable.fileOffset, variable.name.length);
       }
     } else if (lvalue is Generator) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
@@ -3708,28 +3706,55 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       TypePromotionFact fact =
           typePromoter?.getFactForAccess(variable, functionNestingLevel);
       TypePromotionScope scope = typePromoter?.currentScope;
-      syntheticAssignment = lvalue.buildAssignment(
+      Expression syntheticAssignment = lvalue.buildAssignment(
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);
-      body =
-          combineStatements(new ExpressionStatement(syntheticAssignment), body);
+      if (syntheticAssignment is shadow.SyntheticExpressionJudgment) {
+        syntheticAssignment = wrapSyntheticExpression(
+            desugarSyntheticExpression(syntheticAssignment),
+            offsetForToken(lvalue.token));
+      }
+      body = combineStatements(
+          forest.expressionStatement(syntheticAssignment, null), body);
     } else {
       Message message = forest.isVariablesDeclaration(lvalue)
           ? fasta.messageForInLoopExactlyOneVariable
           : fasta.messageForInLoopNotAssignable;
       Token token = forToken.next.next;
-      variable = new VariableDeclaration.forValue(desugarSyntheticExpression(
-          buildProblem(message, offsetForToken(token), lengthForToken(token))));
+      variable =
+          new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
+      problem =
+          buildProblem(message, offsetForToken(token), lengthForToken(token));
+      if (forest.isVariablesDeclaration(lvalue)) {
+        body = forest.block(
+            null,
+            <Statement>[]
+              ..addAll(forest.variablesDeclarationExtractDeclarations(lvalue))
+              ..add(body),
+            null);
+      } else {
+        body =
+            combineStatements(forest.expressionStatement(lvalue, null), body);
+      }
+      body = combineStatements(
+          forest.expressionStatement(
+              buildProblem(
+                  message, offsetForToken(token), lengthForToken(token)),
+              null),
+          body);
     }
-    Statement result = new ForInJudgment(
-        variable, expression, body, declaresVariable, syntheticAssignment,
+    Statement result = new ForInStatement(variable, expression, body,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
-      ..bodyOffset = body.fileOffset;
+      ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
     if (breakTarget.hasUsers) {
       result = forest.syntheticLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
+    }
+    if (problem != null) {
+      result =
+          combineStatements(forest.expressionStatement(problem, null), result);
     }
     exitLoopOrSwitch(result);
   }

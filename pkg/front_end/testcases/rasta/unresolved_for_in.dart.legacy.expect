@@ -112,10 +112,17 @@ class Fisk extends core::Object {
       let dynamic _ = null in let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t4]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
       core::print(() → void);
     }
-    for (final dynamic #t5 = invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    {
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
     for (1 in x) {
-         ^" in x) {
-      core::print(this.key);
+         ^";
+      for (final dynamic #t5 in x) {
+        invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (1 in x) {
+         ^";
+        1;
+        core::print(this.key);
+      }
     }
   }
 }
@@ -141,9 +148,16 @@ static method main(dynamic arguments) → dynamic {
     let dynamic _ = null in let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t9]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
     core::print(() → void);
   }
-  for (final dynamic #t10 = invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+  {
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
   for (1 in arguments) {
-       ^" in arguments) {
-    core::print(let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+       ^";
+    for (final dynamic #t10 in arguments) {
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+  for (1 in arguments) {
+       ^";
+      1;
+      core::print(let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    }
   }
 }

@@ -76,7 +76,9 @@ class Verify extends Step<Component, Component, ChainContext> {
             }
             messages.writeAll(message.plainTextFormatted, "\n");
           });
-    return await CompilerContext.runWithOptions(options, (_) async {
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);

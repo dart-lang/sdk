@@ -244,46 +244,61 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node.field.type, initializerType, node.value, node.fileOffset);
   }
 
-  void visitForInJudgment(ForInJudgment node) {
-    var iterableClass = node.isAsync
-        ? inferrer.coreTypes.streamClass
-        : inferrer.coreTypes.iterableClass;
-    DartType context;
+  void handleForInStatementDeclaringVariable(ForInStatement node) {
+    DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    VariableDeclarationJudgment variable;
-    var syntheticAssignment = node._syntheticAssignment;
-    DartType syntheticWriteType;
-    if (node._declaresVariable) {
-      variable = node.variableJudgment;
-      if (!inferrer.legacyMode && variable._implicitlyTyped) {
-        typeNeeded = true;
-        context = const UnknownType();
-      } else {
-        context = variable.type;
-      }
-    } else if (syntheticAssignment is ComplexAssignmentJudgment) {
-      syntheticWriteType =
-          context = syntheticAssignment._getWriteType(inferrer);
+    final VariableDeclaration variable = node.variable;
+    if (VariableDeclarationJudgment.isImplicitlyTyped(variable) &&
+        !inferrer.legacyMode) {
+      typeNeeded = true;
+      elementType = const UnknownType();
     } else {
-      context = const UnknownType();
+      elementType = variable.type;
     }
-    context = inferrer.wrapType(context, iterableClass);
 
-    var iterableJudgment = node.iterableJudgment;
-    inferrer.inferExpression(
-        iterableJudgment, context, typeNeeded || typeChecksNeeded);
-    var inferredExpressionType = inferrer
-        .resolveTypeParameter(getInferredType(iterableJudgment, inferrer));
+    DartType inferredType =
+        inferForInIterable(node, elementType, typeNeeded || typeChecksNeeded);
+    if (typeNeeded) {
+      inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
+          'type', new InstrumentationValueForType(inferredType));
+      variable.type = inferredType;
+    }
+
+    inferrer.inferStatement(node.body);
+
+    VariableDeclaration tempVar =
+        new VariableDeclaration(null, type: inferredType, isFinal: true);
+    VariableGet variableGet = new VariableGet(tempVar)
+      ..fileOffset = variable.fileOffset;
+    Expression implicitDowncast = inferrer.ensureAssignable(
+        variable.type, inferredType, variableGet, node.fileOffset,
+        template: templateForInLoopElementTypeNotAssignable);
+    if (implicitDowncast != null) {
+      node.variable = tempVar..parent = node;
+      variable.initializer = implicitDowncast..parent = variable;
+      node.body = combineStatements(variable, node.body)..parent = node;
+    }
+  }
+
+  DartType inferForInIterable(
+      ForInStatement node, DartType elementType, bool typeNeeded) {
+    Class iterableClass = node.isAsync
+        ? inferrer.coreTypes.streamClass
+        : inferrer.coreTypes.iterableClass;
+    DartType context = inferrer.wrapType(elementType, iterableClass);
+    Expression iterable = node.iterable;
+    inferrer.inferExpression(iterable, context, typeNeeded);
+    DartType inferredExpressionType =
+        inferrer.resolveTypeParameter(getInferredType(iterable, inferrer));
     inferrer.ensureAssignable(
         inferrer.wrapType(const DynamicType(), iterableClass),
         inferredExpressionType,
         node.iterable,
         node.iterable.fileOffset,
         template: templateForInLoopTypeNotIterable);
-
     DartType inferredType;
-    if (typeNeeded || typeChecksNeeded) {
+    if (typeNeeded) {
       inferredType = const DynamicType();
       if (inferredExpressionType is InterfaceType) {
         InterfaceType supertype = inferrer.classHierarchy
@@ -292,44 +307,73 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           inferredType = supertype.typeArguments[0];
         }
       }
-      if (typeNeeded) {
-        inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
-            'type', new InstrumentationValueForType(inferredType));
-        variable.type = inferredType;
-      }
-      if (!node._declaresVariable) {
-        node.variable.type = inferredType;
-      }
     }
-    inferrer.inferStatement(node.body);
-    if (node._declaresVariable) {
-      var tempVar =
-          new VariableDeclaration(null, type: inferredType, isFinal: true);
-      var variableGet = new VariableGet(tempVar)
-        ..fileOffset = node.variable.fileOffset;
-      var implicitDowncast = inferrer.ensureAssignable(
-          variable.type, inferredType, variableGet, node.fileOffset,
-          template: templateForInLoopElementTypeNotAssignable);
-      if (implicitDowncast != null) {
-        node.variable = tempVar..parent = node;
-        variable.initializer = implicitDowncast..parent = variable;
-        node.body = combineStatements(variable, node.body)..parent = node;
+    return inferredType;
+  }
+
+  void handleForInStatementWithoutVariable(ForInStatement node) {
+    DartType elementType;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
+    DartType syntheticWriteType;
+    Expression syntheticAssignment;
+    Block block = node.body;
+    ExpressionStatement statement = block.statements[0];
+    SyntheticExpressionJudgment judgment = statement.expression;
+    Expression rhs;
+    syntheticAssignment = judgment.desugared;
+    if (syntheticAssignment is VariableSet) {
+      syntheticWriteType = elementType = syntheticAssignment.variable.type;
+      rhs = syntheticAssignment.value;
+    } else if (syntheticAssignment is PropertySet ||
+        syntheticAssignment is SuperPropertySet) {
+      DartType receiverType = inferrer.thisType;
+      Object writeMember =
+          inferrer.findPropertySetMember(receiverType, syntheticAssignment);
+      syntheticWriteType =
+          elementType = inferrer.getSetterType(writeMember, receiverType);
+      if (syntheticAssignment is PropertySet) {
+        rhs = syntheticAssignment.value;
+      } else if (syntheticAssignment is SuperPropertySet) {
+        rhs = syntheticAssignment.value;
       }
+    } else if (syntheticAssignment is StaticSet) {
+      syntheticWriteType = elementType = syntheticAssignment.target.setterType;
+      rhs = syntheticAssignment.value;
+    } else if (syntheticAssignment is InvalidExpression) {
+      elementType = const UnknownType();
     } else if (syntheticAssignment is SyntheticExpressionJudgment) {
-      if (syntheticAssignment is ComplexAssignmentJudgment) {
-        inferrer.ensureAssignable(
-            greatestClosure(inferrer.coreTypes, syntheticWriteType),
-            node.variable.type,
-            syntheticAssignment.rhs,
-            syntheticAssignment.rhs.fileOffset,
-            template: templateForInLoopElementTypeNotAssignable,
-            isVoidAllowed: true);
-        if (syntheticAssignment is PropertyAssignmentJudgment) {
-          syntheticAssignment._handleWriteContravariance(
-              inferrer, inferrer.thisType);
-        }
-      }
-      syntheticAssignment._replaceWithDesugared();
+      // TODO(ahe): Remove this case.
+      elementType = const UnknownType();
+    } else {
+      unhandled("${syntheticAssignment.runtimeType}", "visitForInStatement",
+          syntheticAssignment.fileOffset, inferrer.helper.uri);
+    }
+
+    DartType inferredType =
+        inferForInIterable(node, elementType, typeChecksNeeded);
+    if (typeChecksNeeded) {
+      node.variable.type = inferredType;
+    }
+
+    inferrer.inferStatement(node.body);
+
+    if (syntheticWriteType != null) {
+      inferrer.ensureAssignable(
+          greatestClosure(inferrer.coreTypes, syntheticWriteType),
+          node.variable.type,
+          rhs,
+          rhs.fileOffset,
+          template: templateForInLoopElementTypeNotAssignable,
+          isVoidAllowed: true);
+    }
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node, _) {
+    if (node.variable.name == null) {
+      handleForInStatementWithoutVariable(node);
+    } else {
+      handleForInStatementDeclaringVariable(node);
     }
   }
 

@@ -379,9 +379,6 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
     return parts;
   }
 
-  DartType _getWriteType(ShadowTypeInferrer inferrer) => unhandled(
-      '$runtimeType', 'ShadowComplexAssignment._getWriteType', -1, null);
-
   _ComplexAssignmentInferenceResult _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     assert(writeContext != null);
@@ -662,27 +659,6 @@ class ShadowFieldInitializer extends FieldInitializer
   }
 }
 
-/// Concrete shadow object representing a for-in loop in kernel form.
-class ForInJudgment extends ForInStatement implements StatementJudgment {
-  final bool _declaresVariable;
-
-  final SyntheticExpressionJudgment _syntheticAssignment;
-
-  ForInJudgment(VariableDeclaration variable, Expression iterable,
-      Statement body, this._declaresVariable, this._syntheticAssignment,
-      {bool isAsync: false})
-      : super(variable, iterable, body, isAsync: isAsync);
-
-  VariableDeclarationJudgment get variableJudgment => variable;
-
-  Expression get iterableJudgment => iterable;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitForInJudgment(this);
-  }
-}
-
 /// Concrete shadow object representing a classic for loop in kernel form.
 class ForJudgment extends ForStatement implements StatementJudgment {
   ForJudgment(List<VariableDeclaration> variables, Expression condition,
@@ -810,11 +786,6 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   IllegalAssignmentJudgment._(Expression rhs, {this.assignmentOffset: -1})
       : super._(rhs) {
     rhs.parent = this;
-  }
-
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    return const UnknownType();
   }
 
   @override
@@ -1195,14 +1166,6 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     return parts;
   }
 
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    assert(receiver == null);
-    var receiverType = inferrer.thisType;
-    var writeMember = inferrer.findPropertySetMember(receiverType, write);
-    return inferrer.getSetterType(writeMember, receiverType);
-  }
-
   Object _handleWriteContravariance(
       ShadowTypeInferrer inferrer, DartType receiverType) {
     return inferrer.findPropertySetMember(receiverType, write);
@@ -1256,12 +1219,6 @@ abstract class StatementJudgment extends Statement {
 /// Concrete shadow object representing an assignment to a static variable.
 class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    StaticSet write = this.write;
-    return write.target.setterType;
-  }
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1603,6 +1560,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       // so that the type hierarchy will be simpler (which may speed up "is"
       // checks).
       return statement.acceptInference(new InferenceVistor(this));
+    } else if (statement is ForInStatement) {
+      return statement.accept1(new InferenceVistor(this), null);
     } else if (statement is LabeledStatement) {
       return statement.accept1(new InferenceVistor(this), null);
     } else if (statement is BreakStatement) {
@@ -1698,12 +1657,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
 class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
   VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    VariableSet write = this.write;
-    return write.variable.type;
-  }
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
