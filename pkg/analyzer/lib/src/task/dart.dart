@@ -5451,7 +5451,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     if (options.strongMode) {
       CodeChecker checker = new CodeChecker(
           typeProvider,
-          new StrongTypeSystemImpl(typeProvider,
+          new Dart2TypeSystem(typeProvider,
               implicitCasts: options.implicitCasts),
           errorListener,
           options);

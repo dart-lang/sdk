@@ -684,7 +684,7 @@ const b = 3;''');
     TestTypeProvider typeProvider = new TestTypeProvider();
     return expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
-            typeSystem: new StrongTypeSystemImpl(typeProvider)),
+            typeSystem: new Dart2TypeSystem(typeProvider)),
         errorReporter));
   }
 

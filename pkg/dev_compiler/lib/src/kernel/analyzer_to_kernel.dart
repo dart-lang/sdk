@@ -74,7 +74,7 @@ class AnalyzerToKernel {
   final a.StoreBasedSummaryResynthesizer _resynth;
   final a.SummaryDataStore _summaryData;
   final a.TypeProvider types;
-  final a.StrongTypeSystemImpl rules;
+  final a.Dart2TypeSystem rules;
 
   final _references = HashMap<a.Element, Reference>();
   final _typeParams = HashMap<a.TypeParameterElement, TypeParameter>();
@@ -84,7 +84,7 @@ class AnalyzerToKernel {
       : _resynth = (context.resultProvider as a.InputPackagesResultProvider)
             .resynthesizer,
         types = context.typeProvider,
-        rules = context.typeSystem as a.StrongTypeSystemImpl;
+        rules = context.typeSystem as a.Dart2TypeSystem;
 
   /// Create an Analyzer summary to Kernel tree converter, using the provided
   /// [analyzerSdkSummary] and [summaryPaths].

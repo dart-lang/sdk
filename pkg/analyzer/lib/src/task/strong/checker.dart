@@ -111,7 +111,7 @@ FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
-  final StrongTypeSystemImpl rules;
+  final Dart2TypeSystem rules;
   final TypeProvider typeProvider;
   final AnalysisErrorListener reporter;
   final AnalysisOptionsImpl _options;
@@ -121,7 +121,7 @@ class CodeChecker extends RecursiveAstVisitor {
   bool _hasImplicitCasts;
   HashSet<ExecutableElement> _covariantPrivateMembers;
 
-  CodeChecker(TypeProvider typeProvider, StrongTypeSystemImpl rules,
+  CodeChecker(TypeProvider typeProvider, Dart2TypeSystem rules,
       AnalysisErrorListener reporter, this._options)
       : typeProvider = typeProvider,
         rules = rules,
@@ -1214,7 +1214,7 @@ class CodeChecker extends RecursiveAstVisitor {
 /// check overrides between classes and superclasses, interfaces, and mixin
 /// applications.
 class _OverrideChecker {
-  final StrongTypeSystemImpl rules;
+  final Dart2TypeSystem rules;
 
   _OverrideChecker(CodeChecker checker) : rules = checker.rules;
 

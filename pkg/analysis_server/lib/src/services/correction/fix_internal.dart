@@ -187,7 +187,7 @@ class FixProcessor {
         session = context.resolveResult.session,
         sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
         typeProvider = context.resolveResult.typeProvider,
-        typeSystem = StrongTypeSystemImpl(context.resolveResult.typeProvider),
+        typeSystem = context.resolveResult.typeSystem,
         file = context.resolveResult.path,
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,

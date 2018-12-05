@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl, TypeSystem;
+    show Dart2TypeSystem, TypeSystem;
 
 export 'package:analyzer/dart/analysis/declared_variables.dart';
 export 'package:analyzer/dart/constant/value.dart';
@@ -118,7 +118,7 @@ class ConstantEvaluator {
    */
   ConstantEvaluator(this._source, TypeProvider typeProvider,
       {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
+      : _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
         _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {

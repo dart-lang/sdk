@@ -82,7 +82,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     await null;
     _checkConsistency();
     if (_typeSystem == null) {
-      _typeSystem = new StrongTypeSystemImpl(await typeProvider);
+      _typeSystem = new Dart2TypeSystem(await typeProvider);
     }
     return _typeSystem;
   }

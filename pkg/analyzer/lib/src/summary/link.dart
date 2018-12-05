@@ -3982,7 +3982,7 @@ class Linker {
 
   /// Get an instance of [TypeSystem] for use during linking.
   TypeSystem get typeSystem =>
-      _typeSystem ??= new StrongTypeSystemImpl(typeProvider);
+      _typeSystem ??= new Dart2TypeSystem(typeProvider);
 
   /// Get the element representing `void`.
   SpecialTypeElementForLink get voidElement => _voidElement ??=

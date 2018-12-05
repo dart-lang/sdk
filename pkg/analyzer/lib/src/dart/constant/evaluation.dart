@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl, TypeSystem;
+    show Dart2TypeSystem, TypeSystem;
 import 'package:analyzer/src/task/dart.dart';
 
 /**
@@ -116,7 +116,7 @@ class ConstantEvaluationEngine {
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
+        typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
         experiments = experiments ?? new Experiments(new AnalysisOptionsImpl());
 
   /**

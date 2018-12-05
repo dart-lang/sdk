@@ -96,7 +96,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       FormalParameterList node, DartType functionType) {
     bool inferred = false;
     if (node != null && functionType is FunctionType) {
-      var ts = _typeSystem as StrongTypeSystemImpl;
+      var ts = _typeSystem as Dart2TypeSystem;
       void inferType(ParameterElementImpl p, DartType inferredType) {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
@@ -141,7 +141,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType inferListType(ListLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
 
-    var ts = _typeSystem as StrongTypeSystemImpl;
+    var ts = _typeSystem as Dart2TypeSystem;
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
 
@@ -215,7 +215,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
 
     // Use both downwards and upwards information to infer the type.
-    var ts = _typeSystem as StrongTypeSystemImpl;
+    var ts = _typeSystem as Dart2TypeSystem;
     ParameterizedType inferred = ts.inferGenericFunctionOrType(
         _typeProvider.mapType, parameters, elementTypes, contextType,
         downwards: downwards,
@@ -227,7 +227,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType inferSetType(SetLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
 
-    var ts = _typeSystem as StrongTypeSystemImpl;
+    var ts = _typeSystem as Dart2TypeSystem;
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
 
@@ -1485,7 +1485,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(node);
     if (context is FunctionType &&
         type is FunctionType &&
-        ts is StrongTypeSystemImpl) {
+        ts is Dart2TypeSystem) {
       return ts.inferFunctionTypeInstantiation(context, type,
           errorReporter: _resolver.errorReporter, errorNode: node);
     }
@@ -1534,7 +1534,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (typeArguments == null &&
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty &&
-        ts is StrongTypeSystemImpl) {
+        ts is Dart2TypeSystem) {
       // Get the parameters that correspond to the uninstantiated generic.
       List<ParameterElement> rawParameters =
           ResolverVisitor.resolveArgumentsToParameters(

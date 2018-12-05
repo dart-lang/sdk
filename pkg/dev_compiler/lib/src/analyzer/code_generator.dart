@@ -20,8 +20,7 @@ import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
-import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl;
+import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
@@ -70,7 +69,7 @@ class CodeGenerator extends Object
   final SummaryDataStore summaryData;
 
   final CompilerOptions options;
-  final StrongTypeSystemImpl rules;
+  final Dart2TypeSystem rules;
 
   /// Errors that were produced during compilation, if any.
   final List<AnalysisError> errors;
@@ -197,7 +196,7 @@ class CodeGenerator extends Object
 
   CodeGenerator(LinkedAnalysisDriver driver, this.types, this.summaryData,
       this.options, this._extensionTypes, this.errors)
-      : rules = StrongTypeSystemImpl(types),
+      : rules = Dart2TypeSystem(types),
         declaredVariables = driver.declaredVariables,
         _asyncStreamIterator =
             driver.getClass('dart:async', 'StreamIterator').type,

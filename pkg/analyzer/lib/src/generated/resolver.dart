@@ -288,7 +288,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       {TypeSystem typeSystem})
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
-        _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
+        _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
@@ -958,48 +958,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         return;
       }
 
-      if (_typeSystem is StrongTypeSystemImpl) {
-        var flattenedType = body.isAsynchronous
-            ? returnType.flattenFutures(_typeSystem)
-            : returnType;
+      var flattenedType = body.isAsynchronous
+          ? returnType.flattenFutures(_typeSystem)
+          : returnType;
 
-        // dynamic/Null/void are allowed to omit a return.
-        if (flattenedType.isDynamic ||
-            flattenedType.isDartCoreNull ||
-            flattenedType.isVoid) {
-          return;
-        }
-        // Otherwise issue a warning if the block doesn't have a return.
-        if (!ExitDetector.exits(body)) {
-          _errorReporter.reportErrorForNode(
-              HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
-        }
+      // dynamic/Null/void are allowed to omit a return.
+      if (flattenedType.isDynamic ||
+          flattenedType.isDartCoreNull ||
+          flattenedType.isVoid) {
         return;
       }
-
-      // TODO(leafp): Delete this non-strong mode path
-      // Check that the type is resolvable and not "void"
-      if (returnType.isVoid ||
-          (body.isAsynchronous && _isFutureVoid(returnType))) {
-        return;
-      }
-      // For async, give no hint if the return type does not matter, i.e.
-      // dynamic, Future<Null> or Future<dynamic>.
-      if (body.isAsynchronous) {
-        if (returnType.isDynamic) {
-          return;
-        }
-        if (returnType is InterfaceType && returnType.isDartAsyncFuture) {
-          DartType futureArgument = returnType.typeArguments[0];
-          if (futureArgument.isDynamic ||
-              futureArgument.isDartCoreNull ||
-              futureArgument.isVoid ||
-              futureArgument.isObject) {
-            return;
-          }
-        }
-      }
-      // Check the block for a return statement, if not, create the hint
+      // Otherwise issue a warning if the block doesn't have a return.
       if (!ExitDetector.exits(body)) {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
@@ -1392,7 +1361,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
   DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new StrongTypeSystemImpl(null);
+      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -3633,8 +3602,8 @@ class InferenceContext {
   ///
   /// The returned type may be partially or completely unknown, denoted with an
   /// unknown type `?`, for example `List<?>` or `(?, int) -> void`.
-  /// You can use [StrongTypeSystemImpl.upperBoundForType] or
-  /// [StrongTypeSystemImpl.lowerBoundForType] if you would prefer a known type
+  /// You can use [Dart2TypeSystem.upperBoundForType] or
+  /// [Dart2TypeSystem.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
   static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
 
@@ -4994,8 +4963,7 @@ class ResolverVisitor extends ScopedVisitor {
       _overrideManager.enterScope();
       try {
         DartType functionType = InferenceContext.getContext(node);
-        var ts = typeSystem;
-        if (functionType is FunctionType && ts is StrongTypeSystemImpl) {
+        if (functionType is FunctionType) {
           functionType =
               matchFunctionTypeParameters(node.typeParameters, functionType);
           if (functionType is FunctionType) {
@@ -5655,7 +5623,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (typeArguments == null &&
         uninstantiatedType is FunctionType &&
         uninstantiatedType.typeFormals.isNotEmpty &&
-        ts is StrongTypeSystemImpl) {
+        ts is Dart2TypeSystem) {
       return ts.inferGenericFunctionOrType<FunctionType>(
           uninstantiatedType,
           const <ParameterElement>[],
@@ -7284,7 +7252,7 @@ class TypeNameResolver {
         enclosingConstructor is ConstructorDeclaration &&
         enclosingConstructor.redirectedConstructor == constructorName &&
         type is InterfaceType &&
-        ts is StrongTypeSystemImpl) {
+        ts is Dart2TypeSystem) {
       ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
       ClassElement enclosingClassElement = enclosingClassNode.declaredElement;
       if (enclosingClassElement == type.element) {

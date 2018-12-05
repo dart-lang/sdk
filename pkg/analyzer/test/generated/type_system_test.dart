@@ -43,7 +43,7 @@ main() {
  */
 abstract class BoundTestBase {
   TypeProvider typeProvider;
-  TypeSystem typeSystem;
+  Dart2TypeSystem typeSystem;
   FunctionType simpleFunctionType;
 
   DartType get bottomType => typeProvider.bottomType;
@@ -57,8 +57,6 @@ abstract class BoundTestBase {
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
-  StrongTypeSystemImpl get strongTypeSystem =>
-      typeSystem as StrongTypeSystemImpl;
 
   DartType get voidType => VoidTypeImpl.instance;
 
@@ -73,7 +71,7 @@ abstract class BoundTestBase {
 
   void _checkGreatestLowerBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    DartType glb = strongTypeSystem.getGreatestLowerBound(type1, type2);
+    DartType glb = typeSystem.getGreatestLowerBound(type1, type2);
     expect(glb, expectedResult);
     // Check that the result is a lower bound.
     expect(typeSystem.isSubtypeOf(glb, type1), true);
@@ -84,7 +82,7 @@ abstract class BoundTestBase {
     // for function types we just check if they are mutual subtypes.
     // https://github.com/dart-lang/sdk/issues/26126
     // TODO(leafp): Fix this.
-    glb = strongTypeSystem.getGreatestLowerBound(type2, type1);
+    glb = typeSystem.getGreatestLowerBound(type2, type1);
     if (glb is FunctionTypeImpl) {
       expect(typeSystem.isSubtypeOf(glb, expectedResult), true);
       expect(typeSystem.isSubtypeOf(expectedResult, glb), true);
@@ -174,7 +172,7 @@ class ConstraintMatchingTest {
     typeProvider = AnalysisContextFactory.contextWithCore(
             resourceProvider: new MemoryResourceProvider())
         .typeProvider;
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
     T = _newTypeParameter('T');
   }
 
@@ -845,7 +843,7 @@ class StrongAssignabilityTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_isAssignableTo_bottom_isBottom() {
@@ -1115,7 +1113,7 @@ class StrongAssignabilityTest {
 @reflectiveTest
 class StrongGenericFunctionInferenceTest {
   TypeProvider typeProvider;
-  StrongTypeSystemImpl typeSystem;
+  Dart2TypeSystem typeSystem;
 
   DartType get bottomType => typeProvider.bottomType;
   InterfaceType get doubleType => typeProvider.doubleType;
@@ -1132,7 +1130,7 @@ class StrongGenericFunctionInferenceTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_boundedByAnotherTypeParameter() {
@@ -1437,7 +1435,7 @@ class StrongGenericFunctionInferenceTest {
 class StrongGreatestLowerBoundTest extends BoundTestBase {
   void setUp() {
     super.setUp();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_bottom_function() {
@@ -1761,7 +1759,7 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
 class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
   void setUp() {
     super.setUp();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_functionsFuzzyArrows() {
@@ -1890,7 +1888,7 @@ class StrongSubtypingTest {
     typeProvider = AnalysisContextFactory.contextWithCore(
             resourceProvider: new MemoryResourceProvider())
         .typeProvider;
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_bottom_isBottom() {

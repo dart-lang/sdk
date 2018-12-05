@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/type_system.dart';
 class InheritanceOverrideVerifier {
   static const _missingOverridesKey = 'missingOverrides';
 
-  final StrongTypeSystemImpl _typeSystem;
+  final TypeSystem _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager2 _inheritance;
   final ErrorReporter _reporter;
@@ -78,7 +78,7 @@ class InheritanceOverrideVerifier {
 }
 
 class _ClassVerifier {
-  final StrongTypeSystemImpl typeSystem;
+  final TypeSystem typeSystem;
   final TypeProvider typeProvider;
   final InheritanceManager2 inheritance;
   final ErrorReporter reporter;
