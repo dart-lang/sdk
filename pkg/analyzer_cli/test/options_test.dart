@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer_cli.test.options;
 
 import 'dart:io';
 
@@ -58,6 +56,7 @@ main() {
         expect(options.dartSdkPath, isNotNull);
         expect(options.disableCacheFlushing, isFalse);
         expect(options.disableHints, isFalse);
+        expect(options.enabledExperiments, isEmpty);
         expect(options.lints, isFalse);
         expect(options.displayVersion, isFalse);
         expect(options.infosAreFatal, isFalse);
@@ -72,7 +71,6 @@ main() {
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isTrue);
         expect(options.lintsAreFatal, isFalse);
-        expect(options.previewDart2, isTrue);
         expect(options.trainSnapshot, isFalse);
       });
 
@@ -93,6 +91,49 @@ main() {
         CommandLineOptions options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
         expect(options.disableCacheFlushing, isTrue);
+      });
+
+      group('enable experiment', () {
+        test('no values', () {
+          CommandLineOptions options = CommandLineOptions.parse(['foo.dart']);
+          expect(options.enabledExperiments, isEmpty);
+        });
+
+        test('single value', () {
+          CommandLineOptions options = CommandLineOptions.parse(
+              ['--enable-experiment', 'a', 'foo.dart']);
+          expect(options.enabledExperiments, ['a']);
+        });
+
+        group('multiple values', () {
+          test('single flag', () {
+            CommandLineOptions options = CommandLineOptions.parse(
+                ['--enable-experiment', 'a,b', 'foo.dart']);
+            expect(options.enabledExperiments, ['a', 'b']);
+          });
+
+          test('mixed single and multiple flags', () {
+            CommandLineOptions options = CommandLineOptions.parse([
+              '--enable-experiment',
+              'a,b',
+              '--enable-experiment',
+              'c',
+              'foo.dart'
+            ]);
+            expect(options.enabledExperiments, ['a', 'b', 'c']);
+          });
+
+          test('multiple flags', () {
+            CommandLineOptions options = CommandLineOptions.parse([
+              '--enable-experiment',
+              'a',
+              '--enable-experiment',
+              'b',
+              'foo.dart'
+            ]);
+            expect(options.enabledExperiments, ['a', 'b']);
+          });
+        });
       });
 
       test('hintsAreFatal', () {
@@ -229,12 +270,6 @@ main() {
         CommandLineOptions options =
             CommandLineOptions.parse(['--use-fasta-parser', 'foo.dart']);
         expect(options.useFastaParser, isTrue);
-      });
-
-      test('--preview-dart-2', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
-        expect(options.previewDart2, isTrue);
       });
 
       test('--train-snapshot', () {

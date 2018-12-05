@@ -15,6 +15,7 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -172,9 +173,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     String filePath = params.file;
     int offset = params.offset;
 
-    AnalysisResult result = await server.getAnalysisResult(filePath);
+    ResolvedUnitResult result = await server.getResolvedUnit(filePath);
 
-    if (result != null && result.exists) {
+    if (result?.state == ResultState.VALID) {
       if (offset < 0 || offset > result.content.length) {
         server.sendResponse(new Response.invalidParameter(
             request,

@@ -5718,6 +5718,10 @@ class CodeGenerator extends Object
         () => _emitConstList(elementType, _visitExpressionList(node.elements)));
   }
 
+  @override
+  JS.Expression visitSetLiteral(SetLiteral node) =>
+      throw new UnsupportedError('literal sets are not yet supported');
+
   JS.Expression _emitConstList(
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.

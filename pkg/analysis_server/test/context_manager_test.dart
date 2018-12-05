@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/rules.dart';
@@ -34,7 +35,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
 
-import 'mock_sdk.dart';
 import 'src/plugin/plugin_manager_test.dart';
 
 main() {
@@ -500,7 +500,7 @@ test_pack:lib/''');
     var testLibUri = resourceProvider.pathContext.toUri(testLib);
     resourceProvider.newFile(packagespecPath, 'unittest:$testLibUri');
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    File mainFile = newFile('$libPath/main.dart', content: '');
+    File mainFile = newFile('$libPath/main.dart');
     Source source = mainFile.createSource();
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -586,8 +586,8 @@ test_pack:lib/''');
     // create files
     newFile('$subProjectA/pubspec.yaml', content: 'pubspec');
     newFile('$subProjectB/pubspec.yaml', content: 'pubspec');
-    newFile('$subProjectA/.packages', content: '');
-    newFile('$subProjectB/.packages', content: '');
+    newFile('$subProjectA/.packages');
+    newFile('$subProjectB/.packages');
 
     newFile(rootFile, content: 'library root;');
     newFile(subProjectA_file, content: 'library a;');
@@ -1641,7 +1641,7 @@ test_pack:lib/''');
   }
 }
 
-abstract class ContextManagerTest extends Object with ResourceProviderMixin {
+abstract class ContextManagerTest with ResourceProviderMixin {
   /**
    * The name of the 'bin' directory.
    */
@@ -1741,7 +1741,7 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
     new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager(convertPath('/'), true);
+    DartSdkManager sdkManager = new DartSdkManager(convertPath('/sdk'), true);
     manager = new ContextManagerImpl(
         resourceProvider,
         new FileContentOverlay(),
@@ -2167,7 +2167,7 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
 
-    AnalysisResult result = await callbacks.currentDriver.getResult(file.path);
+    var result = await callbacks.currentDriver.getResult(file.path);
 
     // Not strong mode - both in the context and the SDK context.
 //    AnalysisContext sdkContext = sourceFactory.dartSdk.context;
@@ -2569,7 +2569,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     ContextBuilder builder = new ContextBuilder(
-        resourceProvider, sdkManager, new ContentCache(),
+        resourceProvider, sdkManager, null,
         options: builderOptions);
     return builder;
   }

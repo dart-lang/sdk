@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -22,8 +21,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-
-import 'mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -47,8 +46,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
  */
 typedef void _ElementVisitorFunction(Element element);
 
-class AbstractContextTest {
-  MemoryResourceProvider provider;
+class AbstractContextTest with ResourceProviderMixin {
   DartSdk sdk;
   Map<String, List<Folder>> packageMap;
   UriResolver resourceResolver;
@@ -64,7 +62,8 @@ class AbstractContextTest {
    */
   AnalysisSession get session => driver.currentSession;
 
-  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
+  void addMetaPackage() {
+    addPackageFile('meta', 'meta.dart', r'''
 library meta;
 
 const Required required = const Required();
@@ -74,21 +73,20 @@ class Required {
   const Required([this.reason]);
 }
 ''');
+  }
 
-  Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [(newFolder('/pubcache/$packageName'))];
-    File file = newFile('/pubcache/$packageName/$filePath', content);
-    return file.createSource();
+  File addPackageFile(String packageName, String pathInLib, String content) {
+    var packageLibPath = '/.pub-cache/$packageName/lib';
+    packageMap[packageName] = [newFolder(packageLibPath)];
+    return newFile('$packageLibPath/$pathInLib', content: content);
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    if (path.startsWith('/')) {
-      path = provider.convertPath(path);
-    }
+    path = convertPath(path);
     driver.addFile(path);
     driver.changeFile(path);
     _fileContentOverlay[path] = content;
-    return provider.getFile(path).createSource();
+    return getFile(path).createSource();
   }
 
   Element findElementInUnit(CompilationUnit unit, String name,
@@ -98,28 +96,16 @@ class Required {
         .single;
   }
 
-  File newFile(String path, [String content]) =>
-      provider.newFile(provider.convertPath(path), content ?? '');
-
-  Folder newFolder(String path) =>
-      provider.newFolder(provider.convertPath(path));
-
-  void processRequiredPlugins() {
-    AnalysisEngine.instance.processRequiredPlugins();
-  }
-
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
     return (await driver.getResult(source.fullName))?.unit;
   }
 
   void setUp() {
-    processRequiredPlugins();
-    setupResourceProvider();
-    sdk = new MockSdk(resourceProvider: provider);
-    resourceResolver = new ResourceUriResolver(provider);
+    sdk = new MockSdk(resourceProvider: resourceProvider);
+    resourceResolver = new ResourceUriResolver(resourceProvider);
     packageMap = new Map<String, List<Folder>>();
     PackageMapUriResolver packageResolver =
-        new PackageMapUriResolver(provider, packageMap);
+        new PackageMapUriResolver(resourceProvider, packageMap);
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), packageResolver, resourceResolver]);
     PerformanceLog log = new PerformanceLog(_logBuffer);
@@ -128,7 +114,7 @@ class Required {
     _driver = new AnalysisDriver(
         scheduler,
         log,
-        provider,
+        resourceProvider,
         new MemoryByteStore(),
         _fileContentOverlay,
         null,
@@ -138,12 +124,7 @@ class Required {
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }
 
-  void setupResourceProvider() {
-    provider = new MemoryResourceProvider();
-  }
-
   void tearDown() {
-    provider = null;
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
   }

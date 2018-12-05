@@ -39,7 +39,7 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() {
-    var processor = new RenameProcessor(searchEngine, change, newName);
+    var processor = new RenameProcessor(workspace, change, newName);
     return processor.renameElement(element);
   }
 }

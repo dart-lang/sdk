@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,15 +87,16 @@ class ContextCacheEntry {
   /// automatically.
   AnalysisOptionsImpl _getAnalysisOptions() {
     AnalysisOptionsImpl contextOptions = builder.getAnalysisOptions(
-        requestedSourceDirectory,
-        verbosePrint: clOptions.verbose ? verbosePrint : null);
+            requestedSourceDirectory,
+            verbosePrint: clOptions.verbose ? verbosePrint : null)
+        as AnalysisOptionsImpl;
 
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
+    contextOptions.enabledExperiments = clOptions.enabledExperiments;
     contextOptions.hint = !clOptions.disableHints;
     contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
-    contextOptions.previewDart2 = clOptions.previewDart2;
     contextOptions.useFastaParser = clOptions.useFastaParser;
     return contextOptions;
   }

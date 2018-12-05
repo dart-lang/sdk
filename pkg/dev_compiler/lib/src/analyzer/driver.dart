@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -324,8 +325,8 @@ class LinkedAnalysisDriver {
         (uri) => _isLibraryUri('$uri'),
         context,
         resynthesizer,
-        libraryFile,
-        _fsState.resourceProvider);
+        InheritanceManager2(context.typeSystem),
+        libraryFile);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
     // but it's async. We can't use `async` here because it would break our
     // developer tools extension (see web/web_command.dart). We should be able

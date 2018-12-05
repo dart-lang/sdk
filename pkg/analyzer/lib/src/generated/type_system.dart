@@ -466,7 +466,8 @@ class GenericInferrer {
       List<DartType> tArgs2 = i2.typeArguments;
       assert(tArgs1.length == tArgs2.length);
       for (int i = 0; i < tArgs1.length; i++) {
-        if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], visited, origin,
+        if (!_matchSubtypeOf(
+            tArgs1[i], tArgs2[i], new HashSet<Element>(), origin,
             covariant: covariant)) {
           return false;
         }
@@ -478,22 +479,12 @@ class GenericInferrer {
     }
 
     // Guard against loops in the class hierarchy
-    //
-    // TODO(jmesserly): this function isn't guarding against anything (it's not
-    // passsing down `visitedSet`, so adding the element has no effect).
-    //
-    // If that's fixed, it breaks inference tests for types like
-    // `Iterable<Iterable<?>>` matched aganinst `List<List<int>>`.
-    //
-    // The fix is for type arguments (above) to not pass down `visited`, similar
-    // to how _isInterfaceSubtypeOf does not pass down `visited` for type
-    // arguments.
     bool guardedInterfaceSubtype(InterfaceType t1) {
-      var visitedSet = visited ?? new HashSet<Element>();
-      if (visitedSet.add(t1.element)) {
+      visited ??= new HashSet<Element>();
+      if (visited.add(t1.element)) {
         bool matched = _matchInterfaceSubtypeOf(t1, i2, visited, origin,
             covariant: covariant);
-        visitedSet.remove(t1.element);
+        visited.remove(t1.element);
         return matched;
       } else {
         // In the case of a recursive type parameter, consider the subtype
@@ -729,13 +720,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   static bool _comparingTypeParameterBounds = false;
 
   /**
-   * True if declaration casts should be allowed, otherwise false.
-   *
-   * This affects the behavior of [isAssignableTo].
-   */
-  final bool declarationCasts;
-
-  /**
    * True if implicit casts should be allowed, otherwise false.
    *
    * This affects the behavior of [isAssignableTo].
@@ -744,8 +728,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   final TypeProvider typeProvider;
 
-  StrongTypeSystemImpl(this.typeProvider,
-      {this.declarationCasts: true, this.implicitCasts: true});
+  StrongTypeSystemImpl(this.typeProvider, {this.implicitCasts: true});
 
   @override
   bool get isStrong => true;
@@ -1048,8 +1031,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType,
-      {bool isDeclarationCast = false}) {
+  bool isAssignableTo(DartType fromType, DartType toType) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -1063,11 +1045,7 @@ class StrongTypeSystemImpl extends TypeSystem {
       }
     }
 
-    if (isDeclarationCast) {
-      if (!declarationCasts) {
-        return false;
-      }
-    } else if (!implicitCasts) {
+    if (!implicitCasts) {
       return false;
     }
 
@@ -1819,8 +1797,7 @@ abstract class TypeSystem {
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
    * if leftType <==> rightType).
    */
-  bool isAssignableTo(DartType leftType, DartType rightType,
-      {bool isDeclarationCast = false});
+  bool isAssignableTo(DartType leftType, DartType rightType);
 
   /**
    * Return `true` if the [leftType] is more specific than the [rightType]
@@ -2096,7 +2073,6 @@ abstract class TypeSystem {
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return new StrongTypeSystemImpl(context.typeProvider,
-        declarationCasts: options.declarationCasts,
         implicitCasts: options.implicitCasts);
   }
 }

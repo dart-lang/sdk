@@ -41,7 +41,7 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(searchEngine, change, newName);
+    var processor = new RenameProcessor(workspace, change, newName);
     await processor.renameElement(element);
   }
 }

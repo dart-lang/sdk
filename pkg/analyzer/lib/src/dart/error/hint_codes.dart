@@ -571,21 +571,6 @@ class HintCode extends ErrorCode {
 
   /**
    * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.UNDEFINED_METHOD] would have been generated, if we
-   * used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the method that is undefined
-   * 1: the resolved type name that the method lookup is happening on
-   */
-  static const HintCode UNDEFINED_METHOD = const HintCode(
-      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the class '{1}'.",
-      correction:
-          "Try correcting the name to the name of an existing method, or "
-          "defining a method named '{0}'.");
-
-  /**
-   * This hint is generated anywhere where the
    * [StaticTypeWarningCode.UNDEFINED_OPERATOR] would have been generated, if we
    * used propagated information for the warnings.
    *

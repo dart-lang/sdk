@@ -39,7 +39,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part of libA;
         class B { factory B.bar(int x) => null; }
         main() {new ^}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -74,7 +73,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -114,7 +112,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
           a = new ^
         }
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -165,7 +162,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
           A a = new ^
         }
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -214,7 +210,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part of libA;
         class B { factory B.bar(int x) => null; }
         main() {^}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -261,7 +256,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class A { A({String boo: 'hoo'}) { } }
         main() {^}
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

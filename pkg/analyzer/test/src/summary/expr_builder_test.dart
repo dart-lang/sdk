@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,7 +27,7 @@ class ExprBuilderTest extends ResynthesizeTestStrategyTwoPhase
 /// Mixin containing test cases exercising the [ExprBuilder].  Intended to be
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ExprBuilderTestHelpers].
-abstract class ExprBuilderTestCases implements ExprBuilderTestHelpers {
+mixin ExprBuilderTestCases implements ExprBuilderTestHelpers {
   void test_add() {
     checkSimpleExpression('0 + 1');
   }
@@ -360,7 +360,7 @@ class C {
 
   @failingTest
   void test_pushLocalFunctionReference_nested() {
-    prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
+    prepareAnalysisContext(new AnalysisOptionsImpl());
     var expr =
         checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
     var outerFunctionElement = expr.declaredElement;
@@ -383,7 +383,7 @@ class C {
 
   @failingTest
   void test_pushLocalFunctionReference_paramReference() {
-    prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
+    prepareAnalysisContext(new AnalysisOptionsImpl());
     var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
     var localFunctionElement = expr.declaredElement;
     var xElement = localFunctionElement.parameters[0];
@@ -478,9 +478,9 @@ class B {
   }
 }
 
-/// Mixin containing helper methods for testing the [ExprBuilder].  Intended to
+/// Mixin containing helper methods for testing the [ExprBuilder]. Intended to
 /// be applied to a class implementing [ResynthesizeTestStrategy].
-abstract class ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
+mixin ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
   Expression buildConstructorInitializer(String sourceText,
       {String className: 'C',
       String initializerName: 'x',

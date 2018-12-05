@@ -9,10 +9,10 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -34,13 +34,15 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
     ClassDeclaration classDecl =
-        targetId.getAncestor((p) => p is ClassDeclaration);
+        targetId.thisOrAncestorOfType<ClassDeclaration>();
     if (classDecl == null) {
       return const <CompletionSuggestion>[];
     }
 
+    // TODO(brianwilkerson) Consider making the type system visible from the
+    // request.result.
     var inheritance = new InheritanceManager2(
-        request.result.libraryElement.context.typeSystem);
+        await request.result.libraryElement.session.typeSystem);
 
     // Generate a collection of inherited members
     ClassElement classElem = classDecl.declaredElement;
@@ -68,14 +70,13 @@ class OverrideContributor implements DartCompletionContributor {
    * the template will replace [targetId].
    */
   Future<DartChangeBuilder> _buildReplacementText(
-      AnalysisResult result,
+      ResolvedUnitResult result,
       SimpleIdentifier targetId,
       FunctionType signature,
       StringBuffer displayTextBuffer) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    DartChangeBuilder builder =
-        new DartChangeBuilder(result.driver.currentSession);
+    DartChangeBuilder builder = new DartChangeBuilder(result.session);
     await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
         ExecutableElement element = signature.element;

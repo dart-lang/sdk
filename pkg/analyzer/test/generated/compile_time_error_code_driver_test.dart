@@ -31,12 +31,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
-  test_genericFunctionTypeArgument_typedef() {
-    return super.test_genericFunctionTypeArgument_typedef();
-  }
-
-  @override
-  @failingTest
   test_invalidIdentifierInAsync_async() {
     return super.test_invalidIdentifierInAsync_async();
   }

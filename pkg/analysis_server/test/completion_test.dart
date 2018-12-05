@@ -1709,8 +1709,7 @@ throw new Seria!1lizationException();}''',
     buildTests(
         'testLibrary002',
         '''t2() {var q=[0],z=q.!1length;q.!2clear();}''',
-        <String>["1+length", "1+isEmpty", "2+clear"],
-        failingTests: '1');
+        <String>["1+length", "1+isEmpty", "2+clear"]);
 
     // TODO Include corelib analysis
     buildTests('testLibrary003', '''class X{var q; f() {q.!1a!2}}''',

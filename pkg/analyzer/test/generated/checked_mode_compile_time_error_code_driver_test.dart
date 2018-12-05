@@ -17,4 +17,8 @@ class CheckedModeCompileTimeErrorCodeTest_Driver
     extends CheckedModeCompileTimeErrorCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_setElementTypeNotAssignable() async {
+    await super.test_setElementTypeNotAssignable();
+  }
 }

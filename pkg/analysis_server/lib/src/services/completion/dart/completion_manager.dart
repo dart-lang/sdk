@@ -29,11 +29,12 @@ import 'package:analysis_server/src/services/completion/dart/static_member_contr
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/api/model.dart';
@@ -178,7 +179,7 @@ class DartCompletionManager implements CompletionContributor {
  */
 class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
-  final AnalysisResult result;
+  final ResolvedUnitResult result;
 
   @override
   final ResourceProvider resourceProvider;
@@ -249,7 +250,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   String get sourceContents => result.content;
 
   @override
-  SourceFactory get sourceFactory => result.sourceFactory;
+  SourceFactory get sourceFactory {
+    DriverBasedAnalysisContext context = result.session.analysisContext;
+    return context.driver.sourceFactory;
+  }
 
   /**
    * Throw [AbortCompletion] if the completion request has been aborted.

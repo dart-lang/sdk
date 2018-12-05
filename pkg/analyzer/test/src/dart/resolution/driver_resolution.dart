@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,14 +13,13 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
-import '../../context/mock_sdk.dart';
 import 'resolution.dart';
 
 /// [AnalysisDriver] based implementation of [ResolutionTest].
-class DriverResolutionTest extends Object
-    with ResourceProviderMixin, ResolutionTest {
+class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   final ByteStore byteStore = new MemoryByteStore();
 
   final StringBuffer logBuffer = new StringBuffer();
@@ -32,7 +31,7 @@ class DriverResolutionTest extends Object
 
   @override
   Future<TestAnalysisResult> resolveFile(String path) async {
-    AnalysisResult result = await driver.getResult(path);
+    var result = await driver.getResult(path);
     return new TestAnalysisResult(
       path,
       result.content,

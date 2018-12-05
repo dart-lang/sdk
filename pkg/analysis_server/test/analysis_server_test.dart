@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,15 +11,13 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
@@ -29,7 +27,7 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisServerTest extends Object with ResourceProviderMixin {
+class AnalysisServerTest with ResourceProviderMixin {
   MockServerChannel channel;
   AnalysisServer server;
 
@@ -82,13 +80,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
     }
   }
 
-  void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-  }
-
   void setUp() {
-    processRequiredPlugins();
     channel = new MockServerChannel();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
@@ -96,7 +88,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
         channel,
         resourceProvider,
         new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/'), false),
+        new DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -114,8 +106,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
     var pkgFolder = convertPath('/pkg');
     newFolder(pkgFolder);
     newFolder(join(pkgFolder, 'lib'));
-    newFile(join(pkgFolder, 'lib', 'test.dart'),
-        content: 'class C {}');
+    newFile(join(pkgFolder, 'lib', 'test.dart'), content: 'class C {}');
     server.setAnalysisRoots('0', [pkgFolder], [], {});
     // Pump the event queue to make sure the server has finished any
     // analysis.

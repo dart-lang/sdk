@@ -896,7 +896,7 @@ class StandardTestSuite extends TestSuite {
             compilationArtifact);
 
     Map<String, String> environment = environmentOverrides;
-    Map<String, String> extraEnv = info.optionsFromFile['environment'];
+    var extraEnv = info.optionsFromFile['environment'] as Map<String, String>;
     if (extraEnv != null) {
       environment = new Map.from(environment)..addAll(extraEnv);
     }

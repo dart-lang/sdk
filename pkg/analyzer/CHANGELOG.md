@@ -1,3 +1,17 @@
+## 0.34.0
+* Support for `declarations-casts` has been removed and the `implicit-casts`
+  option now has the combined semantics of both options. This means that users
+  that disable `implicit-casts` might now see errors that were not previously
+  being reported.
+* Minor changes to the AnalysisSession and AnalysisDriver APIs to make it easier
+  for clients to transition away from using the task model.
+* Minor changes to the linter API to make it easier for lint rules to define
+  their own lint codes.
+* Add a version of getAncestor that matches by type without a closure.
+* Add an AST structure for set literals.
+* Bug fixes: #35162, #35230, #34733, #34741, #33553, #35090, #32815, #34387,
+  #34495, #35043, #33553, #34906, #34489.
+
 ## 0.33.6+1-dev
 * Added a note to the `UriResolver` documentation alerting clients of an
   upcoming breaking change.

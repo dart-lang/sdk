@@ -51,7 +51,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
     AstNode result = new NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
-      result = result.getAncestor(predicate);
+      result = result.thisOrAncestorMatching(predicate);
     }
     return result;
   }

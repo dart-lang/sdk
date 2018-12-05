@@ -700,14 +700,10 @@ class B implements A {
   int c;
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(
-        source,
-        [CompileTimeErrorCode.INVALID_OVERRIDE],
-      );
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.INVALID_OVERRIDE],
+    );
     verify([source]);
   }
 
@@ -727,14 +723,10 @@ class B extends A {
   int c;
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(
-        source,
-        [CompileTimeErrorCode.INVALID_OVERRIDE],
-      );
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.INVALID_OVERRIDE],
+    );
     verify([source]);
   }
 
@@ -943,11 +935,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedMethod_assignmentExpression_inSubtype() async {
@@ -973,24 +961,6 @@ class D<T extends dynamic> {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-  }
-
-  test_undefinedMethod_inSubtype() async {
-    Source source = addSource(r'''
-class A {}
-class B extends A {
-  b() {}
-}
-f() {
-  var a = new A();
-  a.b();
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertNoErrors(source);
-    }
   }
 
   test_undefinedMethod_unionType_all() async {
@@ -1045,11 +1015,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexBoth_inSubtype() async {
@@ -1064,11 +1030,10 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(source, [
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+    ]);
   }
 
   test_undefinedOperator_indexGetter_inSubtype() async {
@@ -1083,11 +1048,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexSetter_inSubtype() async {
@@ -1102,11 +1063,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -1151,11 +1108,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
   test_unnecessaryCast_13855_parameter_A() async {
@@ -1236,7 +1189,7 @@ void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2 && enableNewAnalysisDriver) {
+    if (enableNewAnalysisDriver) {
       assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     } else {
       assertNoErrors(source);

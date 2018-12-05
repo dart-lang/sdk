@@ -251,7 +251,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
  * Instances of the class `AstValidator` are used to validate the correct construction of an
  * AST structure.
  */
-class AstValidator extends UnifyingAstVisitor<Object> {
+class AstValidator extends UnifyingAstVisitor<void> {
   /**
    * A list containing the errors found while traversing the AST structure.
    */
@@ -274,9 +274,9 @@ class AstValidator extends UnifyingAstVisitor<Object> {
   }
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     _validate(node);
-    return super.visitNode(node);
+    super.visitNode(node);
   }
 
   /**
@@ -335,7 +335,7 @@ class ClassMemberParserTest extends ParserTestCase
 /**
  * Tests which exercise the parser using a class member.
  */
-abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
+mixin ClassMemberParserTestMixin implements AbstractParserTestCase {
   void test_parseAwaitExpression_asStatement_inAsync() {
     createParser('m() async { await x; }');
     ClassMember member = parser.parseClassMember('C');
@@ -1771,7 +1771,7 @@ class ComplexParserTest extends ParserTestCase with ComplexParserTestMixin {}
  *
  * Simpler tests should be defined in the class [SimpleParserTest].
  */
-abstract class ComplexParserTestMixin implements AbstractParserTestCase {
+mixin ComplexParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_normal() {
     BinaryExpression expression = parseExpression("x + y - z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
@@ -2260,7 +2260,7 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
   }
 }
 
-abstract class ErrorParserTestMixin implements AbstractParserTestCase {
+mixin ErrorParserTestMixin implements AbstractParserTestCase {
   void test_abstractClassMember_constructor() {
     createParser('abstract C.c();');
     ClassMember member = parser.parseClassMember('C');
@@ -5733,7 +5733,7 @@ void main() {
 class ExpressionParserTest extends ParserTestCase
     with ExpressionParserTestMixin {}
 
-abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
+mixin ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_namedArgument() {
     var invocation = parseExpression('m(a: 1, b: 2)') as MethodInvocation;
     List<Expression> arguments = invocation.argumentList.arguments;
@@ -8048,8 +8048,7 @@ class FormalParameterParserTest extends ParserTestCase
  * The class [FormalParameterParserTestMixin] defines parser tests that test
  * the parsing of formal parameters.
  */
-abstract class FormalParameterParserTestMixin
-    implements AbstractParserTestCase {
+mixin FormalParameterParserTestMixin implements AbstractParserTestCase {
   void test_parseConstructorParameter_this() {
     parseCompilationUnit('''
 class C {
@@ -9943,7 +9942,7 @@ class ParserTestCase extends EngineTestCase
  *
  * Intended to be mixed in to parser test case classes.
  */
-class ParserTestHelpers {
+mixin ParserTestHelpers {
   void expectCommentText(Comment comment, String expectedText) {
     expect(comment.beginToken, same(comment.endToken));
     expect(comment.beginToken.lexeme, expectedText);
@@ -9972,7 +9971,7 @@ class RecoveryParserTest extends ParserTestCase with RecoveryParserTestMixin {}
  * invalid code sequences to ensure that the correct recovery steps are taken in
  * the parser.
  */
-abstract class RecoveryParserTestMixin implements AbstractParserTestCase {
+mixin RecoveryParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("+ y", codes: [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -12540,7 +12539,7 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
  *
  * More complex tests should be defined in the class [ComplexParserTest].
  */
-abstract class SimpleParserTestMixin implements AbstractParserTestCase {
+mixin SimpleParserTestMixin implements AbstractParserTestCase {
   ConstructorName parseConstructorName(String name) {
     createParser('new $name();');
     Statement statement = parser.parseStatement2();
@@ -14494,7 +14493,7 @@ class StatementParserTest extends ParserTestCase with StatementParserTestMixin {
  * The class [FormalParameterParserTestMixin] defines parser tests that test
  * the parsing statements.
  */
-abstract class StatementParserTestMixin implements AbstractParserTestCase {
+mixin StatementParserTestMixin implements AbstractParserTestCase {
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit('main() { C<@Foo T> v; }',
         errors: usingFastaParser
@@ -15870,7 +15869,7 @@ class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
  * Tests which exercise the parser using a complete compilation unit or
  * compilation unit member.
  */
-abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
+mixin TopLevelParserTestMixin implements AbstractParserTestCase {
   void test_function_literal_allowed_at_toplevel() {
     parseCompilationUnit("var x = () {};");
   }

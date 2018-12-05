@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -952,15 +952,11 @@ class OptionsTest extends BaseTest {
   }
 
   void _expectUndefinedClassErrorsWithoutExclusions() {
-    bool isStrong = usePreviewDart2 || new AnalysisOptionsImpl().previewDart2;
-    final String issueType = isStrong ? 'error' : 'warning';
     expect(bulletToDash(outSink),
-        contains("$issueType - Undefined class 'IncludedUndefinedClass'"));
-    expect(
-        bulletToDash(outSink),
-        isNot(
-            contains("$issueType - Undefined class 'ExcludedUndefinedClass'")));
-    expect(outSink.toString(), contains("1 $issueType found."));
+        contains("error - Undefined class 'IncludedUndefinedClass'"));
+    expect(bulletToDash(outSink),
+        isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
+    expect(outSink.toString(), contains("1 error found."));
   }
 }
 

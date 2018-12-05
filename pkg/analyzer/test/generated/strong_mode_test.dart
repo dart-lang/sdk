@@ -2909,7 +2909,7 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
 }
 
 /// Test cases for [StrongModeStaticTypeAnalyzer2Test]
-abstract class StrongModeStaticTypeAnalyzer2TestCases
+mixin StrongModeStaticTypeAnalyzer2TestCases
     implements StaticTypeAnalyzer2TestShared {
   void expectStaticInvokeType(String search, String type) {
     var invocation = findIdentifier(search).parent as MethodInvocation;
@@ -2925,17 +2925,6 @@ main() {
 ''';
     await resolveTestUnit(code);
     expectInitializerType('foo', 'int');
-  }
-
-  test_dynamicObjectMethod_toString() async {
-    String code = r'''
-main() {
-  dynamic a = null;
-  var foo = a.toString();
-}
-''';
-    await resolveTestUnit(code);
-    expectInitializerType('foo', 'String');
   }
 
   test_futureOr_promotion1() async {
@@ -3610,22 +3599,6 @@ class D extends C {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
-  }
-
-  test_genericMethod_partiallyAppliedErrorWithBound() async {
-    await resolveTestUnit(r'''
-void f<X extends List, Y>() => null;
-
-void test() {
-  f<int>();
-}
-''', noErrors: false);
-    assertErrors(testSource, [
-      // Make sure to catch both the missing parameter:
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-      // And the incorrect parameter:
-      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-    ]);
   }
 
   test_genericMethod_propagatedType_promotion() async {

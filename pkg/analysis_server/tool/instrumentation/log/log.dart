@@ -870,7 +870,7 @@ class NotificationEntry extends JsonBasedEntry {
 /**
  * A log entry representing a communication between the server and a plugin.
  */
-abstract class PluginEntryMixin {
+mixin PluginEntryMixin {
   /**
    * The components describing the plugin associated with this entry.
    */

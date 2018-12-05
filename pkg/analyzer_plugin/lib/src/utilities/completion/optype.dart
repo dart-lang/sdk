@@ -129,21 +129,26 @@ class OpType {
       return optype;
     }
 
-    target.containingNode
-        .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
-    var methodDeclaration =
-        target.containingNode.getAncestor((node) => node is MethodDeclaration);
-    optype.inMethodBody = methodDeclaration != null;
-    optype.inStaticMethodBody =
-        methodDeclaration is MethodDeclaration && methodDeclaration.isStatic;
+    var targetNode = target.containingNode;
+    targetNode.accept(new _OpTypeAstVisitor(optype, target.entity, offset));
 
-    var functionDeclaration = target.containingNode
-        .getAncestor((node) => node is FunctionDeclaration);
-    optype.inFunctionBody = functionDeclaration != null;
+    var functionBody = targetNode.thisOrAncestorOfType<FunctionBody>();
+    if (functionBody != null) {
+      var parent = functionBody.parent;
 
-    var constructorDeclaration = target.containingNode
-        .getAncestor((node) => node is ConstructorDeclaration);
-    optype.inConstructorBody = constructorDeclaration != null;
+      if (parent is ConstructorDeclaration) {
+        optype.inConstructorBody = true;
+      }
+
+      if (parent is FunctionExpression) {
+        optype.inFunctionBody = true;
+      }
+
+      if (parent is MethodDeclaration) {
+        optype.inMethodBody = true;
+        optype.inStaticMethodBody = parent.isStatic;
+      }
+    }
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
@@ -482,6 +487,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
@@ -548,7 +561,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     // Given f[], the parser drops the [] from the expression statement
     // but the [] token is the CompletionTarget entity
     if (entity is Token) {
-      Token token = entity;
+      Token token = entity as Token;
       if (token.lexeme == '[]' && offset == token.offset + 1) {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
@@ -976,7 +989,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (entity is Token) {
-      Token token = entity;
+      Token token = entity as Token;
       if (token.isSynthetic || token.lexeme == ';') {
         optype.includeVarNameSuggestions = true;
       }

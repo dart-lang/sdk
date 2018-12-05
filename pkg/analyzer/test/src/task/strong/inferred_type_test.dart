@@ -20,7 +20,7 @@ void main() {
   });
 }
 
-abstract class InferredTypeMixin {
+mixin InferredTypeMixin {
   /// Extra top-level errors if needed due to being analyze multiple times.
   bool get hasExtraTaskModelPass => true;
 
@@ -39,9 +39,7 @@ abstract class InferredTypeMixin {
    * unit.
    */
   Future<CompilationUnit> checkFile(String content,
-      {bool declarationCasts: true,
-      bool implicitCasts: true,
-      bool implicitDynamic: true});
+      {bool implicitCasts: true, bool implicitDynamic: true});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved
@@ -1506,7 +1504,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/{};
+  yield* {};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');
@@ -4484,22 +4482,8 @@ class InferredTypeTest_Driver extends AbstractStrongTest
 
   @failingTest
   @override
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
-  }
-
-  @failingTest
-  @override
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
     return super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
   }
 }

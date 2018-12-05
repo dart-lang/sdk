@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -106,11 +106,7 @@ class A {
   n(void f(int i)) {}
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    } else {
-      assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    }
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -129,11 +125,7 @@ m() {
 }
 n(int i) {}''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    } else {
-      assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    }
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -1099,11 +1091,7 @@ f(x, y) {
   var v = (x / y).toInt();
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1395,11 +1383,7 @@ f(var y) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1411,11 +1395,7 @@ f(var y) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1437,11 +1417,7 @@ f(var y) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1461,11 +1437,7 @@ main() {
   int n = p1 + p2;
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -3931,11 +3903,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_GETTER]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedIdentifier_exportHide() async {
@@ -3980,38 +3948,6 @@ import 'lib1.dart' show a;''');
     verify([source]);
   }
 
-  test_undefinedMethod() async {
-    Source source = addSource(r'''
-f() {
-  var a = 'str';
-  a.notAMethodOnString();
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-    }
-  }
-
-  test_undefinedMethod_assignmentExpression() async {
-    Source source = addSource(r'''
-class A {}
-class B {
-  f(var a, var a2) {
-    a = new A();
-    a2 = new A();
-    a += a2;
-  }
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-    }
-  }
-
   test_undefinedOperator_binaryExpression() async {
     Source source = addSource(r'''
 class A {}
@@ -4021,11 +3957,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexBoth() async {
@@ -4037,11 +3969,10 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+    ]);
   }
 
   test_undefinedOperator_indexGetter() async {
@@ -4053,11 +3984,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexSetter() async {
@@ -4069,11 +3996,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -4085,11 +4008,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertNoErrors(source);
   }
 
   test_undefinedOperator_prefixExpression() async {
@@ -4101,11 +4020,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertNoErrors(source);
   }
 
   test_undefinedSetter() async {
@@ -4117,11 +4032,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_SETTER]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
   test_unnecessaryCast_type_supertype() async {

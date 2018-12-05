@@ -44,7 +44,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
       String path, void buildFileEdit(DartFileEditBuilder builder),
       {ImportPrefixGenerator importPrefixGenerator}) {
     return super.addFileEdit(path, (builder) {
-      DartFileEditBuilderImpl dartBuilder = builder;
+      DartFileEditBuilderImpl dartBuilder = builder as DartFileEditBuilderImpl;
       dartBuilder.importPrefixGenerator = importPrefixGenerator;
       buildFileEdit(dartBuilder);
     });
@@ -54,7 +54,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await session.getResolvedAst(path);
+    ResolvedUnitResult result = await session.getResolvedUnit(path);
     ResultState state = result?.state ?? ResultState.INVALID_FILE_TYPE;
     if (state == ResultState.INVALID_FILE_TYPE) {
       throw new AnalysisException('Cannot analyze "$path"');
@@ -402,7 +402,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
 
-    ExecutableElement element = signature.element;
+    ExecutableElement element = signature.element as ExecutableElement;
     String prefix = getIndent(1);
     String prefix2 = getIndent(2);
     ElementKind elementKind = element.kind;
@@ -472,10 +472,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
       // TO-DO
       write(prefix2);
-      writeln('// TODO: implement $memberName');
+      write('// TODO: implement $memberName');
 
       if (isSetter) {
         if (invokeSuper) {
+          writeln();
           write(prefix2);
           selectAll(() {
             write('super.');
@@ -485,9 +486,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             write(';');
           });
           writeln();
+        } else {
+          selectHere();
+          writeln();
         }
       } else if (returnType.isVoid) {
         if (invokeSuper) {
+          writeln();
           write(prefix2);
           selectAll(() {
             write('super.');
@@ -502,8 +507,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             write(');');
           });
           writeln();
+        } else {
+          selectHere();
+          writeln();
         }
       } else {
+        writeln();
         write(prefix2);
         if (invokeSuper) {
           selectAll(() {

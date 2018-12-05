@@ -939,6 +939,15 @@ abstract class AstFactory {
   ScriptTag scriptTag(Token scriptTag);
 
   /**
+   * Returns a newly created set literal. The [constKeyword] can be `null`
+   * if the literal is not a constant. The [typeArguments] can be `null` if no
+   * type arguments were declared. The list of [elements] can be `null` if the
+   * set is empty.
+   */
+  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
+      Token leftBracket, List<Expression> elements, Token rightBracket);
+
+  /**
    * Returns a newly created import show combinator.
    */
   ShowCombinator showCombinator(

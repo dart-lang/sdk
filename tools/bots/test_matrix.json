@@ -1375,7 +1375,11 @@
       "builders": [
         "analyzer-linux-release",
         "analyzer-mac-release",
-        "analyzer-win-release"
+        "analyzer-win-release",
+        "analyzer-linux-release-analyzer",
+        "analyzer-linux-release-analyzer-new",
+        "analyzer-mac-release-analyzer",
+        "analyzer-win-release-analyzer"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -1440,7 +1444,10 @@
       ]
     },
     {
-      "builders": ["analyzer-analysis-server-linux"],
+      "builders": [
+        "analyzer-analysis-server-linux",
+        "analyzer-analysis-server-linux-analyzer"
+      ],
       "meta": {
         "description": "Analyze analyzer related packages."
       },

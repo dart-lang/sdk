@@ -16,4 +16,8 @@ main() {
 class StaticWarningCodeTest_Driver extends StaticWarningCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_setElementTypeNotAssignable() async {
+    return super.test_setElementTypeNotAssignable();
+  }
 }

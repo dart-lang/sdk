@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -72,12 +71,6 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
   @failingTest // Does not work with old task model
   test_mixinInference_with_actual_mixins() {
     return super.test_mixinInference_with_actual_mixins();
-  }
-
-  @override
-  @failingTest
-  test_null_callMethod() {
-    return super.test_null_callMethod();
   }
 
   @override
@@ -307,7 +300,7 @@ process(Object x) {}''');
   }
 
   test_argumentTypeNotAssignable_optionalNew() async {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+    resetWith(options: new AnalysisOptionsImpl());
     Source source = addSource(r'''
 class Widget { }
 
@@ -976,220 +969,6 @@ class E {}''');
     ClassElement classC =
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.documentationComment, isNotNull);
-  }
-
-  test_commentReference_beforeConstructor() async {
-    String code = r'''
-abstract class A {
-  /// [p]
-  A(int p) {}
-}''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, "p]");
-      expect(ref.staticElement, new TypeMatcher<ParameterElement>());
-    }
-  }
-
-  test_commentReference_beforeEnum() async {
-    String code = r'''
-/// This is the [Samurai] kind.
-enum Samurai {
-  /// Use [int].
-  WITH_SWORD,
-  /// Like [WITH_SWORD], but only without one.
-  WITHOUT_SWORD
-}''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, 'Samurai]');
-      ClassElement refElement = ref.staticElement;
-      expect(refElement, isNotNull);
-      expect(refElement.name, 'Samurai');
-    }
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
-      ClassElement refElement = ref.staticElement;
-      expect(refElement, isNotNull);
-      expect(refElement.name, 'int');
-    }
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, 'WITH_SWORD]');
-      PropertyAccessorElement refElement = ref.staticElement;
-      expect(refElement, isNotNull);
-      expect(refElement.name, 'WITH_SWORD');
-    }
-  }
-
-  test_commentReference_beforeFunction_blockBody() async {
-    String code = r'''
-/// [p]
-foo(int p) {
-}''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    SimpleIdentifier ref =
-        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
-    expect(ref.staticElement, new TypeMatcher<ParameterElement>());
-  }
-
-  test_commentReference_beforeFunction_expressionBody() async {
-    String code = r'''
-/// [p]
-foo(int p) => null;''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    SimpleIdentifier ref =
-        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
-    expect(ref.staticElement, new TypeMatcher<ParameterElement>());
-  }
-
-  test_commentReference_beforeFunctionTypeAlias() async {
-    String code = r'''
-/// [p]
-typedef Foo(int p);
-''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    SimpleIdentifier ref =
-        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
-    expect(ref.staticElement, new TypeMatcher<ParameterElement>());
-  }
-
-  test_commentReference_beforeGenericTypeAlias() async {
-    String code = r'''
-/// Can resolve [T], [S], and [p].
-typedef Foo<T> = Function<S>(int p);
-''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-
-    Element getElement(String search) {
-      return EngineTestCase.findSimpleIdentifier(unit, code, search)
-          .staticElement;
-    }
-
-    expect(getElement('T]'), new TypeMatcher<TypeParameterElement>());
-    expect(getElement('S]'), new TypeMatcher<TypeParameterElement>());
-    expect(getElement('p]'), new TypeMatcher<ParameterElement>());
-  }
-
-  test_commentReference_beforeGetter() async {
-    String code = r'''
-abstract class A {
-  /// [int]
-  get g => null;
-}''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
-      expect(ref.staticElement, isNotNull);
-    }
-  }
-
-  test_commentReference_beforeMethod() async {
-    String code = r'''
-abstract class A {
-  /// [p1]
-  ma(int p1) {}
-  /// [p2]
-  mb(int p2);
-  /// [p3] and [p4]
-  mc(int p3, p4());
-  /// [p5]
-  md(int p5, {int p6});
-}''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    assertIsParameter(String search) {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, search);
-      expect(ref.staticElement, new TypeMatcher<ParameterElement>());
-    }
-
-    assertIsParameter('p1');
-    assertIsParameter('p2');
-    assertIsParameter('p3');
-    assertIsParameter('p4');
-    assertIsParameter('p5');
-    assertIsParameter('p6');
-  }
-
-  test_commentReference_class() async {
-    String code = r'''
-/// [foo]
-class A {
-  foo() {}
-}''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    SimpleIdentifier ref =
-        EngineTestCase.findSimpleIdentifier(unit, code, 'foo]');
-    expect(ref.staticElement, new TypeMatcher<MethodElement>());
-  }
-
-  test_commentReference_setter() async {
-    String code = r'''
-class A {
-  /// [x] in A
-  mA() {}
-  set x(value) {}
-}
-class B extends A {
-  /// [x] in B
-  mB() {}
-}
-''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, "x] in A");
-      expect(ref.staticElement, new TypeMatcher<PropertyAccessorElement>());
-    }
-    {
-      SimpleIdentifier ref =
-          EngineTestCase.findSimpleIdentifier(unit, code, 'x] in B');
-      expect(ref.staticElement, new TypeMatcher<PropertyAccessorElement>());
-    }
   }
 
   test_concreteClassWithAbstractMember() async {
@@ -2864,7 +2643,6 @@ void main() {
   }
 
   test_intLiteralInDoubleContext_const_exact() async {
-    // TODO(mfairhurst): get the commented out assertions to pass.
     Source source = addSource(r'''
 class C {
   const C(double x)
@@ -3447,86 +3225,6 @@ class A<E> {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_dynamic() async {
-    Source source = addSource(r'''
-class A {
-  var f;
-}
-class B extends A {
-  g() {
-    f();
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_functionTypeTypeParameter() async {
-    Source source = addSource(r'''
-typedef void Action<T>(T x);
-class C<T, U extends Action<T>> {
-  T value;
-  U action;
-  C(this.value, [this.action]);
-  void act() {
-    action(value);
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_getter() async {
-    Source source = addSource(r'''
-class A {
-  var g;
-}
-f() {
-  A a;
-  a.g();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_localVariable() async {
-    Source source = addSource(r'''
-f() {
-  var g;
-  g();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_localVariable_dynamic() async {
-    Source source = addSource(r'''
-f() {}
-main() {
-  var v = f;
-  v();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_Object() async {
-    Source source = addSource(r'''
-main() {
-  Object v = null;
-  v();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
     verify([source]);
   }
 
@@ -4795,15 +4493,6 @@ class A {
     verify([source]);
   }
 
-  test_null_callMethod() async {
-    Source source = addSource(r'''
-main() {
-  null.m();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
   test_null_callOperator() async {
     Source source = addSource(r'''
 main() {
@@ -4819,7 +4508,7 @@ main() {
   }
 
   test_optionalNew_rewrite() async {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+    resetWith(options: new AnalysisOptionsImpl());
     Source source = addSource(r'''
 import 'b.dart';
 main() {
@@ -4859,7 +4548,7 @@ class B {
   }
 
   test_optionalNew_rewrite_instantiatesToBounds() async {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+    resetWith(options: new AnalysisOptionsImpl());
     Source source = addSource(r'''
 import 'b.dart';
 
@@ -5151,6 +4840,16 @@ class A {
 f(A a) {
   var x = a.x;
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_regress34906() async {
+    Source source = addSource(r'''
+typedef G<X, Y extends Function(X)> = X Function(Function(Y));
+G<dynamic, Function(Null)> superBoundedG;
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -6072,20 +5771,6 @@ class B extends A {
   f() {
     super.m();
   }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-  A.named() {}
-}
-/// [new A] or [new A.named]
-main() {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);

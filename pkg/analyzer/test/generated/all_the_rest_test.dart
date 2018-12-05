@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -150,16 +150,14 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 
   void test_restoreAbsolute_library() {
     _SourceMock source = new _SourceMock();
-    Uri fileUri = resourceProvider.pathContext.toUri(coreCorePath);
-    source.uri = fileUri;
+    source.uri = toUri('/sdk/lib/core/core.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
   void test_restoreAbsolute_part() {
     _SourceMock source = new _SourceMock();
-    Uri fileUri = resourceProvider.pathContext.toUri(coreIntPath);
-    source.uri = fileUri;
+    source.uri = toUri('/sdk/lib/core/int.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
@@ -220,7 +218,7 @@ class A {
   A.bar() {}
 }''');
     ConstructorDeclaration declaration =
-        id.getAncestor((node) => node is ConstructorDeclaration);
+        id.thisOrAncestorOfType<ConstructorDeclaration>();
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement, ConstructorElement, element);
@@ -236,7 +234,7 @@ class A {
   test_locate_FunctionDeclaration() async {
     AstNode id = await _findNodeIn("f", "int f() => 3;");
     FunctionDeclaration declaration =
-        id.getAncestor((node) => node is FunctionDeclaration);
+        id.thisOrAncestorOfType<FunctionDeclaration>();
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionElement, FunctionElement, element);
@@ -397,7 +395,7 @@ class A {
   void m() {}
 }''');
     MethodDeclaration declaration =
-        id.getAncestor((node) => node is MethodDeclaration);
+        id.thisOrAncestorOfType<MethodDeclaration>();
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement, MethodElement, element);
@@ -425,8 +423,7 @@ void main() {
     CompilationUnit cu = await _resolveContents(code);
     int offset = code.indexOf('foo(0)');
     AstNode node = new NodeLocator(offset).searchWithin(cu);
-    MethodInvocation invocation =
-        node.getAncestor((n) => n is MethodInvocation);
+    MethodInvocation invocation = node.thisOrAncestorOfType<MethodInvocation>();
     Element element = ElementLocator.locate(invocation);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionElement, FunctionElement, element);
@@ -460,7 +457,7 @@ part of my.lib;
 import 'dart:core' as core;
 core.int value;''');
     PrefixedIdentifier identifier =
-        id.getAncestor((node) => node is PrefixedIdentifier);
+        id.thisOrAncestorOfType<PrefixedIdentifier>();
     Element element = ElementLocator.locate(identifier);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement, ClassElement, element);
@@ -508,7 +505,7 @@ core.int value;''');
   test_locate_VariableDeclaration() async {
     AstNode id = await _findNodeIn("x", "var x = 'abc';");
     VariableDeclaration declaration =
-        id.getAncestor((node) => node is VariableDeclaration);
+        id.thisOrAncestorOfType<VariableDeclaration>();
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement, element);
@@ -2053,31 +2050,27 @@ class UriKindTest {
   }
 }
 
-class _SimpleDartSdkTest extends Object with ResourceProviderMixin {
-  String coreCorePath;
-  String coreIntPath;
+class _SimpleDartSdkTest with ResourceProviderMixin {
   DartSdk sdk;
 
   void setUp() {
-    Folder sdkFolder =
-        resourceProvider.newFolder(resourceProvider.convertPath('/sdk'));
-    resourceProvider.newFile(
-        resourceProvider.convertPath(
-            '/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
-        '''
+    newFile('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+        content: '''
 const Map<String, LibraryInfo> libraries = const {
   "core": const LibraryInfo("core/core.dart")
 };
 ''');
-    coreCorePath = resourceProvider.convertPath('/sdk/lib/core/core.dart');
-    resourceProvider.newFile(coreCorePath, '''
+
+    newFile('/sdk/lib/core/core.dart', content: '''
 library dart.core;
 part 'int.dart';
 ''');
-    coreIntPath = resourceProvider.convertPath('/sdk/lib/core/int.dart');
-    resourceProvider.newFile(coreIntPath, '''
+
+    newFile('/sdk/lib/core/int.dart', content: '''
 part of dart.core;
 ''');
+
+    Folder sdkFolder = newFolder('/sdk');
     sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
   }
 }

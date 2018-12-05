@@ -446,18 +446,15 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  /**
-   * Return a [Future] that completes with the containing library information
-   * after it is accessible via [context.getLibrariesContaining].
-   */
   Future<void> computeLibrariesContaining() {
     return driver.getResult(testFile).then((result) => null);
   }
 
   Future computeSuggestions() async {
-    ResolveResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     testSource = result.unit.declaredElement.source;
-    request = new DartCompletionRequestImpl(provider, completionOffset, result);
+    request = new DartCompletionRequestImpl(
+        resourceProvider, completionOffset, result);
 
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);
@@ -478,13 +475,16 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   void configureFlutterPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
+      newFile('$flutterPkgLibPath/$path', content: code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'flutter': [myPkgFolder]
-    });
+    Folder myPkgFolder = getFolder(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(
+      resourceProvider,
+      {
+        'flutter': [myPkgFolder]
+      },
+    );
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
     driver.configure(sourceFactory: sourceFactory);
@@ -561,7 +561,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/completionTest.dart');
+    testFile = convertPath('/completionTest.dart');
     contributor = createContributor();
   }
 }

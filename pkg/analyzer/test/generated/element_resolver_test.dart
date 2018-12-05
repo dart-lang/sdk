@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -829,31 +829,6 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitMethodInvocation_namedParameter() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    String methodName = "m";
-    String parameterName = "p";
-    MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    ParameterElement parameter = ElementFactory.namedParameter(parameterName);
-    method.parameters = <ParameterElement>[parameter];
-    classA.methods = <MethodElement>[method];
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = classA.type;
-    MethodInvocation invocation = AstTestFactory.methodInvocation(
-        left, methodName, [
-      AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
-    ]);
-    _resolveNode(invocation);
-    expect(invocation.methodName.staticElement, same(method));
-    expect(
-        (invocation.argumentList.arguments[0] as NamedExpression)
-            .name
-            .label
-            .staticElement,
-        same(parameter));
-    _listener.assertNoErrors();
-  }
-
   test_visitPostfixExpression() async {
     InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier operand = AstTestFactory.identifier3("i");
@@ -1290,8 +1265,7 @@ class PreviewDart2Test extends ResolverTestCase {
 
   @override
   void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
-      ..previewDart2 = true;
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
   }
 

@@ -12,7 +12,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -21,6 +20,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart';
@@ -187,7 +187,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    AnalysisResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(path);
     if (result == null) {
       p(
           'An AST could not be produced for the file '
@@ -387,7 +387,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
-    b.write(writeOption('Declaration casts', options.declarationCasts));
 
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));
@@ -399,6 +398,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Generate hints', options.hint));
     b.write(writeOption('Preserve comments', options.preserveComments));
     b.write(writeOption('Strong mode hints', options.strongModeHints));
+
+    b.write(writeOption('Enabled experiments', options.enabledExperiments));
 
     return b.toString();
   }
@@ -714,7 +715,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
   SocketServer socketServer;
 
   /// The last few lines printed.
-  List<String> lastPrintedLines = <String>[];
+  final List<String> lastPrintedLines;
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
@@ -783,7 +784,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    AnalysisResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(path);
     if (result == null) {
       p(
           'An element model could not be produced for the file '
@@ -955,11 +956,6 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
   MemoryAndCpuPage(DiagnosticsSite site, this.profiler)
       : super(site, 'memory', 'Memory and CPU Usage',
             description: 'Memory and CPU usage for the analysis server.');
-
-  DiagnosticDomainHandler get diagnosticDomain {
-    return server.handlers
-        .firstWhere((handler) => handler is DiagnosticDomainHandler);
-  }
 
   @override
   Future generateContent(Map<String, String> params) async {
@@ -1246,7 +1242,7 @@ class ServiceProtocol {
   final WebSocket socket;
 
   int _id = 0;
-  Map<String, Completer<Map>> _completers = {};
+  final Map<String, Completer<Map>> _completers = {};
 
   ServiceProtocol._(this.socket) {
     socket.listen(_handleMessage);

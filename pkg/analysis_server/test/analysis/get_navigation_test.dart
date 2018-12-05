@@ -75,7 +75,7 @@ class Bar {
   }
 
   test_fileOutsideOfRoot() async {
-    testFile = resourceProvider.convertPath('/outside.dart');
+    testFile = convertPath('/outside.dart');
     addTestFile('''
 main() {
   var test = 0;

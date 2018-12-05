@@ -1,6 +1,8 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/analysis/session.dart';
 
 /// This library is capable of producing linked summaries from unlinked
 /// ones (or prelinked ones).  It functions by building a miniature
@@ -416,14 +418,12 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   AnalysisOptionsForLink(this._linker);
 
   @override
-  bool get declarationCasts => true;
-
-  @override
   bool get hint => false;
 
   @override
   bool get implicitCasts => true;
 
+  @deprecated
   @override
   bool get previewDart2 => true;
 
@@ -439,7 +439,7 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
 
 /// Element representing a class or enum resynthesized from a summary
 /// during linking.
-abstract class ClassElementForLink extends Object
+abstract class ClassElementForLink
     with ReferenceableElementForLink
     implements AbstractClassElementImpl {
   Map<String, ReferenceableElementForLink> _containedNames;
@@ -798,6 +798,9 @@ class ClassElementForLink_Class extends ClassElementForLink
 
   @override
   String get name => _unlinkedClass.name;
+
+  @override
+  AnalysisSession get session => enclosingUnit.session;
 
   @override
   List<InterfaceType> get superclassConstraints {
@@ -1227,6 +1230,9 @@ abstract class CompilationUnitElementForLink
 
   @override
   ResynthesizerContext get resynthesizerContext => this;
+
+  @override
+  AnalysisSession get session => library.session;
 
   @override
   List<TopLevelVariableElementForLink> get topLevelVariables {
@@ -1908,6 +1914,7 @@ abstract class ConstNode extends Node<ConstNode> {
           break;
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedSet:
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
@@ -1930,6 +1937,7 @@ abstract class ConstNode extends Node<ConstNode> {
           refPtr += numTypeArguments;
           break;
         case UnlinkedExprOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedSet:
           refPtr++;
           intPtr++;
           break;
@@ -2221,7 +2229,7 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
 
 /// Base class for executable elements resynthesized from a summary during
 /// linking.
-abstract class ExecutableElementForLink extends Object
+abstract class ExecutableElementForLink
     with TypeParameterizedElementMixin, ParameterParentElementForLink
     implements ExecutableElementImpl {
   /// The unlinked representation of the method in the summary.
@@ -2337,6 +2345,9 @@ abstract class ExecutableElementForLink extends Object
   void set returnType(DartType inferredType) {
     _inferredReturnType = inferredType;
   }
+
+  @override
+  AnalysisSession get session => compilationUnit.session;
 
   @override
   FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
@@ -2722,7 +2733,7 @@ class FieldFormalParameterElementForLink extends ParameterElementForLink
 
 /// Element representing a function-typed parameter resynthesied from a summary
 /// during linking.
-class FunctionElementForLink_FunctionTypedParam extends Object
+class FunctionElementForLink_FunctionTypedParam
     with ParameterParentElementForLink
     implements FunctionElement {
   @override
@@ -2775,7 +2786,7 @@ class FunctionElementForLink_FunctionTypedParam extends Object
 }
 
 /// Element representing the initializer expression of a variable.
-class FunctionElementForLink_Initializer extends Object
+class FunctionElementForLink_Initializer
     with ReferenceableElementForLink, TypeParameterizedElementMixin
     implements FunctionElementForLink_Local {
   /// The variable for which this element is the initializer.
@@ -3086,7 +3097,7 @@ class FunctionElementForLink_Synthetic extends ExecutableElementForLink
 }
 
 /// Element representing a typedef resynthesized from a summary during linking.
-class FunctionTypeAliasElementForLink extends Object
+class FunctionTypeAliasElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -3147,6 +3158,9 @@ class FunctionTypeAliasElementForLink extends Object
       enclosingElement.resolveTypeRef(this, _unlinkedTypedef.returnType);
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
@@ -3198,7 +3212,7 @@ class FunctionTypeAliasElementForLink extends Object
 
 /// Element representing a generic function resynthesized from a summary during
 /// linking.
-class GenericFunctionTypeElementForLink extends Object
+class GenericFunctionTypeElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -3262,6 +3276,9 @@ class GenericFunctionTypeElementForLink extends Object
       _returnType ??= enclosingUnit.resolveTypeRef(this, _unlinkedReturnType);
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   FunctionType get type {
     return _type ??= new FunctionTypeImpl(this);
   }
@@ -3278,7 +3295,7 @@ class GenericFunctionTypeElementForLink extends Object
 
 /// Element representing a generic typedef resynthesized from a summary during
 /// linking.
-class GenericTypeAliasElementForLink extends Object
+class GenericTypeAliasElementForLink
     with
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
@@ -3340,6 +3357,9 @@ class GenericTypeAliasElementForLink extends Object
   @override
   DartType get returnType => enclosingElement.resolveTypeRef(
       this, _unlinkedTypedef.returnType.syntheticReturnType);
+
+  @override
+  AnalysisSession get session => enclosingElement.session;
 
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;
@@ -4075,8 +4095,7 @@ abstract class Node<NodeType> {
 /// Accesses to a chain of non-static members separated by '.' are handled by
 /// creating a [NonstaticMemberElementForLink] that points to another
 /// [NonstaticMemberElementForLink], to whatever nesting level is necessary.
-class NonstaticMemberElementForLink extends Object
-    with ReferenceableElementForLink {
+class NonstaticMemberElementForLink with ReferenceableElementForLink {
   /// The [ReferenceableElementForLink] which is the target of the non-static
   /// reference.
   final ReferenceableElementForLink _target;
@@ -4455,7 +4474,7 @@ abstract class PropertyAccessorElementForLink
 
 /// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
 /// implied by the synthetic fields of an enum declaration.
-class PropertyAccessorElementForLink_EnumField extends Object
+class PropertyAccessorElementForLink_EnumField
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -4470,6 +4489,9 @@ class PropertyAccessorElementForLink_EnumField extends Object
 
   @override
   Element get enclosingElement => variable.enclosingElement;
+
+  @override
+  bool get isAbstract => false;
 
   @override
   bool get isGetter => true;
@@ -4592,7 +4614,7 @@ class PropertyAccessorElementForLink_Executable
 
 /// Specialization of [PropertyAccessorElementForLink] for synthetic accessors
 /// implied by a field or variable declaration.
-class PropertyAccessorElementForLink_Variable extends Object
+class PropertyAccessorElementForLink_Variable
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -4710,7 +4732,7 @@ class PropertyAccessorElementForLink_Variable extends Object
 /// Base class representing an element which can be the target of a reference.
 /// When used as a mixin, implements the default behavior shared by most
 /// elements.
-abstract class ReferenceableElementForLink implements Element {
+mixin ReferenceableElementForLink implements Element {
   /// If this element is a class reference, return it. Otherwise return `null`.
   ClassElementForLink get asClass => null;
 
@@ -4989,8 +5011,7 @@ class SimplyBoundedNode extends Node<SimplyBoundedNode> {
 }
 
 /// Element used for references to special types such as `void`.
-class SpecialTypeElementForLink extends Object
-    with ReferenceableElementForLink {
+class SpecialTypeElementForLink with ReferenceableElementForLink {
   final Linker linker;
   final DartType type;
 
@@ -5178,9 +5199,11 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           break;
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedSet:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedSet:
           refPtr++;
           intPtr++;
           break;
@@ -5304,9 +5327,12 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _iterableType;
   InterfaceType _listType;
   InterfaceType _mapType;
+  InterfaceType _mapNullNullType;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
+  InterfaceType _setType;
+  InterfaceType _setNullType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -5375,6 +5401,10 @@ class TypeProviderForLink extends TypeProviderBase {
       _listType ??= _buildInterfaceType(_linker.coreLibrary, 'List');
 
   @override
+  InterfaceType get mapNullNullType =>
+      _mapNullNullType ??= mapType.instantiate(<DartType>[nullType, nullType]);
+
+  @override
   InterfaceType get mapType =>
       _mapType ??= _buildInterfaceType(_linker.coreLibrary, 'Map');
 
@@ -5395,6 +5425,14 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get objectType =>
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
+
+  @override
+  InterfaceType get setNullType =>
+      _setNullType ??= setType.instantiate(<DartType>[nullType]);
+
+  @override
+  InterfaceType get setType =>
+      _setType ??= _buildInterfaceType(_linker.coreLibrary, 'Set');
 
   @override
   InterfaceType get stackTraceType => _stackTraceType ??=
@@ -5434,7 +5472,7 @@ class TypeProviderForLink extends TypeProviderBase {
 }
 
 /// Singleton element used for unresolved references.
-class UndefinedElementForLink extends Object with ReferenceableElementForLink {
+class UndefinedElementForLink with ReferenceableElementForLink {
   static final UndefinedElementForLink instance =
       new UndefinedElementForLink._();
 

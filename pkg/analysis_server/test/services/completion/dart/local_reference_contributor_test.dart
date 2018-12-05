@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,7 +87,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_function_with_optional_positional() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -102,7 +102,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -117,7 +117,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -783,7 +783,7 @@ main() async {A a; await ^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestMethod('y', 'A', 'Future',
+    assertSuggestMethod('y', 'A', 'Future<dynamic>',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
     assertSuggestClass('A');
     assertNotSuggested('Object');
@@ -1415,18 +1415,15 @@ class Z { }''');
   }
 
   test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
-    addSource(
-        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = '/proj/completionTest.dart';
-    addTestSource('class C {foo(){F^}}');
-    await computeSuggestions();
+    addPackageFile('aaa', 'a.dart', 'class A {}');
+    addTestSource('main() { ^ }');
 
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
-    assertNotSuggested('Foo');
-    // TODO(danrubel) implement
-    assertNotSuggested('Foo2');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    // Not imported, so not suggested
+    assertNotSuggested('A');
     assertNotSuggested('Future');
   }
 
@@ -1910,6 +1907,40 @@ class C {foo(){var f; {var x;} return a ? T^ : c}}''');
     await computeSuggestions();
     assertSuggestParameter('x', null);
     assertSuggestParameter('y', 'int');
+  }
+
+  test_ConstructorFieldInitializer_name() async {
+    addTestSource('''
+class A {
+  final int foo;
+  A() : ^
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestField('foo', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_ConstructorFieldInitializer_value() async {
+    addTestSource('''
+var foo = 0;
+
+class A {
+  final int bar;
+  A() : bar = ^
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTopLevelVar(
+      'foo',
+      'int',
+      relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE,
+    );
   }
 
   test_ConstructorName_importedClass() async {
@@ -2745,6 +2776,28 @@ class C2 { }
     assertSuggestParameter('args', 'List<dynamic>');
     assertSuggestParameter('b', 'R');
     assertNotSuggested('Object');
+  }
+
+  test_functionTypeAlias_genericTypeAlias() async {
+    addTestSource(r'''
+typedef F = void Function();
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
+  test_functionTypeAlias_old() async {
+    addTestSource(r'''
+typedef void F();
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
   }
 
   test_IfStatement() async {
@@ -3820,7 +3873,6 @@ part "testA.dart";
 class A { A({String boo: 'hoo'}) { } }
 main() {new ^}
 var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);

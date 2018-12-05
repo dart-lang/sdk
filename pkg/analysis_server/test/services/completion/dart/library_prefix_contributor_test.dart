@@ -304,7 +304,6 @@ main() {new ^ String x = "hello";}''');
     addTestSource('''
 part of testB;
 main() {new ^ String x = "hello";}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
   }

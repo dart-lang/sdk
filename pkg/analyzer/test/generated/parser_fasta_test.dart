@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,9 +14,9 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show ScannerResult, scanString;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
@@ -190,13 +190,140 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
+
+  void test_mapLiteral() {
+    MapLiteral map = parseExpression('{3: 6}', parseSetLiterals: true);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+    MapLiteralEntry entry = map.entries[0];
+    IntegerLiteral key = entry.key;
+    expect(key.value, 3);
+    IntegerLiteral value = entry.value;
+    expect(value.value, 6);
+  }
+
+  void test_mapLiteral_const() {
+    MapLiteral map = parseExpression('const {3: 6}', parseSetLiterals: true);
+    expect(map.constKeyword, isNotNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+    MapLiteralEntry entry = map.entries[0];
+    IntegerLiteral key = entry.key;
+    expect(key.value, 3);
+    IntegerLiteral value = entry.value;
+    expect(value.value, 6);
+  }
+
+  void test_setLiteral() {
+    SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(1));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_const() {
+    SetLiteral set = parseExpression('const {3, 6}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value1 = set.elements[0];
+    expect(value1.value, 3);
+    IntegerLiteral value2 = set.elements[1];
+    expect(value2.value, 6);
+  }
+
+  void test_setLiteral_const_typeArgument() {
+    SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_invalid_map_entry() {
+    parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments1() {
+    parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          15,
+          1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments2() {
+    parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          15,
+          1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments3() {
+    parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          10,
+          1),
+    ]);
+  }
+
+  void test_setLiteral_nested_typeArgument() {
+    SetLiteral set = parseExpression('<Set<int>>{{3}}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg1 = set.typeArguments.arguments[0];
+    expect(typeArg1.name.name, 'Set');
+    expect(typeArg1.typeArguments.arguments, hasLength(1));
+    NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
+    expect(typeArg2.name.name, 'int');
+    expect(set.elements.length, 1);
+    SetLiteral intSet = set.elements[0];
+    expect(intSet.elements, hasLength(1));
+    IntegerLiteral value = intSet.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_typeArgument() {
+    SetLiteral set = parseExpression('<int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
 }
 
 /**
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * Fasta parser.
  */
-class FastaParserTestCase extends Object
+class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
@@ -446,8 +573,10 @@ class FastaParserTestCase extends Object
   Expression parseExpression(String source,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      int expectedEndOffset}) {
+      int expectedEndOffset,
+      bool parseSetLiterals = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
+    _parserProxy.fastaParser.parseSetLiterals = parseSetLiterals;
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;
@@ -900,6 +1029,15 @@ class ParserProxy extends analyzer.ParserAdapter {
 @reflectiveTest
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
+  @override
+  void test_equalityExpression_precedence_relational_right() {
+    parseExpression("== is", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+  }
+
   void test_invalidTypeParameters_super() {
     parseCompilationUnit('class C<X super Y> {}', errors: [
       // TODO(danrubel): Improve recovery.
@@ -912,15 +1050,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
-    ]);
-  }
-
-  @override
-  void test_equalityExpression_precedence_relational_right() {
-    parseExpression("== is", codes: [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
     ]);
   }
 

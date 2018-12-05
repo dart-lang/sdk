@@ -869,7 +869,7 @@ a.StoreBasedSummaryResynthesizer _createSummaryResynthesizer(
     a.SummaryDataStore summaryData, String dartSdkPath) {
   var context = _createContextForSummaries(summaryData, dartSdkPath);
   return a.StoreBasedSummaryResynthesizer(
-      context, context.sourceFactory, /*strongMode*/ true, summaryData);
+      context, null, context.sourceFactory, /*strongMode*/ true, summaryData);
 }
 
 /// Creates a dummy Analyzer context so we can use summary resynthesizer.

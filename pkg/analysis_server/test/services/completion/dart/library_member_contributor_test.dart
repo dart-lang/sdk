@@ -94,7 +94,6 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         part "${convertAbsolutePathToUri(testFile)}";''');
     addTestSource('part of testA; foo() {bar.^}');
     // Assume that libraries containing has been computed for part files
-    await computeLibrariesContaining();
     await computeSuggestions();
     assertSuggestClass('Future');
     assertSuggestFunction('loadLibrary', 'Future<dynamic>');
@@ -195,7 +194,6 @@ main() {
         part of testA;
         main() {b.^}''');
     // Assume that libraries containing has been computed for part files
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

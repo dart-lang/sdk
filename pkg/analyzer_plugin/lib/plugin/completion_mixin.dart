@@ -17,10 +17,10 @@ import 'package:analyzer_plugin/utilities/generator.dart';
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for handling code completion requests.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class CompletionMixin implements ServerPlugin {
+mixin CompletionMixin implements ServerPlugin {
   /**
    * Return a list containing the completion contributors that should be used to
    * create completion suggestions for the file with the given [path].
@@ -68,7 +68,7 @@ abstract class DartCompletionMixin implements CompletionMixin {
       CompletionGetSuggestionsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(parameters.file);
+    ResolvedUnitResult result = await getResolvedUnitResult(parameters.file);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }

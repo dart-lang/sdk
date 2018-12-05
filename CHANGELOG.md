@@ -1,3 +1,14 @@
+##
+
+### Tool Changes
+
+#### Analyzer
+
+* Support for `declarations-casts` has been removed and the `implicit-casts`
+  option now has the combined semantics of both options. This means that users
+  that disable `implicit-casts` might now see errors that were not previously
+  being reported.
+
 ## 2.2.0-dev.XX.0
 (Add new changes here, and they will be copied to the change section for the
   next dev version)

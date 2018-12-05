@@ -1,0 +1,248 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:typed_data';
+
+import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:convert/convert.dart';
+
+/// The reference to a class member.
+class ClassMemberReference {
+  /// The target class name.
+  ///
+  /// This is different from the class that actually turned out to define
+  /// the referenced member at the time of recording this reference. So, we
+  /// will notice added overrides in the target class, or anywhere in between.
+  final DependencyName target;
+
+  /// Whether the explicit `super` was used as the target.
+  /// The [target] is the enclosing class.
+  final bool targetSuper;
+
+  /// The name referenced in the [target].
+  final String name;
+
+  @override
+  final int hashCode;
+
+  ClassMemberReference(this.target, this.targetSuper, this.name)
+      : hashCode = JenkinsSmiHash.hash2(target.hashCode, name.hashCode);
+
+  @override
+  bool operator ==(other) {
+    return other is ClassMemberReference &&
+        other.target == target &&
+        other.targetSuper == targetSuper &&
+        other.name == name;
+  }
+
+  @override
+  String toString() {
+    return '($target, $name, super: $targetSuper)';
+  }
+
+  static int compare(ClassMemberReference first, ClassMemberReference second) {
+    var result = DependencyName.compare(first.target, second.target);
+    if (result != 0) return result;
+
+    if (first.targetSuper && !second.targetSuper) return -1;
+    if (!first.targetSuper && second.targetSuper) return 1;
+
+    return first.name.compareTo(second.name);
+  }
+}
+
+/// A name qualified by a library URI.
+class DependencyName {
+  /// The URI of the defining library.
+  /// Not `null`.
+  final Uri libraryUri;
+
+  /// The name of this name object.
+  /// If the name starts with `_`, then the name is private.
+  /// Names of setters end with `=`.
+  final String name;
+
+  /// Whether this name is private, and its [name] starts with `_`.
+  final bool isPrivate;
+
+  /// The cached, pre-computed hash code.
+  @override
+  final int hashCode;
+
+  factory DependencyName(Uri libraryUri, String name) {
+    var isPrivate = name.startsWith('_');
+    var hashCode = JenkinsSmiHash.hash2(libraryUri.hashCode, name.hashCode);
+    return DependencyName._internal(libraryUri, name, isPrivate, hashCode);
+  }
+
+  DependencyName._internal(
+      this.libraryUri, this.name, this.isPrivate, this.hashCode);
+
+  @override
+  bool operator ==(Object other) {
+    return other is DependencyName &&
+        other.hashCode == hashCode &&
+        name == other.name &&
+        libraryUri == other.libraryUri;
+  }
+
+  /// Whether this name us accessible for the library with the given
+  /// [libraryUri], i.e. when the name is public, or is defined in a library
+  /// with the same URI.
+  bool isAccessibleFor(Uri libraryUri) {
+    return !isPrivate || this.libraryUri == libraryUri;
+  }
+
+  @override
+  String toString() => '$libraryUri::$name';
+
+  /// Compare given names by their raw names.
+  ///
+  /// This method should be used only for sorting, it does not follow the
+  /// complete semantics of [==] and [hashCode].
+  static int compare(DependencyName first, DependencyName second) {
+    return first.name.compareTo(second.name);
+  }
+}
+
+/// A dependency node - anything that has a name, and can be referenced.
+class DependencyNode {
+  /// The API or implementation signature used in [DependencyNodeDependencies]
+  /// as a marker that this node is changed, explicitly because its token
+  /// signature changed, or implicitly - because it references a changed node.
+  static final changedSignature = Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]);
+
+  final DependencyName name;
+  final DependencyNodeKind kind;
+
+  /// Dependencies that affect the API of the node, so affect API or
+  /// implementation dependencies of the nodes that use this node.
+  final DependencyNodeDependencies api;
+
+  /// Additional (to the [api]) dependencies that affect only the
+  /// "implementation" of the node, e.g. the body of a method, but are not
+  /// visible outside of the node, and so don't affect any other nodes.
+  final DependencyNodeDependencies impl;
+
+  /// If the node is a class member, the node of the enclosing class.
+  /// Otherwise `null`.
+  final DependencyNode enclosingClass;
+
+  /// If the node is a class, the nodes of its type parameters.
+  /// Otherwise `null`.
+  final List<DependencyNode> classTypeParameters;
+
+  /// If the node is a class, the sorted list of members in this class.
+  /// Otherwise `null`.
+  List<DependencyNode> classMembers;
+
+  DependencyNode(
+    this.name,
+    this.kind,
+    this.api,
+    this.impl, {
+    this.enclosingClass,
+    this.classTypeParameters,
+  });
+
+  /// Return the node that can be referenced by the given [name] from the
+  /// library with the given [libraryUri].
+  DependencyNode getClassMember(Uri libraryUri, String name) {
+    // TODO(scheglov) The list is sorted, use this fact to search faster.
+    // TODO(scheglov) Collect superclass members here or outside.
+    for (var i = 0; i < classMembers.length; ++i) {
+      var member = classMembers[i];
+      var memberName = member.name;
+      if (memberName.name == name && memberName.isAccessibleFor(libraryUri)) {
+        return member;
+      }
+    }
+    return null;
+  }
+
+  /// Set new class members for this class.
+  void setClassMembers(List<DependencyNode> newClassMembers) {
+    classMembers = newClassMembers;
+  }
+
+  @override
+  String toString() {
+    if (enclosingClass != null) {
+      return '$enclosingClass::${name.name}';
+    }
+    return name.toString();
+  }
+
+  /// Compare given nodes by their names.
+  static int compare(DependencyNode first, DependencyNode second) {
+    return DependencyName.compare(first.name, second.name);
+  }
+}
+
+/// The dependencies of the API or implementation portion of a node.
+class DependencyNodeDependencies {
+  static final none = DependencyNodeDependencies([], [], [], [], []);
+
+  /// The token signature of this portion of the node. It depends on all
+  /// tokens that might affect the node API or implementation resolution.
+  final List<int> tokenSignature;
+
+  /// The names that appear unprefixed in this portion of the node, and are
+  /// not defined locally in the node. Locally defined names themselves
+  /// depend on some non-local nodes, which will also recorded here.
+  ///
+  /// This list is sorted.
+  final List<String> unprefixedReferencedNames;
+
+  /// The names of import prefixes used to reference names in this node.
+  ///
+  /// This list is sorted.
+  final List<String> importPrefixes;
+
+  /// The names referenced by this node with the import prefix at the
+  /// corresponding index in [importPrefixes].
+  ///
+  /// This list is sorted.
+  final List<List<String>> importPrefixedReferencedNames;
+
+  /// The class members referenced in this portion of the node.
+  ///
+  /// This list is sorted.
+  final List<ClassMemberReference> classMemberReferences;
+
+  /// All referenced nodes, computed from [unprefixedReferencedNames],
+  /// [importPrefixedReferencedNames], and [classMemberReferences].
+  List<DependencyNode> referencedNodes;
+
+  /// The transitive signature of this portion of the node, computed using
+  /// the [tokenSignature] of this node, and API signatures of the
+  /// [referencedNodes].
+  List<int> transitiveSignature;
+
+  DependencyNodeDependencies(
+      this.tokenSignature,
+      this.unprefixedReferencedNames,
+      this.importPrefixes,
+      this.importPrefixedReferencedNames,
+      this.classMemberReferences);
+
+  String get tokenSignatureHex => hex.encode(tokenSignature);
+}
+
+/// Kinds of nodes.
+enum DependencyNodeKind {
+  CLASS,
+  CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
+  ENUM,
+  FUNCTION,
+  FUNCTION_TYPE_ALIAS,
+  GENERIC_TYPE_ALIAS,
+  GETTER,
+  METHOD,
+  MIXIN,
+  SETTER,
+  TYPE_PARAMETER,
+}

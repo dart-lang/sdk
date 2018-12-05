@@ -832,6 +832,12 @@ class AstFactoryImpl extends AstFactory {
   ScriptTag scriptTag(Token scriptTag) => new ScriptTagImpl(scriptTag);
 
   @override
+  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
+          Token leftBracket, List<Expression> elements, Token rightBracket) =>
+      new SetLiteralImpl(
+          constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
   ShowCombinator showCombinator(
           Token keyword, List<SimpleIdentifier> shownNames) =>
       new ShowCombinatorImpl(keyword, shownNames);

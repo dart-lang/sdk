@@ -1,12 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,7 +28,7 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
 
     resolveSource('/testB.dart', '''
 lib B;
@@ -504,7 +502,7 @@ class B extends A {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestFunction('y', 'dynamic');
+    assertSuggestFunction('y', 'Future<dynamic>');
     assertNotSuggested('A');
     assertSuggestClass('Object');
   }
@@ -1201,19 +1199,16 @@ class B extends A {
   }
 
   test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
-    addSource(
-        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = '/proj/completionTest.dart';
-    addTestSource('class C {foo(){F^}}');
+    addPackageFile('aaa', 'a.dart', 'class A {}');
+    addTestSource('main() { ^ }');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
     // Not imported, so not suggested
-    assertNotSuggested('Foo');
-    assertNotSuggested('Foo2');
-    assertNotSuggested('Future');
+    assertNotSuggested('A');
+    assertNotSuggested('Completer');
   }
 
   test_CascadeExpression_selector1() async {
@@ -2367,6 +2362,36 @@ class B extends A {
     assertSuggestClass('Object');
   }
 
+  test_functionTypeAlias_genericTypeAlias() async {
+    addSource('/a.dart', r'''
+typedef F = void Function();
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
+  test_functionTypeAlias_old() async {
+    addSource('/a.dart', r'''
+typedef void F();
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
   test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
@@ -2433,7 +2458,6 @@ class B extends A {
   }
 
   test_implicitCreation() async {
-    configurePreviewDart2();
     addSource('/a.dart', '''
 class A {
   A.a1();
@@ -2609,7 +2633,6 @@ main() {
   }
 
   test_InstanceCreationExpression_filter() async {
-    configurePreviewDart2();
     addSource('/a.dart', '''
 class A {}
 class B extends A {}
@@ -2637,7 +2660,12 @@ main() {
     assertSuggestConstructor('D', elemOffset: -1);
   }
 
+  @failingTest
   test_InstanceCreationExpression_imported() async {
+    // This is failing because the constructor for Future is added twice. I
+    // suspect that we're adding it from both dart:core and dart:async and are
+    // not noticing that it's the same element.
+
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource('/testA.dart', '''
         int T1;
@@ -2676,15 +2704,15 @@ main() {
 
   test_InstanceCreationExpression_unimported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/testAB.dart', 'class Foo { }');
-    addTestSource('class C {foo(){new F^}}');
+    addSource('/testAB.dart', 'class Clip { }');
+    addTestSource('class A {foo(){new C^}}');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     // Not imported, so not suggested
-    assertNotSuggested('Future');
-    assertNotSuggested('Foo');
+    assertNotSuggested('Completer');
+    assertNotSuggested('Clip');
   }
 
   test_internal_sdk_libs() async {
@@ -3252,9 +3280,7 @@ class B {
     assertNotSuggested('_g');
     assertSuggestClass('bool');
     if (suggestConstructorsWithoutNew) {
-      // TODO(brianwilkerson) Should not suggest constructors for classes that
-      // cannot be instantiated.
-      assertSuggestConstructor('bool');
+      assertSuggestConstructor('List');
     }
   }
 
@@ -3464,48 +3490,6 @@ class C extends B with M1, M2 {
     assertNotSuggested('m');
   }
 
-  /**
-   * Ensure that completions in one context don't appear in another
-   */
-  test_multiple_contexts() async {
-    // Create a 2nd context with source
-    var context2 = AnalysisEngine.instance.createAnalysisContext();
-    context2.sourceFactory =
-        new SourceFactory([new DartUriResolver(sdk), resourceResolver]);
-    String content2 = 'class ClassFromAnotherContext { }';
-    Source source2 =
-        newFile('/context2/foo.dart', content: content2).createSource();
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source2);
-    context2.applyChanges(changeSet);
-    context2.setContents(source2, content2);
-
-    // Resolve the source in the 2nd context and update the index
-    var result = context2.performAnalysisTask();
-    while (result.hasMoreWork) {
-      result = context2.performAnalysisTask();
-    }
-
-    // Check that source in 2nd context does not appear in completion in 1st
-    addSource('/context1/libA.dart', '''
-      library libA;
-      class ClassInLocalContext {int x;}''');
-    testFile = '/context1/completionTest.dart';
-    addTestSource('''
-      import "${convertAbsolutePathToUri("/context1/libA.dart")}";
-      import "${convertAbsolutePathToUri("/foo.dart")}";
-      main() {C^}
-      ''');
-
-    await computeSuggestions();
-    assertSuggestClass('ClassInLocalContext');
-    if (suggestConstructorsWithoutNew) {
-      assertSuggestConstructor('ClassInLocalContext');
-    }
-    // Assert contributor does not include results from 2nd context.
-    assertNotSuggested('ClassFromAnotherContext');
-  }
-
   test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
 
@@ -3588,7 +3572,6 @@ class B extends A {
         class B { factory B.bar(int x) => null; }
         main() {new ^}''');
 
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3624,7 +3607,6 @@ class B extends A {
         main() {new ^}
         var m;''');
 
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

@@ -28,8 +28,7 @@ class A {
 var v = const A(3, 2);
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     verify([source]);
   }
 
@@ -634,8 +633,18 @@ class A {
 }
 var v = const A.a1(0);''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_setElementTypeNotAssignable() async {
+    Source source = addSource("var v = const <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -651,8 +660,7 @@ class D extends C {
 const f = const D('0.0');
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     verify([source]);
   }
 

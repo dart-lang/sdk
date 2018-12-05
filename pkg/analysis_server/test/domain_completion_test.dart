@@ -238,7 +238,7 @@ class A {
     //
     // We no longer support the analysis of non-dart files.
     //
-    testFile = resourceProvider.convertPath('/project/web/test.html');
+    testFile = convertPath('/project/web/test.html');
     addTestFile('''
       <html>^</html>
     ''');

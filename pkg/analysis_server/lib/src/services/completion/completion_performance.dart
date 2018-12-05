@@ -25,11 +25,6 @@ class CompletionPerformance {
   int get elapsedInMilliseconds =>
       operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
 
-  int get firstNotificationInMilliseconds =>
-      _firstNotification != null ? _firstNotification.inMilliseconds : 0;
-
-  String get startTimeAndMs => '${start.millisecondsSinceEpoch} - $start';
-
   String get suggestionCount {
     if (notificationCount < 1) return '';
     if (notificationCount == 1) return '$suggestionCountFirst';

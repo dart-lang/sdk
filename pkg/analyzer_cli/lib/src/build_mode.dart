@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,10 +9,14 @@ import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -35,9 +39,6 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/cache.dart';
 
 /**
  * Persistent Bazel worker.
@@ -58,19 +59,19 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         resourceProvider, logger, 256 * 1024 * 1024);
   }
 
-  factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
-      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
-        inputStream: stdinStream, outputStream: stdoutStream);
-    return new AnalyzerWorkerLoop(resourceProvider, connection,
-        dartSdkPath: dartSdkPath);
-  }
-
   factory AnalyzerWorkerLoop.sendPort(
       ResourceProvider resourceProvider, SendPort sendPort,
       {String dartSdkPath}) {
     AsyncWorkerConnection connection =
         new SendPortAsyncWorkerConnection(sendPort);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
+  }
+
+  factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
+      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
+    AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
+        inputStream: stdinStream, outputStream: stdoutStream);
     return new AnalyzerWorkerLoop(resourceProvider, connection,
         dartSdkPath: dartSdkPath);
   }
@@ -174,7 +175,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 /**
  * Analyzer used when the "--build-mode" option is supplied.
  */
-class BuildMode extends Object with HasContextMixin {
+class BuildMode with HasContextMixin {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;

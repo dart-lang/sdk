@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'all_the_rest_test.dart' as all_the_rest;
-import 'bazel_test.dart' as bazel_test;
 import 'checked_mode_compile_time_error_code_driver_test.dart'
     as checked_mode_compile_time_error_code_driver_test;
 import 'checked_mode_compile_time_error_code_test.dart'
@@ -19,7 +18,6 @@ import 'element_resolver_test.dart' as element_resolver_test;
 import 'engine_test.dart' as engine_test;
 import 'error_suppression_driver_test.dart' as error_suppression_driver_test;
 import 'error_suppression_test.dart' as error_suppression_test;
-import 'gn_test.dart' as gn_test;
 import 'hint_code_driver_test.dart' as hint_code_driver_test;
 import 'hint_code_test.dart' as hint_code_test;
 import 'inheritance_manager_test.dart' as inheritance_manager_test;
@@ -31,8 +29,6 @@ import 'non_error_resolver_driver_test.dart' as non_error_resolver_driver_test;
 import 'non_error_resolver_test.dart' as non_error_resolver_test;
 import 'non_hint_code_driver_test.dart' as non_hint_code_driver_test;
 import 'non_hint_code_test.dart' as non_hint_code_test;
-import 'package_build_test.dart' as package_build_test;
-import 'package_test.dart' as package_test;
 import 'parser_fasta_test.dart' as parser_fasta_test;
 import 'parser_test.dart' as parser_test;
 import 'resolver_driver_test.dart' as resolver_driver_test;
@@ -59,7 +55,6 @@ import 'utilities_test.dart' as utilities_test;
 main() {
   defineReflectiveSuite(() {
     all_the_rest.main();
-    bazel_test.main();
     checked_mode_compile_time_error_code_driver_test.main();
     checked_mode_compile_time_error_code_test.main();
     compile_time_error_code_driver_test.main();
@@ -70,7 +65,6 @@ main() {
     engine_test.main();
     error_suppression_driver_test.main();
     error_suppression_test.main();
-    gn_test.main();
     hint_code_driver_test.main();
     hint_code_test.main();
     inheritance_manager_test.main();
@@ -82,8 +76,6 @@ main() {
     non_error_resolver_test.main();
     non_hint_code_driver_test.main();
     non_hint_code_test.main();
-    package_build_test.main();
-    package_test.main();
     parser_fasta_test.main();
     parser_test.main();
     resolver_driver_test.main();

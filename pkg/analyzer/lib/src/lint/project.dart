@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -135,7 +136,7 @@ class _ApiModel {
     for (Source source in sources) {
       String path = source.uri.path;
       if (path.startsWith(libDir) && !path.startsWith(libSrcDir)) {
-        AnalysisResult result = await driver.getResult(source.fullName);
+        ResolvedUnitResult result = await driver.getResult(source.fullName);
         LibraryElement library = result.libraryElement;
 
         NamespaceBuilder namespaceBuilder = new NamespaceBuilder();

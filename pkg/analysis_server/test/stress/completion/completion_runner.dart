@@ -103,8 +103,8 @@ class CompletionRunner {
         }
         fileCount++;
         output.write('.');
-        ResolveResult result =
-            await context.currentSession.getResolvedAst(path);
+        ResolvedUnitResult result =
+            await context.currentSession.getResolvedUnit(path);
         String content = result.content;
         LineInfo lineInfo = result.lineInfo;
         List<SimpleIdentifier> identifiers = _identifiersIn(result.unit);
@@ -117,7 +117,7 @@ class CompletionRunner {
                 content.substring(identifier.end);
             resourceProvider.setOverlay(path,
                 content: modifiedContent, modificationStamp: stamp++);
-            result = await context.currentSession.getResolvedAst(path);
+            result = await context.currentSession.getResolvedUnit(path);
           }
 
           timer.start();

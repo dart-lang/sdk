@@ -9,6 +9,7 @@ import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'fasta/test_all.dart' as fasta;
 import 'lint/test_all.dart' as lint;
+import 'options/test_all.dart' as options;
 import 'pubspec/test_all.dart' as pubspec;
 import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
@@ -23,6 +24,7 @@ main() {
     dart.main();
     fasta.main();
     lint.main();
+    options.main();
     pubspec.main();
     source.main();
     summary.main();

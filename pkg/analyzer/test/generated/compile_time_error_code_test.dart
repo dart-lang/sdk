@@ -38,8 +38,32 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
-  test_genericFunctionTypeArgument_typedef() {
-    return super.test_genericFunctionTypeArgument_typedef();
+  test_constSetElementTypeImplementsEquals_constField() async {
+    return super.test_constSetElementTypeImplementsEquals_constField();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_direct() async {
+    return super.test_constSetElementTypeImplementsEquals_direct();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_dynamic() async {
+    return super.test_constSetElementTypeImplementsEquals_dynamic();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_factory() async {
+    return super.test_constSetElementTypeImplementsEquals_factory();
+  }
+
+  @override
+  @failingTest
+  test_constSetElementTypeImplementsEquals_super() async {
+    return super.test_constSetElementTypeImplementsEquals_super();
   }
 
   @override
@@ -61,6 +85,12 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   }
 
   @override
+  @failingTest
+  test_invalidTypeArgumentInConstSet() async {
+    return super.test_invalidTypeArgumentInConstSet();
+  }
+
+  @override
   @failingTest // Does not work with old task model
   test_mixinInference_recursiveSubtypeCheck_new_syntax() {
     return super.test_mixinInference_recursiveSubtypeCheck_new_syntax();
@@ -70,6 +100,24 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @failingTest
   test_mixinOfNonClass() {
     return super.test_mixinOfNonClass();
+  }
+
+  @override
+  @failingTest
+  test_nonConstSetElement() async {
+    return super.test_nonConstSetElement();
+  }
+
+  @override
+  @failingTest
+  test_nonConstSetElementFromDeferredLibrary() async {
+    return super.test_nonConstSetElementFromDeferredLibrary();
+  }
+
+  @override
+  @failingTest
+  test_nonConstSetElementFromDeferredLibrary_nested() async {
+    return super.test_nonConstSetElementFromDeferredLibrary_nested();
   }
 
   @override
@@ -1235,9 +1283,9 @@ class B {
   }
 
   test_constEvalTypeInt_binary() async {
-    await _check_constEvalTypeInt_withParameter_binary("p ^ ''");
-    await _check_constEvalTypeInt_withParameter_binary("p & ''");
-    await _check_constEvalTypeInt_withParameter_binary("p | ''");
+    await _check_constEvalTypeBoolOrInt_withParameter_binary("p ^ ''");
+    await _check_constEvalTypeBoolOrInt_withParameter_binary("p & ''");
+    await _check_constEvalTypeBoolOrInt_withParameter_binary("p | ''");
     await _check_constEvalTypeInt_withParameter_binary("p >> ''");
     await _check_constEvalTypeInt_withParameter_binary("p << ''");
   }
@@ -1436,6 +1484,100 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  test_constSetElementTypeImplementsEquals_constField() async {
+    Source source = addSource(r'''
+class A {
+  static const a = const A();
+  const A();
+  operator ==(other) => false;
+}
+main() {
+  const {A.a};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  test_constSetElementTypeImplementsEquals_direct() async {
+    Source source = addSource(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+main() {
+  const {const A()};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  test_constSetElementTypeImplementsEquals_dynamic() async {
+    // Note: static type of B.a is "dynamic", but actual type of the const
+    // object is A.  We need to make sure we examine the actual type when
+    // deciding whether there is a problem with operator==.
+    Source source = addSource(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+class B {
+  static const a = const A();
+}
+main() {
+  const {B.a};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  test_constSetElementTypeImplementsEquals_factory() async {
+    Source source = addSource(r'''
+class A { const factory A() = B; }
+
+class B implements A {
+  const B();
+
+  operator ==(o) => true;
+}
+
+main() {
+  var m = const {const A()};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  test_constSetElementTypeImplementsEquals_super() async {
+    Source source = addSource(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+class B extends A {
+  const B();
+}
+main() {
+  const {const B()};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -2406,36 +2548,6 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     verify([source]);
   }
 
-  test_genericFunctionTypeArgument_class() async {
-    Source source = addSource(r'''
-class C<T> {}
-C<T Function<T>(T)> c;''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
-    verify([source]);
-  }
-
-  test_genericFunctionTypeArgument_function() async {
-    Source source = addSource(r'''
-T f<T>(T) => null;
-main() { f<S Function<S>(S)>(null); }''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
-    verify([source]);
-  }
-
-  test_genericFunctionTypeArgument_functionType() async {
-    Source source = addSource(r'''
-T Function<T>(T) f;
-main() { f<S Function<S>(S)>(null); }''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
-    verify([source]);
-  }
-
   test_genericFunctionTypeArgument_inference_function() async {
     Source source = addSource(r'''
 T f<T>(T t) => null;
@@ -2462,29 +2574,6 @@ class C {
 main() { new C().f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
-    verify([source]);
-  }
-
-  test_genericFunctionTypeArgument_method() async {
-    Source source = addSource(r'''
-class C {
-  T f<T>(T) => null;
-}
-main() { new C().f<S Function<S>(S)>(null); }''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
-    verify([source]);
-  }
-
-  test_genericFunctionTypeArgument_typedef() async {
-    // TODO(mfairhurst) diagnose these parse errors to give the correct error
-    Source source = addSource(r'''
-typedef T f<T>(T t);
-final T<Function<S>(int)> x = null;''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
     verify([source]);
   }
 
@@ -3670,6 +3759,19 @@ class A<E> {
     verify([source]);
   }
 
+  test_invalidTypeArgumentInConstSet() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET]);
+    verify([source]);
+  }
+
   test_invalidUri_export() async {
     Source source = addSource("export 'ht:';");
     await computeAnalysisResult(source);
@@ -4672,6 +4774,48 @@ f() {
     ]);
   }
 
+  test_nonConstSetElement() async {
+    Source source = addSource(r'''
+f(a) {
+  return const {a};
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+    verify([source]);
+  }
+
+  test_nonConstSetElementFromDeferredLibrary() async {
+    await resolveWithErrors(<String>[
+      r'''
+library lib1;
+const int c = 1;''',
+      r'''
+library root;
+import 'lib1.dart' deferred as a;
+f() {
+  return const {a.c};
+}'''
+    ], [
+      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY
+    ]);
+  }
+
+  test_nonConstSetElementFromDeferredLibrary_nested() async {
+    await resolveWithErrors(<String>[
+      r'''
+library lib1;
+const int c = 1;''',
+      r'''
+library root;
+import 'lib1.dart' deferred as a;
+f() {
+  return const {a.c + 1};
+}'''
+    ], [
+      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY
+    ]);
+  }
+
   test_nonConstValueInInitializer_assert_condition() async {
     Source source = addSource(r'''
 class A {
@@ -4730,7 +4874,7 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
@@ -5076,23 +5220,6 @@ f() {
     verify([source]);
   }
 
-  test_prefix_conditionalPropertyAccess_call() async {
-    addNamedSource('/lib.dart', '''
-library lib;
-g() {}
-''');
-    Source source = addSource('''
-import 'lib.dart' as p;
-f() {
-  p?.g();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
-    verify([source]);
-  }
-
   test_prefix_conditionalPropertyAccess_call_loadLibrary() async {
     addNamedSource('/lib.dart', '''
 library lib;
@@ -5167,36 +5294,6 @@ library lib;
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary = null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
-    verify([source]);
-  }
-
-  test_prefix_unqualified_invocation_in_method() async {
-    addNamedSource('/lib.dart', 'librarylib;');
-    Source source = addSource('''
-import 'lib.dart' as p;
-class C {
-  f() {
-    p();
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
-    verify([source]);
-  }
-
-  test_prefix_unqualified_invocation_not_in_method() async {
-    addNamedSource('/lib.dart', 'librarylib;');
-    Source source = addSource('''
-import 'lib.dart' as p;
-f() {
-  p();
 }
 ''');
     await computeAnalysisResult(source);
@@ -5423,9 +5520,9 @@ const y = x + 1;''');
   }
 
   test_recursiveCompileTimeConstant_fromMapLiteral() async {
-    resourceProvider.newFile(
-      resourceProvider.convertPath('/constants.dart'),
-      r'''
+    newFile(
+      '/constants.dart',
+      content: r'''
 const int x = y;
 const int y = x;
 ''',
@@ -6334,7 +6431,7 @@ main() {
     assertErrors(test, [HintCode.UNUSED_IMPORT]);
 
     // Remove the overlay in the same way as AnalysisServer.
-    resourceProvider.deleteFile(target.fullName);
+    deleteFile(target.fullName);
     if (enableNewAnalysisDriver) {
       driver.removeFile(target.fullName);
     } else {
@@ -6352,7 +6449,7 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
 
-    String targetPath = resourceProvider.convertPath('/target.dart');
+    String targetPath = convertPath('/target.dart');
     if (enableNewAnalysisDriver) {
       // Add an overlay in the same way as AnalysisServer.
       fileContentOverlay[targetPath] = '';
@@ -6613,6 +6710,21 @@ class A {
     assertErrors(source, [
       CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
       StaticTypeWarningCode.NON_BOOL_OPERAND
+    ]);
+    verify([source]);
+  }
+
+  Future<Null> _check_constEvalTypeBoolOrInt_withParameter_binary(
+      String expr) async {
+    Source source = addSource('''
+class A {
+  final a;
+  const A(int p) : a = $expr;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }

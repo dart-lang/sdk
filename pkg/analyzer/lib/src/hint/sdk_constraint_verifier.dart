@@ -44,6 +44,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       _checkFutureAndStream ??= !before_2_1_0.intersect(_versionRange).isEmpty;
 
   @override
+  void visitHideCombinator(HideCombinator node) {
+    // Don't flag references to either `Future` or `Stream` within a combinator.
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    // Don't flag references to either `Future` or `Stream` within a combinator.
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;

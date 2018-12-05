@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -54,22 +55,6 @@ class MockAnalysisDriver extends AnalysisDriver {
 
   @override
   Future<Null> performWork() => new Future.value(null);
-}
-
-class MockAnalysisResult implements AnalysisResult {
-  @override
-  final List<AnalysisError> errors;
-
-  @override
-  final LineInfo lineInfo;
-
-  @override
-  final String path;
-
-  MockAnalysisResult({this.errors, this.lineInfo, this.path});
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockChannel implements PluginCommunicationChannel {
@@ -141,6 +126,22 @@ class MockChannel implements PluginCommunicationChannel {
     Completer<Response> completer = completers.remove(response.id);
     completer.complete(response);
   }
+}
+
+class MockResolvedUnitResult implements ResolvedUnitResult {
+  @override
+  final List<AnalysisError> errors;
+
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final String path;
+
+  MockResolvedUnitResult({this.errors, this.lineInfo, this.path});
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockResourceProvider implements ResourceProvider {

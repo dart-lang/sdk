@@ -44,6 +44,11 @@ abstract class ParserAdapter implements Parser {
   void set enableOptionalNewAndConst(bool enable) {}
 
   @override
+  void set enableSetLiterals(bool value) {
+    fastaParser.parseSetLiterals = value;
+  }
+
+  @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
     astBuilder.parseFunctionBodies = parseFunctionBodies;
   }

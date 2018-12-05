@@ -1,9 +1,10 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,9 +12,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -26,11 +29,10 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import '../src/context/mock_sdk.dart';
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
 
@@ -38,7 +40,7 @@ import 'test_support.dart';
  * An AST visitor used to verify that all of the nodes in an AST structure that
  * should have been resolved were resolved.
  */
-class ResolutionVerifier extends RecursiveAstVisitor<Object> {
+class ResolutionVerifier extends RecursiveAstVisitor<void> {
   /**
    * A set containing nodes that are known to not be resolvable and should
    * therefore not cause the test to fail.
@@ -88,7 +90,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     node.visitChildren(this);
     ElementAnnotation elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
@@ -98,154 +100,153 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     } else if (elementAnnotation is! ElementAnnotation) {
       _wrongTypedNodes.add(node);
     }
-    return null;
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
-      return null;
+      return;
     }
     DartType operandType = node.leftOperand.staticType;
     if (operandType == null || operandType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitCommentReference(CommentReference node) => null;
+  void visitCommentReference(CommentReference node) {}
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
-    return _checkResolved(
+    _checkResolved(
         node, node.declaredElement, (node) => node is CompilationUnitElement);
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) =>
-      _checkResolved(node, node.element, (node) => node is ExportElement);
+  void visitExportDirective(ExportDirective node) {
+    _checkResolved(node, node.element, (node) => node is ExportElement);
+  }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
     if (node.declaredElement is LibraryElement) {
       _wrongTypedNodes.add(node);
     }
-    return null;
   }
 
   @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
     // TODO(brianwilkerson) If we start resolving function expressions, then
     // conditionally check to see whether the node was resolved correctly.
-    return null;
     //checkResolved(node, node.getElement(), FunctionElement.class);
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the
     // names are not defined.
     _checkResolved(node, node.element, (node) => node is ImportElement);
     SimpleIdentifier prefix = node.prefix;
     if (prefix == null) {
-      return null;
+      return;
     }
-    return _checkResolved(
+    _checkResolved(
         prefix, prefix.staticElement, (node) => node is PrefixElement);
   }
 
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     DartType targetType = node.realTarget.staticType;
     if (targetType == null || targetType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) =>
-      _checkResolved(node, node.element, (node) => node is LibraryElement);
+  void visitLibraryDirective(LibraryDirective node) {
+    _checkResolved(node, node.element, (node) => node is LibraryElement);
+  }
 
   @override
-  Object visitNamedExpression(NamedExpression node) =>
-      node.expression.accept(this);
+  void visitNamedExpression(NamedExpression node) {
+    node.expression.accept(this);
+  }
 
   @override
-  Object visitPartDirective(PartDirective node) => _checkResolved(
-      node, node.element, (node) => node is CompilationUnitElement);
+  void visitPartDirective(PartDirective node) {
+    _checkResolved(
+        node, node.element, (node) => node is CompilationUnitElement);
+  }
 
   @override
-  Object visitPartOfDirective(PartOfDirective node) =>
-      _checkResolved(node, node.element, (node) => node is LibraryElement);
+  void visitPartOfDirective(PartOfDirective node) {
+    _checkResolved(node, node.element, (node) => node is LibraryElement);
+  }
 
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
-      return null;
+      return;
     }
     DartType operandType = node.operand.staticType;
     if (operandType == null || operandType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     prefix.accept(this);
     DartType prefixType = prefix.staticType;
     if (prefixType == null || prefixType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(node, node.staticElement, null);
+    _checkResolved(node, node.staticElement, null);
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
-      return null;
+      return;
     }
     DartType operandType = node.operand.staticType;
     if (operandType == null || operandType.isDynamic) {
-      return null;
+      return;
     }
-    return _checkResolved(
-        node, node.staticElement, (node) => node is MethodElement);
+    _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
-  Object visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     target.accept(this);
     DartType targetType = target.staticType;
     if (targetType == null || targetType.isDynamic) {
-      return null;
+      return;
     }
-    return node.propertyName.accept(this);
+    node.propertyName.accept(this);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
-      return null;
+      return;
     }
     if (resolutionMap.staticTypeForExpression(node) != null &&
         resolutionMap.staticTypeForExpression(node).isDynamic &&
         node.staticElement == null) {
-      return null;
+      return;
     }
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
@@ -254,14 +255,14 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
         Expression target = invocation.realTarget;
         DartType targetType = target == null ? null : target.staticType;
         if (targetType == null || targetType.isDynamic) {
-          return null;
+          return;
         }
       }
     }
-    return _checkResolved(node, node.staticElement, null);
+    _checkResolved(node, node.staticElement, null);
   }
 
-  Object _checkResolved(
+  void _checkResolved(
       AstNode node, Element element, Predicate<Element> predicate) {
     if (element == null) {
       if (_knownExceptions == null || !_knownExceptions.contains(node)) {
@@ -272,7 +273,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
         _wrongTypedNodes.add(node);
       }
     }
-    return null;
   }
 
   String _getFileName(AstNode node) {
@@ -310,12 +310,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   }
 }
 
-class ResolverTestCase extends EngineTestCase {
-  /**
-   * The resource provider used by the test case.
-   */
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
@@ -350,9 +345,6 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
-  /// TODO(brianwilkerson) Remove this getter.
-  bool get previewDart2 => true;
-
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
@@ -384,8 +376,8 @@ class ResolverTestCase extends EngineTestCase {
    * set in the content provider. Return the source representing the added file.
    */
   Source addNamedSource(String filePath, String contents) {
-    filePath = resourceProvider.convertPath(filePath);
-    File file = resourceProvider.newFile(filePath, contents);
+    filePath = convertPath(filePath);
+    File file = newFile(filePath, content: contents);
     Source source = file.createSource();
     if (enableNewAnalysisDriver) {
       driver.addFile(filePath);
@@ -529,7 +521,7 @@ class ResolverTestCase extends EngineTestCase {
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     if (enableNewAnalysisDriver) {
-      AnalysisResult result = await driver.getResult(source.fullName);
+      ResolvedUnitResult result = await driver.getResult(source.fullName);
       analysisResult =
           new TestAnalysisResult(source, result.unit, result.errors);
     } else {
@@ -570,7 +562,7 @@ class ResolverTestCase extends EngineTestCase {
    * give it an empty content. Return the source that was created.
    */
   Source createNamedSource(String fileName) {
-    Source source = resourceProvider.getFile(fileName).createSource();
+    Source source = getFile(fileName).createSource();
     analysisContext2.setContents(source, '');
     return source;
   }
@@ -585,7 +577,7 @@ class ResolverTestCase extends EngineTestCase {
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
-    String fileName = resourceProvider.convertPath("/test/$libraryName.dart");
+    String fileName = convertPath("/test/$libraryName.dart");
     Source definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
@@ -611,7 +603,9 @@ class ResolverTestCase extends EngineTestCase {
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2([libraryName]));
+        context,
+        driver?.currentSession,
+        AstTestFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
@@ -662,6 +656,10 @@ class ResolverTestCase extends EngineTestCase {
       fail('Only packages or options can be specified.');
     }
     options ??= defaultAnalysisOptions;
+    (options as AnalysisOptionsImpl).enabledExperiments = [
+      Experiments.constantUpdate2018Name,
+      Experiments.setLiteralName
+    ];
     if (enableNewAnalysisDriver) {
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
@@ -674,10 +672,8 @@ class ResolverTestCase extends EngineTestCase {
         var packageMap = <String, List<Folder>>{};
         packages.forEach((args) {
           String name = args[0];
-          String path =
-              resourceProvider.convertPath('/packages/$name/$name.dart');
           String content = args[1];
-          File file = resourceProvider.newFile(path, content);
+          File file = newFile('/packages/$name/$name.dart', content: content);
           packageMap[name] = <Folder>[file.parent];
         });
         resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
@@ -832,6 +828,19 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   CompilationUnit testUnit;
 
   /**
+   * Find the expression that starts at the offset of [search] and validate its
+   * that its static type matches the given [type].
+   *
+   * If [type] is a string, validates that the expression's static type
+   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+   * to match the type.
+   */
+  void expectExpressionType(String search, type) {
+    Expression expression = findExpression(search);
+    _expectType(expression.staticType, type);
+  }
+
+  /**
    * Looks up the identifier with [name] and validates that its type type
    * stringifies to [type] and that its generics match the given stringified
    * output.
@@ -889,15 +898,19 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   void expectInitializerType(String name, type) {
     SimpleIdentifier identifier = findIdentifier(name);
     VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
+        identifier.thisOrAncestorOfType<VariableDeclaration>();
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
   }
 
+  Expression findExpression(String search) {
+    return EngineTestCase.findNode(
+        testUnit, testCode, search, (node) => node is Expression);
+  }
+
   SimpleIdentifier findIdentifier(String search) {
-    SimpleIdentifier identifier = EngineTestCase.findNode(
+    return EngineTestCase.findNode(
         testUnit, testCode, search, (node) => node is SimpleIdentifier);
-    return identifier;
   }
 
   Future<Null> resolveTestUnit(String code, {bool noErrors: true}) async {

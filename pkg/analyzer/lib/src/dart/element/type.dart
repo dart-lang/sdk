@@ -2053,6 +2053,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant: true}) {
+    // First check if this is actually an instance of Bottom
+    if (this.isDartCoreNull) {
+      if (isCovariant) {
+        return this;
+      } else {
+        return typeProvider.objectType;
+      }
+    }
+
+    // Otherwise, recurse over type arguments.
     var typeArguments = _transformOrShare(
         this.typeArguments,
         (t) => (t as TypeImpl)

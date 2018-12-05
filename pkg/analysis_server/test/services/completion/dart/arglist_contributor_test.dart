@@ -896,7 +896,7 @@ main() { new A(^, two: 'foo');}''');
   }
 
   test_ArgumentList_local_constructor_required_param_0() async {
-    addMetaPackageSource();
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 class A { A({int one, @required String two: 'defaultValue'}) { } }

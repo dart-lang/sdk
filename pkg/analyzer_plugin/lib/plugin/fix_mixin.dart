@@ -20,23 +20,23 @@ import 'package:analyzer_plugin/utilities/generator.dart';
  * mixing in [FixesMixin]. This implements the creation of the fixes request
  * based on the assumption that the driver being created is an [AnalysisDriver].
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [FixesMixin] as a mix-in.
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin] that also uses [FixesMixin] as a
+ * mix-in.
  */
-abstract class DartFixesMixin implements FixesMixin {
+mixin DartFixesMixin implements FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = parameters.file;
     int offset = parameters.offset;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartFixesRequestImpl(
         resourceProvider, offset, _getErrors(offset, result), result);
   }
 
-  List<AnalysisError> _getErrors(int offset, ResolveResult result) {
+  List<AnalysisError> _getErrors(int offset, ResolvedUnitResult result) {
     LineInfo lineInfo = result.lineInfo;
     int offsetLine = lineInfo.getLocation(offset).lineNumber;
     return result.errors.where((AnalysisError error) {
@@ -50,10 +50,10 @@ abstract class DartFixesMixin implements FixesMixin {
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for handling fix requests.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class FixesMixin implements ServerPlugin {
+mixin FixesMixin implements ServerPlugin {
   /**
    * Return a list containing the fix contributors that should be used to create
    * fixes for the file with the given [path].

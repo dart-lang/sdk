@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1627,7 +1627,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     if (libraryElement == null) {
       libraryElement =
-          new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+          new LibraryElementImpl.forNode(owningContext, null, libraryNameNode);
       libraryElement.isSynthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
@@ -3235,7 +3235,7 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
           "${variable.displayName} at $offset in $variableSource");
     }
     VariableDeclaration declaration =
-        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+        node.thisOrAncestorOfType<VariableDeclaration>();
     if (declaration == null || declaration.name != node) {
       Source variableSource = variable.source;
       Source unitSource =
@@ -5452,8 +5452,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
       CodeChecker checker = new CodeChecker(
           typeProvider,
           new StrongTypeSystemImpl(typeProvider,
-              implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts),
+              implicitCasts: options.implicitCasts),
           errorListener,
           options);
       checker.visitCompilationUnit(unit);

@@ -154,7 +154,7 @@ class CompletionTarget {
       if (containingNode is Comment) {
         // Comments are handled specially: we descend into any CommentReference
         // child node that contains the cursor offset.
-        Comment comment = containingNode;
+        Comment comment = containingNode as Comment;
         for (CommentReference commentReference in comment.references) {
           if (commentReference.offset <= offset &&
               offset <= commentReference.end) {
@@ -276,7 +276,7 @@ class CompletionTarget {
         token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
     Token token = droppedToken ??
-        (entity is AstNode ? (entity as AstNode).beginToken : entity);
+        (entity is AstNode ? (entity as AstNode).beginToken : entity as Token);
     if (token != null && requestOffset < token.offset) {
       token = containingNode.findPrevious(token);
     }

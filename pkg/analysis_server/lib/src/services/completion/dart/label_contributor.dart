@@ -91,6 +91,11 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    // ignored
+  }
+
+  @override
   void declaredLabel(Label label, bool isCaseLabel) {
     if (isCaseLabel ? includeCaseLabels : includeStatementLabels) {
       CompletionSuggestion suggestion = _addSuggestion(label.label);

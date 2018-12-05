@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -939,6 +939,15 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
+  T thisOrAncestorOfType<T extends AstNode>() {
+    AstNode node = this;
+    while (node != null && node is! T) {
+      node = node.parent;
+    }
+    return node as T;
+  }
+
+  @override
   String toSource() {
     StringBuffer buffer = new StringBuffer();
     accept(new ToSourceVisitor2(buffer));
@@ -1596,7 +1605,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /**
  * Helper class to allow iteration of child entities of an AST node.
  */
-class ChildEntities extends Object
+class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
   /**
@@ -2687,17 +2696,21 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
         case CompileTimeErrorCode
             .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
           hasConstError = true;
       }
     }
@@ -6394,8 +6407,6 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
  *
  *    newExpression ::=
  *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
- *
- * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
@@ -6487,8 +6498,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   /**
    * Return `true` if this is an implicit constructor invocations.
-   *
-   * This can only be `true` when the previewDart2 option is enabled.
    */
   bool get isImplicit => keyword == null;
 
@@ -6531,7 +6540,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    *
    * Also note that this method can cause constant evaluation to occur, which
    * can be computationally expensive.
+   * 
+   * Deprecated: Use `LinterContext.canBeConst` instead.
    */
+  @deprecated
   bool canBeConst() {
     //
     // Verify that the invoked constructor is a const constructor.
@@ -8252,9 +8264,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /**
  * A list of AST nodes that have a common parent.
  */
-class NodeListImpl<E extends AstNode> extends Object
-    with ListMixin<E>
-    implements NodeList<E> {
+class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /**
    * The node that is the parent of each of the elements in the list.
    */
@@ -9456,6 +9466,78 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ */
+class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
+  /**
+   * The left curly bracket.
+   */
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements in the set.
+   */
+  NodeList<Expression> _elements;
+
+  /**
+   * The right curly bracket.
+   */
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<Expression> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<Expression>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<Expression> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
   }
 }
 

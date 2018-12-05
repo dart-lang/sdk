@@ -174,11 +174,9 @@ LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: CompileTimeError 
 LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/semantics_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Simple-bounds/dynamic/class_typedef_l1_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_typedef_l1_t01/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_typedef_l1_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_typedef_l1_t03/none: CompileTimeError
@@ -199,7 +197,6 @@ LanguageFeatures/Super-bounded-types/static_analysis_A01_t08: CompileTimeError #
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
-LanguageFeatures/Super-mixins/super_invocation_t19: CompileTimeError # Issue 35090
 LanguageFeatures/regression/33585_t01: MissingCompileTimeError # Please triage this failure
 LanguageFeatures/regression/33585_t02: MissingCompileTimeError # Please triage this failure
 LanguageFeatures/regression/33597_t01: MissingCompileTimeError # Please triage this failure

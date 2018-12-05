@@ -47,6 +47,7 @@ main() {
 
 @reflectiveTest
 class ClassElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode_ClassDeclaration() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -100,6 +101,7 @@ enum C {C1, C2, C3}
     }
   }
 
+  @deprecated
   void test_computeNode_ClassTypeAlias() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -130,8 +132,8 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
         new TestElementResynthesizer(context, {location: classA});
     ClassElementHandle classAHandle =
         new ClassElementHandle(resynthesizer, location);
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", new InterfaceTypeImpl(classAHandle));
+    ClassElementImpl classB = new ClassElementImpl('B', 0)
+      ..supertype = new InterfaceTypeImpl(classAHandle);
     classB.mixinApplication = true;
 
     expect(classB.constructors, hasLength(1));
@@ -1194,6 +1196,7 @@ class ElementLocationImplTest extends EngineTestCase {
 
 @reflectiveTest
 class FieldElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3692,8 +3695,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
 class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
     expect(
-        new LibraryElementImpl.forNode(
-            createAnalysisContext(), AstTestFactory.libraryIdentifier2(["l"])),
+        new LibraryElementImpl.forNode(createAnalysisContext(), null,
+            AstTestFactory.libraryIdentifier2(["l"])),
         isNotNull);
   }
 
@@ -3780,7 +3783,7 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["l1"]));
+        context, null, AstTestFactory.libraryIdentifier2(["l1"]));
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)
@@ -3799,6 +3802,7 @@ class LocalVariableElementImplTest extends EngineTestCase {}
 
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3829,6 +3833,7 @@ abstract class A {
     }
   }
 
+  @deprecated
   void test_computeNode_withoutFunctionBody() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.analyzeFunctionBodies = false;
@@ -3908,6 +3913,7 @@ class B<S> extends A<S> {
 
 @reflectiveTest
 class ParameterElementImplTest extends EngineTestCase {
+  @deprecated
   void test_computeNode_DefaultFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3927,6 +3933,7 @@ main([int p = 42]) {
     }
   }
 
+  @deprecated
   void test_computeNode_FieldFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3951,6 +3958,7 @@ class A {
     }
   }
 
+  @deprecated
   void test_computeNode_FunctionTypedFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -3970,6 +3978,7 @@ main(p(int a, int b)) {
     }
   }
 
+  @deprecated
   void test_computeNode_SimpleFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
@@ -4027,7 +4036,7 @@ class TestElementResynthesizer extends ElementResynthesizer {
   Map<ElementLocation, Element> locationMap;
 
   TestElementResynthesizer(AnalysisContext context, this.locationMap)
-      : super(context);
+      : super(context, null);
 
   @override
   Element getElement(ElementLocation location) {

@@ -110,7 +110,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 }
 
 @reflectiveTest
-class FolderBasedDartSdkTest extends Object with ResourceProviderMixin {
+class FolderBasedDartSdkTest with ResourceProviderMixin {
   void test_addExtensions() {
     FolderBasedDartSdk sdk = _createDartSdk();
     String uri = 'dart:my.internal';
@@ -315,7 +315,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 }
 
 @reflectiveTest
-class SdkExtensionFinderTest extends Object with ResourceProviderMixin {
+class SdkExtensionFinderTest with ResourceProviderMixin {
   void setUp() {
     newFile('/tmp/_sdkext', content: r'''
 {

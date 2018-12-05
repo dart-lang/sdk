@@ -18,16 +18,16 @@ import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
  * highlighting request based on the assumption that the driver being created is
  * an [AnalysisDriver].
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [HighlightsMixin] as a mix-in.
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin] that also uses [HighlightsMixin]
+ * as a mix-in.
  */
-abstract class DartHighlightsMixin implements HighlightsMixin {
+mixin DartHighlightsMixin implements HighlightsMixin {
   @override
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartHighlightsRequestImpl(resourceProvider, result);
   }
 }
@@ -36,10 +36,10 @@ abstract class DartHighlightsMixin implements HighlightsMixin {
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for producing highlighting notifications.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class HighlightsMixin implements ServerPlugin {
+mixin HighlightsMixin implements ServerPlugin {
   /**
    * Return a list containing the highlighting contributors that should be used
    * to create highlighting information for the file with the given [path].

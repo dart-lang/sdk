@@ -22,7 +22,7 @@ main() {
 class AssignmentDriverResolutionTest extends DriverResolutionTest
     with AssignmentResolutionMixin {}
 
-abstract class AssignmentResolutionMixin implements ResolutionTest {
+mixin AssignmentResolutionMixin implements ResolutionTest {
   test_compound_indexExpression() async {
     addTestFile(r'''
 main() {

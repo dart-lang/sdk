@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -35,11 +35,12 @@ class FixesTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('''
 main() {
-  Future<String> x = null;
+  Completer<String> x = null;
 }
 ''');
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('Future<String>');
+    List<AnalysisErrorFixes> errorFixes =
+        await _getFixesAt('Completer<String>');
     expect(errorFixes, hasLength(1));
     AnalysisError error = errorFixes[0].error;
     expect(error.severity, AnalysisErrorSeverity.WARNING);
@@ -130,7 +131,7 @@ bbb:${asFileUri('/bbb/lib')}
         handler: analysisHandler);
 
     // Configure the test file.
-    testFile = resourceProvider.convertPath('/aaa/main.dart');
+    testFile = convertPath('/aaa/main.dart');
     testCode = 'main() { new Foo(); }';
     _addOverlay(testFile, testCode);
 

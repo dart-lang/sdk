@@ -28,7 +28,7 @@ main() {
 }
 
 @reflectiveTest
-class InheritanceManagerTest extends Object with ResourceProviderMixin {
+class InheritanceManagerTest with ResourceProviderMixin {
   /**
    * The type provider used to access the types.
    */

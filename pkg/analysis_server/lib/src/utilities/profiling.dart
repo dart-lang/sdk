@@ -12,8 +12,6 @@ abstract class ProcessProfiler {
 
   Future<UsageInfo> getProcessUsage(int processId);
 
-  UsageInfo getProcessUsageSync(int processId);
-
   /// Return a [ProcessProfiler] instance suitable for the current host
   /// platform. This can return `null` if we're not able to gather memory and
   /// cpu information for the current platform.
@@ -62,17 +60,6 @@ class _PosixProcessProfiler extends ProcessProfiler {
       });
     } catch (e) {
       return new Future.error(e);
-    }
-  }
-
-  UsageInfo getProcessUsageSync(int processId) {
-    try {
-      // Execution time is typically 2-4ms.
-      ProcessResult result =
-          Process.runSync('ps', ['-o', '%cpu=,rss=', processId.toString()]);
-      return result.exitCode == 0 ? _parse(result.stdout) : null;
-    } catch (e) {
-      return null;
     }
   }
 

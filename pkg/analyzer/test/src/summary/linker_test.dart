@@ -26,7 +26,7 @@ class LinkerUnitTest extends SummaryLinkerTestStrategyTwoPhase
 /// These test cases may be mixed into any class derived from
 /// [SummaryLinkerTestStrategy], allowing the linker to be unit-tested in a
 /// variety of ways.
-abstract class LinkerUnitTestCases implements SummaryLinkerTestStrategy {
+mixin LinkerUnitTestCases implements SummaryLinkerTestStrategy {
   Matcher get isUndefined => const TypeMatcher<UndefinedElementForLink>();
 
   LibraryElementForLink getLibrary(String uri) {

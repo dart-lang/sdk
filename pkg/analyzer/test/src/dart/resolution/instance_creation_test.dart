@@ -20,7 +20,7 @@ main() {
 class InstanceCreationDriverResolutionTest extends DriverResolutionTest
     with InstanceCreationResolutionMixin {}
 
-abstract class InstanceCreationResolutionMixin implements ResolutionTest {
+mixin InstanceCreationResolutionMixin implements ResolutionTest {
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
     addTestFile(r'''
 class Foo<X> {
@@ -45,6 +45,24 @@ main() {
 //      'Foo',
 //      constructorName: 'bar',
 //    );
+  }
+
+  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
+    addTestFile(r'''
+final foo = Map<int>();
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
+    ]);
+
+    var creation = findNode.instanceCreation('Map<int>');
+    assertInstanceCreation(
+      creation,
+      mapElement,
+      'Map<dynamic, dynamic>',
+      expectedConstructorMember: true,
+    );
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
@@ -137,4 +155,10 @@ main() {
 
 @reflectiveTest
 class InstanceCreationTaskResolutionTest extends TaskResolutionTest
-    with InstanceCreationResolutionMixin {}
+    with InstanceCreationResolutionMixin {
+  @FailingTest(reason: 'Does not report the error.')
+  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() {
+    return super
+        .test_error_newWithInvalidTypeParameters_implicitNew_inference_top();
+  }
+}

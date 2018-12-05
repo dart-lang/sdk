@@ -33,7 +33,7 @@ class TypedefTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "typedef T();",
-              failing: ['functionNonVoid', 'getter', 'setter']),
+              failing: ['functionNonVoid', 'getter', 'mixin', 'setter']),
           new TestDescriptor(
               'keywordEquals',
               'typedef =',
@@ -56,7 +56,7 @@ class TypedefTest extends PartialCodeTest {
               expectedErrorsInValidCode: [
                 ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE
               ],
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
         ],
         PartialCodeTest.declarationSuffixes);
   }

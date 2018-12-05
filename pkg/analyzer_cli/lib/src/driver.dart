@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -93,7 +93,7 @@ void setAnalytics(telemetry.Analytics replacementAnalytics) {
   _analytics = replacementAnalytics;
 }
 
-class Driver extends Object with HasContextMixin implements CommandLineStarter {
+class Driver with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
@@ -479,7 +479,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       AnalysisOptions analysisOptions) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
-      file_system.Folder folder = resourceProvider.getResource('.');
+      file_system.Folder folder = resourceProvider.getFolder('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
         // TODO(brianwilkerson) This doesn't handle sdk extensions.

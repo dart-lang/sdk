@@ -98,7 +98,6 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
   }
 
   test_implicitCreation() async {
-    configurePreviewDart2();
     addSource('/a.dart', '''
 class A {
   A.foo();
@@ -257,7 +256,7 @@ void main() {async.Future..w^()}''');
 import "dart:async" as async;
 void main() {async.Future.^.w()}''');
     await computeSuggestions();
-    assertSuggestMethod('wait', 'Future', 'Future<dynamic>');
+    assertSuggestMethod('wait', 'Future', 'Future<List<T>>');
   }
 
   test_PrefixedIdentifier_class_const() async {

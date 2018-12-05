@@ -14,6 +14,7 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -81,7 +82,7 @@ class RuntimeCompletionComputer {
 
     // Update the context file content to include the code being completed.
     // Then resolve it, and restore the file to its initial state.
-    AnalysisResult targetResult;
+    ResolvedUnitResult targetResult;
     String contentFileOverlay = fileContentOverlay[contextFile];
     try {
       fileContentOverlay[contextFile] = targetCode;

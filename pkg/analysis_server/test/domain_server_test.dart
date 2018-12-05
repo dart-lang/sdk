@@ -67,14 +67,9 @@ main() {
     });
 
     test('shutdown', () async {
-      expect(server.running, isTrue);
-      // send request
       var request = new ServerShutdownParams().toRequest('0');
       var response = await serverChannel.sendRequest(request);
       expect(response, isResponseSuccess('0'));
-
-      // server is down
-      expect(server.running, isFalse);
     });
   });
 }

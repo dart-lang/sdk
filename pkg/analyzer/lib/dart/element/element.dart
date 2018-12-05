@@ -34,9 +34,11 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -182,6 +184,7 @@ abstract class ClassElement
   /// the class.
   ConstructorElement get unnamedConstructor;
 
+  @deprecated
   @override
   NamedCompilationUnitMember computeNode();
 
@@ -405,6 +408,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// unit.
   List<ClassElement> get types;
 
+  @deprecated
   @override
   CompilationUnit computeNode();
 
@@ -453,6 +457,7 @@ abstract class ConstructorElement
   /// library containing this constructor has not yet been resolved.
   ConstructorElement get redirectedConstructor;
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode();
 }
@@ -632,6 +637,9 @@ abstract class Element implements AnalysisTarget {
   /// does not have a name, or otherwise does not have an offset.
   int get nameOffset;
 
+  /// Return the analysis session in which this element is defined.
+  AnalysisSession get session;
+
   @override
   Source get source;
 
@@ -640,6 +648,7 @@ abstract class Element implements AnalysisTarget {
   ///
   /// This method is expensive, because resolved AST might have been already
   /// evicted from cache, so parsing and resolving will be performed.
+  @deprecated
   CompilationUnit get unit;
 
   /// Use the given [visitor] to visit this element. Return the value returned
@@ -667,6 +676,7 @@ abstract class Element implements AnalysisTarget {
   /// cache, so parsing and resolving will be performed.
   ///
   /// <b>Note:</b> This method cannot be used in an async environment.
+  @deprecated
   AstNode computeNode();
 
   /// Return the most immediate ancestor of this element for which the
@@ -703,10 +713,14 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   @deprecated
   static const List<ElementAnnotation> EMPTY_LIST = const <ElementAnnotation>[];
 
-  /// Return a representation of the value of this annotation.
-  ///
-  /// Return `null` if the value of this annotation could not be computed
-  /// because of errors.
+  /// Return the errors that were produced while computing a value for this
+  /// annotation, or `null` if no value has been computed. If a value has been
+  /// produced but no errors were generated, then the list will be empty.
+  List<AnalysisError> get constantEvaluationErrors;
+
+  /// Return a representation of the value of this annotation, or `null` if the
+  /// value of this annotation has not been computed or if the value could not
+  /// be computed because of errors.
   DartObject get constantValue;
 
   /// Return the element representing the field, variable, or const constructor
@@ -1055,6 +1069,7 @@ abstract class FieldElement
   @deprecated
   bool get isVirtual;
 
+  @deprecated
   @override
   AstNode computeNode();
 }
@@ -1097,6 +1112,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// and has the name `main`.
   bool get isEntryPoint;
 
+  @deprecated
   @override
   FunctionDeclaration computeNode();
 }
@@ -1118,6 +1134,7 @@ abstract class FunctionTypeAliasElement
   /// type on the right side of the equals.
   GenericFunctionTypeElement get function;
 
+  @deprecated
   @override
   TypeAlias computeNode();
 
@@ -1301,6 +1318,11 @@ abstract class LibraryElement implements Element {
   /// computed yet.
   Namespace get publicNamespace;
 
+  /// Return the top-level elements defined in each of the compilation units
+  /// that are included in this library. This includes both public and private
+  /// elements, but does not include imports, exports, or synthetic elements.
+  Iterable<Element> get topLevelElements;
+
   /// Return a list containing all of the compilation units this library
   /// consists of. This includes the defining compilation unit and units
   /// included using the `part` directive.
@@ -1353,6 +1375,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @deprecated
   static const List<MethodElement> EMPTY_LIST = const <MethodElement>[];
 
+  @deprecated
   @override
   MethodDeclaration computeNode();
 
@@ -1463,6 +1486,7 @@ abstract class ParameterElement
   /// the given [buffer].
   void appendToWithoutDelimiters(StringBuffer buffer);
 
+  @deprecated
   @override
   FormalParameter computeNode();
 }
@@ -1597,6 +1621,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
   static const List<TopLevelVariableElement> EMPTY_LIST =
       const <TopLevelVariableElement>[];
 
+  @deprecated
   @override
   VariableDeclaration computeNode();
 }

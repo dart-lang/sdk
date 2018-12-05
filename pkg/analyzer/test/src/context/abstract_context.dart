@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -15,11 +14,11 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
-
-import 'mock_sdk.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -43,12 +42,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
  */
 typedef void _ElementVisitorFunction(Element element);
 
-class AbstractContextTest {
-  static final MockSdk SHARED_MOCK_SDK = new MockSdk();
-  static final MockSdk SHARED_STRONG_MOCK_SDK = new MockSdk();
-
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class AbstractContextTest with ResourceProviderMixin {
   DartSdk sdk;
   SourceFactory sourceFactory;
   AnalysisContextImpl context;
@@ -125,8 +119,7 @@ class AbstractContextTest {
   DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
 
   Source newSource(String path, [String content = '']) {
-    File file =
-        resourceProvider.newFile(resourceProvider.convertPath(path), content);
+    File file = newFile(path, content: content);
     return file.createSource();
   }
 

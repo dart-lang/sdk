@@ -79,15 +79,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit(code);
 
-    PostfixCompletionContext context = new PostfixCompletionContext(
-        testFile,
-        testAnalysisResult.lineInfo,
-        offset,
-        key,
-        testAnalysisResult.driver,
-        testUnit,
-        testUnitElement,
-        testAnalysisResult.errors);
+    var context = new PostfixCompletionContext(testAnalysisResult, offset, key);
     processor = new PostfixCompletionProcessor(context);
   }
 }
