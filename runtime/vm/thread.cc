@@ -278,12 +278,12 @@ void Thread::set_sticky_error(const Error& value) {
   sticky_error_ = value.raw();
 }
 
-void Thread::clear_sticky_error() {
+void Thread::ClearStickyError() {
   sticky_error_ = Error::null();
 }
 
-RawError* Thread::get_and_clear_sticky_error() {
-  NoSafepointScope nss;
+RawError* Thread::StealStickyError() {
+  NoSafepointScope no_safepoint;
   RawError* return_value = sticky_error_;
   sticky_error_ = Error::null();
   return return_value;
@@ -552,11 +552,10 @@ RawError* Thread::HandleInterrupts() {
             "\tisolate:    %s\n",
             isolate()->name());
       }
-      Thread* thread = Thread::Current();
-      const Error& error = Error::Handle(thread->sticky_error());
-      ASSERT(!error.IsNull() && error.IsUnwindError());
-      thread->clear_sticky_error();
-      return error.raw();
+      NoSafepointScope no_safepoint;
+      RawError* error = Thread::Current()->StealStickyError();
+      ASSERT(error->IsUnwindError());
+      return error;
     }
   }
   return Error::null();

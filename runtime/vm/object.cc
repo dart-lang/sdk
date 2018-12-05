@@ -869,7 +869,7 @@ void Object::Init(Isolate* isolate) {
   // initialized until now.
   Thread* thr = Thread::Current();
   ASSERT(thr != NULL);
-  thr->clear_sticky_error();
+  thr->ClearStickyError();
   thr->clear_pending_functions();
 
   ASSERT(!null_object_->IsSmi());

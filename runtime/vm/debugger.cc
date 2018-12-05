@@ -339,10 +339,10 @@ RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error = Error::Handle(Thread::Current()->sticky_error());
-  ASSERT(error.IsNull() || error.IsUnwindError());
-  Thread::Current()->clear_sticky_error();
-  return error.raw();
+  NoSafepointScope no_safepoint;
+  RawError* error = Thread::Current()->StealStickyError();
+  ASSERT((error == Error::null()) || error->IsUnwindError());
+  return error;
 }
 
 void Debugger::SendBreakpointEvent(ServiceEvent::EventKind kind,
@@ -3645,9 +3645,7 @@ RawError* Debugger::PauseStepping() {
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error = Error::Handle(Thread::Current()->sticky_error());
-  Thread::Current()->clear_sticky_error();
-  return error.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 RawError* Debugger::PauseBreakpoint() {
@@ -3717,9 +3715,7 @@ RawError* Debugger::PauseBreakpoint() {
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error = Error::Handle(Thread::Current()->sticky_error());
-  Thread::Current()->clear_sticky_error();
-  return error.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 Breakpoint* Debugger::FindHitBreakpoint(BreakpointLocation* location,

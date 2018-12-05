@@ -602,7 +602,7 @@ class Isolate : public BaseIsolate {
   void SetStickyError(RawError* sticky_error);
 
   RawError* sticky_error() const { return sticky_error_; }
-  void clear_sticky_error();
+  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
   void RetainKernelBlob(const ExternalTypedData& kernel_blob);
 

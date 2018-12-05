@@ -1263,8 +1263,7 @@ class CallSiteInliner : public ValueObject {
         PRINT_INLINING_TREE(NULL, &call_data->caller, &function, call);
         return true;
       } else {
-        error = thread()->sticky_error();
-        thread()->clear_sticky_error();
+        error = thread()->StealStickyError();
 
         if (error.IsLanguageError() &&
             (LanguageError::Cast(error).kind() == Report::kBailout)) {

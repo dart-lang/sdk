@@ -403,11 +403,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
       ClassFinalizer::FinalizeClass(cls);
       return Error::null();
     } else {
-      Thread* thread = Thread::Current();
-      Error& error = Error::Handle(thread->zone());
-      error = thread->sticky_error();
-      thread->clear_sticky_error();
-      return error.raw();
+      return Thread::Current()->StealStickyError();
     }
   }
 
@@ -481,11 +477,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
-    Thread* thread = Thread::Current();
-    Error& error = Error::Handle(thread->zone());
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+
+    return Thread::Current()->StealStickyError();
   }
 }
 
@@ -894,7 +887,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // this will be dealt with in the caller.
       if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        thread()->clear_sticky_error();
+        thread()->ClearStickyError();
       }
     }
   }
@@ -963,11 +956,9 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                     function.ToFullyQualifiedCString());
         }
         {
-          // If it was a bailout, then disable optimization.
-          Error& error = Error::Handle();
           // We got an error during compilation.
-          error = thread->sticky_error();
-          thread->clear_sticky_error();
+          // If it was a bailout, then disable optimization.
+          const Error& error = Error::Handle(thread->StealStickyError());
 
           if (error.raw() == Object::background_compilation_error().raw()) {
             if (FLAG_trace_compiler) {
@@ -1010,11 +1001,8 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
         return Error::null();
       } else {
         ASSERT(!optimized);
-        // Encountered error.
-        Error& error = Error::Handle();
         // We got an error during compilation.
-        error = thread->sticky_error();
-        thread->clear_sticky_error();
+        const Error& error = Error::Handle(thread->StealStickyError());
         // The non-optimizing compiler can get an unhandled exception
         // due to OOM or Stack overflow errors, it should not however
         // bail out.
@@ -1051,11 +1039,9 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
   } else {
     Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
-    Error& error = Error::Handle();
     // We got an error during compilation or it is a bailout from background
     // compilation (e.g., during parsing with EnsureIsFinalized).
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
+    const Error& error = Error::Handle(thread->StealStickyError());
     if (error.raw() == Object::background_compilation_error().raw()) {
       // Exit compilation, retry it later.
       if (FLAG_trace_bailout) {
@@ -1101,20 +1087,13 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
     pipeline->ParseFunction(parsed_function);
     return Error::null();
   } else {
-    Thread* const thread = Thread::Current();
-    StackZone stack_zone(thread);
-    Error& error = Error::Handle();
     // We got an error during compilation or it is a bailout from background
     // compilation (e.g., during parsing with EnsureIsFinalized).
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
     // Unoptimized compilation or precompilation may encounter compile-time
     // errors, but regular optimized compilation should not.
     ASSERT(!optimized);
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
-  UNREACHABLE();
-  return Error::null();
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
@@ -1249,15 +1228,9 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
     }
     return Error::null();
   } else {
-    Error& error = Error::Handle();
-    Thread* thread = Thread::Current();
     // We got an error during compilation.
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
-  UNREACHABLE();
-  return Error::null();
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
@@ -1425,11 +1398,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     }
   }
 
-  Thread* const thread = Thread::Current();
-  StackZone zone(thread);
-  const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
-  thread->clear_sticky_error();
-  return error.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
@@ -1493,10 +1462,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     }
   }
 
-  Thread* const thread = Thread::Current();
-  const Object& result = PassiveObject::Handle(thread->sticky_error());
-  thread->clear_sticky_error();
-  return result.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {

@@ -246,10 +246,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
 
   if (process_pending_classes && !ClassFinalizer::ProcessPendingClasses()) {
     // Class finalization failed -> sticky error would be set.
-    Error& error = Error::Handle(zone);
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error;
+    return Error::Handle(thread->StealStickyError());
   }
 
   return library;
@@ -630,9 +627,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     if (process_pending_classes) {
       if (!ClassFinalizer::ProcessPendingClasses()) {
         // Class finalization failed -> sticky error would be set.
-        RawError* error = H.thread()->sticky_error();
-        H.thread()->clear_sticky_error();
-        return error;
+        return H.thread()->StealStickyError();
       }
     }
 
@@ -663,9 +658,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
-  RawError* error = thread_->sticky_error();
-  thread_->clear_sticky_error();
-  return error;
+  return Thread::Current()->StealStickyError();
 }
 
 RawObject* KernelLoader::LoadExpressionEvaluationFunction(

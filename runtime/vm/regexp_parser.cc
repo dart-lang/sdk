@@ -1029,7 +1029,7 @@ bool RegExpParser::ParseRegExp(const String& input,
     result->capture_count = capture_count;
   } else {
     ASSERT(!result->error.IsNull());
-    Thread::Current()->clear_sticky_error();
+    Thread::Current()->ClearStickyError();
 
     // Throw a FormatException on parsing failures.
     const String& message =

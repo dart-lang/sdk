@@ -1238,12 +1238,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
 
     return Error::null();
   } else {
-    StackZone stack_zone(thread);
-    Error& error = Error::Handle();
-    // We got an error during bytecode reading.
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return thread->StealStickyError();
   }
 }
 

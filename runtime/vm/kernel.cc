@@ -473,11 +473,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field,
                                                is_annotations_offset);
 
   } else {
-    Thread* thread = Thread::Current();
-    Error& error = Error::Handle();
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
@@ -584,11 +580,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
 
     return builder.BuildParameterDescriptor(function.kernel_offset());
   } else {
-    Thread* thread = Thread::Current();
-    Error& error = Error::Handle();
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 

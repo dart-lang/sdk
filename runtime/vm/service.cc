@@ -866,7 +866,7 @@ RawError* Service::InvokeMethod(Isolate* I,
         // For now, always return an error.
         PrintInvalidParamError(&js, "_idZone");
         js.PostReply();
-        return T->get_and_clear_sticky_error();
+        return T->StealStickyError();
       }
     }
     const char* c_method_name = method_name.ToCString();
@@ -875,7 +875,7 @@ RawError* Service::InvokeMethod(Isolate* I,
     if (method != NULL) {
       if (!ValidateParameters(method->parameters, &js)) {
         js.PostReply();
-        return T->get_and_clear_sticky_error();
+        return T->StealStickyError();
       }
       if (method->entry(T, &js)) {
         js.PostReply();
@@ -884,7 +884,7 @@ RawError* Service::InvokeMethod(Isolate* I,
         // so this case shouldn't be reached, at present.
         UNIMPLEMENTED();
       }
-      return T->get_and_clear_sticky_error();
+      return T->StealStickyError();
     }
 
     EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(c_method_name);
@@ -894,7 +894,7 @@ RawError* Service::InvokeMethod(Isolate* I,
 
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
-      return T->get_and_clear_sticky_error();
+      return T->StealStickyError();
     }
 
     const Instance& extension_handler =
@@ -904,12 +904,12 @@ RawError* Service::InvokeMethod(Isolate* I,
                                param_values, reply_port, seq);
       // Schedule was successful. Extension code will post a reply
       // asynchronously.
-      return T->get_and_clear_sticky_error();
+      return T->StealStickyError();
     }
 
     PrintUnrecognizedMethodError(&js);
     js.PostReply();
-    return T->get_and_clear_sticky_error();
+    return T->StealStickyError();
   }
 }
 

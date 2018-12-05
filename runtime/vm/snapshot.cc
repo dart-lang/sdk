@@ -262,9 +262,7 @@ RawObject* SnapshotReader::ReadObject() {
     return result.raw();
   } else {
     // An error occurred while reading, return the error object.
-    const Error& err = Error::Handle(thread()->sticky_error());
-    thread()->clear_sticky_error();
-    return err.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
@@ -1434,7 +1432,7 @@ intptr_t SnapshotWriter::FindVmSnapshotObject(RawObject* rawobj) {
 
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
-  thread()->clear_sticky_error();
+  thread()->ClearStickyError();
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));
     const Array& args = Array::Handle(Array::New(1));

@@ -245,11 +245,7 @@ RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   if (setjmp(*jump.Set()) == 0) {
     return EvaluateExpression(offset);
   } else {
-    Thread* thread = H.thread();
-    Error& error = Error::Handle(Z);
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return H.thread()->StealStickyError();
   }
 }
 
@@ -383,7 +379,7 @@ void ConstantEvaluator::EvaluateStaticGet() {
           Error::Handle(thread->zone(), thread->sticky_error());
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
-        thread->clear_sticky_error();
+        thread->ClearStickyError();
         H.ReportError(error, script_, position, "Not a constant expression.");
         UNREACHABLE();
       }

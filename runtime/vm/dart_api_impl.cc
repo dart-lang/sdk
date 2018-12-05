@@ -1619,9 +1619,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   if (I->sticky_error() != Object::null()) {
     Thread* T = Thread::Current();
     TransitionNativeToVM transition(T);
-    Dart_Handle error = Api::NewHandle(T, I->sticky_error());
-    I->clear_sticky_error();
-    return error;
+    return Api::NewHandle(T, I->StealStickyError());
   }
   if (FLAG_print_class_table) {
     HANDLESCOPE(Thread::Current());
@@ -1638,9 +1636,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   API_TIMELINE_BEGIN_END_BASIC(T);
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
-    return error;
+    return Api::NewHandle(T, T->StealStickyError());
   }
   return Api::Success();
 }
@@ -1685,7 +1681,7 @@ DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
     const Error* error;
     {
       NoSafepointScope no_safepoint;
-      RawError* raw_error = T->get_and_clear_sticky_error();
+      RawError* raw_error = T->StealStickyError();
       T->UnwindScopes(T->top_exit_frame_info());
       error = &Error::Handle(T->zone(), raw_error);
     }

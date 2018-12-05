@@ -142,10 +142,7 @@ RawError* Precompiler::CompileAll() {
     precompiler.DoCompileAll();
     return Error::null();
   } else {
-    Thread* thread = Thread::Current();
-    const Error& error = Error::Handle(thread->sticky_error());
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
@@ -2333,7 +2330,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // Clear the error if it was not a real error, but just a bailout.
       if (error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        thread()->clear_sticky_error();
+        thread()->ClearStickyError();
       }
       is_compiled = false;
     }
@@ -2376,11 +2373,8 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
                                           optimized);
     const bool success = helper.Compile(pipeline);
     if (!success) {
-      // Encountered error.
-      Error& error = Error::Handle();
       // We got an error during compilation.
-      error = thread->sticky_error();
-      thread->clear_sticky_error();
+      const Error& error = Error::Handle(thread->StealStickyError());
       ASSERT(error.IsLanguageError() &&
              LanguageError::Cast(error).kind() != Report::kBailout);
       return error.raw();
@@ -2408,10 +2402,8 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
   } else {
     Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
-    Error& error = Error::Handle();
     // We got an error during compilation.
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
+    const Error& error = Error::Handle(thread->StealStickyError());
     // Precompilation may encounter compile-time errors.
     // Do not attempt to optimize functions that can cause errors.
     function.set_is_optimizable(false);

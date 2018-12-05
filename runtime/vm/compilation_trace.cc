@@ -307,13 +307,10 @@ RawObject* CompilationTraceLoader::EvaluateInitializer(const Field& field) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     field_.EvaluateInitializer();
+    return Error::null();
   } else {
-    Thread* thread = Thread::Current();
-    const Error& error = Error::Handle(thread->sticky_error());
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
-  return Object::null();
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

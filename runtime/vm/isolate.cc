@@ -741,7 +741,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
     if (I->ErrorsFatal()) {
       if (has_listener) {
-        T->clear_sticky_error();
+        T->ClearStickyError();
       } else {
         T->set_sticky_error(result);
       }
@@ -2318,8 +2318,11 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   deoptimized_code.Add(code);
 }
 
-void Isolate::clear_sticky_error() {
+RawError* Isolate::StealStickyError() {
+  NoSafepointScope no_safepoint;
+  RawError* return_value = sticky_error_;
   sticky_error_ = Error::null();
+  return return_value;
 }
 
 #if !defined(PRODUCT)
@@ -2848,8 +2851,7 @@ void Isolate::UnscheduleThread(Thread* thread,
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());
-      sticky_error_ = thread->sticky_error();
-      thread->clear_sticky_error();
+      sticky_error_ = thread->StealStickyError();
     }
   } else {
     ASSERT(thread->api_top_scope_ == NULL);

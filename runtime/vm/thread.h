@@ -593,8 +593,8 @@ class Thread : public BaseThread {
 
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
-  void clear_sticky_error();
-  RawError* get_and_clear_sticky_error();
+  void ClearStickyError();
+  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
   RawStackTrace* async_stack_trace() const;
   void set_async_stack_trace(const StackTrace& stack_trace);
