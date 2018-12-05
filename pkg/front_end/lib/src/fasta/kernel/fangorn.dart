@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         AwaitExpression,
         Block,
         BoolLiteral,
+        BreakStatement,
         Catch,
         CheckLibraryIsLoaded,
         ConditionalExpression,
@@ -23,6 +24,7 @@ import 'package:kernel/ast.dart'
         ExpressionStatement,
         InvalidExpression,
         IsExpression,
+        LabeledStatement,
         Let,
         LibraryDependency,
         LogicalExpression,
@@ -80,9 +82,7 @@ import 'kernel_shadow_ast.dart'
         AssertInitializerJudgment,
         AssertStatementJudgment,
         BlockJudgment,
-        BreakJudgment,
         CatchJudgment,
-        ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
         EmptyStatementJudgment,
@@ -90,7 +90,6 @@ import 'kernel_shadow_ast.dart'
         ForJudgment,
         IfJudgment,
         IntJudgment,
-        LabeledStatementJudgment,
         ListLiteralJudgment,
         LoadLibraryJudgment,
         MapEntryJudgment,
@@ -336,7 +335,7 @@ class Fangorn extends Forest {
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new BreakJudgment(null)..fileOffset = breakKeyword.charOffset;
+    return new BreakStatement(null)..fileOffset = breakKeyword.charOffset;
   }
 
   @override
@@ -364,7 +363,7 @@ class Fangorn extends Forest {
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ContinueJudgment(null)..fileOffset = continueKeyword.charOffset;
+    return new BreakStatement(null)..fileOffset = continueKeyword.charOffset;
   }
 
   @override
@@ -460,7 +459,7 @@ class Fangorn extends Forest {
 
   @override
   Statement syntheticLabeledStatement(Statement statement) {
-    return new LabeledStatementJudgment(statement);
+    return new LabeledStatement(statement);
   }
 
   @override

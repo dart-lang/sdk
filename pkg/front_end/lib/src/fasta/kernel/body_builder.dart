@@ -3679,7 +3679,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatementJudgment(body);
+      body = forest.syntheticLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
     VariableDeclaration variable;
@@ -3728,7 +3728,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
-      result = new LabeledStatementJudgment(result);
+      result = forest.syntheticLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
@@ -3771,7 +3771,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             uri);
       }
       if (statement is! LabeledStatement) {
-        statement = new LabeledStatementJudgment(statement);
+        statement = forest.syntheticLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(forest, statement);
       target.continueTarget.resolveContinues(forest, statement);
@@ -3957,7 +3957,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement result = new SwitchStatementJudgment(expression, cases)
       ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
-      result = new LabeledStatementJudgment(result);
+      result = forest.syntheticLabeledStatement(result);
       target.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);

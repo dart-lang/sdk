@@ -189,30 +189,6 @@ class BlockJudgment extends Block implements StatementJudgment {
   }
 }
 
-/// Concrete shadow object representing a break statement in kernel form.
-class BreakJudgment extends BreakStatement implements StatementJudgment {
-  BreakJudgment(LabeledStatement target) : super(target);
-
-  LabeledStatementJudgment get targetJudgment => target;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitBreakJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a continue statement in kernel form.
-class ContinueJudgment extends BreakStatement implements StatementJudgment {
-  ContinueJudgment(LabeledStatement target) : super(target);
-
-  LabeledStatementJudgment get targetJudgment => target;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitContinueJudgment(this);
-  }
-}
-
 /// Concrete shadow object representing a cascade expression.
 ///
 /// A cascade expression of the form `a..b()..c()` is represented as the kernel
@@ -573,8 +549,6 @@ class DeferredCheckJudgment extends Let implements ExpressionJudgment {
 class DoJudgment extends DoStatement implements StatementJudgment {
   DoJudgment(Statement body, Expression condition) : super(body, condition);
 
-  StatementJudgment get bodyJudgment => body;
-
   Expression get conditionJudgment => condition;
 
   @override
@@ -703,8 +677,6 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
 
   Expression get iterableJudgment => iterable;
 
-  StatementJudgment get bodyJudgment => body;
-
   @override
   void acceptInference(InferenceVistor visitor) {
     return visitor.visitForInJudgment(this);
@@ -720,8 +692,6 @@ class ForJudgment extends ForStatement implements StatementJudgment {
   Expression get conditionJudgment => condition;
 
   List<Expression> get updateJudgments => updates.cast();
-
-  StatementJudgment get bodyJudgment => body;
 
   @override
   void acceptInference(InferenceVistor visitor) {
@@ -823,10 +793,6 @@ class IfJudgment extends IfStatement implements StatementJudgment {
       : super(condition, then, otherwise);
 
   Expression get conditionJudgment => condition;
-
-  StatementJudgment get thenJudgment => then;
-
-  StatementJudgment get otherwiseJudgment => otherwise;
 
   @override
   void acceptInference(InferenceVistor visitor) {
@@ -1000,19 +966,6 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   @override
   void acceptInference(InferenceVistor visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
-  }
-}
-
-/// Concrete shadow object representing a labeled statement in kernel form.
-class LabeledStatementJudgment extends LabeledStatement
-    implements StatementJudgment {
-  LabeledStatementJudgment(Statement body) : super(body);
-
-  StatementJudgment get judgment => body;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitLabeledStatementJudgment(this);
   }
 }
 
@@ -1373,8 +1326,6 @@ class SwitchCaseJudgment extends SwitchCase {
   SwitchCaseJudgment.empty() : super.empty();
 
   List<Expression> get expressionJudgments => expressions.cast();
-
-  StatementJudgment get bodyJudgment => body;
 }
 
 /// Concrete shadow object representing a switch statement in kernel form.
@@ -1513,15 +1464,11 @@ class CatchJudgment extends Catch {
   VariableDeclarationJudgment get exceptionJudgment => exception;
 
   VariableDeclarationJudgment get stackTraceJudgment => stackTrace;
-
-  StatementJudgment get bodyJudgment => body;
 }
 
 /// Concrete shadow object representing a try-catch block in kernel form.
 class TryCatchJudgment extends TryCatch implements StatementJudgment {
   TryCatchJudgment(Statement body, List<Catch> catches) : super(body, catches);
-
-  StatementJudgment get bodyJudgment => body;
 
   List<CatchJudgment> get catchJudgments => catches.cast();
 
@@ -1535,8 +1482,6 @@ class TryCatchJudgment extends TryCatch implements StatementJudgment {
 class TryFinallyJudgment extends TryFinally implements StatementJudgment {
   TryFinallyJudgment(Statement body, Statement finalizer)
       : super(body, finalizer);
-
-  StatementJudgment get finalizerJudgment => finalizer;
 
   @override
   void acceptInference(InferenceVistor visitor) {
@@ -1658,6 +1603,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       // so that the type hierarchy will be simpler (which may speed up "is"
       // checks).
       return statement.acceptInference(new InferenceVistor(this));
+    } else if (statement is LabeledStatement) {
+      return statement.accept1(new InferenceVistor(this), null);
+    } else if (statement is BreakStatement) {
+      return statement.accept1(new InferenceVistor(this), null);
     } else {
       // Encountered a statement type for which type inference is not yet
       // implemented, so just skip it for now.
@@ -1895,8 +1844,6 @@ class WhileJudgment extends WhileStatement implements StatementJudgment {
   WhileJudgment(Expression condition, Statement body) : super(condition, body);
 
   Expression get conditionJudgment => condition;
-
-  StatementJudgment get bodyJudgment => body;
 
   @override
   void acceptInference(InferenceVistor visitor) {

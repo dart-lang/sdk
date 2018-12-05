@@ -16,7 +16,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   @override
-  void defaultStatement(Statement node, DartType _) {
+  void defaultStatement(Statement node, _) {
     unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
         inferrer.helper.uri);
   }
@@ -80,11 +80,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   @override
   void visitBoolLiteral(BoolLiteral node, DartType typeContext) {}
 
-  void visitBreakJudgment(BreakJudgment node) {
-    // No inference needs to be done.
-  }
-
-  void visitContinueJudgment(ContinueJudgment node) {
+  @override
+  void visitBreakStatement(BreakStatement node, _) {
     // No inference needs to be done.
   }
 
@@ -195,7 +192,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitDoJudgment(DoJudgment node) {
     var conditionJudgment = node.conditionJudgment;
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
     var boolType = inferrer.coreTypes.boolClass.rawType;
     inferrer.inferExpression(conditionJudgment, boolType, !inferrer.isTopLevel);
     inferrer.ensureAssignable(
@@ -365,7 +362,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           update, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
     }
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
   }
 
   ExpressionInferenceResult visitFunctionNodeJudgment(
@@ -450,9 +447,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         getInferredType(conditionJudgment, inferrer),
         node.condition,
         node.condition.fileOffset);
-    inferrer.inferStatement(node.thenJudgment);
-    if (node.otherwiseJudgment != null) {
-      inferrer.inferStatement(node.otherwiseJudgment);
+    inferrer.inferStatement(node.then);
+    if (node.otherwise != null) {
+      inferrer.inferStatement(node.otherwise);
     }
   }
 
@@ -602,8 +599,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node.operand, const UnknownType(), !inferrer.isTopLevel);
   }
 
-  void visitLabeledStatementJudgment(LabeledStatementJudgment node) {
-    inferrer.inferStatement(node.judgment);
+  @override
+  void visitLabeledStatement(LabeledStatement node, _) {
+    inferrer.inferStatement(node.body);
   }
 
   void visitListLiteralJudgment(
@@ -1143,7 +1141,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
               ]);
         }
       }
-      inferrer.inferStatement(switchCase.bodyJudgment);
+      inferrer.inferStatement(switchCase.body);
     }
   }
 
@@ -1202,11 +1200,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitCatchJudgment(CatchJudgment node) {
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
   }
 
   void visitTryCatchJudgment(TryCatchJudgment node) {
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
     for (var catch_ in node.catchJudgments) {
       visitCatchJudgment(catch_);
     }
@@ -1214,7 +1212,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitTryFinallyJudgment(TryFinallyJudgment node) {
     inferrer.inferStatement(node.body);
-    inferrer.inferStatement(node.finalizerJudgment);
+    inferrer.inferStatement(node.finalizer);
   }
 
   void visitTypeLiteralJudgment(
@@ -1330,7 +1328,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         getInferredType(conditionJudgment, inferrer),
         node.condition,
         node.condition.fileOffset);
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
   }
 
   void visitYieldJudgment(YieldJudgment node) {
