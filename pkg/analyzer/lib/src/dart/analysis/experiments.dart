@@ -12,12 +12,12 @@ class Experiments {
   static const String constantUpdate2018Name = 'constant-update-2018';
 
   /// The name of the experiment to support set literals.
-  static const String setLiteralName = 'set-literal';
+  static const String setLiteralsName = 'set-literals';
 
   /// A list containing the names of active experiments.
   static const List<String> activeExperimentNames = <String>[
     constantUpdate2018Name,
-    setLiteralName,
+    setLiteralsName,
   ];
 
   /// A list containing the names of the experiments that have been enabled.
@@ -32,5 +32,5 @@ class Experiments {
   bool get constantUpdate2018 => _enabled.contains(constantUpdate2018Name);
 
   /// Return `true` if the experiment named 'set-literal' has been enabled.
-  bool get setLiteral => _enabled.contains(setLiteralName);
+  bool get setLiteral => _enabled.contains(setLiteralsName);
 }

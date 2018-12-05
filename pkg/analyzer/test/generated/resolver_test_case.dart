@@ -666,7 +666,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     options ??= defaultAnalysisOptions;
     (options as AnalysisOptionsImpl).enabledExperiments = [
       Experiments.constantUpdate2018Name,
-      Experiments.setLiteralName
+      Experiments.setLiteralsName
     ];
     if (enableNewAnalysisDriver) {
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
