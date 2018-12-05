@@ -117,6 +117,13 @@ class InterpreterHelpers {
                                : static_cast<intptr_t>(kSmiCid);
   }
 
+  // The usage counter is actually a 'hotness' counter.
+  // For an instance call, both the usage counters of the caller and of the
+  // calle will get incremented, as well as the ICdata counter at the call site.
+  DART_FORCE_INLINE static void IncrementUsageCounter(RawFunction* f) {
+    f->ptr()->usage_counter_++;
+  }
+
   DART_FORCE_INLINE static void IncrementICUsageCount(RawObject** entries,
                                                       intptr_t offset,
                                                       intptr_t args_tested) {
@@ -2119,6 +2126,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
+      InterpreterHelpers::IncrementUsageCounter(
+          RAW_CAST(Function, icdata->ptr()->owner_));
       if (ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) == 1) {
         if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
                            false /* optimized */)) {
