@@ -157,6 +157,8 @@ bool search(
             "${before?.matches} ${after.matches} "
             "${before?.flaked} ${after.flaked}";
       }
+    } else {
+      output = name;
     }
     if (logs != null) {
       final log = logs[event.after.key];
