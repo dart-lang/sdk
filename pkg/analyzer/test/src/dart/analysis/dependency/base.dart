@@ -22,7 +22,7 @@ class BaseDependencyTest extends DriverResolutionTest {
   bool hasDartCore = false;
 
   void assertNodes(
-    List<DependencyNode> actualNodes,
+    List<Node> actualNodes,
     List<ExpectedNode> expectedNodes,
   ) {
     expect(actualNodes, hasLength(expectedNodes.length));
@@ -76,9 +76,9 @@ class BaseDependencyTest extends DriverResolutionTest {
 //    return library;
   }
 
-  DependencyNode getNode(Library library,
+  Node getNode(Library library,
       {@required String name,
-      DependencyNodeKind kind,
+      NodeKind kind,
       String memberOf,
       String typeParameterOf}) {
     var uri = library.uri;
@@ -87,17 +87,12 @@ class BaseDependencyTest extends DriverResolutionTest {
       var class_ = _getNode(nodes, uri: uri, name: memberOf);
       expect(
         class_.kind,
-        anyOf(
-          DependencyNodeKind.CLASS,
-          DependencyNodeKind.ENUM,
-          DependencyNodeKind.MIXIN,
-        ),
+        anyOf(NodeKind.CLASS, NodeKind.ENUM, NodeKind.MIXIN),
       );
       nodes = class_.classMembers;
     } else if (typeParameterOf != null) {
       var class_ = _getNode(nodes, uri: uri, name: typeParameterOf);
-      expect(class_.kind,
-          anyOf(DependencyNodeKind.CLASS, DependencyNodeKind.MIXIN));
+      expect(class_.kind, anyOf(NodeKind.CLASS, NodeKind.MIXIN));
       nodes = class_.classTypeParameters;
     }
     return _getNode(nodes, uri: uri, name: name, kind: kind);
@@ -127,9 +122,9 @@ class BaseDependencyTest extends DriverResolutionTest {
 //    tracker.addLibraryElement(unitResult.element.library, signatureBytes);
 //  }
 
-  DependencyNode _getNode(List<DependencyNode> nodes,
-      {@required Uri uri, @required String name, DependencyNodeKind kind}) {
-    var nameObj = DependencyName(uri, name);
+  Node _getNode(List<Node> nodes,
+      {@required Uri uri, @required String name, NodeKind kind}) {
+    var nameObj = LibraryQualifiedName(uri, name);
     for (var node in nodes) {
       if (node.name == nameObj) {
         if (kind != null && node.kind != kind) {
@@ -150,7 +145,7 @@ class BaseDependencyTest extends DriverResolutionTest {
 class ExpectedNode {
   final Uri uri;
   final String name;
-  final DependencyNodeKind kind;
+  final NodeKind kind;
   final List<ExpectedNode> classMembers;
   final List<ExpectedNode> classTypeParameters;
 
@@ -184,7 +179,7 @@ class _ReferenceCollector implements ReferenceCollector {
   void appendTypeAnnotation(TypeAnnotation node) {}
 
   @override
-  DependencyNodeDependencies finish(List<int> tokenSignature) {
-    return DependencyNodeDependencies(tokenSignature, [], [], [], []);
+  Dependencies finish(List<int> tokenSignature) {
+    return Dependencies(tokenSignature, [], [], [], []);
   }
 }

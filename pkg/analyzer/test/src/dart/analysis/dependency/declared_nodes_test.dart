@@ -112,10 +112,10 @@ class C {
       ExpectedNode(
         aUri,
         'C',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'named', DependencyNodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'named', NodeKind.CONSTRUCTOR),
         ],
       ),
     ]);
@@ -124,7 +124,7 @@ class C {
   test_class_constructor_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo();  }',
       'class X {  @deprecated X.foo();  }',
       memberOf: 'X',
@@ -134,7 +134,7 @@ class C {
   test_class_constructor_api_tokens_notSame_parameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo();  }',
       'class X {  X.foo(int a);  }',
       memberOf: 'X',
@@ -144,7 +144,7 @@ class C {
   test_class_constructor_api_tokens_notSame_parameter_name_edit_named() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo({int a});  }',
       'class X {  X.foo({int b});  }',
       memberOf: 'X',
@@ -154,7 +154,7 @@ class C {
   test_class_constructor_api_tokens_notSame_parameter_type() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo(int a);  }',
       'class X {  X.foo(double a);  }',
       memberOf: 'X',
@@ -164,7 +164,7 @@ class C {
   test_class_constructor_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo() { print(1); }  }',
       'class X {  X.foo() { print(2); }  }',
       memberOf: 'X',
@@ -174,7 +174,7 @@ class C {
   test_class_constructor_api_tokens_same_body_add() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo();  }',
       'class X {  X.foo() {}  }',
       memberOf: 'X',
@@ -184,7 +184,7 @@ class C {
   test_class_constructor_api_tokens_same_parameter_name_edit_required() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.CONSTRUCTOR,
+      NodeKind.CONSTRUCTOR,
       'class X {  X.foo(int a);  }',
       'class X {  X.foo(int b);  }',
       memberOf: 'X',
@@ -199,9 +199,9 @@ class C {}
       ExpectedNode(
         aUri,
         'C',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
         ],
       ),
     ]);
@@ -218,15 +218,15 @@ class C {
       ExpectedNode(
         aUri,
         'C',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'a', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'b', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'c', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'a=', DependencyNodeKind.SETTER),
-          ExpectedNode(aUri, 'b=', DependencyNodeKind.SETTER),
-          ExpectedNode(aUri, 'c=', DependencyNodeKind.SETTER),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'a', NodeKind.GETTER),
+          ExpectedNode(aUri, 'b', NodeKind.GETTER),
+          ExpectedNode(aUri, 'c', NodeKind.GETTER),
+          ExpectedNode(aUri, 'a=', NodeKind.SETTER),
+          ExpectedNode(aUri, 'b=', NodeKind.SETTER),
+          ExpectedNode(aUri, 'c=', NodeKind.SETTER),
         ],
       ),
     ]);
@@ -235,7 +235,7 @@ class C {
   test_class_field_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  int foo = 0;  }',
       'class X {  @deprecated int foo = 0;  }',
       memberOf: 'X',
@@ -245,7 +245,7 @@ class C {
   test_class_field_api_tokens_notSame_const() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  int foo = 0;  }',
       'class X {  const int foo = 0;  }',
       memberOf: 'X',
@@ -255,7 +255,7 @@ class C {
   test_class_field_api_tokens_same_final() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  int foo = 0;  }',
       'class X {  final int foo = 0;  }',
       memberOf: 'X',
@@ -265,7 +265,7 @@ class C {
   test_class_field_api_tokens_typed_notSame_type() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  int foo = 0;  }',
       'class X {  num foo = 1;  }',
       memberOf: 'X',
@@ -275,7 +275,7 @@ class C {
   test_class_field_api_tokens_typed_same_initializer() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  int foo = 0;  }',
       'class X {  int foo = 1;  }',
       memberOf: 'X',
@@ -285,7 +285,7 @@ class C {
   test_class_field_api_tokens_untyped_notSame_initializer() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  var foo = 0;  }',
       'class X {  var foo = 1.0;  }',
       memberOf: 'X',
@@ -303,11 +303,11 @@ class X {
       ExpectedNode(
         aUri,
         'X',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+          ExpectedNode(aUri, 'bar', NodeKind.GETTER),
         ],
       ),
     ]);
@@ -316,7 +316,7 @@ class X {
   test_class_field_const_api_tokens_typed_notSame_initializer() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  const int foo = 0;  }',
       'class X {  const int foo = 1;  }',
       memberOf: 'X',
@@ -334,11 +334,11 @@ class X {
       ExpectedNode(
         aUri,
         'X',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+          ExpectedNode(aUri, 'bar', NodeKind.GETTER),
         ],
       ),
     ]);
@@ -347,7 +347,7 @@ class X {
   test_class_field_final_api_tokens_typed_notSame_initializer_constClass() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  final int foo = 0;  const X();  }',
       'class X {  final int foo = 1;  const X();  }',
       memberOf: 'X',
@@ -357,7 +357,7 @@ class X {
   test_class_field_final_api_tokens_typed_same_initializer() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  final int foo = 0;  }',
       'class X {  final int foo = 1;  }',
       memberOf: 'X',
@@ -367,7 +367,7 @@ class X {
   test_class_field_final_api_tokens_untyped_notSame_initializer() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  final foo = 0;  }',
       'class X {  final foo = 1.0;  }',
       memberOf: 'X',
@@ -385,11 +385,11 @@ class C {
       ExpectedNode(
         aUri,
         'C',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+          ExpectedNode(aUri, 'bar', NodeKind.GETTER),
         ],
       ),
     ]);
@@ -398,7 +398,7 @@ class C {
   test_class_getter_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'class X {  int get foo => null;  }',
       'class X {  double get foo => null;  }',
       memberOf: 'X',
@@ -416,11 +416,11 @@ class C {
       ExpectedNode(
         aUri,
         'C',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'foo', DependencyNodeKind.METHOD),
-          ExpectedNode(aUri, 'bar', DependencyNodeKind.METHOD),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'foo', NodeKind.METHOD),
+          ExpectedNode(aUri, 'bar', NodeKind.METHOD),
         ],
       ),
     ]);
@@ -429,7 +429,7 @@ class C {
   test_class_method_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo() {}  }',
       'class X {  @deprecated void foo() {}  }',
       memberOf: 'X',
@@ -439,7 +439,7 @@ class C {
   test_class_method_api_tokens_notSame_parameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo() {}  }',
       'class X {  void foo(int a) {}  }',
       memberOf: 'X',
@@ -449,7 +449,7 @@ class C {
   test_class_method_api_tokens_notSame_parameter_name_edit_named() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo({int a}) {}  }',
       'class X {  void foo({int b}) {}  }',
       memberOf: 'X',
@@ -459,7 +459,7 @@ class C {
   test_class_method_api_tokens_notSame_parameter_type() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo(int a) {}  }',
       'class X {  void foo(double a) {}  }',
       memberOf: 'X',
@@ -469,7 +469,7 @@ class C {
   test_class_method_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  int foo() {}  }',
       'class X {  double foo() {}  }',
       memberOf: 'X',
@@ -479,7 +479,7 @@ class C {
   test_class_method_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo() {}  }',
       'class X {  void foo<T>() {}  }',
       memberOf: 'X',
@@ -489,7 +489,7 @@ class C {
   test_class_method_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo<T>() {}  }',
       'class X {  void foo<T extends num>() {}  }',
       memberOf: 'X',
@@ -499,7 +499,7 @@ class C {
   test_class_method_api_tokens_same_async_add() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  foo() {}  }',
       'class X {  foo() async {}  }',
       memberOf: 'X',
@@ -509,7 +509,7 @@ class C {
   test_class_method_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo() { print(1); }  }',
       'class X {  void foo() { print(2); }  }',
       memberOf: 'X',
@@ -519,7 +519,7 @@ class C {
   test_class_method_api_tokens_same_parameter_name_edit_required() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.METHOD,
+      NodeKind.METHOD,
       'class X {  void foo(int a) {}  }',
       'class X {  void foo(int b) {}  }',
       memberOf: 'X',
@@ -537,11 +537,11 @@ class C {
       ExpectedNode(
         aUri,
         'C',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
-          ExpectedNode(aUri, 'foo', DependencyNodeKind.SETTER),
-          ExpectedNode(aUri, 'bar', DependencyNodeKind.SETTER),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, 'foo', NodeKind.SETTER),
+          ExpectedNode(aUri, 'bar', NodeKind.SETTER),
         ],
       ),
     ]);
@@ -550,7 +550,7 @@ class C {
   test_class_setter_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.SETTER,
+      NodeKind.SETTER,
       'class X {  set foo(int a) {}  }',
       'class X {  set foo(double a) {}  }',
       memberOf: 'X',
@@ -560,7 +560,7 @@ class C {
   test_class_setter_api_tokens_same_parameter_name() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.SETTER,
+      NodeKind.SETTER,
       'class X {  set foo(int a) {}  }',
       'class X {  set foo(int b) {}  }',
       memberOf: 'X',
@@ -576,24 +576,24 @@ class B<T, U> {}
       ExpectedNode(
         aUri,
         'A',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
         ],
         classTypeParameters: [
-          ExpectedNode(aUri, 'T', DependencyNodeKind.TYPE_PARAMETER),
+          ExpectedNode(aUri, 'T', NodeKind.TYPE_PARAMETER),
         ],
       ),
       ExpectedNode(
         aUri,
         'B',
-        DependencyNodeKind.CLASS,
+        NodeKind.CLASS,
         classMembers: [
-          ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
+          ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
         ],
         classTypeParameters: [
-          ExpectedNode(aUri, 'T', DependencyNodeKind.TYPE_PARAMETER),
-          ExpectedNode(aUri, 'U', DependencyNodeKind.TYPE_PARAMETER),
+          ExpectedNode(aUri, 'T', NodeKind.TYPE_PARAMETER),
+          ExpectedNode(aUri, 'U', NodeKind.TYPE_PARAMETER),
         ],
       ),
     ]);
@@ -602,7 +602,7 @@ class B<T, U> {}
   test_class_typeParameter_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'T',
-      DependencyNodeKind.TYPE_PARAMETER,
+      NodeKind.TYPE_PARAMETER,
       'class X<T> {}',
       'class X<@deprecate T> {}',
       typeParameterOf: 'X',
@@ -612,7 +612,7 @@ class B<T, U> {}
   test_class_typeParameter_api_tokens_notSame_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'T',
-      DependencyNodeKind.TYPE_PARAMETER,
+      NodeKind.TYPE_PARAMETER,
       'class X<T> {}',
       'class X<T extends num> {}',
       typeParameterOf: 'X',
@@ -622,7 +622,7 @@ class B<T, U> {}
   test_class_typeParameter_api_tokens_notSame_bound_edit() async {
     await _assertApiTokenSignatureNotSame(
       'T',
-      DependencyNodeKind.TYPE_PARAMETER,
+      NodeKind.TYPE_PARAMETER,
       'class X<T extends num> {}',
       'class X<T extends int> {}',
       typeParameterOf: 'X',
@@ -688,11 +688,11 @@ class Foo {}
 class Bar {}
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'Foo', DependencyNodeKind.CLASS, classMembers: [
-        ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
+      ExpectedNode(aUri, 'Foo', NodeKind.CLASS, classMembers: [
+        ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
       ]),
-      ExpectedNode(aUri, 'Bar', DependencyNodeKind.CLASS, classMembers: [
-        ExpectedNode(aUri, '', DependencyNodeKind.CONSTRUCTOR),
+      ExpectedNode(aUri, 'Bar', NodeKind.CLASS, classMembers: [
+        ExpectedNode(aUri, '', NodeKind.CONSTRUCTOR),
       ]),
     ]);
   }
@@ -700,7 +700,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X {}',
       '@deprecated class X {}',
     );
@@ -709,7 +709,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_extends_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X {}',
       'class X extends A {}',
     );
@@ -718,7 +718,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_extends_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X extends A {}',
       'class X extends B {}',
     );
@@ -727,7 +727,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_extends_replace() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X extends A {}',
       'class X implements A {}',
     );
@@ -736,7 +736,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_extends_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X extends A {}',
       'class X extends A<int> {}',
     );
@@ -745,7 +745,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_implements_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X {}',
       'class X implements A {}',
     );
@@ -754,7 +754,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_implements_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X implements A {}',
       'class X implements B {}',
     );
@@ -763,7 +763,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_implements_remove() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X implements A {}',
       'class X {}',
     );
@@ -772,7 +772,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_implements_remove2() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X implements A, B {}',
       'class X implements B {}',
     );
@@ -781,7 +781,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_implements_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X implements A {}',
       'class X implements A<int> {}',
     );
@@ -790,7 +790,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X {}',
       'class X<T> {}',
     );
@@ -799,7 +799,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_typeParameter_add2() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X<T> {}',
       'class X<T, U> {}',
     );
@@ -808,7 +808,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X<T> {}',
       'class X<T extends num> {}',
     );
@@ -817,7 +817,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_with_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X extends A {}',
       'class X extends A with B {}',
     );
@@ -826,7 +826,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_with_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X extends A with B {}',
       'class X extends A with C {}',
     );
@@ -835,7 +835,7 @@ class Bar {}
   test_unit_class_api_tokens_notSame_with_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X extends A with B {}',
       'class X extends A with B<int> {}',
     );
@@ -844,7 +844,7 @@ class Bar {}
   test_unit_class_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'X',
-      DependencyNodeKind.CLASS,
+      NodeKind.CLASS,
       'class X {  }',
       'class X { void foo() {} }',
     );
@@ -855,14 +855,14 @@ class Bar {}
 class X = Object with M;
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'X', DependencyNodeKind.CLASS_TYPE_ALIAS),
+      ExpectedNode(aUri, 'X', NodeKind.CLASS_TYPE_ALIAS),
     ]);
   }
 
   test_unit_classTypeAlias_api_tokens_notSame_implements_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X = A with M implements I;',
     );
@@ -871,7 +871,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_implements_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M implements I;',
       'class X = A with M implements J;',
     );
@@ -880,7 +880,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_implements_remove() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M implements I;',
       'class X = A with M;',
     );
@@ -889,7 +889,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_implements_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M implements I;',
       'class X = A with M implements I<int>;',
     );
@@ -898,7 +898,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_super() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X = B with M;',
     );
@@ -907,7 +907,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_super_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X = A<int> with M;',
     );
@@ -916,7 +916,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X<T> = A with M;',
     );
@@ -925,7 +925,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_typeParameter_add2() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X<T> = A with M;',
       'class X<T, U> = A with M;',
     );
@@ -934,7 +934,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X<T> = A with M;',
       'class X<T extends num> = A with M;',
     );
@@ -943,7 +943,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_with_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X = A with M, N;',
     );
@@ -952,7 +952,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_with_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X = A with N;',
     );
@@ -961,7 +961,7 @@ class X = Object with M;
   test_unit_classTypeAlias_api_tokens_notSame_with_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.CLASS_TYPE_ALIAS,
+      NodeKind.CLASS_TYPE_ALIAS,
       'class X = A with M;',
       'class X = A with M<int>;',
     );
@@ -976,25 +976,25 @@ enum Bar {d, e, f}
       ExpectedNode(
         aUri,
         'Foo',
-        DependencyNodeKind.ENUM,
+        NodeKind.ENUM,
         classMembers: [
-          ExpectedNode(aUri, 'a', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'b', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'c', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'index', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'values', DependencyNodeKind.GETTER),
+          ExpectedNode(aUri, 'a', NodeKind.GETTER),
+          ExpectedNode(aUri, 'b', NodeKind.GETTER),
+          ExpectedNode(aUri, 'c', NodeKind.GETTER),
+          ExpectedNode(aUri, 'index', NodeKind.GETTER),
+          ExpectedNode(aUri, 'values', NodeKind.GETTER),
         ],
       ),
       ExpectedNode(
         aUri,
         'Bar',
-        DependencyNodeKind.ENUM,
+        NodeKind.ENUM,
         classMembers: [
-          ExpectedNode(aUri, 'd', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'e', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'f', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'index', DependencyNodeKind.GETTER),
-          ExpectedNode(aUri, 'values', DependencyNodeKind.GETTER),
+          ExpectedNode(aUri, 'd', NodeKind.GETTER),
+          ExpectedNode(aUri, 'e', NodeKind.GETTER),
+          ExpectedNode(aUri, 'f', NodeKind.GETTER),
+          ExpectedNode(aUri, 'index', NodeKind.GETTER),
+          ExpectedNode(aUri, 'values', NodeKind.GETTER),
         ],
       ),
     ]);
@@ -1006,15 +1006,15 @@ void foo() {}
 void bar() {}
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'foo', DependencyNodeKind.FUNCTION),
-      ExpectedNode(aUri, 'bar', DependencyNodeKind.FUNCTION),
+      ExpectedNode(aUri, 'foo', NodeKind.FUNCTION),
+      ExpectedNode(aUri, 'bar', NodeKind.FUNCTION),
     ]);
   }
 
   test_unit_function_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo() {}',
       '@deprecated void foo() {}',
     );
@@ -1023,7 +1023,7 @@ void bar() {}
   test_unit_function_api_tokens_notSame_parameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo() {}',
       'void foo(int a) {}',
     );
@@ -1032,7 +1032,7 @@ void bar() {}
   test_unit_function_api_tokens_notSame_parameter_name_edit_named() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo({int a}) {}',
       'void foo({int b}) {}',
     );
@@ -1041,7 +1041,7 @@ void bar() {}
   test_unit_function_api_tokens_notSame_parameter_type() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo(int a) {}',
       'void foo(double a) {}',
     );
@@ -1050,7 +1050,7 @@ void bar() {}
   test_unit_function_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'int foo() {}',
       'num foo() {}',
     );
@@ -1059,7 +1059,7 @@ void bar() {}
   test_unit_function_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo() {}',
       'void foo<T>() {}',
     );
@@ -1068,7 +1068,7 @@ void bar() {}
   test_unit_function_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo<T>() {}',
       'void foo<T extends num>() {}',
     );
@@ -1077,7 +1077,7 @@ void bar() {}
   test_unit_function_api_tokens_same_async_add() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'foo() {}',
       'foo() async {}',
     );
@@ -1086,7 +1086,7 @@ void bar() {}
   test_unit_function_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo() { print(1); }',
       'void foo() { print(2); }',
     );
@@ -1095,7 +1095,7 @@ void bar() {}
   test_unit_function_api_tokens_same_parameter_name_edit_required() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'void foo(int a) {}',
       'void foo(int b) {}',
     );
@@ -1104,7 +1104,7 @@ void bar() {}
   test_unit_function_api_tokens_same_syncStar_add() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.FUNCTION,
+      NodeKind.FUNCTION,
       'foo() {}',
       'foo() sync* {}',
     );
@@ -1116,15 +1116,15 @@ typedef void Foo();
 typedef void Bar();
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'Foo', DependencyNodeKind.FUNCTION_TYPE_ALIAS),
-      ExpectedNode(aUri, 'Bar', DependencyNodeKind.FUNCTION_TYPE_ALIAS),
+      ExpectedNode(aUri, 'Foo', NodeKind.FUNCTION_TYPE_ALIAS),
+      ExpectedNode(aUri, 'Bar', NodeKind.FUNCTION_TYPE_ALIAS),
     ]);
   }
 
   test_unit_functionTypeAlias_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo();',
       '@deprecated typedef void Foo();',
     );
@@ -1133,7 +1133,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_notSame_parameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo();',
       'typedef void Foo(int a);',
     );
@@ -1142,7 +1142,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_notSame_parameter_name_edit_named() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo({int a});',
       'typedef void Foo({int b});',
     );
@@ -1151,7 +1151,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_notSame_parameter_type() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo(int a);',
       'typedef void Foo(double a);',
     );
@@ -1160,7 +1160,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef int Foo();',
       'typedef num Foo();',
     );
@@ -1169,7 +1169,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo();',
       'typedef void Foo<T>();',
     );
@@ -1178,7 +1178,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo<T>();',
       'typedef void Foo<T extends num>();',
     );
@@ -1187,7 +1187,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_same_comment() async {
     await _assertApiTokenSignatureSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef int Foo();',
       '/* text */ typedef int Foo();',
     );
@@ -1196,7 +1196,7 @@ typedef void Bar();
   test_unit_functionTypeAlias_api_tokens_same_parameter_name_edit_required() async {
     await _assertApiTokenSignatureSame(
       'Foo',
-      DependencyNodeKind.FUNCTION_TYPE_ALIAS,
+      NodeKind.FUNCTION_TYPE_ALIAS,
       'typedef void Foo(int a);',
       'typedef void Foo(int b);',
     );
@@ -1208,15 +1208,15 @@ typedef Foo = void Function();
 typedef Bar = void Function();
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'Foo', DependencyNodeKind.GENERIC_TYPE_ALIAS),
-      ExpectedNode(aUri, 'Bar', DependencyNodeKind.GENERIC_TYPE_ALIAS),
+      ExpectedNode(aUri, 'Foo', NodeKind.GENERIC_TYPE_ALIAS),
+      ExpectedNode(aUri, 'Bar', NodeKind.GENERIC_TYPE_ALIAS),
     ]);
   }
 
   test_unit_genericTypeAlias_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function();',
       '@deprecated typedef Foo = void Function();',
     );
@@ -1225,7 +1225,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_parameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function();',
       'typedef Foo = void Function(int);',
     );
@@ -1234,7 +1234,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_parameter_kind() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function(int a);',
       'typedef Foo = void Function([int a]);',
     );
@@ -1243,7 +1243,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_parameter_name_add_positional() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function([int]);',
       'typedef Foo = void Function([int a]);',
     );
@@ -1252,7 +1252,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_parameter_name_edit_named() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function({int a});',
       'typedef Foo = void Function({int b});',
     );
@@ -1261,7 +1261,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_parameter_name_edit_positional() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function([int]);',
       'typedef Foo = void Function([int a]);',
     );
@@ -1270,7 +1270,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = int Function();',
       'typedef Foo = double Function();',
     );
@@ -1279,7 +1279,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_typeParameter2_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function();',
       'typedef Foo = void Function<T>();',
     );
@@ -1288,7 +1288,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_typeParameter2_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function<T>();',
       'typedef Foo = void Function<T extends num>();',
     );
@@ -1297,7 +1297,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function();',
       'typedef Foo<T> = void Function();',
     );
@@ -1306,7 +1306,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo<T> = void Function();',
       'typedef Foo<T extends num> = void Function();',
     );
@@ -1315,7 +1315,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_same_parameter_name_add_required() async {
     await _assertApiTokenSignatureSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function(int);',
       'typedef Foo = void Function(int a);',
     );
@@ -1324,7 +1324,7 @@ typedef Bar = void Function();
   test_unit_genericTypeAlias_api_tokens_same_parameter_name_edit_required() async {
     await _assertApiTokenSignatureSame(
       'Foo',
-      DependencyNodeKind.GENERIC_TYPE_ALIAS,
+      NodeKind.GENERIC_TYPE_ALIAS,
       'typedef Foo = void Function(int a);',
       'typedef Foo = void Function(int b);',
     );
@@ -1336,15 +1336,15 @@ int get foo => 0;
 int get bar => 0;
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+      ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+      ExpectedNode(aUri, 'bar', NodeKind.GETTER),
     ]);
   }
 
   test_unit_getter_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int get foo => 0;',
       '@deprecated int get foo => 0;',
     );
@@ -1353,7 +1353,7 @@ int get bar => 0;
   test_unit_getter_api_tokens_notSame_returnType() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int get foo => 0;',
       'num get foo => 0;',
     );
@@ -1362,7 +1362,7 @@ int get bar => 0;
   test_unit_getter_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int get foo => 0;',
       'int get foo => 1;',
     );
@@ -1374,17 +1374,15 @@ mixin Foo {}
 mixin Bar {}
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'Foo', DependencyNodeKind.MIXIN,
-          classMembers: const []),
-      ExpectedNode(aUri, 'Bar', DependencyNodeKind.MIXIN,
-          classMembers: const []),
+      ExpectedNode(aUri, 'Foo', NodeKind.MIXIN, classMembers: const []),
+      ExpectedNode(aUri, 'Bar', NodeKind.MIXIN, classMembers: const []),
     ]);
   }
 
   test_unit_mixin_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X {}',
       '@deprecated mixin X {}',
     );
@@ -1393,7 +1391,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_implements_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X {}',
       'mixin X implements A {}',
     );
@@ -1402,7 +1400,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_implements_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X implements A {}',
       'mixin X implements B {}',
     );
@@ -1411,7 +1409,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_implements_remove() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X implements A {}',
       'mixin X {}',
     );
@@ -1420,7 +1418,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_implements_remove2() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X implements A, B {}',
       'mixin X implements B {}',
     );
@@ -1429,7 +1427,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_implements_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X implements A {}',
       'mixin X implements A<int> {}',
     );
@@ -1438,7 +1436,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_on_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X {}',
       'mixin X on A {}',
     );
@@ -1447,7 +1445,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_on_add2() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X on A {}',
       'mixin X on A, B {}',
     );
@@ -1456,7 +1454,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_on_edit() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X on A {}',
       'mixin X on B {}',
     );
@@ -1465,7 +1463,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_on_replace() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X on A {}',
       'mixin X implements A {}',
     );
@@ -1474,7 +1472,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_on_typeArgument() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X on A {}',
       'mixin X on A<int> {}',
     );
@@ -1483,7 +1481,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_typeParameter_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X {}',
       'mixin X<T> {}',
     );
@@ -1492,7 +1490,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_typeParameter_add2() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X<T> {}',
       'mixin X<T, U> {}',
     );
@@ -1501,7 +1499,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_notSame_typeParameter_bound_add() async {
     await _assertApiTokenSignatureNotSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X<T> {}',
       'mixin X<T extends num> {}',
     );
@@ -1510,7 +1508,7 @@ mixin Bar {}
   test_unit_mixin_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'X',
-      DependencyNodeKind.MIXIN,
+      NodeKind.MIXIN,
       'mixin X {  }',
       'mixin X { void foo() {} }',
     );
@@ -1522,15 +1520,15 @@ void set foo(_) {}
 void set bar(_) {}
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'foo=', DependencyNodeKind.SETTER),
-      ExpectedNode(aUri, 'bar=', DependencyNodeKind.SETTER),
+      ExpectedNode(aUri, 'foo=', NodeKind.SETTER),
+      ExpectedNode(aUri, 'bar=', NodeKind.SETTER),
     ]);
   }
 
   test_unit_setter_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo=',
-      DependencyNodeKind.SETTER,
+      NodeKind.SETTER,
       'set foo(int a) {}',
       '@deprecated set foo(int a) {}',
     );
@@ -1539,7 +1537,7 @@ void set bar(_) {}
   test_unit_setter_api_tokens_notSame_parameter_type() async {
     await _assertApiTokenSignatureNotSame(
       'foo=',
-      DependencyNodeKind.SETTER,
+      NodeKind.SETTER,
       'set foo(int a) {}',
       'set foo(num a) {}',
     );
@@ -1548,7 +1546,7 @@ void set bar(_) {}
   test_unit_setter_api_tokens_same_body() async {
     await _assertApiTokenSignatureSame(
       'foo=',
-      DependencyNodeKind.SETTER,
+      NodeKind.SETTER,
       'set foo(int a) { print(0); }',
       'set foo(int a) { print(1); }',
     );
@@ -1560,19 +1558,19 @@ int a = 1;
 int b = 2, c = 3;
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'a', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'b', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'c', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'a=', DependencyNodeKind.SETTER),
-      ExpectedNode(aUri, 'b=', DependencyNodeKind.SETTER),
-      ExpectedNode(aUri, 'c=', DependencyNodeKind.SETTER),
+      ExpectedNode(aUri, 'a', NodeKind.GETTER),
+      ExpectedNode(aUri, 'b', NodeKind.GETTER),
+      ExpectedNode(aUri, 'c', NodeKind.GETTER),
+      ExpectedNode(aUri, 'a=', NodeKind.SETTER),
+      ExpectedNode(aUri, 'b=', NodeKind.SETTER),
+      ExpectedNode(aUri, 'c=', NodeKind.SETTER),
     ]);
   }
 
   test_unit_variable_api_tokens_notSame_annotation() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int foo = 0;',
       '@deprecated int foo = 0;',
     );
@@ -1581,7 +1579,7 @@ int b = 2, c = 3;
   test_unit_variable_api_tokens_notSame_const() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int foo = 0;',
       'const int foo = 0;',
     );
@@ -1590,7 +1588,7 @@ int b = 2, c = 3;
   test_unit_variable_api_tokens_same_final() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int foo = 0;',
       'final int foo = 0;',
     );
@@ -1599,7 +1597,7 @@ int b = 2, c = 3;
   test_unit_variable_api_tokens_typed_notSame_type() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int foo = 0;',
       'num foo = 1;',
     );
@@ -1608,7 +1606,7 @@ int b = 2, c = 3;
   test_unit_variable_api_tokens_typed_same_initializer() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'int foo = 0;',
       'int foo = 1;',
     );
@@ -1617,7 +1615,7 @@ int b = 2, c = 3;
   test_unit_variable_api_tokens_untyped_notSame_initializer() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'var foo = 0;',
       'var foo = 1.0;',
     );
@@ -1629,15 +1627,15 @@ const foo = 1;
 const bar = 2;
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+      ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+      ExpectedNode(aUri, 'bar', NodeKind.GETTER),
     ]);
   }
 
   test_unit_variable_const_api_tokens_typed_notSame_initializer() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'const int foo = 0;',
       'const int foo = 1;',
     );
@@ -1649,15 +1647,15 @@ final foo = 1;
 final bar = 2;
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+      ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+      ExpectedNode(aUri, 'bar', NodeKind.GETTER),
     ]);
   }
 
   test_unit_variable_final_api_tokens_typed_same_initializer() async {
     await _assertApiTokenSignatureSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'final int foo = 0;',
       'final int foo = 1;',
     );
@@ -1666,7 +1664,7 @@ final bar = 2;
   test_unit_variable_final_api_tokens_untyped_notSame_initializer() async {
     await _assertApiTokenSignatureNotSame(
       'foo',
-      DependencyNodeKind.GETTER,
+      NodeKind.GETTER,
       'final foo = 0;',
       'final foo = 1.0;',
     );
@@ -1678,15 +1676,15 @@ final foo;
 final bar;
 ''');
     assertNodes(library.declaredNodes, [
-      ExpectedNode(aUri, 'foo', DependencyNodeKind.GETTER),
-      ExpectedNode(aUri, 'bar', DependencyNodeKind.GETTER),
+      ExpectedNode(aUri, 'foo', NodeKind.GETTER),
+      ExpectedNode(aUri, 'bar', NodeKind.GETTER),
     ]);
   }
 
   Future<void> _assertApiTokenSignatureNotSame(
-      String name, DependencyNodeKind kind, String codeBefore, String codeAfter,
+      String name, NodeKind kind, String codeBefore, String codeAfter,
       {String memberOf, String typeParameterOf}) async {
-    DependencyNode getNodeLocal(Library library) {
+    Node getNodeLocal(Library library) {
       return getNode(
         library,
         name: name,
@@ -1709,9 +1707,9 @@ final bar;
   }
 
   Future<void> _assertApiTokenSignatureSame(
-      String name, DependencyNodeKind kind, String codeBefore, String codeAfter,
+      String name, NodeKind kind, String codeBefore, String codeAfter,
       {String memberOf, String typeParameterOf}) async {
-    DependencyNode getNodeLocal(Library library) {
+    Node getNodeLocal(Library library) {
       return getNode(
         library,
         name: name,
@@ -1733,7 +1731,7 @@ final bar;
     );
   }
 
-  static _assertDifferentApiTokenSignature(DependencyNode a, DependencyNode b) {
+  static _assertDifferentApiTokenSignature(Node a, Node b) {
     expect(
       a.api.tokenSignatureHex,
       isNot(b.api.tokenSignatureHex),
