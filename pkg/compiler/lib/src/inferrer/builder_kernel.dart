@@ -126,7 +126,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             : <Local, FieldEntity>{} {
     if (_state != null) return;
 
-    _state = new LocalState.initial(_analyzedNode,
+    _state = new LocalState.initial(
         inGenerativeConstructor: _inGenerativeConstructor);
   }
 
@@ -479,7 +479,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     handleCondition(node.condition);
     LocalState afterConditionWhenTrue = _stateAfterWhenTrue;
     LocalState afterConditionWhenFalse = _stateAfterWhenFalse;
-    _state = new LocalState.childPath(afterConditionWhenFalse, node.message);
+    _state = new LocalState.childPath(afterConditionWhenFalse);
     visit(node.message);
     LocalState stateAfterMessage = _state;
     stateAfterMessage.seenReturnOrThrow = true;
@@ -545,7 +545,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         changed = false;
         for (ir.SwitchCase switchCase in node.cases) {
           LocalState stateBeforeCase = _state;
-          _state = new LocalState.childPath(stateBeforeCase, switchCase);
+          _state = new LocalState.childPath(stateBeforeCase);
           visit(switchCase);
           LocalState stateAfterCase = _state;
           changed =
@@ -565,7 +565,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         if (switchCase.isDefault) {
           hasDefaultCase = true;
         }
-        _state = new LocalState.childPath(stateBeforeCase, switchCase);
+        _state = new LocalState.childPath(stateBeforeCase);
         visit(switchCase);
         statesToMerge.add(_state);
       }
@@ -1041,7 +1041,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       // Setup (and clear in case of multiple iterations of the loop)
       // the lists of breaks and continues seen in the loop.
       _setupBreaksAndContinues(target);
-      _state = new LocalState.childPath(stateBefore, node);
+      _state = new LocalState.childPath(stateBefore);
       logic();
       changed = stateBefore.mergeAll(_inferrer, _getLoopBackEdges(target));
     } while (changed);
@@ -1346,10 +1346,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (operand is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(operand.variable);
       DartType type = _elementMap.getDartType(node.type);
-      LocalState stateAfterCheckWhenTrue =
-          new LocalState.childPath(_state, node);
-      LocalState stateAfterCheckWhenFalse =
-          new LocalState.childPath(_state, node);
+      LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
+      LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
       stateAfterCheckWhenTrue.narrowLocal(
           _inferrer, _capturedAndBoxed, local, type, node);
       _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
@@ -1362,10 +1360,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (receiver is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(receiver.variable);
       DartType localType = _localsMap.getLocalType(_elementMap, local);
-      LocalState stateAfterCheckWhenTrue =
-          new LocalState.childPath(_state, node);
-      LocalState stateAfterCheckWhenFalse =
-          new LocalState.childPath(_state, node);
+      LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
+      LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
       stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
           _types.nullType, node, localType);
       stateAfterCheckWhenFalse.narrowLocal(_inferrer, _capturedAndBoxed, local,
@@ -1380,11 +1376,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     handleCondition(node.condition);
     LocalState stateAfterConditionWhenTrue = _stateAfterWhenTrue;
     LocalState stateAfterConditionWhenFalse = _stateAfterWhenFalse;
-    _state = new LocalState.childPath(stateAfterConditionWhenTrue, node.then);
+    _state = new LocalState.childPath(stateAfterConditionWhenTrue);
     visit(node.then);
     LocalState stateAfterThen = _state;
-    _state =
-        new LocalState.childPath(stateAfterConditionWhenFalse, node.otherwise);
+    _state = new LocalState.childPath(stateAfterConditionWhenFalse);
     visit(node.otherwise);
     LocalState stateAfterElse = _state;
     _state =
@@ -1413,17 +1408,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
     if (node.operator == '&&') {
       LocalState stateBefore = _state;
-      _state = new LocalState.childPath(stateBefore, node.left);
+      _state = new LocalState.childPath(stateBefore);
       handleCondition(node.left);
       LocalState stateAfterLeftWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterLeftWhenFalse = _stateAfterWhenFalse;
-      _state = new LocalState.childPath(stateAfterLeftWhenTrue, node.right);
+      _state = new LocalState.childPath(stateAfterLeftWhenTrue);
       handleCondition(node.right);
       LocalState stateAfterRightWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterRightWhenFalse = _stateAfterWhenFalse;
       LocalState stateAfterWhenTrue = stateAfterRightWhenTrue;
-      LocalState stateAfterWhenFalse =
-          new LocalState.childPath(stateBefore, node).mergeDiamondFlow(
+      LocalState stateAfterWhenFalse = new LocalState.childPath(stateBefore)
+          .mergeDiamondFlow(
               _inferrer, stateAfterLeftWhenFalse, stateAfterRightWhenFalse);
       LocalState after = stateBefore.mergeDiamondFlow(
           _inferrer, stateAfterWhenTrue, stateAfterWhenFalse);
@@ -1431,16 +1426,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return _types.boolType;
     } else if (node.operator == '||') {
       LocalState stateBefore = _state;
-      _state = new LocalState.childPath(stateBefore, node.left);
+      _state = new LocalState.childPath(stateBefore);
       handleCondition(node.left);
       LocalState stateAfterLeftWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterLeftWhenFalse = _stateAfterWhenFalse;
-      _state = new LocalState.childPath(stateAfterLeftWhenFalse, node.right);
+      _state = new LocalState.childPath(stateAfterLeftWhenFalse);
       handleCondition(node.right);
       LocalState stateAfterRightWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterRightWhenFalse = _stateAfterWhenFalse;
-      LocalState stateAfterWhenTrue =
-          new LocalState.childPath(stateBefore, node).mergeDiamondFlow(
+      LocalState stateAfterWhenTrue = new LocalState.childPath(stateBefore)
+          .mergeDiamondFlow(
               _inferrer, stateAfterLeftWhenTrue, stateAfterRightWhenTrue);
       LocalState stateAfterWhenFalse = stateAfterRightWhenFalse;
       LocalState stateAfter = stateBefore.mergeDiamondFlow(
@@ -1459,10 +1454,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     handleCondition(node.condition);
     LocalState stateAfterWhenTrue = _stateAfterWhenTrue;
     LocalState stateAfterWhenFalse = _stateAfterWhenFalse;
-    _state = new LocalState.childPath(stateAfterWhenTrue, node.then);
+    _state = new LocalState.childPath(stateAfterWhenTrue);
     TypeInformation firstType = visit(node.then);
     LocalState stateAfterThen = _state;
-    _state = new LocalState.childPath(stateAfterWhenFalse, node.otherwise);
+    _state = new LocalState.childPath(stateAfterWhenFalse);
     TypeInformation secondType = visit(node.otherwise);
     LocalState stateAfterElse = _state;
     _state =
@@ -1514,7 +1509,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
-    LocalState closureState = new LocalState.closure(_state, node);
+    LocalState closureState = new LocalState.closure(_state);
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         _options,
         _closedWorld,
@@ -1544,7 +1539,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   visitWhileStatement(ir.WhileStatement node) {
     return handleLoop(node, _localsMap.getJumpTargetForWhile(node), () {
       handleCondition(node.condition);
-      _state = new LocalState.childPath(_stateAfterWhenTrue, node.body);
+      _state = new LocalState.childPath(_stateAfterWhenTrue);
       visit(node.body);
     });
   }
@@ -1569,7 +1564,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
     return handleLoop(node, _localsMap.getJumpTargetForFor(node), () {
       handleCondition(node.condition);
-      _state = new LocalState.childPath(_stateAfterWhenTrue, node.body);
+      _state = new LocalState.childPath(_stateAfterWhenTrue);
       visit(node.body);
       for (ir.Expression update in node.updates) {
         visit(update);
@@ -1587,7 +1582,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _state = stateBefore.mergeFlow(_inferrer, stateAfterBody);
     for (ir.Catch catchBlock in node.catches) {
       LocalState stateBeforeCatch = _state;
-      _state = new LocalState.childPath(stateBeforeCatch, catchBlock);
+      _state = new LocalState.childPath(stateBeforeCatch);
       visit(catchBlock);
       LocalState stateAfterCatch = _state;
       _state = stateBeforeCatch.mergeFlow(_inferrer, stateAfterCatch);
@@ -1778,27 +1773,26 @@ class LocalState {
   bool seenBreakOrContinue = false;
   LocalsHandler _tryBlock;
 
-  LocalState.initial(ir.TreeNode node, {bool inGenerativeConstructor})
+  LocalState.initial({bool inGenerativeConstructor})
       : this.internal(
-            new LocalsHandler(node),
+            new LocalsHandler(),
             inGenerativeConstructor ? new FieldInitializationScope() : null,
             null,
             seenReturnOrThrow: false,
             seenBreakOrContinue: false);
 
-  LocalState.childPath(LocalState other, ir.TreeNode node)
-      : this.internal(new LocalsHandler.from(other._locals, node, isTry: false),
+  LocalState.childPath(LocalState other)
+      : this.internal(new LocalsHandler.from(other._locals),
             new FieldInitializationScope.from(other._fields), other._tryBlock,
             seenReturnOrThrow: false, seenBreakOrContinue: false);
 
-  LocalState.closure(LocalState other, ir.TreeNode node)
-      : this.internal(new LocalsHandler.from(other._locals, node, isTry: false),
+  LocalState.closure(LocalState other)
+      : this.internal(new LocalsHandler.from(other._locals),
             new FieldInitializationScope.from(other._fields), null,
             seenReturnOrThrow: false, seenBreakOrContinue: false);
 
   factory LocalState.tryBlock(LocalState other, ir.TreeNode node) {
-    LocalsHandler locals =
-        new LocalsHandler.from(other._locals, node, isTry: true);
+    LocalsHandler locals = new LocalsHandler.tryBlock(other._locals, node);
     FieldInitializationScope fieldScope =
         new FieldInitializationScope.from(other._fields);
     LocalsHandler tryBlock = locals;

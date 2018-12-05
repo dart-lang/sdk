@@ -10,6 +10,16 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 
+/// Returns a textual representation of [node] that include the runtime type and
+/// hash code of the node and a one line prefix of the node toString text.
+String nodeToDebugString(ir.Node node, [int textLength = 40]) {
+  String blockText = node.toString().replaceAll('\n', ' ');
+  if (blockText.length > textLength) {
+    blockText = blockText.substring(0, textLength - 3) + '...';
+  }
+  return '(${node.runtimeType}:${node.hashCode})${blockText}';
+}
+
 /// Comparator for the canonical order or named arguments.
 // TODO(johnniwinther): Remove this when named parameters are sorted in dill.
 int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
