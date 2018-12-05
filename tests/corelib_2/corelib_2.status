@@ -414,6 +414,9 @@ symbol_test/01: MissingCompileTimeError
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
+[ ($arch == simdbc || $arch == simdbc64) && ($hot_reload || $hot_reload_rollback) ]
+uri_parse_test: SkipSlow
+
 [ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
 bigint_parse_radix_test: Skip # Issue 31659
 bigint_test: Skip # Issue 31659
