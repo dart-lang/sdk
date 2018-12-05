@@ -177,8 +177,8 @@ main() {}
         elementEnvironment.lookupConstructor(cls, '');
     InterfaceType type = elementEnvironment.getRawType(cls);
     WorldImpact impact = new WorldImpactBuilderImpl()
-      ..registerStaticUse(new StaticUse.typedConstructorInvoke(constructor,
-          constructor.parameterStructure.callStructure, type, null));
+      ..registerStaticUse(new StaticUse.typedConstructorInvoke(
+          constructor, constructor.parameterStructure.callStructure, type));
     enqueuer.applyImpact(impact);
   }
 

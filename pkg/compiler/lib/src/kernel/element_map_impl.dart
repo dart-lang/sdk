@@ -707,7 +707,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   ImportEntity getImport(ir.LibraryDependency node) {
-    if (node == null) return null;
     ir.Library library = node.parent;
     KLibraryData data = libraries.getData(getLibraryInternal(library));
     return data.imports[node];

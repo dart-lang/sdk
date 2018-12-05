@@ -11,12 +11,52 @@ import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
-import '../ir/util.dart';
 import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
   KernelToElementMap _elementMap;
+  Map<ir.Library, Set<ir.NamedNode>> _additionalExportsSets =
+      <ir.Library, Set<ir.NamedNode>>{};
+
   KernelDeferredLoadTask(Compiler compiler, this._elementMap) : super(compiler);
+
+  Iterable<ImportEntity> _findImportsTo(ir.NamedNode node, String nodeName,
+      ir.Library enclosingLibrary, LibraryEntity library) {
+    return measureSubtask('find-imports', () {
+      List<ImportEntity> imports = [];
+      ir.Library source = _elementMap.getLibraryNode(library);
+      for (ir.LibraryDependency dependency in source.dependencies) {
+        if (dependency.isExport) continue;
+        if (!_isVisible(dependency.combinators, nodeName)) continue;
+        if (enclosingLibrary == dependency.targetLibrary ||
+            additionalExports(dependency.targetLibrary).contains(node)) {
+          imports.add(_elementMap.getImport(dependency));
+        }
+      }
+      return imports;
+    });
+  }
+
+  @override
+  Iterable<ImportEntity> classImportsTo(
+      ClassEntity element, LibraryEntity library) {
+    ir.Class node = _elementMap.getClassNode(element);
+    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
+  }
+
+  @override
+  Iterable<ImportEntity> typedefImportsTo(
+      TypedefEntity element, LibraryEntity library) {
+    ir.Typedef node = _elementMap.getTypedefNode(element);
+    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
+  }
+
+  @override
+  Iterable<ImportEntity> memberImportsTo(
+      Entity element, LibraryEntity library) {
+    ir.Member node = _elementMap.getMemberNode(element);
+    return _findImportsTo(node, node.name.name, node.enclosingLibrary, library);
+  }
 
   @override
   void checkForDeferredErrorCases(LibraryEntity library) {
@@ -64,6 +104,26 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
     throw new UnsupportedError(
         "KernelDeferredLoadTask.addMirrorElementsForLibrary");
   }
+
+  Set<ir.NamedNode> additionalExports(ir.Library library) {
+    return _additionalExportsSets[library] ??= new Set<ir.NamedNode>.from(
+        library.additionalExports.map((ir.Reference ref) => ref.node));
+  }
+
+  @override
+  void cleanup() {
+    _additionalExportsSets = null;
+  }
+}
+
+/// Returns whether [name] would be visible according to the given list of
+/// show/hide [combinators].
+bool _isVisible(List<ir.Combinator> combinators, String name) {
+  for (var c in combinators) {
+    if (c.isShow && !c.names.contains(name)) return false;
+    if (c.isHide && c.names.contains(name)) return false;
+  }
+  return true;
 }
 
 class ConstantCollector extends ir.RecursiveVisitor {
@@ -78,8 +138,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
     ConstantValue constant =
         elementMap.getConstantValue(node, requireConstant: required);
     if (constant != null) {
-      dependencies.addConstant(
-          constant, elementMap.getImport(getDeferredImport(node)));
+      dependencies.constants.add(constant);
     }
   }
 

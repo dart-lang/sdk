@@ -67,9 +67,10 @@ abstract class Compiler {
   /// Options provided from command-line arguments.
   final CompilerOptions options;
 
-  // These internal flags are used to stop compilation after a specific phase.
-  // Used only for debugging and testing purposes only.
-  bool stopAfterClosedWorld = false;
+  /**
+   * If true, stop compilation after type inference is complete. Used for
+   * debugging and testing purposes only.
+   */
   bool stopAfterTypeInference = false;
 
   /// Output provider from user of Compiler API.
@@ -250,7 +251,6 @@ abstract class Compiler {
       generateJavaScriptCode(results);
     } else {
       KernelResult result = await kernelLoader.load(uri);
-      reporter.log("Kernel load complete");
       if (result == null) return;
       if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
         return;
@@ -390,7 +390,6 @@ abstract class Compiler {
     selfTask.measureSubtask("compileFromKernel", () {
       JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
-      if (stopAfterClosedWorld) return;
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);

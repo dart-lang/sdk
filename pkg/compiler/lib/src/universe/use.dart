@@ -173,22 +173,12 @@ class StaticUse {
   final int hashCode;
   final InterfaceType type;
   final CallStructure callStructure;
-  final ImportEntity deferredImport;
 
   StaticUse.internal(Entity element, this.kind,
-      {this.type,
-      this.callStructure,
-      this.deferredImport,
-      typeArgumentsHash: 0})
+      {this.type, this.callStructure, typeArgumentsHash: 0})
       : this.element = element,
-        this.hashCode = Hashing.listHash([
-          element,
-          kind,
-          type,
-          typeArgumentsHash,
-          callStructure,
-          deferredImport
-        ]);
+        this.hashCode = Hashing.objectsHash(
+            element, kind, type, typeArgumentsHash, callStructure);
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -242,33 +232,30 @@ class StaticUse {
   /// [callStructure].
   factory StaticUse.staticInvoke(
       FunctionEntity element, CallStructure callStructure,
-      [List<DartType> typeArguments, ImportEntity deferredImport]) {
+      [List<DartType> typeArguments]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
             element,
             "Static invoke element $element must be a top-level "
             "or static method."));
-    return new GenericStaticUse(element, StaticUseKind.INVOKE, callStructure,
-        typeArguments, deferredImport);
+    return new GenericStaticUse(
+        element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
 
   /// Closurization of a static or top-level function [element].
-  factory StaticUse.staticTearOff(FunctionEntity element,
-      [ImportEntity deferredImport]) {
+  factory StaticUse.staticTearOff(FunctionEntity element) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
             element,
             "Static tear-off element $element must be a top-level "
             "or static method."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
-        deferredImport: deferredImport);
+    return new StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF);
   }
 
   /// Read access of a static or top-level field or getter [element].
-  factory StaticUse.staticGet(MemberEntity element,
-      [ImportEntity deferredImport]) {
+  factory StaticUse.staticGet(MemberEntity element) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
@@ -279,13 +266,11 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Static get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.GET,
-        deferredImport: deferredImport);
+    return new StaticUse.internal(element, StaticUseKind.GET);
   }
 
   /// Write access of a static or top-level field or setter [element].
-  factory StaticUse.staticSet(MemberEntity element,
-      [ImportEntity deferredImport]) {
+  factory StaticUse.staticSet(MemberEntity element) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
@@ -296,8 +281,7 @@ class StaticUse {
         element.isField || element.isSetter,
         failedAt(element,
             "Static set element $element must be a field or a setter."));
-    return new StaticUse.internal(element, StaticUseKind.SET,
-        deferredImport: deferredImport);
+    return new StaticUse.internal(element, StaticUseKind.SET);
   }
 
   /// Invocation of the lazy initializer for a static or top-level field
@@ -448,11 +432,8 @@ class StaticUse {
 
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
-  factory StaticUse.typedConstructorInvoke(
-      ConstructorEntity element,
-      CallStructure callStructure,
-      InterfaceType type,
-      ImportEntity deferredImport) {
+  factory StaticUse.typedConstructorInvoke(ConstructorEntity element,
+      CallStructure callStructure, InterfaceType type) {
     assert(type != null,
         failedAt(element, "No type provided for constructor invocation."));
     assert(
@@ -462,18 +443,13 @@ class StaticUse {
             "Typed constructor invocation element $element "
             "must be a constructor."));
     return new StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
-        type: type,
-        callStructure: callStructure,
-        deferredImport: deferredImport);
+        type: type, callStructure: callStructure);
   }
 
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
-  factory StaticUse.constConstructorInvoke(
-      ConstructorEntity element,
-      CallStructure callStructure,
-      InterfaceType type,
-      ImportEntity deferredImport) {
+  factory StaticUse.constConstructorInvoke(ConstructorEntity element,
+      CallStructure callStructure, InterfaceType type) {
     assert(type != null,
         failedAt(element, "No type provided for constructor invocation."));
     assert(
@@ -484,9 +460,7 @@ class StaticUse {
             "must be a constructor."));
     return new StaticUse.internal(
         element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
-        type: type,
-        callStructure: callStructure,
-        deferredImport: deferredImport);
+        type: type, callStructure: callStructure);
   }
 
   /// Constructor redirection to [element] on [type].
@@ -589,11 +563,9 @@ class GenericStaticUse extends StaticUse {
   final List<DartType> typeArguments;
 
   GenericStaticUse(Entity entity, StaticUseKind kind,
-      CallStructure callStructure, this.typeArguments,
-      [ImportEntity deferredImport])
+      CallStructure callStructure, this.typeArguments)
       : super.internal(entity, kind,
             callStructure: callStructure,
-            deferredImport: deferredImport,
             typeArgumentsHash: Hashing.listHash(typeArguments)) {
     assert(
         (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
@@ -627,12 +599,11 @@ class TypeUse {
   final DartType type;
   final TypeUseKind kind;
   final int hashCode;
-  final ImportEntity deferredImport;
 
-  TypeUse.internal(DartType type, TypeUseKind kind, [this.deferredImport])
+  TypeUse.internal(DartType type, TypeUseKind kind)
       : this.type = type,
         this.kind = kind,
-        this.hashCode = Hashing.objectsHash(type, kind, deferredImport);
+        this.hashCode = Hashing.objectHash(type, Hashing.objectHash(kind));
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -707,8 +678,8 @@ class TypeUse {
   }
 
   /// [type] used as a type literal, like `foo() => T;`.
-  factory TypeUse.typeLiteral(DartType type, ImportEntity deferredImport) {
-    return new TypeUse.internal(type, TypeUseKind.TYPE_LITERAL, deferredImport);
+  factory TypeUse.typeLiteral(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.TYPE_LITERAL);
   }
 
   /// [type] used in an instantiation, like `new T();`.
