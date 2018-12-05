@@ -1608,8 +1608,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // Driver, we compute values of all dependencies first (or detect  cycle).
       // So, the value has already been computed. Just return it.
       if (evaluationEngine.forAnalysisDriver) {
-        if (variableElement.isConst) {
-          return variableElement.evaluationResult.value;
+        EvaluationResultImpl value = variableElement.evaluationResult;
+        if (variableElement.isConst && value != null) {
+          return value.value;
         }
       } else {
         // TODO(scheglov) Once we remove task model, we can remove this code.

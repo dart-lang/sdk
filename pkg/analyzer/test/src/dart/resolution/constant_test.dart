@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -129,6 +130,25 @@ main() {}
     var node = findNode.annotation('@I');
     var value = node.elementAnnotation.constantValue;
     expect(value.getField('(super)').getField('f').toIntValue(), 42);
+  }
+
+  test_constNotInitialized() async {
+    addTestFile(r'''
+class B {
+  const B(_);
+}
+
+class C extends B {
+  static const a;
+  const C() : super(a);
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+    ]);
   }
 }
 
