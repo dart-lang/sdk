@@ -77,11 +77,11 @@ class BaseDependencyTest extends DriverResolutionTest {
   }
 
   DependencyNode getNode(Library library,
-      {@required Uri uri,
-      @required String name,
+      {@required String name,
       DependencyNodeKind kind,
       String memberOf,
       String typeParameterOf}) {
+    var uri = library.uri;
     var nodes = library.declaredNodes;
     if (memberOf != null) {
       var class_ = _getNode(nodes, uri: uri, name: memberOf);

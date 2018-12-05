@@ -29,8 +29,8 @@ class B {
 }
 ''');
     _assertDifferentApiTokenSignature(
-      getNode(library, uri: aUri, name: 'foo', memberOf: 'A'),
-      getNode(library, uri: aUri, name: 'foo', memberOf: 'B'),
+      getNode(library, name: 'foo', memberOf: 'A'),
+      getNode(library, name: 'foo', memberOf: 'B'),
     );
   }
 
@@ -45,16 +45,16 @@ enum B {
 }
 ''');
     _assertDifferentApiTokenSignature(
-      getNode(library, uri: aUri, name: 'foo', memberOf: 'A'),
-      getNode(library, uri: aUri, name: 'foo', memberOf: 'B'),
+      getNode(library, name: 'foo', memberOf: 'A'),
+      getNode(library, name: 'foo', memberOf: 'B'),
     );
     _assertDifferentApiTokenSignature(
-      getNode(library, uri: aUri, name: 'index', memberOf: 'A'),
-      getNode(library, uri: aUri, name: 'index', memberOf: 'B'),
+      getNode(library, name: 'index', memberOf: 'A'),
+      getNode(library, name: 'index', memberOf: 'B'),
     );
     _assertDifferentApiTokenSignature(
-      getNode(library, uri: aUri, name: 'values', memberOf: 'A'),
-      getNode(library, uri: aUri, name: 'values', memberOf: 'B'),
+      getNode(library, name: 'values', memberOf: 'A'),
+      getNode(library, name: 'values', memberOf: 'B'),
     );
   }
 
@@ -62,8 +62,8 @@ enum B {
     var aLib = await buildTestLibrary(a, 'class C {}');
     var bLib = await buildTestLibrary(b, 'class C {}');
     _assertDifferentApiTokenSignature(
-      getNode(aLib, uri: aUri, name: 'C'),
-      getNode(bLib, uri: bUri, name: 'C'),
+      getNode(aLib, name: 'C'),
+      getNode(bLib, name: 'C'),
     );
   }
 
@@ -71,8 +71,8 @@ enum B {
     var aLib = await buildTestLibrary(a, 'enum Foo {a, b, c}');
     var bLib = await buildTestLibrary(b, 'enum Foo {a, b, c}');
     _assertDifferentApiTokenSignature(
-      getNode(aLib, uri: aUri, name: 'Foo'),
-      getNode(bLib, uri: bUri, name: 'Foo'),
+      getNode(aLib, name: 'Foo'),
+      getNode(bLib, name: 'Foo'),
     );
   }
 
@@ -80,8 +80,8 @@ enum B {
     var aLib = await buildTestLibrary(a, 'void foo() {}');
     var bLib = await buildTestLibrary(b, 'void foo() {}');
     _assertDifferentApiTokenSignature(
-      getNode(aLib, uri: aUri, name: 'foo'),
-      getNode(bLib, uri: bUri, name: 'foo'),
+      getNode(aLib, name: 'foo'),
+      getNode(bLib, name: 'foo'),
     );
   }
 
@@ -93,8 +93,8 @@ class C {
   void foo() {}
 }
 ''');
-    var fooFunction = getNode(library, uri: aUri, name: 'foo');
-    var fooMethod = getNode(library, uri: aUri, name: 'foo', memberOf: 'C');
+    var fooFunction = getNode(library, name: 'foo');
+    var fooMethod = getNode(library, name: 'foo', memberOf: 'C');
     expect(
       fooFunction.api.tokenSignatureHex,
       isNot(fooMethod.api.tokenSignatureHex),
@@ -1686,10 +1686,9 @@ final bar;
   Future<void> _assertApiTokenSignatureNotSame(
       String name, DependencyNodeKind kind, String codeBefore, String codeAfter,
       {String memberOf, String typeParameterOf}) async {
-    DependencyNode getNodeA(Library library) {
+    DependencyNode getNodeLocal(Library library) {
       return getNode(
         library,
-        uri: aUri,
         name: name,
         kind: kind,
         memberOf: memberOf,
@@ -1698,10 +1697,10 @@ final bar;
     }
 
     var libraryBefore = await buildTestLibrary(a, codeBefore);
-    var nodeBefore = getNodeA(libraryBefore);
+    var nodeBefore = getNodeLocal(libraryBefore);
 
     var libraryAfter = await buildTestLibrary(a, codeAfter);
-    var nodeAfter = getNodeA(libraryAfter);
+    var nodeAfter = getNodeLocal(libraryAfter);
 
     expect(
       nodeAfter.api.tokenSignatureHex,
@@ -1712,10 +1711,9 @@ final bar;
   Future<void> _assertApiTokenSignatureSame(
       String name, DependencyNodeKind kind, String codeBefore, String codeAfter,
       {String memberOf, String typeParameterOf}) async {
-    DependencyNode getNodeA(Library library) {
+    DependencyNode getNodeLocal(Library library) {
       return getNode(
         library,
-        uri: aUri,
         name: name,
         kind: kind,
         memberOf: memberOf,
@@ -1724,10 +1722,10 @@ final bar;
     }
 
     var libraryBefore = await buildTestLibrary(a, codeBefore);
-    var nodeBefore = getNodeA(libraryBefore);
+    var nodeBefore = getNodeLocal(libraryBefore);
 
     var libraryAfter = await buildTestLibrary(a, codeAfter);
-    var nodeAfter = getNodeA(libraryAfter);
+    var nodeAfter = getNodeLocal(libraryAfter);
 
     expect(
       nodeAfter.api.tokenSignatureHex,
