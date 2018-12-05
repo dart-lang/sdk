@@ -20,7 +20,10 @@ main() {
 
 @reflectiveTest
 class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
+  int requestId = 30;
   String libPath;
+
+  String get nextRequestId => (++requestId).toString();
 
   void expectEdits(List<SourceFileEdit> fileEdits, String expectedSource) {
     expect(fileEdits, hasLength(1));
@@ -40,12 +43,13 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     expect(suggestion.location.length, length);
   }
 
-  Future<EditDartfixResult> performFix([String requestId = '33']) async {
-    final request = new Request(requestId, 'edit.dartfix',
-        new EditDartfixParams([projectPath]).toJson());
+  Future<EditDartfixResult> performFix() async {
+    final id = nextRequestId;
+    final params = new EditDartfixParams([projectPath]);
+    final request = new Request(id, 'edit.dartfix', params.toJson());
 
     final response = await new EditDartFix(server, request).compute();
-    expect(response.id, requestId);
+    expect(response.id, id);
 
     return EditDartfixResult.fromResponse(response);
   }
@@ -106,7 +110,17 @@ main() {
   }
 
   test_dartfix_excludedSource() async {
-    await test_dartfix_convertToIntLiteral();
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
+
+    // Assert dartfix suggestions
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
+    expectEdits(result.edits, '''
+const double myDouble = 42;
+    ''');
 
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''
@@ -114,12 +128,48 @@ analyzer:
   exclude:
     - lib/**
 ''');
-    handleSuccessfulRequest(new Request('34', 'analysis.reanalyze'),
+    handleSuccessfulRequest(new Request(nextRequestId, 'analysis.reanalyze'),
         handler: analysisHandler);
 
-    // Assert no suggestions for excluded source
-    EditDartfixResult result = await performFix('35');
+    // Assert no suggestions now that source has been excluded
+    result = await performFix();
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
+  }
+
+  test_dartfix_partFile() async {
+    newFile('/project/lib/lib.dart', content: '''
+library lib2;
+part '$testFile';
+    ''');
+    addTestFile('''
+part of lib2;
+const double myDouble = 42.0;
+    ''');
+
+    // Assert dartfix suggestions
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
+    expectEdits(result.edits, '''
+part of lib2;
+const double myDouble = 42;
+    ''');
+  }
+
+  test_dartfix_partFile_loose() async {
+    addTestFile('''
+part of lib2;
+const double myDouble = 42.0;
+    ''');
+
+    // Assert dartfix suggestions
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
+    expectEdits(result.edits, '''
+part of lib2;
+const double myDouble = 42;
+    ''');
   }
 }
