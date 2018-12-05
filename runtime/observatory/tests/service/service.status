@@ -50,11 +50,6 @@ evaluate_function_type_parameters_test: SkipByDesign # only supported in kernel
 [ $compiler == precompiler ]
 *: Skip # Issue 24651
 
-# Debugger location tests are slow in debug mode.
-[ $mode == debug ]
-debugger_location_second_test: Pass, Slow
-debugger_location_test: Pass, Slow
-
 # Service protocol is not supported in product mode.
 [ $mode == product ]
 *: SkipByDesign
@@ -98,6 +93,11 @@ next_through_simple_async_test: RuntimeError # Debugging StringConcatenation doe
 next_through_simple_linear_2_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 step_through_function_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
+
+[ $arch == simdbc || $arch == simdbc64 || $mode == debug ]
+break_on_default_constructor_test: Pass, Slow
+debugger_location_second_test: Pass, Slow
+debugger_location_test: Pass, Slow
 
 # All tests use dart:io
 [ $compiler == dart2js || $browser ]
