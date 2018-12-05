@@ -5027,7 +5027,6 @@ static void CheckIsEntryPoint(const Class& klass) {
         "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
         "aot/entry_point_pragma.md\n",
         String::Handle(klass.UserVisibleName()).ToCString());
-    UNREACHABLE();
   }
 #endif
 }
