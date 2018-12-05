@@ -304,13 +304,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node.variable.type = inferredType;
       }
     }
-
-    inferrer.inferStatement(node.bodyJudgment);
-    if (syntheticAssignment != null) {
-      var syntheticStatement = new ExpressionStatement(syntheticAssignment);
-      node.body = combineStatements(syntheticStatement, node.body)
-        ..parent = node;
-    }
+    inferrer.inferStatement(node.body);
     if (node._declaresVariable) {
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
@@ -343,18 +337,16 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitForJudgment(ForJudgment node) {
-    var initializers = node.initializers;
     var conditionJudgment = node.conditionJudgment;
-    if (initializers != null) {
-      for (var initializer in initializers) {
-        node.variables
-            .add(new VariableDeclaration.forValue(initializer)..parent = node);
-        inferrer.inferExpression(
-            initializer, const UnknownType(), !inferrer.isTopLevel,
-            isVoidAllowed: true);
-      }
-    } else {
-      for (var variable in node.variableJudgments) {
+    for (VariableDeclaration variable in node.variables) {
+      if (variable.name == null) {
+        Expression initializer = variable.initializer;
+        if (initializer != null) {
+          variable.type = inferrer.inferExpression(
+              initializer, const UnknownType(), true,
+              isVoidAllowed: true);
+        }
+      } else {
         inferrer.inferStatement(variable);
       }
     }

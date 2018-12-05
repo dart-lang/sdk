@@ -226,8 +226,7 @@ abstract class Forest {
   Statement forStatement(
       Token forKeyword,
       Token leftParenthesis,
-      List<VariableDeclaration> variableList,
-      List<Expression> initializers,
+      List<VariableDeclaration> variables,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,

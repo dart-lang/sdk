@@ -84,6 +84,7 @@ export 'kernel_shadow_ast.dart'
         ArgumentsJudgment,
         AssertInitializerJudgment,
         AssertStatementJudgment,
+        BlockJudgment,
         BreakJudgment,
         CascadeJudgment,
         ComplexAssignmentJudgment,

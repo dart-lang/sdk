@@ -386,16 +386,14 @@ class Fangorn extends Forest {
   Statement forStatement(
       Token forKeyword,
       Token leftParenthesis,
-      List<VariableDeclaration> variableList,
-      List<Expression> initializers,
+      List<VariableDeclaration> variables,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
-    return new ForJudgment(
-        variableList, initializers, condition, updaters, body)
+    return new ForJudgment(variables, condition, updaters, body)
       ..fileOffset = forKeyword.charOffset;
   }
 

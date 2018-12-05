@@ -2163,30 +2163,33 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  List<VariableDeclaration> buildForInitVariableDeclarations(
-      variableOrExpression) {
+  List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
+    // TODO(ahe): This can be simplified now that we have the events
+    // `handleForInitializer...` events.
+    if (variableOrExpression is Generator) {
+      variableOrExpression = variableOrExpression.buildForEffect();
+    }
     if (variableOrExpression is VariableDeclaration) {
       return <VariableDeclaration>[variableOrExpression];
+    } else if (variableOrExpression is Expression) {
+      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
+          variableOrExpression, functionNestingLevel);
+      return <VariableDeclaration>[variable];
+    } else if (variableOrExpression is ExpressionStatement) {
+      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
+          variableOrExpression.expression, functionNestingLevel);
+      return <VariableDeclaration>[variable];
     } else if (forest.isVariablesDeclaration(variableOrExpression)) {
       return forest
           .variablesDeclarationExtractDeclarations(variableOrExpression);
     } else if (variableOrExpression is List<Object>) {
       List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
-        variables.addAll(buildForInitVariableDeclarations(v));
+        variables.addAll(buildVariableDeclarations(v));
       }
       return variables;
     } else if (variableOrExpression == null) {
       return <VariableDeclaration>[];
-    }
-    return null;
-  }
-
-  List<Expression> buildForInitExpressions(variableOrExpression) {
-    if (variableOrExpression is Expression) {
-      return <Expression>[variableOrExpression];
-    } else if (variableOrExpression is ExpressionStatementJudgment) {
-      return <Expression>[variableOrExpression.expression];
     }
     return null;
   }
@@ -2215,18 +2218,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
     Object variableOrExpression = pop();
-
-    // TODO(ahe): This can be simplified now that we have the events
-    // `handleForInitializer...` events.
-    variableOrExpression = variableOrExpression is Generator
-        ? variableOrExpression.buildForEffect()
-        : variableOrExpression;
-    List<Expression> initializers =
-        buildForInitExpressions(variableOrExpression);
-    List<VariableDeclaration> variableList = initializers == null
-        ? buildForInitVariableDeclarations(variableOrExpression)
-        : null;
-
+    List<VariableDeclaration> variables =
+        buildVariableDeclarations(variableOrExpression);
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
@@ -2244,8 +2237,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement result = forest.forStatement(
         forKeyword,
         leftParen,
-        variableList,
-        initializers,
+        variables,
         leftSeparator,
         condition,
         conditionStatement,
@@ -3686,10 +3678,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
-    Statement kernelBody = body;
     if (continueTarget.hasUsers) {
-      kernelBody = new LabeledStatementJudgment(kernelBody);
-      continueTarget.resolveContinues(forest, kernelBody);
+      body = new LabeledStatementJudgment(body);
+      continueTarget.resolveContinues(forest, body);
     }
     VariableDeclaration variable;
     bool declaresVariable = false;
@@ -3721,6 +3712,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);
+      body =
+          combineStatements(new ExpressionStatement(syntheticAssignment), body);
     } else {
       Message message = forest.isVariablesDeclaration(lvalue)
           ? fasta.messageForInLoopExactlyOneVariable
@@ -3730,10 +3723,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           buildProblem(message, offsetForToken(token), lengthForToken(token))));
     }
     Statement result = new ForInJudgment(
-        variable, expression, kernelBody, declaresVariable, syntheticAssignment,
+        variable, expression, body, declaresVariable, syntheticAssignment,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
-      ..bodyOffset = kernelBody.fileOffset;
+      ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new LabeledStatementJudgment(result);
       breakTarget.resolveBreaks(forest, result);
@@ -5036,7 +5029,7 @@ Block combineStatements(Statement statement, Statement body) {
     statement.parent = body;
     return body;
   } else {
-    return new Block(<Statement>[statement, body])
+    return new BlockJudgment(<Statement>[statement, body])
       ..fileOffset = statement.fileOffset;
   }
 }

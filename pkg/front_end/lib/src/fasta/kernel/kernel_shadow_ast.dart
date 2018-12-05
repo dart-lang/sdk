@@ -713,13 +713,9 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
 
 /// Concrete shadow object representing a classic for loop in kernel form.
 class ForJudgment extends ForStatement implements StatementJudgment {
-  final List<Expression> initializers;
-
-  ForJudgment(List<VariableDeclaration> variables, this.initializers,
-      Expression condition, List<Expression> updates, Statement body)
+  ForJudgment(List<VariableDeclaration> variables, Expression condition,
+      List<Expression> updates, Statement body)
       : super(variables ?? [], condition, updates, body);
-
-  List<VariableDeclarationJudgment> get variableJudgments => variables.cast();
 
   Expression get conditionJudgment => condition;
 
