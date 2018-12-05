@@ -2087,7 +2087,12 @@ static bool IsRepresentable(const Integer& value, Representation rep) {
     case kUnboxedInt64:
       return value.IsSmi() || value.IsMint();
 
-    case kUnboxedUint32:  // Only truncating Uint32 arithmetic is supported.
+    case kUnboxedUint32:
+      if (value.IsSmi() || value.IsMint()) {
+        return Utils::IsUint(32, value.AsInt64Value());
+      }
+      return false;
+
     default:
       UNREACHABLE();
   }
