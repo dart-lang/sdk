@@ -16,7 +16,7 @@ class UnionTypeMask implements TypeMask {
   // helpful in debugging.
   static const bool PERFORM_EXTRA_CONTAINS_CHECK = false;
 
-  final Iterable<FlatTypeMask> disjointMasks;
+  final List<FlatTypeMask> disjointMasks;
 
   UnionTypeMask._internal(this.disjointMasks) {
     assert(disjointMasks.length > 1);
@@ -216,7 +216,7 @@ class UnionTypeMask implements TypeMask {
     Iterable<FlatTypeMask> newIterable = disjointMasks.map((e) {
       FlatTypeMask r = e.nonNullable();
       return r;
-    });
+    }).toList();
     return new UnionTypeMask._internal(newIterable);
   }
 
