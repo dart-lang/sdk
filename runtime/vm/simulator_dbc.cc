@@ -115,6 +115,10 @@ class SimulatorHelpers {
                                : static_cast<intptr_t>(kSmiCid);
   }
 
+  DART_FORCE_INLINE static void IncrementUsageCounter(RawFunction* f) {
+    f->ptr()->usage_counter_++;
+  }
+
   DART_FORCE_INLINE static void IncrementICUsageCount(RawObject** entries,
                                                       intptr_t offset,
                                                       intptr_t args_tested) {
@@ -1699,6 +1703,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
+      SimulatorHelpers::IncrementUsageCounter(
+          RAW_CAST(Function, icdata->ptr()->owner_));
       InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
                     false /* optimized */);
     }
@@ -1722,6 +1728,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
+      SimulatorHelpers::IncrementUsageCounter(
+          RAW_CAST(Function, icdata->ptr()->owner_));
       InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
                     false /* optimized */);
     }
@@ -1740,6 +1748,7 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
+      SimulatorHelpers::IncrementUsageCounter(FrameFunction(FP));
       InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
                     true /* optimized */);
     }
@@ -1758,6 +1767,7 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
+      SimulatorHelpers::IncrementUsageCounter(FrameFunction(FP));
       InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
                     true /* optimized */);
     }
