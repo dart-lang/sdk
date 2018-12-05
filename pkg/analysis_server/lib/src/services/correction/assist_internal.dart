@@ -447,6 +447,8 @@ class AssistProcessor {
               classDeclaration.leftBracket), (DartEditBuilder builder) {
         builder.write('mixin ');
         builder.write(classDeclaration.name.name);
+        builder.writeTypeParameters(
+            classDeclaration.declaredElement.typeParameters);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
         builder.writeTypes(interfaces, prefix: ' implements ');
         builder.write(' ');

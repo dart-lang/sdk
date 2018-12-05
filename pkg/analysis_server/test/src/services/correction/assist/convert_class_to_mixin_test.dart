@@ -373,6 +373,15 @@ mixin A {}
 ''');
   }
 
+  test_typeParameters() async {
+    await resolveTestUnit('''
+class A<T> {}
+''');
+    await assertHasAssistAt('A', '''
+mixin A<T> {}
+''');
+  }
+
   test_with_noSuper() async {
     await resolveTestUnit('''
 class A {}
