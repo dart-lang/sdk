@@ -122,6 +122,50 @@ void someFunction18() {
   if (0 == x) print('someFunction18'); // LINT
 }
 
+void someFunction19<A, B>(A a, B b) {
+  if (a == b) print('someFunction19'); // OK
+  if (<A>[a] == <B>[b]) print('someFunction19'); // OK
+  if (<String, A>{'a': a} == <String, B>{'b': b}) // OK
+    print('someFunction19');
+  if (<A, String>{a: 'a'} == <B, String>{b: 'b'}) // OK
+    print('someFunction19');
+}
+
+void someFunction20<A, B extends A>(A a, B b) {
+  if (a == b) print('someFunction19'); // OK
+  if (<A>[a] == <B>[b]) print('someFunction19'); // OK
+  if (<String, A>{'a': a} == <String, B>{'b': b}) // OK
+    print('someFunction20');
+  if (<A, String>{a: 'a'} == <B, String>{b: 'b'}) // OK
+    print('someFunction20');
+}
+
+void someFunction21<A extends num, B extends List>(A a, B b) {
+  if (a == b) print('someFunction19'); // LINT
+  if (<A>[a] == <B>[b]) print('someFunction19'); // LINT
+  if (<String, A>{'a': a} == <String, B>{'b': b}) // LINT
+    print('someFunction21');
+  if (<A, String>{a: 'a'} == <B, String>{b: 'b'}) // LINT
+    print('someFunction21');
+}
+
+void someFunction22<A extends num, B extends num>(A a, B b) {
+  if (a == b) print('someFunction19'); // OK
+  if (<A>[a] == <B>[b]) print('someFunction19'); // OK
+  if (<String, A>{'a': a} == <String, B>{'b': b}) // OK
+    print('someFunction22');
+  if (<A, String>{a: 'a'} == <B, String>{b: 'b'}) // OK
+    print('someFunction22');
+}
+
+void function23() {
+  Future getFuture() => new Future.value();
+  Future<void> aVoidFuture;
+
+  var aFuture = getFuture();
+  if (aFuture == aVoidFuture) print('someFunction23'); // OK
+}
+
 class ClassBase {}
 
 class DerivedClass1 extends ClassBase {}

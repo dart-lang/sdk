@@ -219,7 +219,32 @@ class DartTypeUtilities {
     return nodes;
   }
 
+  /// Return whether [leftType] and [rightType] are _definitely_ unrelated.
+  ///
+  /// For the purposes of this function, here are some "relation" rules:
+  /// * `dynamic` and `Null` are considered related to any other type.
+  /// * Two equal types are considered related, e.g. classes `int` and `int`,
+  ///   classes `List<String>` and `List<String>`,
+  ///   classes `List<T>` and `List<T>`, and type variables `A` and `A`.
+  /// * Two types such that one is more specific than the other, such as classes
+  ///   `List<dynamic>` and `Iterable<dynamic>`, and type variables `A` and `B`
+  ///   where `A extends B`. The rules of type specificity are documented
+  ///   [InterfaceType.isMoreSpecificThan](https://pub.dartlang.org/documentation/analyzer/latest/dart_element_type/InterfaceType/isMoreSpecificThan.html).
+  /// * Two types, each representing a class:
+  ///   * are related if they represent the same class, modulo type arguments,
+  ///     and each of their pair-wise type arguments are related, e.g.
+  ///     `List<dynamic>` and `List<int>`, and `Future<T>` and `Future<S>` where
+  ///     `S extends T`.
+  ///   * are unrelated if [leftType]'s supertype is [Object].
+  ///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
+  ///     `Set<dynamic>`.
+  /// * Two types, each representing a type variable, are related if their
+  ///   bounds are related.
+  /// * Otherwise, the types are related.
+  // TODO(srawlins): typedefs :D
   static bool unrelatedTypes(DartType leftType, DartType rightType) {
+    // If we don't have enough information, or can't really compare the types,
+    // return false as they _might_ be related.
     if (leftType == null ||
         leftType.isBottom ||
         leftType.isDynamic ||
@@ -236,8 +261,35 @@ class DartTypeUtilities {
     Element leftElement = leftType.element;
     Element rightElement = rightType.element;
     if (leftElement is ClassElement && rightElement is ClassElement) {
-      return leftElement.supertype.isObject ||
-          leftElement.supertype != rightElement.supertype;
+      // In this case, [leftElement] and [rightElement] each represent a class,
+      // like `int` or `List` or `Future<T>` or `Iterable<String>`.
+      if (isClass(leftType, rightElement.name, rightElement.library.name)) {
+        // In this case, [leftElement] and [rightElement] represent the same
+        // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
+        // need to check type arguments.
+        var leftTypeArguments = (leftType as ParameterizedType).typeArguments;
+        var rightTypeArguments = (rightType as ParameterizedType).typeArguments;
+        if (leftTypeArguments.length != rightTypeArguments.length) {
+          // I cannot think of how we would enter this block, but it guards
+          // against RangeError below.
+          return false;
+        }
+        for (int i = 0; i < leftTypeArguments.length; i++) {
+          // If any of the pair-wise type arguments are unreleated, then
+          // [leftType] and [rightType] are unrelated.
+          if (unrelatedTypes(leftTypeArguments[i], rightTypeArguments[i])) {
+            return true;
+          }
+        }
+        // Otherwise, they might be related.
+        return false;
+      } else {
+        return leftElement.supertype.isObject ||
+            leftElement.supertype != rightElement.supertype;
+      }
+    } else if (leftElement is TypeParameterElement &&
+        rightElement is TypeParameterElement) {
+      return unrelatedTypes(leftElement.bound, rightElement.bound);
     }
     return false;
   }
