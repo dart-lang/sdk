@@ -1,8 +1,8 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--verbose-debug --no-sync-async
-// VMOptions=--verbose-debug --stacktrace-every=55 --stress-async-stacks --no-sync-async
+// VMOptions=--verbose-debug
+// VMOptions=--verbose-debug --stacktrace-every=55 --stress-async-stacks
 
 import 'dart:async';
 import 'package:observatory/service_io.dart';

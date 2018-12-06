@@ -50,16 +50,16 @@ valid_source_locations_test: RuntimeError
 # These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk ]
 add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
-async_generator_breakpoint_test: Crash, RuntimeError # Issue 34746
-async_single_step_exception_test: RuntimeError # Issue 34746
-async_single_step_out_test: RuntimeError # Issue 34746
+async_generator_breakpoint_test: RuntimeError # http://dartbug.com/34746 - Test tests old --no-sync-async behavior
+async_single_step_exception_test: RuntimeError # http://dartbug.com/34746 - Test tests old --no-sync-async behavior
+async_single_step_out_test: RuntimeError # http://dartbug.com/34746 - Test tests old --no-sync-async behavior
 bad_reload_test: RuntimeError # Issue 34025
 coverage_optimized_function_test: Pass, Slow
 evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 pause_on_unhandled_async_exceptions2_test: Pass, Slow
-positive_token_pos_test: RuntimeError # Issue 34746
+positive_token_pos_test: RuntimeError # http://dartbug.com/34746 - Test tests old --no-sync-async behavior
 unused_changes_in_last_reload_test: RuntimeError
 
 [ $compiler == dartkp ]
