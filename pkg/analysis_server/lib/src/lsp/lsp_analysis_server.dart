@@ -194,12 +194,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
                 message.id, result.result, null, jsonRpcVersion));
           }
         } catch (error, stackTrace) {
+          final errorMessage = message is RequestMessage
+              ? 'An error occurred while handling ${message.method} request'
+              : message is NotificationMessage
+                  ? 'An error occurred while handling ${message.method} notification'
+                  : 'Unknown message type';
           sendErrorResponse(
               message,
               new ResponseError(
-                  ServerErrorCodes.UnhandledError,
-                  'An error occurred while handling ${message.method} message',
-                  null));
+                ServerErrorCodes.UnhandledError,
+                errorMessage,
+                null,
+              ));
           logError(error.toString());
           if (stackTrace != null) {
             logError(stackTrace.toString());

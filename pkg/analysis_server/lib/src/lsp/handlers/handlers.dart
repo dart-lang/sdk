@@ -12,6 +12,14 @@ import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
+/// Converts an iterable using the provided function and skipping over any
+/// null values.
+Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
+  // TODO(dantup): Now this is used outside of handlers, is there somewhere
+  // better to put it, and/or a better name for it?
+  return items.map(converter).where((item) => item != null);
+}
+
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -22,12 +30,6 @@ abstract class MessageHandler<P, R> {
 
   /// The method that this handler can handle.
   Method get handlesMessage;
-
-  /// Converts an iterable using the provided function and skipping over any
-  /// null values.
-  Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
-    return items.map(converter).where((item) => item != null);
-  }
 
   P convertParams(Map<String, dynamic> json);
 

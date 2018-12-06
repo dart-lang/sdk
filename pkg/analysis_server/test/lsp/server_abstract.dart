@@ -24,6 +24,8 @@ const dartLanguageId = 'dart';
 /// communication to be printed to stdout.
 const debugPrintCommunication = false;
 
+final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
+
 abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
@@ -31,6 +33,7 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   static const allMarkers = [positionMarker, rangeMarkerStart, rangeMarkerEnd];
   static final allMarkersPattern =
       new RegExp(allMarkers.map(RegExp.escape).join('|'));
+
   MockLspServerChannel channel;
   LspAnalysisServer server;
 
@@ -156,6 +159,24 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
         character,
         new FormattingOptions(2, true), // These currently don't do anything
       ),
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
+  Future<List<Either2<Command, CodeAction>>> getCodeActions(
+    String fileUri, {
+    Range range,
+    List<CodeActionKind> kinds,
+  }) async {
+    final request = makeRequest(
+      Method.textDocument_codeAction,
+      new CodeActionParams(
+          new TextDocumentIdentifier(fileUri),
+          range ?? beginningOfDocument,
+          // TODO(dantup): We may need to revise the tests/implementation when
+          // it's clear how we're supposed to handle diagnostics:
+          // https://github.com/Microsoft/language-server-protocol/issues/583
+          new CodeActionContext([], kinds)),
     );
     return expectSuccessfulResponseTo(request);
   }

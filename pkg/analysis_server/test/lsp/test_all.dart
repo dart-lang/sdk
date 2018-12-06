@@ -15,6 +15,7 @@ import 'initialization_test.dart' as initialization_test;
 import 'references_test.dart' as references_test;
 import 'server_test.dart' as server_test;
 import 'signature_help_test.dart' as signature_help_test;
+import 'code_actions_source_test.dart' as source_code_action_tests;
 
 main() {
   defineReflectiveSuite(() {
@@ -29,5 +30,6 @@ main() {
     references_test.main();
     server_test.main();
     signature_help_test.main();
+    source_code_action_tests.main();
   }, name: 'lsp');
 }

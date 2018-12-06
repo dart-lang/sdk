@@ -18,6 +18,12 @@ Object specToJson(Object obj) {
   }
 }
 
+/// Specific code action kinds to allow end users to keybind (or run-on-save)
+/// specific types of code actions.
+abstract class DartCodeActionKind {
+  static const SortMembers = const CodeActionKind('source.sortMembers');
+}
+
 class Either2<T1, T2> {
   final int _which;
   final T1 _t1;
