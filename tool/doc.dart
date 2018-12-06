@@ -52,6 +52,7 @@ These rules are under active development.  Feedback is
 
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
+final flutterRules = <String>[];
 final pedanticRules = <String>[];
 
 /// Sorted list of contributed lint rules.
@@ -81,14 +82,23 @@ String get enumerateStyleRules => rules
 List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
 
 Future<void> fetchBadgeInfo() async {
-  var client = new http.Client();
-  var req = await client.get(Uri.parse(
-      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml'));
-
-  var config = processAnalysisOptionsFile(req.body);
-  for (var ruleConfig in config.ruleConfigs) {
+  var pedantic = await fetchConfig(
+      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml');
+  for (var ruleConfig in pedantic.ruleConfigs) {
     pedanticRules.add(ruleConfig.name);
   }
+
+  var flutter = await fetchConfig(
+      'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml');
+  for (var ruleConfig in flutter.ruleConfigs) {
+    flutterRules.add(ruleConfig.name);
+  }
+}
+
+Future<LintConfig> fetchConfig(String url) async {
+  var client = new http.Client();
+  var req = await client.get(url);
+  return processAnalysisOptionsFile(req.body);
 }
 
 Future<void> generateDocs(String dir) async {
@@ -125,11 +135,18 @@ Future<void> generateDocs(String dir) async {
   new OptionsSample(rules).generate(outDir);
 }
 
-String getBadges(String rule) => isPedantic(rule)
-    ? '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><img alt="pedantic" src="style-pedantic.svg"></a>'
-    : '';
-
-bool isPedantic(String rule) => pedanticRules.contains(rule);
+String getBadges(String rule) {
+  var sb = new StringBuffer();
+  if (flutterRules.contains(rule)) {
+    sb.write(
+        '<a href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml"><img alt="flutter" src="style-flutter.svg"></a> ');
+  }
+  if (pedanticRules.contains(rule)) {
+    sb.write(
+        '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><img alt="pedantic" src="style-pedantic.svg"></a>');
+  }
+  return sb.toString();
+}
 
 void printUsage(ArgParser parser, [String error]) {
   var message = 'Generates lint docs.';
