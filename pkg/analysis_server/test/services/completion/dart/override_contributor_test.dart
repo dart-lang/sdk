@@ -175,6 +175,62 @@ method() {
         selectionLength: 22);
   }
 
+  test_private_otherLibrary() async {
+    addSource('/lib.dart', '''
+class A {
+  void foo() {}
+  void _bar() {}
+}
+''');
+    addTestSource(r'''
+import 'lib.dart';
+
+class B extends A {
+  f^
+}
+''');
+    await computeSuggestions();
+
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+    super.foo();
+  }''', displayText: 'foo() { … }', selectionOffset: 56, selectionLength: 12);
+
+    expect(suggestions, _notSuggestedPredicate((suggestion) {
+      return suggestion.completion.contains('void _bar()');
+    }));
+  }
+
+  test_private_thisLibrary() async {
+    addTestSource(r'''
+class A {
+  void foo() {}
+  void _bar() {}
+}
+
+class B extends A {
+  f^
+}
+''');
+    await computeSuggestions();
+
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+    super.foo();
+  }''', displayText: 'foo() { … }', selectionOffset: 56, selectionLength: 12);
+
+    _assertOverride('''
+@override
+  void _bar() {
+    // TODO: implement _bar
+    super._bar();
+  }''', displayText: '_bar() { … }', selectionOffset: 58, selectionLength: 13);
+  }
+
   test_withExistingOverride() async {
     addTestSource('''
 class A {
@@ -243,5 +299,9 @@ method() {
     expect(cs.element, isNotNull);
     expect(cs.displayText, displayText);
     return cs;
+  }
+
+  static Matcher _notSuggestedPredicate(bool Function(CompletionSuggestion) f) {
+    return isNot(contains(predicate(f)));
   }
 }

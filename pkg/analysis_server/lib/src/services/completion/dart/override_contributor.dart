@@ -206,12 +206,15 @@ class OverrideContributor implements DartCompletionContributor {
    */
   List<Name> _namesToOverride(
       ClassElement classElement, Iterable<Name> interfaceNames) {
-    var notDefinedNames = <Name>[];
+    var libraryUri = classElement.library.source.uri;
+    var namesToOverride = <Name>[];
     for (var name in interfaceNames) {
-      if (!_hasMember(classElement, name.name)) {
-        notDefinedNames.add(name);
+      if (name.isAccessibleFor(libraryUri)) {
+        if (!_hasMember(classElement, name.name)) {
+          namesToOverride.add(name);
+        }
       }
     }
-    return notDefinedNames;
+    return namesToOverride;
   }
 }
