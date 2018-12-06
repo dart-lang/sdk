@@ -264,8 +264,11 @@ class EditDartFix {
       if (identical(cu, unitElement)) {
         allUnits.add(currentUnit);
       } else {
-        var result = await session.getResolvedUnit(cu.source.fullName);
-        allUnits.add(LinterContextUnit(result.content, result.unit));
+        Source source = cu.source;
+        if (source != null) {
+          var result = await session.getResolvedUnit(source.fullName);
+          allUnits.add(LinterContextUnit(result.content, result.unit));
+        }
       }
     }
     var context = LinterContextImpl(allUnits, currentUnit,

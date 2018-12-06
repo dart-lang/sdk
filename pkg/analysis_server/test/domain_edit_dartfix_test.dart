@@ -140,7 +140,7 @@ analyzer:
   test_dartfix_partFile() async {
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
-part '$testFile';
+part 'fileToBeFixed.dart';
     ''');
     addTestFile('''
 part of lib2;
