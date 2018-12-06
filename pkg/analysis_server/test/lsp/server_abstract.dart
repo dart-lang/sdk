@@ -114,6 +114,17 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     await pumpEventQueue();
   }
 
+  Future<Object> executeCommand(Command command) async {
+    final request = makeRequest(
+      Method.workspace_executeCommand,
+      new ExecuteCommandParams(
+        command.command,
+        command.arguments,
+      ),
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
   Future<T> expectErrorNotification<T>(
     FutureOr<void> f(), {
     Duration timeout = const Duration(seconds: 5),

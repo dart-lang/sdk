@@ -204,6 +204,8 @@ abstract class ServerErrorCodes {
   static const ServerAlreadyInitialized = const ErrorCodes(-32002);
   static const InvalidFilePath = const ErrorCodes(-32003);
   static const InvalidFileLineCol = const ErrorCodes(-32004);
+  static const UnknownCommand = const ErrorCodes(-32005);
+  static const InvalidCommandArguments = const ErrorCodes(-32006);
 }
 
 abstract class ToJsonable {

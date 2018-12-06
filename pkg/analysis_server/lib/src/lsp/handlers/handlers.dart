@@ -20,24 +20,26 @@ Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
   return items.map(converter).where((item) => item != null);
 }
 
+abstract class CommandHandler<P, R> with Handler<P, R> {
+  CommandHandler(LspAnalysisServer server) {
+    this.server = server;
+  }
+
+  Future<ErrorOr<void>> handle(List<dynamic> arguments);
+}
+
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R> {
-  LspAnalysisServer server;
-
-  MessageHandler(this.server);
+abstract class MessageHandler<P, R> with Handler<P, R> {
+  MessageHandler(LspAnalysisServer server) {
+    this.server = server;
+  }
 
   /// The method that this handler can handle.
   Method get handlesMessage;
 
   P convertParams(Map<String, dynamic> json);
-
-  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
-      new ErrorOr<R>.error(new ResponseError(code, message, data));
-
-  ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
-      new ErrorOr<R>.error(error.error);
 
   FutureOr<ErrorOr<R>> handle(P params);
 
@@ -48,6 +50,16 @@ abstract class MessageHandler<P, R> {
     final params = convertParams(message.params);
     return handle(params);
   }
+}
+
+mixin Handler<P, R> {
+  LspAnalysisServer server;
+
+  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
+      new ErrorOr<R>.error(new ResponseError(code, message, data));
+
+  ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
+      new ErrorOr<R>.error(error.error);
 
   Future<ErrorOr<ResolvedUnitResult>> requireUnit(String path) async {
     final result = await server.getResolvedUnit(path);
