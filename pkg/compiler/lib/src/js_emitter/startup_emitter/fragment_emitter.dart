@@ -1260,19 +1260,24 @@ class FragmentEmitter {
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
         if (cls.isSoftDeferred != softDeferred) continue;
+        bool firstAlias = true;
         for (InstanceMethod method in cls.methods) {
           if (method.aliasName != null) {
-            assignments.add(js.js.statement('#.prototype.# = #.prototype.#', [
-              classReference(cls),
-              js.quoteName(method.aliasName),
-              classReference(cls),
-              js.quoteName(method.name)
-            ]));
+            if (firstAlias) {
+              firstAlias = false;
+              assignments.add(js.js.statement(
+                  assignments.isEmpty
+                      ? 'var _ = #.prototype;'
+                      : '_ = #.prototype',
+                  classReference(cls)));
+            }
+            assignments.add(js.js.statement('_.# = _.#',
+                [js.quoteName(method.aliasName), js.quoteName(method.name)]));
           }
         }
       }
     }
-    return new js.Block(assignments);
+    return wrapPhase('aliases', assignments);
   }
 
   /// Encodes the optional default values so that the runtime Function.apply
