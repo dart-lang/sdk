@@ -83,3 +83,4 @@ editor/util/testing/mac/Samples.suite/Results
 /outline.dill
 /generated/
 /crash_logs/
+compile_commands.json
