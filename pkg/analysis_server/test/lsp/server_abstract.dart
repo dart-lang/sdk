@@ -14,6 +14,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../mocks.dart';
@@ -143,6 +144,22 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return notificationFromServer.params as T;
   }
 
+  /// Expects a [method] request from the server after executing [f].
+  Future<RequestMessage> expectRequest(
+    Method method,
+    FutureOr<void> f(), {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final firstRequest =
+        channel.requestsFromServer.firstWhere((n) => n.method == method);
+    await f();
+
+    final requestFromServer = await firstRequest.timeout(timeout);
+
+    expect(requestFromServer, isNotNull);
+    return requestFromServer;
+  }
+
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
@@ -268,6 +285,49 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return expectSuccessfulResponseTo<SignatureHelp>(request);
   }
 
+  /// Executes [f] then waits for a request of type [method] from the server which
+  /// is passed to [handler] to process, then waits for (and returns) the
+  /// response to the original request.
+  ///
+  /// This is used for testing things like code actions, where the client initiates
+  /// a request but the server does not respond to it until it's sent its own
+  /// request to the client and it recieved a response.
+  ///
+  ///     Client                                 Server
+  ///     1. |- Req: textDocument/codeAction      ->
+  ///     1. <- Resp: textDocument/codeAction     -|
+  ///
+  ///     2. |- Req: workspace/executeCommand  ->
+  ///           3. <- Req: textDocument/applyEdits  -|
+  ///           3. |- Resp: textDocument/applyEdits ->
+  ///     2. <- Resp: workspace/executeCommand -|
+  ///
+  /// Request 2 from the client is not responded to until the server has its own
+  /// response to the request it sends (3).
+  Future<T> handleExpectedRequest<T, R, RR>(
+    Method method,
+    Future<T> f(), {
+    @required FutureOr<RR> handler(R params),
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    FutureOr<T> outboundRequest;
+
+    // Run [f] and wait for the incoming request from the server.
+    final incomingRequest = await expectRequest(method, () {
+      // Don't return/await the response yet, as this may not complete until
+      // after we have handled the request that comes from the server.
+      outboundRequest = f();
+    });
+
+    // Handle the request from the server and send the response back.
+    final clientsResponse = await handler(incomingRequest.params as R);
+    respondTo(incomingRequest, clientsResponse);
+
+    // Return a future that completes when the response to the original request
+    // (from [f]) returns.
+    return outboundRequest;
+  }
+
   /// A helper that initializes the server with common values, since the server
   /// will reject any other requests until it is initialized.
   /// Capabilities are overridden by providing JSON to avoid having to construct
@@ -366,6 +426,13 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
       uri,
       [new TextDocumentContentChangeEvent(null, null, content)],
     );
+  }
+
+  /// Sends [responseParams] to the server as a successful response to
+  /// a server-initiated [request].
+  void respondTo<T>(RequestMessage request, T responseParams) async {
+    channel.sendResponseToServer(
+        new ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
   }
 
   void setUp() {

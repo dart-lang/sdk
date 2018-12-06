@@ -54,7 +54,7 @@ class LspSocketServer {
         new ShowMessageParams(MessageType.Error, error.message),
         jsonRpcVersion,
       ));
-      serverChannel.listen((IncomingMessage message) {
+      serverChannel.listen((Message message) {
         if (message is RequestMessage) {
           serverChannel.sendResponse(
               new ResponseMessage(message.id, null, error, jsonRpcVersion));

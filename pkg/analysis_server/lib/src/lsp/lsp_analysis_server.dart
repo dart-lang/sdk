@@ -111,6 +111,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   ServerStateMessageHandler messageHandler;
 
+  int nextRequestId = 1;
+
+  Map<int, Completer<ResponseMessage>> completers = {};
+
   /**
    * Initialize a newly created server to send and receive messages to the given
    * [channel].
@@ -197,28 +201,66 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             null, new Uri.file(path).toString());
   }
 
+  /// Handles a response from the client by invoking the completer that the
+  /// outbound request created.
+  void handleClientResponse(ResponseMessage message) {
+    // The ID from the client is an Either2<num, String>, though it's not valid
+    // for it to be a string because it should match a request we sent to the
+    // client (and we always use numeric IDs for outgoing requests).
+    message.id.map(
+      (id) {
+        // It's possible that even if we got a numeric ID that it's not valid.
+        // If it's not in our completers list (which is a list of the outstanding
+        // requests we've sent) then show an error.
+        final completer = completers[id];
+        if (completer == null) {
+          showError('Response with ID $id was unexpected');
+        } else {
+          completers.remove(id);
+          completer.complete(message);
+        }
+      },
+      (stringID) {
+        showError('Unexpected String ID for response $stringID');
+      },
+    );
+  }
+
   /**
    * Handle a [message] that was read from the communication channel.
    */
-  void handleMessage(IncomingMessage message) {
+  void handleMessage(Message message) {
     // TODO(dantup): Put in all the things this server is missing, like:
     //     _performance.logRequest(message);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         try {
-          final result = await messageHandler.handleMessage(message);
-          if (result.isError) {
-            sendErrorResponse(message, result.error);
+          if (message is ResponseMessage) {
+            handleClientResponse(message);
           } else if (message is RequestMessage) {
-            channel.sendResponse(new ResponseMessage(
-                message.id, result.result, null, jsonRpcVersion));
+            final result = await messageHandler.handleMessage(message);
+            if (result.isError) {
+              sendErrorResponse(message, result.error);
+            } else {
+              channel.sendResponse(new ResponseMessage(
+                  message.id, result.result, null, jsonRpcVersion));
+            }
+          } else if (message is NotificationMessage) {
+            final result = await messageHandler.handleMessage(message);
+            if (result.isError) {
+              sendErrorResponse(message, result.error);
+            }
+          } else {
+            showError('Unknown message type');
           }
         } catch (error, stackTrace) {
-          final errorMessage = message is RequestMessage
-              ? 'An error occurred while handling ${message.method} request'
-              : message is NotificationMessage
-                  ? 'An error occurred while handling ${message.method} notification'
-                  : 'Unknown message type';
+          final errorMessage = message is ResponseMessage
+              ? 'An error occurred while handling the response to request ${message.id}'
+              : message is RequestMessage
+                  ? 'An error occurred while handling ${message.method} request'
+                  : message is NotificationMessage
+                      ? 'An error occurred while handling ${message.method} notification'
+                      : 'Unknown message type';
           sendErrorResponse(
               message,
               new ResponseError(
@@ -243,13 +285,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
-  void sendErrorResponse(IncomingMessage message, ResponseError error) {
+  void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
       channel.sendResponse(
           new ResponseMessage(message.id, null, error, jsonRpcVersion));
       // Since the LSP client might not show the failed requests to the user,
       // also ensure the error is logged to the client.
       logError(error.message);
+    } else if (message is ResponseMessage) {
+      // For notifications where we couldn't respond with an error, send it as
+      // show instead of log.
+      showError(error.message);
     } else {
       // For notifications where we couldn't respond with an error, send it as
       // show instead of log.
@@ -262,6 +308,24 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    */
   void sendNotification(NotificationMessage notification) {
     channel.sendNotification(notification);
+  }
+
+  /**
+   * Send the given [request] to the client and wait for a response.
+   */
+  Future<ResponseMessage> sendRequest(Method method, Object params) {
+    final requestId = nextRequestId++;
+    final completer = new Completer<ResponseMessage>();
+    completers[requestId] = completer;
+
+    channel.sendRequest(new RequestMessage(
+      Either2<num, String>.t1(requestId),
+      method,
+      params,
+      jsonRpcVersion,
+    ));
+
+    return completer.future;
   }
 
   /**

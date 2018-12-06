@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 /**
@@ -25,13 +24,18 @@ abstract class LspServerCommunicationChannel {
    * client, invoke the [onDone] function.
    * Only one listener is allowed per channel.
    */
-  void listen(void onMessage(IncomingMessage message),
+  void listen(void onMessage(Message message),
       {Function onError, void onDone()});
 
   /**
    * Send the given [notification] to the client.
    */
   void sendNotification(NotificationMessage notification);
+
+  /**
+   * Send the given [request] to the client.
+   */
+  void sendRequest(RequestMessage request);
 
   /**
    * Send the given [response] to the client.

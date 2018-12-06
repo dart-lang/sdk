@@ -55,7 +55,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void onMessage(IncomingMessage message),
+  void listen(void onMessage(Message message),
       {Function onError, void onDone()}) {
     _input.transform(new LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
@@ -72,13 +72,16 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       _sendLsp(notification.toJson());
 
   @override
+  void sendRequest(RequestMessage request) => _sendLsp(request.toJson());
+
+  @override
   void sendResponse(ResponseMessage response) => _sendLsp(response.toJson());
 
   /**
    * Read a request from the given [data] and use the given function to handle
    * the message.
    */
-  void _readMessage(String data, void onMessage(IncomingMessage request)) {
+  void _readMessage(String data, void onMessage(Message request)) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;
@@ -90,6 +93,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
         onMessage(RequestMessage.fromJson(json));
       } else if (NotificationMessage.canParse(json)) {
         onMessage(NotificationMessage.fromJson(json));
+      } else if (ResponseMessage.canParse(json)) {
+        onMessage(ResponseMessage.fromJson(json));
       } else {
         _sendParseError();
       }
