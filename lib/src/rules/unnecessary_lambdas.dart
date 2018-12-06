@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,7 +59,7 @@ bool _isNonFinalField(AstNode node) =>
         (_isNonFinalElement(node.methodName.staticElement))) ||
     (node is SimpleIdentifier && _isNonFinalElement(node.staticElement));
 
-class UnnecessaryLambdas extends LintRule implements NodeLintRuleWithContext {
+class UnnecessaryLambdas extends LintRule implements NodeLintRule {
   UnnecessaryLambdas()
       : super(
             name: 'unnecessary_lambdas',

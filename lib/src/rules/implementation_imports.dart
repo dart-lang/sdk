@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -56,8 +56,7 @@ bool samePackage(Uri uri1, Uri uri2) {
   return segments1[0] == segments2[0];
 }
 
-class ImplementationImports extends LintRule
-    implements NodeLintRuleWithContext {
+class ImplementationImports extends LintRule implements NodeLintRule {
   ImplementationImports()
       : super(
             name: 'implementation_imports',

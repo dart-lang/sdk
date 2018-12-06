@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -64,8 +64,7 @@ Element _getRightElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(
         assignment.rightHandSide);
 
-class PreferInitializingFormals extends LintRule
-    implements NodeLintRuleWithContext {
+class PreferInitializingFormals extends LintRule implements NodeLintRule {
   PreferInitializingFormals()
       : super(
             name: 'prefer_initializing_formals',

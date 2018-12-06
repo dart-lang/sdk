@@ -1,5 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -69,7 +68,7 @@ class Bad {
 
 ''';
 
-class TestTypesInEquals extends LintRule implements NodeLintRuleWithContext {
+class TestTypesInEquals extends LintRule implements NodeLintRule {
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',
@@ -93,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     MethodDeclaration declaration =
-        node.getAncestor((n) => n is MethodDeclaration);
+        node.thisOrAncestorOfType<MethodDeclaration>();
     if (!_isEqualsOverride(declaration) ||
         node.expression is! SimpleIdentifier) {
       return;

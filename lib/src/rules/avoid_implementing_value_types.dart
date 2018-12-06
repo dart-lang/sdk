@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -85,8 +85,7 @@ void main() {
 
 ''';
 
-class AvoidImplementingValueTypes extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidImplementingValueTypes extends LintRule implements NodeLintRule {
   AvoidImplementingValueTypes()
       : super(
             name: 'avoid_implementing_value_types',
@@ -107,14 +106,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  static bool _overridesEquals(ClassElement element) =>
-      element
-          .lookUpConcreteMethod('==', element.library)
-          ?.enclosingElement
-          ?.type
-          ?.isObject ==
-      false;
-
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.implementsClause == null) {
@@ -127,4 +118,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
+
+  static bool _overridesEquals(ClassElement element) =>
+      element
+          .lookUpConcreteMethod('==', element.library)
+          ?.enclosingElement
+          ?.type
+          ?.isObject ==
+      false;
 }

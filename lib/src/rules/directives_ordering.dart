@@ -1,9 +1,9 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
@@ -166,7 +166,7 @@ String _thirdPartyPackageDirectiveBeforeOwn(String type) =>
     "Place 'third-party' 'package:' ${type}s before other ${type}s.";
 
 class DirectivesOrdering extends LintRule
-    implements ProjectVisitor, NodeLintRuleWithContext {
+    implements ProjectVisitor, NodeLintRule {
   DartProject project;
 
   DirectivesOrdering()

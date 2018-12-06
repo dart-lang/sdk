@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -56,7 +56,7 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffers extends LintRule implements NodeLintRuleWithContext {
+class UseStringBuffers extends LintRule implements NodeLintRule {
   UseStringBuffers()
       : super(
             name: 'use_string_buffers',
@@ -114,36 +114,6 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-}
-
 class _UseStringBufferVisitor extends SimpleAstVisitor {
   final LintRule rule;
   final localElements = new Set<Element>();
@@ -191,5 +161,35 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
     for (final variable in node.variables.variables) {
       localElements.add(variable.declaredElement);
     }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
   }
 }

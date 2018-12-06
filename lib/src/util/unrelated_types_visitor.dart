@@ -1,10 +1,10 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
@@ -83,8 +83,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       type = node.target.staticType;
     } else {
       var classDeclaration =
-          (node.getAncestor((a) => a is ClassOrMixinDeclaration)
-              as ClassOrMixinDeclaration);
+          node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
       if (classDeclaration == null) {
         type = null;
       } else if (classDeclaration is ClassDeclaration) {

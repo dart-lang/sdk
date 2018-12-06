@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -106,7 +106,8 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
                     n.methodName.name) &&
                 (_isSimpleIdentifierElementEqualToVariable(
                         n.realTarget, variable) ||
-                    (n.getAncestor((a) => a == variable) != null))) ||
+                    (n.thisOrAncestorMatching((a) => a == variable) !=
+                        null))) ||
             (_isInvocationThroughCascadeExpression(n, variable))));
 
 Iterable<AstNode> _findVariableAssignments(
@@ -192,7 +193,7 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    FunctionBody function = node.getAncestor((a) => a is FunctionBody);
+    FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
     node.variables.variables.forEach(_buildVariableReporter(
         function, _variablePredicateBuilders, rule, predicates));
   }

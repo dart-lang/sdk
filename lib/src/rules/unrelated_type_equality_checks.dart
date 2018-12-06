@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
+
+const String _dartCoreLibraryName = 'dart.core';
 
 const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
@@ -130,15 +132,6 @@ class DerivedClass2 extends ClassBase with Mixin {}
 
 ''';
 
-const String _dartCoreLibraryName = 'dart.core';
-
-bool _isCoreInt(DartType type) =>
-    type.name == 'int' && type.element?.library?.name == _dartCoreLibraryName;
-
-bool _isFixNumIntX(DartType type) =>
-    (type.name == 'Int32' || type.name == 'Int64') &&
-    type.element?.library?.name == 'fixnum';
-
 bool _hasNonComparableOperands(BinaryExpression node) {
   var left = node.leftOperand;
   var leftType = left.staticType;
@@ -153,8 +146,14 @@ bool _hasNonComparableOperands(BinaryExpression node) {
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }
 
-class UnrelatedTypeEqualityChecks extends LintRule
-    implements NodeLintRuleWithContext {
+bool _isCoreInt(DartType type) =>
+    type.name == 'int' && type.element?.library?.name == _dartCoreLibraryName;
+
+bool _isFixNumIntX(DartType type) =>
+    (type.name == 'Int32' || type.name == 'Int64') &&
+    type.element?.library?.name == 'fixnum';
+
+class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',

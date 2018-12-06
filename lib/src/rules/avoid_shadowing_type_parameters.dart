@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,8 +28,7 @@ class A<T> {
 
 ''';
 
-class AvoidShadowingTypeParameters extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidShadowingTypeParameters extends LintRule implements NodeLintRule {
   AvoidShadowingTypeParameters()
       : super(
             name: 'avoid_shadowing_type_parameters',
@@ -52,6 +51,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    var functionExpression = node.functionDeclaration.functionExpression;
+    if (functionExpression.typeParameters == null) {
+      return;
+    }
+    _checkAncestorParameters(functionExpression.typeParameters, node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.typeParameters == null) {
       return;
@@ -61,15 +69,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isStatic) {
       _checkAncestorParameters(node.typeParameters, node);
     }
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    var functionExpression = node.functionDeclaration.functionExpression;
-    if (functionExpression.typeParameters == null) {
-      return;
-    }
-    _checkAncestorParameters(functionExpression.typeParameters, node);
   }
 
   // Check the ancestors of [node] for type parameter shadowing.

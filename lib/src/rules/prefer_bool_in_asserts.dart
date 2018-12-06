@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,7 +39,7 @@ necessary.
 The rule will be removed in a future Linter release.
 ''';
 
-class PreferBoolInAsserts extends LintRule implements NodeLintRuleWithContext {
+class PreferBoolInAsserts extends LintRule implements NodeLintRule {
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',
@@ -59,10 +59,10 @@ class PreferBoolInAsserts extends LintRule implements NodeLintRuleWithContext {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  final DartType boolType;
+
   _Visitor(this.rule, LinterContext context)
       : boolType = context.typeProvider.boolType;
-
-  final DartType boolType;
   @override
   void visitAssertStatement(AssertStatement node) {
     if (!_unbound(node.condition.staticType).isAssignableTo(boolType)) {

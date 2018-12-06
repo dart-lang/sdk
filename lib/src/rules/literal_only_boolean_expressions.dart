@@ -1,10 +1,10 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Boolean expression composed only with literals.';
@@ -98,8 +98,7 @@ bool _onlyLiterals(Expression rawExpression) {
   return false;
 }
 
-class LiteralOnlyBooleanExpressions extends LintRule
-    implements NodeLintRuleWithContext {
+class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
   LiteralOnlyBooleanExpressions()
       : super(
             name: 'literal_only_boolean_expressions',

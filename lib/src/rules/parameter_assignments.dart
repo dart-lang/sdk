@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -106,7 +106,7 @@ bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
         (n.operand as SimpleIdentifier).staticElement ==
             parameter.declaredElement;
 
-class ParameterAssignments extends LintRule implements NodeLintRuleWithContext {
+class ParameterAssignments extends LintRule implements NodeLintRule {
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',

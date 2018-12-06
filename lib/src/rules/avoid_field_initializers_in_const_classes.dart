@@ -36,7 +36,7 @@ class A {
 ''';
 
 class AvoidFieldInitializersInConstClasses extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   AvoidFieldInitializersInConstClasses()
       : super(
             name: 'avoid_field_initializers_in_const_classes',
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructor.constKeyword == null) return;
     // no lint if several constructors
     final constructorCount = constructor
-        .getAncestor<ClassDeclaration>((e) => e is ClassDeclaration)
+        .thisOrAncestorOfType<ClassDeclaration>()
         .members
         .whereType<ConstructorDeclaration>()
         .length;

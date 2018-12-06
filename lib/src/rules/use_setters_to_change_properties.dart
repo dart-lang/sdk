@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -33,8 +33,7 @@ button.visible = false;
 bool _hasInheritedMethod(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
-class UseSettersToChangeAProperty extends LintRule
-    implements NodeLintRuleWithContext {
+class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
   UseSettersToChangeAProperty()
       : super(
             name: 'use_setters_to_change_properties',

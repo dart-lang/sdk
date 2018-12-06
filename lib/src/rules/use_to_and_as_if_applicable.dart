@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,8 +55,7 @@ bool _beginsWithAsOrTo(String name) {
 bool _isVoid(TypeAnnotation returnType) =>
     returnType is TypeName && returnType.name.name == 'void';
 
-class UseToAndAsIfApplicable extends LintRule
-    implements NodeLintRuleWithContext {
+class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
   UseToAndAsIfApplicable()
       : super(
             name: 'use_to_and_as_if_applicable',

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -67,7 +67,7 @@ setters inherit the docs from the getters.
 // of the actual API surface area of a package - including that defined by
 // exports - and linting against that.
 
-class PublicMemberApiDocs extends LintRule implements NodeLintRuleWithContext {
+class PublicMemberApiDocs extends LintRule implements NodeLintRule {
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',

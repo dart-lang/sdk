@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,7 +22,7 @@ else ;
 
 ''';
 
-class AvoidEmptyElse extends LintRule implements NodeLintRuleWithContext {
+class AvoidEmptyElse extends LintRule implements NodeLintRule {
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',

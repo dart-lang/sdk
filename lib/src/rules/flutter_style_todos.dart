@@ -22,7 +22,7 @@ const _details = r'''
 
 ''';
 
-class FlutterStyleTodos extends LintRule implements NodeLintRuleWithContext {
+class FlutterStyleTodos extends LintRule implements NodeLintRule {
   FlutterStyleTodos()
       : super(
             name: 'flutter_style_todos',
@@ -39,6 +39,11 @@ class FlutterStyleTodos extends LintRule implements NodeLintRuleWithContext {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static final _todoRegExp = new RegExp(r'//+(.* )?TODO\b');
+
+  static final _todoExpectedRegExp =
+      new RegExp(r'// TODO\([a-zA-Z][-a-zA-Z0-9]*\): ');
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -60,10 +65,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       comment = comment.next;
     }
   }
-
-  static final _todoRegExp = new RegExp(r'//+(.* )?TODO\b');
-  static final _todoExpectedRegExp =
-      new RegExp(r'// TODO\([a-zA-Z][-a-zA-Z0-9]*\): ');
 
   void _visitComment(CommentToken node) {
     final content = node.toString();

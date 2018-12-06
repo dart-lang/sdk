@@ -24,8 +24,7 @@ m(f(int v));
 
 ''';
 
-class AvoidTypesAsParameterNames extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
   AvoidTypesAsParameterNames()
       : super(
             name: 'avoid_types_as_parameter_names',

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,7 +36,7 @@ void main() {
 ''';
 
 class PreferFunctionDeclarationsOverVariables extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   PreferFunctionDeclarationsOverVariables()
       : super(
             name: 'prefer_function_declarations_over_variables',
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer is FunctionExpression) {
-      FunctionBody function = node.getAncestor((a) => a is FunctionBody);
+      FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
       if (function == null ||
           !function.isPotentiallyMutatedInScope(node.declaredElement)) {
         rule.reportLint(node);

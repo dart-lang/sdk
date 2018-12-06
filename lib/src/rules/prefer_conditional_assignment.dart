@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -69,8 +69,7 @@ Element _getElementInCondition(Expression rawExpression) {
   return null;
 }
 
-class PreferConditionalAssignment extends LintRule
-    implements NodeLintRuleWithContext {
+class PreferConditionalAssignment extends LintRule implements NodeLintRule {
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',

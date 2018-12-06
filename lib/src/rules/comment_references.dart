@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45,7 +45,7 @@ references within square brackets can consist of either
 
 ''';
 
-class CommentReferences extends LintRule implements NodeLintRuleWithContext {
+class CommentReferences extends LintRule implements NodeLintRule {
   CommentReferences()
       : super(
             name: 'comment_references',

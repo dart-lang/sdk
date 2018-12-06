@@ -26,8 +26,7 @@ m(void Function() f);
 
 ''';
 
-class AvoidPrivateTypedefFunctions extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidPrivateTypedefFunctions extends LintRule implements NodeLintRule {
   AvoidPrivateTypedefFunctions()
       : super(
             name: 'avoid_private_typedef_functions',

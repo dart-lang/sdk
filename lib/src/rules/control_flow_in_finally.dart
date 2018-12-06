@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -83,7 +83,7 @@ class BadBreak {
 
 ''';
 
-class ControlFlowInFinally extends LintRule implements NodeLintRuleWithContext {
+class ControlFlowInFinally extends LintRule implements NodeLintRule {
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
@@ -109,13 +109,12 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
   LintRule get rule;
 
   void reportIfFinallyAncestorExists(AstNode node, {AstNode ancestor}) {
-    final TryStatement tryStatement =
-        node.getAncestor((n) => n is TryStatement);
+    final TryStatement tryStatement = node.thisOrAncestorOfType<TryStatement>();
     final finallyBlock = tryStatement?.finallyBlock;
     bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
     if (tryStatement == null ||
         finallyBlock == null ||
-        node.getAncestor(finallyBlockAncestorPredicate) == null) {
+        node.thisOrAncestorMatching(finallyBlockAncestorPredicate) == null) {
       return;
     }
 
@@ -135,10 +134,10 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
     if (ancestor == null) {
       bool functionBlockPredicate(n) =>
           n is FunctionBody &&
-          n.getAncestor(finallyBlockAncestorPredicate) != null;
-      enablerNode = node.getAncestor(functionBlockPredicate);
+          n.thisOrAncestorMatching(finallyBlockAncestorPredicate) != null;
+      enablerNode = node.thisOrAncestorMatching(functionBlockPredicate);
     } else {
-      enablerNode = ancestor.getAncestor((n) => n == tryStatement);
+      enablerNode = ancestor.thisOrAncestorMatching((n) => n == tryStatement);
     }
 
     return enablerNode;

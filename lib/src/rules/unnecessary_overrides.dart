@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -47,7 +47,7 @@ super method,
 
 ''';
 
-class UnnecessaryOverrides extends LintRule implements NodeLintRuleWithContext {
+class UnnecessaryOverrides extends LintRule implements NodeLintRule {
   UnnecessaryOverrides()
       : super(
             name: 'unnecessary_overrides',
@@ -157,32 +157,6 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isStatic) {
-      return;
-    }
-    if (node.operatorKeyword != null) {
-      final visitor = new _UnnecessaryOperatorOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    } else if (node.isGetter) {
-      final visitor = new _UnnecessaryGetterOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    } else if (node.isSetter) {
-      final visitor = new _UnnecessarySetterOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    } else {
-      final visitor = new _UnnecessaryMethodOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    }
-  }
-}
-
 class _UnnecessaryGetterOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
   _UnnecessaryGetterOverrideVisitor(LintRule rule) : super(rule);
@@ -278,6 +252,32 @@ class _UnnecessarySetterOverrideVisitor
   _visitPropertyAccess(PropertyAccess node) {
     if (node.propertyName.staticElement == inheritedMethod) {
       node.target?.accept(this);
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isStatic) {
+      return;
+    }
+    if (node.operatorKeyword != null) {
+      final visitor = new _UnnecessaryOperatorOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    } else if (node.isGetter) {
+      final visitor = new _UnnecessaryGetterOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    } else if (node.isSetter) {
+      final visitor = new _UnnecessarySetterOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    } else {
+      final visitor = new _UnnecessaryMethodOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
     }
   }
 }

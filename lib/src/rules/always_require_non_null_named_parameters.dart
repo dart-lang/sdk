@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,7 +38,7 @@ NOTE: Only asserts at the start of the bodies will be taken into account.
 ''';
 
 class AlwaysRequireNonNullNamedParameters extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   AlwaysRequireNonNullNamedParameters()
       : super(
             name: 'always_require_non_null_named_parameters',

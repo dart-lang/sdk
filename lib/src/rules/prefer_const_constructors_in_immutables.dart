@@ -1,8 +1,6 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library linter.src.rules.prefer_const_constructors_in_immutables;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -53,7 +51,7 @@ bool _isImmutable(Element element) =>
     element.library?.name == _META_LIB_NAME;
 
 class PreferConstConstructorsInImmutables extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',

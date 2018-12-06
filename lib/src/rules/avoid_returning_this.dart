@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -48,7 +48,7 @@ bool _isReturnStatement(AstNode node) => node is ReturnStatement;
 bool _returnsThis(AstNode node) =>
     (node as ReturnStatement).expression is ThisExpression;
 
-class AvoidReturningThis extends LintRule implements NodeLintRuleWithContext {
+class AvoidReturningThis extends LintRule implements NodeLintRule {
   AvoidReturningThis()
       : super(
             name: 'avoid_returning_this',

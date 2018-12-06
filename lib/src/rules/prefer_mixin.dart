@@ -30,7 +30,7 @@ class C with M {}
 
 ''';
 
-class PreferMixin extends LintRule implements NodeLintRuleWithContext {
+class PreferMixin extends LintRule implements NodeLintRule {
   PreferMixin()
       : super(
             name: 'prefer_mixin',

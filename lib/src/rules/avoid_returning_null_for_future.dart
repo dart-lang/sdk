@@ -18,8 +18,7 @@ developer simply forgot to put an `async` keyword on the function.
 
 ''';
 
-class AvoidReturningNullForFuture extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidReturningNullForFuture extends LintRule implements NodeLintRule {
   AvoidReturningNullForFuture()
       : super(
             name: 'avoid_returning_null_for_future',
@@ -58,8 +57,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node
-        .getAncestor((e) => e is FunctionExpression || e is MethodDeclaration);
+    final parent = node.thisOrAncestorMatching(
+        (e) => e is FunctionExpression || e is MethodDeclaration);
     if (parent == null) return;
 
     DartType returnType;

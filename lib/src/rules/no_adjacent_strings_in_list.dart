@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -34,8 +34,7 @@ List<String> list = <String>[
 
 ''';
 
-class NoAdjacentStringsInList extends LintRule
-    implements NodeLintRuleWithContext {
+class NoAdjacentStringsInList extends LintRule implements NodeLintRule {
   NoAdjacentStringsInList()
       : super(
             name: 'no_adjacent_strings_in_list',

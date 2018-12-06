@@ -1,10 +1,10 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
@@ -41,7 +41,7 @@ if (words.length != 0) return words.join(' ');
 
 ''';
 
-class PreferIsEmpty extends LintRule implements NodeLintRuleWithContext {
+class PreferIsEmpty extends LintRule implements NodeLintRule {
   PreferIsEmpty()
       : super(
             name: 'prefer_is_empty',

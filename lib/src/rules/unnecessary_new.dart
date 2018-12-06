@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -32,7 +31,7 @@ m(){
 
 ''';
 
-class UnnecessaryNew extends LintRule implements NodeLintRuleWithContext {
+class UnnecessaryNew extends LintRule implements NodeLintRule {
   UnnecessaryNew()
       : super(
             name: 'unnecessary_new',

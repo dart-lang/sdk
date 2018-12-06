@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
+const _cr = '\r';
+
 const _desc = r'AVOID lines longer than 80 characters.';
 
 const _details = r'''
@@ -33,8 +35,13 @@ if they go over the line limit. This makes it easier to search source files for
 a given path.
 ''';
 
-class LinesLongerThan80Chars extends LintRule
-    implements NodeLintRuleWithContext {
+const _lf = '\n';
+
+/// String looks like URI if it contains a slash or backslash.
+final _uriRegExp = new RegExp(r'[/\\]');
+bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
+
+class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
   LinesLongerThan80Chars()
       : super(
             name: 'lines_longer_than_80_chars',
@@ -48,6 +55,113 @@ class LinesLongerThan80Chars extends LintRule
     final visitor = new _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
+}
+
+class _AllowedCommentVisitor extends SimpleAstVisitor {
+  final LineInfo lineInfo;
+
+  final allowedLines = <int>[];
+  _AllowedCommentVisitor(this.lineInfo);
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    var token = node.beginToken;
+    while (token != null) {
+      _getPrecedingComments(token).forEach(_visitComment);
+      if (token == token.next) break;
+      token = token.next;
+    }
+  }
+
+  Iterable<CommentToken> _getPrecedingComments(Token token) sync* {
+    CommentToken comment = token.precedingComments;
+    while (comment != null) {
+      yield comment;
+      comment = comment.next;
+    }
+  }
+
+  void _visitComment(CommentToken comment) {
+    final content = comment.toString();
+    final lines = [];
+    if (content.startsWith('///')) {
+      lines.add(content.substring(3));
+    } else if (content.startsWith('//')) {
+      final commentContent = content.substring(2);
+      if (commentContent.trimLeft().startsWith('ignore:')) {
+        allowedLines.add(lineInfo.getLocation(comment.offset).lineNumber);
+      } else {
+        lines.add(commentContent);
+      }
+    } else if (content.startsWith('/*')) {
+      // remove last slash before finding slash
+      lines.addAll(content
+          .substring(2, content.length - 2)
+          .split('$_cr$_lf')
+          .expand((e) => e.split(_cr))
+          .expand((e) => e.split(_lf)));
+    }
+    for (var i = 0; i < lines.length; i++) {
+      final value = lines[i];
+      if (_looksLikeUriOrPath(value)) {
+        final line = lineInfo.getLocation(comment.offset).lineNumber + i;
+        allowedLines.add(line);
+      }
+    }
+  }
+}
+
+class _AllowedLongLineVisitor extends RecursiveAstVisitor {
+  final LineInfo lineInfo;
+
+  final allowedLines = <int>[];
+  _AllowedLongLineVisitor(this.lineInfo);
+
+  @override
+  visitSimpleStringLiteral(SimpleStringLiteral node) {
+    if (node.isMultiline)
+      _handleMultilines(node);
+    else
+      _handleSingleLine(node, node.value);
+  }
+
+  @override
+  visitStringInterpolation(StringInterpolation node) {
+    if (node.isMultiline) {
+      _handleMultilines(node);
+    } else {
+      final value = node.elements.map((e) {
+        if (e is InterpolationString) return e.value;
+        if (e is InterpolationExpression) return ' ' * e.length;
+        throw new ArgumentError(
+            'Unhandled string interpolation element: ${node.runtimeType}');
+      }).join();
+      _handleSingleLine(node, value);
+    }
+  }
+
+  _handleMultilines(SingleStringLiteral node) {
+    final startLine = lineInfo.getLocation(node.offset).lineNumber;
+    final endLine = lineInfo.getLocation(node.end).lineNumber;
+    for (var i = startLine; i <= endLine; i++) {
+      allowedLines.add(i);
+    }
+  }
+
+  _handleSingleLine(AstNode node, String value) {
+    if (_looksLikeUriOrPath(value)) {
+      final line = lineInfo.getLocation(node.offset).lineNumber;
+      allowedLines.add(line);
+    }
+  }
+}
+
+class _LineInfo {
+  final int index;
+  final int offset;
+  final int end;
+  _LineInfo({this.index, this.offset, this.end});
+  int get length => end - offset;
 }
 
 class _Visitor extends SimpleAstVisitor {
@@ -102,117 +216,3 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 }
-
-const _cr = '\r';
-const _lf = '\n';
-
-class _LineInfo {
-  _LineInfo({this.index, this.offset, this.end});
-  final int index;
-  final int offset;
-  final int end;
-  int get length => end - offset;
-}
-
-class _AllowedLongLineVisitor extends RecursiveAstVisitor {
-  _AllowedLongLineVisitor(this.lineInfo);
-
-  final LineInfo lineInfo;
-  final allowedLines = <int>[];
-
-  @override
-  visitStringInterpolation(StringInterpolation node) {
-    if (node.isMultiline) {
-      _handleMultilines(node);
-    } else {
-      final value = node.elements.map((e) {
-        if (e is InterpolationString) return e.value;
-        if (e is InterpolationExpression) return ' ' * e.length;
-        throw new ArgumentError(
-            'Unhandled string interpolation element: ${node.runtimeType}');
-      }).join();
-      _handleSingleLine(node, value);
-    }
-  }
-
-  @override
-  visitSimpleStringLiteral(SimpleStringLiteral node) {
-    if (node.isMultiline)
-      _handleMultilines(node);
-    else
-      _handleSingleLine(node, node.value);
-  }
-
-  _handleMultilines(SingleStringLiteral node) {
-    final startLine = lineInfo.getLocation(node.offset).lineNumber;
-    final endLine = lineInfo.getLocation(node.end).lineNumber;
-    for (var i = startLine; i <= endLine; i++) {
-      allowedLines.add(i);
-    }
-  }
-
-  _handleSingleLine(AstNode node, String value) {
-    if (_looksLikeUriOrPath(value)) {
-      final line = lineInfo.getLocation(node.offset).lineNumber;
-      allowedLines.add(line);
-    }
-  }
-}
-
-class _AllowedCommentVisitor extends SimpleAstVisitor {
-  _AllowedCommentVisitor(this.lineInfo);
-
-  final LineInfo lineInfo;
-  final allowedLines = <int>[];
-
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    var token = node.beginToken;
-    while (token != null) {
-      _getPrecedingComments(token).forEach(_visitComment);
-      if (token == token.next) break;
-      token = token.next;
-    }
-  }
-
-  Iterable<CommentToken> _getPrecedingComments(Token token) sync* {
-    CommentToken comment = token.precedingComments;
-    while (comment != null) {
-      yield comment;
-      comment = comment.next;
-    }
-  }
-
-  void _visitComment(CommentToken comment) {
-    final content = comment.toString();
-    final lines = [];
-    if (content.startsWith('///')) {
-      lines.add(content.substring(3));
-    } else if (content.startsWith('//')) {
-      final commentContent = content.substring(2);
-      if (commentContent.trimLeft().startsWith('ignore:')) {
-        allowedLines.add(lineInfo.getLocation(comment.offset).lineNumber);
-      } else {
-        lines.add(commentContent);
-      }
-    } else if (content.startsWith('/*')) {
-      // remove last slash before finding slash
-      lines.addAll(content
-          .substring(2, content.length - 2)
-          .split('$_cr$_lf')
-          .expand((e) => e.split(_cr))
-          .expand((e) => e.split(_lf)));
-    }
-    for (var i = 0; i < lines.length; i++) {
-      final value = lines[i];
-      if (_looksLikeUriOrPath(value)) {
-        final line = lineInfo.getLocation(comment.offset).lineNumber + i;
-        allowedLines.add(line);
-      }
-    }
-  }
-}
-
-/// String looks like URI if it contains a slash or backslash.
-final _uriRegExp = new RegExp(r'[/\\]');
-bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);

@@ -1,17 +1,20 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
+import 'package:linter/src/analyzer.dart';
 
 class CollectingSink extends MockIOSink {
   final StringBuffer buffer = new StringBuffer();
@@ -109,12 +112,12 @@ class MockPubVisitor implements PubspecVisitor {
   }
 
   @override
-  visitPackageDependencyOverrides(PSDependencyList dependencies) {
+  visitPackageDependencyOverride(PSDependency dependency) {
     throw new Exception();
   }
 
   @override
-  visitPackageDependencyOverride(PSDependency dependency) {
+  visitPackageDependencyOverrides(PSDependencyList dependencies) {
     throw new Exception();
   }
 
@@ -216,13 +219,13 @@ class MockRule implements LintRule {
 
   @override
   void reportLint(AstNode node,
-      {List<Object> arguments: const [],
+      {List<Object> arguments = const [],
       ErrorCode errorCode,
       bool ignoreSyntheticNodes = true}) {}
 
   @override
   void reportLintForToken(Token token,
-      {List<Object> arguments: const [],
+      {List<Object> arguments = const [],
       ErrorCode errorCode,
       bool ignoreSyntheticTokens = true}) {}
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -58,8 +58,7 @@ Advice for writing good doc comments can be found in the
 
 ''';
 
-class PackageApiDocs extends LintRule
-    implements ProjectVisitor, NodeLintRuleWithContext {
+class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
   DartProject project;
 
   PackageApiDocs()
@@ -71,11 +70,6 @@ class PackageApiDocs extends LintRule
 
   @override
   ProjectVisitor getProjectVisitor() => this;
-
-  @override
-  visit(DartProject project) {
-    this.project = project;
-  }
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
@@ -90,6 +84,11 @@ class PackageApiDocs extends LintRule
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
+  }
+
+  @override
+  visit(DartProject project) {
+    this.project = project;
   }
 }
 

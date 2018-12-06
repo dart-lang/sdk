@@ -41,8 +41,7 @@ Future<void> f2() async {
 
 ''';
 
-class AvoidReturningNullForVoid extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidReturningNullForVoid extends LintRule implements NodeLintRule {
   AvoidReturningNullForVoid()
       : super(
             name: 'avoid_returning_null_for_void',
@@ -81,8 +80,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node
-        .getAncestor((e) => e is FunctionExpression || e is MethodDeclaration);
+    final parent = node.thisOrAncestorMatching(
+        (e) => e is FunctionExpression || e is MethodDeclaration);
     if (parent == null) return;
 
     DartType type;
