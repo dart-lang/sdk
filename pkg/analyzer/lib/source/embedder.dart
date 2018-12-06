@@ -171,6 +171,9 @@ class EmbedderUriResolver implements DartUriResolver {
   int get length => _embedderSdk?.urlMappings?.length ?? 0;
 
   @override
+  void clearCache() {}
+
+  @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) =>
       _dartUriResolver.resolveAbsolute(uri, actualUri);
 

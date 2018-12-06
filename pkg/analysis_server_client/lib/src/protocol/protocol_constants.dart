@@ -72,7 +72,6 @@ const String ANALYSIS_REQUEST_GET_SIGNATURE = 'analysis.getSignature';
 const String ANALYSIS_REQUEST_GET_SIGNATURE_FILE = 'file';
 const String ANALYSIS_REQUEST_GET_SIGNATURE_OFFSET = 'offset';
 const String ANALYSIS_REQUEST_REANALYZE = 'analysis.reanalyze';
-const String ANALYSIS_REQUEST_REANALYZE_ROOTS = 'roots';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED = 'excluded';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED = 'included';

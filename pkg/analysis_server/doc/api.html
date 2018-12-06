@@ -810,33 +810,16 @@ a:focus, a:hover {
       </dd></dl></dd><dt class="request"><a name="request_analysis.reanalyze">analysis.reanalyze</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.reanalyze"
-  "params": {
-    "<b>roots</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;
-  }
 }</pre><br><pre>response: {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
     <p>
-      Force the re-analysis of everything contained in the specified
-      analysis roots. This will cause all previously computed analysis
-      results to be discarded and recomputed, and will cause all subscribed
-      notifications to be re-sent.
+      Force re-reading of all potentially changed files, re-resolving of all
+      referenced URIs, and corresponding re-analysis of everything affected in
+      the current analysis roots.
     </p>
-    <p>
-      If no analysis roots are provided, then all current analysis roots
-      will be re-analyzed. If an empty list of analysis roots is provided,
-      then nothing will be re-analyzed. If the list contains one or more
-      paths that are not currently analysis roots, then an error of type
-      <tt>INVALID_ANALYSIS_ROOT</tt> will be generated.
-    </p>
-    
-  <h4>parameters:</h4><dl><dt class="field"><b>roots: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          A list of the analysis roots that are to be re-analyzed.
-        </p>
-      </dd></dl></dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></dt><dd><div class="box"><pre>request: {
+  </dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setAnalysisRoots"
   "params": {

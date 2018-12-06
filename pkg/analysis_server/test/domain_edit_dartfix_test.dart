@@ -58,12 +58,12 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     registerLintRules();
-    createProject();
     libPath = resourceProvider.convertPath('/project/lib');
     testFile = resourceProvider.convertPath('/project/lib/fileToBeFixed.dart');
   }
 
   test_dartfix_convertClassToMixin() async {
+    createProject();
     addTestFile('''
 class A {}
 class B extends A {}
@@ -80,6 +80,7 @@ class C with B {}
   }
 
   test_dartfix_convertToIntLiteral() async {
+    createProject();
     addTestFile('''
 const double myDouble = 42.0;
     ''');
@@ -92,6 +93,7 @@ const double myDouble = 42;
   }
 
   test_dartfix_moveTypeArgumentToClass() async {
+    createProject();
     addTestFile('''
 class A<T> { A.from(Object obj) { } }
 main() {
@@ -110,34 +112,26 @@ main() {
   }
 
   test_dartfix_excludedSource() async {
-    addTestFile('''
-const double myDouble = 42.0;
-    ''');
-
-    // Assert dartfix suggestions
-    EditDartfixResult result = await performFix();
-    expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
-    expectEdits(result.edits, '''
-const double myDouble = 42;
-    ''');
-
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:
   exclude:
     - lib/**
 ''');
-    handleSuccessfulRequest(new Request(nextRequestId, 'analysis.reanalyze'),
-        handler: analysisHandler);
+
+    createProject();
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
 
     // Assert no suggestions now that source has been excluded
-    result = await performFix();
+    final result = await performFix();
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
   }
 
   test_dartfix_partFile() async {
+    createProject();
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
 part 'fileToBeFixed.dart';
@@ -158,6 +152,7 @@ const double myDouble = 42;
   }
 
   test_dartfix_partFile_loose() async {
+    createProject();
     addTestFile('''
 part of lib2;
 const double myDouble = 42.0;
