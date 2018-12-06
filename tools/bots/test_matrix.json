@@ -427,7 +427,6 @@
           "name": "vm mixed mode tests",
           "arguments": [
             "-ndartkb-mixed-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -440,7 +439,6 @@
           "name": "vm bytecode compiler tests",
           "arguments": [
             "-ndartkb-compile-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
