@@ -1055,6 +1055,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         !identical(node.returnKeywordLexeme, "return"));
   }
 
+  void visitSetLiteralJudgment(SetLiteralJudgment node, DartType typeContext) {
+    // Not implemented
+    defaultExpression(node, typeContext);
+  }
+
   void visitStaticAssignmentJudgment(
       StaticAssignmentJudgment node, DartType typeContext) {
     DartType readType = const DynamicType(); // Only used in error recovery

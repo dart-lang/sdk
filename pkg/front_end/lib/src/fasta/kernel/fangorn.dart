@@ -95,6 +95,7 @@ import 'kernel_shadow_ast.dart'
         MapEntryJudgment,
         MapLiteralJudgment,
         ReturnJudgment,
+        SetLiteralJudgment,
         ShadowLargeIntLiteral,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
@@ -193,20 +194,36 @@ class Fangorn extends Forest {
   }
 
   @override
+  SetLiteralJudgment literalSet(
+      Token constKeyword,
+      bool isConst,
+      Object typeArgument,
+      Object typeArguments,
+      Token leftBrace,
+      List<Expression> expressions,
+      Token rightBrace) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
+    return new SetLiteralJudgment(expressions,
+        typeArgument: typeArgument, isConst: isConst)
+      ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
+  }
+
+  @override
   MapLiteralJudgment literalMap(
       Token constKeyword,
       bool isConst,
       DartType keyType,
       DartType valueType,
       Object typeArguments,
-      Token leftBracket,
+      Token leftBrace,
       List<MapEntry> entries,
-      Token rightBracket) {
+      Token rightBrace) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
     return new MapLiteralJudgment(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
-      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
+      ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
   }
 
   @override

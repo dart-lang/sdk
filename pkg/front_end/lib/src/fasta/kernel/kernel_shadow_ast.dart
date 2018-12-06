@@ -940,7 +940,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Type inference derivation for [LiteralList].
+/// Type inference derivation for [ListLiteral].
 class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   DartType inferredType;
 
@@ -958,6 +958,27 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
     return visitor.visitListLiteralJudgment(this, typeContext);
+  }
+}
+
+/// Type inference derivation for [SetLiteral].
+class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
+  DartType inferredType;
+
+  List<Expression> get judgments => expressions;
+
+  final DartType _declaredTypeArgument;
+
+  SetLiteralJudgment(List<Expression> expressions,
+      {DartType typeArgument, bool isConst: false})
+      : _declaredTypeArgument = typeArgument,
+        super(expressions,
+            typeArgument: typeArgument ?? const DynamicType(),
+            isConst: isConst);
+
+  @override
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitSetLiteralJudgment(this, typeContext);
   }
 }
 
