@@ -21,6 +21,64 @@
 
 ### Tool Changes
 
+#### dart2js
+
+* We fixed a bug in how deferred constructor calls were incorrectly not
+  marked as deferred. The old behavior didn't cause breakages, but was imprecise
+  and pushed more code to the main output unit.
+
+* A new deferred split algorithm implementation was added.
+
+  This implementation fixes a soundness bug and addresses performance issues of
+  the previous implementation, because of that it can have a visible impact
+  on apps. In particular,
+
+    * We fixed a performance issue which was introduced when we migrated to the
+      Common front-end. On large apps, the fix can cut down 2/3 of the time
+      spent on this task.
+
+    * We fixed a bug in how inferred types were miscategorized (#35311). The old
+      behavior was unsound and could produce broken programs. The fix may cause
+      more code to be pulled into the main output unit.
+
+      This shows up frequently when returning deferred values from closures
+      since the closure's inferred return type is the deferred type.
+      For example, if you have:
+
+      ```dart
+      () async {
+        await deferred_prefix.loadLibrary();
+        return new deferred_prefix.Foo();
+      }
+      ```
+
+      The closure's return type is `Future<Foo>`. The old implementation defers
+      `Foo`, and incorrectly makes the return type `Future<dynamic>`. This may
+      break in places where the correct type is expected.
+
+      The new implementation will not defer `Foo`, and will place it in the main
+      output unit. If your intent is to defer it, then you need to ensure the
+      return type is not inferred to be `Foo`. For example, you can do so by
+      changing the code to a named closure with a declared type, or by ensuring
+      that the return expression has the type you want, like:
+
+      ```dart
+      () async {
+        await deferred_prefix.loadLibrary();
+        return new deferred_prefix.Foo() as dynamic;
+      }
+      ```
+
+    * Because the new implementation might require you to inspect and fix
+      your app, we exposed two temporary flags:
+
+        * `--report-invalid-deferred-types`: when provided, we will run
+          both the old and new algorithm and report where the issue was
+          detected.
+
+        * `--new-deferred-split`: enables the new algorithm.
+
+
 #### Pub
 
 #### Linter

@@ -95,6 +95,25 @@ class CompilerOptions implements DiagnosticOptions {
   /// libraries are subdivided.
   Uri deferredMapUri;
 
+  /// Whether to apply the new deferred split fixes. The fixes improve on
+  /// performance and fix a soundness issue with inferred types. The latter will
+  /// move more code to the main output unit, because of that we are not
+  /// enabling the feature by default right away.
+  ///
+  /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
+  /// flag to produce the same or better results than the current unsound
+  /// implementation.
+  bool newDeferredSplit = false;
+
+  /// Show errors when a deferred type is inferred as a return type of a closure
+  /// or in a type parameter. Those cases cause the compiler today to behave
+  /// unsoundly by putting the code in a deferred output unit. In the future
+  /// when [newDeferredSplit] is on by default, those cases will be treated
+  /// soundly and will cause more code to be moved to the main output unit.
+  ///
+  /// This flag is presented to help developers find and fix the affected code.
+  bool reportInvalidInferredDeferredTypes = false;
+
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
   bool disableInlining = false;
@@ -282,6 +301,9 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
+      ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      ..reportInvalidInferredDeferredTypes =
+          _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)

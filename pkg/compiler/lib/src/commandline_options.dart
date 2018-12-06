@@ -78,6 +78,10 @@ class Flags {
 
   static const String serverMode = '--server-mode';
 
+  static const String newDeferredSplit = '--new-deferred-split';
+  static const String reportInvalidInferredDeferredTypes =
+      '--report-invalid-deferred-types';
+
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
 

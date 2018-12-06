@@ -111,3 +111,34 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
   }
   return null;
 }
+
+/// Check whether [node] is immediately guarded by a
+/// [ir.CheckLibraryIsLoaded], and hence the node is a deferred access.
+ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
+  // Note: this code relies on the CFE generating the code as we expect it here.
+  // If one day we optimize away redundant CheckLibraryIsLoaded instructions,
+  // we'd need to derive this information directly from the CFE (See #35005),
+  ir.TreeNode parent = node.parent;
+
+  // TODO(sigmund): remove when CFE generates the correct tree (#35320). For
+  // instance, it currently generates
+  //
+  //   let _ = check(prefix) in (prefix::field.property)
+  //
+  // instead of:
+  //
+  //   (let _ = check(prefix) in prefix::field).property
+  if (node is ir.StaticGet) {
+    while (parent is ir.PropertyGet || parent is ir.MethodInvocation) {
+      parent = parent.parent;
+    }
+  }
+
+  if (parent is ir.Let) {
+    var initializer = parent.variable.initializer;
+    if (initializer is ir.CheckLibraryIsLoaded) {
+      return initializer.import;
+    }
+  }
+  return null;
+}

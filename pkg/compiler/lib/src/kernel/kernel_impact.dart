@@ -252,10 +252,12 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     InterfaceType type = elementMap.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     CallStructure callStructure = elementMap.getCallStructure(node.arguments);
+    ImportEntity deferredImport = elementMap.getImport(getDeferredImport(node));
     impactBuilder.registerStaticUse(isConst
-        ? new StaticUse.constConstructorInvoke(constructor, callStructure, type)
+        ? new StaticUse.constConstructorInvoke(
+            constructor, callStructure, type, deferredImport)
         : new StaticUse.typedConstructorInvoke(
-            constructor, callStructure, type));
+            constructor, callStructure, type, deferredImport));
     if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
@@ -321,8 +323,13 @@ class KernelImpactBuilder extends StaticTypeVisitor {
         _handleExtractTypeArguments(node, target, typeArguments);
         return;
       }
+      ImportEntity deferredImport =
+          elementMap.getImport(getDeferredImport(node));
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target, elementMap.getCallStructure(node.arguments), typeArguments));
+          target,
+          elementMap.getCallStructure(node.arguments),
+          typeArguments,
+          deferredImport));
     }
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
@@ -382,17 +389,20 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     ir.Member target = node.target;
     if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
       FunctionEntity method = elementMap.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(method));
+      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(
+          method, elementMap.getImport(getDeferredImport(node))));
     } else {
       MemberEntity member = elementMap.getMember(target);
-      impactBuilder.registerStaticUse(new StaticUse.staticGet(member));
+      impactBuilder.registerStaticUse(new StaticUse.staticGet(
+          member, elementMap.getImport(getDeferredImport(node))));
     }
   }
 
   @override
   void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
     MemberEntity member = elementMap.getMember(node.target);
-    impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
+    impactBuilder.registerStaticUse(new StaticUse.staticSet(
+        member, elementMap.getImport(getDeferredImport(node))));
   }
 
   void handleSuperInvocation(ir.Name name, ir.Node arguments) {
@@ -725,8 +735,9 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
   @override
   void handleTypeLiteral(ir.TypeLiteral node) {
-    impactBuilder.registerTypeUse(
-        new TypeUse.typeLiteral(elementMap.getDartType(node.type)));
+    ImportEntity deferredImport = elementMap.getImport(getDeferredImport(node));
+    impactBuilder.registerTypeUse(new TypeUse.typeLiteral(
+        elementMap.getDartType(node.type), deferredImport));
     if (node.type is ir.FunctionType) {
       ir.FunctionType functionType = node.type;
       assert(functionType.typedef != null);
