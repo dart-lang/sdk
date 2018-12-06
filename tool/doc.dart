@@ -51,6 +51,25 @@ These rules are under active development.  Feedback is
 
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
+// TODO(pq): generate dynamically.
+List<String> pedanticRules =
+// 1.4
+    [
+  'avoid_empty_else',
+  'avoid_relative_lib_imports',
+  'avoid_return_types_on_setters',
+  'avoid_types_as_parameter_names',
+  'no_duplicate_case_values',
+  'prefer_contains',
+  'prefer_equal_for_default_values',
+  'prefer_is_not_empty',
+  'recursive_getters',
+  'unrelated_type_equality_checks',
+  'use_rethrow_when_possible',
+  'unawaited_futures',
+  'valid_regexps'
+];
+
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
     new List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
@@ -108,6 +127,12 @@ Future<void> generateDocs(String dir) async {
   new OptionsSample(rules).generate(outDir);
 }
 
+String getBadges(String rule) => isPedantic(rule)
+    ? '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><img alt="pedantic" src="style-pedantic.svg"></a>'
+    : '';
+
+bool isPedantic(String rule) => pedanticRules.contains(rule);
+
 void printUsage(ArgParser parser, [String error]) {
   var message = 'Generates lint docs.';
   if (error != null) {
@@ -125,7 +150,7 @@ String qualify(LintRule r) =>
     (r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})');
 
 String toDescription(LintRule r) =>
-    '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
+    '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
 
 class Badger {
   Iterable<LintRule> rules;
@@ -195,6 +220,7 @@ class Generator {
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
             <p>Maturity: $maturityString</p>
+            ${getBadges(name)}
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
                <li><a href="https://www.dartlang.org/articles/style-guide/">See the <strong>Style Guide</strong></a></li>
