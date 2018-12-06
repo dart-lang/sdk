@@ -4199,7 +4199,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (fnType.typeFormals.isEmpty) {
       // TODO(jmesserly): this is a legal subtype. We don't currently infer
       // here, but we could.  This is similar to
-      // StrongTypeSystemImpl.inferFunctionTypeInstantiation, but we don't
+      // Dart2TypeSystem.inferFunctionTypeInstantiation, but we don't
       // have the FunctionType yet for the current node, so it's not quite
       // straightforward to apply.
       return null;
