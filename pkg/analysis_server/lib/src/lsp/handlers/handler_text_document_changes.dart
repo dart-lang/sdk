@@ -25,8 +25,6 @@ class TextDocumentChangeHandler
 
   ErrorOr<void> _changeFile(String path, DidChangeTextDocumentParams params) {
     final oldContents = server.fileContentOverlay[path];
-    // TODO(dantup): Should we be tracking the version?
-
     // Visual Studio has been seen to skip didOpen notifications for files that
     // were already open when the LSP server initialized, so handle this with
     // a specific message to make it clear what's happened.
@@ -39,6 +37,7 @@ class TextDocumentChangeHandler
     }
     final newContents = applyEdits(oldContents, params.contentChanges);
     return newContents.mapResult((newcontents) {
+      server.documentVersions[path] = params.textDocument;
       server.updateOverlay(path, newContents.result);
       return success();
     });
@@ -57,6 +56,7 @@ class TextDocumentCloseHandler
   ErrorOr<void> handle(DidCloseTextDocumentParams params) {
     final path = pathOf(params.textDocument);
     return path.mapResult((path) {
+      server.documentVersions[path] = null;
       server.updateOverlay(path, null);
       return success();
     });
@@ -76,9 +76,6 @@ class TextDocumentOpenHandler
     final doc = params.textDocument;
     // TODO(dantup): This needs similar error handling to pathOf()
     final path = Uri.parse(doc.uri).toFilePath();
-    // TODO(dantup): Keep track of versions, so that when we compute fixes etc.
-    // we can send them back versions so the client can drop them if the document
-    // has been modified.
 
     server.updateOverlay(path, doc.text);
 

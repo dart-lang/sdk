@@ -94,11 +94,16 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   }
 
   Future changeFile(
-      Uri uri, List<TextDocumentContentChangeEvent> changes) async {
+    int newVersion,
+    Uri uri,
+    List<TextDocumentContentChangeEvent> changes,
+  ) async {
     var notification = makeNotification(
       Method.textDocument_didChange,
       new DidChangeTextDocumentParams(
-          new VersionedTextDocumentIdentifier(1, uri.toString()), changes),
+        new VersionedTextDocumentIdentifier(newVersion, uri.toString()),
+        changes,
+      ),
     );
     channel.sendNotificationToServer(notification);
     await pumpEventQueue();
@@ -355,8 +360,9 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     );
   }
 
-  Future replaceFile(Uri uri, String content) async {
+  Future replaceFile(int newVersion, Uri uri, String content) async {
     await changeFile(
+      newVersion,
       uri,
       [new TextDocumentContentChangeEvent(null, null, content)],
     );

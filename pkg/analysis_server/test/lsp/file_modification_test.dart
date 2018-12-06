@@ -25,7 +25,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // respond with an error, but instead sends a ShowMessage notification
     // to alert the user to something failing.
     final error = await expectErrorNotification<ShowMessageParams>(() async {
-      await changeFile(mainFileUri, [
+      await changeFile(222, mainFileUri, [
         new TextDocumentContentChangeEvent(
           new Range(new Position(999, 999), new Position(999, 999)),
           null,
@@ -43,8 +43,11 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, initialContent);
-    await replaceFile(mainFileUri, updatedContent);
+    await replaceFile(222, mainFileUri, updatedContent);
     expect(server.fileContentOverlay[mainFilePath], equals(updatedContent));
+
+    final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
+    expect(documentVersion.version, equals(222));
   }
 
   test_change_incremental() async {
@@ -53,7 +56,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, initialContent);
-    await changeFile(mainFileUri, [
+    await changeFile(222, mainFileUri, [
       // Replace line1:5-1:8 with spaces.
       new TextDocumentContentChangeEvent(
         new Range(new Position(1, 5), new Position(1, 8)),
@@ -63,6 +66,9 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     ]);
     expect(server.fileContentOverlay[mainFilePath],
         equals(expectedUpdatedContent));
+
+    final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
+    expect(documentVersion.version, equals(222));
   }
 
   test_change_unopenedFile() async {
@@ -76,7 +82,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     );
     await initialize();
     final notificationParams = await expectErrorNotification<ShowMessageParams>(
-      () => changeFile(mainFileUri, [simpleEdit]),
+      () => changeFile(222, mainFileUri, [simpleEdit]),
     );
     expect(notificationParams, isNotNull);
     expect(
@@ -94,9 +100,14 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, initialContent);
-    await replaceFile(mainFileUri, updatedContent);
+    await replaceFile(222, mainFileUri, updatedContent);
     await closeFile(mainFileUri);
     expect(server.fileContentOverlay[mainFilePath], isNull);
+
+    // When we close a file, we expect the version in the versioned identifier to
+    // return to `null`.
+    final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
+    expect(documentVersion.version, isNull);
   }
 
   test_open() async {
@@ -106,5 +117,10 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(server.fileContentOverlay[mainFilePath], isNull);
     await openFile(mainFileUri, testContent);
     expect(server.fileContentOverlay[mainFilePath], equals(testContent));
+
+    // The version for a file that's just been opened (and never modified) is
+    // `null` (this means the contents match what's on disk).
+    final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
+    expect(documentVersion.version, isNull);
   }
 }

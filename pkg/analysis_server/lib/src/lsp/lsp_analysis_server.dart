@@ -81,6 +81,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
 
   /**
+   * The versions of each document known to the server (keyed by path), used to
+   * send back to the client for server-initiated edits so that the client can
+   * ensure they have a matching version of the document before applying them.
+   * 
+   * Handlers should prefer to use the `getVersionedDocumentIdentifier` method
+   * which will return a null-versioned identifier if the document version is
+   * not known.
+   */
+  final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
+
+  /**
    * The file resolver provider used to override the way file URI's are
    * resolved in some contexts.
    */
@@ -175,6 +186,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
 
     return getAnalysisDriver(path)?.getFileSync(path)?.lineInfo;
+  }
+
+  /// Gets the version of a document known to the server, returning a
+  /// [VersionedTextDocumentIdentifier] with a version of `null` if the document
+  /// version is not known.
+  VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
+    return documentVersions[path] ??
+        new VersionedTextDocumentIdentifier(
+            null, new Uri.file(path).toString());
   }
 
   /**

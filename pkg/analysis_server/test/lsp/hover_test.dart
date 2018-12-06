@@ -165,7 +165,7 @@ String abc
     var contents = _getStringContents(hover);
     expect(contents, contains('Original'));
 
-    await replaceFile(mainFileUri, withoutMarkers(updated));
+    await replaceFile(222, mainFileUri, withoutMarkers(updated));
     hover = await getHover(mainFileUri, positionFromMarker(updated));
     contents = _getStringContents(hover);
     expect(contents, contains('Updated'));

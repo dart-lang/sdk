@@ -24,7 +24,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     expect(initialDiagnostics, hasLength(0));
 
     await openFile(mainFileUri, initialContents);
-    await replaceFile(mainFileUri, 'String a = 1;');
+    await replaceFile(222, mainFileUri, 'String a = 1;');
     final updatedDiagnostics = await waitForDiagnostics(mainFileUri);
     expect(updatedDiagnostics, hasLength(1));
   }
