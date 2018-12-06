@@ -451,7 +451,6 @@
           "name": "vm interpreter tests",
           "arguments": [
             "-ndartkb-interpret-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
