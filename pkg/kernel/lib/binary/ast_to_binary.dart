@@ -1355,6 +1355,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitSetLiteral(SetLiteral node) {
+    writeByte(node.isConst ? Tag.ConstSetLiteral : Tag.SetLiteral);
+    writeOffset(node.fileOffset);
+    writeNode(node.typeArgument);
+    writeNodeList(node.expressions);
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
     writeByte(node.isConst ? Tag.ConstMapLiteral : Tag.MapLiteral);
     writeOffset(node.fileOffset);

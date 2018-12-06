@@ -472,6 +472,12 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateDartTypeFingerprint();           // read type.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
+    case kSetLiteral:
+    case kConstSetLiteral:
+      // Set literals are currently desugared in the frontend and will not
+      // reach the VM. See http://dartbug.com/35124 for discussion.
+      UNREACHABLE();
+      return;
     case kMapLiteral:
     case kConstMapLiteral: {
       ReadPosition();                           // read position.

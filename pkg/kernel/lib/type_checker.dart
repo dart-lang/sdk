@@ -515,6 +515,15 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitSetLiteral(SetLiteral node) {
+    for (int i = 0; i < node.expressions.length; ++i) {
+      node.expressions[i] =
+          checkAndDowncastExpression(node.expressions[i], node.typeArgument);
+    }
+    return environment.literalSetType(node.typeArgument);
+  }
+
+  @override
   DartType visitLogicalExpression(LogicalExpression node) {
     node.left = checkAndDowncastExpression(node.left, environment.boolType);
     node.right = checkAndDowncastExpression(node.right, environment.boolType);

@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 13;
+  UInt32 formatVersion = 14;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -779,6 +779,20 @@ type ListLiteral extends Expression {
 
 type ConstListLiteral extends Expression {
   Byte tag = 58; // Note: tag is out of order.
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> values;
+}
+
+type SetLiteral extends Expression {
+  Byte tag = 109; // Note: tag is out of order.
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> values;
+}
+
+type ConstSetLiteral extends Expression {
+  Byte tag = 110; // Note: tag is out of order.
   FileOffset fileOffset;
   DartType typeArgument;
   List<Expression> values;

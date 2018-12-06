@@ -45,6 +45,10 @@ class TypeEnvironment extends SubtypeTester {
     return new InterfaceType(coreTypes.listClass, <DartType>[elementType]);
   }
 
+  InterfaceType literalSetType(DartType elementType) {
+    return new InterfaceType(coreTypes.setClass, <DartType>[elementType]);
+  }
+
   InterfaceType literalMapType(DartType key, DartType value) {
     return new InterfaceType(coreTypes.mapClass, <DartType>[key, value]);
   }

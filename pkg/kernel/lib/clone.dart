@@ -224,6 +224,11 @@ class CloneVisitor implements TreeVisitor {
         typeArgument: visitType(node.typeArgument), isConst: node.isConst);
   }
 
+  visitSetLiteral(SetLiteral node) {
+    return new SetLiteral(node.expressions.map(clone).toList(),
+        typeArgument: visitType(node.typeArgument), isConst: node.isConst);
+  }
+
   visitMapLiteral(MapLiteral node) {
     return new MapLiteral(node.entries.map(clone).toList(),
         keyType: visitType(node.keyType),

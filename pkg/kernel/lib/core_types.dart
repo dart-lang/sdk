@@ -47,6 +47,7 @@ class CoreTypes {
   Class _doubleClass;
   Class _stringClass;
   Class _listClass;
+  Class _setClass;
   Class _mapClass;
   Class _iterableClass;
   Class _iteratorClass;
@@ -296,6 +297,10 @@ class CoreTypes {
   Procedure get listUnmodifiableConstructor {
     return _listUnmodifiableConstructor ??=
         index.getMember('dart:core', 'List', 'unmodifiable');
+  }
+
+  Class get setClass {
+    return _setClass ??= index.getClass('dart:core', 'Set');
   }
 
   Class get mapClass {

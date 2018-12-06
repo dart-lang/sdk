@@ -3425,6 +3425,35 @@ class ListLiteral extends Expression {
   }
 }
 
+class SetLiteral extends Expression {
+  bool isConst;
+  DartType typeArgument; // Not null, defaults to DynamicType.
+  final List<Expression> expressions;
+
+  SetLiteral(this.expressions,
+      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+    assert(typeArgument != null);
+    setParents(expressions, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalSetType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitSetLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetLiteral(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(expressions, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(expressions, v, this);
+  }
+}
+
 class MapLiteral extends Expression {
   bool isConst;
   DartType keyType; // Not null, defaults to DynamicType.

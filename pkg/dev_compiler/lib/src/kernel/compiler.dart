@@ -4875,6 +4875,11 @@ class ProgramCompiler extends Object
         _emitConstList(elementType, _visitExpressionList(node.expressions)));
   }
 
+  @override
+  visitSetLiteral(SetLiteral node) {
+    throw UnsupportedError("SetLiteral");
+  }
+
   JS.Expression _emitConstList(
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.

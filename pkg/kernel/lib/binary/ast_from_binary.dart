@@ -1533,6 +1533,18 @@ class BinaryBuilder {
         return new ListLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: true)
           ..fileOffset = offset;
+      case Tag.SetLiteral:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetLiteral(readExpressionList(),
+            typeArgument: typeArgument, isConst: false)
+          ..fileOffset = offset;
+      case Tag.ConstSetLiteral:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetLiteral(readExpressionList(),
+            typeArgument: typeArgument, isConst: true)
+          ..fileOffset = offset;
       case Tag.MapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
