@@ -66,7 +66,7 @@ class BaseDependencyTest extends DriverResolutionTest {
     var units = await _resolveLibrary(path);
     var uri = units.first.declaredElement.source.uri;
 
-    return buildLibrary(uri, units, _ReferenceCollector());
+    return buildLibrary(uri, units);
 
 //    tracker.addLibrary(uri, units);
 //
@@ -156,30 +156,4 @@ class ExpectedNode {
     this.classMembers,
     this.classTypeParameters,
   });
-}
-
-/// TODO(scheglov) remove it once we get actual implementation
-class _ReferenceCollector implements ReferenceCollector {
-  @override
-  Uri get libraryUri => null;
-
-  @override
-  void addImportPrefix(String name) {}
-
-  @override
-  void appendExpression(Expression node) {}
-
-  @override
-  void appendFormalParameters(FormalParameterList formalParameterList) {}
-
-  @override
-  void appendFunctionBody(FunctionBody node) {}
-
-  @override
-  void appendTypeAnnotation(TypeAnnotation node) {}
-
-  @override
-  Dependencies finish(List<int> tokenSignature) {
-    return Dependencies(tokenSignature, [], [], [], []);
-  }
 }

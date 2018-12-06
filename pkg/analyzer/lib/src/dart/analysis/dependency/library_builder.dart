@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
+import 'package:analyzer/src/dart/analysis/dependency/reference_collector.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 
@@ -14,12 +15,8 @@ import 'package:analyzer/src/summary/api_signature.dart';
 /// If the [units] are just parsed, then only token signatures and referenced
 /// names of nodes can be computed. If the [units] are fully resolved, then
 /// also class member references can be recorded.
-Library buildLibrary(
-  Uri uri,
-  List<CompilationUnit> units,
-  ReferenceCollector referenceCollector,
-) {
-  return _LibraryBuilder(uri, units, referenceCollector).build();
+Library buildLibrary(Uri uri, List<CompilationUnit> units) {
+  return _LibraryBuilder(uri, units).build();
 }
 
 /// The `show` or `hide` namespace combinator.
@@ -119,47 +116,6 @@ class Library {
   String toString() => '$uri';
 }
 
-/// The interface for a class that collects information about external nodes
-/// referenced by a node.
-///
-/// The workflow for using it is that the library builder creates a new
-/// instance, fills it with names of import prefixes using [addImportPrefix].
-/// Then for each node defined in the library, methods `appendXyz` called
-/// zero or more times to record references to external names to record API or
-/// implementation dependencies. When all dependencies of a node are appended,
-/// [finish] is invoked to construct the full [Dependencies].
-/// TODO(scheglov) In following CLs we will provide single implementation.
-abstract class ReferenceCollector {
-  final Uri libraryUri;
-
-  ReferenceCollector(this.libraryUri);
-
-  /// Record that the [name] is a name of an import prefix.
-  ///
-  /// So, when we see code like `prefix.foo` we know that `foo` should be
-  /// resolved in the import scope that corresponds to `prefix` (unless the
-  /// name `prefix` is shadowed by a local declaration).
-  void addImportPrefix(String name);
-
-  /// Collect external nodes referenced from the given [node].
-  void appendExpression(Expression node);
-
-  /// Collect external nodes referenced from the given [node].
-  void appendFormalParameters(FormalParameterList node);
-
-  /// Collect external nodes referenced from the given [node].
-  void appendFunctionBody(FunctionBody node);
-
-  /// Collect external nodes referenced from the given [node].
-  void appendTypeAnnotation(TypeAnnotation node);
-
-  /// Construct and return a new [Dependencies] with the given
-  /// [tokenSignature] and all recorded references to external nodes. Clear
-  /// data structures with recorded references and be ready to start recording
-  /// references for a new node.
-  Dependencies finish(List<int> tokenSignature);
-}
-
 class _LibraryBuilder {
   /// The URI of the library.
   final Uri uri;
@@ -168,7 +124,7 @@ class _LibraryBuilder {
   final List<CompilationUnit> units;
 
   /// The instance of the referenced names, class members collector.
-  final ReferenceCollector referenceCollector;
+  final ReferenceCollector referenceCollector = ReferenceCollector();
 
   /// The list of imports in the library.
   final List<Import> imports = [];
@@ -194,7 +150,7 @@ class _LibraryBuilder {
   /// locations are different.
   List<int> enclosingClassNameSignature;
 
-  _LibraryBuilder(this.uri, this.units, this.referenceCollector);
+  _LibraryBuilder(this.uri, this.units);
 
   Library build() {
     uriSignature = (ApiSignature()..addString(uri.toString())).toByteList();
@@ -391,17 +347,19 @@ class _LibraryBuilder {
       kind = NodeKind.FUNCTION;
     }
 
-    referenceCollector.appendTypeAnnotation(node.returnType);
     // TODO(scheglov) type parameters (their bounds)
-    referenceCollector.appendFormalParameters(
-      node.functionExpression.parameters,
+    var api = referenceCollector.collect(
+      apiTokenSignature,
+      formalParameters: node.functionExpression.parameters,
+      returnType: node.returnType,
     );
-    var api = referenceCollector.finish(apiTokenSignature);
 
-    var bodyNode = node.functionExpression.body;
-    var implTokenSignature = _computeNodeTokenSignature(bodyNode);
-    referenceCollector.appendFunctionBody(bodyNode);
-    var impl = referenceCollector.finish(implTokenSignature);
+    var body = node.functionExpression.body;
+    var implTokenSignature = _computeNodeTokenSignature(body);
+    var impl = referenceCollector.collect(
+      implTokenSignature,
+      functionBody: body,
+    );
 
     declaredNodes.add(Node(name, kind, api, impl));
   }
@@ -485,14 +443,18 @@ class _LibraryBuilder {
       kind = NodeKind.METHOD;
     }
 
-    referenceCollector.appendTypeAnnotation(node.returnType);
     // TODO(scheglov) type parameters (their bounds)
-    referenceCollector.appendFormalParameters(node.parameters);
-    var api = referenceCollector.finish(apiTokenSignature);
+    var api = referenceCollector.collect(
+      apiTokenSignature,
+      formalParameters: node.parameters,
+      returnType: node.returnType,
+    );
 
     var implTokenSignature = _computeNodeTokenSignature(node.body);
-    referenceCollector.appendFunctionBody(node.body);
-    var impl = referenceCollector.finish(implTokenSignature);
+    var impl = referenceCollector.collect(
+      implTokenSignature,
+      functionBody: node.body,
+    );
 
     classMembers
         .add(Node(LibraryQualifiedName(uri, node.name.name), kind, api, impl));
@@ -535,17 +497,19 @@ class _LibraryBuilder {
       var builder = _newApiSignatureBuilder();
       builder.addInt(variables.isConst ? 1 : 0); // const flag
       _appendMetadataTokens(builder, metadata);
-
       _appendNodeTokens(builder, variables.type);
-      referenceCollector.appendTypeAnnotation(variables.type);
-
       if (appendInitializerToApi) {
         _appendNodeTokens(builder, variable.initializer);
-        referenceCollector.appendExpression(variable.initializer);
       }
 
       var apiTokenSignature = builder.toByteList();
-      var api = referenceCollector.finish(apiTokenSignature);
+      var api = referenceCollector.collect(
+        apiTokenSignature,
+        type: variables.type,
+        expression: appendInitializerToApi ? variable.initializer : null,
+      );
+
+      // TODO(scheglov) variable "impl"
 
       var rawName = variable.name.name;
       variableNodes.add(
