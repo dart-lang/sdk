@@ -50,7 +50,7 @@ if (overflowChars != other.overflowChars)
 ''';
 
 class CurlyBracesInFlowControlStructures extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   CurlyBracesInFlowControlStructures()
       : super(
             name: 'curly_braces_in_flow_control_structures',

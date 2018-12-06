@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,7 +62,7 @@ bool _isSink(DartType type) =>
 bool _isSocket(DartType type) =>
     DartTypeUtilities.implementsInterface(type, 'Socket', 'dart.io');
 
-class CloseSinks extends LintRule implements NodeLintRuleWithContext {
+class CloseSinks extends LintRule implements NodeLintRule {
   CloseSinks()
       : super(
             name: 'close_sinks',

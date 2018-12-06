@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45,7 +45,7 @@ void mutableCase() {
 
 ''';
 
-class PreferFinalLocals extends LintRule implements NodeLintRuleWithContext {
+class PreferFinalLocals extends LintRule implements NodeLintRule {
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    FunctionBody function = node.getAncestor((a) => a is FunctionBody);
+    FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
     if (function != null &&
         !function.isPotentiallyMutatedInScope(node.declaredElement)) {
       rule.reportLint(node.name);

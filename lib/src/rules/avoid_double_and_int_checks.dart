@@ -41,8 +41,7 @@ f(dynamic x) {
 
 ''';
 
-class AvoidDoubleAndIntChecks extends LintRule
-    implements NodeLintRuleWithContext {
+class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
   AvoidDoubleAndIntChecks()
       : super(
             name: 'avoid_double_and_int_checks',

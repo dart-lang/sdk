@@ -25,8 +25,7 @@ iterable.whereType<MyClass>()
 
 ''';
 
-class PreferIterableWhereType extends LintRule
-    implements NodeLintRuleWithContext {
+class PreferIterableWhereType extends LintRule implements NodeLintRule {
   PreferIterableWhereType()
       : super(
             name: 'prefer_iterable_whereType',

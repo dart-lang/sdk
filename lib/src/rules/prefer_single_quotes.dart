@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -43,7 +43,7 @@ useStrings(
 
 ''';
 
-class PreferSingleQuotes extends LintRule implements NodeLintRuleWithContext {
+class PreferSingleQuotes extends LintRule implements NodeLintRule {
   PreferSingleQuotes()
       : super(
             name: 'prefer_single_quotes',
@@ -113,7 +113,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Strings can be within interpolations (ie, nested). Check like this.
   bool isNestedString(AstNode node) =>
       // careful: node.getAncestor will check the node itself.
-      node.parent?.getAncestor((p) => p is StringInterpolation) != null;
+      node.parent?.thisOrAncestorOfType<StringInterpolation>() != null;
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral string) {

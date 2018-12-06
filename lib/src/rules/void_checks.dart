@@ -29,7 +29,7 @@ void main() {
 ```
 ''';
 
-class VoidChecks extends LintRule implements NodeLintRuleWithContext {
+class VoidChecks extends LintRule implements NodeLintRule {
   VoidChecks()
       : super(
             name: 'void_checks',
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    final parent = node.getAncestor((e) =>
+    final parent = node.thisOrAncestorMatching((e) =>
         e is FunctionExpression ||
         e is MethodDeclaration ||
         e is FunctionDeclaration);

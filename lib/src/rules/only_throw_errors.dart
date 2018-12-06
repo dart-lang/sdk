@@ -1,5 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,7 +54,7 @@ bool _isThrowable(DartType type) =>
     type.isDynamic ||
     DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
 
-class OnlyThrowErrors extends LintRule implements NodeLintRuleWithContext {
+class OnlyThrowErrors extends LintRule implements NodeLintRule {
   OnlyThrowErrors()
       : super(
             name: 'only_throw_errors',

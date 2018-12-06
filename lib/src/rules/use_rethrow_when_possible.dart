@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,8 +38,7 @@ try {
 
 ''';
 
-class UseRethrowWhenPossible extends LintRule
-    implements NodeLintRuleWithContext {
+class UseRethrowWhenPossible extends LintRule implements NodeLintRule {
   UseRethrowWhenPossible()
       : super(
             name: 'use_rethrow_when_possible',
@@ -65,8 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final element =
         DartTypeUtilities.getCanonicalElementFromIdentifier(node.expression);
     if (element != null) {
-      final catchClause =
-          node.getAncestor((e) => e is CatchClause) as CatchClause;
+      final catchClause = node.thisOrAncestorOfType<CatchClause>();
       final exceptionParameter =
           DartTypeUtilities.getCanonicalElementFromIdentifier(
               catchClause?.exceptionParameter);

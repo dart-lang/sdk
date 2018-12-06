@@ -32,7 +32,7 @@ BigInt value = BigInt.parse('9007199254740995');
 
 ''';
 
-class AvoidJsRoundedInts extends LintRule implements NodeLintRuleWithContext {
+class AvoidJsRoundedInts extends LintRule implements NodeLintRule {
   AvoidJsRoundedInts()
       : super(
             name: 'avoid_js_rounded_ints',

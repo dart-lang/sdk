@@ -1,12 +1,12 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -43,8 +43,7 @@ switch (v) {
 String message(String value1, String value2) =>
     'Do not use more than one case with same value ($value1 and $value2)';
 
-class NoDuplicateCaseValues extends LintRule
-    implements NodeLintRuleWithContext {
+class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',

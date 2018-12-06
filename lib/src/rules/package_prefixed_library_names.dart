@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -50,7 +50,7 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
     name == prefix || name.startsWith('$prefix.');
 
 class PackagePrefixedLibraryNames extends LintRule
-    implements ProjectVisitor, NodeLintRuleWithContext {
+    implements ProjectVisitor, NodeLintRule {
   DartProject project;
 
   PackagePrefixedLibraryNames()

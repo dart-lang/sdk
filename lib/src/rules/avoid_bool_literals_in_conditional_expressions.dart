@@ -31,7 +31,7 @@ condition && boolExpression
 ''';
 
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
             name: 'avoid_bool_literals_in_conditional_expressions',

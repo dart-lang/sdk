@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,7 +42,7 @@ bool isJavaStyle(Comment comment) {
   return comment.tokens[0].lexeme.startsWith('/**');
 }
 
-class SlashForDocComments extends LintRule implements NodeLintRuleWithContext {
+class SlashForDocComments extends LintRule implements NodeLintRule {
   SlashForDocComments()
       : super(
             name: 'slash_for_doc_comments',

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45,8 +45,7 @@ return myvar;
 
 ''';
 
-class UnnecessaryStatements extends LintRule
-    implements NodeLintRuleWithContext {
+class UnnecessaryStatements extends LintRule implements NodeLintRule {
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',
@@ -61,36 +60,6 @@ class UnnecessaryStatements extends LintRule
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final _ReportNoClearEffectVisitor reportNoClearEffect;
-
-  _Visitor(this.reportNoClearEffect);
-  @override
-  void visitCascadeExpression(CascadeExpression node) {
-    for (var section in node.cascadeSections) {
-      if (section is PropertyAccess && section.staticType is FunctionType) {
-        reportNoClearEffect.rule.reportLint(section);
-      }
-    }
-  }
-
-  @override
-  void visitExpressionStatement(ExpressionStatement node) {
-    if (node.parent is FunctionBody) {
-      return;
-    }
-    node.expression.accept(reportNoClearEffect);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    node.initialization?.accept(reportNoClearEffect);
-    node.updaters?.forEach((u) {
-      u.accept(reportNoClearEffect);
-    });
   }
 }
 
@@ -199,11 +168,6 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   }
 
   @override
-  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    // Has a clear effect
-  }
-
-  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
@@ -217,7 +181,42 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   }
 
   @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    // Has a clear effect
+  }
+
+  @override
   visitThrowExpression(ThrowExpression node) {
     // Has a clear effect
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final _ReportNoClearEffectVisitor reportNoClearEffect;
+
+  _Visitor(this.reportNoClearEffect);
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    for (var section in node.cascadeSections) {
+      if (section is PropertyAccess && section.staticType is FunctionType) {
+        reportNoClearEffect.rule.reportLint(section);
+      }
+    }
+  }
+
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
+    if (node.parent is FunctionBody) {
+      return;
+    }
+    node.expression.accept(reportNoClearEffect);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    node.initialization?.accept(reportNoClearEffect);
+    node.updaters?.forEach((u) {
+      u.accept(reportNoClearEffect);
+    });
   }
 }

@@ -1,8 +1,10 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:analyzer/analyzer.dart';
+
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -40,7 +42,7 @@ void main() async {
 
 ''';
 
-class UnawaitedFutures extends LintRule implements NodeLintRuleWithContext {
+class UnawaitedFutures extends LintRule implements NodeLintRule {
   UnawaitedFutures()
       : super(
             name: 'unawaited_futures',
@@ -96,8 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isEnclosedInAsyncFunctionBody(AstNode node) {
-    final enclosingFunctionBody =
-        node.getAncestor((node) => node is FunctionBody) as FunctionBody;
+    final enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
     return enclosingFunctionBody?.isAsynchronous == true;
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -127,6 +127,21 @@ String qualify(LintRule r) =>
 String toDescription(LintRule r) =>
     '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
 
+class Badger {
+  Iterable<LintRule> rules;
+  Badger(this.rules);
+
+  generate(String dirPath) async {
+    var lintCount = rules.length;
+
+    var client = new http.Client();
+    var req = await client.get(
+        Uri.parse('https://img.shields.io/badge/lints-$lintCount-blue.svg'));
+    var bytes = req.bodyBytes;
+    await new File('$dirPath/count-badge.svg').writeAsBytes(bytes);
+  }
+}
+
 class Generator {
   LintRule rule;
   Generator(this.rule);
@@ -135,6 +150,17 @@ class Generator {
   String get group => rule.group.name;
   String get humanReadableName => rule.name;
   String get maturity => rule.maturity.name;
+  String get maturityString {
+    switch (rule.maturity) {
+      case Maturity.deprecated:
+        return '<span style="color:orangered;font-weight:bold;" >$maturity</span>';
+      case Maturity.experimental:
+        return '<span style="color:hotpink;font-weight:bold;" >$maturity</span>';
+      default:
+        return maturity;
+    }
+  }
+
   String get name => rule.name;
 
   generate([String filePath]) {
@@ -145,17 +171,6 @@ class Generator {
       new File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
-    }
-  }
-
-  String get maturityString {
-    switch (rule.maturity) {
-      case Maturity.deprecated:
-        return '<span style="color:orangered;font-weight:bold;" >$maturity</span>';
-      case Maturity.experimental:
-        return '<span style="color:hotpink;font-weight:bold;" >$maturity</span>';
-      default:
-        return maturity;
     }
   }
 
@@ -200,21 +215,6 @@ class Generator {
    </body>
 </html>
 ''';
-}
-
-class Badger {
-  Iterable<LintRule> rules;
-  Badger(this.rules);
-
-  generate(String dirPath) async {
-    var lintCount = rules.length;
-
-    var client = new http.Client();
-    var req = await client.get(
-        Uri.parse('https://img.shields.io/badge/lints-$lintCount-blue.svg'));
-    var bytes = req.bodyBytes;
-    await new File('$dirPath/count-badge.svg').writeAsBytes(bytes);
-  }
 }
 
 class Indexer {

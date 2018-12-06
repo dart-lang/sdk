@@ -25,7 +25,7 @@ Iterable<T> where(bool Function(T) predicate) {}
 ''';
 
 class UseFunctionTypeSyntaxForParameters extends LintRule
-    implements NodeLintRuleWithContext {
+    implements NodeLintRule {
   UseFunctionTypeSyntaxForParameters()
       : super(
             name: 'use_function_type_syntax_for_parameters',

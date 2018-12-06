@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -40,7 +40,7 @@ if (!sources.isEmpty) {
 
 ''';
 
-class PreferIsNotEmpty extends LintRule implements NodeLintRuleWithContext {
+class PreferIsNotEmpty extends LintRule implements NodeLintRule {
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',

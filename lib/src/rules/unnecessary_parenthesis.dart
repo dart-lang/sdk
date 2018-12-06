@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,8 +24,7 @@ a = (b);
 
 ''';
 
-class UnnecessaryParenthesis extends LintRule
-    implements NodeLintRuleWithContext {
+class UnnecessaryParenthesis extends LintRule implements NodeLintRule {
   UnnecessaryParenthesis()
       : super(
             name: 'unnecessary_parenthesis',
@@ -62,7 +61,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // a..b=(c..d) is OK
     if (node.expression is CascadeExpression &&
-        node.getAncestor((n) => n is Statement || n is CascadeExpression)
+        node.thisOrAncestorMatching(
+                (n) => n is Statement || n is CascadeExpression)
             is CascadeExpression) {
       return;
     }

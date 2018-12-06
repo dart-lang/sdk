@@ -1,12 +1,12 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/utilities_general.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -81,29 +81,6 @@ in the following locations:
 
 ''';
 
-/// Function with closure parameters that cannot accept null arguments.
-class NonNullableFunction {
-  final String library;
-  final String type;
-  final String name;
-  final List<int> positional;
-  final List<String> named;
-
-  NonNullableFunction(this.library, this.type, this.name,
-      {this.positional = const <int>[], this.named = const <String>[]});
-
-  @override
-  int get hashCode =>
-      JenkinsSmiHash.hash3(library.hashCode, type.hashCode, name.hashCode);
-
-  /// Two [NonNullableFunction] objects are equal if their [library], [type],
-  /// and [name] are equal, for the purpose of discovering whether a function
-  /// invocation is among a collection of non-nullable functions.
-  @override
-  bool operator ==(Object other) =>
-      other is NonNullableFunction && other.hashCode == hashCode;
-}
-
 List<NonNullableFunction> _constructorsWithNonNullableArguments =
     <NonNullableFunction>[
   NonNullableFunction('dart.async', 'Future', null, positional: [0]),
@@ -112,15 +89,6 @@ List<NonNullableFunction> _constructorsWithNonNullableArguments =
   NonNullableFunction('dart.async', 'Timer', null, positional: [1]),
   NonNullableFunction('dart.async', 'Timer', 'periodic', positional: [1]),
   NonNullableFunction('dart.core', 'List', 'generate', positional: [1]),
-];
-
-List<NonNullableFunction> _staticFunctionsWithNonNullableArguments =
-    <NonNullableFunction>[
-  NonNullableFunction('dart.async', null, 'scheduleMicrotask', positional: [0]),
-  NonNullableFunction('dart.async', 'Future', 'doWhile', positional: [0]),
-  NonNullableFunction('dart.async', 'Future', 'forEach', positional: [1]),
-  NonNullableFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
-  NonNullableFunction('dart.async', 'Timer', 'run', positional: [0]),
 ];
 
 final Map<String, Set<NonNullableFunction>>
@@ -204,7 +172,39 @@ final Map<String, Set<NonNullableFunction>>
   ]),
 };
 
-class NullClosures extends LintRule implements NodeLintRuleWithContext {
+List<NonNullableFunction> _staticFunctionsWithNonNullableArguments =
+    <NonNullableFunction>[
+  NonNullableFunction('dart.async', null, 'scheduleMicrotask', positional: [0]),
+  NonNullableFunction('dart.async', 'Future', 'doWhile', positional: [0]),
+  NonNullableFunction('dart.async', 'Future', 'forEach', positional: [1]),
+  NonNullableFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
+  NonNullableFunction('dart.async', 'Timer', 'run', positional: [0]),
+];
+
+/// Function with closure parameters that cannot accept null arguments.
+class NonNullableFunction {
+  final String library;
+  final String type;
+  final String name;
+  final List<int> positional;
+  final List<String> named;
+
+  NonNullableFunction(this.library, this.type, this.name,
+      {this.positional = const <int>[], this.named = const <String>[]});
+
+  @override
+  int get hashCode =>
+      JenkinsSmiHash.hash3(library.hashCode, type.hashCode, name.hashCode);
+
+  /// Two [NonNullableFunction] objects are equal if their [library], [type],
+  /// and [name] are equal, for the purpose of discovering whether a function
+  /// invocation is among a collection of non-nullable functions.
+  @override
+  bool operator ==(Object other) =>
+      other is NonNullableFunction && other.hashCode == hashCode;
+}
+
+class NullClosures extends LintRule implements NodeLintRule {
   NullClosures()
       : super(
             name: 'null_closures',
@@ -268,6 +268,25 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
+  void _checkNullArgForClosure(
+      ArgumentList node, List<int> positions, List<String> names) {
+    NodeList<Expression> args = node.arguments;
+    for (int i = 0; i < args.length; i++) {
+      Expression arg = args[i];
+
+      if (arg is NamedExpression) {
+        if (arg.expression is NullLiteral &&
+            names.contains(arg.name.label.name)) {
+          rule.reportLint(arg);
+        }
+      } else {
+        if (arg is NullLiteral && positions.contains(i)) {
+          rule.reportLint(arg);
+        }
+      }
+    }
+  }
+
   NonNullableFunction _getInstanceMethod(DartType type, String methodName) {
     var possibleMethods = _instanceMethodsWithNonNullableArguments[methodName];
     if (possibleMethods == null) {
@@ -297,24 +316,5 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
     return null;
-  }
-
-  void _checkNullArgForClosure(
-      ArgumentList node, List<int> positions, List<String> names) {
-    NodeList<Expression> args = node.arguments;
-    for (int i = 0; i < args.length; i++) {
-      Expression arg = args[i];
-
-      if (arg is NamedExpression) {
-        if (arg.expression is NullLiteral &&
-            names.contains(arg.name.label.name)) {
-          rule.reportLint(arg);
-        }
-      } else {
-        if (arg is NullLiteral && positions.contains(i)) {
-          rule.reportLint(arg);
-        }
-      }
-    }
   }
 }

@@ -35,8 +35,7 @@ Future<int> f2() {
 
 ''';
 
-class UnnecessaryAwaitInReturn extends LintRule
-    implements NodeLintRuleWithContext {
+class UnnecessaryAwaitInReturn extends LintRule implements NodeLintRule {
   UnnecessaryAwaitInReturn()
       : super(
             name: 'unnecessary_await_in_return',
@@ -54,9 +53,9 @@ class UnnecessaryAwaitInReturn extends LintRule
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
   final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
@@ -78,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node.getAncestor((e) =>
+    final parent = node.thisOrAncestorMatching((e) =>
         e is FunctionExpression ||
         e is MethodDeclaration ||
         e is Block && e.parent is TryStatement);

@@ -1,17 +1,18 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /// Common AST helpers.
-
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
@@ -29,10 +30,35 @@ List<Element> getChildren(Element parent, [String name]) {
   return children;
 }
 
+/// Return the compilation unit of a node
+CompilationUnit getCompilationUnit(AstNode node) =>
+    node.thisOrAncestorOfType<CompilationUnit>();
+
 /// Returns the most specific AST node appropriate for associating errors.
 AstNode getNodeToAnnotate(Declaration node) {
   AstNode mostSpecific = _getNodeToAnnotate(node);
   return mostSpecific ?? node;
+}
+
+bool hasErrorWithConstantVerifier(LinterContext context, AstNode node) {
+  final cu = getCompilationUnit(node);
+  final listener = new HasConstErrorListener();
+  node.accept(new ConstantVerifier(
+      new ErrorReporter(listener, cu.declaredElement.source),
+      cu.declaredElement.library,
+      context.typeProvider,
+      context.declaredVariables));
+  return listener.hasConstError;
+}
+
+bool hasErrorWithConstantVisitor(LinterContext context, AstNode node) {
+  final cu = getCompilationUnit(node);
+  final listener = new HasConstErrorListener();
+  node.accept(new ConstantVisitor(
+      new ConstantEvaluationEngine(
+          context.typeProvider, context.declaredVariables),
+      new ErrorReporter(listener, cu.declaredElement.source)));
+  return listener.hasConstError;
 }
 
 /// Returns `true` if this [node] has an `@override` annotation.
@@ -46,6 +72,34 @@ bool inPrivateMember(AstNode node) {
   if (parent is NamedCompilationUnitMember) {
     return isPrivate(parent.name);
   }
+  return false;
+}
+
+/// Return true if the given node is declared in a compilation unit that is in
+/// a `lib/` folder.
+bool isDefinedInLib(CompilationUnit compilationUnit) {
+  String fullName = compilationUnit?.declaredElement?.source?.fullName;
+  if (fullName == null) {
+    return false;
+  }
+
+  // TODO(devoncarew): Change to using the resource provider on the context
+  // when that is available.
+  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  File file = resourceProvider.getFile(fullName);
+  Folder folder = file.parent;
+
+  // Look for a pubspec.yaml file.
+  while (folder != null) {
+    if (folder.getChildAssumingFile('pubspec.yaml').exists) {
+      // Determine if this file is a child of the lib/ folder.
+      String relPath = file.path.substring(folder.path.length + 1);
+      return path.split(relPath).first == 'lib';
+    }
+
+    folder = folder.parent;
+  }
+
   return false;
 }
 
@@ -141,38 +195,6 @@ bool isSimpleSetter(MethodDeclaration setter) {
         return _checkForSimpleSetter(setter, statement.expression);
       }
     }
-  }
-
-  return false;
-}
-
-/// Return the compilation unit of a node
-CompilationUnit getCompilationUnit(AstNode node) =>
-    node.getAncestor((a) => a is CompilationUnit);
-
-/// Return true if the given node is declared in a compilation unit that is in
-/// a `lib/` folder.
-bool isDefinedInLib(CompilationUnit compilationUnit) {
-  String fullName = compilationUnit?.declaredElement?.source?.fullName;
-  if (fullName == null) {
-    return false;
-  }
-
-  // TODO(devoncarew): Change to using the resource provider on the context
-  // when that is available.
-  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-  File file = resourceProvider.getFile(fullName);
-  Folder folder = file.parent;
-
-  // Look for a pubspec.yaml file.
-  while (folder != null) {
-    if (folder.getChildAssumingFile('pubspec.yaml').exists) {
-      // Determine if this file is a child of the lib/ folder.
-      String relPath = file.path.substring(folder.path.length + 1);
-      return path.split(relPath).first == 'lib';
-    }
-
-    folder = folder.parent;
   }
 
   return false;
@@ -283,51 +305,7 @@ AstNode _getNodeToAnnotate(Declaration node) {
 /// If `true` is returned, children of [element] will be visited.
 typedef bool ElementProcessor(Element element);
 
-/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
-class _ElementVisitorAdapter extends GeneralizingElementVisitor {
-  final ElementProcessor processor;
-  _ElementVisitorAdapter(this.processor);
-
-  @override
-  void visitElement(Element element) {
-    bool visitChildren = processor(element);
-    if (visitChildren == true) {
-      element.visitChildren(this);
-    }
-  }
-}
-
-bool hasErrorWithConstantVerifier(LinterContext context, AstNode node) {
-  final cu = getCompilationUnit(node);
-  final listener = new HasConstErrorListener();
-  node.accept(new ConstantVerifier(
-      new ErrorReporter(listener, cu.declaredElement.source),
-      cu.declaredElement.library,
-      context.typeProvider,
-      context.declaredVariables));
-  return listener.hasConstError;
-}
-
-bool hasErrorWithConstantVisitor(LinterContext context, AstNode node) {
-  final cu = getCompilationUnit(node);
-  final listener = new HasConstErrorListener();
-  node.accept(new ConstantVisitor(
-      new ConstantEvaluationEngine(
-          context.typeProvider, context.declaredVariables),
-      new ErrorReporter(listener, cu.declaredElement.source)));
-  return listener.hasConstError;
-}
-
 class HasConstErrorListener extends AnalysisErrorListener {
-  HasConstErrorListener();
-
-  bool hasConstError = false;
-
-  @override
-  void onError(AnalysisError error) {
-    hasConstError = hasConstError || errorCodes.contains(error.errorCode);
-  }
-
   static const List<CompileTimeErrorCode> errorCodes = const [
     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
     CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
@@ -348,4 +326,27 @@ class HasConstErrorListener extends AnalysisErrorListener {
     CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
     CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
   ];
+
+  bool hasConstError = false;
+
+  HasConstErrorListener();
+
+  @override
+  void onError(AnalysisError error) {
+    hasConstError = hasConstError || errorCodes.contains(error.errorCode);
+  }
+}
+
+/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+class _ElementVisitorAdapter extends GeneralizingElementVisitor {
+  final ElementProcessor processor;
+  _ElementVisitorAdapter(this.processor);
+
+  @override
+  void visitElement(Element element) {
+    bool visitChildren = processor(element);
+    if (visitChildren == true) {
+      element.visitChildren(this);
+    }
+  }
 }

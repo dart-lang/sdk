@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,7 +36,7 @@ int get field => _field;
 
 ''';
 
-class RecursiveGetters extends LintRule implements NodeLintRuleWithContext {
+class RecursiveGetters extends LintRule implements NodeLintRule {
   RecursiveGetters()
       : super(
             name: 'recursive_getters',
@@ -50,6 +50,29 @@ class RecursiveGetters extends LintRule implements NodeLintRuleWithContext {
     final visitor = new _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+  }
+}
+
+/// Tests if a simple identifier is a recursive getter by looking at its parent.
+class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
+  @override
+  bool visitPropertyAccess(PropertyAccess node) =>
+      node.target is ThisExpression;
+
+  @override
+  bool visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.parent is ArgumentList ||
+        node.parent is ConditionalExpression ||
+        node.parent is ExpressionFunctionBody ||
+        node.parent is ReturnStatement) {
+      return true;
+    }
+
+    if (node.parent is PropertyAccess) {
+      return node.parent.accept(this);
+    }
+
+    return false;
   }
 }
 
@@ -90,28 +113,5 @@ class _Visitor extends SimpleAstVisitor<void> {
             element == n.staticElement &&
             n.accept(visitor))
         .forEach(rule.reportLint);
-  }
-}
-
-/// Tests if a simple identifier is a recursive getter by looking at its parent.
-class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
-  @override
-  bool visitPropertyAccess(PropertyAccess node) =>
-      node.target is ThisExpression;
-
-  @override
-  bool visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is ArgumentList ||
-        node.parent is ConditionalExpression ||
-        node.parent is ExpressionFunctionBody ||
-        node.parent is ReturnStatement) {
-      return true;
-    }
-
-    if (node.parent is PropertyAccess) {
-      return node.parent.accept(this);
-    }
-
-    return false;
   }
 }

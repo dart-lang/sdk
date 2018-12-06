@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -32,7 +32,7 @@ main() {
 
 ''';
 
-class PreferIntLiterals extends LintRule implements NodeLintRuleWithContext {
+class PreferIntLiterals extends LintRule implements NodeLintRule {
   PreferIntLiterals()
       : super(
             name: 'prefer_int_literals',
@@ -52,26 +52,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    // Check if the double can be represented as an int
-    try {
-      double value = node.value;
-      if (value == null || value != value.truncate()) {
-        return;
-      }
-      // ignore: avoid_catching_errors
-    } on UnsupportedError catch (_) {
-      // The double cannot be represented as an int
-      return;
-    }
-
-    // Ensure that replacing the double would not change the semantics
-    if (canReplaceWithIntLiteral(node)) {
-      rule.reportLint(node);
-    }
-  }
-
   /// Determine if the given literal can be replaced by an int literal.
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {
     // TODO(danrubel): Consider moving this into analyzer
@@ -84,6 +64,18 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
     return hasTypeDouble(literal);
+  }
+
+  bool hasReturnTypeDouble(AstNode node) {
+    if (node is FunctionExpression) {
+      var functDeclaration = node.parent;
+      if (functDeclaration is FunctionDeclaration) {
+        return functDeclaration.returnType?.type?.name == 'double';
+      }
+    } else if (node is MethodDeclaration) {
+      return node.returnType?.type?.name == 'double';
+    }
+    return false;
   }
 
   bool hasTypeDouble(Expression expression) {
@@ -102,8 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is ExpressionFunctionBody) {
       return hasReturnTypeDouble(parent.parent);
     } else if (parent is ReturnStatement) {
-      BlockFunctionBody body =
-          parent.getAncestor((a) => a is BlockFunctionBody);
+      BlockFunctionBody body = parent.thisOrAncestorOfType<BlockFunctionBody>();
       return hasReturnTypeDouble(body.parent);
     } else if (parent is VariableDeclaration) {
       AstNode varList = parent.parent;
@@ -114,15 +105,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     return false;
   }
 
-  bool hasReturnTypeDouble(AstNode node) {
-    if (node is FunctionExpression) {
-      var functDeclaration = node.parent;
-      if (functDeclaration is FunctionDeclaration) {
-        return functDeclaration.returnType?.type?.name == 'double';
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    // Check if the double can be represented as an int
+    try {
+      double value = node.value;
+      if (value == null || value != value.truncate()) {
+        return;
       }
-    } else if (node is MethodDeclaration) {
-      return node.returnType?.type?.name == 'double';
+      // ignore: avoid_catching_errors
+    } on UnsupportedError catch (_) {
+      // The double cannot be represented as an int
+      return;
     }
-    return false;
+
+    // Ensure that replacing the double would not change the semantics
+    if (canReplaceWithIntLiteral(node)) {
+      rule.reportLint(node);
+    }
   }
 }

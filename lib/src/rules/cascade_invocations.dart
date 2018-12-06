@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -97,7 +97,7 @@ bool _isInvokedWithoutNullAwareOperator(Token token) =>
 
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
-class CascadeInvocations extends LintRule implements NodeLintRuleWithContext {
+class CascadeInvocations extends LintRule implements NodeLintRule {
   /// Default constructor.
   CascadeInvocations()
       : super(
