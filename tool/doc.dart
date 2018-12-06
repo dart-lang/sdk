@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
@@ -51,24 +52,7 @@ These rules are under active development.  Feedback is
 
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
-// TODO(pq): generate dynamically.
-List<String> pedanticRules =
-// 1.4
-    [
-  'avoid_empty_else',
-  'avoid_relative_lib_imports',
-  'avoid_return_types_on_setters',
-  'avoid_types_as_parameter_names',
-  'no_duplicate_case_values',
-  'prefer_contains',
-  'prefer_equal_for_default_values',
-  'prefer_is_not_empty',
-  'recursive_getters',
-  'unrelated_type_equality_checks',
-  'use_rethrow_when_possible',
-  'unawaited_futures',
-  'valid_regexps'
-];
+final pedanticRules = <String>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
@@ -96,6 +80,17 @@ String get enumerateStyleRules => rules
 
 List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
 
+Future<void> fetchBadgeInfo() async {
+  var client = new http.Client();
+  var req = await client.get(Uri.parse(
+      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml'));
+
+  var config = processAnalysisOptionsFile(req.body);
+  for (var ruleConfig in config.ruleConfigs) {
+    pedanticRules.add(ruleConfig.name);
+  }
+}
+
 Future<void> generateDocs(String dir) async {
   String outDir = dir;
   if (outDir != null) {
@@ -114,13 +109,16 @@ Future<void> generateDocs(String dir) async {
 
   registerLintRules();
 
-  // Generate badge
-  await new Badger(Registry.ruleRegistry).generate(outDir);
+  // Generate lint count badge.
+  await new CountBadger(Registry.ruleRegistry).generate(outDir);
 
-  // Generate index
+  // Fetch info for lint group/style badge generation.
+  await fetchBadgeInfo();
+
+  // Generate index.
   new Indexer(Registry.ruleRegistry).generate(outDir);
 
-  // Generate rule files
+  // Generate rule files.
   rules.forEach((l) => new Generator(l).generate(outDir));
 
   // Generate options samples.
@@ -152,9 +150,9 @@ String qualify(LintRule r) =>
 String toDescription(LintRule r) =>
     '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
 
-class Badger {
+class CountBadger {
   Iterable<LintRule> rules;
-  Badger(this.rules);
+  CountBadger(this.rules);
 
   generate(String dirPath) async {
     var lintCount = rules.length;
