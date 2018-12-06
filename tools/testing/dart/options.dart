@@ -357,6 +357,15 @@ compiler.''',
     'write_results',
   ].toSet();
 
+  /// The set of objects which the named configuration should imply.
+  static final _namedConfigurationOptions = [
+    'system',
+    'arch',
+    'mode',
+    'compiler',
+    'runtime',
+  ].toSet();
+
   /// Parses a list of strings as test options.
   ///
   /// Returns a list of configurations in which to run the tests.
@@ -473,6 +482,18 @@ compiler.''',
       }
     }
 
+    // If a named configuration was specified ensure no other options, which are
+    // implied by the named configuration, were specified.
+    if (configuration['named_configuration'] is String) {
+      for (final optionName in _namedConfigurationOptions) {
+        if (configuration.containsKey(optionName)) {
+          final namedConfig = configuration['named_configuration'];
+          _fail("The named configuration '$namedConfig' implies "
+              "'$optionName'. Try removing '$optionName'.");
+        }
+      }
+    }
+
     // Apply default values for unspecified options.
     for (var option in _options) {
       if (!configuration.containsKey(option.name)) {
@@ -497,12 +518,16 @@ compiler.''',
 
   /// Given a set of parsed option values, returns the list of command line
   /// arguments that would reproduce that configuration.
-  List<String> _reproducingCommand(Map<String, dynamic> data) {
+  List<String> _reproducingCommand(
+      Map<String, dynamic> data, bool usingNamedConfiguration) {
     var arguments = <String>[];
 
     for (var option in _options) {
       var name = option.name;
-      if (!data.containsKey(name) || _blacklistedOptions.contains(name)) {
+      if (!data.containsKey(name) ||
+          _blacklistedOptions.contains(name) ||
+          (usingNamedConfiguration &&
+              _namedConfigurationOptions.contains(name))) {
         continue;
       }
 
@@ -707,7 +732,8 @@ compiler.''',
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,
                 outputDirectory: data["output_directory"] as String,
-                reproducingArguments: _reproducingCommand(data),
+                reproducingArguments:
+                    _reproducingCommand(data, namedConfiguration != null),
                 fastTestsOnly: data["fast_tests"] as bool,
                 printPassingStdout: data["print_passing_stdout"] as bool);
 
