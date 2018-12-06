@@ -73,7 +73,7 @@ class E {
   }
 }
 
-class F{
+class F {
   var _array = new List<int>(5); // LINT
 
   void foo() {
@@ -85,9 +85,20 @@ class F{
 class IdBug686 {
   static int _id = 0;
   static String generateId({prefix: String}) {
-    return (prefix ?? "id") + "-" +
-        (_id++).toString() + "-" + _foo();
+    return (prefix ?? "id") + "-" + (_id++).toString() + "-" + _foo();
   }
 
   static String _foo() => '';
+}
+
+// analyzer's `FieldMember` vs `FieldElement` caused
+// https://github.com/dart-lang/sdk/issues/34417
+abstract class GenericBase<T> {
+  int _current = 0; // OK
+}
+
+class GenericSub extends GenericBase<int> {
+  void test() {
+    _current = 1;
+  }
 }
