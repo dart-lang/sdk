@@ -28,6 +28,7 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         ProcedureKind,
+        SetLiteral,
         StaticInvocation,
         StringLiteral,
         TreeNode,
@@ -1537,6 +1538,13 @@ class KernelLibraryBuilder
 
   void checkBoundsInListLiteral(
       ListLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
+  void checkBoundsInSetLiteral(SetLiteral node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
     checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,

@@ -2302,6 +2302,57 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleLiteralSet(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("LiteralSet");
+    List<Expression> expressions = popListForValue(count);
+    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    DartType typeArgument;
+    if (typeArguments != null) {
+      if (typeArguments.length > 1) {
+        addProblem(
+            fasta.messageSetLiteralTooManyTypeArguments,
+            offsetForToken(leftBrace),
+            lengthOfSpan(leftBrace, leftBrace.endGroup));
+      } else {
+        typeArgument = buildDartType(typeArguments.single);
+        if (!library.loader.target.legacyMode) {
+          typeArgument =
+              instantiateToBounds(typeArgument, coreTypes.objectClass);
+        }
+      }
+    }
+    Expression node = forest.literalSet(
+        constKeyword,
+        constKeyword != null || constantContext == ConstantContext.inferred,
+        typeArgument,
+        typeArguments,
+        leftBrace,
+        expressions,
+        rightBrace);
+    library.checkBoundsInSetLiteral(node, typeEnvironment);
+    push(node);
+  }
+
+  @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("EmptyLiteralSetOrMap");
+    // Treat as map literal - type inference will find the right type.
+    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    assert(typeArguments == null);
+    push(forest.literalMap(
+        constKeyword,
+        constKeyword != null || constantContext == ConstantContext.inferred,
+        null,
+        null,
+        null,
+        leftBrace,
+        <MapEntry>[],
+        rightBrace));
+  }
+
+  @override
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     bool value = optional("true", token);

@@ -7831,6 +7831,16 @@ Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetLiteralTooManyTypeArguments =
+    messageSetLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
+    "SetLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
+    message: r"""Set literal requires exactly one type argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Setter not found: '#name'.""",

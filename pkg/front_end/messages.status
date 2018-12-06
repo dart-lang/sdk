@@ -311,6 +311,8 @@ SdkSpecificationNotFound/analyzerCode: Fail
 SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
+SetLiteralTooManyTypeArguments/analyzerCode: Fail
+SetLiteralTooManyTypeArguments/example: Fail
 SetterNotFound/example: Fail
 SetterNotSync/example: Fail
 SetterWithWrongNumberOfFormals/example: Fail

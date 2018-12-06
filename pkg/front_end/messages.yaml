@@ -1434,6 +1434,10 @@ ListLiteralTooManyTypeArguments:
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
 
+SetLiteralTooManyTypeArguments:
+  template: "Set literal requires exactly one type argument."
+  severity: ERROR_LEGACY_WARNING
+
 MapLiteralTypeArgumentMismatch:
   template: "Map literal requires exactly two type arguments."
   severity: ERROR_LEGACY_WARNING
