@@ -1160,6 +1160,9 @@ void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
     }
     const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
     SetValue(instr, result);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // Both values known, but no rule to evaluate this further.
+    SetValue(instr, non_constant_);
   }
 }
 
