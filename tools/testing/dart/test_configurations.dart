@@ -188,6 +188,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       printFailures = false;
       eventListener.add(new StatusFileUpdatePrinter());
     }
+    if (firstConf.silentFailures) {
+      printFailures = false;
+    }
     eventListener.add(new SummaryPrinter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
@@ -222,7 +225,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   if (listTests) {
     eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
-    if (!firstConf.noStatus) {
+    if (!firstConf.cleanExit) {
       eventListener.add(new ExitCodeSetter());
     }
     eventListener.add(new IgnoredTestMonitor());
