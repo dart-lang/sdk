@@ -926,7 +926,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  // Save frame pointer coming in.
+  __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetCodeReg = CallingConventions::kArg1Reg;
@@ -1052,6 +1052,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
+  __ popq(RCX);
 
   __ ret();
 }
@@ -1067,7 +1068,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  // Save frame pointer coming in.
+  __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetCodeReg = CallingConventions::kArg1Reg;
@@ -1193,6 +1194,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
+  __ popq(RCX);
 
   __ ret();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

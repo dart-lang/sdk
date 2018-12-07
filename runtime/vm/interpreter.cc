@@ -3019,11 +3019,6 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // in the previous C++ frames.
   StackResource::Unwind(thread);
 
-  // Set the tag.
-  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
-  // Clear top exit frame.
-  thread->set_top_exit_frame_info(0);
-
   fp_ = reinterpret_cast<RawObject**>(fp);
 
   if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
@@ -3040,6 +3035,11 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   } else {
     pc_ = pc;
   }
+
+  // Set the tag.
+  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
+  // Clear top exit frame.
+  thread->set_top_exit_frame_info(0);
 
   buf->Longjmp();
   UNREACHABLE();

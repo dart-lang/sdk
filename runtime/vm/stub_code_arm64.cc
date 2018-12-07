@@ -1015,6 +1015,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
+  __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1136,6 +1137,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
+  __ Drop(1);
   __ RestoreCSP();
   __ ret();
 }
@@ -1154,6 +1156,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
+  __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1272,6 +1275,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
+  __ Drop(1);
   __ RestoreCSP();
   __ ret();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

@@ -732,12 +732,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   ESP + 16 : current thread.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  const intptr_t kTargetCodeOffset = 2 * kWordSize;
-  const intptr_t kArgumentsDescOffset = 3 * kWordSize;
-  const intptr_t kArgumentsOffset = 4 * kWordSize;
-  const intptr_t kThreadOffset = 5 * kWordSize;
+  const intptr_t kTargetCodeOffset = 3 * kWordSize;
+  const intptr_t kArgumentsDescOffset = 4 * kWordSize;
+  const intptr_t kArgumentsOffset = 5 * kWordSize;
+  const intptr_t kThreadOffset = 6 * kWordSize;
 
-  // Save frame pointer coming in.
+  __ pushl(Address(ESP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -833,6 +833,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
+  __ popl(ECX);
 
   __ ret();
 }

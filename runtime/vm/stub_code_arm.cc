@@ -938,7 +938,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   R2 : arguments array.
 //   R3 : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  // Save frame pointer coming in.
+  __ Push(LR);  // Marker for the profiler.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Push code object to PC marker slot.
@@ -1050,6 +1050,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and return.
   __ LeaveFrame((1 << FP) | (1 << LR));
+  __ Drop(1);
   __ Ret();
 }
 
