@@ -989,6 +989,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         return _classHierarchyBuilder.isInheritedInThisClass(
             memberHoldingClass, type);
       case ClassRelation.subtype:
+        if (memberHoldingClass == _commonElements.nullClass ||
+            memberHoldingClass == _commonElements.jsNullClass) {
+          // Members of `Null` and `JSNull` are always potential targets.
+          return true;
+        }
         return _classHierarchyBuilder.isInheritedInSubtypeOf(
             memberHoldingClass, type);
     }
