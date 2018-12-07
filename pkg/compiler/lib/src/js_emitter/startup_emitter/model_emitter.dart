@@ -57,6 +57,7 @@ part 'fragment_emitter.dart';
 class ModelEmitter {
   final Compiler compiler;
   final Namer namer;
+  final CodeEmitterTask task;
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
@@ -80,7 +81,7 @@ class ModelEmitter {
   static const String typeNameProperty = r"builtin$cls";
 
   ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
-      Sorter sorter, CodeEmitterTask task, this.shouldGenerateSourceMap)
+      Sorter sorter, this.task, this.shouldGenerateSourceMap)
       : _constantOrdering = new ConstantOrdering(sorter) {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
@@ -271,8 +272,10 @@ class ModelEmitter {
     LocationCollector locationCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (shouldGenerateSourceMap) {
-      locationCollector = new LocationCollector();
-      codeOutputListeners = <CodeOutputListener>[locationCollector];
+      task.measureSubtask('source-maps', () {
+        locationCollector = new LocationCollector();
+        codeOutputListeners = <CodeOutputListener>[locationCollector];
+      });
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
@@ -292,22 +295,26 @@ class ModelEmitter {
         monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
-      mainOutput.add(SourceMapBuilder.generateSourceMapTag(
-          compiler.options.sourceMapUri, compiler.options.outputUri));
+      task.measureSubtask('source-maps', () {
+        mainOutput.add(SourceMapBuilder.generateSourceMapTag(
+            compiler.options.sourceMapUri, compiler.options.outputUri));
+      });
     }
 
     mainOutput.close();
 
     if (shouldGenerateSourceMap) {
-      SourceMapBuilder.outputSourceMap(
-          mainOutput,
-          locationCollector,
-          namer.createMinifiedGlobalNameMap(),
-          namer.createMinifiedInstanceNameMap(),
-          '',
-          compiler.options.sourceMapUri,
-          compiler.options.outputUri,
-          compiler.outputProvider);
+      task.measureSubtask('source-maps', () {
+        SourceMapBuilder.outputSourceMap(
+            mainOutput,
+            locationCollector,
+            namer.createMinifiedGlobalNameMap(),
+            namer.createMinifiedInstanceNameMap(),
+            '',
+            compiler.options.sourceMapUri,
+            compiler.options.outputUri,
+            compiler.outputProvider);
+      });
     }
   }
 
@@ -323,8 +330,10 @@ class ModelEmitter {
 
     LocationCollector locationCollector;
     if (shouldGenerateSourceMap) {
-      locationCollector = new LocationCollector();
-      outputListeners.add(locationCollector);
+      task.measureSubtask('source-maps', () {
+        locationCollector = new LocationCollector();
+        outputListeners.add(locationCollector);
+      });
     }
 
     String hunkPrefix = fragment.outputFileName;
@@ -365,31 +374,33 @@ class ModelEmitter {
         '${deferredInitializersGlobal}.current');
 
     if (shouldGenerateSourceMap) {
-      Uri mapUri, partUri;
-      Uri sourceMapUri = compiler.options.sourceMapUri;
-      Uri outputUri = compiler.options.outputUri;
-      String partName = "$hunkPrefix.$partExtension";
-      String hunkFileName = "$hunkPrefix.$deferredExtension";
+      task.measureSubtask('source-maps', () {
+        Uri mapUri, partUri;
+        Uri sourceMapUri = compiler.options.sourceMapUri;
+        Uri outputUri = compiler.options.outputUri;
+        String partName = "$hunkPrefix.$partExtension";
+        String hunkFileName = "$hunkPrefix.$deferredExtension";
 
-      if (sourceMapUri != null) {
-        String mapFileName = hunkFileName + ".map";
-        List<String> mapSegments = sourceMapUri.pathSegments.toList();
-        mapSegments[mapSegments.length - 1] = mapFileName;
-        mapUri =
-            compiler.options.sourceMapUri.replace(pathSegments: mapSegments);
-      }
+        if (sourceMapUri != null) {
+          String mapFileName = hunkFileName + ".map";
+          List<String> mapSegments = sourceMapUri.pathSegments.toList();
+          mapSegments[mapSegments.length - 1] = mapFileName;
+          mapUri =
+              compiler.options.sourceMapUri.replace(pathSegments: mapSegments);
+        }
 
-      if (outputUri != null) {
-        List<String> partSegments = outputUri.pathSegments.toList();
-        partSegments[partSegments.length - 1] = hunkFileName;
-        partUri =
-            compiler.options.outputUri.replace(pathSegments: partSegments);
-      }
+        if (outputUri != null) {
+          List<String> partSegments = outputUri.pathSegments.toList();
+          partSegments[partSegments.length - 1] = hunkFileName;
+          partUri =
+              compiler.options.outputUri.replace(pathSegments: partSegments);
+        }
 
-      output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
-      output.close();
-      SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
-          partName, mapUri, partUri, compiler.outputProvider);
+        output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
+        output.close();
+        SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+            partName, mapUri, partUri, compiler.outputProvider);
+      });
     } else {
       output.close();
     }
