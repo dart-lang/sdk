@@ -6,8 +6,8 @@ library ssa.tracer;
 
 import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show Namer;
-import '../types/abstract_value_domain.dart';
 import '../tracer.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';

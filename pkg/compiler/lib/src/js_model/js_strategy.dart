@@ -17,7 +17,9 @@ import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
     show KernelSourceInformationStrategy;
 import '../io/source_information.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/type_graph_inferrer.dart';
+import '../inferrer/types.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
@@ -29,8 +31,6 @@ import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';

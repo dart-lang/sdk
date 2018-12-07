@@ -9,9 +9,9 @@ import '../common_elements.dart'
     show CommonElements, KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as jsAst;
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
 import 'namer.dart';

@@ -6,8 +6,8 @@ import '../common.dart';
 import '../common_elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
+import '../inferrer/types.dart';
 import '../serialization/serialization.dart';
-import '../types/types.dart';
 
 /// [NoSuchMethodRegistry] and [NoSuchMethodData] categorizes `noSuchMethod`
 /// implementations.

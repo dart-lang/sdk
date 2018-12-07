@@ -22,12 +22,11 @@ import '../js_model/locals.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'builder_kernel.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
@@ -38,6 +37,7 @@ import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
+import 'types.dart';
 
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the

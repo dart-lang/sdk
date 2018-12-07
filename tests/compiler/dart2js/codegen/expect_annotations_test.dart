@@ -7,7 +7,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
 import '../helpers/memory_compiler.dart';

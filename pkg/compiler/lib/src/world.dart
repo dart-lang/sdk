@@ -17,6 +17,7 @@ import 'deferred_load.dart';
 import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'inferrer/abstract_value_domain.dart';
 import 'ir/static_type.dart';
 import 'js_backend/annotations.dart';
 import 'js_backend/allocator_analysis.dart'
@@ -28,7 +29,6 @@ import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types.dart' show RuntimeTypesNeed;
 import 'js_model/locals.dart';
 import 'js_emitter/sorter.dart';
-import 'types/abstract_value_domain.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/selector.dart' show Selector;
 

@@ -11,7 +11,6 @@ import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../serialization/serialization.dart';
-import '../../types/abstract_value_domain.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
@@ -19,6 +18,7 @@ import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
 import '../../world.dart' show JClosedWorld;
+import '../abstract_value_domain.dart';
 import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 

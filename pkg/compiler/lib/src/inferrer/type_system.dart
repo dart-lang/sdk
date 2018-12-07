@@ -6,9 +6,9 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
 
 /// Strategy for creating type information from members and parameters and type

@@ -4,8 +4,8 @@
 
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/serialization/strategies.dart';
-import 'package:compiler/src/types/types.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../helpers/memory_compiler.dart';

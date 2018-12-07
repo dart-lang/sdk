@@ -11,10 +11,10 @@ import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'kernel/dart2js_target.dart';
-import 'types/abstract_value_domain.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.

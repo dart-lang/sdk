@@ -26,7 +26,10 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
+import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
+import 'inferrer/types.dart'
+    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/inferred_data.dart';
@@ -38,9 +41,6 @@ import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'serialization/task.dart';
 import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
-import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
-import 'types/types.dart'
-    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
