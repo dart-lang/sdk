@@ -211,7 +211,7 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
+  static const intptr_t kStackSizeBuffer = (8 * KB * kWordSize);
 
   static const ThreadId kInvalidThreadId;
   static const ThreadJoinId kInvalidThreadJoinId;
