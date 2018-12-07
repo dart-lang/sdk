@@ -123,7 +123,6 @@ mirrors/native_class_test: CompileTimeError
 mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
 
 [ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
-async/timer_regress22626_test: Skip # Timing dependent
 isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
