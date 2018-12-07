@@ -1735,7 +1735,7 @@
             "--time",
             "2700"
           ],
-          "shards": 10,
+          "shards": 100,
           "fileset": "fuzzer"
         }
       ]
