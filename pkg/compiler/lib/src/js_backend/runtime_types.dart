@@ -1684,21 +1684,24 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
     Set<ClassEntity> classesDirectlyNeedingRuntimeType = new Set<ClassEntity>();
 
-    ClassEntity impliedClass(DartType type) {
+    Iterable<ClassEntity> impliedClasses(DartType type) {
       if (type is InterfaceType) {
-        return type.element;
+        return [type.element];
       } else if (type is DynamicType) {
-        return commonElements.objectClass;
+        return [commonElements.objectClass];
       } else if (type is FunctionType) {
         // TODO(johnniwinther): Include only potential function type subtypes.
-        return commonElements.functionClass;
+        return [commonElements.functionClass];
       } else if (type is VoidType) {
         // No classes implied.
       } else if (type is FunctionTypeVariable) {
-        return impliedClass(type.bound);
+        return impliedClasses(type.bound);
+      } else if (type is FutureOrType) {
+        return [commonElements.futureClass]
+          ..addAll(impliedClasses(type.typeArgument));
       } else if (type is TypeVariableType) {
         // TODO(johnniwinther): Can we do better?
-        return impliedClass(
+        return impliedClasses(
             _elementEnvironment.getTypeVariableBound(type.element));
       }
       throw new UnsupportedError('Unexpected type $type');
@@ -1720,43 +1723,47 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       switch (runtimeTypeUse.kind) {
         case RuntimeTypeUseKind.string:
           if (!options.laxRuntimeTypeToString) {
-            addClass(impliedClass(runtimeTypeUse.receiverType));
+            impliedClasses(runtimeTypeUse.receiverType).forEach(addClass);
           }
 
           break;
         case RuntimeTypeUseKind.equals:
-          ClassEntity receiverClass = impliedClass(runtimeTypeUse.receiverType);
-          ClassEntity argumentClass = impliedClass(runtimeTypeUse.argumentType);
+          Iterable<ClassEntity> receiverClasses =
+              impliedClasses(runtimeTypeUse.receiverType);
+          Iterable<ClassEntity> argumentClasses =
+              impliedClasses(runtimeTypeUse.argumentType);
 
-          // TODO(johnniwinther): Special case use of `this.runtimeType`.
-          SubclassResult result = closedWorld.classHierarchy.commonSubclasses(
-              receiverClass,
-              ClassQuery.SUBTYPE,
-              argumentClass,
-              ClassQuery.SUBTYPE);
-          switch (result.kind) {
-            case SubclassResultKind.EMPTY:
-              break;
-            case SubclassResultKind.EXACT1:
-            case SubclassResultKind.SUBCLASS1:
-            case SubclassResultKind.SUBTYPE1:
-              addClass(receiverClass);
-              break;
-            case SubclassResultKind.EXACT2:
-            case SubclassResultKind.SUBCLASS2:
-            case SubclassResultKind.SUBTYPE2:
-              addClass(argumentClass);
-              break;
-            case SubclassResultKind.SET:
-              for (ClassEntity cls in result.classes) {
-                addClass(cls);
-                if (neededOnAll) break;
+          for (ClassEntity receiverClass in receiverClasses) {
+            for (ClassEntity argumentClass in argumentClasses) {
+              // TODO(johnniwinther): Special case use of `this.runtimeType`.
+              SubclassResult result = closedWorld.classHierarchy
+                  .commonSubclasses(receiverClass, ClassQuery.SUBTYPE,
+                      argumentClass, ClassQuery.SUBTYPE);
+              switch (result.kind) {
+                case SubclassResultKind.EMPTY:
+                  break;
+                case SubclassResultKind.EXACT1:
+                case SubclassResultKind.SUBCLASS1:
+                case SubclassResultKind.SUBTYPE1:
+                  addClass(receiverClass);
+                  break;
+                case SubclassResultKind.EXACT2:
+                case SubclassResultKind.SUBCLASS2:
+                case SubclassResultKind.SUBTYPE2:
+                  addClass(argumentClass);
+                  break;
+                case SubclassResultKind.SET:
+                  for (ClassEntity cls in result.classes) {
+                    addClass(cls);
+                    if (neededOnAll) break;
+                  }
+                  break;
               }
-              break;
+            }
           }
           break;
         case RuntimeTypeUseKind.unknown:
-          addClass(impliedClass(runtimeTypeUse.receiverType));
+          impliedClasses(runtimeTypeUse.receiverType).forEach(addClass);
           break;
       }
       if (neededOnAll) break;
