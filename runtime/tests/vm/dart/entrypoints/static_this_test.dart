@@ -40,8 +40,8 @@ main(List<String> args) {
   }
 
   expectedEntryPoint = 0;
-  dynamic f = c.target2;
-  f(0);
+  dynamic x = c;
+  x.target2(0);
 
   Expect.isTrue(validateRan);
 }

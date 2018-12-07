@@ -4336,20 +4336,20 @@ class Instructions : public Object {
   }
 
 #if defined(TARGET_ARCH_IA32)
-  static const intptr_t kCheckedEntryOffset = 0;
-  static const intptr_t kUncheckedEntryOffset = 0;
+  static const intptr_t kPolymorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kCheckedEntryOffset = 15;
-  static const intptr_t kUncheckedEntryOffset = 34;
+  static const intptr_t kPolymorphicEntryOffset = 15;
+  static const intptr_t kMonomorphicEntryOffset = 34;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kCheckedEntryOffset = 0;
-  static const intptr_t kUncheckedEntryOffset = 20;
+  static const intptr_t kPolymorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffset = 20;
 #elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kCheckedEntryOffset = 8;
-  static const intptr_t kUncheckedEntryOffset = 28;
+  static const intptr_t kPolymorphicEntryOffset = 8;
+  static const intptr_t kMonomorphicEntryOffset = 28;
 #elif defined(TARGET_ARCH_DBC)
-  static const intptr_t kCheckedEntryOffset = 0;
-  static const intptr_t kUncheckedEntryOffset = 0;
+  static const intptr_t kPolymorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffset = 0;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -4357,7 +4357,7 @@ class Instructions : public Object {
   static uword MonomorphicEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
-      entry += kCheckedEntryOffset;
+      entry += kPolymorphicEntryOffset;
     }
     return entry;
   }
@@ -4365,13 +4365,27 @@ class Instructions : public Object {
   static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
-      entry += kUncheckedEntryOffset;
+      entry += kMonomorphicEntryOffset;
     }
     return entry;
   }
 
   static uword UncheckedEntryPoint(const RawInstructions* instr) {
-    return PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
+    uword entry =
+        PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
+    if (!HasSingleEntryPoint(instr)) {
+      entry += kMonomorphicEntryOffset;
+    }
+    return entry;
+  }
+
+  static uword MonomorphicUncheckedEntryPoint(const RawInstructions* instr) {
+    uword entry =
+        PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
+    if (!HasSingleEntryPoint(instr)) {
+      entry += kPolymorphicEntryOffset;
+    }
+    return entry;
   }
 
   static const intptr_t kMaxElements =
@@ -4832,6 +4846,7 @@ class Code : public Object {
     kNormal,
     kUnchecked,
     kMonomorphic,
+    kMonomorphicUnchecked,
   };
 
   static intptr_t entry_point_offset(EntryKind kind = EntryKind::kNormal) {
@@ -4842,6 +4857,8 @@ class Code : public Object {
         return OFFSET_OF(RawCode, unchecked_entry_point_);
       case EntryKind::kMonomorphic:
         return OFFSET_OF(RawCode, monomorphic_entry_point_);
+      case EntryKind::kMonomorphicUnchecked:
+        return OFFSET_OF(RawCode, monomorphic_unchecked_entry_point_);
       default:
         UNREACHABLE();
     }
@@ -4883,8 +4900,10 @@ class Code : public Object {
     return Instructions::UncheckedEntryPoint(instructions());
   }
   uword MonomorphicEntryPoint() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.MonomorphicEntryPoint();
+    return Instructions::MonomorphicEntryPoint(instructions());
+  }
+  uword MonomorphicUncheckedEntryPoint() const {
+    return Instructions::MonomorphicUncheckedEntryPoint(instructions());
   }
   intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }

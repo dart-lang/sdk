@@ -926,31 +926,13 @@ void FlowGraphCompiler::EmitPrologue() {
 //   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-  if (FLAG_precompiled_mode) {
-    const Function& function = parsed_function().function();
-    if (function.IsDynamicFunction()) {
-      SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-      __ MonomorphicCheckedEntry();
-      SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-    }
 
-    // For JIT we have multiple entrypoints functionality which moved the
-    // intrinsification as well as the setup of the frame to the
-    // [TargetEntryInstr::EmitNativeCode].
-    if (TryIntrinsify()) {
-      // Skip regular code generation.
-      return;
-    }
-    EmitFrameEntry();
-    ASSERT(__ constant_pool_allowed());
-  } else {
-    // For JIT we have multiple entrypoints functionality which moved the frame
-    // setup into the [TargetEntryInstr] (which will set the constant pool
-    // allowed bit to true).  Despite this we still have to set the
-    // constant pool allowed bit to true here as well, because we can generate
-    // code for [CatchEntryInstr]s, which need the pool.
-    __ set_constant_pool_allowed(true);
-  }
+  // For JIT we have multiple entrypoints functionality which moved the frame
+  // setup into the [TargetEntryInstr] (which will set the constant pool
+  // allowed bit to true).  Despite this we still have to set the
+  // constant pool allowed bit to true here as well, because we can generate
+  // code for [CatchEntryInstr]s, which need the pool.
+  __ set_constant_pool_allowed(true);
 
   VisitBlocks();
 
@@ -1112,7 +1094,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
                                                    intptr_t deopt_id,
                                                    TokenPosition token_pos,
-                                                   LocationSummary* locs) {
+                                                   LocationSummary* locs,
+                                                   Code::EntryKind entry_kind) {
+  ASSERT(entry_kind == Code::EntryKind::kNormal ||
+         entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::ICCallThroughFunction();
 
@@ -1120,8 +1105,11 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ LoadFromOffset(kWord, R0, SP,
                     (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(CODE_REG, initial_stub);
-  __ ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(
-                                        Code::EntryKind::kMonomorphic)));
+  intptr_t entry_point_offset =
+      entry_kind == Code::EntryKind::kNormal
+          ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
+          : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
+  __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
   __ LoadUniqueObject(R9, ic_data);
   __ blx(LR);
 

@@ -19,7 +19,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false]  method method1(self::T0 t0) → void {
-    [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+    [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 abstract class B extends core::Object {
@@ -30,7 +30,7 @@ class C extends core::Object implements self::B {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method method2(covariant self::T0 t0) → void {
-    [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+    [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 class D extends core::Object {
@@ -38,15 +38,15 @@ class D extends core::Object {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method method3(self::T0 t0) → void {
-    [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+    [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
 static method func1([@vm.inferred-type.metadata=#lib::T2?] self::T0 t0) → void {
-  [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+  [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
 static method func2(self::T0 t0) → void {
-  [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+  [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
 static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function] self::unknown.call();
@@ -57,7 +57,7 @@ static method main(core::List<core::String> args) → dynamic {
   self::use(self::func2);
   self::use(new self::A::•().{self::A::method1});
   self::B bb = self::getDynamic() as{TypeError} self::B;
-  [@vm.direct-call.metadata=#lib::C::method2??] bb.{self::B::method2}(self::getDynamic());
+  [@vm.direct-call.metadata=#lib::C::method2??] [@vm.inferred-type.metadata=!? (skip check)] bb.{self::B::method2}(self::getDynamic());
   self::getDynamic().method3(self::getDynamic());
   new self::T2::•();
   new self::A::•();

@@ -516,6 +516,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   const Fragment default_type_handling =
       BuildDefaultTypeHandling(function, ReaderOffset());
 
+  const ProcedureAttributesMetadata parent_attrs =
+      procedure_attributes_metadata_helper_.GetProcedureAttributes(
+          parent.kernel_offset());
+
   // We're going to throw away the explicit checks because the target will
   // always check them.
   Fragment implicit_checks;
@@ -530,10 +534,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                               nullptr);
     } else {
       // Check if parent function was annotated with no-dynamic-invocations.
-      const ProcedureAttributesMetadata attrs =
-          procedure_attributes_metadata_helper_.GetProcedureAttributes(
-              parent.kernel_offset());
-      if (MethodCanSkipTypeChecksForNonCovariantArguments(parent, attrs)) {
+      if (MethodCanSkipTypeChecksForNonCovariantArguments(parent,
+                                                          parent_attrs)) {
         // If it was then we might need to build some checks in the
         // tear-off.
         AlternativeReadingScope _(&reader_);
@@ -610,7 +612,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   // Setup multiple entrypoints if useful.
   FunctionEntryInstr* extra_entry = nullptr;
-  if (function.MayHaveUncheckedEntryPoint(I)) {
+  // TODO(#34162): We can still skip the non-generic-covariant parameter checks
+  // when the target has only 'this' uses.
+  if (function.MayHaveUncheckedEntryPoint(I) &&
+      parent_attrs.has_non_this_uses) {
     // The prologue for a closure will always have context handling (e.g.
     // setting up the 'this_variable'), but we don't need it on the unchecked
     // entry because the only time we reference this is for loading the
@@ -3031,9 +3036,11 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
       direct_call_metadata_helper_.GetDirectTargetForPropertySet(offset);
   const CallSiteAttributesMetadata call_site_attributes =
       call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
+  const InferredTypeMetadata inferred_type =
+      inferred_type_metadata_helper_.GetInferredType(offset);
 
   // True if callee can skip argument type checks.
-  bool is_unchecked_call = false;
+  bool is_unchecked_call = inferred_type.IsSkipCheck();
 #ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr &&
       call_site_attributes.receiver_type->HasTypeClass() &&
@@ -3095,12 +3102,12 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   }
 
   if (!direct_call_target->IsNull()) {
-    // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
-    // entry-points in AOT.
     ASSERT(FLAG_precompiled_mode);
     instructions +=
         StaticCall(position, *direct_call_target, 2, Array::null_array(),
-                   ICData::kNoRebind, /*result_type=*/nullptr);
+                   ICData::kNoRebind, /*result_type=*/nullptr,
+                   /*type_args_count=*/0,
+                   /*use_unchecked_entry=*/is_unchecked_call);
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
@@ -3109,8 +3116,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
         position, *mangled_name, Token::kSET, kTypeArgsLen, 2,
         Array::null_array(), kNumArgsChecked, *interface_target,
         /*result_type=*/nullptr,
-        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_unchecked_call,
-        &call_site_attributes);
+        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
@@ -3330,7 +3336,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
         position, Function::ZoneHandle(Z, function.raw()),
         /* argument_count = */ 2, Array::null_array(), ICData::kSuper,
         /*result_type=*/nullptr, /*type_args_len=*/0,
-        /*use_unchecked_entry=*/!FLAG_precompiled_mode);
+        /*use_unchecked_entry=*/true);
     instructions += Drop();  // Drop result of the setter invocation.
   }
 
@@ -3527,7 +3533,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
 
   bool is_unchecked_closure_call = false;
-  bool is_unchecked_call = false;
+  bool is_unchecked_call = result_type.IsSkipCheck();
 #ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr) {
     if (call_site_attributes.receiver_type->IsFunctionType()) {
@@ -3682,24 +3688,19 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
         B->ClosureCall(position, type_args_len, argument_count, argument_names,
                        /*use_unchecked_entry=*/true);
   } else if (!direct_call_target->IsNull()) {
-    // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
-    // entry-points in AOT.
-
     // Even if TFA infers a concrete receiver type, the static type of the
     // call-site may still be dynamic and we need to call the dynamic invocation
     // forwarder to ensure type-checks are performed.
     ASSERT(FLAG_precompiled_mode);
-    instructions += StaticCall(position, *direct_call_target, argument_count,
-                               argument_names, ICData::kNoRebind, &result_type,
-                               type_args_len);
+    instructions +=
+        StaticCall(position, *direct_call_target, argument_count,
+                   argument_names, ICData::kNoRebind, &result_type,
+                   type_args_len, /*use_unchecked_entry=*/is_unchecked_call);
   } else {
-    // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
-    // entry-points in AOT.
     instructions += InstanceCall(
         position, *mangled_name, token_kind, type_args_len, argument_count,
         argument_names, checked_argument_count, *interface_target, &result_type,
-        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_unchecked_call,
-        &call_site_attributes);
+        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes);
   }
 
   // Drop temporaries preserving result on the top of the stack.
@@ -3932,7 +3933,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
            StaticCall(position, Function::ZoneHandle(Z, function.raw()),
                       argument_count, argument_names, ICData::kSuper,
                       &result_type, type_args_len,
-                      /*use_unchecked_entry_point=*/!FLAG_precompiled_mode);
+                      /*use_unchecked_entry_point=*/true);
   }
 }
 

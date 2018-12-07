@@ -1084,7 +1084,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
                                                    intptr_t deopt_id,
                                                    TokenPosition token_pos,
-                                                   LocationSummary* locs) {
+                                                   LocationSummary* locs,
+                                                   Code::EntryKind entry_kind) {
+  // TODO(34162): Support multiple entry-points on ARM64.
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::ICCallThroughFunction();
 

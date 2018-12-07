@@ -560,10 +560,12 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t try_index,
                                    intptr_t slow_path_argument_count = 0);
 
-  void EmitSwitchableInstanceCall(const ICData& ic_data,
-                                  intptr_t deopt_id,
-                                  TokenPosition token_pos,
-                                  LocationSummary* locs);
+  void EmitSwitchableInstanceCall(
+      const ICData& ic_data,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,

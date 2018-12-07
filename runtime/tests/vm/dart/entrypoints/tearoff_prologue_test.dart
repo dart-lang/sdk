@@ -12,6 +12,7 @@ import "common.dart";
 class C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validateTearoff)
+  @pragma("vm:entry-point")
   void samir1(T x) {
     if (x == -1) {
       throw "oh no";

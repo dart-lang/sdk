@@ -248,7 +248,7 @@ class SwitchableCall : public ValueObject {
 
     // movq rcx, [CODE_REG + entrypoint_offset]
     static int16_t load_entry_pattern[] = {
-        0x49, 0x8b, 0x4c, 0x24, 0x0f,
+        0x49, 0x8b, 0x4c, 0x24, -1,
     };
     if (MatchesPattern(pc, load_entry_pattern,
                        ARRAY_SIZE(load_entry_pattern))) {

@@ -63,10 +63,10 @@ main(List<String> args) {
 
   // Once for D and once for E.
   expectedEntryPoint = 0;
-  dynamic f = getC().target2;
-  f(0);
-  f = getC().target2;
-  f(0);
+  dynamic x = getC();
+  x.target2(0);
+  x = getC();
+  x.target2(0);
 
   Expect.isTrue(validateRan);
 }

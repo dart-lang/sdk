@@ -25,13 +25,13 @@ class Intermediate extends core::Object {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method bar([@vm.inferred-type.metadata=#lib::B?] self::A aa) → dynamic
-    return [@vm.direct-call.metadata=#lib::B::foo??] [@vm.inferred-type.metadata=#lib::T1] aa.{self::A::foo}();
+    return [@vm.direct-call.metadata=#lib::B::foo??] [@vm.inferred-type.metadata=#lib::T1 (skip check)] aa.{self::A::foo}();
 }
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
 static method use1([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, [@vm.inferred-type.metadata=#lib::B?] self::A aa) → dynamic
-  return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=#lib::T1] i.{self::Intermediate::bar}(aa);
+  return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=#lib::T1 (skip check)] i.{self::Intermediate::bar}(aa);
 static method use2([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, [@vm.inferred-type.metadata=#lib::B?] self::A aa) → dynamic
-  return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=#lib::T1] i.{self::Intermediate::bar}(aa);
+  return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=#lib::T1 (skip check)] i.{self::Intermediate::bar}(aa);
 static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function] self::unknown.call();
 static method allocateB() → dynamic {

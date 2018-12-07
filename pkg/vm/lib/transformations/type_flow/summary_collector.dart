@@ -329,8 +329,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _summary = new Summary();
       }
 
-      _translator = new RuntimeTypeTranslator(member.enclosingClass, _summary,
-          _receiver, null, _genericInterfacesInfo);
+      _translator = new RuntimeTypeTranslator(
+          _summary, _receiver, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
         assertx(member.initializer != null);
@@ -373,25 +373,54 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _environment.thisType = member.enclosingClass?.thisType;
       }
 
-      _translator = new RuntimeTypeTranslator(member.enclosingClass, _summary,
-          _receiver, _fnTypeVariables, _genericInterfacesInfo);
+      _translator = new RuntimeTypeTranslator(
+          _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
-      for (VariableDeclaration param in function.positionalParameters) {
-        _declareParameter(param.name, param.type, param.initializer);
+      // Handle forwarding stubs. We need to check types against the types of
+      // the forwarding stub's target, [member.forwardingStubSuperTarget].
+      FunctionNode useTypesFrom = member.function;
+      if (member is Procedure &&
+          member.isForwardingStub &&
+          member.forwardingStubSuperTarget != null) {
+        final target = member.forwardingStubSuperTarget;
+        if (target is Field) {
+          useTypesFrom = FunctionNode(null, positionalParameters: [
+            VariableDeclaration("value", type: target.type)
+          ]);
+        } else {
+          useTypesFrom = member.forwardingStubSuperTarget.function;
+        }
       }
-      for (VariableDeclaration param in function.namedParameters) {
-        _declareParameter(param.name, param.type, param.initializer);
+
+      for (int i = 0; i < function.positionalParameters.length; ++i) {
+        _declareParameter(
+            function.positionalParameters[i].name,
+            function.positionalParameters[i].isGenericCovariantImpl
+                ? null
+                : useTypesFrom.positionalParameters[i].type,
+            function.positionalParameters[i].initializer);
+      }
+      for (int i = 0; i < function.namedParameters.length; ++i) {
+        _declareParameter(
+            function.namedParameters[i].name,
+            function.namedParameters[i].isGenericCovariantImpl
+                ? null
+                : useTypesFrom.namedParameters[i].type,
+            function.namedParameters[i].initializer);
       }
 
       int count = firstParamIndex;
-      for (VariableDeclaration param in function.positionalParameters) {
-        Join v =
-            _declareVariable(param, useTypeCheck: param.isGenericCovariantImpl);
+      for (int i = 0; i < function.positionalParameters.length; ++i) {
+        Join v = _declareVariable(function.positionalParameters[i],
+            useTypeCheck:
+                function.positionalParameters[i].isGenericCovariantImpl,
+            checkType: useTypesFrom.positionalParameters[i].type);
         v.values.add(_summary.statements[count++]);
       }
-      for (VariableDeclaration param in function.namedParameters) {
-        Join v =
-            _declareVariable(param, useTypeCheck: param.isGenericCovariantImpl);
+      for (int i = 0; i < function.namedParameters.length; ++i) {
+        Join v = _declareVariable(function.namedParameters[i],
+            useTypeCheck: function.namedParameters[i].isGenericCovariantImpl,
+            checkType: useTypesFrom.namedParameters[i].type);
         v.values.add(_summary.statements[count++]);
       }
       assertx(count == _summary.parameterCount);
@@ -559,14 +588,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Join _declareVariable(VariableDeclaration decl,
-      {bool addInitType: false, bool useTypeCheck: false}) {
-    Join join = new Join(decl.name, decl.type);
+      {bool addInitType: false,
+      bool useTypeCheck: false,
+      DartType checkType: null}) {
+    final type = checkType ?? decl.type;
+    Join join = new Join(decl.name, type);
     _summary.add(join);
     _variableJoins[decl] = join;
 
     TypeExpr variable = join;
     if (useTypeCheck) {
-      TypeExpr runtimeType = _translator.translate(decl.type);
+      TypeExpr runtimeType = _translator.translate(type);
       variable = new TypeCheck(variable, runtimeType, decl);
       _summary.add(variable);
       _summary.add(new Use(variable));
@@ -1341,21 +1373,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 }
 
 class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
-  final Class enclosingClass;
   final Summary summary;
   final Map<TypeParameter, TypeExpr> functionTypeVariables;
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
   final TypeExpr receiver;
   final GenericInterfacesInfo genericInterfacesInfo;
 
-  RuntimeTypeTranslator(this.enclosingClass, this.summary, this.receiver,
-      this.functionTypeVariables, this.genericInterfacesInfo) {}
+  RuntimeTypeTranslator(this.summary, this.receiver, this.functionTypeVariables,
+      this.genericInterfacesInfo) {}
 
   // Create a type translator which can be used only for types with no free type
   // variables.
   RuntimeTypeTranslator.forClosedTypes(this.genericInterfacesInfo)
-      : enclosingClass = null,
-        summary = null,
+      : summary = null,
         functionTypeVariables = null,
         receiver = null {}
 
@@ -1465,11 +1495,10 @@ class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
       if (result != null) return result;
     }
     if (type.parameter.parent is! Class) return const AnyType();
-    assertx(type.parameter.parent == enclosingClass);
-
+    final interfaceClass = type.parameter.parent as Class;
     assertx(receiver != null);
-    final extract = new Extract(receiver, enclosingClass,
-        enclosingClass.typeParameters.indexOf(type.parameter));
+    final extract = new Extract(receiver, interfaceClass,
+        interfaceClass.typeParameters.indexOf(type.parameter));
     summary.add(extract);
     return extract;
   }

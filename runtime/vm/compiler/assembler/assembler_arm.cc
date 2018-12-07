@@ -3216,21 +3216,21 @@ void Assembler::LeaveStubFrame() {
 // R0 receiver, R9 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 #endif
+  intptr_t start = CodeSize();
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
   Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
 
 #if defined(TESTING) || defined(DEBUG)
   set_use_far_branches(saved_use_far_branches);

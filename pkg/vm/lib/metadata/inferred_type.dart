@@ -14,8 +14,7 @@ class InferredType {
   static const int flagNullable = 1 << 0;
   static const int flagInt = 1 << 1;
 
-  // For Parameters and Fields, whether a type-check is required at assignment
-  // (invocation/setter). Not meaningful on other kernel nodes.
+  // For invocations: whether to use the unchecked entry-point.
   static const int flagSkipCheck = 1 << 2;
 
   // Entire list may be null if no type arguments were inferred.

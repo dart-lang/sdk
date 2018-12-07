@@ -1651,8 +1651,8 @@ void Assembler::LeaveStubFrame() {
 // RDI receiver, RBX guarded cid as Smi.
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
+  intptr_t start = CodeSize();
   Label immediate, have_cid, miss;
   Bind(&miss);
   jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
@@ -1662,7 +1662,7 @@ void Assembler::MonomorphicCheckedEntry() {
   jmp(&have_cid, kNearJump);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   SmiUntag(RBX);
   testq(RDI, Immediate(kSmiTagMask));
   j(ZERO, &immediate, kNearJump);
@@ -1674,8 +1674,8 @@ void Assembler::MonomorphicCheckedEntry() {
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
-  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
+  ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 
 #ifndef PRODUCT

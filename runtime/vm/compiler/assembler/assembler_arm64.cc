@@ -1373,13 +1373,13 @@ void Assembler::MonomorphicCheckedEntry() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffset);
 
   set_use_far_branches(saved_use_far_branches);
 }

@@ -24,6 +24,7 @@ abstract class C<T> {
 class D<T> extends C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
+  @pragma("vm:entry-point")
   void samir2(T x, {String y}) {
     Expect.notEquals(x, -1);
     Expect.equals(y, "hi");
@@ -33,6 +34,7 @@ class D<T> extends C<T> {
 class E<T> extends C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
+  @pragma("vm:entry-point")
   void samir2(T x, {String y}) {
     Expect.notEquals(x, -1);
     Expect.equals(y, "hi");

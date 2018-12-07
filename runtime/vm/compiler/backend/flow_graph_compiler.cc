@@ -341,7 +341,7 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
   // Intrinsification happened.
 #ifdef DART_PRECOMPILER
   if (parsed_function().function().IsDynamicFunction()) {
-    return Instructions::kUncheckedEntryOffset;
+    return Instructions::kMonomorphicEntryOffset;
   }
 #endif
   return 0;
@@ -1259,7 +1259,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   if (FLAG_precompiled_mode) {
     // TODO(#34162): Support unchecked entry-points in precompiled mode.
     ic_data = ic_data.AsUnaryClassChecks();
-    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs);
+    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
   ASSERT(!ic_data.IsNull());
