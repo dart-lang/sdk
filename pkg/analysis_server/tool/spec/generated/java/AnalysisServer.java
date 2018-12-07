@@ -31,6 +31,22 @@ public interface AnalysisServer {
   public void addAnalysisServerListener(AnalysisServerListener listener);
 
   /**
+   * Add the given listener to the list of listeners that will receive notification when
+     * requests are made by an analysis server client.
+   *
+   * @param listener the listener to be added
+   */
+  public void addRequestListener(RequestListener listener);
+
+  /**
+   * Add the given listener to the list of listeners that will receive notification when
+   * responses are received by an analysis server client.
+   *
+   * @param listener the listener to be added
+   */
+  public void addResponseListener(ResponseListener listener);
+
+  /**
    * Add the given listener to the list of listeners that will receive notification when the server
    * is not active
    *
@@ -747,6 +763,22 @@ public interface AnalysisServer {
    * @param listener the listener to be removed
    */
   public void removeAnalysisServerListener(AnalysisServerListener listener);
+
+  /**
+   * Remove the given listener from the list of listeners that will receive notification when
+     * requests are made by an analysis server client.
+   *
+   * @param listener the listener to be removed
+   */
+  public void removeRequestListener(RequestListener listener);
+
+  /**
+   * Remove the given listener from the list of listeners that will receive notification when
+     * responses are received by an analysis server client.
+   *
+   * @param listener the listener to be removed
+   */
+  public void removeResponseListener(ResponseListener listener);
 
   /**
    * {@code search.findElementReferences}
