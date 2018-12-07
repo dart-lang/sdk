@@ -57,7 +57,7 @@ class StaticTypeDataComputer extends DataComputer {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
     Map<ir.TreeNode, ir.DartType> staticTypeCache =
-        elementMap.staticTypeCacheForTesting[member];
+        elementMap.getCachedStaticTypes(member);
     ir.Member node = elementMap.getMemberNode(member);
     new StaticTypeIrComputer(
             compiler.reporter,

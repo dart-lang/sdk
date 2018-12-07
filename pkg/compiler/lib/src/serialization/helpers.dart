@@ -21,6 +21,7 @@ enum DataKind {
   treeNode,
   typeParameterNode,
   dartType,
+  dartTypeNode,
   sourceSpan,
   constant,
   import,
@@ -178,6 +179,119 @@ class DartTypeWriter
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.futureOr);
     _sink._writeDartType(type.typeArgument, functionTypeVariables);
+  }
+}
+
+/// Enum used for identifying [ir.DartType] subclasses in serialization.
+enum DartTypeNodeKind {
+  none,
+  voidType,
+  typeParameterType,
+  functionType,
+  functionTypeVariable,
+  interfaceType,
+  typedef,
+  dynamicType,
+  bottomType,
+  invalidType,
+}
+
+const String functionTypeNodeTag = 'function-type-node';
+
+class DartTypeNodeWriter
+    extends ir.DartTypeVisitor1<void, List<ir.TypeParameter>> {
+  final AbstractDataSink _sink;
+
+  DartTypeNodeWriter(this._sink);
+
+  void visitTypes(
+      List<ir.DartType> types, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeInt(types.length);
+    for (ir.DartType type in types) {
+      _sink._writeDartTypeNode(type, functionTypeVariables);
+    }
+  }
+
+  void defaultDartType(
+      ir.DartType node, List<ir.TypeParameter> functionTypeVariables) {
+    throw new UnsupportedError(
+        "Unexpected ir.DartType $node (${node.runtimeType}).");
+  }
+
+  void visitInvalidType(
+      ir.InvalidType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.invalidType);
+  }
+
+  void visitDynamicType(
+      ir.DynamicType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.dynamicType);
+  }
+
+  void visitVoidType(
+      ir.VoidType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.voidType);
+  }
+
+  void visitBottomType(
+      ir.BottomType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.bottomType);
+  }
+
+  void visitInterfaceType(
+      ir.InterfaceType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.interfaceType);
+    _sink.writeClassNode(node.classNode);
+    visitTypes(node.typeArguments, functionTypeVariables);
+  }
+
+  void visitFunctionType(
+      ir.FunctionType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.functionType);
+    _sink.begin(functionTypeNodeTag);
+    functionTypeVariables =
+        new List<ir.TypeParameter>.from(functionTypeVariables)
+          ..addAll(node.typeParameters);
+    _sink.writeInt(node.typeParameters.length);
+    for (ir.TypeParameter parameter in node.typeParameters) {
+      _sink.writeString(parameter.name);
+      _sink._writeDartTypeNode(parameter.bound, functionTypeVariables);
+      _sink._writeDartTypeNode(parameter.defaultType, functionTypeVariables);
+    }
+    _sink._writeDartTypeNode(node.returnType, functionTypeVariables);
+    _sink.writeInt(node.requiredParameterCount);
+    visitTypes(node.positionalParameters, functionTypeVariables);
+    _sink.writeInt(node.namedParameters.length);
+    for (ir.NamedType parameter in node.namedParameters) {
+      _sink.writeString(parameter.name);
+      _sink._writeDartTypeNode(parameter.type, functionTypeVariables);
+    }
+    _sink._writeDartTypeNode(node.typedefType, functionTypeVariables,
+        allowNull: true);
+    _sink.end(functionTypeNodeTag);
+  }
+
+  void visitTypeParameterType(
+      ir.TypeParameterType node, List<ir.TypeParameter> functionTypeVariables) {
+    int index = functionTypeVariables.indexOf(node.parameter);
+    if (index != -1) {
+      _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
+      _sink.writeInt(index);
+      _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
+          allowNull: true);
+    } else {
+      _sink.writeEnum(DartTypeNodeKind.typeParameterType);
+      _sink.writeTypeParameterNode(node.parameter);
+      _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
+          allowNull: true);
+    }
+  }
+
+  void visitTypedefType(
+      ir.TypedefType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.typedef);
+    _sink.writeTypedefNode(node.typedefNode);
+    visitTypes(node.typeArguments, functionTypeVariables);
   }
 }
 

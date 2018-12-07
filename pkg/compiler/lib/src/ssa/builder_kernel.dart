@@ -24,6 +24,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
+import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
@@ -64,9 +65,16 @@ class StackFrame {
   final KernelToLocalsMap localsMap;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
+  final StaticTypeProvider staticTypeProvider;
 
-  StackFrame(this.parent, this.member, this.asyncMarker, this.localsMap,
-      this.typeInferenceMap, this.sourceInformationBuilder);
+  StackFrame(
+      this.parent,
+      this.member,
+      this.asyncMarker,
+      this.localsMap,
+      this.typeInferenceMap,
+      this.sourceInformationBuilder,
+      this.staticTypeProvider);
 }
 
 class KernelSsaGraphBuilder extends ir.Visitor
@@ -160,6 +168,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
   SourceInformationBuilder get _sourceInformationBuilder =>
       _currentFrame.sourceInformationBuilder;
 
+  DartType _getStaticType(ir.Expression node) {
+    // TODO(johnniwinther): Substitute the type by the this type and type
+    // arguments of the current frame.
+    return _elementMap
+        .getDartType(_currentFrame.staticTypeProvider.getStaticType(node));
+  }
+
   static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
     if (member is JGeneratorBody) return member.function;
     return member;
@@ -181,7 +196,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder
                 .forContext(member, callSourceInformation)
-            : _sourceInformationStrategy.createBuilderForContext(member));
+            : _sourceInformationStrategy.createBuilderForContext(member),
+        _elementMap.getStaticTypeProvider(member));
   }
 
   void _leaveFrame() {
@@ -2054,9 +2070,25 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitAsExpression(ir.AsExpression node) {
+    ir.Expression operand = node.operand;
+    operand.accept(this);
+
+    DartType operandType = _getStaticType(operand);
+    DartType type = _elementMap.getDartType(node.type);
+    if (_elementMap.types.isSubtype(operandType, type)) {
+      // Skip unneeded casts.
+      if (operand is! ir.PropertyGet) {
+        // TODO(johnniwinther): Support property get. Currently CFE inserts
+        // a seemingly unnecessary cast on tearoffs that contain type variables
+        // in contravariant positions. Since these casts are not marked we
+        // cannot easily detect when we actually need the cast. See test
+        // `language_2/instantiate_tearoff_after_contravariance_check_test`.
+        return;
+      }
+    }
+
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildAs(node);
-    node.operand.accept(this);
     HInstruction expressionInstruction = pop();
 
     if (node.type is ir.InvalidType) {
@@ -2064,7 +2096,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    DartType type = _elementMap.getDartType(node.type);
     if ((!node.isTypeError && !options.omitAsCasts) ||
         options.implicitDowncastCheckPolicy.isEmitted) {
       HInstruction converted = typeBuilder.buildTypeConversion(

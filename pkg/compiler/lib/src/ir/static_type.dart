@@ -38,7 +38,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   StaticTypeVisitor(ir.TypeEnvironment typeEnvironment)
       : super(typeEnvironment);
 
-  Map<ir.Expression, ir.DartType> get staticTypeCacheForTesting => _cache;
+  Map<ir.Expression, ir.DartType> get cachedStaticTypes => _cache;
 
   bool get useAsserts;
 
@@ -769,12 +769,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return null;
   }
 
-  void handleAsExpression(ir.AsExpression node) {}
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {}
 
   @override
   ir.DartType visitAsExpression(ir.AsExpression node) {
-    visitNode(node.operand);
-    handleAsExpression(node);
+    ir.DartType operandType = visitNode(node.operand);
+    handleAsExpression(node, operandType);
     return super.visitAsExpression(node);
   }
 

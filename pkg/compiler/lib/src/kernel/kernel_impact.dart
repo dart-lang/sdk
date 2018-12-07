@@ -692,7 +692,11 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  void handleAsExpression(ir.AsExpression node) {
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
+    if (elementMap.typeEnvironment.isSubtypeOf(operandType, node.type)) {
+      // Skip unneeded casts.
+      return;
+    }
     DartType type = elementMap.getDartType(node.type);
     if (node.isTypeError) {
       impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));

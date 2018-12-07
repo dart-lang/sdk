@@ -652,6 +652,8 @@ class KClassDataImpl implements KClassData {
 abstract class KMemberData {
   ir.Member get node;
 
+  Map<ir.Expression, ir.DartType> staticTypes;
+
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
 
   InterfaceType getMemberThisType(JsToElementMap elementMap);
@@ -666,6 +668,8 @@ abstract class KMemberDataImpl implements KMemberData {
   final ir.Member node;
 
   Iterable<ConstantValue> _metadata;
+
+  Map<ir.Expression, ir.DartType> staticTypes;
 
   KMemberDataImpl(this.node);
 
@@ -761,7 +765,7 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   FunctionData convert() {
     return new FunctionDataImpl(
-        node, functionNode, new RegularMemberDefinition(node));
+        node, functionNode, new RegularMemberDefinition(node), staticTypes);
   }
 
   @override
@@ -808,7 +812,8 @@ class KConstructorDataImpl extends KFunctionDataImpl
     } else {
       definition = new RegularMemberDefinition(node);
     }
-    return new JConstructorDataImpl(node, functionNode, definition);
+    return new JConstructorDataImpl(
+        node, functionNode, definition, staticTypes);
   }
 
   @override
@@ -896,7 +901,8 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
 
   @override
   JFieldData convert() {
-    return new JFieldDataImpl(node, new RegularMemberDefinition(node));
+    return new JFieldDataImpl(
+        node, new RegularMemberDefinition(node), staticTypes);
   }
 }
 

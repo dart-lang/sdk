@@ -108,8 +108,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
 
-  Map<KMember, Map<ir.TreeNode, ir.DartType>> staticTypeCacheForTesting;
-
   KernelToElementMapImpl(this.reporter, Environment environment,
       this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
@@ -1340,20 +1338,25 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   ResolutionImpact computeWorldImpact(
       KMember member, VariableScopeModel variableScopeModel) {
-    ir.Member node = members.getData(member).node;
+    KMemberData memberData = members.getData(member);
+    ir.Member node = memberData.node;
     KernelImpactBuilder builder = new KernelImpactBuilder(
         this, member, reporter, options, variableScopeModel);
     node.accept(builder);
-    if (retainDataForTesting) {
-      staticTypeCacheForTesting ??= {};
-      staticTypeCacheForTesting[member] = builder.staticTypeCacheForTesting;
-    }
+    memberData.staticTypes = builder.cachedStaticTypes;
     return builder.impactBuilder;
   }
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = members.getData(member).node;
     return ScopeModel.computeScopeModel(node);
+  }
+
+  Map<ir.Expression, ir.DartType> getCachedStaticTypes(KMember member) {
+    Map<ir.Expression, ir.DartType> staticTypes =
+        members.getData(member).staticTypes;
+    assert(staticTypes != null, "No static types cached for $member.");
+    return staticTypes;
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

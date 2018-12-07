@@ -782,7 +782,8 @@ class InferrerEngineImpl extends InferrerEngine {
         this,
         member,
         body,
-        closedWorld.globalLocalsMap.getLocalsMap(member));
+        closedWorld.globalLocalsMap.getLocalsMap(member),
+        closedWorld.elementMap.getStaticTypeProvider(member));
     return visitor.run();
   }
 
