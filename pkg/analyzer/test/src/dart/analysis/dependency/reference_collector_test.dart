@@ -22,6 +22,70 @@ final dartCoreUri = Uri.parse('dart:core');
 
 @reflectiveTest
 class ExpressionReferenceCollectorTest extends _Base {
+  test_adjacentStrings() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  'foo' '$x' 'bar';
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
+  }
+
+  test_asExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x as Y;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['Y', 'x']);
+  }
+
+  test_assignmentExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x = y;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
+  }
+
+  test_assignmentExpression_compound() async {
+    var library = await buildTestLibrary(a, r'''
+class A {
+  operator+(_) {}
+}
+
+class B extends A {}
+
+B x, y;
+
+test() {
+  x += y;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['x', 'y'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'B', '+')]);
+  }
+
+  test_assignmentExpression_nullAware() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x ??= y;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
+  }
+
+  test_awaitExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() async {
+  await x;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
+  }
+
   test_binaryExpression() async {
     var library = await buildTestLibrary(a, r'''
 class A {
@@ -140,6 +204,39 @@ test() {
     _assertImpl(library, 'test', NodeKind.FUNCTION);
   }
 
+  test_cascadeExpression() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+A x;
+
+test() {
+  x
+    ..foo(y)
+    ..bar = z;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: [
+      'x',
+      'y',
+      'z'
+    ], expectedMembers: [
+      _ExpectedClassMember(aUri, 'A', 'bar'),
+      _ExpectedClassMember(aUri, 'A', 'foo'),
+    ]);
+    // TODO(scheglov) should be `bar=`
+  }
+
+  test_conditionalExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x ? y : z;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['x', 'y', 'z']);
+  }
+
   test_doubleLiteral() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -149,6 +246,111 @@ test() {
     _assertImpl(library, 'test', NodeKind.FUNCTION);
   }
 
+  test_functionExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  <T extends A, U extends T>(B b, C c, T t, U u) {
+    T;
+    U;
+    x;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'B', 'C', 'x']);
+  }
+
+  test_functionExpressionInvocation() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  (x)<T>(y, z);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['T', 'x', 'y', 'z']);
+  }
+
+  test_indexExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x[y];
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
+  }
+
+  test_instanceCreationExpression_explicitNew_named() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+test() {
+  new A<T>.named(x, b: y);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x', 'y'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', 'named')]);
+  }
+
+  test_instanceCreationExpression_explicitNew_unnamed() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+test() {
+  new A<T>(x, b: y);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x', 'y'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', '')]);
+  }
+
+  test_instanceCreationExpression_explicitNew_unresolvedClass() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  new A<T>.named(x);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x']);
+  }
+
+  test_instanceCreationExpression_implicitNew_named() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+test() {
+  A<T>.named(x, b: y);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x', 'y'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', 'named')]);
+  }
+
+  test_instanceCreationExpression_implicitNew_unnamed() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+test() {
+  A<T>(x, b: y);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x', 'y'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', '')]);
+  }
+
+  test_instanceCreationExpression_implicitNew_unresolvedClass_named() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  A<T>.named(x, b: y);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x', 'y']);
+  }
+
   test_integerLiteral() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -156,6 +358,15 @@ test() {
 }
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_isExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x is Y;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['Y', 'x']);
   }
 
   test_listLiteral() async {
@@ -178,23 +389,83 @@ test() {
         unprefixed: ['A', 'B', 'v', 'w', 'x', 'y']);
   }
 
-  test_methodInvocation() async {
+  test_methodInvocation_instance_withoutTarget_function() async {
     var library = await buildTestLibrary(a, r'''
-class A {
-  void foo() {}
-}
-
-class B extends A {}
-
-B x;
+void foo(a, {b}) {}
 
 test() {
-  x.foo();
+  foo(x, b: y);
 }
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION,
-        unprefixed: ['x'],
-        expectedMembers: [_ExpectedClassMember(aUri, 'B', 'foo')]);
+        unprefixed: ['foo', 'x', 'y']);
+  }
+
+  test_methodInvocation_instance_withoutTarget_method() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  void foo(a, {b}) {}
+
+  test() {
+    foo(x, b: y);
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['foo', 'x', 'y']);
+  }
+
+  test_methodInvocation_instance_withTarget() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+A x;
+
+test() {
+  x.foo<T>(y, b: z);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['T', 'x', 'y', 'z'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', 'foo')]);
+  }
+
+  test_methodInvocation_instance_withTarget_super() async {
+    var library = await buildTestLibrary(a, r'''
+class A {
+  void foo(a, b) {}
+}
+
+class B extends A {
+  test() {
+    super.foo(x, y);
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.METHOD,
+        memberOf: 'B', unprefixed: ['x', 'y'], superPrefixed: ['foo']);
+  }
+
+  test_methodInvocation_static_withTarget() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+test() {
+  A.foo<T>(x);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'T', 'x'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', 'foo')]);
+  }
+
+  test_nullLiteral() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  null;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION);
   }
 
   test_parenthesizedExpression() async {
@@ -204,6 +475,37 @@ test() {
 }
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
+  }
+
+  test_postfixExpression() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+class B extend A {}
+
+B x, y;
+
+test() {
+  x++;
+  y--;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: [
+      'x',
+      'y'
+    ], expectedMembers: [
+      _ExpectedClassMember(aUri, 'B', '+'),
+      _ExpectedClassMember(aUri, 'B', '-')
+    ]);
+  }
+
+  test_postfixExpression_unresolvedTarget() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  x++;
+  y--;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
   }
 
   test_prefixedIdentifier_importPrefix() async {
@@ -250,6 +552,21 @@ test() {
     _assertImpl(library, 'test', NodeKind.FUNCTION,
         unprefixed: ['x'],
         expectedMembers: [_ExpectedClassMember(aUri, 'B', 'y')]);
+  }
+
+  test_prefixedIdentifier_static() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+class B extends A {}
+
+test() {
+  B.x;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['B'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'B', 'x')]);
   }
 
   test_prefixedIdentifier_unresolvedPrefix() async {
@@ -304,6 +621,35 @@ test() {
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
   }
 
+  test_propertyAccess() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+class B extends A {}
+
+B x;
+
+test() {
+  (x).foo;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['x'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'B', 'foo')]);
+  }
+
+  test_propertyAccess_super() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  test() {
+    super.foo;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', superPrefixed: ['foo']);
+  }
+
   test_setLiteral() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -349,6 +695,46 @@ test() {
 }
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
+  }
+
+  test_simpleStringLiteral() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  '';
+  """""";
+  r"""""";
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_stringInterpolation() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  '$x ${y}';
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
+  }
+
+  test_thisExpression() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  test() {
+    this;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.METHOD, memberOf: 'C');
+  }
+
+  test_throwExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  throw x;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
   }
 }
 
@@ -766,12 +1152,14 @@ class _Base extends BaseDependencyTest {
   void _assertApi(Library library, String name, NodeKind kind,
       {List<String> unprefixed: const [],
       Map<String, List<String>> prefixed: const {},
+      List<String> superPrefixed: const [],
       List<_ExpectedClassMember> expectedMembers: const []}) {
     var node = getNode(library, name: name, kind: kind);
     _assertDependencies(
       node.api,
       unprefixed: unprefixed,
       prefixed: prefixed,
+      superPrefixed: superPrefixed,
       expectedMembers: expectedMembers,
     );
   }
@@ -779,10 +1167,12 @@ class _Base extends BaseDependencyTest {
   void _assertDependencies(Dependencies dependencies,
       {List<String> unprefixed: const [],
       Map<String, List<String>> prefixed: const {},
+      List<String> superPrefixed: const [],
       List<_ExpectedClassMember> expectedMembers: const []}) {
     expect(dependencies.unprefixedReferencedNames, unprefixed);
     expect(dependencies.importPrefixes, prefixed.keys);
     expect(dependencies.importPrefixedReferencedNames, prefixed.values);
+    expect(dependencies.superReferencedNames, superPrefixed);
 
     var actualMembers = dependencies.classMemberReferences;
     if (actualMembers.length != expectedMembers.length) {
@@ -794,22 +1184,24 @@ class _Base extends BaseDependencyTest {
       var expectedMember = expectedMembers[i];
       if (actualMember.target.libraryUri != expectedMember.targetUri ||
           actualMember.target.name != expectedMember.targetName ||
-          actualMember.name != expectedMember.name ||
-          actualMember.targetSuper != expectedMember.withSuper) {
+          actualMember.name != expectedMember.name) {
         fail('Expected: $expectedMember\nActual: $actualMember');
       }
     }
   }
 
   void _assertImpl(Library library, String name, NodeKind kind,
-      {List<String> unprefixed: const [],
+      {String memberOf,
+      List<String> unprefixed: const [],
       Map<String, List<String>> prefixed: const {},
+      List<String> superPrefixed: const [],
       List<_ExpectedClassMember> expectedMembers: const []}) {
-    var node = getNode(library, name: name, kind: kind);
+    var node = getNode(library, name: name, kind: kind, memberOf: memberOf);
     _assertDependencies(
       node.impl,
       unprefixed: unprefixed,
       prefixed: prefixed,
+      superPrefixed: superPrefixed,
       expectedMembers: expectedMembers,
     );
   }
@@ -818,14 +1210,16 @@ class _Base extends BaseDependencyTest {
 class _ExpectedClassMember {
   final Uri targetUri;
   final String targetName;
-  final bool withSuper;
   final String name;
 
-  _ExpectedClassMember(this.targetUri, this.targetName, this.name,
-      {this.withSuper: false});
+  _ExpectedClassMember(
+    this.targetUri,
+    this.targetName,
+    this.name,
+  );
 
   @override
   String toString() {
-    return '($targetUri, $targetName, $name, withSuper: $withSuper)';
+    return '($targetUri, $targetName, $name)';
   }
 }

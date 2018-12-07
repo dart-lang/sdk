@@ -16,38 +16,30 @@ class ClassMemberReference {
   /// will notice added overrides in the target class, or anywhere in between.
   final LibraryQualifiedName target;
 
-  /// Whether the explicit `super` was used as the target.
-  /// The [target] is the enclosing class.
-  final bool targetSuper;
-
   /// The name referenced in the [target].
   final String name;
 
   @override
   final int hashCode;
 
-  ClassMemberReference(this.target, this.targetSuper, this.name)
+  ClassMemberReference(this.target, this.name)
       : hashCode = JenkinsSmiHash.hash2(target.hashCode, name.hashCode);
 
   @override
   bool operator ==(other) {
     return other is ClassMemberReference &&
         other.target == target &&
-        other.targetSuper == targetSuper &&
         other.name == name;
   }
 
   @override
   String toString() {
-    return '($target, $name, super: $targetSuper)';
+    return '($target, $name)';
   }
 
   static int compare(ClassMemberReference first, ClassMemberReference second) {
     var result = LibraryQualifiedName.compare(first.target, second.target);
     if (result != 0) return result;
-
-    if (first.targetSuper && !second.targetSuper) return -1;
-    if (!first.targetSuper && second.targetSuper) return 1;
 
     return first.name.compareTo(second.name);
   }
@@ -55,7 +47,7 @@ class ClassMemberReference {
 
 /// The dependencies of the API or implementation portion of a node.
 class Dependencies {
-  static final none = Dependencies([], [], [], [], []);
+  static final none = Dependencies([], [], [], [], [], []);
 
   /// The token signature of this portion of the node. It depends on all
   /// tokens that might affect the node API or implementation resolution.
@@ -79,6 +71,11 @@ class Dependencies {
   /// This list is sorted.
   final List<List<String>> importPrefixedReferencedNames;
 
+  /// The names that appear prefixed with `super` in this portion of the node.
+  ///
+  /// This list is sorted.
+  final List<String> superReferencedNames;
+
   /// The class members referenced in this portion of the node.
   ///
   /// This list is sorted.
@@ -98,6 +95,7 @@ class Dependencies {
       this.unprefixedReferencedNames,
       this.importPrefixes,
       this.importPrefixedReferencedNames,
+      this.superReferencedNames,
       this.classMemberReferences);
 
   String get tokenSignatureHex => hex.encode(tokenSignature);

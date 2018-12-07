@@ -274,7 +274,8 @@ class _LibraryBuilder {
       var builder = _newApiSignatureBuilder();
       builder.addString(node.name.name);
       _appendTokens(builder, node.leftBracket, node.rightBracket);
-      fieldDependencies = Dependencies(builder.toByteList(), [], [], [], []);
+      var tokenSignature = builder.toByteList();
+      fieldDependencies = Dependencies(tokenSignature, [], [], [], [], []);
     }
 
     var members = <Node>[];
@@ -305,7 +306,7 @@ class _LibraryBuilder {
     var enumNode = Node(
       LibraryQualifiedName(uri, node.name.name),
       NodeKind.ENUM,
-      Dependencies(enumTokenSignature, [], [], [], []),
+      Dependencies(enumTokenSignature, [], [], [], [], []),
       Dependencies.none,
     );
     enumNode.setClassMembers(members);
@@ -639,6 +640,7 @@ class _LibraryBuilder {
       unprefixedReferencedNames,
       importPrefixes,
       importPrefixedReferencedNames,
+      const [],
       const [],
     );
   }
