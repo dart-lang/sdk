@@ -87,6 +87,8 @@
 %   adding the parts that are not captured by a function type subtype check.
 % - Introduced the notion of member signatures, specified that they are the
 %   kind of entity that a class interface contains.
+% - Corrected super-boundedness check to take variance into account at the
+%   top level.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -4826,14 +4828,11 @@ $T$ is \Index{super-bounded} if{}f the following conditions are both true:
 \item
   $T$ is not regular-bounded.
 \item
-  For each $j \in 1 .. n$, let $S'_j$ be the result of replacing
-  every occurrence of a top type
-  in a covariant position in $S_j$ by \code{Null},
-  and every occurrence of \code{Null}
-  in a contravariant position in $S_j$ by \code{Object}.
-  It is then required that
-  \code{$G$<$S'_1, \ldots,\ S'_n$>}
-  is regular-bounded.
+  Let $T'$ be the result of replacing every occurrence in $T$
+  of a top type in a covariant position by \code{Null},
+  and every occurrence in $T$
+  of \code{Null} in a contravariant position by \code{Object}.
+  It is then required that $T'$ is regular-bounded.
   %
   Moreover, if $G$ denotes a generic type alias with body $U$,
   it is required that every type that occurs as a subterm of
