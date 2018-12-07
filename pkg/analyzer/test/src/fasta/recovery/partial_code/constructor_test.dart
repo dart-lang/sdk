@@ -97,13 +97,13 @@ class ConstructorTest extends PartialCodeTest {
             'super_qdot',
             'C() : super?.',
             [
-              ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+              ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
               ParserErrorCode.EXPECTED_TOKEN,
               ParserErrorCode.MISSING_FUNCTION_BODY,
             ],
             'C() : super?._s_() {}',
             expectedErrorsInValidCode: [
-              ParserErrorCode.INVALID_OPERATOR_FOR_SUPER
+              ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
             ],
             failing: ['methodNonVoid', 'getter', 'setter'],
           ),

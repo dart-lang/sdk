@@ -96,6 +96,10 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_FACTORY_WITH_BODY,
   _EXTERNAL_CONSTRUCTOR_WITH_BODY,
   _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
+  _VAR_AND_TYPE,
+  _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
+  _STACK_OVERFLOW,
+  _MISSING_CATCH_OR_FINALLY,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -366,6 +370,11 @@ const ParserErrorCode _INVALID_OPERATOR = const ParserErrorCode(
     'INVALID_OPERATOR',
     r"The string '#lexeme' isn't a user-definable operator.");
 
+const ParserErrorCode _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER =
+    const ParserErrorCode('INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
+        r"The operator '?.' cannot be used with 'super' because 'super' cannot be null.",
+        correction: "Try replacing '?.' with '.'");
+
 const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
     'INVALID_UNICODE_ESCAPE',
     r"An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
@@ -385,6 +394,12 @@ const ParserErrorCode _MISSING_ASSIGNMENT_IN_INITIALIZER =
     const ParserErrorCode('MISSING_ASSIGNMENT_IN_INITIALIZER',
         r"Expected an assignment after the field name.",
         correction: "To initialize a field, use the syntax 'name = value'.");
+
+const ParserErrorCode _MISSING_CATCH_OR_FINALLY = const ParserErrorCode(
+    'MISSING_CATCH_OR_FINALLY',
+    r"A try block must be followed by an 'on', 'catch', or 'finally' clause.",
+    correction:
+        "Try adding either a catch or finally clause, or remove the try statement.");
 
 const ParserErrorCode _MISSING_CONST_FINAL_VAR_OR_TYPE = const ParserErrorCode(
     'MISSING_CONST_FINAL_VAR_OR_TYPE',
@@ -462,6 +477,10 @@ const ParserErrorCode _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
         correction:
             "Try making this a factory constructor, or remove the redirection.");
 
+const ParserErrorCode _STACK_OVERFLOW = const ParserErrorCode('STACK_OVERFLOW',
+    r"The file has too many nested expressions or statements.",
+    correction: "Try simplifying the code.");
+
 const ParserErrorCode _STATIC_AFTER_CONST = const ParserErrorCode(
     'STATIC_AFTER_CONST',
     r"The modifier 'static' should be before the modifier 'const'.",
@@ -509,6 +528,10 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     r"Can't use type arguments with type variable '#name'.",
     correction: "Try removing the type arguments.");
+
+const ParserErrorCode _VAR_AND_TYPE = const ParserErrorCode('VAR_AND_TYPE',
+    r"Variables can't be declared using both 'var' and a type name.",
+    correction: "Try removing 'var.'");
 
 const ParserErrorCode _VAR_AS_TYPE_NAME = const ParserErrorCode(
     'VAR_AS_TYPE_NAME', r"The keyword 'var' can't be used as a type name.");

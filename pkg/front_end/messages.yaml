@@ -1001,8 +1001,10 @@ RequiredParameterWithDefault:
       }
 
 StackOverflow:
-  template: "Stack overflow."
-  analyzerCode: STACK_OVERFLOW
+  index: 91
+  template: "The file has too many nested expressions or statements."
+  tip: "Try simplifying the code."
+  analyzerCode: ParserErrorCode.STACK_OVERFLOW
 
 InvalidCodePoint:
   template: "The escape sequence starting with '\\u' isn't a valid code point."
@@ -1182,15 +1184,17 @@ YieldNotGenerator:
   analyzerCode: YIELD_IN_NON_GENERATOR
 
 OnlyTry:
-  template: "Try block should be followed by 'on', 'catch', or 'finally' block."
-  tip: "Did you forget to add a 'finally' block?"
-  analyzerCode: MISSING_CATCH_OR_FINALLY
+  index: 92
+  template: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
+  tip: "Try adding either a catch or finally clause, or remove the try statement."
+  analyzerCode: ParserErrorCode.MISSING_CATCH_OR_FINALLY
   statement: "try {}"
 
 TypeAfterVar:
-  template: "Can't have both a type and 'var'."
+  index: 89
+  template: "Variables can't be declared using both 'var' and a type name."
   tip: "Try removing 'var.'"
-  analyzerCode: VAR_AND_TYPE
+  analyzerCode: ParserErrorCode.VAR_AND_TYPE
 
 AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."
@@ -1248,9 +1252,10 @@ CatchSyntaxExtraParameters:
     - "try {} catch (e, s, x) {}"
 
 SuperNullAware:
-  template: "'super' can't be null."
+  index: 90
+  template: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   tip: "Try replacing '?.' with '.'"
-  analyzerCode: INVALID_OPERATOR_FOR_SUPER
+  analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
 
 ConstFieldWithoutInitializer:
   template: "The const variable '#name' must be initialized."

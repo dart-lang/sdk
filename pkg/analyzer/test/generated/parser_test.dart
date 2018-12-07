@@ -4004,13 +4004,24 @@ class Wrong<T> {
   void test_invalidOperatorAfterSuper_assignableExpression() {
     Expression expression = parseAssignableExpression('super?.v', false);
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 5, 2)]);
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+              : ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+          5,
+          2)
+    ]);
   }
 
   void test_invalidOperatorAfterSuper_primaryExpression() {
     Expression expression = parseExpression('super?.v', errors: [
-      expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 5, 2)
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+              : ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+          5,
+          2)
     ]);
     expectNotNullIfNoErrors(expression);
   }

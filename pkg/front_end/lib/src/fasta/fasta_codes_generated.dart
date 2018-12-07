@@ -6702,10 +6702,11 @@ const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
-    analyzerCodes: <String>["MISSING_CATCH_OR_FINALLY"],
+    index: 92,
     message:
-        r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
-    tip: r"""Did you forget to add a 'finally' block?""");
+        r"""A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
+    tip:
+        r"""Try adding either a catch or finally clause, or remove the try statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7986,7 +7987,9 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
-    analyzerCodes: <String>["STACK_OVERFLOW"], message: r"""Stack overflow.""");
+    index: 91,
+    message: r"""The file has too many nested expressions or statements.""",
+    tip: r"""Try simplifying the code.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
@@ -8072,8 +8075,9 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
-    analyzerCodes: <String>["INVALID_OPERATOR_FOR_SUPER"],
-    message: r"""'super' can't be null.""",
+    index: 90,
+    message:
+        r"""The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
     tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8496,8 +8500,9 @@ const Code<Null> codeTypeAfterVar = messageTypeAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
-    analyzerCodes: <String>["VAR_AND_TYPE"],
-    message: r"""Can't have both a type and 'var'.""",
+    index: 89,
+    message:
+        r"""Variables can't be declared using both 'var' and a type name.""",
     tip: r"""Try removing 'var.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

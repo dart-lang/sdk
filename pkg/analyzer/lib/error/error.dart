@@ -439,6 +439,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
   ParserErrorCode.INVALID_OPERATOR,
   ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+  ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
   ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
   ParserErrorCode.INVALID_SYNC,
   ParserErrorCode.INVALID_UNICODE_ESCAPE,

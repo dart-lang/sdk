@@ -201,10 +201,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
-      case "MISSING_CATCH_OR_FINALLY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
-        return;
       case "MISSING_CLASS_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_CLASS_BODY, offset, length);
@@ -282,10 +278,6 @@ class FastaErrorReporter {
             // involved in this error... either async* or sync*
             ['async*']);
         return;
-      case "STACK_OVERFLOW":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STACK_OVERFLOW, offset, length);
-        return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
@@ -327,10 +319,6 @@ class FastaErrorReporter {
       case "UNTERMINATED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.UNTERMINATED_STRING_LITERAL, offset, length);
-        return;
-      case "VAR_AND_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.VAR_AND_TYPE, offset, length);
         return;
       case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
         errorReporter?.reportErrorForOffset(
