@@ -496,16 +496,11 @@ def Main(argv):
   starttime = time.time()
   args = parse_args(argv)
 
-  if sys.platform.startswith(('cygwin', 'win')):
-    subdir = 'win'
-  elif sys.platform == 'darwin':
-    subdir = 'mac-x64'
-  elif sys.platform.startswith('linux'):
-    subdir = 'linux-x64'
-  else:
-    print 'Unknown platform: ' + sys.platform
+  gn = os.path.join(DART_ROOT, 'buildtools',
+      'gn.exe' if utils.IsWindows() else 'gn')
+  if not os.path.isfile(gn):
+    print "Couldn't find the gn binary at path: " + gn
     return 1
-  gn = os.path.join(DART_ROOT, 'buildtools', subdir, 'gn')
 
   commands = []
   for target_os in args.os:

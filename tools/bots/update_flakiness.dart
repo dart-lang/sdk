@@ -51,6 +51,16 @@ ${parser.usage}""");
         outcomes.add(result["result"]);
         outcomes..sort();
       }
+      if (testData["current"] == result["result"]) {
+        testData["current_counter"]++;
+      } else {
+        testData["current"] = result["result"];
+        testData["current_counter"] = 1;
+      }
+      final occurences =
+          testData.putIfAbsent("occurences", () => <String, dynamic>{});
+      occurences.putIfAbsent(result["result"], () => 0);
+      occurences[result["result"]]++;
     }
   }
 
@@ -63,6 +73,15 @@ ${parser.usage}""");
   for (final key in keys) {
     final testData = data[key];
     if (testData["outcomes"].length < 2) continue;
+    // Forgive tests that have become deterministic again. If they flake less
+    // than once in a 100 (p<1%), then if they flake again, the probability of
+    // them getting past 5 runs of deflaking is 1%^5 = 0.00000001%.
+    // TODO(sortie): Transitional compatibility until all flaky.json files have
+    // this new field.
+    if (testData["current_counter"] != null &&
+        100 <= testData["current_counter"]) {
+      continue;
+    }
     sink.writeln(jsonEncode(testData));
   }
 }

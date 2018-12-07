@@ -98,6 +98,7 @@
       "third_party/observatory_pub_packages/packages/",
       "tools/sdks/dart-sdk/",
       "pkg/async_helper/",
+      "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/expect/",
       "pkg/front_end/",
@@ -150,6 +151,7 @@
       "tests/standalone/",
       "tests/standalone_2/",
       "pkg/async_helper/",
+      "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/expect/",
       "pkg/front_end/",
@@ -347,12 +349,6 @@
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
-      }},
-    "analyzer-fasta_parser-linux": {
-      "options": {
-        "compiler": "dart2analyzer",
-        "analyzer-use-fasta-parser": true,
-        "use-sdk": true
       }}
   },
   "builder_configurations": [
@@ -425,7 +421,6 @@
           "name": "vm mixed mode tests",
           "arguments": [
             "-ndartkb-mixed-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -438,7 +433,6 @@
           "name": "vm bytecode compiler tests",
           "arguments": [
             "-ndartkb-compile-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -451,7 +445,6 @@
           "name": "vm interpreter tests",
           "arguments": [
             "-ndartkb-interpret-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -1325,13 +1318,17 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64", "create_sdk" ]
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
+
         },
         {
-          "name": "generate API docs",
+          "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [ "api_docs" ]
+          "arguments": [ "api_docs" ],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
+
         }
       ]
     },
@@ -1343,8 +1340,10 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64", "create_sdk" ]
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-mac"}
+
         }
       ]
     },
@@ -1356,8 +1355,10 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64", "create_sdk" ]
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-win"}
+
         }
       ]
     },
@@ -1365,7 +1366,11 @@
       "builders": [
         "analyzer-linux-release",
         "analyzer-mac-release",
-        "analyzer-win-release"
+        "analyzer-win-release",
+        "analyzer-linux-release-analyzer",
+        "analyzer-linux-release-analyzer-new",
+        "analyzer-mac-release-analyzer",
+        "analyzer-win-release-analyzer"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -1430,7 +1435,10 @@
       ]
     },
     {
-      "builders": ["analyzer-analysis-server-linux"],
+      "builders": [
+        "analyzer-analysis-server-linux",
+        "analyzer-analysis-server-linux-analyzer"
+      ],
       "meta": {
         "description": "Analyze analyzer related packages."
       },
@@ -1596,74 +1604,6 @@
       ]
     },
     {
-      "builders": ["analyzer-use-fasta-parser-linux"],
-      "meta": {
-        "description": "Run the analyzer using the Fasta parser."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "analyze pkg/analyzer --use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer --no-use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--no-use-fasta-parser",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli --use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "run language2 tests",
-          "arguments": [
-            "-nanalyzer-fasta_parser-linux",
-            "language_2"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli --no-use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--no-use-fasta-parser",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server --use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server --no-use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--no-use-fasta-parser",
-            "pkg/analysis_server"
-          ]
-        }
-      ]
-    },
-    {
       "builders": ["pkg-linux-release",
                    "pkg-win-release",
                    "pkg-mac-release"],
@@ -1795,7 +1735,7 @@
             "--time",
             "2700"
           ],
-          "shards": 10,
+          "shards": 100,
           "fileset": "fuzzer"
         }
       ]

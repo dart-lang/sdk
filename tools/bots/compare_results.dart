@@ -34,20 +34,23 @@ class Result {
         flaked = flakinessData != null &&
             flakinessData["outcomes"].contains(map["result"]);
 
-  String get key => "$name:$configuration";
+  String get key => "$configuration:$name";
 }
 
 class Event {
   final Result before;
   final Result after;
+  final Result approved;
 
-  Event(this.before, this.after);
+  Event(this.before, this.after, this.approved);
 
   bool get isNew => before == null;
   bool get isNewPassing => before == null && after.matches;
   bool get isNewFailing => before == null && !after.matches;
   bool get changed => !unchanged;
   bool get unchanged => before != null && before.outcome == after.outcome;
+  bool get isApproved => approved != null && approved.outcome == after.outcome;
+  bool get isUnapproved => !isApproved;
   bool get remainedPassing => before.matches && after.matches;
   bool get remainedFailing => !before.matches && !after.matches;
   bool get flaked => after.flaked;
@@ -75,28 +78,41 @@ class Event {
 
 bool firstSection = true;
 
-bool search(String description, String searchFor, List<Event> events,
-    ArgResults options) {
+bool search(
+    String description,
+    String searchForStatus,
+    String searchForApproval,
+    List<Event> events,
+    ArgResults options,
+    Map<String, Map<String, dynamic>> logs,
+    List<String> logSection) {
   bool judgement = false;
   bool beganSection = false;
   int count = options["count"] != null ? int.parse(options["count"]) : null;
   final configurations =
       events.map((event) => event.after.configuration).toSet();
   for (final event in events) {
-    if (searchFor == "passing" &&
+    if (searchForStatus == "passing" &&
         (event.after.flaked || !event.after.matches)) {
       continue;
     }
-    if (searchFor == "flaky" && !event.after.flaked) {
+    if (searchForStatus == "flaky" && !event.after.flaked) {
       continue;
     }
-    if (searchFor == "failing" && (event.after.flaked || event.after.matches)) {
+    if (searchForStatus == "failing" &&
+        (event.after.flaked || event.after.matches)) {
+      continue;
+    }
+    if (searchForApproval == "approved" && !event.isApproved) {
+      continue;
+    }
+    if (searchForApproval == "unapproved" && !event.isUnapproved) {
       continue;
     }
     if (options["unchanged"] && !event.unchanged) continue;
     if (options["changed"] && !event.changed) continue;
     if (!beganSection) {
-      if (options["human"]) {
+      if (options["human"] && !options["logs-only"]) {
         if (!firstSection) {
           print("");
         }
@@ -124,30 +140,32 @@ bool search(String description, String searchFor, List<Event> events,
         break;
       }
     }
-    if (options["human"]) {
-      if (options["verbose"]) {
-        String expected =
-            after.matches ? "" : ", expected ${after.expectation}";
+    String output;
+    if (options["verbose"]) {
+      if (options["human"]) {
+        String expect = after.matches ? "" : ", expected ${after.expectation}";
         if (before == null || before.outcome == after.outcome) {
-          print("${name} ${event.description} "
-              "(${event.after.outcome}${expected})");
+          output = "$name ${event.description} "
+              "(${event.after.outcome}${expect})";
         } else {
-          print("${name} ${event.description} "
-              "(${event.before?.outcome} -> ${event.after.outcome}${expected})");
+          output = "$name ${event.description} "
+              "(${event.before?.outcome} -> ${event.after.outcome}${expect})";
         }
       } else {
-        print(name);
-      }
-    } else {
-      if (options["verbose"]) {
-        print("$name "
-            "${before?.outcome} ${after.outcome} "
+        output = "$name ${before?.outcome} ${after.outcome} "
             "${before?.expectation} ${after.expectation} "
             "${before?.matches} ${after.matches} "
-            "${before?.flaked} ${after.flaked}");
-      } else {
-        print(name);
+            "${before?.flaked} ${after.flaked}";
       }
+    } else {
+      output = name;
+    }
+    if (logs != null) {
+      final log = logs[event.after.key];
+      if (log != null) logSection?.add("\n\nLog for $output\n${log["log"]}");
+    }
+    if (!options["logs-only"]) {
+      print(output);
     }
   }
 
@@ -156,6 +174,8 @@ bool search(String description, String searchFor, List<Event> events,
 
 main(List<String> args) async {
   final parser = new ArgParser();
+  parser.addFlag("approved",
+      abbr: 'A', negatable: false, help: "Show approved tests.");
   parser.addFlag("changed",
       abbr: 'c',
       negatable: false,
@@ -180,6 +200,8 @@ main(List<String> args) async {
       negatable: false);
   parser.addFlag("passing",
       abbr: 'p', negatable: false, help: "Show passing tests.");
+  parser.addFlag("unapproved",
+      abbr: 'U', negatable: false, help: "Show unapproved tests.");
   parser.addFlag("unchanged",
       abbr: 'u',
       negatable: false,
@@ -188,12 +210,18 @@ main(List<String> args) async {
       abbr: "v",
       help: "Show the old and new result for each test",
       negatable: false);
+  parser.addOption("logs",
+      abbr: "l", help: "Path to file holding logs of failing tests.");
+  parser.addFlag("logs-only",
+      help: "Only print logs of failing tests, no other output",
+      negatable: false);
 
   final options = parser.parse(args);
   if (options["help"]) {
     print("""
-Usage: compare_results.dart [OPTION]... [BEFORE] [AFTER]
+Usage: compare_results.dart [OPTION]... BEFORE AFTER [APPROVED]
 Compare the old and new test results and list tests that pass the filters.
+Three-way compare with the approved results if provided.
 All tests are listed if no filters are given.
 
 The options are as follows:
@@ -210,8 +238,9 @@ ${parser.usage}""");
   }
 
   final parameters = options.rest;
-  if (parameters.length != 2) {
-    print("error: Expected two parameters (results before and results after)");
+  if (parameters.length != 2 && parameters.length != 3) {
+    print("error: Expected two or three parameters "
+        "(results before, results after, and (optionally) approved results)");
     exitCode = 2;
     return;
   }
@@ -219,6 +248,12 @@ ${parser.usage}""");
   // Load the input and the flakiness data if specified.
   final before = await loadResultsMap(parameters[0]);
   final after = await loadResultsMap(parameters[1]);
+  final approved = 3 <= parameters.length
+      ? await loadResultsMap(parameters[2])
+      : <String, Map<String, dynamic>>{};
+  final logs = options['logs'] == null
+      ? <String, Map<String, dynamic>>{}
+      : await loadResultsMap(options['logs']);
   final flakinessData = options["flakiness-data"] != null
       ? await loadResultsMap(options["flakiness-data"])
       : <String, Map<String, dynamic>>{};
@@ -230,76 +265,112 @@ ${parser.usage}""");
   for (final name in names) {
     final mapBefore = before[name];
     final mapAfter = after[name];
+    final mapApproved = approved[name];
     final resultBefore = mapBefore != null
         ? new Result.fromMap(mapBefore, flakinessData[name])
         : null;
     final resultAfter = new Result.fromMap(mapAfter, flakinessData[name]);
-    final event = new Event(resultBefore, resultAfter);
+    final resultApproved = mapApproved != null
+        ? new Result.fromMap(mapApproved, flakinessData[name])
+        : null;
+    final event = new Event(resultBefore, resultAfter, resultApproved);
     events.add(event);
   }
 
+  final filterDescriptions = {
+    "passing": {
+      "unchanged": "continued to pass",
+      "changed": "began passing",
+      null: "passed",
+    },
+    "flaky": {
+      "unchanged": "are known to flake but didn't",
+      "changed": "flaked",
+      null: "are known to flake",
+    },
+    "failing": {
+      "unchanged": "continued to fail",
+      "changed": "began failing",
+      null: "failed",
+    },
+    null: {
+      "unchanged": "had the same result",
+      "changed": "changed result",
+      null: "ran",
+    },
+  };
+
+  final searchForStatuses =
+      ["passing", "flaky", "failing"].where((option) => options[option]);
+
+  final approvalDescriptions = {
+    "passing": {
+      "approved": " (approved)",
+      "unapproved": " (should be approved)",
+      null: "",
+    },
+    "flaky": {
+      "approved": " (approved result)",
+      "unapproved": " (unapproved result)",
+      null: "",
+    },
+    "failing": {
+      "approved": " (approved)",
+      "unapproved": " (needs approval)",
+      null: "",
+    },
+    null: {
+      "approved": " (approved)",
+      "unapproved": " (needs approval)",
+      null: "",
+    },
+  };
+
+  final searchForApprovals =
+      ["approved", "unapproved"].where((option) => options[option]);
+
   // Report tests matching the filters.
+  final logSection = <String>[];
   bool judgement = false;
-  if (options["passing"] || options["flaky"] || options["failing"]) {
-    if (options["passing"]) {
-      String sectionHeader;
-      if (options["unchanged"]) {
-        sectionHeader = "The following tests continued to pass:";
-      } else if (options["changed"]) {
-        sectionHeader = "The following tests began passing:";
-      } else {
-        sectionHeader = "The following tests passed:";
+  for (final searchForStatus
+      in searchForStatuses.isNotEmpty ? searchForStatuses : <String>[null]) {
+    for (final searchForApproval in searchForApprovals.isNotEmpty
+        ? searchForApprovals
+        : <String>[null]) {
+      final searchForChanged = options["unchanged"]
+          ? "unchanged"
+          : options["changed"] ? "changed" : null;
+      final aboutStatus = filterDescriptions[searchForStatus][searchForChanged];
+      final aboutApproval =
+          approvalDescriptions[searchForStatus][searchForApproval];
+      final sectionHeader = "The following tests $aboutStatus$aboutApproval:";
+      final logSectionArg = searchForStatus == "failing" ? logSection : null;
+      bool possibleJudgement = search(sectionHeader, searchForStatus,
+          searchForApproval, events, options, logs, logSectionArg);
+      if ((searchForStatus == null || searchForStatus == "failing") &&
+          (searchForApproval == null || searchForApproval == "unapproved")) {
+        judgement = possibleJudgement;
       }
-      search(sectionHeader, "passing", events, options);
     }
-    if (options["flaky"]) {
-      String sectionHeader;
-      if (options["unchanged"]) {
-        sectionHeader = "The following tests are known to flake but didn't:";
-      } else if (options["changed"]) {
-        sectionHeader = "The following tests flaked:";
-      } else {
-        sectionHeader = "The following tests are known to flake:";
-      }
-      search(sectionHeader, "flaky", events, options);
-    }
-    if (options["failing"]) {
-      String sectionHeader;
-      if (options["unchanged"]) {
-        sectionHeader = "The following tests continued to fail:";
-      } else if (options["changed"]) {
-        sectionHeader = "The following tests began failing:";
-      } else {
-        sectionHeader = "The following tests failed:";
-      }
-      judgement = search(sectionHeader, "failing", events, options);
-    }
-  } else {
-    String sectionHeader;
-    if (options["unchanged"]) {
-      sectionHeader = "The following tests had the same result:";
-    } else if (options["changed"]) {
-      sectionHeader = "The following tests changed result:";
-    } else {
-      sectionHeader = "The following tests ran:";
-    }
-    judgement = search(sectionHeader, null, events, options);
   }
 
+  if (logSection.isNotEmpty) {
+    print(logSection.join());
+  }
   // Exit 1 only if --judgement and any test failed.
   if (options["judgement"]) {
-    if (options["human"] && !firstSection) {
+    if (options["human"] && !options["logs-only"] && !firstSection) {
       print("");
     }
     String oldNew =
         options["unchanged"] ? "old " : options["changed"] ? "new " : "";
     if (judgement) {
-      if (options["human"]) {
+      if (options["human"] && !options["logs-only"]) {
         print("There were ${oldNew}test failures.");
       }
       exitCode = 1;
     } else {
-      if (options["human"]) {
+      if (options["human"] && !options["logs-only"]) {
         print("No ${oldNew}test failures were found.");
       }
     }

@@ -115,12 +115,7 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
 
 Map<String, Map<String, dynamic>> createResultsMap(
         List<Map<String, dynamic>> results) =>
-    new Map<String, Map<String, dynamic>>.fromIterable(
-        results
-            // TODO: Temporarily discard results in the old flaky.json format
-            // This can be removed once every bot has run once after this commit
-            // has landed, purging all old flakiness information.
-            .where((result) => result["configuration"] != null),
+    new Map<String, Map<String, dynamic>>.fromIterable(results,
         key: (dynamic result) =>
             "${result["configuration"]}:${result["name"]}");
 

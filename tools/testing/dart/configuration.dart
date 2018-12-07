@@ -33,7 +33,8 @@ class TestConfiguration {
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
-      this.noStatus,
+      this.cleanExit,
+      this.silentFailures,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -58,6 +59,7 @@ class TestConfiguration {
       this.testServerCrossOriginPort,
       this.testDriverErrorPort,
       this.localIP,
+      this.keepGeneratedFiles,
       this.dart2jsOptions,
       String packages,
       this.packageRoot,
@@ -83,7 +85,8 @@ class TestConfiguration {
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
-  final bool noStatus;
+  final bool cleanExit;
+  final bool silentFailures;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -112,7 +115,6 @@ class TestConfiguration {
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
-  bool get keepGeneratedFiles => configuration.keepGeneratedFiles;
   bool get useSdk => configuration.useSdk;
   bool get useFastStartup => configuration.useFastStartup;
   bool get useEnableAsserts => configuration.enableAsserts;
@@ -140,6 +142,7 @@ class TestConfiguration {
   final int testServerCrossOriginPort;
   final int testDriverErrorPort;
   final String localIP;
+  final bool keepGeneratedFiles;
 
   /// Extra dart2js options passed to the testing script.
   final List<String> dart2jsOptions;
