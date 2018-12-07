@@ -14,3 +14,5 @@
 !unittest.tar.gz.sha1
 !update.sh
 !/googletest
+# but ignore a subfolder of tcmalloc (some client ignores /tcmalloc/.gitignore)
+/tcmalloc/gperftools
