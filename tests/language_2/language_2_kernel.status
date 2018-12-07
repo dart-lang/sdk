@@ -4,8 +4,6 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-enum_initialization_near_stack_overflow_test: Pass, CompileTimeError, OK
-
 [ $compiler == app_jitk ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
