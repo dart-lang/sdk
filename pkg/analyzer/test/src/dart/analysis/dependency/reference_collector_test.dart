@@ -818,6 +818,18 @@ class C {
         memberOf: 'C', superPrefixed: ['foo=']);
   }
 
+  test_rethrowExpression() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  try {
+  } on A {
+    rethrow;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
+  }
+
   test_setLiteral() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -1278,6 +1290,43 @@ test() {
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
   }
 
+  test_switchStatement() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  switch (x) {
+    case y:
+      var local1 = 1;
+      z;
+      local1;
+      break;
+    default:
+      var local2 = 2;
+      z2;
+      local2;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['x', 'y', 'z', 'z2']);
+  }
+
+  test_switchStatement_localScopePerCase() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  switch (0) {
+    case 0:
+      var v1 = 1;
+      var v2 = 2;
+      v1;
+      v2;
+    default:
+      v1;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['v1']);
+  }
+
   test_tryStatement() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -1293,6 +1342,32 @@ test() {
 }
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
+  }
+
+  test_tryStatement_catch() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  try {
+    var local1 = 1;
+    x;
+    local1;
+  } on A {
+    var local2 = 2;
+    y;
+    local2;
+  } on B catch (ex1) {
+    var local3 = 3;
+    z;
+    ex1;
+    local3;
+  } catch (ex2, st2) {
+    ex2;
+    st2;
+  }
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'B', 'x', 'y', 'z']);
   }
 
   test_variableDeclarationStatement() async {

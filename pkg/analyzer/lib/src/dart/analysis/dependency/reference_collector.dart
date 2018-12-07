@@ -35,7 +35,7 @@ class ReferenceCollector {
   _NameSet _superReferences = _NameSet();
 
   /// The set of referenced class members.
-  _ClassMemberReferenceSet _memberReferences = new _ClassMemberReferenceSet();
+  _ClassMemberReferenceSet _memberReferences = _ClassMemberReferenceSet();
 
   /// Record that the [name] is a name of an import prefix.
   ///
@@ -176,6 +176,12 @@ class ReferenceCollector {
     _visitExpression(node.rightOperand);
   }
 
+  void _visitBlock(Block node) {
+    if (node == null) return;
+
+    _visitStatements(node.statements);
+  }
+
   void _visitCascadeExpression(CascadeExpression node) {
     _visitExpression(node.target);
     var sections = node.cascadeSections;
@@ -244,6 +250,8 @@ class ReferenceCollector {
       _visitPrefixedIdentifier(node);
     } else if (node is PropertyAccess) {
       _visitPropertyAccess(node, get: get, set: set);
+    } else if (node is RethrowExpression) {
+      // no dependencies
     } else if (node is SetLiteral) {
       _visitSetLiteral(node);
     } else if (node is SimpleIdentifier) {
@@ -532,7 +540,7 @@ class ReferenceCollector {
       _visitExpression(node.condition);
       _visitExpression(node.message);
     } else if (node is Block) {
-      _visitStatements(node.statements);
+      _visitBlock(node);
     } else if (node is BreakStatement) {
       // nothing
     } else if (node is ContinueStatement) {
@@ -620,9 +628,31 @@ class ReferenceCollector {
   }
 
   void _visitTryStatement(TryStatement node) {
-    _visitStatement(node.body);
-    // TODO(scheglov) catch
-    _visitStatement(node.finallyBlock);
+    _visitBlock(node.body);
+
+    var catchClauses = node.catchClauses;
+    for (var i = 0; i < catchClauses.length; i++) {
+      var catchClause = catchClauses[i];
+      _visitTypeAnnotation(catchClause.exceptionType);
+
+      _localScopes.enter();
+
+      var exceptionParameter = catchClause.exceptionParameter;
+      if (exceptionParameter != null) {
+        _localScopes.add(exceptionParameter.name);
+      }
+
+      var stackTraceParameter = catchClause.stackTraceParameter;
+      if (stackTraceParameter != null) {
+        _localScopes.add(stackTraceParameter.name);
+      }
+
+      _visitBlock(catchClause.body);
+
+      _localScopes.exit();
+    }
+
+    _visitBlock(node.finallyBlock);
   }
 
   void _visitTypeAnnotation(TypeAnnotation node) {
