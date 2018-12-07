@@ -15,6 +15,67 @@ import 'bots/results.dart';
 
 const int deflakingCount = 5;
 
+/// Quotes a string in shell single quote mode. This function produces a single
+/// shell argument that evaluates to the exact string provided, handling any
+/// special characters in the input string. Shell single quote mode works uses
+/// the single quote character as the delimiter and uses the characters
+/// in-between verbatim without any special processing. To insert the single
+/// quote character itself, escape single quote mode, insert an escaped single
+/// quote, and then return to single quote mode.
+///
+/// Examples:
+///   foo becomes 'foo'
+///   foo bar becomes 'foo bar'
+///   foo\ bar becomes 'foo\ bar'
+///   foo's bar becomes 'foo '\''s bar'
+///   foo "b"ar becomes 'foo "b"'
+///   foo
+///   bar becomes 'foo
+///   bar'
+String shellSingleQuote(String string) {
+  return "'${string.replaceAll("'", "'\\''")}'";
+}
+
+/// Like [shellSingleQuote], but if the string only contains safe ASCII
+/// characters, don't quote it. Note that it's not always safe to omit the
+/// quotes even if the string only has safe characters, as doing so might match
+/// a shell keyword or a shell builtin in the first argument in a command. It
+/// should be safe to use this for the second argument onwards in a command.
+String simpleShellSingleQuote(String string) {
+  return new RegExp(r"^[a-zA-Z0-9%+,./:_-]*$").hasMatch(string)
+      ? string
+      : shellSingleQuote(string);
+}
+
+/// Runs a process and exits likewise if the process exits non-zero.
+Future<ProcessResult> runProcess(
+    String executable, List<String> arguments) async {
+  final processResult = await Process.run(executable, arguments);
+  if (processResult.exitCode != 0) {
+    final command =
+        ([executable]..addAll(arguments)).map(simpleShellSingleQuote).join(" ");
+    throw new Exception("Command exited ${processResult.exitCode}: $command\n"
+        "${processResult.stdout}\n${processResult.stderr}");
+  }
+  return processResult;
+}
+
+/// Runs a process and exits likewise if the process exits non-zero, but let the
+/// child process inherit out stdio handles.
+Future<ProcessResult> runProcessInheritStdio(
+    String executable, List<String> arguments) async {
+  final process = await Process.start(executable, arguments,
+      mode: ProcessStartMode.inheritStdio);
+  final exitCode = await process.exitCode;
+  final processResult = new ProcessResult(process.pid, exitCode, "", "");
+  if (processResult.exitCode != 0) {
+    final command =
+        ([executable]..addAll(arguments)).map(simpleShellSingleQuote).join(" ");
+    throw new Exception("Command exited ${processResult.exitCode}: $command");
+  }
+  return processResult;
+}
+
 /// Returns the operating system of a builder.
 String systemOfBuilder(String builder) {
   return builder.split("-").firstWhere(
@@ -188,6 +249,7 @@ ${parser.usage}""");
 
     // Run each step like the builder would, deflaking tests that need it.
     final stepResultsPaths = <String>[];
+    final stepLogsPaths = <String>[];
     for (int stepIndex = 0; stepIndex < testSteps.length; stepIndex++) {
       // Run the test step.
       final testStep = testSteps[stepIndex];
@@ -200,22 +262,29 @@ ${parser.usage}""");
           .cast<String>();
       final fullArguments = <String>[]
         ..addAll(stepArguments)
-        ..addAll(
-            ["--output-directory=${stepDirectory.path}", "--write-results"])
+        ..addAll([
+          "--output-directory=${stepDirectory.path}",
+          "--clean-exit",
+          "--silent-failures",
+          "--write-results",
+          "--write-logs",
+        ])
         ..addAll(options.rest);
+      print("".padLeft(80, "="));
       print("$stepName: Running tests");
-      final testProcess = await Process.start("tools/test.py", fullArguments);
-      await testProcess.exitCode;
+      print("".padLeft(80, "="));
+      await runProcessInheritStdio("tools/test.py", fullArguments);
       stepResultsPaths.add("${stepDirectory.path}/results.json");
+      stepLogsPaths.add("${stepDirectory.path}/logs.json");
       // Find the list of tests to deflake.
-      final deflakeListOutput = await Process.run(Platform.resolvedExecutable, [
+      final deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
         "tools/bots/compare_results.dart",
         "--changed",
         "--failing",
         "--passing",
         "--flakiness-data=${outDirectory.path}/flaky.json",
         "${outDirectory.path}/previous.json",
-        "${stepDirectory.path}/results.json"
+        "${stepDirectory.path}/results.json",
       ]);
       final deflakeListPath = "${stepDirectory.path}/deflake.list";
       final deflakeListFile = new File(deflakeListPath);
@@ -225,28 +294,30 @@ ${parser.usage}""");
       for (int i = 1;
           deflakeListOutput.stdout != "" && i <= deflakingCount;
           i++) {
+        print("".padLeft(80, "="));
         print("$stepName: Running deflaking iteration $i");
+        print("".padLeft(80, "="));
         final deflakeDirectory = new Directory("${stepDirectory.path}/$i");
         await deflakeDirectory.create();
         final deflakeArguments = <String>[]
           ..addAll(stepArguments)
           ..addAll([
             "--output-directory=${deflakeDirectory.path}",
+            "--clean-exit",
+            "--silent-failures",
             "--write-results",
-            "--write-logs",
-            "--test-list=$deflakeListPath"
+            "--test-list=$deflakeListPath",
           ])
           ..addAll(options.rest);
-        final deflakeProcess =
-            await Process.start("tools/test.py", deflakeArguments);
-        await deflakeProcess.exitCode;
+        await runProcessInheritStdio("tools/test.py", deflakeArguments);
         deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
       }
       // Update the flakiness information based on what we've learned.
       print("$stepName: Updating flakiness information");
-      await Process.run(
-          "tools/bots/update_flakiness.dart",
+      await runProcess(
+          Platform.resolvedExecutable,
           [
+            "tools/bots/update_flakiness.dart",
             "--input=${outDirectory.path}/flaky.json",
             "--output=${outDirectory.path}/flaky.json",
             "${stepDirectory.path}/results.json",
@@ -257,9 +328,16 @@ ${parser.usage}""");
         stepResultsPaths
             .map((path) => new File(path).readAsStringSync())
             .join(""));
+    // Collect all the logs from all the steps.
+    await new File("${outDirectory.path}/logs.json").writeAsString(stepLogsPaths
+        .map((path) => new File(path).readAsStringSync())
+        .join(""));
     // Write out the final comparison.
-    print("");
-    final compareOutput = await Process.run("tools/bots/compare_results.dart", [
+    print("".padLeft(80, "="));
+    print("Test Results");
+    print("".padLeft(80, "="));
+    final compareOutput = await runProcess(Platform.resolvedExecutable, [
+      "tools/bots/compare_results.dart",
       "--human",
       "--verbose",
       "--changed",
@@ -268,9 +346,13 @@ ${parser.usage}""");
       "--flakiness-data=${outDirectory.path}/flaky.json",
       "--logs=${outDirectory.path}/logs.json",
       "${outDirectory.path}/previous.json",
-      "${outDirectory.path}/results.json"
+      "${outDirectory.path}/results.json",
     ]);
-    stdout.write(compareOutput.stdout);
+    if (compareOutput.stdout == "") {
+      print("There were no test failures.");
+    } else {
+      stdout.write(compareOutput.stdout);
+    }
   } finally {
     await outDirectory.delete(recursive: true);
   }
