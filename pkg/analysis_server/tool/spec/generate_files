@@ -32,13 +32,7 @@ SCRIPT_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../.." ; pwd -P)"
 
-if [[ $1 == '--arch' && $2 == 'x64' ]];
-then
-  DART_CONFIGURATION="ReleaseX64"
-elif [ -z "$DART_CONFIGURATION" ];
-then
-  DART_CONFIGURATION="ReleaseIA32"
-fi
+DART_CONFIGURATION="ReleaseX64"
 
 if [[ `uname` == 'Darwin' ]];
 then
