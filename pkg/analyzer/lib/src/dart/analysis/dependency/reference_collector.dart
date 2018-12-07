@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:meta/meta.dart';
 
 /// Collector of information about external nodes referenced by a node.
 ///
@@ -146,6 +147,35 @@ class ReferenceCollector {
     }
   }
 
+  void _visitAssignmentExpression(AssignmentExpression node) {
+    var assignmentType = node.operator.type;
+
+    _visitExpression(node.leftHandSide,
+        get: assignmentType != TokenType.EQ, set: true);
+    _visitExpression(node.rightHandSide);
+
+    if (assignmentType != TokenType.EQ &&
+        assignmentType != TokenType.QUESTION_QUESTION_EQ) {
+      var operatorType = operatorFromCompoundAssignment(assignmentType);
+      _recordClassMemberReference(
+        node.leftHandSide.staticType,
+        operatorType.lexeme,
+      );
+    }
+  }
+
+  void _visitBinaryExpression(BinaryExpression node) {
+    var operatorName = node.operator.lexeme;
+    var leftOperand = node.leftOperand;
+    if (leftOperand is SuperExpression) {
+      _superReferences.add(operatorName);
+    } else {
+      _visitExpression(leftOperand);
+      _recordClassMemberReference(leftOperand.staticType, operatorName);
+    }
+    _visitExpression(node.rightOperand);
+  }
+
   void _visitCascadeExpression(CascadeExpression node) {
     _visitExpression(node.target);
     var sections = node.cascadeSections;
@@ -155,7 +185,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitExpression(Expression node) {
+  void _visitExpression(Expression node, {bool get: true, bool set: false}) {
     if (node == null) return;
 
     if (node is AdjacentStrings) {
@@ -164,26 +194,11 @@ class ReferenceCollector {
       _visitExpression(node.expression);
       _visitTypeAnnotation(node.type);
     } else if (node is AssignmentExpression) {
-      _visitExpression(node.leftHandSide);
-      _visitExpression(node.rightHandSide);
-      var assignmentType = node.operator.type;
-      if (assignmentType != TokenType.EQ &&
-          assignmentType != TokenType.QUESTION_QUESTION_EQ) {
-        var operatorType = operatorFromCompoundAssignment(assignmentType);
-        _recordClassMemberReference(
-          node.leftHandSide.staticType,
-          operatorType.lexeme,
-        );
-      }
+      _visitAssignmentExpression(node);
     } else if (node is AwaitExpression) {
       _visitExpression(node.expression);
     } else if (node is BinaryExpression) {
-      _visitExpression(node.leftOperand);
-      _visitExpression(node.rightOperand);
-      _recordClassMemberReference(
-        node.leftOperand.staticType,
-        node.operator.lexeme,
-      );
+      _visitBinaryExpression(node);
     } else if (node is BooleanLiteral) {
       // no dependencies
     } else if (node is CascadeExpression) {
@@ -201,8 +216,7 @@ class ReferenceCollector {
       _visitTypeArguments(node.typeArguments);
       _visitArgumentList(node.argumentList);
     } else if (node is IndexExpression) {
-      _visitExpression(node.target);
-      _visitExpression(node.index);
+      _visitIndexExpression(node, get: get, set: set);
     } else if (node is InstanceCreationExpression) {
       _visitInstanceCreationExpression(node);
     } else if (node is IntegerLiteral) {
@@ -229,18 +243,25 @@ class ReferenceCollector {
     } else if (node is PrefixedIdentifier) {
       _visitPrefixedIdentifier(node);
     } else if (node is PropertyAccess) {
-      _visitPropertyAccess(node);
+      _visitPropertyAccess(node, get: get, set: set);
     } else if (node is SetLiteral) {
       _visitSetLiteral(node);
     } else if (node is SimpleIdentifier) {
-      _visitSimpleIdentifier(node);
+      _visitSimpleIdentifier(node, get: get, set: set);
     } else if (node is SimpleStringLiteral) {
       // no dependencies
     } else if (node is StringInterpolation) {
       _visitStringInterpolation(node);
-    } else if (node is ThisExpression) {
+    } else if (node is SymbolLiteral) {
       // no dependencies
-      // TODO(scheglov) not really, because "this" type depends on the hierarchy
+    } else if (node is ThisExpression) {
+      // Strongly speaking, "this" should add dependencies.
+      // Just like any class reference, it depends on the class hierarchy.
+      // For example adding a new type to the `implements` clause might make
+      // it OK to pass `this` as an argument of an invocation.
+      //
+      // However the current plan is to resolve the whole library on a change.
+      // So, we will resolve all implementations that reference `this`.
     } else if (node is ThrowExpression) {
       _visitExpression(node.expression);
     } else {
@@ -342,6 +363,32 @@ class ReferenceCollector {
     _localScopes.exit();
   }
 
+  void _visitIndexExpression(IndexExpression node,
+      {@required bool get, @required bool set}) {
+    var target = node.target;
+    if (target == null) {
+      // no dependencies
+    } else if (target is SuperExpression) {
+      if (get) {
+        _superReferences.add('[]');
+      }
+      if (set) {
+        _superReferences.add('[]=');
+      }
+    } else {
+      _visitExpression(target);
+      var targetType = target.staticType;
+      if (get) {
+        _recordClassMemberReference(targetType, '[]');
+      }
+      if (set) {
+        _recordClassMemberReference(targetType, '[]=');
+      }
+    }
+
+    _visitExpression(node.index);
+  }
+
   void _visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructor = node.constructorName;
 
@@ -429,16 +476,26 @@ class ReferenceCollector {
     _recordClassMemberReference(node.operand.staticType, operatorName);
   }
 
-  void _visitPropertyAccess(PropertyAccess node) {
+  void _visitPropertyAccess(PropertyAccess node,
+      {@required bool get, @required bool set}) {
     var realTarget = node.realTarget;
+    var name = node.propertyName.name;
+
     if (realTarget is SuperExpression) {
-      _superReferences.add(node.propertyName.name);
+      if (get) {
+        _superReferences.add(name);
+      }
+      if (set) {
+        _superReferences.add('$name=');
+      }
     } else {
       _visitExpression(node.target);
-      _recordClassMemberReference(
-        realTarget.staticType,
-        node.propertyName.name,
-      );
+      if (get) {
+        _recordClassMemberReference(realTarget.staticType, name);
+      }
+      if (set) {
+        _recordClassMemberReference(realTarget.staticType, '$name=');
+      }
     }
   }
 
@@ -451,13 +508,20 @@ class ReferenceCollector {
     }
   }
 
-  void _visitSimpleIdentifier(SimpleIdentifier node) {
+  void _visitSimpleIdentifier(SimpleIdentifier node,
+      {@required bool get, @required bool set}) {
     if (node.isSynthetic) return;
 
     var name = node.name;
-    if (!_localScopes.contains(name) && name != 'void' && name != 'dynamic') {
-      // TODO(scheglov) use `name=` if assignment context, or both
+    if (_localScopes.contains(name) || name == 'void' || name == 'dynamic') {
+      return;
+    }
+
+    if (get) {
       _recordUnprefixedReference(name);
+    }
+    if (set) {
+      _recordUnprefixedReference('$name=');
     }
   }
 
