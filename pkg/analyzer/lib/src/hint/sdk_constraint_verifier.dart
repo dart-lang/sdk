@@ -23,8 +23,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The typ provider used to access SDK types.
   final TypeProvider _typeProvider;
 
-  /// The range of versions of the SDK that are allowed by the SDK constraints.
-  final VersionRange _versionRange;
+  /// The version constraint for the SDK.
+  final VersionConstraint _versionConstraint;
 
   /// A cached flag indicating whether references to Future and Stream need to
   /// be checked. Use [] to access this field.
@@ -33,15 +33,15 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
   SdkConstraintVerifier(this._errorReporter, this._containingLibrary,
-      this._typeProvider, this._versionRange);
+      this._typeProvider, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.1.0.
   VersionRange get before_2_1_0 =>
       new VersionRange(max: Version.parse('2.1.0'), includeMax: false);
 
   /// Return `true` if references to Future and Stream need to be checked.
-  bool get checkFutureAndStream =>
-      _checkFutureAndStream ??= !before_2_1_0.intersect(_versionRange).isEmpty;
+  bool get checkFutureAndStream => _checkFutureAndStream ??=
+      !before_2_1_0.intersect(_versionConstraint).isEmpty;
 
   @override
   void visitHideCombinator(HideCombinator node) {
