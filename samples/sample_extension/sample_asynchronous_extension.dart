@@ -13,30 +13,25 @@ class RandomArray {
   static SendPort _port;
 
   Future<List<int>> randomArray(int seed, int length) {
-    var completer = new Completer();
-    var replyPort = new RawReceivePort();
-    var args = new List(3);
+    var completer = Completer<List<int>>();
+    var replyPort = RawReceivePort();
+    var args = List<Object>(3);
     args[0] = seed;
     args[1] = length;
     args[2] = replyPort.sendPort;
     _servicePort.send(args);
-    replyPort.handler = (result) {
+    replyPort.handler = (List<int> result) {
       replyPort.close();
       if (result != null) {
         completer.complete(result);
       } else {
-        completer.completeError(new Exception("Random array creation failed"));
+        completer.completeError(Exception('Random array creation failed'));
       }
     };
     return completer.future;
   }
 
-  SendPort get _servicePort {
-    if (_port == null) {
-      _port = _newServicePort();
-    }
-    return _port;
-  }
+  SendPort get _servicePort => _port ??= _newServicePort();
 
-  SendPort _newServicePort() native "RandomArray_ServicePort";
+  SendPort _newServicePort() native 'RandomArray_ServicePort';
 }

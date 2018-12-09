@@ -6,7 +6,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import "package:expect/expect.dart";
 import "package:path/path.dart";
@@ -45,7 +44,6 @@ Future run(String program, List<String> arguments) async {
 }
 
 Future testNativeExtensions(String snapshotKind) async {
-  String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
       Directory.systemTemp.createTempSync('sample_extension_');
   try {
@@ -73,14 +71,14 @@ Future testNativeExtensions(String snapshotKind) async {
         snapshot = script;
       } else {
         snapshot = join(testDirectory, "$test.snapshot");
-        List<String> args = new List<String>.from(Platform.executableArguments);
+        List<String> args = List<String>.from(Platform.executableArguments);
         args.add('--snapshot=$snapshot');
         args.add('--snapshot-kind=$snapshotKind');
         args.add(script);
         await run(Platform.executable, args);
       }
 
-      List<String> args = new List<String>.from(Platform.executableArguments);
+      List<String> args = List<String>.from(Platform.executableArguments);
       args.add(snapshot);
       await run(Platform.executable, args);
     }
