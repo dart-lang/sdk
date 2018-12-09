@@ -53,29 +53,44 @@ class ReferenceCollector {
   }
 
   /// Construct and return a new [Dependencies] with the given [tokenSignature]
-  /// and all recorded references to external nodes in the give AST nodes.
+  /// and all recorded references to external nodes in the given AST nodes.
   Dependencies collect(List<int> tokenSignature,
       {Expression expression,
+      ExtendsClause extendsClause,
       FormalParameterList formalParameters,
+      FormalParameterList formalParametersForDefaultValues,
       FunctionBody functionBody,
+      ImplementsClause implementsClause,
+      OnClause onClause,
       TypeAnnotation returnType,
-      TypeAnnotation type}) {
+      TypeName superClass,
+      TypeAnnotation type,
+      TypeParameterList typeParameters,
+      TypeParameterList typeParameters2,
+      WithClause withClause}) {
     _localScopes.enter();
-    if (expression != null) {
-      _visitExpression(expression);
-    }
-    if (formalParameters != null) {
-      _visitFormalParameterList(formalParameters);
-    }
-    if (functionBody != null) {
-      _visitFunctionBody(functionBody);
-    }
-    if (returnType != null) {
-      _visitTypeAnnotation(returnType);
-    }
-    if (type != null) {
-      _visitTypeAnnotation(type);
-    }
+
+    // Add type parameters first, they might be referenced later.
+    _visitTypeParameterList(typeParameters);
+    _visitTypeParameterList(typeParameters2);
+
+    // Parts of classes.
+    _visitTypeAnnotation(extendsClause?.superclass);
+    _visitTypeAnnotation(superClass);
+    _visitTypeAnnotations(withClause?.mixinTypes);
+    _visitTypeAnnotations(onClause?.superclassConstraints);
+    _visitTypeAnnotations(implementsClause?.interfaces);
+
+    // Parts of executables.
+    _visitFormalParameterList(formalParameters, false);
+    _visitFormalParameterList(formalParametersForDefaultValues, true);
+    _visitTypeAnnotation(returnType);
+    _visitFunctionBody(functionBody);
+
+    // Parts of variables.
+    _visitTypeAnnotation(type);
+    _visitExpression(expression);
+
     _localScopes.exit();
 
     var unprefixedReferencedNames = _unprefixedReferences.toList();
@@ -139,8 +154,8 @@ class ReferenceCollector {
     }
   }
 
-  void _visitArgumentList(ArgumentList argumentList) {
-    var arguments = argumentList.arguments;
+  void _visitArgumentList(ArgumentList node) {
+    var arguments = node.arguments;
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       _visitExpression(argument);
@@ -300,7 +315,8 @@ class ReferenceCollector {
     _localScopes.exit();
   }
 
-  void _visitFormalParameterList(FormalParameterList node) {
+  void _visitFormalParameterList(
+      FormalParameterList node, bool withDefaultValues) {
     if (node == null) return;
 
     var parameters = node.parameters;
@@ -309,14 +325,16 @@ class ReferenceCollector {
       if (parameter is DefaultFormalParameter) {
         DefaultFormalParameter defaultParameter = parameter;
         parameter = defaultParameter.parameter;
-        _visitExpression(defaultParameter.defaultValue);
+        if (withDefaultValues) {
+          _visitExpression(defaultParameter.defaultValue);
+        }
       }
       if (parameter.identifier != null) {
         _localScopes.add(parameter.identifier.name);
       }
       if (parameter is FunctionTypedFormalParameter) {
         _visitTypeAnnotation(parameter.returnType);
-        _visitFormalParameterList(parameter.parameters);
+        _visitFormalParameterList(parameter.parameters, withDefaultValues);
       } else if (parameter is SimpleFormalParameter) {
         _visitTypeAnnotation(parameter.type);
       } else {
@@ -344,9 +362,9 @@ class ReferenceCollector {
   }
 
   void _visitFunctionBody(FunctionBody node) {
-    if (node == null) {
-      // nothing
-    } else if (node is BlockFunctionBody) {
+    if (node == null) return;
+
+    if (node is BlockFunctionBody) {
       _visitStatement(node.block);
     } else if (node is EmptyFunctionBody) {
       return;
@@ -366,7 +384,7 @@ class ReferenceCollector {
   void _visitFunctionExpression(FunctionExpression node) {
     _localScopes.enter();
     _visitTypeParameterList(node.typeParameters);
-    _visitFormalParameterList(node.parameters);
+    _visitFormalParameterList(node.parameters, true);
     _visitFunctionBody(node.body);
     _localScopes.exit();
   }
@@ -534,9 +552,9 @@ class ReferenceCollector {
   }
 
   void _visitStatement(Statement node) {
-    if (node == null) {
-      // nothing
-    } else if (node is AssertStatement) {
+    if (node == null) return;
+
+    if (node is AssertStatement) {
       _visitExpression(node.condition);
       _visitExpression(node.message);
     } else if (node is Block) {
@@ -674,7 +692,7 @@ class ReferenceCollector {
       }
 
       _visitTypeAnnotation(node.returnType);
-      _visitFormalParameterList(node.parameters);
+      _visitFormalParameterList(node.parameters, true);
 
       _localScopes.exit();
     } else if (node is TypeName) {
@@ -686,23 +704,35 @@ class ReferenceCollector {
     }
   }
 
-  void _visitTypeArguments(TypeArgumentList typeArguments) {
-    if (typeArguments != null) {
-      var arguments = typeArguments.arguments;
-      for (var i = 0; i < arguments.length; i++) {
-        var argument = arguments[i];
-        _visitTypeAnnotation(argument);
-      }
+  void _visitTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
+    if (typeAnnotations == null) return;
+
+    for (var i = 0; i < typeAnnotations.length; i++) {
+      var typeAnnotation = typeAnnotations[i];
+      _visitTypeAnnotation(typeAnnotation);
     }
+  }
+
+  void _visitTypeArguments(TypeArgumentList node) {
+    if (node == null) return;
+
+    _visitTypeAnnotations(node.arguments);
   }
 
   void _visitTypeParameterList(TypeParameterList node) {
     if (node == null) return;
 
     var typeParameters = node.typeParameters;
+
+    // Define all type parameters in the local scope.
     for (var i = 0; i < typeParameters.length; i++) {
       var typeParameter = typeParameters[i];
       _localScopes.add(typeParameter.name.name);
+    }
+
+    // Record bounds.
+    for (var i = 0; i < typeParameters.length; i++) {
+      var typeParameter = typeParameters[i];
       _visitTypeAnnotation(typeParameter.bound);
     }
   }

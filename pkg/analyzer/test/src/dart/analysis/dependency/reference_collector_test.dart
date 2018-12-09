@@ -12,13 +12,452 @@ import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ReferenceCollectorTest);
+    defineReflectiveTests(ApiReferenceCollectorTest);
     defineReflectiveTests(ExpressionReferenceCollectorTest);
+    defineReflectiveTests(ImplReferenceCollectorTest);
     defineReflectiveTests(StatementReferenceCollectorTest);
+    defineReflectiveTests(TypeReferenceCollectorTest);
   });
 }
 
 final dartCoreUri = Uri.parse('dart:core');
+
+@reflectiveTest
+class ApiReferenceCollectorTest extends _Base {
+  test_class_constructor_named_body() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C.test() {
+    x;
+  }
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR, memberOf: 'C');
+  }
+
+  test_class_constructor_named_parameter_defaultValue_named() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C.test({A a = x}) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_constructor_named_parameter_defaultValue_positional() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C.test([A a = x]) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_constructor_named_parameter_required() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C.test(A a, B b) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A', 'B']);
+  }
+
+  test_class_constructor_unnamed_body() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C() {
+    x;
+  }
+}
+''');
+    _assertApi(library, '', NodeKind.CONSTRUCTOR, memberOf: 'C');
+  }
+
+  test_class_constructor_unnamed_parameter_required() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C(A a, B b) {}
+}
+''');
+    _assertApi(library, '', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A', 'B']);
+  }
+
+  test_class_field_hasType() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  int test = x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['int']);
+    _assertApi(library, 'test=', NodeKind.SETTER,
+        memberOf: 'C', unprefixed: ['int']);
+  }
+
+  test_class_field_hasType_const() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  static const int test = x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['int', 'x']);
+  }
+
+  test_class_field_hasType_final() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  final int test = x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['int']);
+  }
+
+  test_class_field_hasType_noInitializer() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  int test;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['int']);
+    _assertApi(library, 'test=', NodeKind.SETTER,
+        memberOf: 'C', unprefixed: ['int']);
+  }
+
+  test_class_field_noType() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  var test = x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['x']);
+    _assertApi(library, 'test=', NodeKind.SETTER,
+        memberOf: 'C', unprefixed: ['x']);
+  }
+
+  test_class_field_noType_const() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  static const test = x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['x']);
+  }
+
+  test_class_field_noType_final() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  final test = x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'C', unprefixed: ['x']);
+  }
+
+  test_class_field_noType_noInitializer() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  var test;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, memberOf: 'C');
+    _assertApi(library, 'test=', NodeKind.SETTER, memberOf: 'C');
+  }
+
+  test_class_method_body() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  void test() {
+    x;
+  }
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD, memberOf: 'C');
+  }
+
+  test_class_method_parameter_defaultValue_named() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  void test({A a = x}) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_method_parameter_defaultValue_positional() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  void test([A a = x]) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_method_parameter_required() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  void test(A a, B b) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['A', 'B']);
+  }
+
+  test_class_method_returnType() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  A test() {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_method_typeParameter() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  void test<T, U extends A, V extends U>(T t, U u, V v) {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_typeParameter() async {
+    var library = await buildTestLibrary(a, r'''
+class X<T extends A<B, C>> {}
+''');
+    _assertApi(library, 'T', NodeKind.TYPE_PARAMETER,
+        typeParameterOf: 'X', unprefixed: ['A', 'B', 'C']);
+    // TODO(scheglov) test for type parameter referencing the enclosing class
+  }
+
+  test_unit_class() async {
+    var library = await buildTestLibrary(a, r'''
+class Test<T extends A, U extends T>
+  extends B<T> with C, D<E, U>
+  implements F<T>, G {
+  void test() {
+    x
+  }
+}
+''');
+    _assertApi(library, 'Test', NodeKind.CLASS,
+        unprefixed: ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+  }
+
+  test_unit_classTypeAlias() async {
+    var library = await buildTestLibrary(a, r'''
+class Test = A with M1, M2 implements I1, I2;
+''');
+    _assertApi(library, 'Test', NodeKind.CLASS_TYPE_ALIAS,
+        unprefixed: ['A', 'I1', 'I2', 'M1', 'M2']);
+  }
+
+  test_unit_classTypeAlias_generic() async {
+    var library = await buildTestLibrary(a, r'''
+class Test<T extends A, U extends T> = B<T> with C<U, D> implements E<T, F>;
+''');
+    _assertApi(library, 'Test', NodeKind.CLASS_TYPE_ALIAS,
+        unprefixed: ['A', 'B', 'C', 'D', 'E', 'F']);
+  }
+
+  test_unit_function_body() async {
+    var library = await buildTestLibrary(a, r'''
+void test() {
+  x;
+}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_unit_function_parameter_defaultValue_named() async {
+    var library = await buildTestLibrary(a, r'''
+void test({a = x}) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_unit_function_parameter_defaultValue_positional() async {
+    var library = await buildTestLibrary(a, r'''
+void test([a = x]) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_unit_function_parameter_named() async {
+    var library = await buildTestLibrary(a, r'''
+void test({A a, B b}) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+  }
+
+  test_unit_function_parameter_positional() async {
+    var library = await buildTestLibrary(a, r'''
+void test([A a, B b]) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+  }
+
+  test_unit_function_parameter_required() async {
+    var library = await buildTestLibrary(a, r'''
+void test(A a, B b) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+  }
+
+  test_unit_function_parameter_required_function() async {
+    var library = await buildTestLibrary(a, r'''
+void test(A Function(B) a) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+  }
+
+  test_unit_function_parameter_required_functionTyped() async {
+    var library = await buildTestLibrary(a, r'''
+void test(A a(B b, C c)) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B', 'C']);
+  }
+
+  test_unit_function_returnType_absent() async {
+    var library = await buildTestLibrary(a, r'''
+test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_unit_function_returnType_interface() async {
+    var library = await buildTestLibrary(a, r'''
+A test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
+  }
+
+  test_unit_function_typeParameter() async {
+    var library = await buildTestLibrary(a, r'''
+void test<T, U extends A, V extends U>(T t, U u, V v) {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
+  }
+
+  test_unit_functionTypeAlias() async {
+    var library = await buildTestLibrary(a, r'''
+typedef A<B, U> Test<T extends C, U extends T>(D d, T t, U u);
+''');
+    _assertApi(library, 'Test', NodeKind.FUNCTION_TYPE_ALIAS,
+        unprefixed: ['A', 'B', 'C', 'D']);
+  }
+
+  test_unit_functionTypeAlias_reverseOrderTypeParameters() async {
+    var library = await buildTestLibrary(a, r'''
+typedef void Test<U extends T, T extends A>();
+''');
+    _assertApi(library, 'Test', NodeKind.FUNCTION_TYPE_ALIAS,
+        unprefixed: ['A']);
+  }
+
+  test_unit_genericTypeAlias_function() async {
+    var library = await buildTestLibrary(a, r'''
+typedef Test<T extends A, U extends T> =
+  B<T, C, V> Function<V extends D, W extends E<F, T, V>>(E, T, U, V, V, W);
+''');
+    _assertApi(library, 'Test', NodeKind.GENERIC_TYPE_ALIAS,
+        unprefixed: ['A', 'B', 'C', 'D', 'E', 'F']);
+  }
+
+  test_unit_genericTypeAlias_function_reverseOrderTypeParameters() async {
+    var library = await buildTestLibrary(a, r'''
+typedef Test<U extends T, T extends A> = Function<W extends V, V extends B>();
+''');
+    _assertApi(library, 'Test', NodeKind.GENERIC_TYPE_ALIAS,
+        unprefixed: ['A', 'B']);
+  }
+
+  test_unit_mixin() async {
+    var library = await buildTestLibrary(a, r'''
+mixin Test<T extends A, U extends T>
+  on B<T>, C, D<E, U>
+  implements F<T>, G {
+  void test() {
+    x
+  }
+}
+''');
+    _assertApi(library, 'Test', NodeKind.MIXIN,
+        unprefixed: ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+  }
+
+  test_unit_variable_hasType() async {
+    var library = await buildTestLibrary(a, r'''
+int test = x;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int']);
+    _assertApi(library, 'test=', NodeKind.SETTER, unprefixed: ['int']);
+  }
+
+  test_unit_variable_hasType_const() async {
+    var library = await buildTestLibrary(a, r'''
+const int test = x;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int', 'x']);
+  }
+
+  test_unit_variable_hasType_final() async {
+    var library = await buildTestLibrary(a, r'''
+final int test = x;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int']);
+  }
+
+  test_unit_variable_hasType_noInitializer() async {
+    var library = await buildTestLibrary(a, r'''
+int test;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int']);
+    _assertApi(library, 'test=', NodeKind.SETTER, unprefixed: ['int']);
+  }
+
+  test_unit_variable_noType() async {
+    var library = await buildTestLibrary(a, r'''
+var test = x;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['x']);
+    _assertApi(library, 'test=', NodeKind.SETTER, unprefixed: ['x']);
+  }
+
+  test_unit_variable_noType_const() async {
+    var library = await buildTestLibrary(a, r'''
+const test = x;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['x']);
+  }
+
+  test_unit_variable_noType_final() async {
+    var library = await buildTestLibrary(a, r'''
+final test = x;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['x']);
+  }
+
+  test_unit_variable_noType_noInitializer() async {
+    var library = await buildTestLibrary(a, r'''
+var test;
+''');
+    _assertApi(library, 'test', NodeKind.GETTER);
+    _assertApi(library, 'test=', NodeKind.SETTER);
+  }
+}
 
 @reflectiveTest
 class ExpressionReferenceCollectorTest extends _Base {
@@ -928,166 +1367,104 @@ test() {
 }
 
 @reflectiveTest
-class ReferenceCollectorTest extends _Base {
-  test_unit_function_api_parameter_named_simple_interface() async {
+class ImplReferenceCollectorTest extends _Base {
+  test_class_constructor() async {
     var library = await buildTestLibrary(a, r'''
-void test({A a, B b}) {}
+class C {
+  C.test({a: x}) {
+    y;
+  }
+}
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['x', 'y']);
   }
 
-  test_unit_function_api_parameter_positional_simple_interface() async {
+  test_class_method() async {
     var library = await buildTestLibrary(a, r'''
-void test([A a, B b]) {}
+class C {
+  void test({a: x}) {
+    y;
+  }
+}
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+    _assertImpl(library, 'test', NodeKind.METHOD,
+        memberOf: 'C', unprefixed: ['x', 'y']);
   }
 
-  test_unit_function_api_parameter_required_functionTyped() async {
+  test_class_typeParameter() async {
     var library = await buildTestLibrary(a, r'''
-void test(A a(B b, C c)) {}
+class C<T extends A> {}
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B', 'C']);
+    _assertImpl(library, 'T', NodeKind.TYPE_PARAMETER, typeParameterOf: 'C');
   }
 
-  test_unit_function_api_parameter_required_simple_function() async {
+  test_classTypeAlias() async {
     var library = await buildTestLibrary(a, r'''
-void test(A Function(B) a) {}
+class Test = A with B implements C;
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+    _assertImpl(library, 'Test', NodeKind.CLASS_TYPE_ALIAS);
   }
 
-  test_unit_function_api_parameter_required_simple_interface() async {
+  test_functionTypeAlias() async {
     var library = await buildTestLibrary(a, r'''
-void test(A a, B b) {}
+typedef A Test<T extends B>(C c, T t);
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+    _assertImpl(library, 'Test', NodeKind.FUNCTION_TYPE_ALIAS);
   }
 
-  test_unit_function_api_returnType_absent() async {
+  test_unit_class() async {
     var library = await buildTestLibrary(a, r'''
-test() {}
+class Test<T extends A, U extends T> extends B with C, implements D {
+  void test() {
+    x;
+  }
+}
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION);
+    _assertImpl(library, 'Test', NodeKind.CLASS);
   }
 
-  test_unit_function_api_returnType_dynamic() async {
+  test_unit_classTypeAlias() async {
     var library = await buildTestLibrary(a, r'''
-dynamic test() {}
+class Test<T extends V, U extends T> = A<T> with B<U, W>;
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION);
+    _assertImpl(library, 'Test', NodeKind.CLASS_TYPE_ALIAS);
   }
 
-  test_unit_function_api_returnType_function() async {
+  test_unit_function() async {
     var library = await buildTestLibrary(a, r'''
-A Function<T, U extends B>(T t, C c, D<T> d, E e) test() {}
+void test({a: x}) {
+  y;
+}
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION,
-        unprefixed: ['A', 'B', 'C', 'D', 'E']);
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x', 'y']);
   }
 
-  test_unit_function_api_returnType_function_nested() async {
+  test_unit_mixin() async {
     var library = await buildTestLibrary(a, r'''
-A Function<T>(B Function<U>(U, C, T) f, D) test() {}
+mixin Test<T extends A, U extends T> on B<T>, C<D, U> {
+  void test() {
+    x;
+  }
+}
 ''');
-    _assertApi(library, 'test', NodeKind.FUNCTION,
-        unprefixed: ['A', 'B', 'C', 'D']);
+    _assertImpl(library, 'Test', NodeKind.MIXIN);
   }
 
-  test_unit_function_api_returnType_function_parameter_named() async {
-    var library = await buildTestLibrary(a, r'''
-A Function({B, C}) test() {}
-''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B', 'C']);
-  }
-
-  test_unit_function_api_returnType_function_parameter_positional() async {
-    var library = await buildTestLibrary(a, r'''
-A Function([B, C]) test() {}
-''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B', 'C']);
-  }
-
-  test_unit_function_api_returnType_function_shadow_typeParameters() async {
-    var library = await buildTestLibrary(a, r'''
-A Function<T extends U, U>(B) test() {}
-''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
-  }
-
-  test_unit_function_api_returnType_interface_argument() async {
-    var library = await buildTestLibrary(a, r'''
-A<B, C<D>> test() {}
-''');
-    _assertApi(library, 'test', NodeKind.FUNCTION,
-        unprefixed: ['A', 'B', 'C', 'D']);
-  }
-
-  test_unit_function_api_returnType_interface_prefixed() async {
-    var library = await buildTestLibrary(a, r'''
-import 'b.dart' as pb;
-import 'c.dart' as pc;
-A<pb.B2, pc.C2, pb.B1, pc.C1, pc.C3> test() {}
-''');
-    _assertApi(
-      library,
-      'test',
-      NodeKind.FUNCTION,
-      unprefixed: ['A'],
-      prefixed: {
-        'pb': ['B1', 'B2'],
-        'pc': ['C1', 'C2', 'C3']
-      },
-    );
-  }
-
-  test_unit_function_api_returnType_interface_simple() async {
-    var library = await buildTestLibrary(a, r'''
-int test() {}
-''');
-    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['int']);
-  }
-
-  test_unit_function_api_returnType_void() async {
-    var library = await buildTestLibrary(a, r'''
-void test() {}
-''');
-    _assertApi(library, 'test', NodeKind.FUNCTION);
-  }
-
-  test_unit_variable_api_hasType() async {
+  test_unit_variable() async {
     var library = await buildTestLibrary(a, r'''
 int test = x;
 ''');
-    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int']);
+    _assertImpl(library, 'test', NodeKind.GETTER, unprefixed: ['x']);
+    _assertImpl(library, 'test=', NodeKind.SETTER); // empty
   }
 
-  test_unit_variable_api_hasType_const() async {
+  test_unit_variable_noInitializer() async {
     var library = await buildTestLibrary(a, r'''
-const int test = x;
+int test;
 ''');
-    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int', 'x']);
-  }
-
-  test_unit_variable_api_hasType_final() async {
-    var library = await buildTestLibrary(a, r'''
-final int test = x;
-''');
-    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['int']);
-  }
-
-  test_unit_variable_api_noType() async {
-    var library = await buildTestLibrary(a, r'''
-var test = x;
-''');
-    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['x']);
-  }
-
-  test_unit_variable_api_noType_final() async {
-    var library = await buildTestLibrary(a, r'''
-final test = x;
-''');
-    _assertApi(library, 'test', NodeKind.GETTER, unprefixed: ['x']);
+    _assertImpl(library, 'test', NodeKind.GETTER);
+    _assertImpl(library, 'test=', NodeKind.SETTER); // empty
   }
 }
 
@@ -1400,13 +1777,115 @@ test() sync* {
   }
 }
 
+@reflectiveTest
+class TypeReferenceCollectorTest extends _Base {
+  test_dynamic() async {
+    var library = await buildTestLibrary(a, r'''
+dynamic test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+  }
+
+  test_function() async {
+    var library = await buildTestLibrary(a, r'''
+A Function(B) test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+  }
+
+  test_function_generic() async {
+    var library = await buildTestLibrary(a, r'''
+A Function<T, U extends B>(T t, C c, D<T> d, E e) test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'B', 'C', 'D', 'E']);
+  }
+
+  test_function_nested_generic() async {
+    var library = await buildTestLibrary(a, r'''
+A Function<T>(B Function<U>(U, C, T) f, D) test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'B', 'C', 'D']);
+  }
+
+  test_function_parameter_named() async {
+    var library = await buildTestLibrary(a, r'''
+A Function({B, C}) test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B', 'C']);
+  }
+
+  test_function_parameter_positional() async {
+    var library = await buildTestLibrary(a, r'''
+A Function([B, C]) test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B', 'C']);
+  }
+
+  test_function_shadow_typeParameters() async {
+    var library = await buildTestLibrary(a, r'''
+A Function<T extends U, U>(B) test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
+  }
+
+  test_interface_generic() async {
+    var library = await buildTestLibrary(a, r'''
+A<B, C<D>> test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'B', 'C', 'D']);
+  }
+
+  test_interface_prefixed() async {
+    var library = await buildTestLibrary(a, r'''
+import 'b.dart' as pb;
+import 'c.dart' as pc;
+A<pb.B2, pc.C2, pb.B1, pc.C1, pc.C3> test() {}
+''');
+    _assertApi(
+      library,
+      'test',
+      NodeKind.FUNCTION,
+      unprefixed: ['A'],
+      prefixed: {
+        'pb': ['B1', 'B2'],
+        'pc': ['C1', 'C2', 'C3']
+      },
+    );
+  }
+
+  test_interface_simple() async {
+    var library = await buildTestLibrary(a, r'''
+A test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
+  }
+
+  test_void() async {
+    var library = await buildTestLibrary(a, r'''
+void test() {}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+  }
+}
+
 class _Base extends BaseDependencyTest {
   void _assertApi(Library library, String name, NodeKind kind,
-      {List<String> unprefixed: const [],
+      {String memberOf,
+      String typeParameterOf,
+      List<String> unprefixed: const [],
       Map<String, List<String>> prefixed: const {},
       List<String> superPrefixed: const [],
       List<_ExpectedClassMember> expectedMembers: const []}) {
-    var node = getNode(library, name: name, kind: kind);
+    var node = getNode(
+      library,
+      name: name,
+      kind: kind,
+      memberOf: memberOf,
+      typeParameterOf: typeParameterOf,
+    );
     _assertDependencies(
       node.api,
       unprefixed: unprefixed,
@@ -1444,11 +1923,18 @@ class _Base extends BaseDependencyTest {
 
   void _assertImpl(Library library, String name, NodeKind kind,
       {String memberOf,
+      String typeParameterOf,
       List<String> unprefixed: const [],
       Map<String, List<String>> prefixed: const {},
       List<String> superPrefixed: const [],
       List<_ExpectedClassMember> expectedMembers: const []}) {
-    var node = getNode(library, name: name, kind: kind, memberOf: memberOf);
+    var node = getNode(
+      library,
+      name: name,
+      kind: kind,
+      memberOf: memberOf,
+      typeParameterOf: typeParameterOf,
+    );
     _assertDependencies(
       node.impl,
       unprefixed: unprefixed,
