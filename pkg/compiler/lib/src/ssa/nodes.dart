@@ -1280,7 +1280,7 @@ abstract class HInstruction implements Spannable {
     if (type.isDynamic) return this;
     if (type.isVoid) return this;
     if (type == closedWorld.commonElements.objectType) return this;
-    if (type.isFunctionType || type.isMalformed || type.isFutureOr) {
+    if (type.isFunctionType || type.isFutureOr) {
       return new HTypeConversion(type, kind,
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
@@ -3202,11 +3202,6 @@ class HTypeConversion extends HCheck {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     DartType type = typeExpression;
     if (type != null) {
-      if (type.isMalformed) {
-        // Malformed types are treated as dynamic statically, but should
-        // throw a type error at runtime.
-        return false;
-      }
       if (type.isTypeVariable) {
         return false;
       }

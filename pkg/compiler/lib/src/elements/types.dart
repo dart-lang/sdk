@@ -68,9 +68,6 @@ abstract class DartType {
   /// Is `true` if this type is a `FutureOr` type.
   bool get isFutureOr => false;
 
-  /// Is `true` if this type is a malformed type.
-  bool get isMalformed => false;
-
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
@@ -355,22 +352,6 @@ class TypedefType extends DartType {
     }
     return sb.toString();
   }
-}
-
-/// Provides a thin model of method type variables for compabitility with the
-/// old compiler behavior in Dart 1: They are treated as if their value were
-/// `dynamic` when used in a type annotation, and as a malformed type when
-/// used in an `as` or `is` expression.
-class Dart1MethodTypeVariableType extends TypeVariableType {
-  Dart1MethodTypeVariableType(TypeVariableEntity element) : super(element);
-
-  @override
-  bool get treatAsDynamic => true;
-
-  @override
-  bool get isMalformed => true;
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
 class TypeVariableType extends DartType {

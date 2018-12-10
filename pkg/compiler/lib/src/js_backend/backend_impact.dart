@@ -462,14 +462,6 @@ class BackendImpacts {
     return _typeCheck ??= new BackendImpact(otherImpacts: [boolValues]);
   }
 
-  BackendImpact _malformedTypeCheck;
-
-  BackendImpact get malformedTypeCheck {
-    return _malformedTypeCheck ??= new BackendImpact(staticUses: [
-      _commonElements.throwTypeError,
-    ]);
-  }
-
   BackendImpact _genericTypeCheck;
 
   BackendImpact get genericTypeCheck {
