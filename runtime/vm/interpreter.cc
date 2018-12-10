@@ -559,10 +559,8 @@ Interpreter::Interpreter()
   // Low address.
   stack_base_ =
       reinterpret_cast<uword>(stack_) + kInterpreterStackUnderflowSize;
-  // Limit for StackOverflowError.
-  overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
+  stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
 
   last_setjmp_buffer_ = NULL;
 
@@ -1385,7 +1383,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_), \
                   exit_fp);                                                    \
       }                                                                        \
-      ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));                          \
+      ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());                    \
       return special_[KernelBytecode::kExceptionSpecialIndex];                 \
     }                                                                          \
     goto DispatchAfterException;                                               \
@@ -1891,7 +1889,7 @@ SwitchDispatch:
     {
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
-      if (reinterpret_cast<uword>(SP) >= overflow_stack_limit() ||
+      if (reinterpret_cast<uword>(SP) >= stack_limit() ||
           thread->HasScheduledInterrupts()) {
         Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, 0, NULL, NULL);
@@ -2354,7 +2352,7 @@ SwitchDispatch:
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
                   exit_fp);
       }
-      ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));
+      ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
       ASSERT(fp_ == FrameArguments(FP, argc + kKBCEntrySavedSlots));
       // Exception propagation should have been done.

@@ -59,7 +59,7 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
 #if defined(USING_SIMULATOR)
-    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+    thread->SetStackLimit(Simulator::Current()->stack_limit());
 #else
     thread->SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
     // TODO(regis): For now, the interpreter is using its own stack limit.

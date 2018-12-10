@@ -2352,7 +2352,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   sentinel.RecordStore(enum_value);
 
   if (enum_cls.kernel_offset() > 0) {
-    Error& error = Error::Handle(zone);
+    Object& result = Object::Handle(zone);
     for (intptr_t i = 0; i < fields.Length(); i++) {
       field = Field::RawCast(fields.At(i));
       if (!field.is_static() || !field.is_const() ||
@@ -2362,12 +2362,11 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
       // The eager evaluation of the enum values is required for hot-reload (see
       // commit e3ecc87).
       if (!FLAG_precompiled_mode) {
-        if (field.IsUninitialized()) {
-          error = field.EvaluateInitializer();
-          if (!error.IsNull()) {
-            ReportError(error);
-          }
-        }
+        field.SetStaticValue(Object::transition_sentinel());
+        result = Compiler::EvaluateStaticInitializer(field);
+        ASSERT(!result.IsError());
+        field.SetStaticValue(Instance::Cast(result), true);
+        field.RecordStore(Instance::Cast(result));
       }
     }
   } else {

@@ -557,10 +557,8 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
                          sizeof(uintptr_t)];
   // Low address.
   stack_base_ = reinterpret_cast<uword>(stack_) + kSimulatorStackUnderflowSize;
-  // Limit for StackOverflowError.
-  overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
+  stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
 
   last_setjmp_buffer_ = NULL;
 

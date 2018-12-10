@@ -49,8 +49,6 @@ class Interpreter {
 
   // Low address (KBC stack grows up).
   uword stack_base() const { return stack_base_; }
-  // Limit for StackOverflowError.
-  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // High address (KBC stack grows up).
   uword stack_limit() const { return stack_limit_; }
 
@@ -58,7 +56,7 @@ class Interpreter {
   // TODO(regis): We should rely on a new thread vm_tag to identify an
   // interpreter frame and not need this HasFrame() method.
   bool HasFrame(uword frame) const {
-    return frame >= stack_base() && frame < stack_limit();
+    return frame >= stack_base() && frame <= get_fp();
   }
 
   // Identify an entry frame by looking at its pc marker value.
@@ -101,7 +99,6 @@ class Interpreter {
  private:
   uintptr_t* stack_;
   uword stack_base_;
-  uword overflow_stack_limit_;
   uword stack_limit_;
 
   RawObject** fp_;
