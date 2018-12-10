@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Declare method return types.';
@@ -65,14 +64,16 @@ class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   static const LintCode functionCode = const LintCode(
-      "always_declare_return_types",
+      "always_declare_return_types", // ignore: prefer_single_quotes
       "The function {0} should have a return type but doesn't.",
-      correction: "Try adding a return type to the function.");
+      correction:
+          "Try adding a return type to the function."); // ignore: prefer_single_quotes
 
   static const LintCode methodCode = const LintCode(
-      "always_declare_return_types",
+      "always_declare_return_types", // ignore: prefer_single_quotes
       "The method {0} should have a return type but doesn't.",
-      correction: "Try adding a return type to the method.");
+      correction:
+          "Try adding a return type to the method."); // ignore: prefer_single_quotes
 
   final LintRule rule;
 
