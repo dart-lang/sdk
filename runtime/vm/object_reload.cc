@@ -704,13 +704,36 @@ void ICData::Reset(Zone* zone) const {
   if (rule == kInstance) {
     const intptr_t num_args = NumArgsTested();
     const bool tracking_exactness = IsTrackingExactness();
-    if (num_args == 2) {
-      ClearWithSentinel();
-    } else {
-      const Array& data_array = Array::Handle(
-          zone, CachedEmptyICDataArray(num_args, tracking_exactness));
-      set_ic_data_array(data_array);
+    const intptr_t len = Length();
+    // We need at least one non-sentinel entry to require a check
+    // for the smi fast path case.
+    if (num_args == 2 && len >= 2) {
+      if (IsImmutable()) {
+        return;
+      }
+      Zone* zone = Thread::Current()->zone();
+      const String& name = String::Handle(target_name());
+      const Class& smi_class = Class::Handle(Smi::Class());
+      const Function& smi_op_target = Function::Handle(
+          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+      GrowableArray<intptr_t> class_ids(2);
+      Function& target = Function::Handle();
+      GetCheckAt(0, &class_ids, &target);
+      if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
+          (class_ids[1] == kSmiCid)) {
+        // The smi fast path case, preserve the initial entry but reset the
+        // count.
+        ClearCountAt(0);
+        WriteSentinelAt(1);
+        const Array& array = Array::Handle(ic_data());
+        array.Truncate(2 * TestEntryLength());
+        return;
+      }
+      // Fall back to the normal behavior with cached empty ICData arrays.
     }
+    const Array& data_array = Array::Handle(
+        zone, CachedEmptyICDataArray(num_args, tracking_exactness));
+    set_ic_data_array(data_array);
     return;
   } else if (rule == kNoRebind || rule == kNSMDispatch) {
     // TODO(30877) we should account for addition/removal of NSM.

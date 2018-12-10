@@ -1905,17 +1905,9 @@ class ICData : public Object {
   // Clears the count for entry |index|.
   void ClearCountAt(intptr_t index) const;
 
-  // Clear all entries with the sentinel value (but will preserve initial
-  // smi smi checks).
-  void ClearWithSentinel() const;
-
   // Clear all entries with the sentinel value and reset the first entry
   // with the dummy target entry.
   void ClearAndSetStaticTarget(const Function& func) const;
-
-  // Returns the first index that should be used to for a new entry. Will
-  // grow the array if necessary.
-  RawArray* FindFreeIndex(intptr_t* index) const;
 
   void DebugDump() const;
 
@@ -2068,6 +2060,10 @@ class ICData : public Object {
   RawArray* ic_data() const {
     return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_);
   }
+
+  // Grows the array and also sets the argument to the index that should be used
+  // for the new entry.
+  RawArray* Grow(intptr_t* index) const;
 
   void set_owner(const Function& value) const;
   void set_target_name(const String& value) const;
@@ -8213,13 +8209,17 @@ class Array : public Instance {
                         intptr_t new_length,
                         Heap::Space space = Heap::kNew);
 
+  // Truncates the array to a given length. 'new_length' must be less than
+  // or equal to 'source.Length()'. The remaining unused part of the array is
+  // marked as an Array object or a regular Object so that it can be traversed
+  // during garbage collection.
+  void Truncate(intptr_t new_length) const;
+
   // Return an Array object that contains all the elements currently present
   // in the specified Growable Object Array. This is done by first truncating
   // the Growable Object Array's backing array to the currently used size and
   // returning the truncated backing array.
-  // The remaining unused part of the backing array is marked as an Array
-  // object or a regular Object so that it can be traversed during garbage
-  // collection. The backing array of the original Growable Object Array is
+  // The backing array of the original Growable Object Array is
   // set to an empty array.
   // If the unique parameter is false, the function is allowed to return
   // a shared Array instance.

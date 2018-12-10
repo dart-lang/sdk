@@ -13560,45 +13560,6 @@ void ICData::ClearCountAt(intptr_t index) const {
   SetCountAt(index, 0);
 }
 
-void ICData::ClearWithSentinel() const {
-  if (IsImmutable()) {
-    return;
-  }
-  // Write the sentinel value into all entries except the first one.
-  const intptr_t len = Length();
-  if (len == 0) {
-    return;
-  }
-  // The final entry is always the sentinel.
-  ASSERT(IsSentinelAt(len - 1));
-  for (intptr_t i = len - 1; i > 0; i--) {
-    WriteSentinelAt(i);
-  }
-  if (NumArgsTested() != 2) {
-    // Not the smi fast path case, write sentinel to first one and exit.
-    WriteSentinelAt(0);
-    return;
-  }
-  if (IsSentinelAt(0)) {
-    return;
-  }
-  Zone* zone = Thread::Current()->zone();
-  const String& name = String::Handle(target_name());
-  const Class& smi_class = Class::Handle(Smi::Class());
-  const Function& smi_op_target =
-      Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-  GrowableArray<intptr_t> class_ids(2);
-  Function& target = Function::Handle();
-  GetCheckAt(0, &class_ids, &target);
-  if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
-      (class_ids[1] == kSmiCid)) {
-    // The smi fast path case, preserve the initial entry but reset the count.
-    ClearCountAt(0);
-    return;
-  }
-  WriteSentinelAt(0);
-}
-
 void ICData::ClearAndSetStaticTarget(const Function& func) const {
   if (IsImmutable()) {
     return;
@@ -13770,7 +13731,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
     }
   }
   intptr_t index = -1;
-  data = FindFreeIndex(&index);
+  data = Grow(&index);
   ASSERT(!data.IsNull());
   intptr_t data_pos = index * TestEntryLength();
   Smi& value = Smi::Handle();
@@ -13789,21 +13750,14 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   set_ic_data_array(data);
 }
 
-RawArray* ICData::FindFreeIndex(intptr_t* index) const {
-  // The final entry is always the sentinel value, don't consider it
-  // when searching.
-  const intptr_t len = Length() - 1;
+RawArray* ICData::Grow(intptr_t* index) const {
   Array& data = Array::Handle(ic_data());
-  for (intptr_t i = 0; i < len; i++) {
-    if (IsSentinelAt(i)) {
-      *index = i;
-      return data.raw();
-    }
-  }
-  // Append case.
-  *index = len;
+  // Last entry in array should be a sentinel and will be the new entry
+  // that can be updated after growing.
+  *index = Length() - 1;
   ASSERT(*index >= 0);
-  // Grow array.
+  ASSERT(IsSentinelAt(*index));
+  // Grow the array and write the new final sentinel into place.
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   WriteSentinel(data, TestEntryLength());
@@ -13843,7 +13797,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   ASSERT(receiver_class_id != kIllegalCid);
 
   intptr_t index = -1;
-  Array& data = Array::Handle(FindFreeIndex(&index));
+  Array& data = Array::Handle(Grow(&index));
   intptr_t data_pos = index * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
     ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
@@ -21255,6 +21209,47 @@ RawArray* Array::Grow(const Array& source,
   return result.raw();
 }
 
+void Array::Truncate(intptr_t new_len) const {
+  if (IsNull()) {
+    return;
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Array& array = Array::Handle(zone, this->raw());
+
+  intptr_t old_len = array.Length();
+  ASSERT(new_len <= old_len);
+  intptr_t old_size = Array::InstanceSize(old_len);
+  intptr_t new_size = Array::InstanceSize(new_len);
+
+  NoSafepointScope no_safepoint;
+
+  // If there is any left over space fill it with either an Array object or
+  // just a plain object (depending on the amount of left over space) so
+  // that it can be traversed over successfully during garbage collection.
+  Object::MakeUnusedSpaceTraversable(array, old_size, new_size);
+
+  // Update the size in the header field and length of the array object.
+  uword tags = array.raw_ptr()->tags_;
+  ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
+  uint32_t old_tags;
+  do {
+    old_tags = tags;
+    uint32_t new_tags = RawObject::SizeTag::update(new_size, old_tags);
+    tags = CompareAndSwapTags(old_tags, new_tags);
+  } while (tags != old_tags);
+  // TODO(22501): For the heap to remain walkable by the sweeper, it must
+  // observe the creation of the filler object no later than the new length
+  // of the array. This assumption holds on ia32/x64 or if the CAS above is a
+  // full memory barrier.
+  //
+  // Also, between the CAS of the header above and the SetLength below,
+  // the array is temporarily in an inconsistent state. The header is considered
+  // the overriding source of object size by RawObject::Size, but the ASSERTs
+  // in RawObject::SizeFromClass must handle this special case.
+  array.SetLength(new_len);
+}
+
 RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
                                  bool unique) {
   ASSERT(!growable_array.IsNull());
@@ -21278,43 +21273,16 @@ RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
     array.SetTypeArguments(type_arguments);
     return array.raw();
   }
-  intptr_t capacity_len = growable_array.Capacity();
   const Array& array = Array::Handle(zone, growable_array.data());
   ASSERT(array.IsArray());
   array.SetTypeArguments(type_arguments);
-  intptr_t capacity_size = Array::InstanceSize(capacity_len);
-  intptr_t used_size = Array::InstanceSize(used_len);
-  NoSafepointScope no_safepoint;
-
-  // If there is any left over space fill it with either an Array object or
-  // just a plain object (depending on the amount of left over space) so
-  // that it can be traversed over successfully during garbage collection.
-  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
-
-  // Update the size in the header field and length of the array object.
-  uword tags = array.raw_ptr()->tags_;
-  ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
-  uint32_t old_tags;
-  do {
-    old_tags = tags;
-    uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
-    tags = array.CompareAndSwapTags(old_tags, new_tags);
-  } while (tags != old_tags);
-  // TODO(22501): For the heap to remain walkable by the sweeper, it must
-  // observe the creation of the filler object no later than the new length
-  // of the array. This assumption holds on ia32/x64 or if the CAS above is a
-  // full memory barrier.
-  //
-  // Also, between the CAS of the header above and the SetLength below,
-  // the array is temporarily in an inconsistent state. The header is considered
-  // the overriding source of object size by RawObject::Size, but the ASSERTs
-  // in RawObject::SizeFromClass must handle this special case.
-  array.SetLength(used_len);
 
   // Null the GrowableObjectArray, we are removing its backing array.
   growable_array.SetLength(0);
   growable_array.SetData(Object::empty_array());
 
+  // Truncate the old backing array and return it.
+  array.Truncate(used_len);
   return array.raw();
 }
 
