@@ -165,7 +165,7 @@ Future<int> buildNumberOfCommit(String builder, String commit) async {
       .first;
   client.close();
   final builds = object["builds"];
-  if (builds.isEmpty) {
+  if (builds == null || builds.isEmpty) {
     throw new Exception("Builder $builder hasn't built commit $commit");
   }
   final build = builds.last;
