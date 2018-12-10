@@ -65,8 +65,11 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
           null,
           null);
 
+  final emptyWorkspaceClientCapabilities = new WorkspaceClientCapabilities(
+      null, null, null, null, null, null, null, null);
+
   void applyDocumentChanges(
-      Map<String, String> oldFileContent,
+      Map<String, String> fileContents,
       Either2<
               List<TextDocumentEdit>,
               List<
@@ -74,9 +77,19 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
                       DeleteFile>>>
           documentChanges) {
     documentChanges.map(
-      (edits) => applyTextDocumentEdits(oldFileContent, edits),
-      (changes) => applyResourceChanges(oldFileContent, changes),
+      (edits) => applyTextDocumentEdits(fileContents, edits),
+      (changes) => applyResourceChanges(fileContents, changes),
     );
+  }
+
+  void applyChanges(
+    Map<String, String> fileContents,
+    Map<String, List<TextEdit>> changes,
+  ) {
+    changes.forEach((fileUri, edits) {
+      final path = Uri.parse(fileUri).toFilePath();
+      fileContents[path] = applyTextEdits(fileContents[path], edits);
+    });
   }
 
   void applyResourceChanges(
@@ -375,10 +388,13 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   Future<ResponseMessage> initialize({
     String rootPath,
     Map<String, dynamic> textDocumentCapabilities,
+    Map<String, dynamic> workspaceCapabilities,
   }) async {
     final rootUri = Uri.file(rootPath ?? projectFolderPath).toString();
     final newTextDocumentCapabilities =
         overrideTextDocumentCapabilities(textDocumentCapabilities);
+    final newWorkspaceCapabilities =
+        overrideWorkspaceCapabilities(workspaceCapabilities);
     final request = makeRequest(
         Method.initialize,
         new InitializeParams(
@@ -386,7 +402,11 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
             null,
             rootUri,
             null,
-            new ClientCapabilities(null, newTextDocumentCapabilities, null),
+            new ClientCapabilities(
+              newWorkspaceCapabilities,
+              newTextDocumentCapabilities,
+              null,
+            ),
             null,
             null));
     final response = await channel.sendRequestToServer(request);
@@ -427,9 +447,18 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
         json[key] = textDocumentCapabilities[key];
       });
     }
-    final newTextDocumentCapabilities =
-        TextDocumentClientCapabilities.fromJson(json);
-    return newTextDocumentCapabilities;
+    return TextDocumentClientCapabilities.fromJson(json);
+  }
+
+  WorkspaceClientCapabilities overrideWorkspaceCapabilities(
+      Map<String, dynamic> workspaceCapabilities) {
+    final json = emptyWorkspaceClientCapabilities.toJson();
+    if (workspaceCapabilities != null) {
+      workspaceCapabilities.keys.forEach((key) {
+        json[key] = workspaceCapabilities[key];
+      });
+    }
+    return WorkspaceClientCapabilities.fromJson(json);
   }
 
   Position positionFromMarker(String contents) =>

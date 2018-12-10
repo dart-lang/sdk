@@ -504,12 +504,13 @@ lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
 }
 
 lsp.WorkspaceEdit toWorkspaceEdit(
+  WorkspaceClientCapabilities capabilities,
   VersionedTextDocumentIdentifier doc,
   server.LineInfo lineInfo,
   List<server.SourceEdit> edits,
 ) {
-  // TODO(dantup): Read from capabilities.
-  final clientSupportsTextDocumentEdits = true;
+  final clientSupportsTextDocumentEdits =
+      capabilities?.workspaceEdit?.documentChanges == true;
   if (clientSupportsTextDocumentEdits) {
     return new WorkspaceEdit(
         null,

@@ -26,7 +26,12 @@ abstract class SimpleEditCommandHandler
       VersionedTextDocumentIdentifier docIdentifier,
       CompilationUnit unit,
       List<SourceEdit> edits) async {
-    final workspaceEdit = toWorkspaceEdit(docIdentifier, unit.lineInfo, edits);
+    final workspaceEdit = toWorkspaceEdit(
+      server.clientCapabilities?.workspace,
+      docIdentifier,
+      unit.lineInfo,
+      edits,
+    );
 
     // Send the edit to the client via a applyEdit request (this is a request
     // from server -> client and the client will provide a response).
