@@ -24,7 +24,7 @@ export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisErrorInfo;
 export 'package:analyzer/src/generated/resolver.dart'
-    show InheritanceManager, TypeProvider, TypeSystem;
+    show ExitDetector, InheritanceManager, TypeProvider, TypeSystem;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show
