@@ -32,6 +32,7 @@ sample_extension/test/sample_extension_test: RuntimeError
 
 [ $compiler == dartk ]
 sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
+sample_extension/test/sample_extension_test: Pass, RuntimeError # See https://github.com/dart-lang/sdk/pull/33711#issuecomment-445761112
 
 # Skip tests that use dart:io
 [ $runtime == d8 || $browser ]
