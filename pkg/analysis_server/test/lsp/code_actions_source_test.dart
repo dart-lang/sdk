@@ -13,44 +13,57 @@ import 'code_actions_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SourceCodeActionsTest);
+    defineReflectiveTests(SortMembersSourceCodeActionsTest);
+    defineReflectiveTests(OrganizeImportsSourceCodeActionsTest);
   });
 }
 
 @reflectiveTest
-class SourceCodeActionsTest extends AbstractCodeActionsTest {
-  Future<void> checkCodeActionAvailable(
-    Uri uri,
-    String command,
-    String title, {
-    bool asCodeActionLiteral = false,
-    bool asCommand = false,
-  }) async {
-    final codeActions = await getCodeActions(uri.toString());
-    final codeAction = _findCommand(codeActions, command);
+class OrganizeImportsSourceCodeActionsTest extends SourceCodeActionsTest {
+  test_appliesCorrectEdits() async {
+    const content = '''
+import 'dart:convert';
+import 'dart:async';
+    ''';
+    const expectedContent = '''
+import 'dart:async';
+import 'dart:convert';
+    ''';
+    await newFile(mainFilePath, content: content);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction = _findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
-    codeAction.map(
-      (command) {
-        if (!asCommand) {
-          throw 'Got Command but expected CodeAction literal';
-        }
-        expect(command.title, equals(title));
-        expect(command.arguments, equals([uri.toFilePath()]));
-      },
-      (codeAction) {
-        if (!asCodeActionLiteral) {
-          throw 'Got CodeAction literal but expected Command';
-        }
-        expect(codeAction, isNotNull);
-        expect(codeAction.title, equals(title));
-        expect(codeAction.command.title, equals(title));
-        expect(codeAction.command.arguments, equals([uri.toFilePath()]));
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    final commandResponse = await handleExpectedRequest<Object,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+      Method.workspace_applyEdit,
+      () => executeCommand(command),
+      handler: (edit) {
+        // Handle the edit request that came from the server.
+        expect(edit, isNotNull);
+        final contents = {
+          mainFilePath: content,
+        };
+        applyDocumentChanges(contents, edit.edit.documentChanges);
+        expect(contents[mainFilePath], equals(expectedContent));
+
+        // Send a success response back to the server.
+        return new ApplyWorkspaceEditResponse(true);
       },
     );
+
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
   }
 
-  test_organizeImports_availableAsCodeActionLiteral() async {
+  test_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
     await initializeWithSupportForKinds([CodeActionKind.Source]);
 
@@ -62,7 +75,7 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  test_organizeImports_availableAsCommand() async {
+  test_availableAsCommand() async {
     await newFile(mainFilePath);
     await initialize();
 
@@ -74,7 +87,27 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  test_organizeImports_unavailableWhenNotRequested() async {
+  test_failsIfFileHasErrors() async {
+    final content = 'invalid dart code';
+    await newFile(mainFilePath, content: content);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    expect(codeAction, isNotNull);
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    // Ensure the request returned an error (error repsonses are thrown by
+    // the test helper to make consuming success results simpler).
+    await expectLater(executeCommand(command),
+        throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
+  }
+
+  test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
     await initializeWithSupportForKinds([CodeActionKind.Refactor]);
 
@@ -82,8 +115,11 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     final codeAction = _findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNull);
   }
+}
 
-  test_sortMembers_appliesCorrectEdits() async {
+@reflectiveTest
+class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
+  test_appliesCorrectEdits() async {
     const content = '''
     String b;
     String a;
@@ -126,7 +162,7 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     expect(commandResponse, isNull);
   }
 
-  test_sortMembers_availableAsCodeActionLiteral() async {
+  test_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
     await initializeWithSupportForKinds([CodeActionKind.Source]);
 
@@ -138,7 +174,7 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  test_sortMembers_availableAsCommand() async {
+  test_availableAsCommand() async {
     await newFile(mainFilePath);
     await initialize();
 
@@ -150,7 +186,7 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  test_sortMembers_failsIfClientDoesntApplyEdits() async {
+  test_failsIfClientDoesntApplyEdits() async {
     await newFile(mainFilePath);
     await initialize();
 
@@ -179,7 +215,7 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
         throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)));
   }
 
-  test_sortMembers_failsIfFileHasErrors() async {
+  test_failsIfFileHasErrors() async {
     final content = 'invalid dart code';
     await newFile(mainFilePath, content: content);
     await initialize();
@@ -199,13 +235,46 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
-  test_sortMembers_unavailableWhenNotRequested() async {
+  test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
     await initializeWithSupportForKinds([CodeActionKind.Refactor]);
 
     final codeActions = await getCodeActions(mainFileUri.toString());
     final codeAction = _findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNull);
+  }
+}
+
+abstract class SourceCodeActionsTest extends AbstractCodeActionsTest {
+  Future<void> checkCodeActionAvailable(
+    Uri uri,
+    String command,
+    String title, {
+    bool asCodeActionLiteral = false,
+    bool asCommand = false,
+  }) async {
+    final codeActions = await getCodeActions(uri.toString());
+    final codeAction = _findCommand(codeActions, command);
+    expect(codeAction, isNotNull);
+
+    codeAction.map(
+      (command) {
+        if (!asCommand) {
+          throw 'Got Command but expected CodeAction literal';
+        }
+        expect(command.title, equals(title));
+        expect(command.arguments, equals([uri.toFilePath()]));
+      },
+      (codeAction) {
+        if (!asCodeActionLiteral) {
+          throw 'Got CodeAction literal but expected Command';
+        }
+        expect(codeAction, isNotNull);
+        expect(codeAction.title, equals(title));
+        expect(codeAction.command.title, equals(title));
+        expect(codeAction.command.arguments, equals([uri.toFilePath()]));
+      },
+    );
   }
 
   Either2<Command, CodeAction> _findCommand(
@@ -219,6 +288,4 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     }
     return null;
   }
-
-  // TODO(dantup): Tests that actuall execute the command and verify the edits.
 }

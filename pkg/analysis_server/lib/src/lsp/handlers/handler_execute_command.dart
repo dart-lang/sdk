@@ -7,9 +7,10 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 
 /// Handles workspace/executeCommand messages by delegating to a specific handler
 /// based on the command.
@@ -19,6 +20,7 @@ class ExecuteCommandHandler
   ExecuteCommandHandler(LspAnalysisServer server)
       : commandHandlers = {
           Commands.sortMembers: new SortMembersCommandHandler(server),
+          Commands.organizeImports: new OrganizeImportsCommandHandler(server),
         },
         super(server);
 

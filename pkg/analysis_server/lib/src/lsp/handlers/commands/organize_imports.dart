@@ -8,10 +8,10 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/services/correction/sort_members.dart';
+import 'package:analysis_server/src/services/correction/organize_directives.dart';
 
-class SortMembersCommandHandler extends SimpleEditCommandHandler {
-  SortMembersCommandHandler(LspAnalysisServer server) : super(server);
+class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
+  OrganizeImportsCommandHandler(LspAnalysisServer server) : super(server);
 
   @override
   String get commandName => 'Sort Members';
@@ -52,8 +52,9 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    final sorter = new MemberSorter(code, unit);
-    final edits = sorter.sort();
+    final sorter = new DirectiveOrganizer(code, unit, result.errors);
+    final edits = sorter.organize();
+
     return await sendEditsToClient(docIdentifier, unit, edits);
   }
 }
