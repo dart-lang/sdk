@@ -44,7 +44,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, initialContent);
     await replaceFile(222, mainFileUri, updatedContent);
-    expect(server.fileContentOverlay[mainFilePath], equals(updatedContent));
+    expect(_getOverlay(mainFilePath), equals(updatedContent));
 
     final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
     expect(documentVersion.version, equals(222));
@@ -64,8 +64,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
         '   ',
       )
     ]);
-    expect(server.fileContentOverlay[mainFilePath],
-        equals(expectedUpdatedContent));
+    expect(_getOverlay(mainFilePath), equals(expectedUpdatedContent));
 
     final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
     expect(documentVersion.version, equals(222));
@@ -102,7 +101,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, initialContent);
     await replaceFile(222, mainFileUri, updatedContent);
     await closeFile(mainFileUri);
-    expect(server.fileContentOverlay[mainFilePath], isNull);
+    expect(_getOverlay(mainFilePath), isNull);
 
     // When we close a file, we expect the version in the versioned identifier to
     // return to `null`.
@@ -114,9 +113,9 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     const testContent = 'CONTENT';
 
     await initialize();
-    expect(server.fileContentOverlay[mainFilePath], isNull);
+    expect(_getOverlay(mainFilePath), isNull);
     await openFile(mainFileUri, testContent, version: 2);
-    expect(server.fileContentOverlay[mainFilePath], equals(testContent));
+    expect(_getOverlay(mainFilePath), equals(testContent));
 
     // The version for a file that's just been opened (and never modified) is
     // `null` (this means the contents match what's on disk).
@@ -135,5 +134,12 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
       notificationParams.message,
       contains('URI was not a valid file:// URI'),
     );
+  }
+
+  String _getOverlay(String path) {
+    if (server.resourceProvider.hasOverlay(path)) {
+      return server.resourceProvider.getFile(path).readAsStringSync();
+    }
+    return null;
   }
 }

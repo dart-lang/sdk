@@ -15,7 +15,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -417,11 +416,6 @@ class ContextManagerImpl implements ContextManager {
   final ResourceProvider resourceProvider;
 
   /**
-   * The file content overlay.
-   */
-  final FileContentOverlay fileContentOverlay;
-
-  /**
    * The manager used to access the SDK that should be associated with a
    * particular context.
    */
@@ -499,7 +493,6 @@ class ContextManagerImpl implements ContextManager {
 
   ContextManagerImpl(
       this.resourceProvider,
-      this.fileContentOverlay,
       this.sdkManager,
       this.packageResolverProvider,
       this.analyzedFilesGlobs,
@@ -1497,8 +1490,7 @@ class ContextManagerImpl implements ContextManager {
    * the contents cannot be read.
    */
   String _readFile(String path) {
-    return fileContentOverlay[path] ??
-        resourceProvider.getFile(path).readAsStringSync();
+    return resourceProvider.getFile(path).readAsStringSync();
   }
 
   Packages _readPackagespec(File specFile) {

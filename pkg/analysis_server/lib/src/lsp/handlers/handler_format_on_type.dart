@@ -22,7 +22,7 @@ class FormatOnTypeHandler
       DocumentOnTypeFormattingParams.fromJson(json);
 
   ErrorOr<List<TextEdit>> formatFile(String path, ResolvedUnitResult unit) {
-    final unformattedSource = server.fileContentOverlay[path] ??
+    final unformattedSource =
         server.resourceProvider.getFile(path).readAsStringSync();
 
     return success(generateEditsForFormatting(unformattedSource));

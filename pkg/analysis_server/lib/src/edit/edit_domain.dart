@@ -100,11 +100,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
-    String unformattedSource;
+    String unformattedCode;
     try {
-      Source source = server.resourceProvider.getFile(file).createSource();
-      unformattedSource =
-          server.fileContentOverlay[file] ?? source.contents.data;
+      var resource = server.resourceProvider.getFile(file);
+      unformattedCode = resource.readAsStringSync();
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
@@ -118,7 +117,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       length = null;
     }
 
-    SourceCode code = new SourceCode(unformattedSource,
+    SourceCode code = new SourceCode(unformattedCode,
         uri: null,
         isCompilationUnit: true,
         selectionStart: start,
@@ -134,10 +133,10 @@ class EditDomainHandler extends AbstractRequestHandler {
 
     List<SourceEdit> edits = <SourceEdit>[];
 
-    if (formattedSource != unformattedSource) {
+    if (formattedSource != unformattedCode) {
       //TODO: replace full replacements with smaller, more targeted edits
       SourceEdit edit =
-          new SourceEdit(0, unformattedSource.length, formattedSource);
+          new SourceEdit(0, unformattedCode.length, formattedSource);
       edits.add(edit);
     }
 

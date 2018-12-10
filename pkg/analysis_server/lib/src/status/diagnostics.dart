@@ -26,7 +26,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -725,7 +724,6 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
-    pages.add(new OverlaysPage(this));
     pages.add(new PluginsPage(this));
     pages.add(new ProfilePage(this));
     pages.add(new SubscriptionsPage(this));
@@ -1026,49 +1024,6 @@ class NotFoundPage extends DiagnosticPage {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-  }
-}
-
-class OverlaysPage extends DiagnosticPageWithNav {
-  OverlaysPage(DiagnosticsSite site)
-      : super(site, 'overlays', 'Overlays',
-            description: 'Editing overlays - unsaved file changes.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    FileContentOverlay overlays = server.fileContentOverlay;
-    List<String> paths = overlays.paths.toList()..sort();
-
-    String overlayPath = params['overlay'];
-    if (overlayPath != null) {
-      p(overlayPath);
-
-      if (overlays[overlayPath] != null) {
-        buf.write('<pre><code>');
-        buf.write(escape(overlays[overlayPath]));
-        buf.writeln('</code></pre>');
-      } else {
-        p('<code>${escape(overlayPath)}</code> not found.', raw: true);
-      }
-
-      return;
-    }
-
-    if (paths.isEmpty) {
-      blankslate('No overlays.');
-    } else {
-      String lenCounter(List list) {
-        return '<span class="counter" style="float: right;">${list.length}</span>';
-      }
-
-      h3('Overlays ${lenCounter(paths)}', raw: true);
-      ul(paths, (String overlayPath) {
-        String uri = '$path?overlay=${Uri.encodeQueryComponent(overlayPath)}';
-        buf.writeln('<a href="$uri">${escape(overlayPath)}</a>');
-      });
-    }
   }
 }
 

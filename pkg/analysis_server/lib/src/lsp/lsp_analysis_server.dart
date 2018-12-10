@@ -70,11 +70,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   final InstrumentationService instrumentationService;
 
   /**
-   * The content overlay for all analysis drivers.
-   */
-  final nd.FileContentOverlay fileContentOverlay = new nd.FileContentOverlay();
-
-  /**
    * The default options used to create new analysis contexts. This object is
    * also referenced by the ContextManager.
    */
@@ -121,12 +116,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    */
   LspAnalysisServer(
     this.channel,
-    ResourceProvider resourceProvider,
+    ResourceProvider baseResourceProvider,
     this.options,
     this.sdkManager,
     this.instrumentationService, {
     ResolverProvider packageResolverProvider: null,
-  }) : super(resourceProvider) {
+  }) : super(baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
@@ -151,7 +146,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
-        fileContentOverlay,
         sdkManager,
         packageResolverProvider,
         analyzedFilesGlobs,
@@ -384,7 +378,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void updateOverlay(String path, String contents) {
-    fileContentOverlay[path] = contents;
+    if (contents != null) {
+      resourceProvider.setOverlay(path,
+          content: contents, modificationStamp: 0);
+    } else {
+      resourceProvider.removeOverlay(path);
+    }
     driverMap.values.forEach((driver) => driver.changeFile(path));
   }
 }
@@ -503,7 +502,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.enableIndex = true;
-    builder.fileContentOverlay = analysisServer.fileContentOverlay;
     return builder;
   }
 

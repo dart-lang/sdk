@@ -961,6 +961,14 @@ class FileSystemState {
   }
 
   /**
+   * Remove the file with the given [path].
+   */
+  void removeFile(String path) {
+    markFileForReading(path);
+    _clearFiles();
+  }
+
+  /**
    * Reset URI resolution, and forget all files. So, the next time any file is
    * requested, it will be read, and its whole (potentially different) graph
    * will be built.
@@ -968,14 +976,6 @@ class FileSystemState {
   void resetUriResolution() {
     _sourceFactory.clearCache();
     _fileContentCache.clear();
-    _clearFiles();
-  }
-
-  /**
-   * Remove the file with the given [path].
-   */
-  void removeFile(String path) {
-    markFileForReading(path);
     _clearFiles();
   }
 
@@ -1057,11 +1057,22 @@ class _FileContentCache {
    */
   static final _instances = new Expando<Expando<_FileContentCache>>();
 
+  /**
+   * Weak map of cache instances.
+   *
+   * Key is a [ResourceProvider].
+   */
+  static final _instances2 = new Expando<_FileContentCache>();
+
   final ResourceProvider _resourceProvider;
   final FileContentOverlay _contentOverlay;
   final Map<String, _FileContent> _pathToFile = {};
 
   _FileContentCache(this._resourceProvider, this._contentOverlay);
+
+  void clear() {
+    _pathToFile.clear();
+  }
 
   /**
    * Return the content of the file with the given [path].
@@ -1075,7 +1086,9 @@ class _FileContentCache {
       String content;
       bool exists;
       try {
-        content = _contentOverlay[path];
+        if (_contentOverlay != null) {
+          content = _contentOverlay[path];
+        }
         content ??= _resourceProvider.getFile(path).readAsStringSync();
         exists = true;
       } catch (_) {
@@ -1094,10 +1107,6 @@ class _FileContentCache {
     return file;
   }
 
-  void clear() {
-    _pathToFile.clear();
-  }
-
   /**
    * Remove the file with the given [path] from the cache.
    */
@@ -1107,11 +1116,17 @@ class _FileContentCache {
 
   static _FileContentCache getInstance(
       ResourceProvider resourceProvider, FileContentOverlay contentOverlay) {
-    var providerToInstance = _instances[contentOverlay];
-    if (providerToInstance == null) {
-      providerToInstance = new Expando<_FileContentCache>();
-      _instances[contentOverlay] = providerToInstance;
+    Expando<_FileContentCache> providerToInstance;
+    if (contentOverlay != null) {
+      providerToInstance = _instances[contentOverlay];
+      if (providerToInstance == null) {
+        providerToInstance = new Expando<_FileContentCache>();
+        _instances[contentOverlay] = providerToInstance;
+      }
+    } else {
+      providerToInstance = _instances2;
     }
+
     var instance = providerToInstance[resourceProvider];
     if (instance == null) {
       instance = new _FileContentCache(resourceProvider, contentOverlay);

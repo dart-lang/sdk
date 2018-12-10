@@ -731,6 +731,16 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
     expect(provider.getStateLocation(idOne), equals(folderOne));
   }
 
+  test_hasOverlay() {
+    expect(provider.hasOverlay(defaultFilePath), isFalse);
+
+    provider.setOverlay(defaultFilePath, content: 'x', modificationStamp: 0);
+    expect(provider.hasOverlay(defaultFilePath), isTrue);
+
+    provider.removeOverlay(defaultFilePath);
+    expect(provider.hasOverlay(defaultFilePath), isFalse);
+  }
+
   test_pathContext() {
     expect(provider.pathContext, baseProvider.pathContext);
   }

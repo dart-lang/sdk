@@ -86,7 +86,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
   /// This field is `null` when the new plugin support is disabled.
-  final NotificationManager notificationManager;
+  NotificationManager notificationManager;
 
   /// The object used to manage the execution of plugins.
   PluginManager pluginManager;
@@ -146,9 +146,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The controller that is notified when analysis is started.
   StreamController<bool> _onAnalysisStartedController;
 
-  /// The content overlay for all analysis drivers.
-  final nd.FileContentOverlay fileContentOverlay = new nd.FileContentOverlay();
-
   /// If the "analysis.analyzedFiles" notification is currently being subscribed
   /// to (see [generalAnalysisServices]), and at least one such notification has
   /// been sent since the subscription was enabled, the set of analyzed files
@@ -193,7 +190,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// running a full analysis server.
   AnalysisServer(
     this.channel,
-    ResourceProvider resourceProvider,
+    ResourceProvider baseResourceProvider,
     this.options,
     this.sdkManager,
     this.instrumentationService, {
@@ -201,9 +198,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  })  : notificationManager =
-            new NotificationManager(channel, resourceProvider),
-        super(resourceProvider) {
+  }) : super(baseResourceProvider) {
+    notificationManager = new NotificationManager(channel, resourceProvider);
+
     _performance = performanceDuringStartup;
 
     pluginManager = new PluginManager(
@@ -240,7 +237,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
-        fileContentOverlay,
         sdkManager,
         packageResolverProvider,
         analyzedFilesGlobs,
@@ -609,8 +605,15 @@ class AnalysisServer extends AbstractAnalysisServer {
   void updateContent(String id, Map<String, dynamic> changes) {
     _onAnalysisSetChangedController.add(null);
     changes.forEach((file, change) {
+      // Prepare the old overlay contents.
+      String oldContents;
+      try {
+        if (resourceProvider.hasOverlay(file)) {
+          oldContents = resourceProvider.getFile(file).readAsStringSync();
+        }
+      } catch (_) {}
+
       // Prepare the new contents.
-      String oldContents = fileContentOverlay[file];
       String newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
@@ -636,7 +639,12 @@ class AnalysisServer extends AbstractAnalysisServer {
         throw new AnalysisException('Illegal change type');
       }
 
-      fileContentOverlay[file] = newContents;
+      if (newContents != null) {
+        resourceProvider.setOverlay(file,
+            content: newContents, modificationStamp: 0);
+      } else {
+        resourceProvider.removeOverlay(file);
+      }
 
       driverMap.values.forEach((driver) {
         driver.changeFile(file);
@@ -952,7 +960,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.enableIndex = true;
-    builder.fileContentOverlay = analysisServer.fileContentOverlay;
     return builder;
   }
 

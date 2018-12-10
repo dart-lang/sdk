@@ -24,7 +24,10 @@ class TextDocumentChangeHandler
   }
 
   ErrorOr<void> _changeFile(String path, DidChangeTextDocumentParams params) {
-    final oldContents = server.fileContentOverlay[path];
+    String oldContents;
+    if (server.resourceProvider.hasOverlay(path)) {
+      oldContents = server.resourceProvider.getFile(path).readAsStringSync();
+    }
     // Visual Studio has been seen to skip didOpen notifications for files that
     // were already open when the LSP server initialized, so handle this with
     // a specific message to make it clear what's happened.

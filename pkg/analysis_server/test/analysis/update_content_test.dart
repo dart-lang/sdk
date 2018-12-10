@@ -128,30 +128,33 @@ f() {}
   }
 
   test_overlayOnly() async {
-    String filePath = convertPath('/User/project1/test.dart');
-    Folder folder1 = newFolder('/User/project1');
-    Folder folder2 = newFolder('/User/project2');
-    Request request =
-        new AnalysisSetAnalysisRootsParams([folder1.path, folder2.path], [])
-            .toRequest('0');
-    handleSuccessfulRequest(request);
+    var filePath1 = convertPath('/User/project1/test.dart');
+    var filePath2 = convertPath('/User/project2/test.dart');
+    var folderPath1 = newFolder('/User/project1').path;
+    var folderPath2 = newFolder('/User/project2').path;
+
+    handleSuccessfulRequest(new AnalysisSetAnalysisRootsParams(
+      [folderPath1, folderPath2],
+      [],
+    ).toRequest('0'));
+
     // exactly 2 contexts
     expect(server.driverMap, hasLength(2));
-    AnalysisDriver driver1 = server.driverMap[folder1];
-    AnalysisDriver driver2 = server.driverMap[folder2];
+    AnalysisDriver driver1 = server.getAnalysisDriver(filePath1);
+    AnalysisDriver driver2 = server.getAnalysisDriver(filePath2);
+
     // no sources
     expect(_getUserSources(driver1), isEmpty);
     expect(_getUserSources(driver2), isEmpty);
+
     // add an overlay - new Source in context1
-    server.updateContent('1', {filePath: new AddContentOverlay('')});
-    {
-      List<String> paths = _getUserSources(driver1);
-      expect(paths, hasLength(1));
-      expect(paths[0], filePath);
-    }
+    server.updateContent('1', {filePath1: new AddContentOverlay('')});
+    expect(_getUserSources(driver1), [filePath1]);
     expect(_getUserSources(driver2), isEmpty);
+
     // remove the overlay - no sources
-    server.updateContent('2', {filePath: new RemoveContentOverlay()});
+    server.updateContent('2', {filePath1: new RemoveContentOverlay()});
+
     // The file isn't removed from the list of added sources.
 //    expect(_getUserSources(driver1), isEmpty);
     expect(_getUserSources(driver2), isEmpty);

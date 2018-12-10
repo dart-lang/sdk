@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
@@ -44,13 +45,14 @@ abstract class AbstractAnalysisServer {
   ];
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
-  final ResourceProvider resourceProvider;
+  final OverlayResourceProvider resourceProvider;
 
   /// A list of the globs used to determine which files should be analyzed. The
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
   List<Glob> _analyzedFilesGlobs = null;
 
-  AbstractAnalysisServer(this.resourceProvider);
+  AbstractAnalysisServer(ResourceProvider baseResourceProvider)
+      : resourceProvider = OverlayResourceProvider(baseResourceProvider);
 
   /// Return a list of the globs used to determine which files should be
   /// analyzed.

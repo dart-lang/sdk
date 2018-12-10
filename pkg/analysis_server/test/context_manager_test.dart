@@ -1744,7 +1744,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     DartSdkManager sdkManager = new DartSdkManager(convertPath('/sdk'), true);
     manager = new ContextManagerImpl(
         resourceProvider,
-        new FileContentOverlay(),
         sdkManager,
         providePackageResolver,
         analysisFilesGlobs,
