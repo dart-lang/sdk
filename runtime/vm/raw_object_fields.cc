@@ -146,10 +146,6 @@ namespace dart {
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
   F(TypeParameter, parameterized_function_)                                    \
-  F(BoundedType, type_)                                                        \
-  F(BoundedType, bound_)                                                       \
-  F(BoundedType, hash_)                                                        \
-  F(BoundedType, type_parameter_)                                              \
   F(MixinAppType, super_type_)                                                 \
   F(MixinAppType, mixin_types_)                                                \
   F(Closure, instantiator_type_arguments_)                                     \

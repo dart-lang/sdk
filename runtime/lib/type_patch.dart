@@ -26,10 +26,6 @@ class _TypeRef extends _AbstractType {}
 @pragma("vm:entry-point")
 class _TypeParameter extends _AbstractType {}
 
-// Equivalent of RawBoundedType.
-@pragma("vm:entry-point")
-class _BoundedType extends _AbstractType {}
-
 // Equivalent of RawMixinAppType.
 @pragma("vm:entry-point")
 class _MixinAppType extends _AbstractType {}

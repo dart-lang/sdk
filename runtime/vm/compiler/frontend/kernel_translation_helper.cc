@@ -2717,35 +2717,10 @@ AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
   return AbstractType::ZoneHandle(Z, result_.raw());
 }
 
-AbstractType& TypeTranslator::BuildVariableType() {
-  AbstractType& abstract_type = BuildType();
-
-  // We return a new `ZoneHandle` here on purpose: The intermediate language
-  // instructions do not make a copy of the handle, so we do it.
-  AbstractType& type = Type::ZoneHandle(Z);
-
-  if (abstract_type.IsMalformed()) {
-    type = AbstractType::dynamic_type().raw();
-  } else {
-    type = result_.raw();
-  }
-
-  return type;
-}
-
-void TypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
+void TypeTranslator::BuildTypeInternal() {
   Tag tag = helper_->ReadTag();
   switch (tag) {
     case kInvalidType:
-      if (invalid_as_dynamic) {
-        result_ = Object::dynamic_type().raw();
-      } else {
-        result_ = ClassFinalizer::NewFinalizedMalformedType(
-            Error::Handle(Z),  // No previous error.
-            Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
-            "[InvalidType] in Kernel IR.");
-      }
-      break;
     case kDynamicType:
       result_ = Object::dynamic_type().raw();
       break;
@@ -2857,9 +2832,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   ++pos;
   for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
     BuildTypeInternal();  // read ith positional parameter.
-    if (result_.IsMalformed()) {
-      result_ = AbstractType::dynamic_type().raw();
-    }
     parameter_types.SetAt(pos, result_);
     parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
   }
@@ -2876,9 +2848,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      if (result_.IsMalformed()) {
-        result_ = AbstractType::dynamic_type().raw();
-      }
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
     }
@@ -2889,9 +2858,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   }
 
   BuildTypeInternal();  // read return type.
-  if (result_.IsMalformed()) {
-    result_ = AbstractType::dynamic_type().raw();
-  }
   signature_function.set_result_type(result_);
 
   finalize_ = finalize;
@@ -3007,7 +2973,7 @@ const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
   if (!only_dynamic) {
     type_arguments = TypeArguments::New(length);
     for (intptr_t i = 0; i < length; ++i) {
-      BuildTypeInternal(true);  // read ith type.
+      BuildTypeInternal();  // read ith type.
       type_arguments.SetTypeAt(i, result_);
     }
 
@@ -3107,9 +3073,6 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
-      if (bound.IsMalformedOrMalbounded()) {
-        bound = I->object_store()->object_type();
-      }
       parameter.set_bound(bound);
     }
 
@@ -3208,8 +3171,7 @@ void TypeTranslator::SetupFunctionParameters(
       helper_->SkipExpression();  // read (actual) initializer.
     }
 
-    function.SetParameterTypeAt(
-        pos, type.IsMalformed() ? Type::dynamic_type() : type);
+    function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
@@ -3226,8 +3188,7 @@ void TypeTranslator::SetupFunctionParameters(
       helper_->SkipExpression();  // read (actual) initializer.
     }
 
-    function.SetParameterTypeAt(
-        pos, type.IsMalformed() ? Type::dynamic_type() : type);
+    function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
@@ -3237,8 +3198,7 @@ void TypeTranslator::SetupFunctionParameters(
   if (!function.IsGenerativeConstructor()) {
     const AbstractType& return_type =
         BuildTypeWithoutFinalization();  // read return type.
-    function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
-                                                       : return_type);
+    function.set_result_type(return_type);
     function_node_helper->SetJustRead(FunctionNodeHelper::kReturnType);
   }
 }

@@ -23,8 +23,6 @@ class Report : AllStatic {
   enum Kind {
     kWarning,
     kError,
-    kMalformedType,
-    kMalboundedType,
     kBailout,
   };
 

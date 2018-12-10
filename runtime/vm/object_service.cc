@@ -1154,21 +1154,6 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("bound", upper_bound);
 }
 
-void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "BoundedType");
-  jsobj.AddServiceId(*this);
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
-  if (ref) {
-    return;
-  }
-  jsobj.AddProperty("targetType", AbstractType::Handle(type()));
-  jsobj.AddProperty("bound", AbstractType::Handle(bound()));
-}
-
 void MixinAppType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   UNREACHABLE();
 }

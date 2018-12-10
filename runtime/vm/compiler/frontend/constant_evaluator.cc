@@ -531,8 +531,6 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
     // TODO(27590): Can we move this code into [ReceiverType]?
     type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type,
                                          ClassFinalizer::kFinalize);
-    ASSERT(!type.IsMalformedOrMalbounded());
-
     TypeArguments& canonicalized_type_arguments =
         TypeArguments::ZoneHandle(Z, type.arguments());
     canonicalized_type_arguments = canonicalized_type_arguments.Canonicalize();
@@ -608,7 +606,7 @@ void ConstantEvaluator::EvaluateAsExpression() {
   EvaluateExpression(helper_->ReaderOffset(), false);
 
   const AbstractType& type = T.BuildType();
-  if (!type.IsInstantiated() || type.IsMalformed()) {
+  if (!type.IsInstantiated()) {
     const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, position,
@@ -619,9 +617,8 @@ void ConstantEvaluator::EvaluateAsExpression() {
 
   const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
   const TypeArguments& function_type_arguments = TypeArguments::Handle();
-  Error& error = Error::Handle();
   if (!result_.IsInstanceOf(type, instantiator_type_arguments,
-                            function_type_arguments, &error)) {
+                            function_type_arguments)) {
     const AbstractType& rtype =
         AbstractType::Handle(result_.GetType(Heap::kNew));
     const String& result_str = String::Handle(rtype.UserVisibleName());
@@ -698,10 +695,6 @@ void ConstantEvaluator::EvaluateSymbolLiteral() {
 
 void ConstantEvaluator::EvaluateTypeLiteral() {
   const AbstractType& type = T.BuildType();
-  if (type.IsMalformed()) {
-    H.ReportError(script_, TokenPosition::kNoSource,
-                  "Malformed type literal in constant expression.");
-  }
   result_ = type.raw();
 }
 

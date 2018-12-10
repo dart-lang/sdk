@@ -112,9 +112,8 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
 // Arg1: src value.
 // Arg2: dst type.
 // Arg3: dst name.
-// Arg4: type error message.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
+DEFINE_NATIVE_ENTRY(TypeError_throwNew, 4) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const TokenPosition location = TokenPosition(
@@ -125,12 +124,9 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
   const String& dst_name =
       String::CheckedHandle(zone, arguments->NativeArgAt(3));
-  const String& error_msg =
-      String::CheckedHandle(zone, arguments->NativeArgAt(4));
   const AbstractType& src_type =
       AbstractType::Handle(src_value.GetType(Heap::kNew));
-  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,
-                                      error_msg);
+  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name);
   UNREACHABLE();
   return Object::null();
 }

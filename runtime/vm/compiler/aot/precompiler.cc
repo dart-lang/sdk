@@ -648,12 +648,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
       const Function& func = Function::Handle(Z, type.signature());
       AddTypesOf(func);
     }
-  } else if (abstype.IsBoundedType()) {
-    AbstractType& type = AbstractType::Handle(Z);
-    type = BoundedType::Cast(abstype).type();
-    AddType(type);
-    type = BoundedType::Cast(abstype).bound();
-    AddType(type);
   } else if (abstype.IsTypeRef()) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
@@ -1437,7 +1431,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
       continue;
     }
 
-    if (type.IsResolved() && !type.IsMalformedOrMalbounded()) {
+    if (type.IsResolved()) {
       if (type_usage_info->IsUsedInTypeTest(type)) {
         instr = type_testing_stubs.OptimizedCodeForType(type);
         type.SetTypeTestingStub(instr);

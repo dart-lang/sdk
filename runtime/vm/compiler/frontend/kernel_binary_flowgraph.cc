@@ -4086,8 +4086,6 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       // TODO(27590): Can we move this code into [ReceiverType]?
       type ^= ClassFinalizer::FinalizeType(*active_class()->klass, type,
                                            ClassFinalizer::kFinalize);
-      ASSERT(!type.IsMalformedOrMalbounded());
-
       TypeArguments& canonicalized_type_arguments =
           TypeArguments::ZoneHandle(Z, type.arguments());
       canonicalized_type_arguments =
@@ -4320,14 +4318,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   // special case this situation.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
 
-  if (type.IsMalformed()) {
-    instructions += Drop();
-    instructions += ThrowTypeError();
-    return instructions;
-  }
-
-  if (type.IsInstantiated() &&
-      object_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
+  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, Heap::kOld)) {
     // Evaluate the expression on the left but ignore it's result.
     instructions += Drop();
 
@@ -4380,10 +4371,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsMalformed()) {
-    instructions += Drop();
-    instructions += ThrowTypeError();
-  } else if (type.IsInstantiated() && type.IsTopType()) {
+  if (type.IsInstantiated() && type.IsTopType()) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of the `obj as dynamic` expression.
   } else {
@@ -4414,10 +4402,6 @@ Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsMalformed()) {
-    H.ReportError(script_, TokenPosition::kNoSource, "Malformed type literal");
-  }
-
   Fragment instructions;
   if (type.IsInstantiated()) {
     instructions += Constant(type);
@@ -5508,37 +5492,32 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
     }
 
     if (type_guard != NULL) {
-      if (type_guard->IsMalformed()) {
-        catch_body += ThrowTypeError();
-        catch_body += Drop();
+      catch_body += LoadLocal(CurrentException());
+      catch_body += PushArgument();  // exception
+      if (!type_guard->IsInstantiated(kCurrentClass)) {
+        catch_body += LoadInstantiatorTypeArguments();
       } else {
-        catch_body += LoadLocal(CurrentException());
-        catch_body += PushArgument();  // exception
-        if (!type_guard->IsInstantiated(kCurrentClass)) {
-          catch_body += LoadInstantiatorTypeArguments();
-        } else {
-          catch_body += NullConstant();
-        }
-        catch_body += PushArgument();  // instantiator type arguments
-        if (!type_guard->IsInstantiated(kFunctions)) {
-          catch_body += LoadFunctionTypeArguments();
-        } else {
-          catch_body += NullConstant();
-        }
-        catch_body += PushArgument();  // function type arguments
-        catch_body += Constant(*type_guard);
-        catch_body += PushArgument();  // guard type
-        catch_body += InstanceCall(
-            position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
-            Token::kIS, 4);
-
-        TargetEntryInstr* catch_entry;
-        TargetEntryInstr* next_catch_entry;
-        catch_body += BranchIfTrue(&catch_entry, &next_catch_entry, false);
-
-        Fragment(catch_entry) + catch_handler_body;
-        catch_body = Fragment(next_catch_entry);
+        catch_body += NullConstant();
       }
+      catch_body += PushArgument();  // instantiator type arguments
+      if (!type_guard->IsInstantiated(kFunctions)) {
+        catch_body += LoadFunctionTypeArguments();
+      } else {
+        catch_body += NullConstant();
+      }
+      catch_body += PushArgument();  // function type arguments
+      catch_body += Constant(*type_guard);
+      catch_body += PushArgument();  // guard type
+      catch_body += InstanceCall(
+          position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
+          Token::kIS, 4);
+
+      TargetEntryInstr* catch_entry;
+      TargetEntryInstr* next_catch_entry;
+      catch_body += BranchIfTrue(&catch_entry, &next_catch_entry, false);
+
+      Fragment(catch_entry) + catch_handler_body;
+      catch_body = Fragment(next_catch_entry);
     } else {
       catch_body += catch_handler_body;
     }

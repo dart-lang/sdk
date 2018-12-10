@@ -30,12 +30,6 @@ RawString* Report::PrependSnippet(Kind kind,
     case kError:
       message_header = "error";
       break;
-    case kMalformedType:
-      message_header = "malformed type";
-      break;
-    case kMalboundedType:
-      message_header = "malbounded type";
-      break;
     case kBailout:
       message_header = "bailout";
       break;

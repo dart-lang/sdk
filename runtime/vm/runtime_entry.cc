@@ -323,20 +323,9 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsInstantiated());
-  Error& bound_error = Error::Handle(zone);
   type =
       type.InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           kAllFree, &bound_error, NULL, NULL, Heap::kOld);
-  if (!bound_error.IsNull()) {
-    // Throw a dynamic type error.
-    const TokenPosition location = GetCallerLocation();
-    String& bound_error_message =
-        String::Handle(zone, String::New(bound_error.ToErrorCString()));
-    Exceptions::CreateAndThrowTypeError(location, AbstractType::Handle(zone),
-                                        AbstractType::Handle(zone),
-                                        Symbols::Empty(), bound_error_message);
-    UNREACHABLE();
-  }
+                           kAllFree, NULL, Heap::kOld);
   if (type.IsTypeRef()) {
     type = TypeRef::Cast(type).type();
     ASSERT(!type.IsTypeRef());
@@ -367,7 +356,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   // instantiator can be reused as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
   type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-      instantiator_type_arguments, function_type_arguments, NULL);
+      instantiator_type_arguments, function_type_arguments);
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
@@ -389,25 +378,18 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
       AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
 
-  ASSERT(!subtype.IsNull() && !subtype.IsMalformedOrMalbounded());
-  ASSERT(!supertype.IsNull() && !supertype.IsMalformedOrMalbounded());
+  ASSERT(!subtype.IsNull());
+  ASSERT(!supertype.IsNull());
 
   // The supertype or subtype may not be instantiated.
-  Error& bound_error = Error::Handle(zone);
   if (AbstractType::InstantiateAndTestSubtype(
-          &subtype, &supertype, &bound_error, instantiator_type_args,
-          function_type_args)) {
+          &subtype, &supertype, instantiator_type_args, function_type_args)) {
     return;
   }
 
   // Throw a dynamic type error.
   const TokenPosition location = GetCallerLocation();
-  String& bound_error_message = String::Handle(zone);
-  if (!bound_error.IsNull()) {
-    bound_error_message = String::New(bound_error.ToErrorCString());
-  }
-  Exceptions::CreateAndThrowTypeError(location, subtype, supertype, dst_name,
-                                      bound_error_message);
+  Exceptions::CreateAndThrowTypeError(location, subtype, supertype, dst_name);
   UNREACHABLE();
 }
 
@@ -549,19 +531,15 @@ static void PrintTypeCheck(const char* message,
                  Class::Handle(type.type_class()).id(), caller_frame->pc());
   } else {
     // Instantiate type before printing.
-    Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type =
-        AbstractType::Handle(type.InstantiateFrom(
-            instantiator_type_arguments, function_type_arguments, kAllFree,
-            &bound_error, NULL, NULL, Heap::kOld));
+        AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments,
+                                                  function_type_arguments,
+                                                  kAllFree, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
                  String::Handle(instantiated_type.Name()).ToCString(),
                  String::Handle(type.Name()).ToCString(), caller_frame->pc());
-    if (!bound_error.IsNull()) {
-      OS::PrintErr("  bound error: %s\n", bound_error.ToErrorCString());
-    }
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
@@ -675,11 +653,9 @@ static void UpdateTypeTestCache(
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(zone, type.raw());
     if (!test_type.IsInstantiated()) {
-      Error& bound_error = Error::Handle(zone);
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       function_type_arguments, kAllFree,
-                                       &bound_error, NULL, NULL, Heap::kNew);
-      ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
+                                       function_type_arguments, kAllFree, NULL,
+                                       Heap::kNew);
     }
     const auto& type_class = Class::Handle(zone, test_type.type_class());
     const auto& instance_class_name =
@@ -727,28 +703,13 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(4));
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsMalformed());    // Already checked in code generator.
-  ASSERT(!type.IsMalbounded());   // Already checked in code generator.
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
-  Error& bound_error = Error::Handle(zone);
-  const Bool& result =
-      Bool::Get(instance.IsInstanceOf(type, instantiator_type_arguments,
-                                      function_type_arguments, &bound_error));
+  const Bool& result = Bool::Get(instance.IsInstanceOf(
+      type, instantiator_type_arguments, function_type_arguments));
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("InstanceOf", instance, type, instantiator_type_arguments,
                    function_type_arguments, result);
   }
-  if (!result.value() && !bound_error.IsNull()) {
-    // Throw a dynamic type error only if the instanceof test fails.
-    const TokenPosition location = GetCallerLocation();
-    String& bound_error_message =
-        String::Handle(zone, String::New(bound_error.ToErrorCString()));
-    Exceptions::CreateAndThrowTypeError(location, AbstractType::Handle(zone),
-                                        AbstractType::Handle(zone),
-                                        Symbols::Empty(), bound_error_message);
-    UNREACHABLE();
-  }
-
   UpdateTypeTestCache(zone, instance, type, instantiator_type_arguments,
                       function_type_arguments, result, cache);
   arguments.SetReturn(result);
@@ -788,15 +749,11 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   ASSERT(mode == kTypeCheckFromInline);
 #endif
 
-  ASSERT(!dst_type.IsMalformed());    // Already checked in code generator.
-  ASSERT(!dst_type.IsMalbounded());   // Already checked in code generator.
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!src_instance.IsNull());     // Already checked in inlined code.
 
-  Error& bound_error = Error::Handle(zone);
-  const bool is_instance_of =
-      src_instance.IsInstanceOf(dst_type, instantiator_type_arguments,
-                                function_type_arguments, &bound_error);
+  const bool is_instance_of = src_instance.IsInstanceOf(
+      dst_type, instantiator_type_arguments, function_type_arguments);
 
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("TypeCheck", src_instance, dst_type,
@@ -812,12 +769,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       // Instantiate dst_type before reporting the error.
       dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
                                           function_type_arguments, kAllFree,
-                                          NULL, NULL, NULL, Heap::kNew);
+                                          NULL, Heap::kNew);
       // Note that instantiated dst_type may be malbounded.
-    }
-    String& bound_error_message = String::Handle(zone);
-    if (!bound_error.IsNull()) {
-      UNREACHABLE();
     }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
@@ -843,8 +796,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #endif
     }
 
-    Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,
-                                        bound_error_message);
+    Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name);
     UNREACHABLE();
   }
 
@@ -924,10 +876,8 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
   const Type& bool_interface = Type::Handle(Type::BoolType());
   const AbstractType& src_type =
       AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
-  const String& no_bound_error = String::Handle(zone);
   Exceptions::CreateAndThrowTypeError(location, src_type, bool_interface,
-                                      Symbols::BooleanExpression(),
-                                      no_bound_error);
+                                      Symbols::BooleanExpression());
   UNREACHABLE();
 }
 
@@ -944,8 +894,7 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
       AbstractType::CheckedHandle(zone, arguments.ArgAt(2));
   const AbstractType& src_type =
       AbstractType::Handle(zone, src_value.GetType(Heap::kNew));
-  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,
-                                      String::Handle(zone));
+  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name);
   UNREACHABLE();
 }
 
@@ -1110,10 +1059,8 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
                                            const ArgumentsDescriptor& desc) {
-  Error& error = Error::Handle();
   bool result = receiver.IsInstanceOf(type, Object::null_type_arguments(),
-                                      Object::null_type_arguments(), &error);
-  ASSERT(error.IsNull());
+                                      Object::null_type_arguments());
   ObjectStore* store = Isolate::Current()->object_store();
   const Function& target =
       Function::Handle(result ? store->simple_instance_of_true_function()

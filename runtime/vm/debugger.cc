@@ -832,14 +832,11 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         ASSERT(!type.IsNull());
         // Uninstantiated types are not added to ExceptionHandlers data.
         ASSERT(type.IsInstantiated());
-        if (type.IsMalformed()) {
-          continue;
-        }
         if (type.IsDynamicType()) {
           return true;
         }
         if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(),
-                                 Object::null_type_arguments(), NULL)) {
+                                 Object::null_type_arguments())) {
           return true;
         }
       }

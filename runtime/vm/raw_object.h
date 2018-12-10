@@ -60,7 +60,6 @@ typedef RawObject* RawCompressed;
   V(Type)                                                                      \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
-  V(BoundedType)                                                               \
   V(MixinAppType)                                                              \
   V(Closure)                                                                   \
   V(Number)                                                                    \
@@ -2036,15 +2035,8 @@ class RawType : public RawAbstractType {
   RawSmi* hash_;
   // This type object represents a function type if its signature field is a
   // non-null function object.
-  // If this type is malformed or malbounded, the signature field gets
-  // overwritten by the error object in order to save space. If the type is a
-  // function type, its signature is lost, but the message in the error object
-  // can describe the issue without needing the signature.
-  union {
-    RawFunction* signature_;   // If not null, this type is a function type.
-    RawLanguageError* error_;  // If not null, type is malformed or malbounded.
-  } sig_or_err_;
-  VISIT_TO(RawObject*, sig_or_err_.error_)
+  RawFunction* signature_;  // If not null, this type is a function type.
+  VISIT_TO(RawObject*, signature_)
   TokenPosition token_pos_;
   int8_t type_state_;
 
@@ -2082,19 +2074,6 @@ class RawTypeParameter : public RawAbstractType {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
-};
-
-class RawBoundedType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(BoundedType);
-
-  VISIT_FROM(RawObject*, type_);
-  RawAbstractType* type_;
-  RawAbstractType* bound_;
-  RawSmi* hash_;
-  RawTypeParameter* type_parameter_;  // For more detailed error reporting.
-  VISIT_TO(RawObject*, type_parameter_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawMixinAppType : public RawAbstractType {

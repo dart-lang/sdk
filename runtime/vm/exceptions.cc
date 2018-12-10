@@ -753,18 +753,14 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const AbstractType& src_type,
                                          const AbstractType& dst_type,
-                                         const String& dst_name,
-                                         const String& bound_error_msg) {
+                                         const String& dst_name) {
   ASSERT(!dst_name.IsNull());  // Pass Symbols::Empty() instead.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Array& args = Array::Handle(zone, Array::New(4));
 
   ExceptionType exception_type =
-      (bound_error_msg.IsNull() &&
-       (dst_name.raw() == Symbols::InTypeCast().raw()))
-          ? kCast
-          : kType;
+      (dst_name.raw() == Symbols::InTypeCast().raw()) ? kCast : kType;
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -788,51 +784,38 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New(20));
 
-  // Print bound error first, if any.
-  if (!bound_error_msg.IsNull() && (bound_error_msg.Length() > 0)) {
-    pieces.Add(bound_error_msg);
-    pieces.Add(Symbols::NewLine());
-  }
-
   // If dst_type is malformed or malbounded, only print the embedded error.
   if (!dst_type.IsNull()) {
-    const LanguageError& error = LanguageError::Handle(zone, dst_type.error());
-    if (!error.IsNull()) {
-      // Print the embedded error only.
-      pieces.Add(String::Handle(zone, String::New(error.ToErrorCString())));
-      pieces.Add(Symbols::NewLine());
-    } else {
-      // Describe the type error.
-      if (!src_type.IsNull()) {
-        pieces.Add(Symbols::TypeQuote());
-        pieces.Add(String::Handle(zone, src_type.UserVisibleName()));
-        pieces.Add(Symbols::QuoteIsNotASubtypeOf());
-      }
+    // Describe the type error.
+    if (!src_type.IsNull()) {
       pieces.Add(Symbols::TypeQuote());
-      pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
+      pieces.Add(String::Handle(zone, src_type.UserVisibleName()));
+      pieces.Add(Symbols::QuoteIsNotASubtypeOf());
+    }
+    pieces.Add(Symbols::TypeQuote());
+    pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
+    pieces.Add(Symbols::SingleQuote());
+    if (exception_type == kCast) {
+      pieces.Add(dst_name);
+    } else if (dst_name.Length() > 0) {
+      pieces.Add(Symbols::SpaceOfSpace());
       pieces.Add(Symbols::SingleQuote());
-      if (exception_type == kCast) {
-        pieces.Add(dst_name);
-      } else if (dst_name.Length() > 0) {
-        pieces.Add(Symbols::SpaceOfSpace());
-        pieces.Add(Symbols::SingleQuote());
-        pieces.Add(dst_name);
-        pieces.Add(Symbols::SingleQuote());
-      }
-      // Print ambiguous URIs of src and dst types.
-      URIs uris(zone, 12);
-      if (!src_type.IsNull()) {
-        src_type.EnumerateURIs(&uris);
-      }
-      if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
-        dst_type.EnumerateURIs(&uris);
-      }
-      const String& formatted_uris =
-          String::Handle(zone, AbstractType::PrintURIs(&uris));
-      if (formatted_uris.Length() > 0) {
-        pieces.Add(Symbols::SpaceWhereNewLine());
-        pieces.Add(formatted_uris);
-      }
+      pieces.Add(dst_name);
+      pieces.Add(Symbols::SingleQuote());
+    }
+    // Print ambiguous URIs of src and dst types.
+    URIs uris(zone, 12);
+    if (!src_type.IsNull()) {
+      src_type.EnumerateURIs(&uris);
+    }
+    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+      dst_type.EnumerateURIs(&uris);
+    }
+    const String& formatted_uris =
+        String::Handle(zone, AbstractType::PrintURIs(&uris));
+    if (formatted_uris.Length() > 0) {
+      pieces.Add(Symbols::SpaceWhereNewLine());
+      pieces.Add(formatted_uris);
     }
   }
   const Array& arr = Array::Handle(zone, Array::MakeFixedLength(pieces));

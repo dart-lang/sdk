@@ -187,7 +187,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     bool test_succeded = false;
     if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeded = cls_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kNew);
+      test_succeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -311,7 +311,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
 }
 
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
 
   if (!type.IsInstantiated() || !type.IsType() || type.IsFunctionType() ||
       type.IsDartFunctionType()) {
@@ -354,7 +354,7 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
 
 bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
 
   if (!type.IsType() || type.IsFunctionType() || type.IsDartFunctionType()) {
     return false;
@@ -839,13 +839,11 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
     const TypeArguments& function_type_args = TypeArguments::Handle(
         Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
 
-    Error& error_bound = Error::Handle(Z);
-
     AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
     AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
-    if (AbstractType::InstantiateAndTestSubtype(
-            &sub_type, &super_type, &error_bound, instantiator_type_args,
-            function_type_args)) {
+    if (AbstractType::InstantiateAndTestSubtype(&sub_type, &super_type,
+                                                instantiator_type_args,
+                                                function_type_args)) {
       return NULL;
     }
   }
@@ -2760,13 +2758,12 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
-    Error& bound_error = Error::Handle(Z);
-
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z, dst_type().InstantiateFrom(
-               *instantiator_type_args, *function_type_args, kAllFree,
-               &bound_error, nullptr, nullptr, Heap::kOld));
-    if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
+        Z,
+        dst_type().InstantiateFrom(*instantiator_type_args, *function_type_args,
+                                   kAllFree, nullptr, Heap::kOld));
+    if (new_dst_type.IsNull()) {
+      // Failed instantiation in dead code.
       return this;
     }
     if (new_dst_type.IsTypeRef()) {
@@ -3062,8 +3059,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 
 static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number())
-             .IsMoreSpecificThan(Type::Handle(Type::Number()), NULL, NULL,
-                                 Heap::kOld));
+             .IsMoreSpecificThan(Type::Handle(Type::Number()), Heap::kOld));
   return type->ToAbstractType()->IsDynamicType() ||
          type->ToAbstractType()->IsObjectType() ||
          type->ToAbstractType()->IsTypeParameter() ||

@@ -156,7 +156,7 @@ namespace dart {
   V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
   V(StackTrace_setAsyncThreadStackTrace, 1)                                    \
   V(StackTrace_current, 0)                                                     \
-  V(TypeError_throwNew, 5)                                                     \
+  V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
   V(Stopwatch_now, 0)                                                          \

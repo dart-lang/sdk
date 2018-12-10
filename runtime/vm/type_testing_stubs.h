@@ -266,9 +266,6 @@ class TypeArgumentClassFinder {
         }
       }
       return true;
-    } else if (type.IsBoundedType()) {
-      // No support for bounded types.
-      return false;
     }
     UNREACHABLE();
     return false;

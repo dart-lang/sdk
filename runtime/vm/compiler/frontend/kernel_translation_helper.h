@@ -1212,19 +1212,11 @@ class TypeTranslator {
                  ActiveClass* active_class,
                  bool finalize = false);
 
-  // Can return a malformed type.
   AbstractType& BuildType();
-  // Can return a malformed type.
   AbstractType& BuildTypeWithoutFinalization();
-  // Is guaranteed to be not malformed.
-  AbstractType& BuildVariableType();
 
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
   const TypeArguments& BuildTypeArguments(intptr_t length);
 
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
   const TypeArguments& BuildInstantiatedTypeArguments(
       const Class& receiver_class,
       intptr_t length);
@@ -1243,8 +1235,7 @@ class TypeTranslator {
                                FunctionNodeHelper* function_node_helper);
 
  private:
-  // Can build a malformed type.
-  void BuildTypeInternal(bool invalid_as_dynamic = false);
+  void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();

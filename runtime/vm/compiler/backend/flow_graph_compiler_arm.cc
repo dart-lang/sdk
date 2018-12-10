@@ -247,12 +247,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() > 0);
   const Register kInstanceReg = R0;
-  Error& bound_error = Error::Handle(zone());
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
-  const bool smi_is_ok =
-      smi_type.IsSubtypeOf(type, &bound_error, NULL, Heap::kOld);
-  // Malformed type should have been handled at graph construction time.
-  ASSERT(smi_is_ok || bound_error.IsNull());
+  const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kOld);
   __ tst(kInstanceReg, Operand(kSmiTagMask));
   if (smi_is_ok) {
     // Fast case for type = FutureOr<int/num/top-type>.
@@ -284,12 +280,11 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (type_arguments.Length() == 1) {
     const AbstractType& tp_argument =
         AbstractType::ZoneHandle(zone(), type_arguments.TypeAt(0));
-    ASSERT(!tp_argument.IsMalformed());
     if (tp_argument.IsType()) {
       ASSERT(tp_argument.HasTypeClass());
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-      if (object_type.IsSubtypeOf(tp_argument, NULL, NULL, Heap::kOld)) {
+      if (object_type.IsSubtypeOf(tp_argument, Heap::kOld)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
             token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -340,8 +335,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (smi_class.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                            Object::null_type_arguments(), NULL, NULL,
-                            Heap::kOld)) {
+                            Object::null_type_arguments(), Heap::kOld)) {
     // Fast case for type = int/num/top-type.
     __ b(is_instance_lbl, EQ);
   } else {
@@ -595,7 +589,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
                                            LocationSummary* locs) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(type.IsFinalized());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
@@ -674,31 +668,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(dst_type.IsMalformedOrMalbounded() ||
-         (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-          !dst_type.IsVoidType()));
+  ASSERT(!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
+         !dst_type.IsVoidType());
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
-
-  // Generate throw new TypeError() if the type is malformed or malbounded.
-  if (dst_type.IsMalformedOrMalbounded()) {
-    // A null object is always assignable and is returned as result.
-    Label is_assignable;
-    __ CompareObject(R0, Object::null_object());
-    __ b(&is_assignable, EQ);
-
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ Push(R0);                           // Push the source object.
-    __ PushObject(dst_name);               // Push the name of the destination.
-    __ PushObject(dst_type);               // Push the type of the destination.
-    GenerateRuntimeCall(token_pos, deopt_id, kBadTypeErrorRuntimeEntry, 3,
-                        locs);
-    // We should never return here.
-    __ bkpt(0);
-
-    __ Bind(&is_assignable);  // For a null object.
-    return;
-  }
 
   if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
     GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,

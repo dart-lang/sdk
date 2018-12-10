@@ -1119,7 +1119,6 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (type_tag == kSomething) {
     AbstractType& super_type =
         T.BuildTypeWithoutFinalization();  // read super class type (part 2).
-    if (super_type.IsMalformed()) H.ReportError("Malformed super type");
     klass->set_super_type(super_type);
   }
 
@@ -1133,7 +1132,6 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   for (intptr_t i = 0; i < interface_count; i++) {
     const AbstractType& type =
         T.BuildTypeWithoutFinalization();  // read ith type.
-    if (type.IsMalformed()) H.ReportError("Malformed interface type.");
     interfaces.SetAt(i, type);
   }
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);

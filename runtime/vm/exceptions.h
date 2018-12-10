@@ -46,8 +46,7 @@ class Exceptions : AllStatic {
   static void CreateAndThrowTypeError(TokenPosition location,
                                       const AbstractType& src_type,
                                       const AbstractType& dst_type,
-                                      const String& dst_name,
-                                      const String& bound_error_msg);
+                                      const String& dst_name);
 
   enum ExceptionType {
     kNone,

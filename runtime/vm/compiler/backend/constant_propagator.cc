@@ -761,12 +761,9 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
-        Error& bound_error = Error::Handle();
         bool is_instance =
             instance.IsInstanceOf(checked_type, Object::null_type_arguments(),
-                                  Object::null_type_arguments(), &bound_error);
-        // Can only have bound error with generics.
-        ASSERT(bound_error.IsNull());
+                                  Object::null_type_arguments());
         SetValue(instr, Bool::Get(is_instance));
         return;
       }

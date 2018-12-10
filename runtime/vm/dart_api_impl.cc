@@ -111,15 +111,13 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
-      ASSERT(typeHandle_.IsMalformed() || typeHandle_.IsTypeParameter() ||
-             typeHandle_.IsCanonical());
+      ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
       // Verify that the types in the function signature are all canonical or
       // a TypeParameter.
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsMalformed() || typeHandle_.IsTypeParameter() ||
-               typeHandle_.IsCanonical());
+        ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
       }
     }
   }
@@ -139,11 +137,8 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    Error& malformed_type_error = Error::Handle(zone);
     if (obj_class.IsSubtypeOf(Object::null_type_arguments(), list_class,
-                              Object::null_type_arguments(),
-                              &malformed_type_error, NULL, Heap::kNew)) {
-      ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
+                              Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -158,11 +153,8 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     ASSERT(!map_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    Error& malformed_type_error = Error::Handle(zone);
     if (obj_class.IsSubtypeOf(Object::null_type_arguments(), map_class,
-                              Object::null_type_arguments(),
-                              &malformed_type_error, NULL, Heap::kNew)) {
-      ASSERT(malformed_type_error.IsNull());  // Type is a raw Map.
+                              Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -1876,11 +1868,8 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     RETURN_TYPE_ERROR(Z, object, Instance);
   }
   CHECK_CALLBACK_STATE(T);
-  Error& malformed_type_error = Error::Handle(Z);
   *value = instance.IsInstanceOf(type_obj, Object::null_type_arguments(),
-                                 Object::null_type_arguments(),
-                                 &malformed_type_error);
-  ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
+                                 Object::null_type_arguments());
   return Api::Success();
 }
 
@@ -1994,11 +1983,9 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
         Class::Handle(I->object_store()->future_class());
     ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    Error& malformed_type_error = Error::Handle(Z);
-    bool is_future = obj_class.IsSubtypeOf(
-        Object::null_type_arguments(), future_class,
-        Object::null_type_arguments(), &malformed_type_error, NULL, Heap::kNew);
-    ASSERT(malformed_type_error.IsNull());  // Type is a raw Future.
+    bool is_future =
+        obj_class.IsSubtypeOf(Object::null_type_arguments(), future_class,
+                              Object::null_type_arguments(), Heap::kNew);
     return is_future;
   }
   return false;
@@ -3817,23 +3804,16 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     ClassFinalizer::ResolveRedirectingFactory(cls, constructor);
     Type& redirect_type = Type::Handle(constructor.RedirectionType());
     constructor = constructor.RedirectionTarget();
-    if (constructor.IsNull()) {
-      ASSERT(redirect_type.IsMalformed());
-      return Api::NewHandle(T, redirect_type.error());
-    }
+    ASSERT(!constructor.IsNull());
 
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type argument.
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
-      Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree,
-          &bound_error, NULL, NULL, Heap::kNew);
-      if (!bound_error.IsNull()) {
-        return Api::NewHandle(T, bound_error.raw());
-      }
+          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
+          Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
 

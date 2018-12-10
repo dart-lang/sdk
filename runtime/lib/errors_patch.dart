@@ -86,19 +86,7 @@ class _TypeError extends _AssertionError implements TypeError {
       : super._create("is assignable", url, line, column, errorMsg);
 
   static _throwNew(int location, Object src_value, _Type dst_type,
-      String dst_name, String bound_error_msg) native "TypeError_throwNew";
-
-  static _throwNewIfNotLoaded(
-      _LibraryPrefix prefix,
-      int location,
-      Object src_value,
-      _Type dst_type,
-      String dst_name,
-      String bound_error_msg) {
-    if (!prefix.isLoaded()) {
-      _throwNew(location, src_value, dst_type, dst_name, bound_error_msg);
-    }
-  }
+      String dst_name) native "TypeError_throwNew";
 
   String toString() => super.message;
 }

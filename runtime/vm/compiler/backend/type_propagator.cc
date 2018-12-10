@@ -543,11 +543,10 @@ void CompileType::Union(CompileType* other) {
   }
 
   const AbstractType* other_abstract_type = other->ToAbstractType();
-  if (abstract_type->IsMoreSpecificThan(*other_abstract_type, NULL, NULL,
-                                        Heap::kOld)) {
+  if (abstract_type->IsMoreSpecificThan(*other_abstract_type, Heap::kOld)) {
     type_ = other_abstract_type;
     return;
-  } else if (other_abstract_type->IsMoreSpecificThan(*abstract_type, NULL, NULL,
+  } else if (other_abstract_type->IsMoreSpecificThan(*abstract_type,
                                                      Heap::kOld)) {
     return;  // Nothing to do.
   }
@@ -558,7 +557,7 @@ void CompileType::Union(CompileType* other) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
-      if (other_abstract_type->IsSubtypeOf(*type_, NULL, NULL, Heap::kOld)) {
+      if (other_abstract_type->IsSubtypeOf(*type_, Heap::kOld)) {
         // Found suitable supertype: keep type_ only.
         cid_ = kDynamicCid;
         return;
@@ -596,8 +595,7 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
   const AbstractType* new_abstract_type = new_type->ToAbstractType();
 
   CompileType* preferred_type;
-  if (old_abstract_type->IsMoreSpecificThan(*new_abstract_type, NULL, NULL,
-                                            Heap::kOld)) {
+  if (old_abstract_type->IsMoreSpecificThan(*new_abstract_type, Heap::kOld)) {
     // Prefer old type, as it is clearly more specific.
     preferred_type = old_type;
   } else {
@@ -692,8 +690,6 @@ intptr_t CompileType::ToNullableCid() {
     if (type_ == NULL) {
       // Type propagation is turned off or has not yet run.
       return kDynamicCid;
-    } else if (type_->IsMalformed()) {
-      cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
       cid_ = kDynamicCid;
     } else if (type_->IsNullType()) {
@@ -774,11 +770,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
                                          bool is_nullable,
                                          bool* is_instance) {
   ASSERT(is_instance != NULL);
-  // We cannot give an answer if the given type is malformed or malbounded.
-  if (type.IsMalformedOrMalbounded()) {
-    return false;
-  }
-
   if (type.IsDynamicType() || type.IsObjectType() || type.IsVoidType()) {
     *is_instance = true;
     return true;
@@ -790,10 +781,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
-
-  if (compile_type.IsMalformedOrMalbounded()) {
-    return false;
-  }
 
   // The null instance is an instance of Null, of Object, and of dynamic.
   // Functions that do not explicitly return a value, implicitly return null,
@@ -811,7 +798,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsMoreSpecificThan(type, NULL, NULL, Heap::kOld);
+  *is_instance = compile_type.IsMoreSpecificThan(type, Heap::kOld);
   return *is_instance;
 }
 
@@ -820,7 +807,7 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
     return false;
   }
 
-  return ToAbstractType()->IsMoreSpecificThan(other, NULL, NULL, Heap::kOld);
+  return ToAbstractType()->IsMoreSpecificThan(other, Heap::kOld);
 }
 
 CompileType* Value::Type() {

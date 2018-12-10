@@ -117,7 +117,7 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
     return should_specialize ? StubCode::LazySpecializeTypeTest().instructions()
                              : StubCode::DefaultTypeTest().instructions();
   } else {
-    ASSERT(type.IsBoundedType() || type.IsMixinAppType());
+    ASSERT(type.IsMixinAppType());
     return StubCode::UnreachableTypeTest().instructions();
   }
 }
@@ -400,7 +400,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok = int_type.IsSubtypeOf(type, NULL, NULL, Heap::kNew);
+    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);

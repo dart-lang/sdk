@@ -1063,9 +1063,6 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
                                            AssertAssignableInstr::Kind kind) {
   Fragment instructions;
-  if (dst_type.IsMalformed()) {
-    return ThrowTypeError();
-  }
   if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }

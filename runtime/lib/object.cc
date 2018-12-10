@@ -141,11 +141,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsMalformed());
-  ASSERT(!type.IsMalbounded());
-  Error& bound_error = Error::Handle(zone, Error::null());
   const bool is_instance_of = instance.IsInstanceOf(
-      type, instantiator_type_arguments, function_type_arguments, &bound_error);
+      type, instantiator_type_arguments, function_type_arguments);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
@@ -155,23 +152,6 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
                  String::Handle(zone, instance_type.Name()).ToCString());
     OS::PrintErr("  test type: %s\n",
                  String::Handle(zone, type.Name()).ToCString());
-    if (!bound_error.IsNull()) {
-      OS::PrintErr("  bound error: %s\n", bound_error.ToErrorCString());
-    }
-  }
-  if (!is_instance_of && !bound_error.IsNull()) {
-    // Throw a dynamic type error only if the instanceof test fails.
-    DartFrameIterator iterator(thread,
-                               StackFrameIterator::kNoCrossThreadIteration);
-    StackFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
-    const TokenPosition location = caller_frame->GetTokenPos();
-    String& bound_error_message =
-        String::Handle(zone, String::New(bound_error.ToErrorCString()));
-    Exceptions::CreateAndThrowTypeError(location, AbstractType::Handle(zone),
-                                        AbstractType::Handle(zone),
-                                        Symbols::Empty(), bound_error_message);
-    UNREACHABLE();
   }
   return Bool::Get(is_instance_of).raw();
 }
@@ -184,27 +164,9 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(1));
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsMalformed());
-  ASSERT(!type.IsMalbounded());
   ASSERT(type.IsInstantiated());
-  Error& bound_error = Error::Handle(zone, Error::null());
-  const bool is_instance_of =
-      instance.IsInstanceOf(type, Object::null_type_arguments(),
-                            Object::null_type_arguments(), &bound_error);
-  if (!is_instance_of && !bound_error.IsNull()) {
-    // Throw a dynamic type error only if the instanceof test fails.
-    DartFrameIterator iterator(thread,
-                               StackFrameIterator::kNoCrossThreadIteration);
-    StackFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
-    const TokenPosition location = caller_frame->GetTokenPos();
-    String& bound_error_message =
-        String::Handle(zone, String::New(bound_error.ToErrorCString()));
-    Exceptions::CreateAndThrowTypeError(location, AbstractType::Handle(zone),
-                                        AbstractType::Handle(zone),
-                                        Symbols::Empty(), bound_error_message);
-    UNREACHABLE();
-  }
+  const bool is_instance_of = instance.IsInstanceOf(
+      type, Object::null_type_arguments(), Object::null_type_arguments());
   return Bool::Get(is_instance_of).raw();
 }
 
@@ -277,7 +239,6 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
   AbstractType& interface = AbstractType::Handle(zone);
   Class& cur_interface_cls = Class::Handle(zone);
   TypeArguments& cur_interface_type_args = TypeArguments::Handle(zone);
-  Error& error = Error::Handle(zone);
   while (true) {
     // Additional subtyping rules related to 'FutureOr' are not applied.
     if (cur_cls.raw() == interface_cls.raw()) {
@@ -287,18 +248,14 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
     interfaces = cur_cls.interfaces();
     for (intptr_t i = 0; i < interfaces.Length(); i++) {
       interface ^= interfaces.At(i);
-      ASSERT(interface.IsFinalized() && !interface.IsMalbounded());
+      ASSERT(interface.IsFinalized());
       cur_interface_cls = interface.type_class();
       cur_interface_type_args = interface.arguments();
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
-        error = Error::null();
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            instance_type_args, Object::null_type_arguments(), kNoneFree,
-            &error, NULL, NULL, Heap::kNew);
-        if (!error.IsNull()) {
-          continue;  // Another interface may work better.
-        }
+            instance_type_args, Object::null_type_arguments(), kNoneFree, NULL,
+            Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,
                                    cur_interface_type_args, interface_cls,
@@ -442,20 +399,18 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 2) {
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);
   TypeParameter& parameter = TypeParameter::Handle(zone);
-  Error& bound_error = Error::Handle(zone);
   for (intptr_t i = 0; i < bounds.Length(); ++i) {
     parameter ^= bounds.TypeAt(i);
     supertype = parameter.bound();
     subtype = type_args_to_check.IsNull() ? Object::dynamic_type().raw()
                                           : type_args_to_check.TypeAt(i);
 
-    ASSERT(!subtype.IsNull() && !subtype.IsMalformedOrMalbounded());
-    ASSERT(!supertype.IsNull() && !supertype.IsMalformedOrMalbounded());
+    ASSERT(!subtype.IsNull());
+    ASSERT(!supertype.IsNull());
 
     // The supertype may not be instantiated.
     if (!AbstractType::InstantiateAndTestSubtype(
-            &subtype, &supertype, &bound_error, instantiator_type_args,
-            function_type_args)) {
+            &subtype, &supertype, instantiator_type_args, function_type_args)) {
       // Throw a dynamic type error.
       TokenPosition location;
       {
@@ -465,13 +420,9 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 2) {
         ASSERT(caller_frame != NULL);
         location = caller_frame->GetTokenPos();
       }
-      String& bound_error_message = String::Handle(zone);
-      if (!bound_error.IsNull()) {
-        bound_error_message = String::New(bound_error.ToErrorCString());
-      }
       String& parameter_name = String::Handle(zone, parameter.Name());
       Exceptions::CreateAndThrowTypeError(location, subtype, supertype,
-                                          parameter_name, bound_error_message);
+                                          parameter_name);
       UNREACHABLE();
     }
   }

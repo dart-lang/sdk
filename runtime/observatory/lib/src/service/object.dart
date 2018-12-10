@@ -2748,8 +2748,6 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeParameter;
     case 'TypeRef':
       return M.InstanceKind.typeRef;
-    case 'BoundedType':
-      return M.InstanceKind.boundedType;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);

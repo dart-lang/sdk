@@ -23,11 +23,6 @@ namespace dart {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#define PROPAGATE_IF_MALFORMED(type)                                           \
-  if (type.IsMalformed()) {                                                    \
-    Exceptions::PropagateError(Error::Handle(type.error()));                   \
-  }
-
 #define RETURN_OR_PROPAGATE(expr)                                              \
   RawObject* result = expr;                                                    \
   if (RawObject::IsErrorClassId(result->GetClassIdMayBeSmi())) {               \
@@ -220,7 +215,6 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
   for (intptr_t i = 0; i < args.Length(); i++) {
     type ^= args.TypeAt(i);
     ASSERT(type.IsTypeParameter());
-    PROPAGATE_IF_MALFORMED(type);
     ASSERT(type.IsFinalized());
     name ^= type.name();
     result.SetAt(2 * i, name);
@@ -511,8 +505,7 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
     return CreateTypeMirror(ref_type);
   }
   ASSERT(type.IsFinalized());
-  PROPAGATE_IF_MALFORMED(type);
-  ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
+  ASSERT(type.IsCanonical() || type.IsTypeParameter());
 
   if (type.IsFunctionType()) {
     const Class& scope_class = Class::Handle(Type::Cast(type).type_class());
@@ -539,10 +532,6 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
   } else if (type.IsTypeParameter()) {
     return CreateTypeVariableMirror(TypeParameter::Cast(type),
                                     Object::null_instance());
-  } else if (type.IsBoundedType()) {
-    AbstractType& actual_type =
-        AbstractType::Handle(BoundedType::Cast(type).type());
-    return CreateTypeMirror(actual_type);
   }
   UNREACHABLE();
   return Instance::null();
@@ -591,8 +580,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   // Generic function type parameters are not reified, but mapped to dynamic,
   // i.e. all function type parameters are free with a null vector.
   ASSERT(type.IsFinalized());
-  PROPAGATE_IF_MALFORMED(type);
-  ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
+  ASSERT(type.IsCanonical() || type.IsTypeParameter());
 
   if (type.IsInstantiated()) {
     return type.Canonicalize();
@@ -600,17 +588,11 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   TypeArguments& instantiator_type_args = TypeArguments::Handle();
   if (!instantiator.IsNull()) {
     ASSERT(instantiator.IsFinalized());
-    PROPAGATE_IF_MALFORMED(instantiator);
     instantiator_type_args = instantiator.arguments();
   }
-  Error& bound_error = Error::Handle();
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
-      instantiator_type_args, Object::null_type_arguments(), kAllFree,
-      &bound_error, NULL, NULL, Heap::kOld));
-  if (!bound_error.IsNull()) {
-    Exceptions::PropagateError(bound_error);
-    UNREACHABLE();
-  }
+      instantiator_type_args, Object::null_type_arguments(), kAllFree, NULL,
+      Heap::kOld));
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
 }
@@ -728,7 +710,6 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   ASSERT(type.HasTypeClass());
   const Class& cls = Class::Handle(type.type_class());
@@ -795,17 +776,6 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
   Type& instantiated_type =
       Type::Handle(Type::New(clz, type_args_obj, TokenPosition::kNoSource));
   instantiated_type ^= ClassFinalizer::FinalizeType(clz, instantiated_type);
-  if (instantiated_type.IsMalbounded()) {
-    const LanguageError& type_error =
-        LanguageError::Handle(instantiated_type.error());
-    const Array& error_args = Array::Handle(Array::New(3));
-    error_args.SetAt(0, args);
-    error_args.SetAt(1, String::Handle(String::New("typeArguments")));
-    error_args.SetAt(2, String::Handle(type_error.FormatMessage()));
-    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
-    UNREACHABLE();
-  }
-
   return instantiated_type.raw();
 }
 
@@ -903,7 +873,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
   const AbstractType& super_type = AbstractType::Handle(cls.super_type());
@@ -913,7 +882,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
   const AbstractType& super_type = AbstractType::Handle(cls.super_type());
@@ -922,7 +890,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
   const Error& error = Error::Handle(cls.EnsureIsFinalized(thread));
@@ -935,7 +902,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
   const Error& error = Error::Handle(cls.EnsureIsFinalized(thread));
@@ -958,7 +924,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
   AbstractType& mixin_type = AbstractType::Handle();
@@ -976,7 +941,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, instantiator,
                                arguments->NativeArgAt(1));
-  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
   AbstractType& mixin_type = AbstractType::Handle();
@@ -1390,14 +1354,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type reflected by the class mirror.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
-      Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree,
-          &bound_error, NULL, NULL, Heap::kOld);
-      if (!bound_error.IsNull()) {
-        Exceptions::PropagateError(bound_error);
-        UNREACHABLE();
-      }
+          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
+          Heap::kOld);
       redirect_type ^= redirect_type.Canonicalize();
     }
 
@@ -1675,7 +1634,7 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
 DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
+  return Bool::Get(a.IsSubtypeOf(b, Heap::kNew)).raw();
 }
 
 #endif  // !DART_PRECOMPILED_RUNTIME

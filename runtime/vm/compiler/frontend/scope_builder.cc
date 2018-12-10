@@ -1217,7 +1217,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
 
 AbstractType& ScopeBuilder::BuildAndVisitVariableType() {
   const intptr_t offset = helper_.ReaderOffset();
-  AbstractType& type = T.BuildVariableType();
+  AbstractType& type = T.BuildType();
   helper_.SetOffset(offset);  // rewind
   VisitDartType();
   return type;

@@ -39,34 +39,6 @@ class ClassFinalizer : public AllStatic {
                                 const Function& function,
                                 FinalizationKind finalization = kCanonicalize);
 
-  // Allocate, finalize, and return a new malformed type as if it was declared
-  // in class cls at the given token position.
-  // If not null, prepend prev_error to the error message built from the format
-  // string and its arguments.
-  static RawType* NewFinalizedMalformedType(const Error& prev_error,
-                                            const Script& script,
-                                            TokenPosition type_pos,
-                                            const char* format,
-                                            ...) PRINTF_ATTRIBUTE(4, 5);
-
-  // Mark the given type as malformed.
-  // If not null, prepend prev_error to the error message built from the format
-  // string and its arguments.
-  static void FinalizeMalformedType(const Error& prev_error,
-                                    const Script& script,
-                                    const Type& type,
-                                    const char* format,
-                                    ...) PRINTF_ATTRIBUTE(4, 5);
-
-  // Mark the given type as malbounded.
-  // If not null, prepend prev_error to the error message built from the format
-  // string and its arguments.
-  static void FinalizeMalboundedType(const Error& prev_error,
-                                     const Script& script,
-                                     const AbstractType& type,
-                                     const char* format,
-                                     ...) PRINTF_ATTRIBUTE(4, 5);
-
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
 
@@ -146,7 +118,6 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
-                                    Error* bound_error,
                                     PendingTypes* pending_types,
                                     TrailPtr trail);
   static void CheckRecursiveType(const Class& cls,
@@ -162,11 +133,6 @@ class ClassFinalizer : public AllStatic {
   static void CollectInterfaces(const Class& cls,
                                 GrowableArray<const Class*>* collected);
 
-  static void MarkTypeMalformed(const Error& prev_error,
-                                const Script& script,
-                                const Type& type,
-                                const char* format,
-                                va_list args);
   static void ReportError(const Error& error);
   static void ReportError(const Class& cls,
                           TokenPosition token_pos,

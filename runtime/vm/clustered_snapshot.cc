@@ -3058,70 +3058,6 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class BoundedTypeSerializationCluster : public SerializationCluster {
- public:
-  BoundedTypeSerializationCluster() : SerializationCluster("BoundedType") {}
-  ~BoundedTypeSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawBoundedType* type = BoundedType::RawCast(object);
-    objects_.Add(type);
-    PushFromTo(type);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kBoundedTypeCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawBoundedType* type = objects_[i];
-      s->AssignRef(type);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawBoundedType* type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-    }
-  }
-
- private:
-  GrowableArray<RawBoundedType*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class BoundedTypeDeserializationCluster : public DeserializationCluster {
- public:
-  BoundedTypeDeserializationCluster() {}
-  ~BoundedTypeDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, BoundedType::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawBoundedType* type = reinterpret_cast<RawBoundedType*>(d->Ref(id));
-      Deserializer::InitializeHeader(type, kBoundedTypeCid,
-                                     BoundedType::InstanceSize(), is_vm_object);
-      ReadFromTo(type);
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureSerializationCluster : public SerializationCluster {
  public:
   ClosureSerializationCluster() : SerializationCluster("Closure") {}
@@ -4333,8 +4269,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) TypeRefSerializationCluster(type_testing_stubs_);
     case kTypeParameterCid:
       return new (Z) TypeParameterSerializationCluster(type_testing_stubs_);
-    case kBoundedTypeCid:
-      return new (Z) BoundedTypeSerializationCluster();
     case kClosureCid:
       return new (Z) ClosureSerializationCluster();
     case kMintCid:
@@ -4901,8 +4835,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) TypeRefDeserializationCluster();
     case kTypeParameterCid:
       return new (Z) TypeParameterDeserializationCluster();
-    case kBoundedTypeCid:
-      return new (Z) BoundedTypeDeserializationCluster();
     case kClosureCid:
       return new (Z) ClosureDeserializationCluster();
     case kMintCid:
