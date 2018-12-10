@@ -406,6 +406,13 @@ assertion_initializer_const_error2_test/cc10: Crash
 assertion_initializer_const_error2_test/cc11: Crash
 async_await_test: RuntimeError
 async_return_types_test/nestedFuture: Fail
+async_star/async_star_cancel_test: DartkCrash
+async_star/async_star_invalid_test/01: DartkCrash
+async_star/async_star_invalid_test/02: DartkCrash
+async_star/async_star_invalid_test/03: DartkCrash
+async_star/async_star_invalid_test/04: DartkCrash
+async_star/async_star_invalid_test/none: DartkCrash
+async_star/async_star_test: DartkCrash
 compile_time_constant_checked_test/02: MissingCompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
