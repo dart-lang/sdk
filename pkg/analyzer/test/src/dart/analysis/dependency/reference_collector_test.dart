@@ -5,6 +5,8 @@
 import 'package:analyzer/src/dart/analysis/dependency/library_builder.dart'
     hide buildLibrary;
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,6 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ApiReferenceCollectorTest);
     defineReflectiveTests(ExpressionReferenceCollectorTest);
+    defineReflectiveTests(ExpressionReferenceCollectorTest_SetLiterals);
     defineReflectiveTests(ImplReferenceCollectorTest);
     defineReflectiveTests(StatementReferenceCollectorTest);
     defineReflectiveTests(TypeReferenceCollectorTest);
@@ -1269,16 +1272,6 @@ test() {
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
   }
 
-  test_setLiteral() async {
-    var library = await buildTestLibrary(a, r'''
-test() {
-  <A>{x, y, z};
-}
-''');
-    _assertImpl(library, 'test', NodeKind.FUNCTION,
-        unprefixed: ['A', 'x', 'y', 'z']);
-  }
-
   test_simpleIdentifier() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -1363,6 +1356,23 @@ test() {
 }
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
+  }
+}
+
+@reflectiveTest
+class ExpressionReferenceCollectorTest_SetLiterals extends _Base {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [Experiments.setLiteralsName];
+
+  test_setLiteral() async {
+    var library = await buildTestLibrary(a, r'''
+test() {
+  <A>{x, y, z};
+}
+''');
+    _assertImpl(library, 'test', NodeKind.FUNCTION,
+        unprefixed: ['A', 'x', 'y', 'z']);
   }
 }
 

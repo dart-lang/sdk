@@ -30,6 +30,9 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
 
+  /// Override this to change the analysis options for a given set of tests.
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
+
   @override
   Future<TestAnalysisResult> resolveFile(String path) async {
     var result = await driver.getResult(path);
@@ -64,8 +67,7 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
           new PackageMapUriResolver(resourceProvider, packageMap),
           new ResourceUriResolver(resourceProvider)
         ], null, resourceProvider),
-        new AnalysisOptionsImpl()
-          ..enabledExperiments = Experiments.activeExperimentNames);
+        analysisOptions);
 
     scheduler.start();
   }
