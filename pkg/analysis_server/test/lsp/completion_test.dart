@@ -207,7 +207,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
     // ignore: deprecated_member_use
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
-    final updated = applyEdits(withoutMarkers(content), [item.textEdit]);
+    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
   }
 
@@ -237,7 +237,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     // ignore: deprecated_member_use
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    final updated = applyEdits(withoutMarkers(content), [item.textEdit]);
+    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
     expect(item.kind, equals(CompletionItemKind.Field));
   }
@@ -270,7 +270,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
     // ignore: deprecated_member_use
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
-    final updated = applyEdits(withoutMarkers(content), [item.textEdit]);
+    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
   }
 }

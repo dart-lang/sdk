@@ -56,6 +56,16 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         unit));
   }
 
+  List<Either2<Command, CodeAction>> _getAssistActions(
+    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
+    bool clientSupportsLiteralCodeActions,
+    String path,
+    ResolvedUnitResult unit,
+  ) {
+    // TODO(dantup): Implement assists.
+    return [];
+  }
+
   ErrorOr<List<Either2<Command, CodeAction>>> _getCodeActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
@@ -65,9 +75,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     // Join the results of computing all of our different types.
     final allActions = [
       _getSourceActions,
-      // TODO(dantup): _getAssistActions, (edit.getAssists)
-      // TODO(dantup): _getRefactorActions, (edit.getAvailableRefactorings)
-      // TODO(dantup): _getFixActions, (edit.getFixes)
+      _getAssistActions,
+      _getRefactorActions,
+      _getFixActions,
     ]
         .expand((f) => f(
               clientSupportedCodeActionKinds,
@@ -78,6 +88,26 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         .toList();
 
     return success(allActions);
+  }
+
+  List<Either2<Command, CodeAction>> _getFixActions(
+    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
+    bool clientSupportsLiteralCodeActions,
+    String path,
+    ResolvedUnitResult unit,
+  ) {
+    // TODO(dantup): Implement fixes.
+    return [];
+  }
+
+  List<Either2<Command, CodeAction>> _getRefactorActions(
+    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
+    bool clientSupportsLiteralCodeActions,
+    String path,
+    ResolvedUnitResult unit,
+  ) {
+    // TODO(dantup): Implement refactors.
+    return [];
   }
 
   /// Gets "Source" CodeActions, which are actions that apply to whole files of

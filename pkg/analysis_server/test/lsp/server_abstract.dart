@@ -65,7 +65,53 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
           null,
           null);
 
-  String applyEdits(String oldContent, List<TextEdit> changes) {
+  void applyDocumentChanges(
+      Map<String, String> oldFileContent,
+      Either2<
+              List<TextDocumentEdit>,
+              List<
+                  Either4<TextDocumentEdit, CreateFile, RenameFile,
+                      DeleteFile>>>
+          documentChanges) {
+    documentChanges.map(
+      (edits) => applyTextDocumentEdits(oldFileContent, edits),
+      (changes) => applyResourceChanges(oldFileContent, changes),
+    );
+  }
+
+  void applyResourceChanges(
+    Map<String, String> oldFileContent,
+    List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
+  ) {
+    // TODO(dantup): Implement handling of resource changes (not currently used).
+    throw 'Test helper applyResourceChanges not currently supported';
+  }
+
+  String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
+    return edit.edits.fold(content, applyTextEdit);
+  }
+
+  void applyTextDocumentEdits(
+      Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
+    edits.forEach((edit) {
+      final path = Uri.parse(edit.textDocument.uri).toFilePath();
+      if (!oldFileContent.containsKey(path)) {
+        throw 'Recieved edits for $path which was not provided as a file to be edited';
+      }
+      oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path], edit);
+    });
+  }
+
+  String applyTextEdit(String content, TextEdit change) {
+    final startPos = change.range.start;
+    final endPos = change.range.end;
+    final lineInfo = LineInfo.fromContent(content);
+    final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
+    final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
+    return content.replaceRange(start, end, change.newText);
+  }
+
+  String applyTextEdits(String oldContent, List<TextEdit> changes) {
     String newContent = oldContent;
     // Complex text manipulations are described with an array of TextEdit's,
     // representing a single change to the document.
@@ -79,16 +125,9 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     // which the inserted strings appear in the resulting text.
     if (changes.length > 1) {
       // TODO(dantup): Implement multi-edit edits.
-      throw 'Test helper applyEdits does not support applying multiple edits';
+      throw 'Test helper applyTextEdits does not support applying multiple edits';
     } else if (changes.length == 1) {
-      final change = changes.single;
-      final startPos = change.range.start;
-      final endPos = change.range.end;
-      final lineInfo = LineInfo.fromContent(newContent);
-      final start =
-          lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
-      final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-      newContent = newContent.replaceRange(start, end, change.newText);
+      newContent = applyTextEdit(newContent, changes.single);
     }
 
     return newContent;

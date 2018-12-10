@@ -351,6 +351,58 @@ lsp.CompletionItem toCompletionItem(
   );
 }
 
+lsp.WorkspaceEdit toWorkspaceEdit(
+  VersionedTextDocumentIdentifier doc,
+  server.LineInfo lineInfo,
+  List<server.SourceEdit> edits,
+) {
+  // TODO(dantup): Read from capabilities.
+  final clientSupportsTextDocumentEdits = true;
+  if (clientSupportsTextDocumentEdits) {
+    return new WorkspaceEdit(
+        null,
+        Either2<
+            List<TextDocumentEdit>,
+            List<
+                Either4<TextDocumentEdit, CreateFile, RenameFile,
+                    DeleteFile>>>.t1(
+          [toTextDocumentEdit(doc, lineInfo, edits)],
+        ));
+  } else {
+    return new WorkspaceEdit(
+        toWorkspaceEditChanges(doc, lineInfo, edits), null);
+  }
+}
+
+lsp.TextDocumentEdit toTextDocumentEdit(
+  VersionedTextDocumentIdentifier doc,
+  server.LineInfo lineInfo,
+  List<server.SourceEdit> edits,
+) {
+  return new TextDocumentEdit(
+    doc,
+    edits.map((e) => toTextEdit(lineInfo, e)).toList(),
+  );
+}
+
+Map<String, List<TextEdit>> toWorkspaceEditChanges(
+  VersionedTextDocumentIdentifier doc,
+  server.LineInfo lineInfo,
+  List<server.SourceEdit> edits,
+) {
+  // TODO(dantup): Fix codegen for WorkspaceEditChanges to be Map<String, TextEdit>
+  return Map<String, List<TextEdit>>.fromEntries(
+    edits.map((e) => new MapEntry(doc.uri, [toTextEdit(lineInfo, e)])),
+  );
+}
+
+lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
+  return new TextEdit(
+    toRange(lineInfo, edit.offset, edit.length),
+    edit.replacement,
+  );
+}
+
 lsp.Diagnostic toDiagnostic(
     server.LineInfo lineInfo, server.AnalysisError error,
     [server.ErrorSeverity errorSeverity]) {

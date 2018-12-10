@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'code_actions_abstract.dart';
 
 main() {
@@ -82,6 +83,49 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
     expect(codeAction, isNull);
   }
 
+  test_sortMembers_appliesCorrectEdits() async {
+    const content = '''
+    String b;
+    String a;
+    ''';
+    const expectedContent = '''
+    String a;
+    String b;
+    ''';
+    await newFile(mainFilePath, content: content);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    expect(codeAction, isNotNull);
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    final commandResponse = await handleExpectedRequest<Object,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+      Method.workspace_applyEdit,
+      () => executeCommand(command),
+      handler: (edit) {
+        // Handle the edit request that came from the server.
+        expect(edit, isNotNull);
+        final contents = {
+          mainFilePath: content,
+        };
+        applyDocumentChanges(contents, edit.edit.documentChanges);
+        expect(contents[mainFilePath], equals(expectedContent));
+
+        // Send a success response back to the server.
+        return new ApplyWorkspaceEditResponse(true);
+      },
+    );
+
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+  }
+
   test_sortMembers_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
     await initializeWithSupportForKinds([CodeActionKind.Source]);
@@ -104,6 +148,55 @@ class SourceCodeActionsTest extends AbstractCodeActionsTest {
       'Sort Members',
       asCommand: true,
     );
+  }
+
+  test_sortMembers_failsIfClientDoesntApplyEdits() async {
+    await newFile(mainFilePath);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    expect(codeAction, isNotNull);
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    final commandResponse = handleExpectedRequest<Object,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+      Method.workspace_applyEdit,
+      () => executeCommand(command),
+      // Claim that we failed tpo apply the edits. This is what the client
+      // would do if the edits provided were for an old version of the
+      // document.
+      handler: (edit) => new ApplyWorkspaceEditResponse(false),
+    );
+
+    // Ensure the request returned an error (error repsonses are thrown by
+    // the test helper to make consuming success results simpler).
+    await expectLater(commandResponse,
+        throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)));
+  }
+
+  test_sortMembers_failsIfFileHasErrors() async {
+    final content = 'invalid dart code';
+    await newFile(mainFilePath, content: content);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    expect(codeAction, isNotNull);
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    // Ensure the request returned an error (error repsonses are thrown by
+    // the test helper to make consuming success results simpler).
+    await expectLater(executeCommand(command),
+        throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
   test_sortMembers_unavailableWhenNotRequested() async {

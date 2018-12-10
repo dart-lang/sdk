@@ -206,6 +206,9 @@ abstract class ServerErrorCodes {
   static const InvalidFileLineCol = const ErrorCodes(-32004);
   static const UnknownCommand = const ErrorCodes(-32005);
   static const InvalidCommandArguments = const ErrorCodes(-32006);
+  static const FileNotAnalyzed = const ErrorCodes(-32007);
+  static const FileHasErrors = const ErrorCodes(-32008);
+  static const ClientFailedToApplyEdit = const ErrorCodes(-32009);
 }
 
 abstract class ToJsonable {

@@ -47,7 +47,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     final formatEdits = await formatOnType(
         mainFileUri.toString(), positionFromMarker(contents), '}');
     expect(formatEdits, isNotNull);
-    final formattedContents = applyEdits(contents, formatEdits);
+    final formattedContents = applyTextEdits(contents, formatEdits);
     expect(formattedContents, equals(expected));
   }
 
@@ -109,7 +109,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 
     final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNotNull);
-    final formattedContents = applyEdits(contents, formatEdits);
+    final formattedContents = applyTextEdits(contents, formatEdits);
     expect(formattedContents, equals(expected));
   }
 
@@ -130,7 +130,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 
     final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNotNull);
-    final formattedContents = applyEdits(contents, formatEdits);
+    final formattedContents = applyTextEdits(contents, formatEdits);
     expect(formattedContents, equals(expected));
   }
 }
