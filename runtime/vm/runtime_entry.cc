@@ -2034,7 +2034,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     Interpreter* interpreter = Thread::Current()->interpreter();
     if (interpreter != NULL) {
       interpreter_stack_overflow =
-          interpreter->get_sp() >= interpreter->stack_limit();
+          interpreter->get_sp() >= interpreter->overflow_stack_limit();
     }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
