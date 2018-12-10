@@ -100,9 +100,7 @@ class OSThread : public BaseThread {
 
   uword stack_base() const { return stack_base_; }
   uword stack_limit() const { return stack_limit_; }
-  uword stack_limit_with_headroom() const {
-    return stack_limit_ + kStackSizeBuffer;
-  }
+  uword overflow_stack_limit() const { return stack_limit_ + kStackSizeBuffer; }
 
   bool HasStackHeadroom(intptr_t headroom = kStackSizeBuffer) {
     return GetCurrentStackPointer() > (stack_limit_ + headroom);
@@ -211,7 +209,7 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
+  static const intptr_t kStackSizeBuffer = (16 * KB * kWordSize);
 
   static const ThreadId kInvalidThreadId;
   static const ThreadJoinId kInvalidThreadJoinId;
