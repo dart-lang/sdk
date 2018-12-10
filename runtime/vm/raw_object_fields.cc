@@ -141,6 +141,7 @@ namespace dart {
   F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
+  F(Type, signature_)                                                          \
   F(TypeRef, type_)                                                            \
   F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
