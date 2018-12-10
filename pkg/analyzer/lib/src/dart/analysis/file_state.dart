@@ -671,10 +671,11 @@ class FileState {
     }
 
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
-    Experiments experiments = new Experiments(analysisOptions);
+    ExperimentStatus experimentStatus =
+        new ExperimentStatus.fromStrings(analysisOptions.enabledExperiments);
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.enableGtGtGt = experiments.constantUpdate2018;
+    scanner.enableGtGtGt = experimentStatus.constant_update_2018;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -683,7 +684,7 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.enableSetLiterals = experiments.setLiteral;
+    parser.enableSetLiterals = experimentStatus.set_literals;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

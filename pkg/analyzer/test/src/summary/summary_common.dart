@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -797,7 +798,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
   UnlinkedVariable serializeVariableText(String text,
       {String variableName: 'v',
       bool allowErrors: false,
-      bool enableSetLiterals: enableSetLiteralsDefault}) {
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
     serializeLibraryText(text,
         allowErrors: allowErrors, enableSetLiterals: enableSetLiterals);
     return findVariable(variableName, failIfAbsent: true);

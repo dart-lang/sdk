@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -34,12 +35,6 @@ export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 part 'parser_fasta.dart';
-
-/// Whether set literal parsing is currently enabled by default.
-/// TODO(paulberry): once we have a shared source of truth about this
-/// information, hook this constant up to it.  (See phase 0 of
-/// https://github.com/dart-lang/language/issues/60)
-const bool enableSetLiteralsDefault = false;
 
 /// A simple data-holder for a method that needs to return multiple values.
 class CommentAndMetadata {

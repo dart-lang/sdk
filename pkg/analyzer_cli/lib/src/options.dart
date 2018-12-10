@@ -595,18 +595,18 @@ class CommandLineOptions {
       if (results.wasParsed('enable-experiment')) {
         List<String> names =
             (results['enable-experiment'] as List).cast<String>().toList();
-        for (String knownName in Experiments.activeExperimentNames) {
-          names.remove(knownName);
-        }
-        if (names.isNotEmpty) {
-          StringBuffer buffer = new StringBuffer();
-          for (String invalidName in names) {
-            if (buffer.length > 0) {
-              buffer.write(', ');
-            }
-            buffer.write(invalidName);
+        bool errorFound = false;
+        for (var validationResult in validateFlags(names)) {
+          if (validationResult.isError) {
+            errorFound = true;
           }
-          errorSink.writeln('Unknown experiments: $buffer');
+          var kind = validationResult.isError ? 'ERROR' : 'WARNING';
+          errorSink.writeln('$kind: ${validationResult.message}');
+        }
+        if (errorFound) {
+          _showUsage(parser, null);
+          exitHandler(15);
+          return null; // Only reachable in testing.
         }
       }
 

@@ -1363,7 +1363,7 @@ test() {
 class ExpressionReferenceCollectorTest_SetLiterals extends _Base {
   @override
   AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [Experiments.setLiteralsName];
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.set_literals];
 
   test_setLiteral() async {
     var library = await buildTestLibrary(a, r'''

@@ -127,13 +127,21 @@ class EnabledExperimentsValidator extends OptionsValidator {
       var experimentNames =
           getValue(analyzer, AnalyzerOptions.enableExperiment);
       if (experimentNames is YamlList) {
-        for (var node in experimentNames.nodes) {
-          String experimentName = node.toString();
-          if (!Experiments.activeExperimentNames.contains(experimentName)) {
+        var flags =
+            experimentNames.nodes.map((node) => node.toString()).toList();
+        for (var validationResult in validateFlags(flags)) {
+          var flagIndex = validationResult.stringIndex;
+          var span = experimentNames.nodes[flagIndex].span;
+          if (validationResult is UnrecognizedFlag) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-                node.span,
-                [experimentName, AnalyzerOptions.enableExperiment]);
+                span,
+                [AnalyzerOptions.enableExperiment, flags[flagIndex]]);
+          } else {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.INVALID_OPTION,
+                span,
+                [AnalyzerOptions.enableExperiment, validationResult.message]);
           }
         }
       } else if (experimentNames != null) {

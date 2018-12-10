@@ -141,6 +141,14 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           "Warning in the included options file {0}({1}..{2}): {3}");
 
   /**
+   * An error code indicating that a plugin is being configured with an invalid
+   * value for an option and a detail message is provided.
+   */
+  static const AnalysisOptionsWarningCode INVALID_OPTION =
+      const AnalysisOptionsWarningCode(
+          'INVALID_OPTION', "Invalid option specified for '{0}': {1}");
+
+  /**
    * An error code indicating an invalid format for an options file section.
    *
    * Parameters:

@@ -8859,7 +8859,7 @@ main() {
 @reflectiveTest
 class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
   AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions()
-    ..enabledExperiments = Experiments.activeExperimentNames;
+    ..enabledExperiments = _computeActiveExperimentNames();
 
   test_binaryExpression_gtGtGt() async {
     addTestFile('''
@@ -8884,5 +8884,15 @@ f(A a) {
     BinaryExpression binary = statement.expression;
     expect(binary.operator.type, TokenType.GT_GT_GT);
     expect(binary.staticElement, operatorElement);
+  }
+
+  List<String> _computeActiveExperimentNames() {
+    var result = <String>[];
+    for (var feature in ExperimentStatus.knownFeatures.values) {
+      if (!feature.isExpired) {
+        result.add(feature.enableString);
+      }
+    }
+    return result;
   }
 }

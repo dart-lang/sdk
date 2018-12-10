@@ -15,6 +15,7 @@ import 'defined_names_test.dart' as defined_names;
 import 'dependency/test_all.dart' as dependency_test;
 import 'driver_resolution_test.dart' as driver_resolution;
 import 'driver_test.dart' as driver;
+import 'experiments_test.dart' as experiments_test;
 import 'file_byte_store_test.dart' as file_byte_store_test;
 import 'file_state_test.dart' as file_state;
 import 'fletcher16_test.dart' as fletcher16_test;
@@ -40,6 +41,7 @@ main() {
     dependency_test.main();
     driver.main();
     driver_resolution.main();
+    experiments_test.main();
     file_byte_store_test.main();
     file_state.main();
     fletcher16_test.main();

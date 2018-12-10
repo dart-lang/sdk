@@ -45,6 +45,10 @@ abstract class ParserAdapter implements Parser {
 
   @override
   void set enableSetLiterals(bool value) {
+    if (IsExpired.set_literals && value != IsEnabledByDefault.set_literals) {
+      throw new StateError(
+          'set_literals may only be set to ${IsEnabledByDefault.set_literals}');
+    }
     fastaParser.parseSetLiterals = value;
   }
 

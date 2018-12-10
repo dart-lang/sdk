@@ -4,6 +4,9 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
+    show overrideKnownFeatures;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
@@ -94,43 +97,58 @@ main() {
       });
 
       group('enable experiment', () {
+        var knownFeatures = {
+          'a': ExperimentalFeature(0, 'a', false, false, 'a'),
+          'b': ExperimentalFeature(1, 'b', false, false, 'b'),
+          'c': ExperimentalFeature(2, 'c', false, false, 'c'),
+        };
+
         test('no values', () {
-          CommandLineOptions options = CommandLineOptions.parse(['foo.dart']);
+          CommandLineOptions options = overrideKnownFeatures(
+              knownFeatures, () => CommandLineOptions.parse(['foo.dart']));
           expect(options.enabledExperiments, isEmpty);
         });
 
         test('single value', () {
-          CommandLineOptions options = CommandLineOptions.parse(
-              ['--enable-experiment', 'a', 'foo.dart']);
+          CommandLineOptions options = overrideKnownFeatures(
+              knownFeatures,
+              () => CommandLineOptions.parse(
+                  ['--enable-experiment', 'a', 'foo.dart']));
           expect(options.enabledExperiments, ['a']);
         });
 
         group('multiple values', () {
           test('single flag', () {
-            CommandLineOptions options = CommandLineOptions.parse(
-                ['--enable-experiment', 'a,b', 'foo.dart']);
+            CommandLineOptions options = overrideKnownFeatures(
+                knownFeatures,
+                () => CommandLineOptions.parse(
+                    ['--enable-experiment', 'a,b', 'foo.dart']));
             expect(options.enabledExperiments, ['a', 'b']);
           });
 
           test('mixed single and multiple flags', () {
-            CommandLineOptions options = CommandLineOptions.parse([
-              '--enable-experiment',
-              'a,b',
-              '--enable-experiment',
-              'c',
-              'foo.dart'
-            ]);
+            CommandLineOptions options = overrideKnownFeatures(
+                knownFeatures,
+                () => CommandLineOptions.parse([
+                      '--enable-experiment',
+                      'a,b',
+                      '--enable-experiment',
+                      'c',
+                      'foo.dart'
+                    ]));
             expect(options.enabledExperiments, ['a', 'b', 'c']);
           });
 
           test('multiple flags', () {
-            CommandLineOptions options = CommandLineOptions.parse([
-              '--enable-experiment',
-              'a',
-              '--enable-experiment',
-              'b',
-              'foo.dart'
-            ]);
+            CommandLineOptions options = overrideKnownFeatures(
+                knownFeatures,
+                () => CommandLineOptions.parse([
+                      '--enable-experiment',
+                      'a',
+                      '--enable-experiment',
+                      'b',
+                      'foo.dart'
+                    ]));
             expect(options.enabledExperiments, ['a', 'b']);
           });
         });

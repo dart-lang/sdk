@@ -88,7 +88,7 @@ class ConstantEvaluationEngine {
   /**
    * Return the object representing the state of active experiments.
    */
-  final Experiments experiments;
+  final ExperimentStatus experimentStatus;
 
   /**
    * Validator used to verify correct dependency analysis when running unit
@@ -110,14 +110,14 @@ class ConstantEvaluationEngine {
    */
   ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
       {ConstantEvaluationValidator validator,
-      Experiments experiments,
+      ExperimentStatus experimentStatus,
       TypeSystem typeSystem,
       this.forAnalysisDriver: false})
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
         typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
-        experiments = experiments ?? new Experiments(new AnalysisOptionsImpl());
+        experimentStatus = experimentStatus ?? new ExperimentStatus();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1074,7 +1074,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /**
    * Return the object representing the state of active experiments.
    */
-  Experiments get experiments => evaluationEngine.experiments;
+  ExperimentStatus get experimentStatus => evaluationEngine.experimentStatus;
 
   /**
    * Convenience getter to gain access to the [evaluationEngine]'s type system.
@@ -1136,7 +1136,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitAsExpression(AsExpression node) {
-    if (experiments.constantUpdate2018) {
+    if (experimentStatus.constant_update_2018) {
       DartObjectImpl expressionResult = node.expression.accept(this);
       DartObjectImpl typeResult = node.type.accept(this);
       return _dartObjectComputer.castToType(node, expressionResult, typeResult);
@@ -1158,7 +1158,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
-      if (experiments.constantUpdate2018) {
+      if (experimentStatus.constant_update_2018) {
         return _dartObjectComputer.lazyQuestionQuestion(
             node, leftResult, () => node.rightOperand.accept(this));
       } else {
@@ -1170,15 +1170,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     if (operatorType == TokenType.AMPERSAND) {
       return _dartObjectComputer.eagerAnd(
-          node, leftResult, rightResult, experiments.constantUpdate2018);
+          node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.BANG_EQ) {
       return _dartObjectComputer.notEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BAR) {
       return _dartObjectComputer.eagerOr(
-          node, leftResult, rightResult, experiments.constantUpdate2018);
+          node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.CARET) {
       return _dartObjectComputer.eagerXor(
-          node, leftResult, rightResult, experiments.constantUpdate2018);
+          node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.EQ_EQ) {
       return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
@@ -1224,7 +1224,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     DartObjectImpl conditionResult = condition.accept(this);
-    if (experiments.constantUpdate2018) {
+    if (experimentStatus.constant_update_2018) {
       if (conditionResult == null) {
         return conditionResult;
       } else if (!conditionResult.isBool) {
@@ -1320,7 +1320,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitIsExpression(IsExpression node) {
-    if (experiments.constantUpdate2018) {
+    if (experimentStatus.constant_update_2018) {
       DartObjectImpl expressionResult = node.expression.accept(this);
       DartObjectImpl typeResult = node.type.accept(this);
       return _dartObjectComputer.typeTest(node, expressionResult, typeResult);

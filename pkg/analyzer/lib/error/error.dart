@@ -44,6 +44,7 @@ const List<ErrorCode> errorCodeValues = const [
   AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
   AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
   AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+  AnalysisOptionsWarningCode.INVALID_OPTION,
   AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,

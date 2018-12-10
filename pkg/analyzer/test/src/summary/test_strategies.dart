@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -36,7 +37,7 @@ String absUri(String path) {
 }
 
 CompilationUnit _parseText(String text,
-    {bool enableSetLiterals: enableSetLiteralsDefault}) {
+    {bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
@@ -333,7 +334,7 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
   /// summary in [lib].
   void serializeLibraryText(String text,
       {bool allowErrors: false,
-      bool enableSetLiterals: enableSetLiteralsDefault});
+      bool enableSetLiterals: IsEnabledByDefault.set_literals});
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -347,7 +348,7 @@ class SummaryBlackBoxTestStrategyPrelink
   @override
   void serializeLibraryText(String text,
       {bool allowErrors: false,
-      bool enableSetLiterals: enableSetLiteralsDefault}) {
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
     super.serializeLibraryText(text,
         allowErrors: allowErrors, enableSetLiterals: enableSetLiterals);
 
@@ -541,14 +542,14 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   }
 
   UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text,
-          {bool enableSetLiterals: enableSetLiteralsDefault}) =>
+          {bool enableSetLiterals: IsEnabledByDefault.set_literals}) =>
       serializeAstUnlinked(
           _parseText(text, enableSetLiterals: enableSetLiterals));
 
   _LinkerInputs _createLinkerInputs(String text,
       {String path: '/test.dart',
       String uri,
-      bool enableSetLiterals: enableSetLiteralsDefault}) {
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
     UnlinkedUnitBuilder unlinkedDefiningUnit = createUnlinkedSummary(
@@ -596,7 +597,7 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
   @override
   void serializeLibraryText(String text,
       {bool allowErrors: false,
-      bool enableSetLiterals: enableSetLiteralsDefault}) {
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
     _linkerInputs =
         _createLinkerInputs(text, enableSetLiterals: enableSetLiterals);

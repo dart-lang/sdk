@@ -42,9 +42,9 @@ class A {
 }
 ''');
     DartObjectImpl resultA = _evaluateConstant(compilationUnit, 'a',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     DartObjectImpl resultB = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(resultB, resultA);
   }
 
@@ -60,9 +60,9 @@ class B extends A {
 }
 ''');
     DartObjectImpl resultA = _evaluateConstant(compilationUnit, 'a',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     DartObjectImpl resultB = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(resultB, resultA);
   }
 
@@ -79,7 +79,7 @@ class B extends A {
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result, isNull);
   }
 
@@ -96,7 +96,7 @@ class B {
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result, isNull);
   }
 
@@ -107,7 +107,7 @@ const b = a as A;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.nullType);
   }
 
@@ -116,7 +116,7 @@ class A {}
 const c = false & true;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
   }
 
@@ -125,7 +125,7 @@ const c = false & true;
 const c = 3 & 5;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
   }
 
@@ -135,7 +135,7 @@ const c = 3 & false;
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitBinaryExpression_or_bool() async {
@@ -143,7 +143,7 @@ const c = 3 & false;
 const c = false | true;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
   }
 
@@ -152,7 +152,7 @@ const c = false | true;
 const c = 3 | 5;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
   }
 
@@ -162,7 +162,7 @@ const c = 3 | false;
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitBinaryExpression_questionQuestion_eager_notNull_notNull() async {
@@ -218,7 +218,7 @@ const c = 'a' ?? new C();
 class C {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.stringType);
     expect(result.toStringValue(), 'a');
   }
@@ -228,7 +228,7 @@ class C {}
 const c = 'a' ?? 'b';
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.stringType);
     expect(result.toStringValue(), 'a');
   }
@@ -240,7 +240,7 @@ class C {}
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitBinaryExpression_questionQuestion_lazy_null_notNull() async {
@@ -248,7 +248,7 @@ class C {}
 const c = null ?? 'b';
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.stringType);
     expect(result.toStringValue(), 'b');
   }
@@ -258,7 +258,7 @@ const c = null ?? 'b';
 const c = null ?? null;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.isNull, isTrue);
   }
 
@@ -267,7 +267,7 @@ const c = null ?? null;
 const c = false ^ true;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
   }
 
@@ -276,7 +276,7 @@ const c = false ^ true;
 const c = 3 ^ 5;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
   }
 
@@ -286,7 +286,7 @@ const c = 3 ^ false;
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitConditionalExpression_eager_false_int_int() async {
@@ -361,7 +361,7 @@ const c = 3 ^ false;
 const c = false ? 1 : 0;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -372,7 +372,7 @@ const c = false ? 1 : new C();
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitConditionalExpression_lazy_false_invalid_int() async {
@@ -381,7 +381,7 @@ const c = false ? new C() : 0;
 class C {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -392,7 +392,7 @@ const c = 3 ? 1 : 0;
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitConditionalExpression_lazy_true_int_int() async {
@@ -400,7 +400,7 @@ const c = 3 ? 1 : 0;
 const c = true ? 1 : 0;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 1);
   }
@@ -410,7 +410,7 @@ const c = true ? 1 : 0;
 const c = true ? 1 : new C();
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 1);
   }
@@ -422,7 +422,7 @@ class C {}
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitIsExpression_is_instanceOfSameClass() async {
@@ -434,7 +434,7 @@ class A {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -451,7 +451,7 @@ class B extends A {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -468,7 +468,7 @@ class B extends A {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), false);
   }
@@ -485,7 +485,7 @@ class B {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), false);
   }
@@ -497,7 +497,7 @@ const b = a is A;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), false);
   }
@@ -509,7 +509,7 @@ const b = a is dynamic;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -521,7 +521,7 @@ const b = a is Null;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -533,7 +533,7 @@ const b = a is Object;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -547,7 +547,7 @@ class A {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), false);
   }
@@ -564,7 +564,7 @@ class B extends A {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), false);
   }
@@ -581,7 +581,7 @@ class B extends A {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -598,7 +598,7 @@ class B {
 }
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -610,7 +610,7 @@ const b = a is! A;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'b',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), true);
   }
@@ -707,7 +707,9 @@ const b = 3;''');
 
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
-            experiments: new Experiments(options), typeSystem: typeSystem),
+            experimentStatus:
+                ExperimentStatus.fromStrings(options.enabledExperiments),
+            typeSystem: typeSystem),
         errorReporter,
         lexicalEnvironment: lexicalEnvironment));
     if (errorCodes == null) {
@@ -728,7 +730,7 @@ class ConstantVisitorTest_Driver extends ConstantVisitorTest {
 const c = 0xFFFFFFFF >>> 8;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFFFFFF);
   }
@@ -738,7 +740,7 @@ const c = 0xFFFFFFFF >>> 8;
 const c = 0xFFFFFFFF >>> 33;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -749,7 +751,7 @@ const c = 0xFFFFFFFF >>> -2;
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
@@ -757,7 +759,7 @@ const c = 0xFFFFFFFF >>> -2;
 const c = 0xFFFFFFFF >>> 0;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFFFFFFFF);
   }
@@ -768,7 +770,7 @@ const c = 0xFFFFFFFF >>> 0;
 const c = 0xFF >>> 3;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0x1F);
   }
@@ -778,7 +780,7 @@ const c = 0xFF >>> 3;
 const c = 0xFF >>> 9;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -789,7 +791,7 @@ const c = 0xFF >>> -2;
 ''');
     _evaluateConstant(compilationUnit, 'c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
   }
 
   test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
@@ -797,7 +799,7 @@ const c = 0xFF >>> -2;
 const c = 0xFF >>> 0;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
-        experiments: [Experiments.constantUpdate2018Name]);
+        experiments: [EnableString.constant_update_2018]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFF);
   }
