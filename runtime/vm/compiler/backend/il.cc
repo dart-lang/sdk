@@ -2911,7 +2911,8 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->value()->definition()->representation();
     if (from_representation == representation()) {
       return box_defn->value()->definition();
-    } else {
+    } else if (from_representation != kTagged) {
+      // Only operate on explicit unboxed operands.
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
           from_representation, representation(),
           box_defn->value()->CopyWithType(),
