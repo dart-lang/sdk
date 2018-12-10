@@ -1031,8 +1031,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     }
     if (const bool.fromEnvironment('unreachable-throw')) {
-      var emptyParameters = parameters.values
-          .where((p) => abstractValueDomain.isEmpty(p.instructionType));
+      var emptyParameters = parameters.values.where((p) =>
+          abstractValueDomain.isEmpty(p.instructionType).isDefinitelyTrue);
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
         add(new HInvokeStatic(
@@ -1627,8 +1627,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       node.iterable.accept(this);
       array = pop();
-      isFixed =
-          abstractValueDomain.isFixedLengthJsIndexable(array.instructionType);
+      isFixed = abstractValueDomain
+          .isFixedLengthJsIndexable(array.instructionType)
+          .isDefinitelyTrue;
       localsHandler.updateLocal(
           indexVariable, graph.addConstantInt(0, closedWorld),
           sourceInformation: sourceInformation);
@@ -2774,7 +2775,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     AbstractValue type =
         _typeInferenceMap.typeOfListLiteral(node, abstractValueDomain);
-    if (!abstractValueDomain.containsAll(type)) {
+    if (abstractValueDomain.containsAll(type).isDefinitelyFalse) {
       listInstruction.instructionType = type;
     }
     stack.add(listInstruction);
@@ -2826,8 +2827,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // We lift this common call pattern into a helper function to save space
       // in the output.
-      if (typeInputs
-          .every((HInstruction input) => input.isNull(abstractValueDomain))) {
+      if (typeInputs.every((HInstruction input) =>
+          input.isNull(abstractValueDomain).isDefinitelyTrue)) {
         if (constructorArgs.isEmpty) {
           constructor = _commonElements.mapLiteralUntypedEmptyMaker;
         } else {
@@ -3416,7 +3417,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
               "Unexpected arguments. "
               "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
-      if (!lengthInput.isNumber(abstractValueDomain)) {
+      if (lengthInput.isNumber(abstractValueDomain).isPotentiallyFalse) {
         HTypeConversion conversion = new HTypeConversion(
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
@@ -3439,14 +3440,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(sra): Array allocation should be an instruction so that canThrow
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
-      if (lengthInput.isUInt32(abstractValueDomain)) {
+      if (lengthInput.isUInt32(abstractValueDomain).isDefinitelyTrue) {
         canThrow = false;
       }
 
       var inferredType = _inferredTypeOfNewList(invocation);
-      resultType = abstractValueDomain.containsAll(inferredType)
-          ? abstractValueDomain.fixedListType
-          : inferredType;
+      resultType =
+          abstractValueDomain.containsAll(inferredType).isPotentiallyTrue
+              ? abstractValueDomain.fixedListType
+              : inferredType;
       HForeignCode foreign = new HForeignCode(
           code, resultType, <HInstruction>[lengthInput],
           nativeBehavior: behavior,
@@ -3467,9 +3469,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else if (isGrowableListConstructorCall) {
       push(buildLiteralList(<HInstruction>[]));
       var inferredType = _inferredTypeOfNewList(invocation);
-      resultType = abstractValueDomain.containsAll(inferredType)
-          ? abstractValueDomain.growableListType
-          : inferredType;
+      resultType =
+          abstractValueDomain.containsAll(inferredType).isPotentiallyTrue
+              ? abstractValueDomain.growableListType
+              : inferredType;
       stack.last.instructionType = resultType;
     } else if (isJSArrayTypedConstructor) {
       // TODO(sra): Instead of calling the identity-like factory constructor,
@@ -4117,11 +4120,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (trustedMask != null) {
       // We only allow the type argument to narrow `dynamic`, which probably
       // comes from an unspecified return type in the NativeBehavior.
-      if (abstractValueDomain.containsAll(code.instructionType)) {
+      if (abstractValueDomain
+          .containsAll(code.instructionType)
+          .isPotentiallyTrue) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
-      } else if (abstractValueDomain.contains(
-          trustedMask, code.instructionType)) {
+      } else if (abstractValueDomain
+          .contains(trustedMask, code.instructionType)
+          .isPotentiallyTrue) {
         // It is acceptable for the type parameter to be broader than the
         // specified type.
       } else {
@@ -4968,7 +4974,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (selector != null) {
         if (!selector.applies(function)) return false;
         if (mask != null &&
-            !abstractValueDomain.canHit(mask, function, selector)) {
+            abstractValueDomain
+                .isTargetingMember(mask, function, selector)
+                .isDefinitelyFalse) {
           return false;
         }
       }
@@ -4978,7 +4986,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
         if (function.enclosingClass != commonElements.objectClass &&
-            providedArguments[1].canBeNull(abstractValueDomain)) {
+            providedArguments[1]
+                .isNull(abstractValueDomain)
+                .isPotentiallyTrue) {
           return false;
         }
       }
@@ -5127,7 +5137,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // NoSuchMethodError message as if we had called it.
       if (function.isInstanceMember &&
           function is! ConstructorBodyEntity &&
-          (mask == null || abstractValueDomain.canBeNull(mask))) {
+          (mask == null ||
+              abstractValueDomain.isNull(mask).isPotentiallyTrue)) {
         add(new HFieldGet(
             null, providedArguments[0], abstractValueDomain.dynamicType,
             isAssignable: false)

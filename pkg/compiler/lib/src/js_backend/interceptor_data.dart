@@ -182,7 +182,9 @@ class InterceptorDataImpl implements InterceptorData {
     return elements.any((element) {
       return selector.applies(element) &&
           (mask == null ||
-              closedWorld.abstractValueDomain.canHit(mask, element, selector));
+              closedWorld.abstractValueDomain
+                  .isTargetingMember(mask, element, selector)
+                  .isPotentiallyTrue);
     });
   }
 

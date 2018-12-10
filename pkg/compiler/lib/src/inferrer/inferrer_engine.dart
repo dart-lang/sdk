@@ -833,7 +833,7 @@ class InferrerEngineImpl extends InferrerEngine {
         MemberEntity member = info.calledElement;
         inferredDataBuilder.addFunctionCalledInLoop(member);
       } else if (info.mask != null &&
-          !abstractValueDomain.containsAll(info.mask)) {
+          abstractValueDomain.containsAll(info.mask).isDefinitelyFalse) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down

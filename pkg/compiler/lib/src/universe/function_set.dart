@@ -108,11 +108,15 @@ class SelectorMask {
 
   bool applies(MemberEntity element, AbstractValueDomain domain) {
     if (!selector.appliesUnnamed(element)) return false;
-    return domain.canHit(receiver, element, selector);
+    return domain
+        .isTargetingMember(receiver, element, selector)
+        .isPotentiallyTrue;
   }
 
   bool needsNoSuchMethodHandling(AbstractValueDomain domain) {
-    return domain.needsNoSuchMethodHandling(receiver, selector);
+    return domain
+        .needsNoSuchMethodHandling(receiver, selector)
+        .isPotentiallyTrue;
   }
 
   bool operator ==(other) {

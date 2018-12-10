@@ -323,7 +323,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool requiresUintConversion(HInstruction instruction) {
-    if (instruction.isUInt31(_abstractValueDomain)) return false;
+    if (instruction.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+      return false;
+    }
     if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
@@ -1546,11 +1548,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitTruncatingDivide(HTruncatingDivide node) {
-    assert(node.isUInt31(_abstractValueDomain));
+    assert(node.isUInt31(_abstractValueDomain).isDefinitelyTrue);
     // TODO(karlklose): Enable this assertion again when type propagation is
     // fixed. Issue 23555.
 //    assert(node.left.isUInt32(compiler));
-    assert(node.right.isPositiveInteger(_abstractValueDomain));
+    assert(node.right.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue);
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
@@ -2336,15 +2338,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.isStringOrNull(_abstractValueDomain) &&
-          right.isStringOrNull(_abstractValueDomain)) {
+      if (left.isStringOrNull(_abstractValueDomain).isDefinitelyTrue &&
+          right.isStringOrNull(_abstractValueDomain).isDefinitelyTrue) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.isInteger(_abstractValueDomain) &&
-          right.isInteger(_abstractValueDomain);
+      return left.isInteger(_abstractValueDomain).isDefinitelyTrue &&
+          right.isInteger(_abstractValueDomain).isDefinitelyTrue;
     }
 
     bool handledBySpecialCase = false;
@@ -2480,13 +2482,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger(_abstractValueDomain)) {
+        if (node.index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger(_abstractValueDomain)) {
+      } else if (node.index
+          .isInteger(_abstractValueDomain)
+          .isPotentiallyFalse) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2607,10 +2611,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringify(HStringify node) {
     HInstruction input = node.inputs.first;
-    if (input.isString(_abstractValueDomain)) {
+    if (input.isString(_abstractValueDomain).isDefinitelyTrue) {
       use(input);
-    } else if (input.isInteger(_abstractValueDomain) ||
-        input.isBoolean(_abstractValueDomain)) {
+    } else if (input.isInteger(_abstractValueDomain).isDefinitelyTrue ||
+        input.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -3000,9 +3004,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (type.isFunctionType) {
         checkType(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if ((input.canBePrimitive(_abstractValueDomain) &&
-              !input.canBePrimitiveArray(_abstractValueDomain)) ||
-          input.canBeNull(_abstractValueDomain)) {
+      } else if ((input.isPrimitive(_abstractValueDomain).isPotentiallyTrue &&
+              input.isPrimitiveArray(_abstractValueDomain).isDefinitelyFalse) ||
+          input.isNull(_abstractValueDomain).isPotentiallyTrue) {
         checkObject(input, relation, node.sourceInformation);
         js.Expression objectTest = pop();
         checkType(input, interceptor, type, sourceInformation,
@@ -3029,13 +3033,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     AbstractValue inputType = node.inputType ?? input.instructionType;
     AbstractValue checkedType = node.checkedType;
     // This path is no longer used for indexable primitive types.
-    assert(!_abstractValueDomain.isJsIndexable(checkedType));
+    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
     // Figure out if it is beneficial to use a null check.  V8 generally prefers
     // 'typeof' checks, but for integers we cannot compile this test into a
     // single typeof check so the null check is cheaper.
-    bool isIntCheck = _abstractValueDomain.isIntegerOrNull(checkedType);
-    bool turnIntoNumCheck =
-        isIntCheck && _abstractValueDomain.isIntegerOrNull(inputType);
+    bool isIntCheck =
+        _abstractValueDomain.isIntegerOrNull(checkedType).isDefinitelyTrue;
+    bool turnIntoNumCheck = isIntCheck &&
+        _abstractValueDomain.isIntegerOrNull(inputType).isDefinitelyTrue;
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (_abstractValueDomain.includeNull(checkedType) == inputType) &&
         isIntCheck;
@@ -3049,15 +3054,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkBigInt(input, '!==', input.sourceInformation);
       return pop();
     } else if (turnIntoNumCheck ||
-        _abstractValueDomain.isNumberOrNull(checkedType)) {
+        _abstractValueDomain.isNumberOrNull(checkedType).isDefinitelyTrue) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain.isBooleanOrNull(checkedType)) {
+    } else if (_abstractValueDomain
+        .isBooleanOrNull(checkedType)
+        .isDefinitelyTrue) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain.isStringOrNull(checkedType)) {
+    } else if (_abstractValueDomain
+        .isStringOrNull(checkedType)
+        .isDefinitelyTrue) {
       // input is !string
       checkString(input, '!==', input.sourceInformation);
       return pop();

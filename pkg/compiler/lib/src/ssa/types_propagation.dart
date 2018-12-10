@@ -129,11 +129,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   AbstractValue visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isInteger(abstractValueDomain) &&
-        right.isInteger(abstractValueDomain)) {
+    if (left.isInteger(abstractValueDomain).isDefinitelyTrue &&
+        right.isInteger(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.intType;
     }
-    if (left.isDouble(abstractValueDomain)) {
+    if (left.isDouble(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.doubleType;
     }
     return abstractValueDomain.numType;
@@ -142,8 +142,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   AbstractValue checkPositiveInteger(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isPositiveInteger(abstractValueDomain) &&
-        right.isPositiveInteger(abstractValueDomain)) {
+    if (left.isPositiveInteger(abstractValueDomain).isDefinitelyTrue &&
+        right.isPositiveInteger(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.positiveIntType;
     }
     return visitBinaryArithmetic(instruction);
@@ -176,7 +176,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction operand = instruction.operand;
     // We have integer subclasses that represent ranges, so widen any int
     // subclass to full integer.
-    if (operand.isInteger(abstractValueDomain)) {
+    if (operand.isInteger(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.intType;
     }
     return instruction.operand.instructionType;
@@ -209,28 +209,30 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // We must make sure a type conversion for receiver or argument check
       // does not try to do an int check, because an int check is not enough.
       // We only do an int check if the input is integer or null.
-      if (abstractValueDomain.isNumberOrNull(checkedType) &&
-          !abstractValueDomain.isDoubleOrNull(checkedType) &&
-          input.isIntegerOrNull(abstractValueDomain)) {
+      if (abstractValueDomain.isNumberOrNull(checkedType).isDefinitelyTrue &&
+          abstractValueDomain.isDoubleOrNull(checkedType).isDefinitelyFalse &&
+          input.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue) {
         instruction.checkedType = abstractValueDomain.intType;
-      } else if (abstractValueDomain.isIntegerOrNull(checkedType) &&
-          !input.isIntegerOrNull(abstractValueDomain)) {
+      } else if (abstractValueDomain
+              .isIntegerOrNull(checkedType)
+              .isDefinitelyTrue &&
+          input.isIntegerOrNull(abstractValueDomain).isPotentiallyFalse) {
         instruction.checkedType = abstractValueDomain.numType;
       }
     }
 
     AbstractValue outputType =
         abstractValueDomain.intersection(checkedType, inputType);
-    if (abstractValueDomain.isEmpty(outputType)) {
+    if (abstractValueDomain.isEmpty(outputType).isDefinitelyTrue) {
       // Intersection of double and integer conflicts (is empty), but JS numbers
       // can be both int and double at the same time.  For example, the input
       // can be a literal double '8.0' that is marked as an integer (because 'is
       // int' will return 'true').  What we really need to do is make the
       // overlap between int and double values explicit in the TypeMask system.
-      if (abstractValueDomain.isIntegerOrNull(inputType) &&
-          abstractValueDomain.isDoubleOrNull(checkedType)) {
-        if (abstractValueDomain.canBeNull(inputType) &&
-            abstractValueDomain.canBeNull(checkedType)) {
+      if (abstractValueDomain.isIntegerOrNull(inputType).isDefinitelyTrue &&
+          abstractValueDomain.isDoubleOrNull(checkedType).isDefinitelyTrue) {
+        if (abstractValueDomain.isNull(inputType).isPotentiallyTrue &&
+            abstractValueDomain.isNull(checkedType).isPotentiallyTrue) {
           outputType =
               abstractValueDomain.includeNull(abstractValueDomain.doubleType);
         } else {
@@ -283,11 +285,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     // In some cases, we want the receiver to be an integer,
     // but that does not mean we will get a NoSuchMethodError
     // if it's not: the receiver could be a double.
-    if (abstractValueDomain.isIntegerOrNull(type)) {
+    if (abstractValueDomain.isIntegerOrNull(type).isDefinitelyTrue) {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
-      return instruction.isIntegerOrNull(abstractValueDomain);
+      return instruction.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue;
     }
     return true;
   }
@@ -298,8 +300,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   bool checkReceiver(HInvokeDynamic instruction) {
     assert(instruction.isInterceptedCall);
     HInstruction receiver = instruction.inputs[1];
-    if (receiver.isNumber(abstractValueDomain)) return false;
-    if (receiver.isNumberOrNull(abstractValueDomain)) {
+    if (receiver.isNumber(abstractValueDomain).isDefinitelyTrue) {
+      return false;
+    }
+    if (receiver.isNumberOrNull(abstractValueDomain).isDefinitelyTrue) {
       convertInput(
           instruction,
           receiver,
@@ -318,8 +322,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         ClassEntity cls = target.enclosingClass;
         AbstractValue type = abstractValueDomain.createNonNullSubclass(cls);
         // We currently only optimize on some primitive types.
-        if (!abstractValueDomain.isNumberOrNull(type) &&
-            !abstractValueDomain.isBooleanOrNull(type)) {
+        if (abstractValueDomain.isNumberOrNull(type).isPotentiallyFalse &&
+            abstractValueDomain.isBooleanOrNull(type).isPotentiallyFalse) {
           return false;
         }
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
@@ -340,11 +344,15 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = instruction.inputs[2];
 
     Selector selector = instruction.selector;
-    if (selector.isOperator && left.isNumber(abstractValueDomain)) {
-      if (right.isNumber(abstractValueDomain)) return false;
-      AbstractValue type = right.isIntegerOrNull(abstractValueDomain)
-          ? abstractValueDomain.excludeNull(right.instructionType)
-          : abstractValueDomain.numType;
+    if (selector.isOperator &&
+        left.isNumber(abstractValueDomain).isDefinitelyTrue) {
+      if (right.isNumber(abstractValueDomain).isDefinitelyTrue) {
+        return false;
+      }
+      AbstractValue type =
+          right.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue
+              ? abstractValueDomain.excludeNull(right.instructionType)
+              : abstractValueDomain.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,

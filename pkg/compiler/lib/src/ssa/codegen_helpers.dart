@@ -88,8 +88,12 @@ class SsaInstructionSelection extends HBaseVisitor {
   String simpleOp(HInstruction left, HInstruction right) {
     AbstractValue leftType = left.instructionType;
     AbstractValue rightType = right.instructionType;
-    if (!_abstractValueDomain.canBeNull(leftType)) return '===';
-    if (!_abstractValueDomain.canBeNull(rightType)) return '===';
+    if (_abstractValueDomain.isNull(leftType).isDefinitelyFalse) {
+      return '===';
+    }
+    if (_abstractValueDomain.isNull(rightType).isDefinitelyFalse) {
+      return '===';
+    }
 
     // Dart `null` is implemented by JavaScript `null` and `undefined` which are
     // not strict-equals, so we can't use `===`. We would like to use `==` but
@@ -98,16 +102,16 @@ class SsaInstructionSelection extends HBaseVisitor {
       return '==';
     }
 
-    if (_abstractValueDomain.isNumberOrNull(leftType) &&
-        _abstractValueDomain.isNumberOrNull(rightType)) {
+    if (_abstractValueDomain.isNumberOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isNumberOrNull(rightType).isDefinitelyTrue) {
       return '==';
     }
-    if (_abstractValueDomain.isStringOrNull(leftType) &&
-        _abstractValueDomain.isStringOrNull(rightType)) {
+    if (_abstractValueDomain.isStringOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isStringOrNull(rightType).isDefinitelyTrue) {
       return '==';
     }
-    if (_abstractValueDomain.isBooleanOrNull(leftType) &&
-        _abstractValueDomain.isBooleanOrNull(rightType)) {
+    if (_abstractValueDomain.isBooleanOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isBooleanOrNull(rightType).isDefinitelyTrue) {
       return '==';
     }
 
@@ -115,7 +119,8 @@ class SsaInstructionSelection extends HBaseVisitor {
     // primitive (Number, String, Symbol and, indirectly, Boolean). We use
     // 'intercepted' types as a proxy for all the primitive types.
     bool intercepted(AbstractValue type) => _abstractValueDomain
-        .canBeInterceptor(_abstractValueDomain.excludeNull(type));
+        .isInterceptor(_abstractValueDomain.excludeNull(type))
+        .isPotentiallyTrue;
 
     if (intercepted(leftType)) return null;
     if (intercepted(rightType)) return null;
@@ -271,7 +276,9 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(_abstractValueDomain)) return simpleBinary(assignOp);
+      if (op.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+        return simpleBinary(assignOp);
+      }
       return noMatchingRead();
     }
 

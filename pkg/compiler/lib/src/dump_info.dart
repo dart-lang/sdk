@@ -116,7 +116,9 @@ class ElementInfoCollector {
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
-        closedWorld.abstractValueDomain.isEmpty(inferredType)) {
+        closedWorld.abstractValueDomain
+            .isEmpty(inferredType)
+            .isDefinitelyTrue) {
       return null;
     }
 

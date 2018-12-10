@@ -1239,7 +1239,9 @@ class CommonElementsImpl
     }
     return selector.applies(_jsStringSplit) &&
         (receiver == null ||
-            abstractValueDomain.canHit(receiver, jsStringSplit, selector));
+            abstractValueDomain
+                .isTargetingMember(receiver, jsStringSplit, selector)
+                .isPotentiallyTrue);
   }
 
   FunctionEntity _jsStringSplit;

@@ -101,9 +101,6 @@
     "Dynamic invocation of 'nonNullable'.": 1,
     "Dynamic invocation of 'every'.": 1
   },
-  "pkg/compiler/lib/src/ssa/nodes.dart": {
-    "Dynamic invocation of 'replaceWith'.": 1
-  },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
@@ -160,6 +157,12 @@
   "pkg/compiler/lib/src/native/enqueue.dart": {
     "Dynamic access of 'isDynamic'.": 1
   },
+  "pkg/compiler/lib/src/inferrer/inferrer_engine.dart": {
+    "Dynamic access of 'isVoid'.": 1,
+    "Dynamic access of 'isDynamic'.": 1,
+    "Dynamic access of 'isInterfaceType'.": 1,
+    "Dynamic access of 'element'.": 1
+  },
   "pkg/compiler/lib/src/js_backend/checked_mode_helpers.dart": {
     "Dynamic access of 'name'.": 1
   },
@@ -186,20 +189,6 @@
     "Dynamic invocation of 'isInBasicBlock'.": 2,
     "Dynamic access of 'usedBy'.": 2,
     "Dynamic access of 'inputs'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/inferrer_engine.dart": {
-    "Dynamic access of 'isVoid'.": 1,
-    "Dynamic access of 'isDynamic'.": 1,
-    "Dynamic access of 'isInterfaceType'.": 1,
-    "Dynamic access of 'element'.": 1
-  },
-  "pkg/compiler/lib/src/ssa/optimize.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'replaceWith'.": 1,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic access of 'isContainer'.": 1,
-    "Dynamic invocation of 'containsOnly'.": 2,
-    "Dynamic invocation of 'containsOnlyString'.": 1
   },
   "pkg/compiler/lib/src/constant_system_dart.dart": {
     "Dynamic invocation of '|'.": 1,
@@ -248,16 +237,16 @@
     "Dynamic access of 'isEmpty'.": 1,
     "Dynamic invocation of 'satisfies'.": 2
   },
-  "pkg/compiler/lib/src/universe/function_set.dart": {
-    "Dynamic access of 'selector'.": 1,
-    "Dynamic access of 'receiver'.": 1
-  },
   "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
     "Dynamic access of 'isEmpty'.": 1,
     "Dynamic access of 'positional'.": 2,
     "Dynamic access of 'length'.": 2,
     "Dynamic access of 'named'.": 2,
     "Dynamic invocation of '[]'.": 2
+  },
+  "pkg/compiler/lib/src/universe/function_set.dart": {
+    "Dynamic access of 'selector'.": 1,
+    "Dynamic access of 'receiver'.": 1
   },
   "pkg/compiler/lib/src/ssa/variable_allocator.dart": {
     "Dynamic access of 'usedBy'.": 1,

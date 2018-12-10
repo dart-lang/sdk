@@ -1084,7 +1084,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       Selector selector, AbstractValue mask, InferrerEngine inferrer) {
     JClosedWorld closedWorld = inferrer.closedWorld;
     if (mask == null) return null;
-    if (!inferrer.abstractValueDomain.isIntegerOrNull(mask)) {
+    if (inferrer.abstractValueDomain.isIntegerOrNull(mask).isPotentiallyFalse) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
@@ -1265,7 +1265,8 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
         }
       }));
     }
-    if (isConditional && abstractValueDomain.canBeNull(receiver.type)) {
+    if (isConditional &&
+        abstractValueDomain.isNull(receiver.type).isPotentiallyTrue) {
       // Conditional call sites (e.g. `a?.b`) may be null if the receiver is
       // null.
       result = abstractValueDomain.includeNull(result);
@@ -1487,8 +1488,10 @@ class NarrowTypeInformation extends TypeInformation {
     AbstractValue intersection =
         abstractValueDomain.intersection(input, typeAnnotation);
     if (debug.ANOMALY_WARN) {
-      if (!abstractValueDomain.contains(input, intersection) ||
-          !abstractValueDomain.contains(typeAnnotation, intersection)) {
+      if (abstractValueDomain.contains(input, intersection).isDefinitelyFalse ||
+          abstractValueDomain
+              .contains(typeAnnotation, intersection)
+              .isDefinitelyFalse) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
             "$typeAnnotation");
       }
@@ -1732,8 +1735,8 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       for (String key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];
         if (!abstractValueDomain.containsDictionaryKey(type, key) &&
-            !abstractValueDomain.containsAll(value.type) &&
-            !abstractValueDomain.canBeNull(value.type)) {
+            abstractValueDomain.containsAll(value.type).isDefinitelyFalse &&
+            abstractValueDomain.isNull(value.type).isDefinitelyFalse) {
           return toTypeMask(inferrer);
         }
         if (abstractValueDomain.getDictionaryValueForKey(type, key) !=

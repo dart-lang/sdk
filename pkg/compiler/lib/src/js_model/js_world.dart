@@ -429,8 +429,9 @@ class JsClosedWorld implements JClosedWorld {
     return selector.name == Identifiers.call &&
         (receiver == null ||
             // TODO(johnniwinther): Should this have been `intersects` instead?
-            abstractValueDomain.contains(
-                receiver, abstractValueDomain.functionType));
+            abstractValueDomain
+                .contains(receiver, abstractValueDomain.functionType)
+                .isPotentiallyTrue);
   }
 
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {

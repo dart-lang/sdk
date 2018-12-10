@@ -11,7 +11,38 @@ import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
 
-enum AbstractBool { True, False, Maybe }
+/// Enum-like values used for reporting known and unknown truth values.
+class AbstractBool {
+  final bool _value;
+
+  const AbstractBool._(this._value);
+
+  bool get isDefinitelyTrue => _value == true;
+
+  bool get isPotentiallyTrue => _value != false;
+
+  bool get isDefinitelyFalse => _value == false;
+
+  bool get isPotentiallyFalse => _value != true;
+
+  /// A value of `Abstract.True` is used when the property is known _always_ to
+  /// be true.
+  static const AbstractBool True = const AbstractBool._(true);
+
+  /// A value of `Abstract.False` is used when the property is known _never_ to
+  /// be true.
+  static const AbstractBool False = const AbstractBool._(false);
+
+  /// A value of `Abstract.Maybe` is used when the property might or might not
+  /// be true.
+  static const AbstractBool Maybe = const AbstractBool._(null);
+
+  static AbstractBool trueOrMaybe(bool value) => value ? True : Maybe;
+
+  static AbstractBool trueOrFalse(bool value) => value ? True : False;
+
+  static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
+}
 
 /// Strategy for the abstraction of runtime values used by the global type
 /// inference.
@@ -132,11 +163,13 @@ abstract class AbstractValueDomain {
   /// [cls].
   AbstractValue createNullableSubtype(ClassEntity cls);
 
-  /// Returns `true` if [value] is a native typed array or `null` at runtime.
-  bool isTypedArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a native typed
+  /// array or `null` at runtime.
+  AbstractBool isTypedArray(covariant AbstractValue value);
 
-  /// Returns `true` if [value] could be a native typed array at runtime.
-  bool couldBeTypedArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] could be a native
+  /// typed array at runtime.
+  AbstractBool couldBeTypedArray(covariant AbstractValue value);
 
   /// Returns the version of the abstract [value] that excludes `null`.
   AbstractValue excludeNull(covariant AbstractValue value);
@@ -144,141 +177,151 @@ abstract class AbstractValueDomain {
   /// Returns the version of the abstract [value] that includes `null`.
   AbstractValue includeNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] contains instances of [cls] at runtime.
-  bool containsType(covariant AbstractValue value, ClassEntity cls);
+  /// Returns an [AbstractBool] that describes whether [value] contains
+  /// instances of [cls] at runtime.
+  AbstractBool containsType(covariant AbstractValue value, ClassEntity cls);
 
-  /// Returns `true` if [value] only contains subtypes of [cls] or `null` at
-  /// runtime.
-  bool containsOnlyType(covariant AbstractValue value, ClassEntity cls);
+  /// Returns an [AbstractBool] that describes whether [value] only contains
+  /// subtypes of [cls] or `null` at runtime.
+  AbstractBool containsOnlyType(covariant AbstractValue value, ClassEntity cls);
 
-  /// Returns `true` if [value] is an instance of [cls] or `null` at runtime.
+  /// Returns an [AbstractBool] that describes whether [value] is an instance of
+  /// [cls] or `null` at runtime.
   // TODO(johnniwinther): Merge this with [isInstanceOf].
-  bool isInstanceOfOrNull(covariant AbstractValue value, ClassEntity cls);
+  AbstractBool isInstanceOfOrNull(
+      covariant AbstractValue value, ClassEntity cls);
 
-  /// Returns an [AbstractBool] that describes how [value] is known to be an
+  /// Returns an [AbstractBool] that describes whether [value] is known to be an
   /// instance of [cls] at runtime.
-  ///
-  /// If the returned value is `Abstract.True`, [value] is known _always_ to be
-  /// an instance of [cls]. If the returned value is `Abstract.False`, [value]
-  /// is known _never_ to be an instance of [cls]. If the returned value is
-  /// `Abstract.Maybe` [value] might or might not be an instance of [cls] at
-  /// runtime.
   AbstractBool isInstanceOf(AbstractValue value, ClassEntity cls);
 
-  /// Returns `true` if [value] is empty set of runtime values.
-  bool isEmpty(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is empty set of
+  /// runtime values.
+  AbstractBool isEmpty(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a non-null exact class at runtime.
-  bool isExact(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-null
+  /// exact class at runtime.
+  AbstractBool isExact(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is an exact class or `null` at runtime.
-  bool isExactOrNull(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is an exact class
+  /// or `null` at runtime.
+  AbstractBool isExactOrNull(covariant AbstractValue value);
 
   /// Returns the [ClassEntity] if this [value] is a non-null instance of an
   /// exact class at runtime, and `null` otherwise.
   ClassEntity getExactClass(covariant AbstractValue value);
 
-  /// Returns `true` if [value] can be `null` at runtime.
-  bool canBeNull(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is `null` at
+  /// runtime.
+  AbstractBool isNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is `null` at runtime.
-  bool isNull(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// bool, number, string, array or `null` at runtime.
+  AbstractBool isPrimitive(covariant AbstractValue value);
 
-  /// Returns `true` if [value] could be a JavaScript bool, number, string,
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// number at runtime.
+  AbstractBool isPrimitiveNumber(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// bool at runtime.
+  AbstractBool isPrimitiveBoolean(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// array at runtime.
+  AbstractBool isPrimitiveArray(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// string, array, native HTML list or `null` at runtime.
+  AbstractBool isIndexablePrimitive(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a fixed-size
+  /// or constant JavaScript array or `null` at runtime.
+  AbstractBool isFixedArray(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a growable
+  /// JavaScript array or `null` at runtime.
+  AbstractBool isExtendableArray(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a mutable
+  /// JavaScript array or `null` at runtime.
+  AbstractBool isMutableArray(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a mutable
+  /// JavaScript array, native HTML list or `null` at runtime.
+  AbstractBool isMutableIndexable(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// array or `null` at runtime.
-  bool canBePrimitive(covariant AbstractValue value);
+  AbstractBool isArray(covariant AbstractValue value);
 
-  /// Returns `true` if [value] could be a JavaScript number at runtime.
-  bool canBePrimitiveNumber(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// string at runtime.
+  AbstractBool isPrimitiveString(covariant AbstractValue value);
 
-  /// Returns `true` if [value] could be a JavaScript bool at runtime.
-  bool canBePrimitiveBoolean(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is an interceptor
+  /// at runtime.
+  AbstractBool isInterceptor(covariant AbstractValue value);
 
-  /// Returns `true` if [value] could be a JavaScript array at runtime.
-  bool canBePrimitiveArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-null
+  /// integer value at runtime.
+  AbstractBool isInteger(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a JavaScript string, array, native HTML list
-  /// or `null` at runtime.
-  bool isIndexablePrimitive(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-null 32
+  /// bit unsigned integer value at runtime.
+  AbstractBool isUInt32(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a fixed-size or constant JavaScript array or
-  /// `null` at
-  /// runtime.
-  bool isFixedArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-null 31
+  /// bit unsigned integer value at runtime.
+  AbstractBool isUInt31(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a growable JavaScript array or `null` at
-  /// runtime.
-  bool isExtendableArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-null
+  /// unsigned integer value at runtime.
+  AbstractBool isPositiveInteger(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a mutable JavaScript array or `null` at
-  /// runtime.
-  bool isMutableArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is an unsigned
+  /// integer value or `null` at runtime.
+  AbstractBool isPositiveIntegerOrNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a mutable JavaScript array, native HTML list
-  /// or `null` at runtime.
-  bool isMutableIndexable(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is an integer
+  /// value or `null` at runtime.
+  AbstractBool isIntegerOrNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a JavaScript array or `null` at runtime.
-  bool isArray(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-null
+  /// JavaScript number at runtime.
+  AbstractBool isNumber(covariant AbstractValue value);
 
-  /// Returns `true` if [value] could be a JavaScript string at runtime.
-  bool canBePrimitiveString(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// number or `null` at runtime.
+  AbstractBool isNumberOrNull(covariant AbstractValue value);
 
-  /// Return `true` if [value] could be an interceptor at runtime.
-  bool canBeInterceptor(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-integer
+  /// number at runtime.
+  AbstractBool isDouble(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a non-null integer value at runtime.
-  bool isInteger(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a non-integer
+  /// number or `null` at runtime.
+  AbstractBool isDoubleOrNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a non-null 32 bit unsigned integer value at
-  /// runtime.
-  bool isUInt32(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// bool at runtime.
+  AbstractBool isBoolean(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a non-null 31 bit unsigned integer value at
-  /// runtime.
-  bool isUInt31(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// bool or `null` at runtime.
+  AbstractBool isBooleanOrNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is a non-null unsigned integer value at runtime.
-  bool isPositiveInteger(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// string at runtime.
+  AbstractBool isString(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is an unsigned integer value or `null` at
-  /// runtime.
-  bool isPositiveIntegerOrNull(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
+  /// string or `null` at runtime.
+  AbstractBool isStringOrNull(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is an integer value or `null` at runtime.
-  bool isIntegerOrNull(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a non-null JavaScript number at runtime.
-  bool isNumber(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a JavaScript number or `null` at runtime.
-  bool isNumberOrNull(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a non-integer number at runtime.
-  bool isDouble(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a non-integer number or `null` at runtime.
-  bool isDoubleOrNull(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a JavaScript bool at runtime.
-  bool isBoolean(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a JavaScript bool or `null` at runtime.
-  bool isBooleanOrNull(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a JavaScript string at runtime.
-  bool isString(covariant AbstractValue value);
-
-  /// Returns `true` if [value] is a JavaScript string or `null` at runtime.
-  bool isStringOrNull(covariant AbstractValue value);
-
-  /// Returns `true` if [value] a non-null JavaScript primitive or `null`?
-  // TODO(johnniwinther): This should probably not return true on `null`,
-  // investigate.
-  bool isPrimitive(covariant AbstractValue value);
-
-  /// Returns `true` if [value] a JavaScript primitive, possible `null`.
-  bool isPrimitiveOrNull(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes whether [value] a JavaScript
+  /// primitive, possible `null`.
+  AbstractBool isPrimitiveOrNull(covariant AbstractValue value);
 
   /// Returns [AbstractValue] for the runtime values contained in either [a] or
   /// [b].
@@ -293,11 +336,14 @@ abstract class AbstractValueDomain {
   AbstractValue intersection(
       covariant AbstractValue a, covariant AbstractValue b);
 
-  /// Returns `true` if [a] and [b] have no runtime values in common.
-  bool areDisjoint(covariant AbstractValue a, covariant AbstractValue b);
+  /// Returns an [AbstractBool] that describes whether [a] and [b] have no
+  /// runtime values in common.
+  AbstractBool areDisjoint(
+      covariant AbstractValue a, covariant AbstractValue b);
 
-  /// Returns `true` if [a] contains all non-null runtime values.
-  bool containsAll(covariant AbstractValue a);
+  /// Returns an [AbstractBool] that describes whether [a] contains all non-null
+  /// runtime values.
+  AbstractBool containsAll(covariant AbstractValue a);
 
   /// Computes the [AbstractValue] corresponding to the constant [value].
   AbstractValue computeAbstractValueForConstant(ConstantValue value);
@@ -419,22 +465,24 @@ abstract class AbstractValueDomain {
   /// Compute the type of all potential receivers of the set of live [members].
   AbstractValue computeReceiver(Iterable<MemberEntity> members);
 
-  /// Returns whether [member] is a potential target when being
-  /// invoked on a [receiver]. [selector] is used to ensure library privacy is
-  /// taken into account.
-  bool canHit(AbstractValue receiver, MemberEntity member, Selector selector);
+  /// Returns an [AbstractBool] that describes whether [member] is a potential
+  /// target when being invoked on a [receiver]. [selector] is used to ensure
+  /// library privacy is taken into account.
+  AbstractBool isTargetingMember(
+      AbstractValue receiver, MemberEntity member, Selector selector);
 
-  /// Returns whether [selector] invoked on a [receiver] can hit a
-  /// [noSuchMethod].
-  bool needsNoSuchMethodHandling(AbstractValue receiver, Selector selector);
+  /// Returns an [AbstractBool] that describes whether [selector] invoked on a
+  /// [receiver] can hit a [noSuchMethod].
+  AbstractBool needsNoSuchMethodHandling(
+      AbstractValue receiver, Selector selector);
 
-  /// Returns `true` if the set of runtime values of [subset] are all in the set
-  /// of runtime values of [superset].
-  bool contains(AbstractValue superset, AbstractValue subset);
+  /// Returns an [AbstractBool] that describes if the set of runtime values of
+  /// [subset] are known to all be in the set of runtime values of [superset].
+  AbstractBool contains(AbstractValue superset, AbstractValue subset);
 
-  /// Returns `true` if the set of runtime values of [subset] are all in the set
-  /// of runtime values of [superset].
-  bool isIn(AbstractValue subset, AbstractValue superset);
+  /// Returns an [AbstractBool] that describes if the set of runtime values of
+  /// [subset] are known to all be in the set of runtime values of [superset].
+  AbstractBool isIn(AbstractValue subset, AbstractValue superset);
 
   /// Returns the [MemberEntity] that is known to always be hit at runtime
   /// [receiver].
@@ -442,18 +490,20 @@ abstract class AbstractValueDomain {
   /// Returns `null` if 0 or more than 1 member can be hit at runtime.
   MemberEntity locateSingleMember(AbstractValue receiver, Selector selector);
 
-  /// Returns `true` if [value] is an indexable JavaScript value at runtime.
-  bool isJsIndexable(covariant AbstractValue value);
+  /// Returns an [AbstractBool] that describes if [value] is known to be an
+  /// indexable JavaScript value at runtime.
+  AbstractBool isJsIndexable(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is an indexable and iterable JavaScript value at
-  /// runtime.
+  /// RReturns an [AbstractBool] that describes if [value] is known to be an
+  /// indexable or iterable JavaScript value at runtime.
   ///
   /// JavaScript arrays are both indexable and iterable whereas JavaScript
   /// strings are indexable but not iterable.
-  bool isJsIndexableAndIterable(AbstractValue value);
+  AbstractBool isJsIndexableAndIterable(AbstractValue value);
 
-  /// Returns `true` if [value] is an JavaScript indexable of fixed length.
-  bool isFixedLengthJsIndexable(AbstractValue value);
+  /// Returns an [AbstractBool] that describes if [value] is known to be a
+  /// JavaScript indexable of fixed length.
+  AbstractBool isFixedLengthJsIndexable(AbstractValue value);
 
   /// Returns compact a textual representation for [value] used for debugging.
   String getCompactText(AbstractValue value);

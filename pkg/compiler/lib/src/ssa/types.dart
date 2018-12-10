@@ -64,7 +64,7 @@ class AbstractValueFactory {
 
     AbstractValue result =
         abstractValueDomain.unionOfMany(typesReturned.map(fromNativeType));
-    assert(!abstractValueDomain.isEmpty(result),
+    assert(abstractValueDomain.isEmpty(result).isPotentiallyFalse,
         "Unexpected empty return value for $nativeBehavior.");
     return result;
   }

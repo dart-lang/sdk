@@ -1021,87 +1021,88 @@ abstract class HInstruction implements Spannable {
   bool isValue(AbstractValueDomain domain) =>
       domain.isPrimitiveValue(instructionType);
 
-  bool canBeNull(AbstractValueDomain domain) =>
-      domain.canBeNull(instructionType);
+  AbstractBool isNull(AbstractValueDomain domain) =>
+      domain.isNull(instructionType);
 
-  bool isNull(AbstractValueDomain domain) => domain.isNull(instructionType);
-
-  bool isConflicting(AbstractValueDomain domain) =>
+  AbstractBool isConflicting(AbstractValueDomain domain) =>
       domain.isEmpty(instructionType);
 
-  bool canBePrimitive(AbstractValueDomain domain) =>
-      domain.canBePrimitive(instructionType);
-
-  bool canBePrimitiveNumber(AbstractValueDomain domain) =>
-      domain.canBePrimitiveNumber(instructionType);
-
-  bool canBePrimitiveBoolean(AbstractValueDomain domain) =>
-      domain.canBePrimitiveBoolean(instructionType);
-
-  bool canBePrimitiveArray(AbstractValueDomain domain) =>
-      domain.canBePrimitiveArray(instructionType);
-
-  bool isIndexablePrimitive(AbstractValueDomain domain) =>
-      domain.isIndexablePrimitive(instructionType);
-
-  bool isFixedArray(AbstractValueDomain domain) =>
-      domain.isFixedArray(instructionType);
-
-  bool isExtendableArray(AbstractValueDomain domain) =>
-      domain.isExtendableArray(instructionType);
-
-  bool isMutableArray(AbstractValueDomain domain) =>
-      domain.isMutableArray(instructionType);
-
-  bool isMutableIndexable(AbstractValueDomain domain) =>
-      domain.isMutableIndexable(instructionType);
-
-  bool isArray(AbstractValueDomain domain) => domain.isArray(instructionType);
-
-  bool canBePrimitiveString(AbstractValueDomain domain) =>
-      domain.canBePrimitiveString(instructionType);
-
-  bool isInteger(AbstractValueDomain domain) =>
-      domain.isInteger(instructionType);
-
-  bool isUInt32(AbstractValueDomain domain) => domain.isUInt32(instructionType);
-
-  bool isUInt31(AbstractValueDomain domain) => domain.isUInt31(instructionType);
-
-  bool isPositiveInteger(AbstractValueDomain domain) =>
-      domain.isPositiveInteger(instructionType);
-
-  bool isPositiveIntegerOrNull(AbstractValueDomain domain) =>
-      domain.isPositiveIntegerOrNull(instructionType);
-
-  bool isIntegerOrNull(AbstractValueDomain domain) =>
-      domain.isIntegerOrNull(instructionType);
-
-  bool isNumber(AbstractValueDomain domain) => domain.isNumber(instructionType);
-
-  bool isNumberOrNull(AbstractValueDomain domain) =>
-      domain.isNumberOrNull(instructionType);
-
-  bool isDouble(AbstractValueDomain domain) => domain.isDouble(instructionType);
-
-  bool isDoubleOrNull(AbstractValueDomain domain) =>
-      domain.isDoubleOrNull(instructionType);
-
-  bool isBoolean(AbstractValueDomain domain) =>
-      domain.isBoolean(instructionType);
-
-  bool isBooleanOrNull(AbstractValueDomain domain) =>
-      domain.isBooleanOrNull(instructionType);
-
-  bool isString(AbstractValueDomain domain) => domain.isString(instructionType);
-
-  bool isStringOrNull(AbstractValueDomain domain) =>
-      domain.isStringOrNull(instructionType);
-
-  bool isPrimitive(AbstractValueDomain domain) =>
+  AbstractBool isPrimitive(AbstractValueDomain domain) =>
       domain.isPrimitive(instructionType);
 
-  bool isPrimitiveOrNull(AbstractValueDomain domain) =>
+  AbstractBool isPrimitiveNumber(AbstractValueDomain domain) =>
+      domain.isPrimitiveNumber(instructionType);
+
+  AbstractBool isPrimitiveBoolean(AbstractValueDomain domain) =>
+      domain.isPrimitiveBoolean(instructionType);
+
+  AbstractBool isPrimitiveArray(AbstractValueDomain domain) =>
+      domain.isPrimitiveArray(instructionType);
+
+  AbstractBool isIndexablePrimitive(AbstractValueDomain domain) =>
+      domain.isIndexablePrimitive(instructionType);
+
+  AbstractBool isFixedArray(AbstractValueDomain domain) =>
+      domain.isFixedArray(instructionType);
+
+  AbstractBool isExtendableArray(AbstractValueDomain domain) =>
+      domain.isExtendableArray(instructionType);
+
+  AbstractBool isMutableArray(AbstractValueDomain domain) =>
+      domain.isMutableArray(instructionType);
+
+  AbstractBool isMutableIndexable(AbstractValueDomain domain) =>
+      domain.isMutableIndexable(instructionType);
+
+  AbstractBool isArray(AbstractValueDomain domain) =>
+      domain.isArray(instructionType);
+
+  AbstractBool isPrimitiveString(AbstractValueDomain domain) =>
+      domain.isPrimitiveString(instructionType);
+
+  AbstractBool isInteger(AbstractValueDomain domain) =>
+      domain.isInteger(instructionType);
+
+  AbstractBool isUInt32(AbstractValueDomain domain) =>
+      domain.isUInt32(instructionType);
+
+  AbstractBool isUInt31(AbstractValueDomain domain) =>
+      domain.isUInt31(instructionType);
+
+  AbstractBool isPositiveInteger(AbstractValueDomain domain) =>
+      domain.isPositiveInteger(instructionType);
+
+  AbstractBool isPositiveIntegerOrNull(AbstractValueDomain domain) =>
+      domain.isPositiveIntegerOrNull(instructionType);
+
+  AbstractBool isIntegerOrNull(AbstractValueDomain domain) =>
+      domain.isIntegerOrNull(instructionType);
+
+  AbstractBool isNumber(AbstractValueDomain domain) =>
+      domain.isNumber(instructionType);
+
+  AbstractBool isNumberOrNull(AbstractValueDomain domain) =>
+      domain.isNumberOrNull(instructionType);
+
+  AbstractBool isDouble(AbstractValueDomain domain) =>
+      domain.isDouble(instructionType);
+
+  AbstractBool isDoubleOrNull(AbstractValueDomain domain) =>
+      domain.isDoubleOrNull(instructionType);
+
+  AbstractBool isBoolean(AbstractValueDomain domain) =>
+      domain.isBoolean(instructionType);
+
+  AbstractBool isBooleanOrNull(AbstractValueDomain domain) =>
+      domain.isBooleanOrNull(instructionType);
+
+  AbstractBool isString(AbstractValueDomain domain) =>
+      domain.isString(instructionType);
+
+  AbstractBool isStringOrNull(AbstractValueDomain domain) =>
+      domain.isStringOrNull(instructionType);
+
+  AbstractBool isPrimitiveOrNull(AbstractValueDomain domain) =>
       domain.isPrimitiveOrNull(instructionType);
 
   /**
@@ -1328,7 +1329,7 @@ class DominatedUses {
   /// dominated block. (There can be many such edges on a single phi at the exit
   /// of a loop with many break statements).  If [excludePhiOutEdges] is `true`
   /// then these edge uses are not included.
-  static of(HInstruction source, HInstruction dominator,
+  static DominatedUses of(HInstruction source, HInstruction dominator,
       {bool excludeDominator: false, bool excludePhiOutEdges: false}) {
     return new DominatedUses._(source)
       .._compute(source, dominator, excludeDominator, excludePhiOutEdges);
@@ -1727,8 +1728,9 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
   List<DartType> get typeArguments => const <DartType>[];
 
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
-  bool canThrow(AbstractValueDomain domain) =>
-      isTearOff ? inputs.last.canBeNull(domain) : super.canThrow(domain);
+  bool canThrow(AbstractValueDomain domain) => isTearOff
+      ? inputs.last.isNull(domain).isPotentiallyTrue
+      : super.canThrow(domain);
 
   String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
 }
@@ -1900,7 +1902,8 @@ class HFieldGet extends HFieldAccess {
     return false;
   }
 
-  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -1923,7 +1926,8 @@ class HFieldSet extends HFieldAccess {
     sideEffects.setChangesInstanceProperty();
   }
 
-  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -1951,7 +1955,8 @@ class HGetLength extends HInstruction {
 
   HInstruction get receiver => inputs.single;
 
-  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -2004,7 +2009,8 @@ class HReadModifyWrite extends HLateInstruction {
   bool get isPostOp => opKind == POST_OP;
   bool get isAssignOp => opKind == ASSIGN_OP;
 
-  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -2107,7 +2113,7 @@ class HForeignCode extends HForeign {
   bool isJsStatement() => isStatement;
   bool canThrow(AbstractValueDomain domain) {
     if (inputs.length > 0) {
-      return inputs.first.canBeNull(domain)
+      return inputs.first.isNull(domain).isPotentiallyTrue
           ? throwBehavior.canThrow
           : throwBehavior.onNonNull.canThrow;
     }
@@ -2119,7 +2125,7 @@ class HForeignCode extends HForeign {
   bool isAllocation(AbstractValueDomain domain) =>
       nativeBehavior != null &&
       nativeBehavior.isAllocation &&
-      !canBeNull(domain);
+      isNull(domain).isDefinitelyFalse;
 
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
   bool typeEquals(other) => other is HForeignCode;
@@ -2834,7 +2840,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
       this.interceptedClasses)
       : super(selector, mask, null, inputs, true, type) {
     assert(inputs[0] is HConstant);
-    assert(inputs[0].isNull(domain));
+    assert(inputs[0].isNull(domain).isDefinitelyTrue);
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   bool isCallOnInterceptor(JClosedWorld closedWorld) => true;
@@ -2919,7 +2925,8 @@ class HIndex extends HInstruction {
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
-  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;
@@ -2952,7 +2959,8 @@ class HIndexAssign extends HInstruction {
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
-  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 }
 
 class HIs extends HInstruction {
@@ -3204,26 +3212,34 @@ class HTypeConversion extends HCheck {
       }
       if (type.isFutureOr) {
         // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain)) return true;
+        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
+          return true;
+        }
         // TODO(johnniwinther): Optimize FutureOr type conversions.
         return false;
       }
       if (!type.treatAsRaw) {
         // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain)) return true;
+        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
+          return true;
+        }
         return false;
       }
       if (type.isFunctionType) {
         // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain)) return true;
+        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
+          return true;
+        }
         // TODO(johnniwinther): Optimize function type conversions.
         return false;
       }
     }
     // Type is refined from `dynamic`, so it might become non-redundant.
-    if (abstractValueDomain.containsAll(checkedType)) return false;
+    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
+      return false;
+    }
     AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain.isIn(inputType, checkedType);
+    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
   }
 
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
@@ -3270,9 +3286,11 @@ class HTypeKnown extends HCheck {
 
   bool isRedundant(JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    if (abstractValueDomain.containsAll(knownType)) return false;
+    if (abstractValueDomain.containsAll(knownType).isPotentiallyTrue) {
+      return false;
+    }
     AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain.isIn(inputType, knownType);
+    return abstractValueDomain.isIn(inputType, knownType).isDefinitelyTrue;
   }
 }
 
