@@ -409,11 +409,11 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     return new RequestMessage(id, method, params, jsonRpcVersion);
   }
 
-  Future openFile(Uri uri, String content) async {
+  Future openFile(Uri uri, String content, {num version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
-      new DidOpenTextDocumentParams(
-          new TextDocumentItem(uri.toString(), dartLanguageId, 1, content)),
+      new DidOpenTextDocumentParams(new TextDocumentItem(
+          uri.toString(), dartLanguageId, version, content)),
     );
     channel.sendNotificationToServer(notification);
     await pumpEventQueue();

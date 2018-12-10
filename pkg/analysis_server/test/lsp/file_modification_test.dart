@@ -115,12 +115,25 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     expect(server.fileContentOverlay[mainFilePath], isNull);
-    await openFile(mainFileUri, testContent);
+    await openFile(mainFileUri, testContent, version: 2);
     expect(server.fileContentOverlay[mainFilePath], equals(testContent));
 
     // The version for a file that's just been opened (and never modified) is
     // `null` (this means the contents match what's on disk).
     final documentVersion = server.getVersionedDocumentIdentifier(mainFilePath);
-    expect(documentVersion.version, isNull);
+    expect(documentVersion.version, 2);
+  }
+
+  test_open_invalidPath() async {
+    await initialize();
+
+    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+      () => openFile(new Uri.http('localhost', 'not-a-file'), ''),
+    );
+    expect(notificationParams, isNotNull);
+    expect(
+      notificationParams.message,
+      contains('URI was not a valid file:// URI'),
+    );
   }
 }

@@ -60,7 +60,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     final clientSupportsDocumentSymbol =
         symbolCapabilities?.hierarchicalDocumentSymbolSupport ?? false;
 
-    final path = pathOf(params.textDocument);
+    final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireUnit);
     return unit.mapResult((unit) => _getSymbols(clientSupportedSymbolKinds,
         clientSupportsDocumentSymbol, path.result, unit));

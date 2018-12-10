@@ -30,7 +30,7 @@ class ReferencesHandler
   @override
   Future<ErrorOr<List<Location>>> handle(ReferenceParams params) async {
     final pos = params.position;
-    final path = pathOf(params.textDocument);
+    final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult(

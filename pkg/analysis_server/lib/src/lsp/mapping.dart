@@ -217,14 +217,27 @@ lsp.Location navigationTargetToLocation(String targetFilePath,
 }
 
 /// Returns the file system path for a TextDocumentIdentifier.
-ErrorOr<String> pathOf(lsp.TextDocumentIdentifier doc) {
-  final uri = Uri.tryParse(doc.uri);
+ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) =>
+    pathOfUri(Uri.tryParse(doc?.uri));
+
+/// Returns the file system path for a TextDocumentItem.
+ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) =>
+    pathOfUri(Uri.tryParse(doc?.uri));
+
+/// Returns the file system path for a file URI.
+ErrorOr<String> pathOfUri(Uri uri) {
+  if (uri == null) {
+    return new ErrorOr<String>.error(new ResponseError(
+        lsp.ServerErrorCodes.InvalidFilePath,
+        'Document URI was not supplied',
+        null));
+  }
   final isValidFileUri = (uri?.isScheme('file') ?? false);
   if (!isValidFileUri) {
     return new ErrorOr<String>.error(new ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'URI was not a valid file:// URI',
-        doc.uri));
+        uri));
   }
   try {
     return new ErrorOr<String>.success(uri.toFilePath());
@@ -234,7 +247,7 @@ ErrorOr<String> pathOf(lsp.TextDocumentIdentifier doc) {
     return new ErrorOr<String>.error(new ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'File URI did not contain a valid file path',
-        doc.uri));
+        uri));
   }
 }
 
@@ -348,58 +361,6 @@ lsp.CompletionItem toCompletionItem(
     [], // commitCharacters
     null, // command
     null, // data, useful for if using lazy resolve, this comes back to us
-  );
-}
-
-lsp.WorkspaceEdit toWorkspaceEdit(
-  VersionedTextDocumentIdentifier doc,
-  server.LineInfo lineInfo,
-  List<server.SourceEdit> edits,
-) {
-  // TODO(dantup): Read from capabilities.
-  final clientSupportsTextDocumentEdits = true;
-  if (clientSupportsTextDocumentEdits) {
-    return new WorkspaceEdit(
-        null,
-        Either2<
-            List<TextDocumentEdit>,
-            List<
-                Either4<TextDocumentEdit, CreateFile, RenameFile,
-                    DeleteFile>>>.t1(
-          [toTextDocumentEdit(doc, lineInfo, edits)],
-        ));
-  } else {
-    return new WorkspaceEdit(
-        toWorkspaceEditChanges(doc, lineInfo, edits), null);
-  }
-}
-
-lsp.TextDocumentEdit toTextDocumentEdit(
-  VersionedTextDocumentIdentifier doc,
-  server.LineInfo lineInfo,
-  List<server.SourceEdit> edits,
-) {
-  return new TextDocumentEdit(
-    doc,
-    edits.map((e) => toTextEdit(lineInfo, e)).toList(),
-  );
-}
-
-Map<String, List<TextEdit>> toWorkspaceEditChanges(
-  VersionedTextDocumentIdentifier doc,
-  server.LineInfo lineInfo,
-  List<server.SourceEdit> edits,
-) {
-  // TODO(dantup): Fix codegen for WorkspaceEditChanges to be Map<String, TextEdit>
-  return Map<String, List<TextEdit>>.fromEntries(
-    edits.map((e) => new MapEntry(doc.uri, [toTextEdit(lineInfo, e)])),
-  );
-}
-
-lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
-  return new TextEdit(
-    toRange(lineInfo, edit.offset, edit.length),
-    edit.replacement,
   );
 }
 
@@ -521,6 +482,58 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
     ],
     0, // activeSignature
     null, // activeParameter
+  );
+}
+
+lsp.TextDocumentEdit toTextDocumentEdit(
+  VersionedTextDocumentIdentifier doc,
+  server.LineInfo lineInfo,
+  List<server.SourceEdit> edits,
+) {
+  return new TextDocumentEdit(
+    doc,
+    edits.map((e) => toTextEdit(lineInfo, e)).toList(),
+  );
+}
+
+lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
+  return new TextEdit(
+    toRange(lineInfo, edit.offset, edit.length),
+    edit.replacement,
+  );
+}
+
+lsp.WorkspaceEdit toWorkspaceEdit(
+  VersionedTextDocumentIdentifier doc,
+  server.LineInfo lineInfo,
+  List<server.SourceEdit> edits,
+) {
+  // TODO(dantup): Read from capabilities.
+  final clientSupportsTextDocumentEdits = true;
+  if (clientSupportsTextDocumentEdits) {
+    return new WorkspaceEdit(
+        null,
+        Either2<
+            List<TextDocumentEdit>,
+            List<
+                Either4<TextDocumentEdit, CreateFile, RenameFile,
+                    DeleteFile>>>.t1(
+          [toTextDocumentEdit(doc, lineInfo, edits)],
+        ));
+  } else {
+    return new WorkspaceEdit(
+        toWorkspaceEditChanges(doc, lineInfo, edits), null);
+  }
+}
+
+Map<String, List<TextEdit>> toWorkspaceEditChanges(
+  VersionedTextDocumentIdentifier doc,
+  server.LineInfo lineInfo,
+  List<server.SourceEdit> edits,
+) {
+  // TODO(dantup): Fix codegen for WorkspaceEditChanges to be Map<String, TextEdit>
+  return Map<String, List<TextEdit>>.fromEntries(
+    edits.map((e) => new MapEntry(doc.uri, [toTextEdit(lineInfo, e)])),
   );
 }
 

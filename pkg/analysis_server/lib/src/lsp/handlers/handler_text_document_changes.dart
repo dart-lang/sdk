@@ -19,7 +19,7 @@ class TextDocumentChangeHandler
       DidChangeTextDocumentParams.fromJson(json);
 
   ErrorOr<void> handle(DidChangeTextDocumentParams params) {
-    final path = pathOf(params.textDocument);
+    final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => _changeFile(path, params));
   }
 
@@ -54,7 +54,7 @@ class TextDocumentCloseHandler
       DidCloseTextDocumentParams.fromJson(json);
 
   ErrorOr<void> handle(DidCloseTextDocumentParams params) {
-    final path = pathOf(params.textDocument);
+    final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
       server.documentVersions[path] = null;
       server.updateOverlay(path, null);
@@ -74,15 +74,21 @@ class TextDocumentOpenHandler
 
   ErrorOr<void> handle(DidOpenTextDocumentParams params) {
     final doc = params.textDocument;
-    // TODO(dantup): This needs similar error handling to pathOf()
-    final path = Uri.parse(doc.uri).toFilePath();
+    final path = pathOfDocItem(doc);
+    return path.mapResult((path) {
+      // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
+      // do get the necessary info to create one.
+      server.documentVersions[path] = new VersionedTextDocumentIdentifier(
+        params.textDocument.version,
+        params.textDocument.uri,
+      );
+      server.updateOverlay(path, doc.text);
 
-    server.updateOverlay(path, doc.text);
+      // If the file did not exist, and is "overlay only", it still should be
+      // analyzed. Add it to driver to which it should have been added.
+      server.contextManager.getDriverFor(path)?.addFile(path);
 
-    // If the file did not exist, and is "overlay only", it still should be
-    // analyzed. Add it to driver to which it should have been added.
-    server.contextManager.getDriverFor(path)?.addFile(path);
-
-    return success();
+      return success();
+    });
   }
 }

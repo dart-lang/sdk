@@ -25,7 +25,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
 
   Future<ErrorOr<Hover>> handle(TextDocumentPositionParams params) async {
     final pos = params.position;
-    final path = pathOf(params.textDocument);
+    final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult((offset) => _getHover(unit.result, offset));

@@ -47,7 +47,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final clientSupportedCodeActionKinds = new HashSet<CodeActionKind>.of(
         capabilities?.codeActionLiteralSupport?.codeActionKind?.valueSet ?? []);
 
-    final path = pathOf(params.textDocument);
+    final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireUnit);
     return unit.mapResult((unit) => _getCodeActions(
         clientSupportedCodeActionKinds,
