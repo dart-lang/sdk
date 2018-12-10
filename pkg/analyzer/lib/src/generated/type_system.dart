@@ -79,6 +79,7 @@ class Dart2TypeSystem extends TypeSystem {
 
   Dart2TypeSystem(this.typeProvider, {this.implicitCasts: true});
 
+  @deprecated
   @override
   bool get isStrong => true;
 
@@ -1677,6 +1678,7 @@ abstract class TypeSystem {
   /**
    * Whether the type system is strong or not.
    */
+  @deprecated
   bool get isStrong;
 
   /**
@@ -1743,16 +1745,10 @@ abstract class TypeSystem {
     // In Dart 2, the result is `Function` iff T is `Function`, otherwise the
     // result is `Object`.
     if (type1 is FunctionType && type2 is InterfaceType) {
-      if (isStrong) {
-        return type2.isDartCoreFunction ? type2 : typeProvider.objectType;
-      }
-      type1 = typeProvider.functionType;
+      return type2.isDartCoreFunction ? type2 : typeProvider.objectType;
     }
     if (type2 is FunctionType && type1 is InterfaceType) {
-      if (isStrong) {
-        return type1.isDartCoreFunction ? type1 : typeProvider.objectType;
-      }
-      type2 = typeProvider.functionType;
+      return type1.isDartCoreFunction ? type1 : typeProvider.objectType;
     }
 
     // At this point type1 and type2 should both either be interface types or

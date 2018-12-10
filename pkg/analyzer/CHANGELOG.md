@@ -1,3 +1,6 @@
+##
+* Deprecated TypeSystem.isStrong
+
 ## 0.34.0
 * Support for `declarations-casts` has been removed and the `implicit-casts`
   option now has the combined semantics of both options. This means that users
