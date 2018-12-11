@@ -19,7 +19,6 @@ io/file_error_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
 io/http_auth_test: RuntimeError
-io/http_compression_test: RuntimeError
 io/http_cookie_date_test: CompileTimeError
 io/http_headers_test: CompileTimeError
 io/http_parser_test: CompileTimeError
@@ -102,7 +101,6 @@ io/compile_all_test: RuntimeError # Issue 32338
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
 io/http_close_test: Crash
-io/http_compression_test: RuntimeError
 io/http_content_length_test: Skip # Flaky.
 io/http_cookie_test: Skip # Flaky
 io/http_proxy_advanced_test: Skip # Flaky
@@ -154,7 +152,6 @@ io/web_socket_ping_test: Crash, Pass
 
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout
-io/http_compression_test: RuntimeError
 io/platform_resolved_executable_test/03: Pass, RuntimeError
 io/platform_resolved_executable_test/04: Pass, RuntimeError
 io/secure_builtin_roots_test: Pass, Timeout
