@@ -1,4 +1,4 @@
-## 0.33.6+1-dev
+## 0.33.6+1
 * Added a note to the `UriResolver` documentation alerting clients of an
   upcoming breaking change.
 
