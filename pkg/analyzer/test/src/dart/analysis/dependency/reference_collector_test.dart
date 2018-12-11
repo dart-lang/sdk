@@ -18,6 +18,7 @@ main() {
     defineReflectiveTests(ExpressionReferenceCollectorTest);
     defineReflectiveTests(ExpressionReferenceCollectorTest_SetLiterals);
     defineReflectiveTests(ImplReferenceCollectorTest);
+    defineReflectiveTests(ShadowReferenceCollectorTest);
     defineReflectiveTests(StatementReferenceCollectorTest);
     defineReflectiveTests(TypeReferenceCollectorTest);
   });
@@ -242,7 +243,6 @@ class X<T extends A<B, C>> {}
 ''');
     _assertApi(library, 'T', NodeKind.TYPE_PARAMETER,
         typeParameterOf: 'X', unprefixed: ['A', 'B', 'C']);
-    // TODO(scheglov) test for type parameter referencing the enclosing class
   }
 
   test_unit_class() async {
@@ -1381,7 +1381,7 @@ class ImplReferenceCollectorTest extends _Base {
   test_class_constructor() async {
     var library = await buildTestLibrary(a, r'''
 class C {
-  C.test({a: x}) {
+  C.test(A a, {b: x}) {
     y;
   }
 }
@@ -1393,7 +1393,7 @@ class C {
   test_class_method() async {
     var library = await buildTestLibrary(a, r'''
 class C {
-  void test({a: x}) {
+  void test(A a, {b: x}) {
     y;
   }
 }
@@ -1443,7 +1443,7 @@ class Test<T extends V, U extends T> = A<T> with B<U, W>;
 
   test_unit_function() async {
     var library = await buildTestLibrary(a, r'''
-void test({a: x}) {
+void test(A a, {b: x}) {
   y;
 }
 ''');
@@ -1475,6 +1475,133 @@ int test;
 ''');
     _assertImpl(library, 'test', NodeKind.GETTER);
     _assertImpl(library, 'test=', NodeKind.SETTER); // empty
+  }
+}
+
+@reflectiveTest
+class ShadowReferenceCollectorTest extends _Base {
+  test_importPrefix_with_classMember_getter_field() async {
+    var library = await buildTestLibrary(a, r'''
+import 'b.dart' as p;
+
+class X {
+  p.A<B> test() {}
+
+  int p;
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'X', unprefixed: ['B', 'p']);
+  }
+
+  test_importPrefix_with_classMember_method() async {
+    var library = await buildTestLibrary(a, r'''
+import 'b.dart' as p;
+
+class X {
+  p.A<B> test() {}
+
+  p() {}
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'X', unprefixed: ['B', 'p']);
+  }
+
+  test_importPrefix_with_function() async {
+    var library = await buildTestLibrary(a, r'''
+import 'b.dart' as p;
+
+p() {} // this is a compilation error
+
+class X extends p.A<B> {}
+''');
+    _assertApi(library, 'X', NodeKind.CLASS, unprefixed: [
+      'B'
+    ], prefixed: {
+      'p': ['A']
+    });
+  }
+
+  test_syntacticScope_class_constructor() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  X.test(A a, X b) {
+    X;
+  }
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X', unprefixed: ['A']);
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR, memberOf: 'X');
+  }
+
+  test_syntacticScope_class_field() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  var test = x + X + test;
+}
+''');
+    _assertApi(library, 'test', NodeKind.GETTER,
+        memberOf: 'X', unprefixed: ['x']);
+    _assertImpl(library, 'test', NodeKind.GETTER,
+        memberOf: 'X', unprefixed: ['x']);
+  }
+
+  test_syntacticScope_class_method() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  test(A a, X b, test c) {
+    X;
+    test;
+    B;
+  }
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD,
+        memberOf: 'X', unprefixed: ['A']);
+    _assertImpl(library, 'test', NodeKind.METHOD,
+        memberOf: 'X', unprefixed: ['B']);
+  }
+
+  test_syntacticScope_class_typeParameter_ofClass() async {
+    var library = await buildTestLibrary(a, r'''
+class X<T extends A<B, X, T>> {}
+''');
+    _assertApi(library, 'T', NodeKind.TYPE_PARAMETER,
+        typeParameterOf: 'X', unprefixed: ['A', 'B']);
+  }
+
+  test_syntacticScope_unit_class() async {
+    var library = await buildTestLibrary(a, r'''
+class X extends A<B, X> {}
+''');
+    _assertApi(library, 'X', NodeKind.CLASS, unprefixed: ['A', 'B']);
+  }
+
+  test_syntacticScope_unit_function() async {
+    var library = await buildTestLibrary(a, r'''
+test(A a, test b) {
+  test;
+  B;
+}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['B']);
+  }
+
+  test_syntacticScope_unit_functionTypeAlias() async {
+    var library = await buildTestLibrary(a, r'''
+typedef X(A a, X b);
+''');
+    _assertApi(library, 'X', NodeKind.FUNCTION_TYPE_ALIAS, unprefixed: ['A']);
+  }
+
+  test_syntacticScope_unit_mixin() async {
+    var library = await buildTestLibrary(a, r'''
+mixin X on A<B, X> {}
+''');
+    _assertApi(library, 'X', NodeKind.MIXIN, unprefixed: ['A', 'B']);
   }
 }
 

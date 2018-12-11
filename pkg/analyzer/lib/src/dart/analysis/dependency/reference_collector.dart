@@ -55,7 +55,9 @@ class ReferenceCollector {
   /// Construct and return a new [Dependencies] with the given [tokenSignature]
   /// and all recorded references to external nodes in the given AST nodes.
   Dependencies collect(List<int> tokenSignature,
-      {Expression expression,
+      {String enclosingClassName,
+      String thisNodeName,
+      Expression expression,
       ExtendsClause extendsClause,
       FormalParameterList formalParameters,
       FormalParameterList formalParametersForDefaultValues,
@@ -70,6 +72,14 @@ class ReferenceCollector {
       WithClause withClause}) {
     _localScopes.enter();
 
+    // The name of the node shadows any external names.
+    if (enclosingClassName != null) {
+      _localScopes.add(enclosingClassName);
+    }
+    if (thisNodeName != null) {
+      _localScopes.add(thisNodeName);
+    }
+
     // Add type parameters first, they might be referenced later.
     _visitTypeParameterList(typeParameters);
     _visitTypeParameterList(typeParameters2);
@@ -82,8 +92,8 @@ class ReferenceCollector {
     _visitTypeAnnotations(implementsClause?.interfaces);
 
     // Parts of executables.
-    _visitFormalParameterList(formalParameters, false);
-    _visitFormalParameterList(formalParametersForDefaultValues, true);
+    _visitFormalParameterList(formalParameters);
+    _visitFormalParameterListDefaults(formalParametersForDefaultValues);
     _visitTypeAnnotation(returnType);
     _visitFunctionBody(functionBody);
 
@@ -96,13 +106,26 @@ class ReferenceCollector {
     var unprefixedReferencedNames = _unprefixedReferences.toList();
     _unprefixedReferences = _NameSet();
 
-    var numberOfPrefixes = _importPrefixedReferences.length;
-    var importPrefixes = List<String>(numberOfPrefixes);
-    var importPrefixedReferencedNames = List<List<String>>(numberOfPrefixes);
-    for (var i = 0; i < numberOfPrefixes; i++) {
+    var importPrefixCount = 0;
+    for (var i = 0; i < _importPrefixedReferences.length; i++) {
       var import = _importPrefixedReferences[i];
-      importPrefixes[i] = import.prefix;
-      importPrefixedReferencedNames[i] = import.names.toList();
+      if (import.names.isNotEmpty) {
+        importPrefixCount++;
+      }
+    }
+
+    var importPrefixes = List<String>(importPrefixCount);
+    var importPrefixedReferencedNames = List<List<String>>(importPrefixCount);
+    var importIndex = 0;
+    for (var i = 0; i < _importPrefixedReferences.length; i++) {
+      var import = _importPrefixedReferences[i];
+
+      if (import.names.isNotEmpty) {
+        importPrefixes[importIndex] = import.prefix;
+        importPrefixedReferencedNames[importIndex] = import.names.toList();
+        importIndex++;
+      }
+
       import.clear();
     }
 
@@ -315,8 +338,7 @@ class ReferenceCollector {
     _localScopes.exit();
   }
 
-  void _visitFormalParameterList(
-      FormalParameterList node, bool withDefaultValues) {
+  void _visitFormalParameterList(FormalParameterList node) {
     if (node == null) return;
 
     var parameters = node.parameters;
@@ -325,21 +347,30 @@ class ReferenceCollector {
       if (parameter is DefaultFormalParameter) {
         DefaultFormalParameter defaultParameter = parameter;
         parameter = defaultParameter.parameter;
-        if (withDefaultValues) {
-          _visitExpression(defaultParameter.defaultValue);
-        }
       }
       if (parameter.identifier != null) {
         _localScopes.add(parameter.identifier.name);
       }
       if (parameter is FunctionTypedFormalParameter) {
         _visitTypeAnnotation(parameter.returnType);
-        _visitFormalParameterList(parameter.parameters, withDefaultValues);
+        _visitFormalParameterList(parameter.parameters);
       } else if (parameter is SimpleFormalParameter) {
         _visitTypeAnnotation(parameter.type);
       } else {
         // TODO(scheglov) constructors and field formal parameters
 //        throw StateError('Unexpected: (${parameter.runtimeType}) $parameter');
+      }
+    }
+  }
+
+  void _visitFormalParameterListDefaults(FormalParameterList node) {
+    if (node == null) return;
+
+    var parameters = node.parameters;
+    for (var i = 0; i < parameters.length; i++) {
+      FormalParameter parameter = parameters[i];
+      if (parameter is DefaultFormalParameter) {
+        _visitExpression(parameter.defaultValue);
       }
     }
   }
@@ -384,7 +415,8 @@ class ReferenceCollector {
   void _visitFunctionExpression(FunctionExpression node) {
     _localScopes.enter();
     _visitTypeParameterList(node.typeParameters);
-    _visitFormalParameterList(node.parameters, true);
+    _visitFormalParameterList(node.parameters);
+    _visitFormalParameterListDefaults(node.parameters);
     _visitFunctionBody(node.body);
     _localScopes.exit();
   }
@@ -692,7 +724,7 @@ class ReferenceCollector {
       }
 
       _visitTypeAnnotation(node.returnType);
-      _visitFormalParameterList(node.parameters, true);
+      _visitFormalParameterList(node.parameters);
 
       _localScopes.exit();
     } else if (node is TypeName) {
@@ -808,6 +840,8 @@ class _LocalScopes {
 
 class _NameSet {
   final List<String> names = [];
+
+  bool get isNotEmpty => names.isNotEmpty;
 
   void add(String name) {
     // TODO(scheglov) consider just adding, but toList() sort and unique
