@@ -201,7 +201,7 @@ f() {}
   }
 
   test_sentToPlugins() {
-    String filePath = '/project/target.dart';
+    String filePath = convertPath('/project/target.dart');
     String fileContent = 'import "none.dart";';
     //
     // Add
