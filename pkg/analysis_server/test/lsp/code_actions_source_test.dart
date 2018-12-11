@@ -181,7 +181,10 @@ int minified(int x, int y) => min(x, y);
   test_noEdits() async {
     const content = '''
 import 'dart:async';
-import 'dart:convert';
+import 'dart:math';
+
+Future foo;
+int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
     await initialize();
