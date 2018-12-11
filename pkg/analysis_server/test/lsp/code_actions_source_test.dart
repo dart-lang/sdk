@@ -164,6 +164,30 @@ import 'dart:convert';
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
+  test_noEdits() async {
+    const content = '''
+import 'dart:async';
+import 'dart:convert';
+    ''';
+    await newFile(mainFilePath, content: content);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    expect(codeAction, isNotNull);
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    // Execute the command and it should return without needing us to process
+    // a workspace/applyEdit command because there were no edits.
+    final commandResponse = await executeCommand(command);
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+  }
+
   test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
     await initializeWithSupportForKinds([CodeActionKind.Refactor]);
@@ -301,7 +325,11 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
   }
 
   test_failsIfClientDoesntApplyEdits() async {
-    await newFile(mainFilePath);
+    const content = '''
+    String b;
+    String a;
+    ''';
+    await newFile(mainFilePath, content: content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());

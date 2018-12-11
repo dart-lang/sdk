@@ -26,6 +26,12 @@ abstract class SimpleEditCommandHandler
       VersionedTextDocumentIdentifier docIdentifier,
       CompilationUnit unit,
       List<SourceEdit> edits) async {
+    // If there are no edits to apply, just complete the command without going
+    // back to the client.
+    if (edits.length == 0) {
+      return success();
+    }
+
     final workspaceEdit = toWorkspaceEdit(
       server.clientCapabilities?.workspace,
       docIdentifier,
