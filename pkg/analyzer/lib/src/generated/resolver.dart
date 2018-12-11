@@ -5306,6 +5306,33 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitSetLiteral(SetLiteral node) {
+    InterfaceType setT;
+
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (typeArguments.length == 1) {
+        DartType elementType = typeArguments.arguments[0].type;
+        if (!elementType.isDynamic) {
+          setT = typeProvider.setType.instantiate([elementType]);
+        }
+      }
+    } else {
+      setT = typeAnalyzer.inferSetType(node, downwards: true);
+    }
+    if (setT != null) {
+      DartType eType = setT.typeArguments[0];
+      for (Expression child in node.elements) {
+        InferenceContext.setType(child, eType);
+      }
+      InferenceContext.setType(node, setT);
+    } else {
+      InferenceContext.clearType(node);
+    }
+    super.visitSetLiteral(node);
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {}
 
   @override

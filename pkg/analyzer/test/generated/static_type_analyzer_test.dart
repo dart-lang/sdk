@@ -187,7 +187,7 @@ main() {
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
   bool get enableNewAnalysisDriver => true;
 
-  test_emptyMapLiteral_inContext() async {
+  test_emptyMapLiteral_parameter_typed() async {
     String code = r'''
 main() {
   useMap({});
@@ -199,7 +199,7 @@ void useMap(Map<int, int> m) {
     expectExpressionType('{}', 'Map<int, int>');
   }
 
-  test_emptyMapLiteral_notInContext() async {
+  test_emptyMapLiteral_initializer_var() async {
     String code = r'''
 main() {
   var v = {};
@@ -209,7 +209,7 @@ main() {
     expectExpressionType('{}', 'Map<dynamic, dynamic>');
   }
 
-  test_emptySetLiteral_inContext() async {
+  test_emptySetLiteral_parameter_typed() async {
     String code = r'''
 main() {
   useSet({});
@@ -219,6 +219,15 @@ void useSet(Set<int> s) {
 ''';
     await resolveTestUnit(code);
     expectExpressionType('{}', 'Set<int>');
+  }
+
+  test_emptySetLiteral_initializer_typed_nested() async {
+    String code = r'''
+Set<Set<int>> ints = {{}};
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Set<int>');
+    expectExpressionType('{{}}', 'Set<Set<int>>');
   }
 }
 
