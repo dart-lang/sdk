@@ -82,7 +82,7 @@ abstract class TestRunner {
     if (mode.startsWith('aot')) return new TestRunnerAOT(tag, top, tmp, env);
     if (mode.startsWith('kbc'))
       return new TestRunnerKBC(mode, tag, top, tmp, env);
-    if (mode.startsWith('js')) return new TestRunnerJS(top, tmp, env);
+    if (mode.startsWith('js')) return new TestRunnerJS(tag, top, tmp, env);
     throw ('unknown runner in mode: $mode');
   }
 
@@ -201,9 +201,9 @@ class TestRunnerKBC implements TestRunner {
 
 /// Concrete test runner of Dart2JS.
 class TestRunnerJS implements TestRunner {
-  TestRunnerJS(String top, String tmp, Map<String, String> e) {
-    description = 'Dart2JS';
-    dart2js = '$top/out/ReleaseX64/dart-sdk/bin/dart2js';
+  TestRunnerJS(String tag, String top, String tmp, Map<String, String> e) {
+    description = 'Dart2JS-$tag';
+    dart2js = '$top/sdk/bin/dart2js';
     fileName = '$tmp/fuzz.dart';
     js = '$tmp/out.js';
     env = e;
@@ -555,10 +555,7 @@ class DartFuzzTestSession {
     'aot-arm32',
     'aot-arm64',
     // Too many divergences (due to arithmetic):
-    'js',
-    // Not supported:
-    'aot-debug-ia32',
-    'aot-ia32',
+    'js-x64',
   ];
 
   // All modes.

@@ -62,7 +62,7 @@ where
         kbc-int-[debug-]x64        = Dart KBC (interpreted bytecode)
         kbc-mix-[debug-]x64        = Dart KBC (mixed-mode bytecode)
         kbc-cmp-[debug-]x64        = Dart KBC (compiled bytecode)
-        js                         = dart2js + Node.JS
+        js-x64                     = dart2js + Node.JS
 
 If no modes are given, a random JIT and/or AOT combination is used.
 
