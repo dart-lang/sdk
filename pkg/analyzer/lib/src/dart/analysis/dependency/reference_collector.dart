@@ -253,7 +253,9 @@ class ReferenceCollector {
 
     for (var i = 0; i < initializers.length; i++) {
       var initializer = initializers[i];
-      if (initializer is ConstructorFieldInitializer) {
+      if (initializer is AssertInitializer) {
+        // TODO(scheglov) implement
+      } else if (initializer is ConstructorFieldInitializer) {
         _visitExpression(initializer.expression);
       } else if (initializer is SuperConstructorInvocation) {
         _visitConstructor(superClass, initializer.constructorName);

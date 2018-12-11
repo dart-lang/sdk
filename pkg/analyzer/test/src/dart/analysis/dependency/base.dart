@@ -21,10 +21,8 @@ class BaseDependencyTest extends DriverResolutionTest {
 
   bool hasDartCore = false;
 
-  void assertNodes(
-    List<Node> actualNodes,
-    List<ExpectedNode> expectedNodes,
-  ) {
+  void assertNodes(List<Node> actualNodes, List<ExpectedNode> expectedNodes,
+      {Node expectedEnclosingClass}) {
     expect(actualNodes, hasLength(expectedNodes.length));
     for (var expectedNode in expectedNodes) {
       var topNode = _getNode(
@@ -33,9 +31,11 @@ class BaseDependencyTest extends DriverResolutionTest {
         name: expectedNode.name,
         kind: expectedNode.kind,
       );
+      expect(topNode.enclosingClass, expectedEnclosingClass);
 
       if (expectedNode.classMembers != null) {
-        assertNodes(topNode.classMembers, expectedNode.classMembers);
+        assertNodes(topNode.classMembers, expectedNode.classMembers,
+            expectedEnclosingClass: topNode);
       } else {
         expect(topNode.classMembers, isNull);
       }
@@ -44,6 +44,7 @@ class BaseDependencyTest extends DriverResolutionTest {
         assertNodes(
           topNode.classTypeParameters,
           expectedNode.classTypeParameters,
+          expectedEnclosingClass: topNode,
         );
       } else {
         expect(topNode.classTypeParameters, isNull);

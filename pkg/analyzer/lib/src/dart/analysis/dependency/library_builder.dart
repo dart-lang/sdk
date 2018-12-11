@@ -156,6 +156,9 @@ class _LibraryBuilder {
   /// locations are different.
   List<int> enclosingClassNameSignature;
 
+  /// The node of the enclosing class.
+  Node enclosingClass;
+
   _LibraryBuilder(this.uri, this.units);
 
   Library build() {
@@ -180,60 +183,6 @@ class _LibraryBuilder {
 
     enclosingClassNameSignature =
         (ApiSignature()..addString(enclosingClassName)).toByteList();
-
-    var hasConstConstructor = node.members.any(
-      (m) => m is ConstructorDeclaration && m.constKeyword != null,
-    );
-
-    // TODO(scheglov) do we need type parameters at all?
-    List<Node> classTypeParameters;
-    if (node.typeParameters != null) {
-      classTypeParameters = <Node>[];
-      for (var typeParameter in node.typeParameters.typeParameters) {
-        var api = referenceCollector.collect(
-          _computeNodeTokenSignature(typeParameter),
-          enclosingClassName: enclosingClassName,
-          thisNodeName: typeParameter.name.name,
-          type: typeParameter.bound,
-        );
-        classTypeParameters.add(Node(
-          LibraryQualifiedName(uri, typeParameter.name.name),
-          NodeKind.TYPE_PARAMETER,
-          api,
-          Dependencies.none,
-        ));
-      }
-      classTypeParameters.sort(Node.compare);
-    }
-
-    var classMembers = <Node>[];
-    var hasConstructor = false;
-    for (var member in node.members) {
-      if (member is ConstructorDeclaration) {
-        hasConstructor = true;
-        _addConstructor(classMembers, member);
-      } else if (member is FieldDeclaration) {
-        _addVariables(
-          classMembers,
-          member.metadata,
-          member.fields,
-          hasConstConstructor,
-        );
-      } else if (member is MethodDeclaration) {
-        _addMethod(classMembers, member);
-      } else {
-        throw UnimplementedError('(${member.runtimeType}) $member');
-      }
-    }
-
-    if (!hasConstructor && node is ClassDeclaration) {
-      classMembers.add(Node(
-        LibraryQualifiedName(uri, ''),
-        NodeKind.CONSTRUCTOR,
-        Dependencies.none,
-        Dependencies.none,
-      ));
-    }
 
     var apiTokenSignature = _computeTokenSignature(
       node.beginToken,
@@ -262,21 +211,78 @@ class _LibraryBuilder {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
 
-    var classNode = Node(
+    enclosingClass = Node(
       LibraryQualifiedName(uri, enclosingClassName),
       node is MixinDeclaration ? NodeKind.MIXIN : NodeKind.CLASS,
       api,
       Dependencies.none,
-      classTypeParameters: classTypeParameters,
     );
 
-    classMembers.sort(Node.compare);
-    classNode.setClassMembers(classMembers);
+    var hasConstConstructor = node.members.any(
+      (m) => m is ConstructorDeclaration && m.constKeyword != null,
+    );
 
-    declaredNodes.add(classNode);
+    // TODO(scheglov) do we need type parameters at all?
+    List<Node> classTypeParameters;
+    if (node.typeParameters != null) {
+      classTypeParameters = <Node>[];
+      for (var typeParameter in node.typeParameters.typeParameters) {
+        var api = referenceCollector.collect(
+          _computeNodeTokenSignature(typeParameter),
+          enclosingClassName: enclosingClassName,
+          thisNodeName: typeParameter.name.name,
+          type: typeParameter.bound,
+        );
+        classTypeParameters.add(Node(
+          LibraryQualifiedName(uri, typeParameter.name.name),
+          NodeKind.TYPE_PARAMETER,
+          api,
+          Dependencies.none,
+          enclosingClass: enclosingClass,
+        ));
+      }
+      classTypeParameters.sort(Node.compare);
+      enclosingClass.setTypeParameters(classTypeParameters);
+    }
+
+    var classMembers = <Node>[];
+    var hasConstructor = false;
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration) {
+        hasConstructor = true;
+        _addConstructor(classMembers, member);
+      } else if (member is FieldDeclaration) {
+        _addVariables(
+          classMembers,
+          member.metadata,
+          member.fields,
+          hasConstConstructor,
+        );
+      } else if (member is MethodDeclaration) {
+        _addMethod(classMembers, member);
+      } else {
+        throw UnimplementedError('(${member.runtimeType}) $member');
+      }
+    }
+
+    if (node is ClassDeclaration && !hasConstructor) {
+      classMembers.add(Node(
+        LibraryQualifiedName(uri, ''),
+        NodeKind.CONSTRUCTOR,
+        Dependencies.none,
+        Dependencies.none,
+        enclosingClass: enclosingClass,
+      ));
+    }
+
+    classMembers.sort(Node.compare);
+    enclosingClass.setClassMembers(classMembers);
+
+    declaredNodes.add(enclosingClass);
     enclosingClassName = null;
     enclosingClassNameSignature = null;
     enclosingSuperClass = null;
+    enclosingClass = null;
   }
 
   void _addClassTypeAlias(ClassTypeAlias node) {
@@ -325,11 +331,19 @@ class _LibraryBuilder {
       NodeKind.CONSTRUCTOR,
       api,
       impl,
+      enclosingClass: enclosingClass,
     ));
   }
 
   void _addEnum(EnumDeclaration node) {
     var enumTokenSignature = _newApiSignatureBuilder().toByteList();
+
+    var enumNode = Node(
+      LibraryQualifiedName(uri, node.name.name),
+      NodeKind.ENUM,
+      Dependencies(enumTokenSignature, [], [], [], [], []),
+      Dependencies.none,
+    );
 
     Dependencies fieldDependencies;
     {
@@ -347,6 +361,7 @@ class _LibraryBuilder {
         NodeKind.GETTER,
         fieldDependencies,
         Dependencies.none,
+        enclosingClass: enumNode,
       ));
     }
 
@@ -355,6 +370,7 @@ class _LibraryBuilder {
       NodeKind.GETTER,
       fieldDependencies,
       Dependencies.none,
+      enclosingClass: enumNode,
     ));
 
     members.add(Node(
@@ -362,15 +378,10 @@ class _LibraryBuilder {
       NodeKind.GETTER,
       fieldDependencies,
       Dependencies.none,
+      enclosingClass: enumNode,
     ));
-    members.sort(Node.compare);
 
-    var enumNode = Node(
-      LibraryQualifiedName(uri, node.name.name),
-      NodeKind.ENUM,
-      Dependencies(enumTokenSignature, [], [], [], [], []),
-      Dependencies.none,
-    );
+    members.sort(Node.compare);
     enumNode.setClassMembers(members);
 
     declaredNodes.add(enumNode);
@@ -545,7 +556,9 @@ class _LibraryBuilder {
     );
 
     var name = LibraryQualifiedName(uri, node.name.name);
-    classMembers.add(Node(name, kind, api, impl));
+    classMembers.add(
+      Node(name, kind, api, impl, enclosingClass: enclosingClass),
+    );
   }
 
   void _addUnit(CompilationUnit unit) {
@@ -615,6 +628,7 @@ class _LibraryBuilder {
         NodeKind.GETTER,
         api,
         impl,
+        enclosingClass: enclosingClass,
       ));
 
       if (!variables.isConst && !variables.isFinal) {
@@ -626,6 +640,7 @@ class _LibraryBuilder {
             NodeKind.SETTER,
             api,
             Dependencies.none,
+            enclosingClass: enclosingClass,
           ),
         );
       }

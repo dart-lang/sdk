@@ -181,7 +181,7 @@ class Node {
 
   /// If the node is a class, the nodes of its type parameters.
   /// Otherwise `null`.
-  final List<Node> classTypeParameters;
+  List<Node> classTypeParameters;
 
   /// If the node is a class, the sorted list of members in this class.
   /// Otherwise `null`.
@@ -208,6 +208,11 @@ class Node {
   /// Set new class members for this class.
   void setClassMembers(List<Node> newClassMembers) {
     classMembers = newClassMembers;
+  }
+
+  /// Set new class type parameters for this class.
+  void setTypeParameters(List<Node> newTypeParameters) {
+    classTypeParameters = newTypeParameters;
   }
 
   @override
