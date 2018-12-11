@@ -145,6 +145,9 @@ class _LibraryBuilder {
   /// The name of the enclosing class name, or `null` if outside a class.
   String enclosingClassName;
 
+  /// The super class of the enclosing class, or `null` if outside a class.
+  TypeName enclosingSuperClass;
+
   /// The precomputed signature of the enclosing class name, or `null` if
   /// outside a class.
   ///
@@ -171,6 +174,9 @@ class _LibraryBuilder {
 
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
     enclosingClassName = node.name.name;
+    if (node is ClassDeclaration) {
+      enclosingSuperClass = node.extendsClause?.superclass;
+    }
 
     enclosingClassNameSignature =
         (ApiSignature()..addString(enclosingClassName)).toByteList();
@@ -270,6 +276,7 @@ class _LibraryBuilder {
     declaredNodes.add(classNode);
     enclosingClassName = null;
     enclosingClassNameSignature = null;
+    enclosingSuperClass = null;
   }
 
   void _addClassTypeAlias(ClassTypeAlias node) {
@@ -302,13 +309,14 @@ class _LibraryBuilder {
       formalParameters: node.parameters,
     );
 
-    // TODO(scheglov) constructor initializers
-    // TODO(scheglov) constructor redirection
     var implTokenSignature = _computeNodeTokenSignature(node.body);
     var impl = referenceCollector.collect(
       implTokenSignature,
       enclosingClassName: enclosingClassName,
+      enclosingSuperClass: enclosingSuperClass,
       formalParametersForDefaultValues: node.parameters,
+      constructorInitializers: node.initializers,
+      redirectedConstructor: node.redirectedConstructor,
       functionBody: node.body,
     );
 

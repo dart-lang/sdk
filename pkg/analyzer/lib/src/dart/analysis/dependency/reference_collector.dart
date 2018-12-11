@@ -57,6 +57,8 @@ class ReferenceCollector {
   Dependencies collect(List<int> tokenSignature,
       {String enclosingClassName,
       String thisNodeName,
+      List<ConstructorInitializer> constructorInitializers,
+      TypeName enclosingSuperClass,
       Expression expression,
       ExtendsClause extendsClause,
       FormalParameterList formalParameters,
@@ -64,6 +66,7 @@ class ReferenceCollector {
       FunctionBody functionBody,
       ImplementsClause implementsClause,
       OnClause onClause,
+      ConstructorName redirectedConstructor,
       TypeAnnotation returnType,
       TypeName superClass,
       TypeAnnotation type,
@@ -96,6 +99,10 @@ class ReferenceCollector {
     _visitFormalParameterListDefaults(formalParametersForDefaultValues);
     _visitTypeAnnotation(returnType);
     _visitFunctionBody(functionBody);
+
+    // Parts of constructors.
+    _visitConstructorInitializers(enclosingSuperClass, constructorInitializers);
+    _visitConstructorName(redirectedConstructor);
 
     // Parts of variables.
     _visitTypeAnnotation(type);
@@ -159,7 +166,7 @@ class ReferenceCollector {
 
   void _recordClassMemberReference(DartType targetType, String name) {
     if (targetType is InterfaceType) {
-      _memberReferences.add(targetType, name);
+      _memberReferences.add(targetType.element, name);
     }
   }
 
@@ -227,6 +234,46 @@ class ReferenceCollector {
       var section = sections[i];
       _visitExpression(section);
     }
+  }
+
+  /// Record reference to the constructor of the [type] with the given [name].
+  void _visitConstructor(TypeName type, SimpleIdentifier name) {
+    _visitTypeAnnotation(type);
+
+    if (name != null) {
+      _recordClassMemberReference(type.type, name.name);
+    } else {
+      _recordClassMemberReference(type.type, '');
+    }
+  }
+
+  void _visitConstructorInitializers(
+      TypeName superClass, List<ConstructorInitializer> initializers) {
+    if (initializers == null) return;
+
+    for (var i = 0; i < initializers.length; i++) {
+      var initializer = initializers[i];
+      if (initializer is ConstructorFieldInitializer) {
+        _visitExpression(initializer.expression);
+      } else if (initializer is SuperConstructorInvocation) {
+        _visitConstructor(superClass, initializer.constructorName);
+        _visitArgumentList(initializer.argumentList);
+      } else if (initializer is RedirectingConstructorInvocation) {
+        _visitArgumentList(initializer.argumentList);
+        // Strongly speaking, we reference a field of the enclosing class.
+        //
+        // However the current plan is to resolve the whole library on a change.
+        // So, we will resolve the enclosing constructor anyway.
+      } else {
+        throw UnimplementedError('(${initializer.runtimeType}) $initializer');
+      }
+    }
+  }
+
+  void _visitConstructorName(ConstructorName node) {
+    if (node == null) return;
+
+    _visitConstructor(node.type, node.name);
   }
 
   void _visitExpression(Expression node, {bool get: true, bool set: false}) {
@@ -453,18 +500,7 @@ class ReferenceCollector {
   }
 
   void _visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.constructorName;
-
-    _visitTypeAnnotation(constructor.type);
-
-    var instantiatedType = constructor.type.type;
-    var name = constructor.name;
-    if (name != null) {
-      _recordClassMemberReference(instantiatedType, name.name);
-    } else {
-      _recordClassMemberReference(instantiatedType, '');
-    }
-
+    _visitConstructorName(node.constructorName);
     _visitArgumentList(node.argumentList);
   }
 
@@ -792,8 +828,7 @@ class ReferenceCollector {
 class _ClassMemberReferenceSet {
   final List<ClassMemberReference> references = [];
 
-  void add(InterfaceType type, String name) {
-    var class_ = type.element;
+  void add(ClassElement class_, String name) {
     var target = LibraryQualifiedName(class_.library.source.uri, class_.name);
     var reference = ClassMemberReference(target, name);
     if (!references.contains(reference)) {

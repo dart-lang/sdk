@@ -1415,6 +1415,178 @@ class C {
         memberOf: 'C', unprefixed: ['x', 'y', 'z']);
   }
 
+  test_class_constructor_factoryRedirect_named() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+class X {
+  factory X.test() = A.named;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X',
+        unprefixed: ['A'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', 'named')]);
+  }
+
+  test_class_constructor_factoryRedirect_named_prefixed() async {
+    newFile(b, content: 'class A {}');
+
+    var library = await buildTestLibrary(a, r'''
+import 'b.dart' as p;
+
+class X {
+  factory X.test() = p.A.named;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X',
+        prefixed: {
+          'p': ['A']
+        },
+        expectedMembers: [
+          _ExpectedClassMember(bUri, 'A', 'named')
+        ]);
+  }
+
+  test_class_constructor_factoryRedirect_named_unresolvedTarget() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  factory X.test() = A.named;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X', unprefixed: ['A']);
+  }
+
+  test_class_constructor_factoryRedirect_unnamed() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+class X {
+  factory X.test() = A;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X',
+        unprefixed: ['A'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', '')]);
+  }
+
+  test_class_constructor_factoryRedirect_unnamed_prefixed() async {
+    newFile(b, content: 'class A {}');
+
+    var library = await buildTestLibrary(a, r'''
+import 'b.dart' as p;
+
+class X {
+  factory X.test() = p.A;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X',
+        prefixed: {
+          'p': ['A']
+        },
+        expectedMembers: [
+          _ExpectedClassMember(bUri, 'A', '')
+        ]);
+  }
+
+  test_class_constructor_factoryRedirect_unnamed_unresolvedTarget() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  factory X.test() = A;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X', unprefixed: ['A']);
+  }
+
+  test_class_constructor_initializer_field() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  var f;
+  
+  C.test() : f = x;
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['x']);
+  }
+
+  test_class_constructor_initializer_super_named() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+class C extends A {
+  C.test() : super.named(x);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C',
+        unprefixed: ['A', 'x'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', 'named')]);
+  }
+
+  test_class_constructor_initializer_super_named_unresolvedSuper() async {
+    var library = await buildTestLibrary(a, r'''
+class C extends A {
+  C.test() : super.named(x);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A', 'x']);
+  }
+
+  test_class_constructor_initializer_super_unnamed() async {
+    var library = await buildTestLibrary(a, r'''
+class A {}
+
+class C extends A {
+  C.test() : super(x);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C',
+        unprefixed: ['A', 'x'],
+        expectedMembers: [_ExpectedClassMember(aUri, 'A', '')]);
+  }
+
+  test_class_constructor_initializer_super_unnamed_unresolvedSuper() async {
+    var library = await buildTestLibrary(a, r'''
+class C extends A {
+  C.test() : super(x);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A', 'x']);
+  }
+
+  test_class_constructor_initializer_this_named() async {
+    var library = await buildTestLibrary(a, r'''
+class C extends A {
+  C.test() : this.named(x);
+  
+  C.named(a);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['x']);
+  }
+
+  test_class_constructor_initializer_this_unnamed() async {
+    var library = await buildTestLibrary(a, r'''
+class C extends A {
+  C.test() : this(x);
+  
+  C(a);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['x']);
+  }
+
   test_class_method() async {
     var library = await buildTestLibrary(a, r'''
 class C {
