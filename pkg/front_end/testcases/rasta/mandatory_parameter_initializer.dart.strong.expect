@@ -19,6 +19,6 @@
 library;
 import self as self;
 
-static method main(dynamic arguments = <dynamic>[let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:19: Error: Getter not found: 'x'.
+static method main(dynamic arguments = <dynamic>[invalid-expression "pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:19: Error: Getter not found: 'x'.
 main(arguments = [x]) {
                   ^"]) → dynamic {}

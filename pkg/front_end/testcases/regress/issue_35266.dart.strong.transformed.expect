@@ -29,7 +29,7 @@ class C<K extends core::Object = dynamic> extends core::Object {
     let core::String #redirecting_factory = "B.foo" in invalid-expression;
 }
 static method main() → dynamic {
-  let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Method not found: 'B.foo'.
+  invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:11: Error: Method not found: 'B.foo'.
   factory C.bar() = B<K>.foo;
           ^^^";
 }

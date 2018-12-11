@@ -341,12 +341,15 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       rhs = syntheticAssignment.value;
     } else if (syntheticAssignment is InvalidExpression) {
       elementType = const UnknownType();
-    } else if (syntheticAssignment is SyntheticExpressionJudgment) {
+    } else if (inferrer.legacyMode && syntheticAssignment is Throw) {
       // TODO(ahe): Remove this case.
       elementType = const UnknownType();
     } else {
-      unhandled("${syntheticAssignment.runtimeType}", "visitForInStatement",
-          syntheticAssignment.fileOffset, inferrer.helper.uri);
+      unhandled(
+          "${syntheticAssignment.runtimeType}",
+          "handleForInStatementWithoutVariable",
+          syntheticAssignment.fileOffset,
+          inferrer.helper.uri);
     }
 
     DartType inferredType =

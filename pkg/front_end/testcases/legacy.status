@@ -83,8 +83,10 @@ rasta/super: RuntimeError
 rasta/super_initializer: Fail
 rasta/super_operator: Fail
 rasta/try_label: Fail
+rasta/type_literals: Crash
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
+rasta/typedef: Crash
 rasta/typedef: Fail
 rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail

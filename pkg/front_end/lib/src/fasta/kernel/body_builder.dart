@@ -717,13 +717,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (formals?.parameters != null) {
       for (int i = 0; i < formals.parameters.length; i++) {
         KernelFormalParameterBuilder parameter = formals.parameters[i];
-        if (parameter.isOptional) {
+        Expression initializer = parameter.target.initializer;
+        if (parameter.isOptional || initializer != null) {
           VariableDeclaration realParameter = builder.formals[i].target;
-          Expression initializer =
-              parameter.target.initializer ?? forest.literalNull(
-                  // TODO(ahe): Should store: realParameter.fileOffset
-                  // https://github.com/dart-lang/sdk/issues/32289
-                  null);
+          if (parameter.isOptional) {
+            initializer ??= forest.literalNull(
+                // TODO(ahe): Should store: realParameter.fileOffset
+                // https://github.com/dart-lang/sdk/issues/32289
+                null);
+          }
           realParameter.initializer = initializer..parent = realParameter;
           _typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
@@ -817,8 +819,21 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           statements.add(body);
           body = forest.block(null, statements, null)..fileOffset = charOffset;
         }
-        body = wrapInProblemStatement(
-            body, fasta.messageSetterWithWrongNumberOfFormals);
+        body = forest.block(
+            null,
+            <Statement>[
+              forest.expressionStatement(
+                  // This error is added after type inference is done, so we
+                  // don't need to wrap errors in SyntheticExpressionJudgment.
+                  desugarSyntheticExpression(buildProblem(
+                      fasta.messageSetterWithWrongNumberOfFormals,
+                      charOffset,
+                      noLength)),
+                  null),
+              body,
+            ],
+            null)
+          ..fileOffset = charOffset;
       }
     }
     // No-such-method forwarders get their bodies injected during outline
@@ -895,15 +910,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           assert(redirectingFactoryBody.isUnresolved);
           String errorName = redirectingFactoryBody.unresolvedName;
 
-          replacementNode = wrapSyntheticExpression(
-              throwNoSuchMethodError(
-                  forest.literalNull(null)..fileOffset = invocation.fileOffset,
-                  errorName,
-                  forest.arguments(invocation.arguments.positional, null,
-                      types: invocation.arguments.types,
-                      named: invocation.arguments.named),
-                  initialTarget.fileOffset),
-              invocation.fileOffset);
+          replacementNode = throwNoSuchMethodError(
+              forest.literalNull(null)..fileOffset = invocation.fileOffset,
+              errorName,
+              forest.arguments(invocation.arguments.positional, null,
+                  types: invocation.arguments.types,
+                  named: invocation.arguments.named),
+              initialTarget.fileOffset);
         } else {
           Substitution substitution = Substitution.fromPairs(
               initialTarget.function.typeParameters,
@@ -1441,18 +1454,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (legacyMode && constantContext == ConstantContext.none) {
       addProblem(message.messageObject, message.charOffset, message.length,
           wasHandled: true, context: context);
-      return wrapSyntheticExpression(
-          forest.throwExpression(
-              null,
-              library.loader.instantiateNoSuchMethodError(
-                  receiver, name, forest.castArguments(arguments), charOffset,
-                  isMethod: !isGetter && !isSetter,
-                  isGetter: isGetter,
-                  isSetter: isSetter,
-                  isStatic: isStatic,
-                  isTopLevel: !isStatic && !isSuper))
-            ..fileOffset = charOffset,
-          charOffset);
+      return forest.throwExpression(
+          null,
+          library.loader.instantiateNoSuchMethodError(
+              receiver, name, forest.castArguments(arguments), charOffset,
+              isMethod: !isGetter && !isSetter,
+              isGetter: isGetter,
+              isSetter: isSetter,
+              isStatic: isStatic,
+              isTopLevel: !isStatic && !isSuper))
+        ..fileOffset = charOffset;
     }
     return desugarSyntheticExpression(buildProblem(
         message.messageObject, message.charOffset, message.length,
@@ -3104,13 +3115,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       LocatedMessage argMessage = checkArgumentsForFunction(
           target.function, arguments, charOffset, typeParameters);
       if (argMessage != null) {
-        return throwNoSuchMethodError(
-            forest.literalNull(null)..fileOffset = charOffset,
-            target.name.name,
-            arguments,
-            charOffset,
-            candidate: target,
-            message: argMessage);
+        return wrapSyntheticExpression(
+            throwNoSuchMethodError(
+                forest.literalNull(null)..fileOffset = charOffset,
+                target.name.name,
+                arguments,
+                charOffset,
+                candidate: target,
+                message: argMessage),
+            charOffset);
       }
     }
 
@@ -3613,13 +3626,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         Expression expression = new NamedFunctionExpressionJudgment(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
-          assert(isErroneousNode(oldInitializer));
-
+          Expression error = desugarSyntheticExpression(oldInitializer);
+          assert(isErroneousNode(error));
           int offset = forest.readOffset(expression);
           push(wrapSyntheticExpression(
               new Let(
-                  new VariableDeclaration.forValue(oldInitializer)
-                    ..fileOffset = offset,
+                  new VariableDeclaration.forValue(error)..fileOffset = offset,
                   expression)
                 ..fileOffset = offset,
               offset));

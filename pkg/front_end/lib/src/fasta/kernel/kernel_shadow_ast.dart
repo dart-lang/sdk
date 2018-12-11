@@ -1894,52 +1894,59 @@ class SyntheticWrapper {
   static Expression wrapIllegalAssignment(Expression rhs,
       {int assignmentOffset: -1}) {
     return new IllegalAssignmentJudgment._(rhs,
-        assignmentOffset: assignmentOffset);
+        assignmentOffset: assignmentOffset)
+      ..fileOffset = rhs.fileOffset;
   }
 
   static Expression wrapIndexAssignment(
       Expression receiver, Expression index, Expression rhs,
       {bool isSuper: false}) {
-    return new IndexAssignmentJudgment._(receiver, index, rhs,
-        isSuper: isSuper);
+    return new IndexAssignmentJudgment._(receiver, index, rhs, isSuper: isSuper)
+      ..fileOffset = index.fileOffset;
   }
 
   static Expression wrapInvalidConstructorInvocation(
       kernel.Expression desugared, Member constructor, Arguments arguments) {
     return new InvalidConstructorInvocationJudgment._(
-        desugared, constructor, arguments);
+        desugared, constructor, arguments)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapInvalidWrite(
       Expression desugared, Expression expression) {
-    return new InvalidWriteJudgment._(desugared, expression);
+    return new InvalidWriteJudgment._(desugared, expression)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapPropertyAssignment(Expression receiver, Expression rhs,
       {bool isSuper: false}) {
-    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper);
+    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper)
+      ..fileOffset = rhs.fileOffset;
   }
 
   static Expression wrapStaticAssignment(Expression rhs) {
-    return new StaticAssignmentJudgment._(rhs);
+    return new StaticAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
   }
 
   static Expression wrapSyntheticExpression(Expression desugared) {
-    return new SyntheticExpressionJudgment._(desugared);
+    return new SyntheticExpressionJudgment._(desugared)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapUnresolvedTargetInvocation(
       Expression desugared, Arguments arguments) {
-    return new UnresolvedTargetInvocationJudgment._(desugared, arguments);
+    return new UnresolvedTargetInvocationJudgment._(desugared, arguments)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs) {
     return new UnresolvedVariableAssignmentJudgment._(
-        desugared, isCompound, rhs);
+        desugared, isCompound, rhs)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapVariableAssignment(Expression rhs) {
-    return new VariableAssignmentJudgment._(rhs);
+    return new VariableAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
   }
 }

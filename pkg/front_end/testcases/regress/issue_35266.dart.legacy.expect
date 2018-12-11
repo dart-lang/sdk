@@ -46,5 +46,5 @@ class C<K extends core::Object = dynamic> extends core::Object {
     let dynamic #redirecting_factory = "B.foo" in invalid-expression;
 }
 static method main() → dynamic {
-  let dynamic _ = null in let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#B.foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[dynamic]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#B.foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[dynamic]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }

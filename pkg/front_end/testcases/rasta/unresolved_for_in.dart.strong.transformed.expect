@@ -43,13 +43,13 @@ Try correcting the name to the name of an existing getter, or defining a getter 
             ^^^");
     }
     for (final dynamic #t4 in x as{TypeError} core::Iterable<dynamic>) {
-      let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
     for (Fisk in x) {
          ^^^^";
       core::print(self::Fisk);
     }
     for (final dynamic #t5 in x as{TypeError} core::Iterable<dynamic>) {
-      let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
     for (collection in x) {
          ^^^^^^^^^^";
       core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:18:13: Error: A prefix can't be used as an expression.
@@ -57,7 +57,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
             ^^^^^^^^^^");
     }
     for (final dynamic #t6 in x as{TypeError} core::Iterable<dynamic>) {
-      let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Setter not found: 'VoidFunction'.
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Setter not found: 'VoidFunction'.
     for (VoidFunction in x) {
          ^^^^^^^^^^^^";
       core::print(() → void);
@@ -91,13 +91,13 @@ static method main(dynamic arguments) → dynamic {
           ^^^");
   }
   for (final dynamic #t10 in arguments as{TypeError} core::Iterable<dynamic>) {
-    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Setter not found: 'Fisk'.
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Setter not found: 'Fisk'.
   for (Fisk in arguments) {
        ^^^^";
     core::print(self::Fisk);
   }
   for (final dynamic #t11 in arguments as{TypeError} core::Iterable<dynamic>) {
-    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
   for (collection in arguments) {
        ^^^^^^^^^^";
     core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:38:11: Error: A prefix can't be used as an expression.
@@ -105,7 +105,7 @@ static method main(dynamic arguments) → dynamic {
           ^^^^^^^^^^");
   }
   for (final dynamic #t12 in arguments as{TypeError} core::Iterable<dynamic>) {
-    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Setter not found: 'VoidFunction'.
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Setter not found: 'VoidFunction'.
   for (VoidFunction in arguments) {
        ^^^^^^^^^^^^";
     core::print(() → void);

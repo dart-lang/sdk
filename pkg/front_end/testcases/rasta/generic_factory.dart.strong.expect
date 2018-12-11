@@ -105,7 +105,7 @@ static method main() → dynamic {
   new self::C::•<self::C1>();
   new self::C::•<self::C3>();
   new self::C::•<self::C2>();
-  let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
+  invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
   factory A.c() = Missing;
           ^^^^^^^";
 }

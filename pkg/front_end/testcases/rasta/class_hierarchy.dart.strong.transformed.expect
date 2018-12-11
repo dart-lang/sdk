@@ -52,7 +52,7 @@ static method main() → void {
   new self::A::•();
   new self::B::•();
   new self::C::•();
-  let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Error: Method not found: 'Missing'.
+  invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Error: Method not found: 'Missing'.
   factory D() = Missing;
           ^^^^^^^";
 }

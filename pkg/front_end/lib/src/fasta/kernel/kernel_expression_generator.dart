@@ -265,14 +265,20 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     Expression read = makeInvalidRead();
-    complexAssignment?.read = read;
+    if (complexAssignment != null) {
+      read = helper.desugarSyntheticExpression(read);
+      complexAssignment.read = read;
+    }
     return read;
   }
 
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     Expression write = makeInvalidWrite(value);
-    complexAssignment?.write = write;
+    if (complexAssignment != null) {
+      write = helper.desugarSyntheticExpression(write);
+      complexAssignment.write = write;
+    }
     return write;
   }
 
@@ -1106,13 +1112,17 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
+    Expression read;
     if (readTarget == null) {
-      return makeInvalidRead();
+      read = makeInvalidRead();
+      if (complexAssignment != null) {
+        read = helper.desugarSyntheticExpression(read);
+      }
     } else {
-      var read = helper.makeStaticGet(readTarget, token);
-      complexAssignment?.read = read;
-      return read;
+      read = helper.makeStaticGet(readTarget, token);
     }
+    complexAssignment?.read = read;
+    return read;
   }
 
   @override
@@ -1121,6 +1131,9 @@ class KernelStaticAccessGenerator extends KernelGenerator
     Expression write;
     if (writeTarget == null) {
       write = makeInvalidWrite(value);
+      if (complexAssignment != null) {
+        write = helper.desugarSyntheticExpression(write);
+      }
     } else {
       write = new StaticSet(writeTarget, value);
     }
