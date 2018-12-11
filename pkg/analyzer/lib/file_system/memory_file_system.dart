@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -213,6 +212,8 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _checkFileAtPath(String path) {
+    // TODO(brianwilkerson) Consider throwing a FileSystemException rather than
+    // an ArgumentError.
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFile) {
       if (resource == null) {
@@ -224,6 +225,8 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _checkFolderAtPath(String path) {
+    // TODO(brianwilkerson) Consider throwing a FileSystemException rather than
+    // an ArgumentError.
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFolder) {
       throw new ArgumentError(

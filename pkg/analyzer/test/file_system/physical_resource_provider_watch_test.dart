@@ -1,9 +1,8 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -13,7 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
 
-import 'physical_resource_provider_test.dart' show BaseTest;
+import 'physical_file_system_test.dart' show BaseTest;
 
 main() {
   if (!new bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
