@@ -171,13 +171,14 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
         // there is no approved result yet, use the latest result from the
         // builder instead.
         final baseResult = approvedResult ?? result;
-        if ((!wasFlake &&
+        if (!wasFlake &&
             !tryResult["matches"] &&
-            tryResult["result"] != result["result"])) {
+            tryResult["result"] != result["result"]) {
           // The approved_results.json format currently does not natively
           // support preapproval, so preapproving turning one failure into
           // another will turn the builder in question red until the CL lands.
-          if (!baseResult["matches"]) {
+          if (!baseResult["matches"] &&
+              tryResult["result"] != baseResult["result"]) {
             print("Warning: Preapproving changed failure modes will turn the "
                 "CI red until the CL is submitted: $bot: $key: "
                 "${baseResult["result"]} -> ${tryResult["result"]}");
