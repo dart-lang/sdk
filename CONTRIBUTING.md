@@ -59,7 +59,7 @@ To send us a pull request:
  * `git pull-request` (if you are using [Hub](http://github.com/github/hub/)) or
   go to `https://github.com/dart-lang/linter` and click the
   "Compare & pull request" button
- * either explicitly name a reviewer in the github UI or add their guithub name in the pull request message body
+ * either explicitly name a reviewer in the github UI or add their github name in the pull request message body
 
 Please make sure all your checkins have detailed commit messages explaining the patch and if a PR is *not* ready to land, consider making it clear in the description and/or prefixing the title with "WIP".
   

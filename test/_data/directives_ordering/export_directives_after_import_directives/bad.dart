@@ -15,4 +15,4 @@ import 'dummy3.dart';
 
 export 'dummy3.dart';  // OK
 
-part 'dummy4.dart';  // Language requires export before part directivess.
+part 'dummy4.dart';  // Language requires export before part directives.

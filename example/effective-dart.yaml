@@ -19,7 +19,7 @@ linter:
     - constant_identifier_names # prefer
   # ordering
     - directives_ordering
-  # formating
+  # formatting
     - lines_longer_than_80_chars # avoid
     - curly_braces_in_flow_control_structures
   # --- DOCUMENTATION

@@ -164,12 +164,12 @@ void otherDependencies3() {
 
 class Bug661 {
   Bug661 parent;
-  Practitioner339 practicioner;
+  Practitioner339 practitioner;
 
   void bar() {
-    practicioner.bar(1);
-    practicioner.bar(2); // LINT
-    parent.practicioner.bar(3);
+    practitioner.bar(1);
+    practitioner.bar(2); // LINT
+    parent.practitioner.bar(3);
   }
 }
 

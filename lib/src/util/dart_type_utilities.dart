@@ -292,7 +292,7 @@ class DartTypeUtilities {
           return false;
         }
         for (int i = 0; i < leftTypeArguments.length; i++) {
-          // If any of the pair-wise type arguments are unreleated, then
+          // If any of the pair-wise type arguments are unrelated, then
           // [leftType] and [rightType] are unrelated.
           if (unrelatedTypes(leftTypeArguments[i], rightTypeArguments[i])) {
             return true;
