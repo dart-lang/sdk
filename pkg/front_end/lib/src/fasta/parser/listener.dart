@@ -6,7 +6,7 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show Message, templateUnexpectedToken;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -17,6 +17,8 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'member_kind.dart' show MemberKind;
+
+import 'util.dart' show optional;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -933,8 +935,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     logEvent("Type");
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle nullable types
+  void reportErrorIfNullableType(Token questionMark) {
+    if (questionMark != null) {
+      assert(optional('?', questionMark));
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(questionMark),
+          questionMark,
+          questionMark);
+    }
   }
 
   void handleNoName(Token token) {

@@ -148,7 +148,7 @@ class PrefixedType implements TypeInfo {
     listener.handleQualified(period);
 
     listener.handleNoTypeArguments(token.next);
-    listener.handleType(start);
+    listener.handleType(start, null);
     return token;
   }
 
@@ -183,10 +183,13 @@ class SimpleTypeWith1Argument implements TypeInfo {
   Token parseType(Token token, Parser parser) {
     Token start = token = token.next;
     assert(token.isKeywordOrIdentifier);
-    Listener listener = parser.listener;
-    listener.handleIdentifier(token, IdentifierContext.typeReference);
+    parser.listener.handleIdentifier(token, IdentifierContext.typeReference);
     token = typeArg.parseArguments(token, parser);
-    listener.handleType(start);
+    return parseTypeRest(start, token, parser);
+  }
+
+  Token parseTypeRest(Token start, Token token, Parser parser) {
+    parser.listener.handleType(start, null);
     return token;
   }
 
@@ -221,10 +224,13 @@ class SimpleType implements TypeInfo {
   Token parseType(Token token, Parser parser) {
     token = token.next;
     assert(isValidTypeReference(token));
-    Listener listener = parser.listener;
-    listener.handleIdentifier(token, IdentifierContext.typeReference);
+    parser.listener.handleIdentifier(token, IdentifierContext.typeReference);
     token = noTypeParamOrArg.parseArguments(token, parser);
-    listener.handleType(token);
+    return parseTypeRest(token, parser);
+  }
+
+  Token parseTypeRest(Token token, Parser parser) {
+    parser.listener.handleType(token, null);
     return token;
   }
 
@@ -372,7 +378,7 @@ class ComplexTypeInfo implements TypeInfo {
           }
         }
         token = typeArguments.parseArguments(token, parser);
-        parser.listener.handleType(typeRefOrPrefix);
+        parser.listener.handleType(typeRefOrPrefix, null);
       }
     }
 

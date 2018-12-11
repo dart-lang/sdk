@@ -960,8 +960,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
+    reportErrorIfNullableType(questionMark);
 
     TypeArgumentList arguments = pop();
     Identifier name = pop();
@@ -2552,7 +2553,7 @@ class AstBuilder extends StackListener {
     // keyword up to an element?
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     handleNoTypeArguments(voidKeyword);
-    handleType(voidKeyword);
+    handleType(voidKeyword, null);
   }
 
   @override

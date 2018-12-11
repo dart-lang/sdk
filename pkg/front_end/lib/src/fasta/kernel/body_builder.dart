@@ -2467,9 +2467,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
+    reportErrorIfNullableType(questionMark);
     List<UnresolvedType<KernelTypeBuilder>> arguments = pop();
     Object name = pop();
     if (name is QualifiedName) {

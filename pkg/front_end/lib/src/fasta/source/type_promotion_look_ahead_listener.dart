@@ -1212,7 +1212,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type", beginToken);
     state.pop();
   }

@@ -1349,8 +1349,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken) {
-    listener?.handleType(beginToken);
+  void handleType(Token beginToken, Token questionMark) {
+    listener?.handleType(beginToken, questionMark);
   }
 
   @override
@@ -1396,6 +1396,11 @@ class ForwardingListener implements Listener {
   @override
   void logEvent(String name) {
     listener?.logEvent(name);
+  }
+
+  @override
+  void reportErrorIfNullableType(Token questionMark) {
+    listener?.reportErrorIfNullableType(questionMark);
   }
 
   @override
