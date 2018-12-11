@@ -1535,11 +1535,6 @@
           "arguments": ["--fatal-warnings", "pkg/meta"]
         },
         {
-          "name": "analyze pkg/microlytics",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "pkg/microlytics"]
-        },
-        {
           "name": "analyze pkg/smith",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/smith"]
