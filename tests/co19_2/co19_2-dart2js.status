@@ -99,21 +99,18 @@ LanguageFeatures/Instantiate-to-bound/FutureOr/dynamic/FutureOr_l1_t02: RuntimeE
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t04: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t07: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t08: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l3_t02: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/01: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/02: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/none: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t07/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l3_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/none: Crash, Pass
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_FutureOr_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_FutureOr_l1_t05: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t03: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t05: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t07: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
@@ -179,7 +176,6 @@ LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_glob
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_global_variable_fail_A32_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_return_value_fail_A31_t01: RuntimeError
 LanguageFeatures/Super-mixins/mixin_member_t06: RuntimeError
-LanguageFeatures/regression/33585_t01: MissingCompileTimeError
 LanguageFeatures/regression/33585_t02: MissingCompileTimeError
 LanguageFeatures/regression/33597_t01: MissingCompileTimeError
 LanguageFeatures/regression/33701_t01: MissingCompileTimeError
@@ -1380,6 +1376,7 @@ Language/Types/Interface_Types/subtype_t23: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t08: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t10: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t05: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t05: RuntimeError
@@ -3653,11 +3650,10 @@ LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/none: C
 LanguageFeatures/Instantiate-to-bound/class/static/class_l1_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t03/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t04/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/01: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/03: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t06: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t07: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t08: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t10: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/01: MissingCompileTimeError
