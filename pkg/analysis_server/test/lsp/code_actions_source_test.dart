@@ -22,12 +22,19 @@ main() {
 class OrganizeImportsSourceCodeActionsTest extends SourceCodeActionsTest {
   test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
-import 'dart:convert';
+import 'dart:math';
 import 'dart:async';
+import 'dart:convert';
+
+Future foo;
+int minified(int x, int y) => min(x, y);
     ''';
     const expectedContent = '''
 import 'dart:async';
-import 'dart:convert';
+import 'dart:math';
+
+Future foo;
+int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
     await initializeWithDocumentChangesSupport();
@@ -72,12 +79,19 @@ import 'dart:convert';
 
   test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     const content = '''
-import 'dart:convert';
+import 'dart:math';
 import 'dart:async';
+import 'dart:convert';
+
+Future foo;
+int minified(int x, int y) => min(x, y);
     ''';
     const expectedContent = '''
 import 'dart:async';
-import 'dart:convert';
+import 'dart:math';
+
+Future foo;
+int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
     await initialize();

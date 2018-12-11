@@ -45,7 +45,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     final code = result.content;
     final unit = result.unit;
 
-    if (hasScanParseErrors(result)) {
+    if (hasScanParseErrors(result.errors)) {
       return ErrorOr.error(new ResponseError(
         ServerErrorCodes.FileHasErrors,
         'Unable to $commandName because the file contains parse errors',

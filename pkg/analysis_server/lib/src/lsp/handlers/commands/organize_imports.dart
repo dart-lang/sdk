@@ -15,7 +15,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   OrganizeImportsCommandHandler(LspAnalysisServer server) : super(server);
 
   @override
-  String get commandName => 'Sort Members';
+  String get commandName => 'Organize Imports';
 
   @override
   Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
@@ -33,29 +33,23 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     final path = arguments.single;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
 
-    var driver = server.getAnalysisDriver(path);
-    final result = await driver?.parseFile(path);
-    if (result == null) {
-      return ErrorOr.error(new ResponseError(
-        ServerErrorCodes.FileNotAnalyzed,
-        '$commandName is only available for analyzed files',
-        null,
-      ));
-    }
-    final code = result.content;
-    final unit = result.unit;
+    final result = await requireUnit(path);
+    return result.mapResult((result) {
+      final code = result.content;
+      final unit = result.unit;
 
-    if (hasScanParseErrors(result)) {
-      return ErrorOr.error(new ResponseError(
-        ServerErrorCodes.FileHasErrors,
-        'Unable to $commandName because the file contains parse errors',
-        path,
-      ));
-    }
+      if (hasScanParseErrors(result.errors)) {
+        return ErrorOr.error(new ResponseError(
+          ServerErrorCodes.FileHasErrors,
+          'Unable to $commandName because the file contains parse errors',
+          path,
+        ));
+      }
 
-    final sorter = new DirectiveOrganizer(code, unit, result.errors);
-    final edits = sorter.organize();
+      final organizer = new DirectiveOrganizer(code, unit, result.errors);
+      final edits = organizer.organize();
 
-    return await sendEditsToClient(docIdentifier, unit, edits);
+      return sendEditsToClient(docIdentifier, unit, edits);
+    });
   }
 }

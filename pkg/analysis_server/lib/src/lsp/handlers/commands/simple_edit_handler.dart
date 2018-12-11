@@ -8,7 +8,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
@@ -71,8 +70,8 @@ abstract class SimpleEditCommandHandler
     }
   }
 
-  bool hasScanParseErrors(ParsedUnitResult result) {
-    return result.errors.any((error) =>
+  bool hasScanParseErrors(List<engine.AnalysisError> errors) {
+    return errors.any((error) =>
         error.errorCode is engine.ScannerErrorCode ||
         error.errorCode is engine.ParserErrorCode);
   }
