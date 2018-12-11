@@ -59,6 +59,30 @@ class C {
         memberOf: 'C', unprefixed: ['A']);
   }
 
+  test_class_constructor_named_parameter_field_named() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  A f1;
+  B f2;
+  C.test({A this.f1: x, this.f2: y});
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
+  test_class_constructor_named_parameter_field_required() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  A f1;
+  B f2;
+  C.test(A this.f1, this.f2);
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['A']);
+  }
+
   test_class_constructor_named_parameter_required() async {
     var library = await buildTestLibrary(a, r'''
 class C {
@@ -1381,13 +1405,14 @@ class ImplReferenceCollectorTest extends _Base {
   test_class_constructor() async {
     var library = await buildTestLibrary(a, r'''
 class C {
-  C.test(A a, {b: x}) {
-    y;
+  var f;
+  C.test(A a, {b: x, this.f: y}) {
+    z;
   }
 }
 ''');
     _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
-        memberOf: 'C', unprefixed: ['x', 'y']);
+        memberOf: 'C', unprefixed: ['x', 'y', 'z']);
   }
 
   test_class_method() async {

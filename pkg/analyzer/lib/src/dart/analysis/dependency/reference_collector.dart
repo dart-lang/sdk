@@ -351,14 +351,19 @@ class ReferenceCollector {
       if (parameter.identifier != null) {
         _localScopes.add(parameter.identifier.name);
       }
-      if (parameter is FunctionTypedFormalParameter) {
+      if (parameter is FieldFormalParameter) {
+        _visitTypeAnnotation(parameter.type);
+        // Strongly speaking, we reference a field of the enclosing class.
+        //
+        // However the current plan is to resolve the whole library on a change.
+        // So, we will resolve the enclosing constructor anyway.
+      } else if (parameter is FunctionTypedFormalParameter) {
         _visitTypeAnnotation(parameter.returnType);
         _visitFormalParameterList(parameter.parameters);
       } else if (parameter is SimpleFormalParameter) {
         _visitTypeAnnotation(parameter.type);
       } else {
-        // TODO(scheglov) constructors and field formal parameters
-//        throw StateError('Unexpected: (${parameter.runtimeType}) $parameter');
+        throw StateError('Unexpected: (${parameter.runtimeType}) $parameter');
       }
     }
   }
