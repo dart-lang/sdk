@@ -62,7 +62,7 @@ class ReferenceCollector {
       Expression expression,
       ExtendsClause extendsClause,
       FormalParameterList formalParameters,
-      FormalParameterList formalParametersForDefaultValues,
+      FormalParameterList formalParametersForImpl,
       FunctionBody functionBody,
       ImplementsClause implementsClause,
       OnClause onClause,
@@ -96,7 +96,7 @@ class ReferenceCollector {
 
     // Parts of executables.
     _visitFormalParameterList(formalParameters);
-    _visitFormalParameterListDefaults(formalParametersForDefaultValues);
+    _visitFormalParameterListImpl(formalParametersForImpl);
     _visitTypeAnnotation(returnType);
     _visitFunctionBody(functionBody);
 
@@ -254,7 +254,8 @@ class ReferenceCollector {
     for (var i = 0; i < initializers.length; i++) {
       var initializer = initializers[i];
       if (initializer is AssertInitializer) {
-        // TODO(scheglov) implement
+        _visitExpression(initializer.condition);
+        _visitExpression(initializer.message);
       } else if (initializer is ConstructorFieldInitializer) {
         _visitExpression(initializer.expression);
       } else if (initializer is SuperConstructorInvocation) {
@@ -417,14 +418,21 @@ class ReferenceCollector {
     }
   }
 
-  void _visitFormalParameterListDefaults(FormalParameterList node) {
+  void _visitFormalParameterListImpl(FormalParameterList node) {
     if (node == null) return;
 
     var parameters = node.parameters;
     for (var i = 0; i < parameters.length; i++) {
       FormalParameter parameter = parameters[i];
+
       if (parameter is DefaultFormalParameter) {
-        _visitExpression(parameter.defaultValue);
+        DefaultFormalParameter defaultParameter = parameter;
+        _visitExpression(defaultParameter.defaultValue);
+        parameter = defaultParameter.parameter;
+      }
+
+      if (parameter.identifier != null) {
+        _localScopes.add(parameter.identifier.name);
       }
     }
   }
@@ -470,7 +478,7 @@ class ReferenceCollector {
     _localScopes.enter();
     _visitTypeParameterList(node.typeParameters);
     _visitFormalParameterList(node.parameters);
-    _visitFormalParameterListDefaults(node.parameters);
+    _visitFormalParameterListImpl(node.parameters);
     _visitFunctionBody(node.body);
     _localScopes.exit();
   }

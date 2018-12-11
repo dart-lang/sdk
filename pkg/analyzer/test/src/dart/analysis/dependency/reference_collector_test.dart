@@ -1503,6 +1503,16 @@ class X {
         memberOf: 'X', unprefixed: ['A']);
   }
 
+  test_class_constructor_initializer_assert() async {
+    var library = await buildTestLibrary(a, r'''
+class C {
+  C.test(a) : assert(a > x, y);
+}
+''');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'C', unprefixed: ['x', 'y']);
+  }
+
   test_class_constructor_initializer_field() async {
     var library = await buildTestLibrary(a, r'''
 class C {
@@ -1733,6 +1743,20 @@ class X {
     _assertImpl(library, 'test', NodeKind.CONSTRUCTOR, memberOf: 'X');
   }
 
+  test_syntacticScope_class_constructor_parameters() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  X.test(a, b, c) {
+    a; b; c;
+    d;
+  }
+}
+''');
+    _assertApi(library, 'test', NodeKind.CONSTRUCTOR, memberOf: 'X');
+    _assertImpl(library, 'test', NodeKind.CONSTRUCTOR,
+        memberOf: 'X', unprefixed: ['d']);
+  }
+
   test_syntacticScope_class_field() async {
     var library = await buildTestLibrary(a, r'''
 class X {
@@ -1761,6 +1785,20 @@ class X {
         memberOf: 'X', unprefixed: ['B']);
   }
 
+  test_syntacticScope_class_method_parameters() async {
+    var library = await buildTestLibrary(a, r'''
+class X {
+  test(a, b, c) {
+    a; b; c;
+    d;
+  }
+}
+''');
+    _assertApi(library, 'test', NodeKind.METHOD, memberOf: 'X');
+    _assertImpl(library, 'test', NodeKind.METHOD,
+        memberOf: 'X', unprefixed: ['d']);
+  }
+
   test_syntacticScope_class_typeParameter_ofClass() async {
     var library = await buildTestLibrary(a, r'''
 class X<T extends A<B, X, T>> {}
@@ -1785,6 +1823,17 @@ test(A a, test b) {
 ''');
     _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A']);
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['B']);
+  }
+
+  test_syntacticScope_unit_function_parameters() async {
+    var library = await buildTestLibrary(a, r'''
+test(a, b, {c}) {
+  a; b; c;
+  d;
+}
+''');
+    _assertApi(library, 'test', NodeKind.FUNCTION);
+    _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['d']);
   }
 
   test_syntacticScope_unit_functionTypeAlias() async {

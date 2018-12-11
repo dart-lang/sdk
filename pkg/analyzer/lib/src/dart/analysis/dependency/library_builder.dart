@@ -320,7 +320,7 @@ class _LibraryBuilder {
       implTokenSignature,
       enclosingClassName: enclosingClassName,
       enclosingSuperClass: enclosingSuperClass,
-      formalParametersForDefaultValues: node.parameters,
+      formalParametersForImpl: node.parameters,
       constructorInitializers: node.initializers,
       redirectedConstructor: node.redirectedConstructor,
       functionBody: node.body,
@@ -434,7 +434,7 @@ class _LibraryBuilder {
     var impl = referenceCollector.collect(
       implTokenSignature,
       thisNodeName: node.name.name,
-      formalParametersForDefaultValues: functionExpression.parameters,
+      formalParametersForImpl: functionExpression.parameters,
       functionBody: body,
     );
 
@@ -551,7 +551,7 @@ class _LibraryBuilder {
       implTokenSignature,
       enclosingClassName: enclosingClassName,
       thisNodeName: node.name.name,
-      formalParametersForDefaultValues: node.parameters,
+      formalParametersForImpl: node.parameters,
       functionBody: node.body,
     );
 
