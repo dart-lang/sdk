@@ -98,7 +98,7 @@ See the [LICENSE] file.
 [serverapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
 [dartanalyzer]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
-[lintrules]: http://dart-lang.github.io/linter/lints/
+[lintrules]: https://dart-lang.github.io/linter/lints/
 [glob]: https://pub.dartlang.org/packages/glob
 [LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
 [dartfmt]: https://github.com/dart-lang/dart_style
