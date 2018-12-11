@@ -17,6 +17,10 @@ import 'util.dart' show isOneOf, optional;
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
 abstract class TypeInfo {
+  /// Return type info representing the receiver without the trailing `?`
+  /// or the receiver if the receiver does not represent a nullable type.
+  TypeInfo asNonNullableType();
+
   /// Return `true` if the tokens comprising the type represented by the
   /// receiver could be interpreted as a valid standalone expression.
   /// For example, `A` or `A.b` could be interpreted as a type references

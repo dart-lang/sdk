@@ -85,6 +85,9 @@ class NoType implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  TypeInfo asNonNullableType() => this;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     parser.reportRecoverableErrorWithToken(
         token.next, fasta.templateExpectedType);
@@ -118,6 +121,9 @@ class PrefixedType implements TypeInfo {
 
   @override
   bool get couldBeExpression => true;
+
+  @override
+  TypeInfo asNonNullableType() => this;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -168,6 +174,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  TypeInfo asNonNullableType() => this;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
@@ -209,6 +218,9 @@ class SimpleType implements TypeInfo {
   bool get couldBeExpression => true;
 
   @override
+  TypeInfo asNonNullableType() => this;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
@@ -246,6 +258,9 @@ class VoidType implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  TypeInfo asNonNullableType() => this;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -323,6 +338,11 @@ class ComplexTypeInfo implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  TypeInfo asNonNullableType() {
+    return this;
+  }
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>

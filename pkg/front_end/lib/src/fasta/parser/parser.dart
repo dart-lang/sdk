@@ -4875,7 +4875,9 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    token = computeType(token, true).ensureTypeNotVoid(token, this);
+    // Ignore trailing `?` if there is one as it may be part of an expression
+    TypeInfo typeInfo = computeType(token, true).asNonNullableType();
+    token = typeInfo.ensureTypeNotVoid(token, this);
     listener.handleIsOperator(operator, not);
     return skipChainedAsIsOperators(token);
   }
@@ -4888,7 +4890,9 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
-    token = computeType(token, true).ensureTypeNotVoid(token, this);
+    // Ignore trailing `?` if there is one as it may be part of an expression
+    TypeInfo typeInfo = computeType(token, true).asNonNullableType();
+    token = typeInfo.ensureTypeNotVoid(token, this);
     listener.handleAsOperator(operator);
     return skipChainedAsIsOperators(token);
   }
