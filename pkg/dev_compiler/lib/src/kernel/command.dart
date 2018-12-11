@@ -49,7 +49,7 @@ any other information that may help us track it down. Thanks!
 $error
 $stackTrace
 ''');
-    rethrow;
+    return CompilerResult(70);
   }
 }
 
