@@ -12,7 +12,7 @@ import 'parser.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show isOneOf, optional;
+import 'util.dart' show isOneOf, isOneOfOrEof, optional;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -199,13 +199,19 @@ TypeInfo computeType(final Token token, bool required,
       // We've seen identifier `<` identifier `>`
       next = typeParamOrArg.skip(next).next;
       if (!isGeneralizedFunctionType(next)) {
-        if (required || looksLikeName(next)) {
-          // identifier `<` identifier `>` identifier
-          return typeParamOrArg.typeInfo;
+        if (optional('?', next) && typeParamOrArg == simpleTypeArgument1) {
+          if (required || looksLikeName(next.next)) {
+            // identifier `<` identifier `>` `?` identifier
+            return simpleNullableTypeWith1Argument;
+          }
         } else {
-          // identifier `<` identifier `>` non-identifier
-          return noType;
+          if (required || looksLikeName(next)) {
+            // identifier `<` identifier `>` identifier
+            return typeParamOrArg.typeInfo;
+          }
         }
+        // identifier `<` identifier `>` non-identifier
+        return noType;
       }
     }
     // TODO(danrubel): Consider adding a const for
@@ -255,7 +261,23 @@ TypeInfo computeType(final Token token, bool required,
         .computeIdentifierGFT(required);
   }
 
-  if (required || looksLikeName(next)) {
+  if (optional('?', next)) {
+    if (required) {
+      // identifier `?`
+      return simpleNullableType;
+    } else {
+      next = next.next;
+      if (isGeneralizedFunctionType(next)) {
+        // identifier `?` Function `(`
+        return simpleNullableType;
+      } else if (looksLikeName(next) &&
+          isOneOfOrEof(
+              next.next, const [';', ',', '=', '>', '>=', '>>', '>>>'])) {
+        // identifier `?` identifier `=`
+        return simpleNullableType;
+      }
+    }
+  } else if (required || looksLikeName(next)) {
     // identifier identifier
     return simpleType;
   }
