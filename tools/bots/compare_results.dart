@@ -162,7 +162,10 @@ bool search(
     }
     if (logs != null) {
       final log = logs[event.after.key];
-      if (log != null) logSection?.add("\n\nLog for $output\n${log["log"]}");
+      final bar = '=' * (output.length + 2);
+      if (log != null) {
+        logSection?.add("\n\n/$bar\\\n| $output |\n\\$bar/\n\n${log["log"]}");
+      }
     }
     if (!options["logs-only"]) {
       print(output);
