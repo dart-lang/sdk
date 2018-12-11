@@ -60,6 +60,7 @@ DECLARE_FLAG(int, max_polymorphic_checks);
 
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
 
+DEFINE_FLAG(int, gc_every, 0, "Run major GC on every N stack overflow checks");
 DEFINE_FLAG(int,
             stacktrace_every,
             0,
@@ -1756,16 +1757,18 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 // The following code is used to stress test
 //  - deoptimization
 //  - debugger stack tracing
+//  - garbage collection
 //  - hot reload
 static void HandleStackOverflowTestCases(Thread* thread) {
   Isolate* isolate = thread->isolate();
   bool do_deopt = false;
   bool do_stacktrace = false;
   bool do_reload = false;
+  bool do_gc = false;
   const intptr_t isolate_reload_every =
       isolate->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
-      (isolate_reload_every > 0)) {
+      (FLAG_gc_every > 0) || (isolate_reload_every > 0)) {
     if (!Isolate::IsVMInternalIsolate(isolate)) {
       // TODO(turnidge): To make --deoptimize_every and
       // --stacktrace-every faster we could move this increment/test to
@@ -1776,6 +1779,9 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
       if (FLAG_stacktrace_every > 0 && (count % FLAG_stacktrace_every) == 0) {
         do_stacktrace = true;
+      }
+      if (FLAG_gc_every > 0 && (count % FLAG_gc_every) == 0) {
+        do_gc = true;
       }
       if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
         do_reload = isolate->CanReload();
@@ -1898,6 +1904,9 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       Debugger::CollectAwaiterReturnStackTrace();
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
+  }
+  if (do_gc) {
+    isolate->heap()->CollectAllGarbage(Heap::kDebugging);
   }
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
