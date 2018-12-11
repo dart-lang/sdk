@@ -774,12 +774,10 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JClosedWorld closedWorld) {
-    // All bitwise operations on primitive types either produce an
+    // All bitwise operations on number types either produce an unsigned 32-bit
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
-    if (left
-        .isPrimitiveOrNull(closedWorld.abstractValueDomain)
-        .isDefinitelyTrue) {
+    if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
       return closedWorld.abstractValueDomain.uint32Type;
     }
     return super
