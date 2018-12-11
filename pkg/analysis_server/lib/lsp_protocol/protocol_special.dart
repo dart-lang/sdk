@@ -18,12 +18,6 @@ Object specToJson(Object obj) {
   }
 }
 
-/// Specific code action kinds to allow end users to keybind (or run-on-save)
-/// specific types of code actions.
-abstract class DartCodeActionKind {
-  static const SortMembers = const CodeActionKind('source.sortMembers');
-}
-
 class Either2<T1, T2> {
   final int _which;
   final T1 _t1;
@@ -195,20 +189,6 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
 abstract class IncomingMessage {
   Method get method;
   dynamic get params;
-}
-
-abstract class ServerErrorCodes {
-  // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
-  static const ServerAlreadyStarted = const ErrorCodes(-32000);
-  static const UnhandledError = const ErrorCodes(-32001);
-  static const ServerAlreadyInitialized = const ErrorCodes(-32002);
-  static const InvalidFilePath = const ErrorCodes(-32003);
-  static const InvalidFileLineCol = const ErrorCodes(-32004);
-  static const UnknownCommand = const ErrorCodes(-32005);
-  static const InvalidCommandArguments = const ErrorCodes(-32006);
-  static const FileNotAnalyzed = const ErrorCodes(-32007);
-  static const FileHasErrors = const ErrorCodes(-32008);
-  static const ClientFailedToApplyEdit = const ErrorCodes(-32009);
 }
 
 abstract class ToJsonable {

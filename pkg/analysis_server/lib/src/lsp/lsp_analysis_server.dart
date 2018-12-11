@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -79,7 +80,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * The versions of each document known to the server (keyed by path), used to
    * send back to the client for server-initiated edits so that the client can
    * ensure they have a matching version of the document before applying them.
-   * 
+   *
    * Handlers should prefer to use the `getVersionedDocumentIdentifier` method
    * which will return a null-versioned identifier if the document version is
    * not known.

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,12 +38,12 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   test_markdown_isFormattedForDisplay() async {
     final content = '''
     /// This is a string.
-    /// 
+    ///
     /// {@template foo}
     /// With some [refs] and some
     /// [links](https://www.dartlang.org/)
     /// {@endTemplate foo}
-    /// 
+    ///
     /// ```dart sample
     /// print();
     /// ```

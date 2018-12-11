@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -68,7 +69,8 @@ class InitializeMessageHandler
         null,
         true, // documentSymbolProvider
         null,
-        null,
+        Either2<bool, CodeActionOptions>.t2(
+            new CodeActionOptions(DartCodeActionKind.serverSupportedKinds)),
         null,
         true, // documentFormattingProvider
         false, // documentRangeFormattingProvider
@@ -77,7 +79,7 @@ class InitializeMessageHandler
         null,
         null,
         null,
-        null,
+        new ExecuteCommandOptions(Commands.serverSupportedCommands),
         null,
         null)));
   }
