@@ -12,7 +12,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
 
-/// Generates lint rule docs for publishing to http://dart-lang.github.io/
+/// Generates lint rule docs for publishing to https://dart-lang.github.io/
 void main([List<String> args]) async {
   var parser = new ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
@@ -139,11 +139,11 @@ String getBadges(String rule) {
   var sb = new StringBuffer();
   if (flutterRules.contains(rule)) {
     sb.write(
-        '<a href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml"><img alt="flutter" src="style-flutter.svg"></a> ');
+        '<a href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml"><!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a> ');
   }
   if (pedanticRules.contains(rule)) {
     sb.write(
-        '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><img alt="pedantic" src="style-pedantic.svg"></a>');
+        '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
   }
   return sb.toString();
 }
@@ -165,7 +165,7 @@ String qualify(LintRule r) =>
     (r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})');
 
 String toDescription(LintRule r) =>
-    '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
+    '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
 
 class CountBadger {
   Iterable<LintRule> rules;
@@ -239,7 +239,7 @@ class Generator {
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
                <li><a href="https://www.dartlang.org/articles/style-guide/">See the <strong>Style Guide</strong></a></li>
-               <li><a href="http://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
+               <li><a href="https://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
             </ul>
          </header>
          <section>
@@ -291,7 +291,7 @@ class Indexer {
    <body>
       <div class="wrapper">
          <header>
-            <a href="http://dart-lang.github.io/linter/">
+            <a href="https://dart-lang.github.io/linter/">
                <h1>Linter for Dart</h1>
             </a>
             <p>Lint Rules</p>
@@ -399,13 +399,13 @@ linter:
   <body>
       <div class="wrapper">
          <header>
-            <a href="http://dart-lang.github.io/linter/">
+            <a href="https://dart-lang.github.io/linter/">
                <h1>Dart Lint</h1>
             </a>
             <p>Analysis Options</p>
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
-              <li><a href="http://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
+              <li><a href="https://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
               <li><a href="https://github.com/dart-lang/linter">View On <strong>GitHub</strong></a></li>
             </ul>
          </header>

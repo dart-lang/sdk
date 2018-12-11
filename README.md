@@ -3,7 +3,7 @@
 The Dart Linter package defines lint rules that identify and report on "lints" found in Dart code.  Linting is performed by the Dart
 analysis server and the `dartanalyzer` commandline tool.
 
-[![Lint Count](http://dart-lang.github.io/linter/lints/count-badge.svg)](http://dart-lang.github.io/linter/lints/)
+[![Lint Count](https://dart-lang.github.io/linter/lints/count-badge.svg)](https://dart-lang.github.io/linter/lints/)
 [![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
 [![Build status](https://ci.appveyor.com/api/projects/status/3a2437l58uhmvckm/branch/master?svg=true)](https://ci.appveyor.com/project/pq/linter/branch/master)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/linter/badge.svg)](https://coveralls.io/r/dart-lang/linter)
@@ -64,7 +64,7 @@ Feedback is, of course, greatly appreciated and contributions are welcome! Pleas
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/linter/issues
-[lints]: http://dart-lang.github.io/linter/lints/
+[lints]: https://dart-lang.github.io/linter/lints/
 [package-pedantic]: https://github.com/dart-lang/pedantic/blob/master/lib/analysis_options.yaml
 [effective-dart-lints]: /example/effective-dart.yaml
 [options_file]: https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file

@@ -56,7 +56,7 @@ To start working on a patch:
 
 To send us a pull request:
 
- * `git pull-request` (if you are using [Hub](http://github.com/github/hub/)) or
+ * `git pull-request` (if you are using [Hub](https://github.com/github/hub/)) or
   go to `https://github.com/dart-lang/linter` and click the
   "Compare & pull request" button
  * either explicitly name a reviewer in the github UI or add their github name in the pull request message body
