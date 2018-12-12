@@ -675,7 +675,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
                     this.fileUri, -1, noLength)
               ]);
         } else {
-          usedParts.add(part.uri);
+          if (isPatch) {
+            usedParts.add(part.fileUri);
+          } else {
+            usedParts.add(part.uri);
+          }
           includePart(part, usedParts);
         }
       } else {

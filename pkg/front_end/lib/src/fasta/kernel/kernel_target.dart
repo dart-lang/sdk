@@ -807,8 +807,8 @@ class KernelTarget extends TargetImplementation {
         } else {
           // If there's more than one patch file, it's interpreted as a part of
           // the patch library.
-          KernelLibraryBuilder part =
-              library.loader.read(patch, -1, fileUri: patch, accessor: first);
+          KernelLibraryBuilder part = library.loader.read(patch, -1,
+              origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
           part.partOfUri = first.uri;
         }
