@@ -1081,7 +1081,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages writable.
-  if (finalize) WriteProtectCode(false);
+  WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = GetCurrentUsage();
@@ -1186,7 +1186,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages read-only.
-  if (finalize) WriteProtectCode(true);
+  WriteProtectCode(true);
 
   int64_t end = OS::GetCurrentMonotonicMicros();
 
@@ -1393,7 +1393,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-#if defined(TARGET_ARCH_IA32) || !defined(CONCURRENT_MARKING)
+#if defined(TARGET_ARCH_IA32)
   intptr_t headroom = 0;
 #else
   intptr_t headroom = heap_->new_space()->CapacityInWords();

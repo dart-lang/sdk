@@ -10,7 +10,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
+DEFINE_FLAG(bool, write_protect_code, false, "Write protect jitted code");
 
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)

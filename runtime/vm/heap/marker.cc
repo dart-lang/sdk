@@ -260,7 +260,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         if (class_id != kWeakPropertyCid) {
           size = raw_obj->VisitPointersNonvirtual(this);
         } else {
-          RawWeakProperty* raw_weak = static_cast<RawWeakProperty*>(raw_obj);
+          RawWeakProperty* raw_weak =
+              reinterpret_cast<RawWeakProperty*>(raw_obj);
           size = ProcessWeakProperty(raw_weak);
         }
         marked_bytes_ += size;
@@ -314,20 +315,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return raw_weak->VisitPointersNonvirtual(this);
   }
 
-  void FinalizeInstructions() {
-    while (!delayed_instructions_.is_empty()) {
-      RawInstructions* instr = delayed_instructions_.RemoveLast();
-      if (TryAcquireMarkBit(instr)) {
-        intptr_t size = instr->Size();
-        marked_bytes_ += size;
-        NOT_IN_PRODUCT(UpdateLiveOld(kInstructionsCid, size));
-      }
-    }
-  }
-
   // Called when all marking is complete.
   void Finalize() {
-    ASSERT(delayed_instructions_.is_empty());
     work_list_.Finalize();
     // Detach code from functions.
     if (skipped_code_functions_ != NULL) {
@@ -381,15 +370,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       return;
     }
 
-    intptr_t class_id = raw_obj->GetClassId();
-    ASSERT(class_id != kFreeListElement);
-
-    if (sync && UNLIKELY(class_id == kInstructionsCid)) {
-      // If this is the concurrent marker, instruction pages may be
-      // non-writable.
-      delayed_instructions_.Add(static_cast<RawInstructions*>(raw_obj));
-      return;
-    }
+    ASSERT(raw_obj->GetClassId() != kFreeListElement);
 
     if (!TryAcquireMarkBit(raw_obj)) {
       // Already marked.
@@ -416,7 +397,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   PageSpace* page_space_;
   MarkerWorkList work_list_;
   RawWeakProperty* delayed_weak_properties_;
-  MallocGrowableArray<RawInstructions*> delayed_instructions_;
   SkippedCodeFunctions* skipped_code_functions_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
@@ -656,8 +636,6 @@ class MarkTask : public ThreadPool::Task {
         barrier_->Sync();
       } while (more_to_mark);
 
-      visitor_->FinalizeInstructions();
-
       // Phase 2: Weak processing and follow-up marking on main thread.
       barrier_->Sync();
 
@@ -895,7 +873,6 @@ void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
                                 skipped_code_functions);
       IterateRoots(&mark, 0, 1);
       mark.DrainMarkingStack();
-      mark.FinalizeInstructions();
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
