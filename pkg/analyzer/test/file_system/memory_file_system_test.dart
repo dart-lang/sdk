@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
@@ -304,6 +305,19 @@ class MemoryResourceProviderTest extends BaseTest
 
     expect(() => provider.deleteFile(defaultFolderPath), throwsArgumentError);
     expect(folder.exists, isTrue);
+  }
+
+  @override
+  test_pathContext() {
+    if (path.style == path.Style.windows) {
+      // On Windows the path context is replaced by one whose current directory
+      // is the root of the 'C' drive.
+      path.Context context = provider.pathContext;
+      expect(context.style, path.Style.windows);
+      expect(context.current, 'C:\\');
+    } else {
+      super.test_pathContext();
+    }
   }
 
   test_deleteFile_notExisting() {
