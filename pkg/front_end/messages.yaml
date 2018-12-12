@@ -3364,3 +3364,18 @@ TypeOriginWithFileUri:
   template: "'#name' is from '#uri' ('#uri2')."
   frontendInternal: true
   external: test/type_labeler_test.dart
+
+ObjectExtends:
+  template: "The class 'Object' can't have a superclass."
+  frontendInternal: true
+  external: test/fasta/object_supertype_test.dart
+
+ObjectImplements:
+  template: "The class 'Object' can't implement anything."
+  frontendInternal: true
+  external: test/fasta/object_supertype_test.dart
+
+ObjectMixesIn:
+  template: "The class 'Object' can't use mixins."
+  frontendInternal: true
+  external: test/fasta/object_supertype_test.dart

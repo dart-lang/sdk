@@ -47,6 +47,9 @@ import '../fasta_codes.dart'
         Message,
         SummaryTemplate,
         Template,
+        messageObjectExtends,
+        messageObjectImplements,
+        messageObjectMixesIn,
         messagePartOrphan,
         noLength,
         templateAmbiguousSupertypes,
@@ -552,7 +555,32 @@ class SourceLoader<L> extends Loader<L> {
     return output;
   }
 
-  void checkSemantics(List<SourceClassBuilder> classes) {
+  /// Check that [objectClass] has no supertypes. Recover by removing any
+  /// found.
+  void checkObjectClassHierarchy(ClassBuilder objectClass) {
+    if (objectClass is SourceClassBuilder &&
+        objectClass.library.loader == this) {
+      if (objectClass.supertype != null) {
+        objectClass.supertype = null;
+        objectClass.addProblem(
+            messageObjectExtends, objectClass.charOffset, noLength);
+      }
+      if (objectClass.interfaces != null) {
+        objectClass.addProblem(
+            messageObjectImplements, objectClass.charOffset, noLength);
+        objectClass.interfaces = null;
+      }
+      if (objectClass.mixedInType != null) {
+        objectClass.addProblem(
+            messageObjectMixesIn, objectClass.charOffset, noLength);
+        objectClass.mixedInType = null;
+      }
+    }
+  }
+
+  void checkSemantics(
+      List<SourceClassBuilder> classes, ClassBuilder objectClass) {
+    checkObjectClassHierarchy(objectClass);
     Iterable<ClassBuilder> candidates = cyclicCandidates(classes);
     if (candidates.isNotEmpty) {
       Map<ClassBuilder, Set<ClassBuilder>> realCycles =

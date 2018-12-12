@@ -646,9 +646,9 @@ abstract class KernelClassBuilder
           isInterfaceCheck: true);
     }
 
-    bool hasNoSuchMethod =
-        hierarchy.getDispatchTarget(cls, noSuchMethodName).enclosingClass !=
-            coreTypes.objectClass;
+    Member noSuchMethod = hierarchy.getDispatchTarget(cls, noSuchMethodName);
+    bool hasNoSuchMethod = noSuchMethod != null &&
+        noSuchMethod.enclosingClass != coreTypes.objectClass;
 
     void findMissingImplementations({bool setters}) {
       List<Member> dispatchTargets =

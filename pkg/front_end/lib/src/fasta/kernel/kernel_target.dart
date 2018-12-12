@@ -271,7 +271,7 @@ class KernelTarget extends TargetImplementation {
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses = collectMyClasses();
-      loader.checkSemantics(myClasses);
+      loader.checkSemantics(myClasses, objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
       installDefaultSupertypes();
