@@ -2,7 +2,8 @@
 
 leafp@google.com
 
-**Status**: Implemented.
+**Status**: This document is now background material.
+For normative text, please consult the language specification.
 
 This is intended to define the core of the Dart 2.0 static and runtime subtyping
 relation.
