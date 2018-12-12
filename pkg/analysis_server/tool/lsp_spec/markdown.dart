@@ -5,7 +5,7 @@
 final _typeScriptBlockPattern =
     new RegExp(r'\B```typescript([\S\s]*?)\n```', multiLine: true);
 final _methodNamesPattern = new RegExp(
-    r'''_(?:Notification|Request):?_:?\r?\n\* method: '(.*?)'\r?\n''',
+    r'''_(?:Notification|Request):?_:?(?:\r?\n)+\* method: '(.*?)'\r?\n''',
     multiLine: true);
 
 /// Extracts fenced code blocks that are explicitly marked as TypeScript from a

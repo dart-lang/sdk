@@ -5259,6 +5259,9 @@ class Method {
       case r'telemetry/event':
       case r'client/registerCapability':
       case r'client/unregisterCapability':
+      case r'workspace/workspaceFolders':
+      case r'workspace/didChangeWorkspaceFolders':
+      case r'workspace/configuration':
       case r'workspace/didChangeWatchedFiles':
       case r'workspace/symbol':
       case r'workspace/executeCommand':
@@ -5284,10 +5287,13 @@ class Method {
       case r'codeLens/resolve':
       case r'textDocument/documentLink':
       case r'documentLink/resolve':
+      case r'textDocument/documentColor':
+      case r'textDocument/colorPresentation':
       case r'textDocument/formatting':
       case r'textDocument/onTypeFormatting':
       case r'textDocument/rename':
       case r'textDocument/prepareRename':
+      case r'textDocument/foldingRange':
         return true;
     }
     return false;
@@ -5328,6 +5334,18 @@ class Method {
   /// Constant for the 'client/unregisterCapability' method.
   static const client_unregisterCapability =
       const Method._(r'client/unregisterCapability');
+
+  /// Constant for the 'workspace/workspaceFolders' method.
+  static const workspace_workspaceFolders =
+      const Method._(r'workspace/workspaceFolders');
+
+  /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
+  static const workspace_didChangeWorkspaceFolders =
+      const Method._(r'workspace/didChangeWorkspaceFolders');
+
+  /// Constant for the 'workspace/configuration' method.
+  static const workspace_configuration =
+      const Method._(r'workspace/configuration');
 
   /// Constant for the 'workspace/didChangeWatchedFiles' method.
   static const workspace_didChangeWatchedFiles =
@@ -5420,6 +5438,14 @@ class Method {
   /// Constant for the 'documentLink/resolve' method.
   static const documentLink_resolve = const Method._(r'documentLink/resolve');
 
+  /// Constant for the 'textDocument/documentColor' method.
+  static const textDocument_documentColor =
+      const Method._(r'textDocument/documentColor');
+
+  /// Constant for the 'textDocument/colorPresentation' method.
+  static const textDocument_colorPresentation =
+      const Method._(r'textDocument/colorPresentation');
+
   /// Constant for the 'textDocument/formatting' method.
   static const textDocument_formatting =
       const Method._(r'textDocument/formatting');
@@ -5434,6 +5460,10 @@ class Method {
   /// Constant for the 'textDocument/prepareRename' method.
   static const textDocument_prepareRename =
       const Method._(r'textDocument/prepareRename');
+
+  /// Constant for the 'textDocument/foldingRange' method.
+  static const textDocument_foldingRange =
+      const Method._(r'textDocument/foldingRange');
 
   Object toJson() => _value;
 
