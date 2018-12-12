@@ -27,6 +27,7 @@ import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../ir/closure.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
@@ -40,7 +41,7 @@ import '../js_emitter/code_emitter_task.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
@@ -86,6 +87,7 @@ class JsKernelToElementMap
   static const String typedefDataTag = 'typedef-data';
   static const String memberDataTag = 'member-data';
   static const String typeVariableDataTag = 'type-variable-data';
+  static const String nestedClosuresTag = 'nested-closures';
 
   final CompilerOptions options;
   final DiagnosticReporter reporter;
@@ -332,7 +334,10 @@ class JsKernelToElementMap
       JClassEnv env = new JClassEnv.readFromDataSource(source);
       JClassData data = new JClassData.readFromDataSource(source);
       classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
-      libraries.getEnv(cls.library).registerClass(cls.name, env);
+      if (cls is! JRecord && cls is! JClosureClass) {
+        // Synthesized classes are not part of the library environment.
+        libraries.getEnv(cls.library).registerClass(cls.name, env);
+      }
       assert(index == cls.classIndex);
     });
     source.end(classDataTag);
@@ -375,6 +380,12 @@ class JsKernelToElementMap
       assert(index == typeVariable.typeVariableIndex);
     });
     source.end(typeVariableDataTag);
+
+    source.begin(nestedClosuresTag);
+    _nestedClosureMap.addAll(
+        source.readMemberMap(() => source.readMembers<IndexedFunction>()));
+    source.end(nestedClosuresTag);
+
     source.end(tag);
   }
 
@@ -455,6 +466,10 @@ class JsKernelToElementMap
       data.writeToDataSink(sink);
     });
     sink.end(typeVariableDataTag);
+
+    sink.begin(nestedClosuresTag);
+    sink.writeMemberMap(_nestedClosureMap, sink.writeMembers);
+    sink.end(nestedClosuresTag);
 
     sink.end(tag);
   }
@@ -1145,16 +1160,16 @@ class JsKernelToElementMap
   /// Looks up [typeName] for use in the spec-string of a `JS` call.
   // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
   // the `ForeignResolver`.
-  native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+  TypeLookup typeLookup({bool resolveAsRaw: true}) {
     return resolveAsRaw
         ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
         : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
   }
 
-  native.TypeLookup _cachedTypeLookupRaw;
-  native.TypeLookup _cachedTypeLookupFull;
+  TypeLookup _cachedTypeLookupRaw;
+  TypeLookup _cachedTypeLookupFull;
 
-  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+  TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
@@ -1219,28 +1234,28 @@ class JsKernelToElementMap
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
 
     String codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
 
-    return native.NativeBehavior.ofJsCall(
+    return NativeBehavior.ofJsCall(
         specString,
         codeString,
         typeLookup(resolveAsRaw: true),
@@ -1249,28 +1264,27 @@ class JsKernelToElementMap
         commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node) {
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
-    return native.NativeBehavior.ofJsBuiltinCall(
+    return NativeBehavior.ofJsBuiltinCall(
         specString,
         typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
@@ -1278,34 +1292,34 @@ class JsKernelToElementMap
         commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the
+  /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global expression has no type.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length > 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global has more than 2 arguments.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
-    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
+    return NativeBehavior.ofJsEmbeddedGlobalCall(
         specString,
         typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
@@ -2396,8 +2410,8 @@ class JsElementEnvironment extends ElementEnvironment
   }
 }
 
-/// [native.BehaviorBuilder] for kernel based elements.
-class JsBehaviorBuilder extends native.BehaviorBuilder {
+/// [BehaviorBuilder] for kernel based elements.
+class JsBehaviorBuilder extends BehaviorBuilder {
   final ElementEnvironment elementEnvironment;
   final CommonElements commonElements;
   final DiagnosticReporter reporter;

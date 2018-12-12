@@ -46,6 +46,8 @@ export 'mixin_application_builder.dart' show MixinApplicationBuilder;
 
 export 'modifier_builder.dart' show ModifierBuilder;
 
+export 'name_iterator.dart' show NameIterator;
+
 export 'named_type_builder.dart' show NamedTypeBuilder;
 
 export 'prefix_builder.dart' show PrefixBuilder;

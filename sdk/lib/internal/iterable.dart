@@ -493,9 +493,8 @@ class TakeIterable<E> extends Iterable<E> {
   final int _takeCount;
 
   factory TakeIterable(Iterable<E> iterable, int takeCount) {
-    if (takeCount is! int || takeCount < 0) {
-      throw new ArgumentError(takeCount);
-    }
+    ArgumentError.checkNotNull(takeCount, "takeCount");
+    RangeError.checkNotNegative(takeCount, "takeCount");
     if (iterable is EfficientLengthIterable) {
       return new EfficientLengthTakeIterable<E>(iterable, takeCount);
     }
@@ -621,9 +620,7 @@ class EfficientLengthSkipIterable<E> extends SkipIterable<E>
 }
 
 int _checkCount(int count) {
-  if (count is! int) {
-    throw new ArgumentError.value(count, "count", "is not an integer");
-  }
+  ArgumentError.checkNotNull(count, "count");
   RangeError.checkNotNegative(count, "count");
   return count;
 }

@@ -312,7 +312,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         ..parent = node;
     }
     if (node._declaresVariable) {
-      inferrer.inferMetadataKeepingHelper(variable.annotations);
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
       var variableGet = new VariableGet(tempVar)
@@ -574,12 +573,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
     int intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = inferrer.helper
-          .buildProblem(
+      Expression replacement = inferrer.helper.desugarSyntheticExpression(
+          inferrer.helper.buildProblem(
               templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
               node.fileOffset,
-              node.literal.length)
-          .desugared;
+              node.literal.length));
       node.parent.replaceChild(node, replacement);
       node.inferredType = const BottomType();
       return null;
@@ -851,13 +849,12 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           }
           int intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = inferrer.helper
-                .buildProblem(
+            Expression error = inferrer.helper.desugarSyntheticExpression(
+                inferrer.helper.buildProblem(
                     templateIntegerLiteralIsOutOfRange
                         .withArguments(receiver.literal),
                     receiver.fileOffset,
-                    receiver.literal.length)
-                .desugared;
+                    receiver.literal.length));
             node.parent.replaceChild(node, error);
             node.inferredType = const BottomType();
             return null;
@@ -1261,30 +1258,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitVariableDeclarationJudgment(VariableDeclarationJudgment node) {
-    if (node.annotationJudgments.isNotEmpty) {
-      if (node.infersAnnotations) {
-        inferrer.inferMetadataKeepingHelper(node.annotationJudgments);
-      }
-
-      // After the inference was done on the annotations, we may clone them for
-      // this instance of VariableDeclaration in order to avoid having the same
-      // annotation node for two VariableDeclaration nodes in a situation like
-      // the following:
-      //
-      //     class Foo { const Foo(List<String> list); }
-      //
-      //     @Foo(const [])
-      //     var x, y;
-      CloneVisitor cloner = new CloneVisitor();
-      for (int i = 0; i < node.annotations.length; ++i) {
-        kernel.Expression annotation = node.annotations[i];
-        if (annotation.parent != node) {
-          node.annotations[i] = cloner.clone(annotation);
-          node.annotations[i].parent = node;
-        }
-      }
-    }
-
     var initializerJudgment = node.initializerJudgment;
     var declaredType = node._implicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;

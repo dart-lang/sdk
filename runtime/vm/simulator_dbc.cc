@@ -41,9 +41,6 @@ DEFINE_FLAG(uint64_t,
             ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
-#define LIKELY(cond) __builtin_expect((cond), 1)
-#define UNLIKELY(cond) __builtin_expect((cond), 0)
-
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -191,8 +188,7 @@ class SimulatorHelpers {
   static bool ObjectArraySetIndexed(Thread* thread,
                                     RawObject** FP,
                                     RawObject** result) {
-    return !thread->isolate()->type_checks() &&
-           ObjectArraySetIndexedUnchecked(thread, FP, result);
+    return ObjectArraySetIndexedUnchecked(thread, FP, result);
   }
 
   static bool ObjectArraySetIndexedUnchecked(Thread* thread,
@@ -225,8 +221,7 @@ class SimulatorHelpers {
   static bool GrowableArraySetIndexed(Thread* thread,
                                       RawObject** FP,
                                       RawObject** result) {
-    return !thread->isolate()->type_checks() &&
-           GrowableArraySetIndexedUnchecked(thread, FP, result);
+    return GrowableArraySetIndexedUnchecked(thread, FP, result);
   }
 
   static bool GrowableArraySetIndexedUnchecked(Thread* thread,
@@ -997,6 +992,7 @@ DART_NOINLINE static bool InvokeNative(Thread* thread,
 
 // Decode opcode and A part of the given value and dispatch to the
 // corresponding bytecode handler.
+#ifdef DART_HAS_COMPUTED_GOTO
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
@@ -1004,6 +1000,15 @@ DART_NOINLINE static bool InvokeNative(Thread* thread,
     TRACE_INSTRUCTION                                                          \
     goto* dispatch[op & 0xFF];                                                 \
   } while (0)
+#else
+#define DISPATCH_OP(val)                                                       \
+  do {                                                                         \
+    op = (val);                                                                \
+    rA = ((op >> 8) & 0xFF);                                                   \
+    TRACE_INSTRUCTION                                                          \
+    goto SwitchDispatch;                                                       \
+  } while (0)
+#endif
 
 // Fetch next operation from PC, increment program counter and dispatch.
 #define DISPATCH() DISPATCH_OP(*pc++)
@@ -1205,14 +1210,6 @@ RawObject* Simulator::Call(const Code& code,
                            const Array& arguments_descriptor,
                            const Array& arguments,
                            Thread* thread) {
-  // Dispatch used to interpret bytecode. Contains addresses of
-  // labels of bytecode handlers. Handlers themselves are defined below.
-  static const void* dispatch[] = {
-#define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
-      BYTECODES_LIST(TARGET)
-#undef TARGET
-  };
-
   // Interpreter state (see constants_dbc.h for high-level overview).
   uint32_t* pc;       // Program Counter: points to the next op to execute.
   RawObject** FP;     // Frame Pointer.
@@ -1289,8 +1286,26 @@ RawObject* Simulator::Call(const Code& code,
   Function& function_h = Function::Handle();
 #endif
 
-  // Enter the dispatch loop.
-  DISPATCH();
+#ifdef DART_HAS_COMPUTED_GOTO
+  static const void* dispatch[] = {
+#define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
+      BYTECODES_LIST(TARGET)
+#undef TARGET
+  };
+  DISPATCH();  // Enter the dispatch loop.
+#else
+  DISPATCH();  // Enter the dispatch loop.
+SwitchDispatch:
+  switch (op & 0xFF) {
+#define TARGET(name, fmt, fmta, fmtb, fmtc)                                    \
+  case SimulatorBytecode::k##name:                                             \
+    goto bc##name;
+    BYTECODES_LIST(TARGET)
+#undef TARGET
+    default:
+      FATAL1("Undefined opcode: %d\n", op);
+  }
+#endif
 
   // Bytecode handlers (see constants_dbc.h for bytecode descriptions).
   {
@@ -1376,9 +1391,9 @@ RawObject* Simulator::Call(const Code& code,
       // Make the DRT_OptimizeInvokedFunction see a stub as its caller for
       // consistency with the other architectures, and to avoid needing to
       // generate a stackmap for the HotCheck pc.
-      const StubEntry* stub = StubCode::OptimizeFunction_entry();
-      FP[kPcMarkerSlotFromFp] = stub->code();
-      pc = reinterpret_cast<uint32_t*>(stub->EntryPoint());
+      const Code& stub = StubCode::OptimizeFunction();
+      FP[kPcMarkerSlotFromFp] = stub.raw();
+      pc = reinterpret_cast<uint32_t*>(stub.EntryPoint());
 
       Exit(thread, FP, FP + 3, pc);
       NativeArguments args(thread, 1, /*argv=*/FP, /*retval=*/FP + 1);
@@ -3973,7 +3988,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   fp_ = reinterpret_cast<RawObject**>(fp);
 
-  if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
+  if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
     // The RunExceptionHandler stub is a placeholder.  We implement
     // its behavior here.
     RawObject* raw_exception = thread->active_exception();

@@ -412,16 +412,6 @@ class _Utf8Decoder {
     _expectedUnits = 0;
     _extraUnits = 0;
 
-    int scanOneByteCharacters(List<int> units, int from) {
-      final to = endIndex;
-      final mask = _ONE_BYTE_LIMIT;
-      for (var i = from; i < to; i++) {
-        final unit = units[i];
-        if ((unit & mask) != unit) return i - from;
-      }
-      return to - from;
-    }
-
     void addSingleBytes(int from, int to) {
       assert(from >= startIndex && from <= endIndex);
       assert(to >= startIndex && to <= endIndex);
@@ -484,7 +474,7 @@ class _Utf8Decoder {
       }
 
       while (i < endIndex) {
-        var oneBytes = scanOneByteCharacters(codeUnits, i);
+        var oneBytes = _scanOneByteCharacters(codeUnits, i, endIndex);
         if (oneBytes > 0) {
           _isFirstCharacter = false;
           addSingleBytes(i, i + oneBytes);
@@ -545,3 +535,10 @@ class _Utf8Decoder {
     }
   }
 }
+
+// Returns the number of bytes in [units] starting at offset [from] which have
+// the leftmost bit set to 0.
+//
+// To increase performance of this critical method we have a special variant of
+// it implemented in the VM's patch files, which is why we make it external.
+external int _scanOneByteCharacters(List<int> units, int from, int endIndex);

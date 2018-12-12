@@ -38,7 +38,6 @@ Future main(List<String> args, [SendPort sendPort]) async {
 class _CompilerWorker extends AsyncWorkerLoop {
   /// The original args supplied to the executable.
   final ParsedArguments _startupArgs;
-  CompilerResult _result;
 
   _CompilerWorker(this._startupArgs, AsyncWorkerConnection workerConnection)
       : super(connection: workerConnection);
@@ -47,13 +46,12 @@ class _CompilerWorker extends AsyncWorkerLoop {
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();
-    _result = await runZoned(() => compile(args, previousResult: _result),
-        zoneSpecification:
-            ZoneSpecification(print: (self, parent, zone, message) {
+    var result = await runZoned(() => compile(args), zoneSpecification:
+        ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());
     }));
     return WorkResponse()
-      ..exitCode = _result.success ? 0 : 1
+      ..exitCode = result.success ? 0 : 1
       ..output = output.toString();
   }
 }

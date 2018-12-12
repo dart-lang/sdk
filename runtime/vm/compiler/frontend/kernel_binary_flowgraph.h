@@ -54,8 +54,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildStatementAt(intptr_t kernel_offset);
 
  private:
-  bool optimizing();
-
   Thread* thread() const { return flow_graph_builder_->thread_; }
 
   FlowGraph* BuildGraphOfFieldInitializer();
@@ -318,15 +316,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment Goto(JoinEntryInstr* destination);
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment CheckBoolean(TokenPosition position);
-  Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
-                                        const String& dst_name);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
   Fragment CheckTypeArgumentBound(const AbstractType& parameter,
                                   const AbstractType& bound,
                                   const String& dst_name);
-  Fragment CheckVariableTypeInCheckedMode(intptr_t variable_kernel_position);
-  Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
-                                          const String& name_symbol);
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);

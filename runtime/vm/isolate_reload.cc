@@ -566,11 +566,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   const String& root_lib_url =
       (root_script_url == NULL) ? old_root_lib_url
                                 : String::Handle(String::New(root_script_url));
-  bool root_lib_modified = false;
 
   // Check to see if the base url of the loaded libraries has moved.
   if (!old_root_lib_url.Equals(root_lib_url)) {
-    root_lib_modified = true;
     const char* old_root_library_url_c = old_root_lib_url.ToCString();
     const char* root_library_url_c = root_lib_url.ToCString();
     const intptr_t common_suffix_length =

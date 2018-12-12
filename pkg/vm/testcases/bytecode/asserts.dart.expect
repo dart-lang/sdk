@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
   CheckStack           0
   JumpIfNoAsserts      L1
@@ -22,13 +22,13 @@ L1:
 }
 ConstantPool {
   [0] = ArgDesc num-args 3, num-type-args 0, names []
-  [1] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#0
+  [1] = StaticICData target 'dart:core::_AssertionError::_throwNew', arg-desc CP#0
 }
 ]static method test1(core::bool condition) → void {
   assert(condition);
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
   CheckStack           0
   JumpIfNoAsserts      L1
@@ -52,13 +52,13 @@ ConstantPool {
   [1] = ICData dynamic target-name 'call', arg-desc CP#0
   [2] = ICData dynamic target-name 'call', arg-desc CP#0
   [3] = ArgDesc num-args 3, num-type-args 0, names []
-  [4] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#3
+  [4] = StaticICData target 'dart:core::_AssertionError::_throwNew', arg-desc CP#3
 }
 ]static method test2(() → core::bool condition, () → core::String message) → void {
   assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
   CheckStack           0
   PushNull

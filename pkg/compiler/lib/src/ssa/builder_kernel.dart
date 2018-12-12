@@ -32,7 +32,9 @@ import '../js_model/locals.dart' show forEachOrderedParameter, JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
-import '../native/native.dart' as native;
+import '../kernel/invocation_mirror_constants.dart';
+import '../native/behavior.dart';
+import '../native/js.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -1326,7 +1328,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (functionNode != null) {
       _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
     }
-    _insertTraceCall(member);
     _insertCoverageCall(member);
   }
 
@@ -2485,7 +2486,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         js.Template code = js.js.parseForeignJS('#');
         push(new HForeignCode(code, abstractValueDomain.boolType,
             [localsHandler.readLocal(switchTarget)],
-            nativeBehavior: native.NativeBehavior.PURE));
+            nativeBehavior: NativeBehavior.PURE));
       }
 
       handleIf(
@@ -3395,7 +3396,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         lengthInput = conversion;
       }
       js.Template code = js.js.parseForeignJS('new Array(#)');
-      var behavior = new native.NativeBehavior();
+      var behavior = new NativeBehavior();
 
       var expectedType =
           _elementMap.getDartType(invocation.getStaticType(null));
@@ -3418,9 +3419,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HForeignCode foreign = new HForeignCode(
           code, resultType, <HInstruction>[lengthInput],
           nativeBehavior: behavior,
-          throwBehavior: canThrow
-              ? native.NativeThrowBehavior.MAY
-              : native.NativeThrowBehavior.NEVER)
+          throwBehavior:
+              canThrow ? NativeThrowBehavior.MAY : NativeThrowBehavior.NEVER)
         ..sourceInformation = sourceInformation;
       push(foreign);
       // TODO(redemption): Global type analysis tracing may have determined that
@@ -3431,7 +3431,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
         add(new HForeignCode(code, abstractValueDomain.nullType, [stack.last],
-            throwBehavior: native.NativeThrowBehavior.MAY));
+            throwBehavior: NativeThrowBehavior.MAY));
       }
     } else if (isGrowableListConstructorCall) {
       push(buildLiteralList(<HInstruction>[]));
@@ -3613,13 +3613,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
     Name memberName = new Name(name, _currentFrame.member.library);
     Selector selector;
     switch (kindLiteral.value) {
-      case Selector.invocationMirrorGetterKind:
+      case invocationMirrorGetterKind:
         selector = new Selector.getter(memberName);
         break;
-      case Selector.invocationMirrorSetterKind:
+      case invocationMirrorSetterKind:
         selector = new Selector.setter(memberName);
         break;
-      case Selector.invocationMirrorMethodKind:
+      case invocationMirrorMethodKind:
         if (memberName == Names.INDEX_NAME) {
           selector = new Selector.index();
         } else if (memberName == Names.INDEX_SET_NAME) {
@@ -3812,7 +3812,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
                     .staticFunctionAccess(_elementMap.getMethod(staticTarget))),
                 abstractValueDomain.dynamicType,
                 <HInstruction>[],
-                nativeBehavior: native.NativeBehavior.PURE,
+                nativeBehavior: NativeBehavior.PURE,
                 foreignFunction: _elementMap.getMethod(staticTarget)));
             return;
           }
@@ -3844,8 +3844,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     sideEffects.setAllSideEffects();
     push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
         abstractValueDomain.dynamicType, inputs,
-        nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
-        effects: sideEffects));
+        nativeBehavior: NativeBehavior.CHANGES_OTHER, effects: sideEffects));
   }
 
   void handleForeignJsGetStaticState(ir.StaticInvocation invocation) {
@@ -3858,7 +3857,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     push(new HForeignCode(js.js.parseForeignJS(namer.staticStateHolder),
         abstractValueDomain.dynamicType, <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
+        nativeBehavior: NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignJsGetName(ir.StaticInvocation invocation) {
@@ -3900,7 +3899,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     js.Template expr = js.js.expressionTemplateYielding(
         emitter.generateEmbeddedGlobalAccess(globalName));
 
-    native.NativeBehavior nativeBehavior =
+    NativeBehavior nativeBehavior =
         _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(invocation);
     assert(
         nativeBehavior != null,
@@ -3947,7 +3946,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       inputs.add(pop());
     }
 
-    native.NativeBehavior nativeBehavior =
+    NativeBehavior nativeBehavior =
         _elementMap.getNativeBehaviorForJsBuiltinCall(invocation);
     assert(
         nativeBehavior != null,
@@ -4038,7 +4037,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    native.NativeBehavior nativeBehavior =
+    NativeBehavior nativeBehavior =
         _elementMap.getNativeBehaviorForJsCall(invocation);
     assert(
         nativeBehavior != null,
@@ -4063,7 +4062,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (native.HasCapturedPlaceholders.check(nativeBehavior.codeTemplate.ast)) {
+    if (HasCapturedPlaceholders.check(nativeBehavior.codeTemplate.ast)) {
       reporter.reportErrorMessage(
           _elementMap.getSpannable(targetElement, invocation),
           MessageKind.JS_PLACEHOLDER_CAPTURE);
@@ -4257,8 +4256,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       var codeTemplate =
           new js.Template(null, js.objectLiteral(parameterNameMap));
 
-      var nativeBehavior = new native.NativeBehavior()
-        ..codeTemplate = codeTemplate;
+      var nativeBehavior = new NativeBehavior()..codeTemplate = codeTemplate;
       if (options.trustJSInteropTypeAnnotations) {
         InterfaceType thisType = _elementMap.elementEnvironment
             .getThisType(constructor.enclosingClass);
@@ -4283,8 +4281,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     arguments = arguments.where((arg) => arg != null).toList();
     var inputs = <HInstruction>[target]..addAll(arguments);
 
-    var nativeBehavior = new native.NativeBehavior()
-      ..sideEffects.setAllSideEffects();
+    var nativeBehavior = new NativeBehavior()..sideEffects.setAllSideEffects();
 
     DartType type = element is ConstructorEntity
         ? _elementMap.elementEnvironment.getThisType(element.enclosingClass)
@@ -5377,7 +5374,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _elementMap.elementEnvironment.getFunctionType(function).returnType;
     stack = <HInstruction>[];
 
-    _insertTraceCall(function);
     _insertCoverageCall(function);
   }
 
@@ -5521,35 +5517,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return _allInlinedFunctionsCalledOnce && _isFunctionCalledOnce(element);
   }
 
-  void _insertTraceCall(MemberEntity element) {
-    if (JavaScriptBackend.TRACE_METHOD == 'console') {
-      if (element == commonElements.traceHelper) return;
-      n(e) => e == null ? '' : e.name;
-      String name = "${n(element.library)}:${n(element.enclosingClass)}."
-          "${n(element)}";
-      HConstant nameConstant = graph.addConstantString(name, closedWorld);
-      add(new HInvokeStatic(
-          commonElements.traceHelper,
-          <HInstruction>[nameConstant],
-          abstractValueDomain.dynamicType,
-          const <DartType>[]));
-    }
-  }
-
   void _insertCoverageCall(MemberEntity element) {
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
-      if (element == commonElements.traceHelper) return;
-      // TODO(sigmund): create a better uuid for elements.
-      HConstant idConstant =
-          graph.addConstantInt(element.hashCode, closedWorld);
-      HConstant nameConstant =
-          graph.addConstantString(element.name, closedWorld);
-      add(new HInvokeStatic(
-          commonElements.traceHelper,
-          <HInstruction>[idConstant, nameConstant],
-          abstractValueDomain.dynamicType,
-          const <DartType>[]));
-    }
+    if (!options.experimentCallInstrumentation) return;
+    if (element == commonElements.traceHelper) return;
+    // TODO(sigmund): create a better uuid for elements.
+    HConstant idConstant = graph.addConstantInt(element.hashCode, closedWorld);
+    n(e) => e == null ? '' : e.name;
+    String name = "${n(element.library)}:${n(element.enclosingClass)}."
+        "${n(element)}";
+    HConstant nameConstant = graph.addConstantString(name, closedWorld);
+    add(new HInvokeStatic(
+        commonElements.traceHelper,
+        <HInstruction>[idConstant, nameConstant],
+        abstractValueDomain.dynamicType,
+        const <DartType>[]));
   }
 }
 

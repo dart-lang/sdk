@@ -9,6 +9,7 @@
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph.h"
@@ -824,94 +825,6 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   return parsed_function->function().raw();
 }
 
-RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
-  ASSERT(field.is_static());
-  // The VM sets the field's value to transiton_sentinel prior to
-  // evaluating the initializer value.
-  ASSERT(field.StaticValue() == Object::transition_sentinel().raw());
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    // Under precompilation, the initializer may have already been compiled, in
-    // which case use it. Under lazy compilation or early in precompilation, the
-    // initializer has not yet been created, so create it now, but don't bother
-    // remembering it because it won't be used again.
-    Function& initializer = Function::Handle();
-    if (!field.HasPrecompiledInitializer()) {
-      initializer = CompileStaticInitializer(field);
-    } else {
-      initializer ^= field.PrecompiledInitializer();
-    }
-    // Invoke the function to evaluate the expression.
-    return DartEntry::InvokeFunction(initializer, Object::empty_array());
-  } else {
-    Thread* const thread = Thread::Current();
-    StackZone zone(thread);
-    const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
-    thread->clear_sticky_error();
-    return error.raw();
-  }
-  UNREACHABLE();
-  return Object::null();
-}
-
-RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
-
-    // Create a dummy function object for the code generator.
-    // The function needs to be associated with a named Class: the interface
-    // Function fits the bill.
-    const char* kEvalConst = "eval_const";
-    const Function& func = Function::ZoneHandle(Function::New(
-        String::Handle(Symbols::New(thread, kEvalConst)),
-        RawFunction::kRegularFunction,
-        true,   // static function
-        false,  // not const function
-        false,  // not abstract
-        false,  // not external
-        false,  // not native
-        Class::Handle(Type::Handle(Type::DartFunctionType()).type_class()),
-        fragment->token_pos()));
-
-    func.set_result_type(Object::dynamic_type());
-    func.set_num_fixed_parameters(0);
-    func.SetNumOptionalParameters(0, true);
-    // Manually generated AST, do not recompile.
-    func.SetIsOptimizable(false);
-    func.set_is_debuggable(false);
-
-    // We compile the function here, even though InvokeFunction() below
-    // would compile func automatically. We are checking fewer invariants
-    // here.
-    ParsedFunction* parsed_function = new ParsedFunction(thread, func);
-    parsed_function->SetNodeSequence(fragment);
-    fragment->scope()->AddVariable(parsed_function->EnsureExpressionTemp());
-    fragment->scope()->AddVariable(parsed_function->current_context_var());
-    parsed_function->AllocateVariables();
-
-    // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
-    PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
-                                          parsed_function,
-                                          /* optimized = */ false);
-    helper.Compile(&pipeline);
-    NOT_IN_PRODUCT(Code::Handle(func.unoptimized_code())
-                       .set_var_descriptors(Object::empty_var_descriptors()));
-
-    const Object& result = PassiveObject::Handle(
-        DartEntry::InvokeFunction(func, Object::empty_array()));
-    return result.raw();
-  } else {
-    Thread* const thread = Thread::Current();
-    const Object& result = PassiveObject::Handle(thread->sticky_error());
-    thread->clear_sticky_error();
-    return result.raw();
-  }
-  UNREACHABLE();
-  return Object::null();
-}
-
 void Precompiler::AddFunction(const Function& function) {
   if (enqueued_functions_.HasKey(&function)) return;
 
@@ -1019,20 +932,22 @@ void Precompiler::AddAnnotatedRoots() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
 
+      // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
-        // Check for @pragma on the class itself.
         metadata ^= lib.GetMetadata(cls);
         if (metadata_defines_entrypoint() == EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
+      }
 
-        // Check for @pragma on any fields in the class.
-        members = cls.fields();
-        implicit_getters = GrowableObjectArray::New(members.Length());
-        implicit_setters = GrowableObjectArray::New(members.Length());
-        implicit_static_getters = GrowableObjectArray::New(members.Length());
-        for (intptr_t k = 0; k < members.Length(); ++k) {
-          field ^= members.At(k);
+      // Check for @pragma on any fields in the class.
+      members = cls.fields();
+      implicit_getters = GrowableObjectArray::New(members.Length());
+      implicit_setters = GrowableObjectArray::New(members.Length());
+      implicit_static_getters = GrowableObjectArray::New(members.Length());
+      for (intptr_t k = 0; k < members.Length(); ++k) {
+        field ^= members.At(k);
+        if (field.has_pragma()) {
           metadata ^= lib.GetMetadata(field);
           if (metadata.IsNull()) continue;
           EntryPointPragma pragma = metadata_defines_entrypoint();
@@ -1537,7 +1452,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   }
 
   ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
-         StubCode::DefaultTypeTest_entry()->EntryPoint());
+         StubCode::DefaultTypeTest().EntryPoint());
 }
 
 void Precompiler::DropTypes() {
@@ -2028,9 +1943,8 @@ void Precompiler::SwitchICCalls() {
           unlinked_.set_args_descriptor(args_descriptor_);
           unlinked_ = DedupUnlinkedCall(unlinked_);
           pool.SetObjectAt(i, unlinked_);
-        } else if (entry_.raw() ==
-                   StubCode::ICCallThroughFunction_entry()->code()) {
-          target_code_ = StubCode::UnlinkedCall_entry()->code();
+        } else if (entry_.raw() == StubCode::ICCallThroughFunction().raw()) {
+          target_code_ = StubCode::UnlinkedCall().raw();
           pool.SetObjectAt(i, target_code_);
         }
       }
@@ -2314,8 +2228,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
+      BlockScheduler block_scheduler(flow_graph);
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
                                    precompiler_);
+      pass_state.block_scheduler = &block_scheduler;
+      pass_state.reorder_blocks =
+          FlowGraph::ShouldReorderBlocks(function, optimized());
       NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
 
       if (optimized()) {
@@ -2604,7 +2522,7 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
 // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
 // where these are looked up.
 #define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
-                         result_type, fingerprint)                             \
+                         fingerprint)                                          \
   do {                                                                         \
     PreventRenaming(#class_name);                                              \
     PreventRenaming(#function_name);                                           \

@@ -232,6 +232,8 @@ class TargetLibrariesSpecification {
 
   /// Details about a library whose import is `dart:$name`.
   LibraryInfo libraryInfoFor(String name) => _libraries[name];
+
+  Iterable<LibraryInfo> get allLibraries => _libraries.values;
 }
 
 /// Information about a `dart:` library in a specific target platform.

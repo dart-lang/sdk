@@ -114,11 +114,11 @@ class StackFrame : public ValueObject {
     ASSERT(!is_interpreted());
     uword raw_pc =
         *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize));
-    return raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint();
+    return raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint();
   }
   void MarkForLazyDeopt() {
     ASSERT(!is_interpreted());
-    set_pc(StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    set_pc(StubCode::DeoptimizeLazyFromReturn().EntryPoint());
   }
   void UnmarkForLazyDeopt() {
     // If this frame was marked for lazy deopt, pc_ was computed to be the
@@ -126,8 +126,7 @@ class StackFrame : public ValueObject {
     // Write this value back into the frame.
     ASSERT(!is_interpreted());
     uword original_pc = pc();
-    ASSERT(original_pc !=
-           StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    ASSERT(original_pc != StubCode::DeoptimizeLazyFromReturn().EntryPoint());
     set_pc(original_pc);
   }
 
@@ -210,8 +209,8 @@ class StackFrame : public ValueObject {
         fp() + ((is_interpreted() ? kKBCSavedCallerPcSlotFromFp
                                   : kSavedCallerPcSlotFromFp) *
                 kWordSize)));
-    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint());
-    if (raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint()) {
+    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
+    if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
       return isolate()->FindPendingDeopt(GetCallerFp());
     }
     return raw_pc;

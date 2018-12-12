@@ -1977,8 +1977,6 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class InductionVariableInfo;
-
 class PhiInstr : public Definition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
@@ -1986,7 +1984,6 @@ class PhiInstr : public Definition {
         inputs_(num_inputs),
         representation_(kTagged),
         reaching_defs_(NULL),
-        loop_variable_info_(NULL),
         is_alive_(false),
         is_receiver_(kUnknownReceiver) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
@@ -2042,14 +2039,6 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
-  void set_induction_variable_info(InductionVariableInfo* info) {
-    loop_variable_info_ = info;
-  }
-
-  InductionVariableInfo* induction_variable_info() {
-    return loop_variable_info_;
-  }
-
   PRINT_TO_SUPPORT
 
   enum ReceiverType { kUnknownReceiver = -1, kNotReceiver = 0, kReceiver = 1 };
@@ -2071,7 +2060,6 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   Representation representation_;
   BitVector* reaching_defs_;
-  InductionVariableInfo* loop_variable_info_;
   bool is_alive_;
   int8_t is_receiver_;
 
@@ -2929,7 +2917,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
-    ASSERT(!FLAG_strong || !dst_type.IsDynamicType());
+    ASSERT(!dst_type.IsDynamicType());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
@@ -4215,13 +4203,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
   Assembler::CanBeSmi CanValueBeSmi() const {
-    Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !FLAG_strong) {
-      // Dart 1 sometimes places a store into a context before a parameter
-      // type check.
-      return Assembler::kValueCanBeSmi;
-    }
-
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
@@ -4387,13 +4368,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   Assembler::CanBeSmi CanValueBeSmi() const {
-    Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !FLAG_strong) {
-      // Dart 1 sometimes places a store into a context before a parameter
-      // type check.
-      return Assembler::kValueCanBeSmi;
-    }
-
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
@@ -7231,10 +7205,15 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
-class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise deoptimizes (viz. speculative).
+class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id),
+      : TemplateDefinition(deopt_id),
         generalized_(false),
         licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
@@ -7252,7 +7231,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   void mark_generalized() { generalized_ = true; }
 
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
@@ -7273,10 +7252,15 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 
-class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise throws an out-of-bounds exception (viz. non-speculative).
+class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
   }

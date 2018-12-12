@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError
-Language/Classes/mixins_t02: MissingCompileTimeError # co19 issue 163
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError
 Language/Expressions/Await_Expressions/evaluation_throws_t03: RuntimeError
 Language/Expressions/Booleans/Boolean_Conversion/definition_t01: RuntimeError
@@ -66,6 +65,35 @@ Language/Types/Interface_Types/subtype_t26: RuntimeError
 Language/Types/Interface_Types/subtype_t27: Pass, Crash # Issue 34389
 Language/Types/Type_Declarations/Typedef/dynamic_param_type_t02: RuntimeError
 Language/Variables/constant_initialization_t03: RuntimeError
+LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/CastOperator_A03_t01/none: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/CastOperator_A03_t02/none: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A01_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A01_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A02_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A02_t04: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A02_t07: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t03: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t03: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Instantiate-to-bound/FutureOr/dynamic/FutureOr_l1_t01: RuntimeError
 LanguageFeatures/Instantiate-to-bound/FutureOr/dynamic/FutureOr_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
@@ -74,6 +102,7 @@ LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t04: Compi
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t07: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l2_t08: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_l3_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/01: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/02: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/none: Crash
@@ -83,18 +112,50 @@ LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/none: CompileTim
 LanguageFeatures/Instantiate-to-bound/class/static/class_l3_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/none: Crash, Pass
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_FutureOr_l1_t02: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_FutureOr_l1_t05: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t05: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t07: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t05/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t06: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t07: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t08: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t09: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t10: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t11: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t12: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t13: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t14: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t15: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t16: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t20: RuntimeError
+LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t21: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t07/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t01/none: CompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/constant_set_literals_A03_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/constant_set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/semantics_A04_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Simple-bounds/dynamic/FutureOr_l1_t01: RuntimeError, Pass
 LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Simple-bounds/dynamic/class_typedef_l1_t02: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t02: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t07: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_l2_t01: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t01: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t02: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t03: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t07: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t08: RuntimeError
+LanguageFeatures/Simple-bounds/dynamic/typedef_typedef_l1_t10: RuntimeError
 LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t03: CompileTimeError, Pass
 LanguageFeatures/Subtyping/dynamic/generated/named_function_types_fail_arguments_binding_fail_A51_t03: RuntimeError
@@ -117,6 +178,7 @@ LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_clas
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_global_variable_fail_A31_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_global_variable_fail_A32_t01: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/positional_function_types_fail_return_value_fail_A31_t01: RuntimeError
+LanguageFeatures/Super-mixins/mixin_member_t06: RuntimeError
 LanguageFeatures/regression/33585_t01: MissingCompileTimeError
 LanguageFeatures/regression/33585_t02: MissingCompileTimeError
 LanguageFeatures/regression/33597_t01: MissingCompileTimeError
@@ -1319,7 +1381,6 @@ Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/check_types/typedef_param_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t10: RuntimeError
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t02: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_FutureOr_l1_t05: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t05: RuntimeError
 LanguageFeatures/Simple-bounds/dynamic/typedef_l1_t10: RuntimeError
@@ -3598,7 +3659,6 @@ LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_a
 LanguageFeatures/Instantiate-to-bound/function/function_ret_extends_Future_neg_assign_l1_t07: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t10: RuntimeError
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/02: MissingCompileTimeError
@@ -3607,7 +3667,6 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/04: MissingC
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/05: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/06: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/07: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t05: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/02: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/03: MissingCompileTimeError

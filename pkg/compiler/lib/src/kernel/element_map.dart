@@ -13,7 +13,7 @@ import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 
@@ -86,17 +86,16 @@ abstract class KernelToElementMap {
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  /// Computes the [NativeBehavior] for a call to the [JS] function.
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
 
-  /// Computes the [native.NativeBehavior] for a call to the
+  /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
@@ -147,15 +146,15 @@ abstract class KernelToElementMap {
   bool isNativeClass(ir.Class node);
 
   /// Computes the native behavior for reading the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+  NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+  NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
   /// Computes the native behavior for calling the function or constructor
   /// [member].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+  NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.

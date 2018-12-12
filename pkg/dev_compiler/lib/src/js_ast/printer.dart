@@ -402,7 +402,7 @@ class Printer implements NodeVisitor {
         newInForInit: true, newAtStatementBegin: false);
     out(" of");
     pendingSpace = true;
-    visitNestedExpression(loop.iterable, EXPRESSION,
+    visitNestedExpression(loop.iterable, ASSIGNMENT,
         newInForInit: false, newAtStatementBegin: false);
     out(")");
     blockBody(loop.body, needsSeparation: false, needsNewline: true);

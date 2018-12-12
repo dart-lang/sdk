@@ -163,7 +163,7 @@ class BatchCompiler {
       options.sdkSummaryComponent = platformComponent;
     }
     CompileTask task = new CompileTask(c, ticker);
-    await task.compile(sansPlatform: true);
+    await task.compile(omitPlatform: true);
     CanonicalName root = platformComponent.root;
     for (Library library in platformComponent.libraries) {
       library.parent = platformComponent;
@@ -210,7 +210,7 @@ Future<Uri> compile(List<String> arguments) async {
       }
       CompileTask task =
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      return await task.compile();
+      return await task.compile(omitPlatform: c.options.omitPlatform);
     });
   });
 }
@@ -227,8 +227,7 @@ class CompileTask {
 
   KernelTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator) {
-    return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator,
-        uriToSource: c.uriToSource);
+    return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
@@ -253,7 +252,7 @@ class CompileTask {
     return kernelTarget;
   }
 
-  Future<Uri> compile({bool sansPlatform: false}) async {
+  Future<Uri> compile({bool omitPlatform: false}) async {
     KernelTarget kernelTarget = await buildOutline();
     Uri uri = c.options.output;
     Component component =
@@ -262,7 +261,7 @@ class CompileTask {
       printComponentText(component,
           libraryFilter: kernelTarget.isSourceLibrary);
     }
-    if (sansPlatform) {
+    if (omitPlatform) {
       component.computeCanonicalNames();
       Component userCode = new Component(
           nameRoot: component.root,

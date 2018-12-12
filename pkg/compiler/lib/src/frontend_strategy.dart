@@ -18,7 +18,7 @@ import 'js_backend/interceptor_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
 import 'js_backend/runtime_types.dart';
-import 'library_loader.dart';
+import 'kernel/loader.dart';
 import 'native/enqueue.dart' show NativeResolutionEnqueuer;
 import 'native/resolver.dart';
 import 'universe/class_hierarchy.dart';
@@ -30,7 +30,7 @@ import 'universe/world_impact.dart';
 /// the resolved element model.
 abstract class FrontendStrategy {
   /// Registers a set of loaded libraries with this strategy.
-  void registerLoadedLibraries(LoadedLibraries loadedLibraries);
+  void registerLoadedLibraries(KernelResult result);
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.

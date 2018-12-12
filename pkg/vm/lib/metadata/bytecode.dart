@@ -5,26 +5,37 @@
 library vm.metadata.bytecode;
 
 import 'package:kernel/ast.dart';
+import '../bytecode/bytecode_serialization.dart'
+    show BufferedWriter, BufferedReader, StringTable;
 import '../bytecode/constant_pool.dart' show ConstantPool;
 import '../bytecode/dbc.dart'
-    show stableBytecodeFormatVersion, futureBytecodeFormatVersion;
+    show
+        stableBytecodeFormatVersion,
+        futureBytecodeFormatVersion,
+        bytecodeInstructionsAlignment;
 import '../bytecode/disassembler.dart' show BytecodeDisassembler;
 import '../bytecode/exceptions.dart' show ExceptionsTable;
+import '../bytecode/object_table.dart'
+    show ObjectTable, ObjectHandle, NameAndType;
 import '../bytecode/source_positions.dart' show SourcePositions;
 
-/// Metadata containing bytecode.
+abstract class BytecodeMetadata {
+  void write(BufferedWriter writer);
+}
+
+/// Bytecode of a member is encoded in the following way:
 ///
-/// In kernel binary, bytecode metadata is encoded as following:
-///
-/// type BytecodeMetadata {
-///   UInt bytecodeFormatVersion
+/// type MemberBytecode {
 ///   UInt flags (HasExceptionsTable, HasSourcePositions, HasNullableFields,
 ///               HasClosures)
+///
+///   (optional, present if HasClosures)
+///   List<ClosureDeclaration> closureDeclarations
+///
 ///   ConstantPool constantPool
 ///
 ///   UInt bytecodeSizeInBytes
-///   Byte paddingSizeInBytes
-///   Byte[paddingSizeInBytes] padding
+///   Byte[] padding
 ///   Byte[bytecodeSizeInBytes] bytecodes
 ///
 ///   (optional, present if HasExceptionsTable)
@@ -34,19 +45,38 @@ import '../bytecode/source_positions.dart' show SourcePositions;
 ///   SourcePositions sourcePositionsTabe
 ///
 ///   (optional, present if HasNullableFields)
-///   List<CanonicalName> nullableFields
+///   List<PackedObject> nullableFields
 ///
 ///   (optional, present if HasClosures)
-///   List<ClosureBytecode> closures
+///   ClosureBytecode[] closures
+/// }
+///
+/// type ClosureDeclaration {
+///   UInt flags (hasOptionalPositionalParams, hasOptionalNamedParams,
+///               hasTypeParams)
+///
+///   PackedObject parent // Member or Closure
+///   PackedObject name
+///
+///   if hasTypeParams
+///     UInt numTypeParameters
+///     PackedObject[numTypeParameters] typeParameterNames
+///     PackedObject[numTypeParameters] typeParameterBounds
+///
+///   UInt numParameters
+///
+///   if hasOptionalPositionalParams || hasOptionalNamedParams
+///     UInt numRequiredParameters
+///
+///   NameAndType[numParameters] parameters
+///   PackedObject returnType
 /// }
 ///
 /// type ClosureBytecode {
-///   ConstantIndex closureFunction
 ///   UInt flags (HasExceptionsTable, HasSourcePositions)
 ///
 ///   UInt bytecodeSizeInBytes
-///   Byte paddingSizeInBytes
-///   Byte[paddingSizeInBytes] padding
+///   Byte[] padding
 ///   Byte[bytecodeSizeInBytes] bytecodes
 ///
 ///   (optional, present if HasExceptionsTable)
@@ -62,19 +92,18 @@ import '../bytecode/source_positions.dart' show SourcePositions;
 /// Encoding of ConstantPool is described in
 /// pkg/vm/lib/bytecode/constant_pool.dart.
 ///
-class BytecodeMetadata {
+class MemberBytecode extends BytecodeMetadata {
   static const hasExceptionsTableFlag = 1 << 0;
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasNullableFieldsFlag = 1 << 2;
   static const hasClosuresFlag = 1 << 3;
 
-  final int version;
   final ConstantPool constantPool;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
-  final List<Reference> nullableFields;
-  final List<ClosureBytecode> closures;
+  final List<ObjectHandle> nullableFields;
+  final List<ClosureDeclaration> closures;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions.mapping.isNotEmpty;
@@ -87,35 +116,197 @@ class BytecodeMetadata {
       (hasNullableFields ? hasNullableFieldsFlag : 0) |
       (hasClosures ? hasClosuresFlag : 0);
 
-  BytecodeMetadata(
-      this.version,
-      this.constantPool,
-      this.bytecodes,
-      this.exceptionsTable,
-      this.sourcePositions,
-      this.nullableFields,
-      this.closures);
+  MemberBytecode(this.constantPool, this.bytecodes, this.exceptionsTable,
+      this.sourcePositions, this.nullableFields, this.closures);
+
+  @override
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(flags);
+    if (hasClosures) {
+      writer.writePackedUInt30(closures.length);
+      closures.forEach((c) => c.write(writer));
+    }
+    constantPool.write(writer);
+    _writeBytecodeInstructions(writer, bytecodes);
+    if (hasExceptionsTable) {
+      exceptionsTable.write(writer);
+    }
+    if (hasSourcePositions) {
+      sourcePositions.write(writer);
+    }
+    if (hasNullableFields) {
+      writer.writePackedList(nullableFields);
+    }
+    if (hasClosures) {
+      closures.forEach((c) => c.bytecode.write(writer));
+    }
+  }
+
+  factory MemberBytecode.read(BufferedReader reader) {
+    int flags = reader.readPackedUInt30();
+    final List<ClosureDeclaration> closures = ((flags & hasClosuresFlag) != 0)
+        ? new List<ClosureDeclaration>.generate(reader.readPackedUInt30(),
+            (_) => new ClosureDeclaration.read(reader))
+        : const <ClosureDeclaration>[];
+    final ConstantPool constantPool = new ConstantPool.read(reader);
+    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
+        ? new ExceptionsTable.read(reader)
+        : new ExceptionsTable();
+    final sourcePositions = ((flags & hasSourcePositionsFlag) != 0)
+        ? new SourcePositions.read(reader)
+        : new SourcePositions();
+    final List<ObjectHandle> nullableFields =
+        ((flags & hasNullableFieldsFlag) != 0)
+            ? reader.readPackedList<ObjectHandle>()
+            : const <ObjectHandle>[];
+    for (var c in closures) {
+      c.bytecode = new ClosureBytecode.read(reader);
+    }
+    return new MemberBytecode(constantPool, bytecodes, exceptionsTable,
+        sourcePositions, nullableFields, closures);
+  }
 
   // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
   String toString() => "\n"
-      "Bytecode"
-      " (version: "
-      "${version == stableBytecodeFormatVersion ? 'stable' : version == futureBytecodeFormatVersion ? 'future' : "v$version"}"
-      ") {\n"
+      "Bytecode {\n"
       "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [
         sourcePositions.getBytecodeAnnotations()
       ])}}\n"
       "$exceptionsTable"
-      "${nullableFields.isEmpty ? '' : 'Nullable fields: ${nullableFields.map((ref) => ref.asField).toList()}\n'}"
+      "${nullableFields.isEmpty ? '' : 'Nullable fields: $nullableFields}\n'}"
       "$constantPool"
       "${closures.join('\n')}";
+}
+
+class ClosureDeclaration {
+  static const int flagHasOptionalPositionalParams = 1 << 0;
+  static const int flagHasOptionalNamedParams = 1 << 1;
+  static const int flagHasTypeParams = 1 << 2;
+
+  final ObjectHandle parent;
+  final ObjectHandle name;
+  final List<NameAndType> typeParams;
+  final int numRequiredParams;
+  final int numNamedParams;
+  final List<NameAndType> parameters;
+  final ObjectHandle returnType;
+  ClosureBytecode bytecode;
+
+  ClosureDeclaration(
+      this.parent,
+      this.name,
+      this.typeParams,
+      this.numRequiredParams,
+      this.numNamedParams,
+      this.parameters,
+      this.returnType);
+
+  void write(BufferedWriter writer) {
+    int flags = 0;
+    if (numRequiredParams != parameters.length) {
+      if (numNamedParams > 0) {
+        flags |= flagHasOptionalNamedParams;
+      } else {
+        flags |= flagHasOptionalPositionalParams;
+      }
+    }
+    if (typeParams.isNotEmpty) {
+      flags |= flagHasTypeParams;
+    }
+    writer.writePackedUInt30(flags);
+    writer.writePackedObject(parent);
+    writer.writePackedObject(name);
+
+    if (flags & flagHasTypeParams != 0) {
+      writer.writePackedUInt30(typeParams.length);
+      for (var tp in typeParams) {
+        writer.writePackedObject(tp.name);
+      }
+      for (var tp in typeParams) {
+        writer.writePackedObject(tp.type);
+      }
+    }
+    writer.writePackedUInt30(parameters.length);
+    if (flags &
+            (flagHasOptionalPositionalParams | flagHasOptionalNamedParams) !=
+        0) {
+      writer.writePackedUInt30(numRequiredParams);
+    }
+    for (var param in parameters) {
+      writer.writePackedObject(param.name);
+      writer.writePackedObject(param.type);
+    }
+    writer.writePackedObject(returnType);
+  }
+
+  factory ClosureDeclaration.read(BufferedReader reader) {
+    final int flags = reader.readPackedUInt30();
+    final parent = reader.readPackedObject();
+    final name = reader.readPackedObject();
+    List<NameAndType> typeParams;
+    if ((flags & flagHasTypeParams) != 0) {
+      final int numTypeParams = reader.readPackedUInt30();
+      List<ObjectHandle> names = new List<ObjectHandle>.generate(
+          numTypeParams, (_) => reader.readPackedObject());
+      List<ObjectHandle> bounds = new List<ObjectHandle>.generate(
+          numTypeParams, (_) => reader.readPackedObject());
+      typeParams = new List<NameAndType>.generate(
+          numTypeParams, (int i) => new NameAndType(names[i], bounds[i]));
+    } else {
+      typeParams = const <NameAndType>[];
+    }
+    final numParams = reader.readPackedUInt30();
+    final numRequiredParams = (flags &
+                (flagHasOptionalPositionalParams |
+                    flagHasOptionalNamedParams) !=
+            0)
+        ? reader.readPackedUInt30()
+        : numParams;
+    final numNamedParams = (flags & flagHasOptionalNamedParams != 0)
+        ? (numParams - numRequiredParams)
+        : 0;
+    final List<NameAndType> parameters = new List<NameAndType>.generate(
+        numParams,
+        (_) => new NameAndType(
+            reader.readPackedObject(), reader.readPackedObject()));
+    final returnType = reader.readPackedObject();
+    return new ClosureDeclaration(parent, name, typeParams, numRequiredParams,
+        numNamedParams, parameters, returnType);
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('Closure $parent::$name');
+    if (typeParams.isNotEmpty) {
+      sb.write(' <${typeParams.join(', ')}>');
+    }
+    sb.write(' (');
+    sb.write(parameters.sublist(0, numRequiredParams).join(', '));
+    if (numRequiredParams != parameters.length) {
+      if (numRequiredParams > 0) {
+        sb.write(', ');
+      }
+      if (numNamedParams > 0) {
+        sb.write('{ ${parameters.sublist(numRequiredParams).join(', ')} }');
+      } else {
+        sb.write('[ ${parameters.sublist(numRequiredParams).join(', ')} ]');
+      }
+    }
+    sb.write(') -> ');
+    sb.writeln(returnType);
+    if (bytecode != null) {
+      sb.write(bytecode.toString());
+    }
+    return sb.toString();
+  }
 }
 
 /// Bytecode of a nested function (closure).
 /// Closures share the constant pool of a top-level member.
 class ClosureBytecode {
-  final int closureFunctionConstantIndex;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
@@ -124,50 +315,102 @@ class ClosureBytecode {
   bool get hasSourcePositions => sourcePositions.mapping.isNotEmpty;
 
   int get flags =>
-      (hasExceptionsTable ? BytecodeMetadata.hasExceptionsTableFlag : 0) |
-      (hasSourcePositions ? BytecodeMetadata.hasSourcePositionsFlag : 0);
+      (hasExceptionsTable ? MemberBytecode.hasExceptionsTableFlag : 0) |
+      (hasSourcePositions ? MemberBytecode.hasSourcePositionsFlag : 0);
 
-  ClosureBytecode(this.closureFunctionConstantIndex, this.bytecodes,
-      this.exceptionsTable, this.sourcePositions);
+  ClosureBytecode(this.bytecodes, this.exceptionsTable, this.sourcePositions);
 
-  void writeToBinary(BinarySink sink) {
-    sink.writeUInt30(closureFunctionConstantIndex);
-    sink.writeUInt30(flags);
-    _writeBytecodeInstructions(sink, bytecodes);
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(flags);
+    _writeBytecodeInstructions(writer, bytecodes);
     if (hasExceptionsTable) {
-      exceptionsTable.writeToBinary(sink);
+      exceptionsTable.write(writer);
     }
     if (hasSourcePositions) {
-      sink.writeByteList(sourcePositions.toBytes());
+      sourcePositions.write(writer);
     }
   }
 
-  factory ClosureBytecode.readFromBinary(BinarySource source) {
-    final closureFunctionConstantIndex = source.readUInt();
-    final int flags = source.readUInt();
-    final List<int> bytecodes = _readBytecodeInstructions(source);
+  factory ClosureBytecode.read(BufferedReader reader) {
+    final int flags = reader.readPackedUInt30();
+    final List<int> bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable =
-        ((flags & BytecodeMetadata.hasExceptionsTableFlag) != 0)
-            ? new ExceptionsTable.readFromBinary(source)
+        ((flags & MemberBytecode.hasExceptionsTableFlag) != 0)
+            ? new ExceptionsTable.read(reader)
             : new ExceptionsTable();
     final sourcePositions =
-        ((flags & BytecodeMetadata.hasSourcePositionsFlag) != 0)
-            ? new SourcePositions.fromBytes(source.readByteList())
+        ((flags & MemberBytecode.hasSourcePositionsFlag) != 0)
+            ? new SourcePositions.read(reader)
             : new SourcePositions();
-    return new ClosureBytecode(closureFunctionConstantIndex, bytecodes,
-        exceptionsTable, sourcePositions);
+    return new ClosureBytecode(bytecodes, exceptionsTable, sourcePositions);
   }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.writeln('Closure CP#$closureFunctionConstantIndex {');
+    sb.writeln('ClosureBytecode {');
     sb.writeln(new BytecodeDisassembler().disassemble(
         bytecodes, exceptionsTable,
         annotations: [sourcePositions.getBytecodeAnnotations()]));
     sb.writeln('}');
     return sb.toString();
   }
+}
+
+class BytecodeComponent extends BytecodeMetadata {
+  int version;
+  StringTable stringTable;
+  ObjectTable objectTable;
+
+  BytecodeComponent(this.version)
+      : stringTable = new StringTable(),
+        objectTable = new ObjectTable();
+
+  @override
+  void write(BufferedWriter writer) {
+    objectTable.allocateIndexTable();
+
+    // Writing object table may add new strings to strings table,
+    // so serialize object table first.
+    BufferedWriter objectsWriter = new BufferedWriter.fromWriter(writer);
+    objectTable.write(objectsWriter);
+
+    BufferedWriter stringsWriter = new BufferedWriter.fromWriter(writer);
+    stringTable.write(stringsWriter);
+
+    writer.writePackedUInt30(version);
+    writer.writePackedUInt30(stringsWriter.offset);
+    writer.writePackedUInt30(objectsWriter.offset);
+
+    writer.writeBytes(stringsWriter.takeBytes());
+    writer.writeBytes(objectsWriter.takeBytes());
+  }
+
+  BytecodeComponent.read(BufferedReader reader) {
+    version = reader.readPackedUInt30();
+    if (version != stableBytecodeFormatVersion &&
+        version != futureBytecodeFormatVersion) {
+      throw 'Error: unexpected bytecode version $version';
+    }
+    reader.formatVersion = version;
+    reader.readPackedUInt30(); // Strings size
+    reader.readPackedUInt30(); // Objects size
+
+    stringTable = new StringTable.read(reader);
+    reader.stringReader = stringTable;
+
+    objectTable = new ObjectTable.read(reader);
+    reader.objectReader = objectTable;
+  }
+
+  String toString() => "\n"
+      "Bytecode"
+      " (version: "
+      "${version == stableBytecodeFormatVersion ? 'stable' : version == futureBytecodeFormatVersion ? 'future' : "v$version"}"
+      ")\n"
+//      "$objectTable\n"
+//      "$stringTable\n"
+      ;
 }
 
 /// Repository for [BytecodeMetadata].
@@ -179,89 +422,49 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
   final Map<TreeNode, BytecodeMetadata> mapping =
       <TreeNode, BytecodeMetadata>{};
 
+  BytecodeComponent bytecodeComponent;
+
   @override
   void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
-    sink.writeUInt30(metadata.version);
-    sink.writeUInt30(metadata.flags);
-    metadata.constantPool.writeToBinary(node, sink);
-    _writeBytecodeInstructions(sink, metadata.bytecodes);
-    if (metadata.hasExceptionsTable) {
-      metadata.exceptionsTable.writeToBinary(sink);
+    if (node is Component) {
+      bytecodeComponent = metadata as BytecodeComponent;
+    } else {
+      assert(bytecodeComponent != null);
     }
-    if (metadata.hasSourcePositions) {
-      sink.writeByteList(metadata.sourcePositions.toBytes());
-    }
-    if (metadata.hasNullableFields) {
-      sink.writeUInt30(metadata.nullableFields.length);
-      metadata.nullableFields.forEach((ref) => sink
-          .writeCanonicalNameReference(getCanonicalNameOfMember(ref.asField)));
-    }
-    if (metadata.hasClosures) {
-      sink.writeUInt30(metadata.closures.length);
-      metadata.closures.forEach((c) => c.writeToBinary(sink));
-    }
+    final writer = new BufferedWriter(bytecodeComponent.version,
+        bytecodeComponent.stringTable, bytecodeComponent.objectTable,
+        baseOffset: sink.getBufferOffset());
+    metadata.write(writer);
+    sink.writeBytes(writer.takeBytes());
   }
 
   @override
   BytecodeMetadata readFromBinary(Node node, BinarySource source) {
-    int version = source.readUInt();
-    if (version != stableBytecodeFormatVersion &&
-        version != futureBytecodeFormatVersion) {
-      throw 'Error: unexpected bytecode version $version';
+    if (node is Component) {
+      final reader = new BufferedReader(-1, null, null, source.bytes,
+          baseOffset: source.currentOffset);
+      bytecodeComponent = new BytecodeComponent.read(reader);
+      return bytecodeComponent;
+    } else {
+      final reader = new BufferedReader(
+          bytecodeComponent.version,
+          bytecodeComponent.stringTable,
+          bytecodeComponent.objectTable,
+          source.bytes,
+          baseOffset: source.currentOffset);
+      return new MemberBytecode.read(reader);
     }
-    int flags = source.readUInt();
-    final ConstantPool constantPool =
-        new ConstantPool.readFromBinary(node, source);
-    final List<int> bytecodes = _readBytecodeInstructions(source);
-    final exceptionsTable =
-        ((flags & BytecodeMetadata.hasExceptionsTableFlag) != 0)
-            ? new ExceptionsTable.readFromBinary(source)
-            : new ExceptionsTable();
-    final sourcePositions =
-        ((flags & BytecodeMetadata.hasSourcePositionsFlag) != 0)
-            ? new SourcePositions.fromBytes(source.readByteList())
-            : new SourcePositions();
-    final List<Reference> nullableFields =
-        ((flags & BytecodeMetadata.hasNullableFieldsFlag) != 0)
-            ? new List<Reference>.generate(source.readUInt(),
-                (_) => source.readCanonicalNameReference().getReference())
-            : const <Reference>[];
-    final List<ClosureBytecode> closures =
-        ((flags & BytecodeMetadata.hasClosuresFlag) != 0)
-            ? new List<ClosureBytecode>.generate(source.readUInt(),
-                (_) => new ClosureBytecode.readFromBinary(source))
-            : const <ClosureBytecode>[];
-    return new BytecodeMetadata(version, constantPool, bytecodes,
-        exceptionsTable, sourcePositions, nullableFields, closures);
   }
 }
 
-void _writeBytecodeInstructions(BinarySink sink, List<int> bytecodes) {
-  sink.writeUInt30(bytecodes.length);
-  _writeBytecodePadding(sink);
-  sink.writeBytes(bytecodes);
+void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {
+  writer.writePackedUInt30(bytecodes.length);
+  writer.align(bytecodeInstructionsAlignment);
+  writer.writeBytes(bytecodes);
 }
 
-List<int> _readBytecodeInstructions(BinarySource source) {
-  int len = source.readUInt();
-  _readBytecodePadding(source);
-  return source.readBytes(len);
-}
-
-void _writeBytecodePadding(BinarySink sink) {
-  const int bytecodeAlignment = 4;
-  int offset = sink.getBufferOffset() + 1; // +1 is for the length.
-  int len = ((offset + bytecodeAlignment - 1) & -bytecodeAlignment) - offset;
-  sink.writeByte(len);
-  for (int i = 0; i < len; ++i) {
-    sink.writeByte(0);
-  }
-  assert((sink.getBufferOffset() & (bytecodeAlignment - 1)) == 0);
-}
-
-void _readBytecodePadding(BinarySource source) {
-  int len = source.readByte();
-  for (int i = 0; i < len; ++i) {
-    source.readByte();
-  }
+List<int> _readBytecodeInstructions(BufferedReader reader) {
+  int len = reader.readPackedUInt30();
+  reader.align(bytecodeInstructionsAlignment);
+  return reader.readBytesAsUint8List(len);
 }

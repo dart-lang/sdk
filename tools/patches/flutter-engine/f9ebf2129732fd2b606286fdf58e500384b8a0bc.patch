@@ -1,0 +1,27 @@
+diff --git a/DEPS b/DEPS
+index bb8bca813..701871f79 100644
+--- a/DEPS
++++ b/DEPS
+@@ -47,7 +47,7 @@ vars = {
+   'dart_convert_tag': '2.0.2',
+   'dart_crypto_tag': '2.0.6',
+   'dart_csslib_tag': '0.14.4+1',
+-  'dart_dart2js_info_tag': '0.5.13',
++  'dart_dart2js_info_tag': '0.5.15',
+   'dart_dart_style_tag': '1.2.0',
+   'dart_dartdoc_tag': 'v0.24.1',
+   'dart_fixnum_tag': '0.10.8',
+diff --git a/lib/snapshot/BUILD.gn b/lib/snapshot/BUILD.gn
+index ef06063a2..fa18ebfbf 100644
+--- a/lib/snapshot/BUILD.gn
++++ b/lib/snapshot/BUILD.gn
+@@ -53,9 +53,7 @@ compiled_action("generate_snapshot_bin") {
+   ]
+ 
+   args = [
+-    "--strong",
+     "--sync-async",
+-    "--reify-generic-functions",
+     "--snapshot_kind=core",
+     "--enable_mirrors=false",
+     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data),

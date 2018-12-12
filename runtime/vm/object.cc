@@ -2737,32 +2737,30 @@ void Class::CalculateFieldOffsets() const {
   set_next_field_offset(offset);
 }
 
-struct InvocationDispatcherCacheLayout {
-  enum { kNameIndex = 0, kArgsDescIndex, kFunctionIndex, kEntrySize };
-};
-
 void Class::AddInvocationDispatcher(const String& target_name,
                                     const Array& args_desc,
                                     const Function& dispatcher) const {
-  // Search for a free entry.
-  Array& cache = Array::Handle(invocation_dispatcher_cache());
+  auto& cache = Array::Handle(invocation_dispatcher_cache());
+  InvocationDispatcherTable dispatchers(cache);
   intptr_t i = 0;
-  while (i < cache.Length() && cache.At(i) != Object::null()) {
-    i += InvocationDispatcherCacheLayout::kEntrySize;
+  for (auto dispatcher : dispatchers) {
+    if (dispatcher.Get<kInvocationDispatcherName>() == String::null()) {
+      break;
+    }
+    i++;
   }
-
-  if (i == cache.Length()) {
-    // Allocate new larger cache.
-    intptr_t new_len =
-        (cache.Length() == 0)
-            ? static_cast<intptr_t>(InvocationDispatcherCacheLayout::kEntrySize)
+  if (i == dispatchers.Length()) {
+    const intptr_t new_len =
+        cache.Length() == 0
+            ? static_cast<intptr_t>(Class::kInvocationDispatcherEntrySize)
             : cache.Length() * 2;
     cache ^= Array::Grow(cache, new_len);
     set_invocation_dispatcher_cache(cache);
   }
-  cache.SetAt(i + InvocationDispatcherCacheLayout::kNameIndex, target_name);
-  cache.SetAt(i + InvocationDispatcherCacheLayout::kArgsDescIndex, args_desc);
-  cache.SetAt(i + InvocationDispatcherCacheLayout::kFunctionIndex, dispatcher);
+  auto entry = dispatchers[i];
+  entry.Set<Class::kInvocationDispatcherName>(target_name);
+  entry.Set<Class::kInvocationDispatcherArgsDesc>(args_desc);
+  entry.Set<Class::kInvocationDispatcherFunction>(dispatcher);
 }
 
 RawFunction* Class::GetInvocationDispatcher(const String& target_name,
@@ -2772,31 +2770,31 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
          kind == RawFunction::kInvokeFieldDispatcher ||
          kind == RawFunction::kDynamicInvocationForwarder);
-  Function& dispatcher = Function::Handle();
-  Array& cache = Array::Handle(invocation_dispatcher_cache());
+  auto Z = Thread::Current()->zone();
+  auto& function = Function::Handle(Z);
+  auto& name = String::Handle(Z);
+  auto& desc = Array::Handle(Z);
+  auto& cache = Array::Handle(Z, invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
-  String& name = String::Handle();
-  Array& desc = Array::Handle();
-  intptr_t i = 0;
-  for (; i < cache.Length(); i += InvocationDispatcherCacheLayout::kEntrySize) {
-    name ^= cache.At(i + InvocationDispatcherCacheLayout::kNameIndex);
+
+  InvocationDispatcherTable dispatchers(cache);
+  for (auto dispatcher : dispatchers) {
+    name = dispatcher.Get<Class::kInvocationDispatcherName>();
     if (name.IsNull()) break;  // Reached last entry.
     if (!name.Equals(target_name)) continue;
-    desc ^= cache.At(i + InvocationDispatcherCacheLayout::kArgsDescIndex);
+    desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
     if (desc.raw() != args_desc.raw()) continue;
-    dispatcher ^= cache.At(i + InvocationDispatcherCacheLayout::kFunctionIndex);
-    if (dispatcher.kind() == kind) {
-      // Found match.
-      ASSERT(dispatcher.IsFunction());
-      break;
+    function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+    if (function.kind() == kind) {
+      break;  // Found match.
     }
   }
 
-  if (dispatcher.IsNull() && create_if_absent) {
-    dispatcher ^= CreateInvocationDispatcher(target_name, args_desc, kind);
-    AddInvocationDispatcher(target_name, args_desc, dispatcher);
+  if (function.IsNull() && create_if_absent) {
+    function = CreateInvocationDispatcher(target_name, args_desc, kind);
+    AddInvocationDispatcher(target_name, args_desc, function);
   }
-  return dispatcher.raw();
+  return function.raw();
 }
 
 RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
@@ -2914,27 +2912,49 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   return result.raw();
 }
 
-bool Function::FindPragma(Isolate* I,
-                          const String& pragma_name,
-                          Object* options) const {
-  if (!has_pragma()) return false;
+bool Library::FindPragma(Thread* T,
+                         const Object& obj,
+                         const String& pragma_name,
+                         Object* options) const {
+  auto I = T->isolate();
+  auto Z = T->zone();
+  auto& lib = Library::Handle(Z);
+  if (obj.IsClass()) {
+    auto& klass = Class::Cast(obj);
+    if (!klass.has_pragma()) return false;
+    lib = klass.library();
+  } else if (obj.IsFunction()) {
+    auto& function = Function::Cast(obj);
+    if (!function.has_pragma()) return false;
+    lib = Class::Handle(Z, function.Owner()).library();
+  } else if (obj.IsField()) {
+    auto& field = Field::Cast(obj);
+    if (!field.has_pragma()) return false;
+    lib = Class::Handle(Z, field.Owner()).library();
+  } else {
+    UNREACHABLE();
+  }
 
-  auto& klass = Class::Handle(Owner());
-  auto& lib = Library::Handle(klass.library());
+  Object& metadata_obj = Object::Handle(Z, lib.GetMetadata(obj));
+  if (metadata_obj.IsUnwindError()) {
+    Report::LongJump(UnwindError::Cast(metadata_obj));
+  }
 
-  auto& pragma_class =
-      Class::Handle(Isolate::Current()->object_store()->pragma_class());
+  // If there is a compile-time error while evaluating the metadata, we will
+  // simply claim there was no @pramga annotation.
+  if (metadata_obj.IsNull() || metadata_obj.IsLanguageError()) {
+    return false;
+  }
+  ASSERT(metadata_obj.IsArray());
+
+  auto& metadata = Array::Cast(metadata_obj);
+  auto& pragma_class = Class::Handle(Z, I->object_store()->pragma_class());
   auto& pragma_name_field =
-      Field::Handle(pragma_class.LookupField(Symbols::name()));
+      Field::Handle(Z, pragma_class.LookupField(Symbols::name()));
   auto& pragma_options_field =
-      Field::Handle(pragma_class.LookupField(Symbols::options()));
+      Field::Handle(Z, pragma_class.LookupField(Symbols::options()));
 
-  Array& metadata = Array::Handle();
-  metadata ^= lib.GetMetadata(Function::Handle(raw()));
-
-  if (metadata.IsNull()) return false;
-
-  auto& pragma = Object::Handle();
+  auto& pragma = Object::Handle(Z);
   for (intptr_t i = 0; i < metadata.Length(); ++i) {
     pragma = metadata.At(i);
     if (pragma.clazz() != pragma_class.raw() ||
@@ -3688,6 +3708,18 @@ void Class::InjectCIDFields() const {
 
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
+
+#define ADD_SET_FIELD(clazz)                                                   \
+  field_name = Symbols::New(thread, "cid" #clazz "View");                      \
+  field = Field::New(field_name, true, false, true, false, *this,              \
+                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
+                     TokenPosition::kMinSource);                               \
+  value = Smi::New(kTypedData##clazz##ViewCid);                                \
+  field.SetStaticValue(value, true);                                           \
+  AddField(field);
+
+  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
 }
 
@@ -4313,27 +4345,21 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         other.IsVoidClass()) {
       return true;
     }
-    // Check for NullType, which, as of Dart 1.5, is a subtype of (and is more
+    // Check for NullType, which, as of Dart 2.0, is a subtype of (and is more
     // specific than) any type. Note that the null instance is not handled here.
     if (this_class.IsNullClass()) {
       return true;
     }
-    // Class FutureOr is mapped to dynamic in non-strong mode.
-    // Detect snapshots compiled in strong mode and run in non-strong mode.
-    ASSERT(FLAG_strong || !other.IsFutureOrClass());
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (FLAG_strong && this_class.FutureOrTypeTest(
-                           zone, type_arguments, other, other_type_arguments,
-                           bound_error, bound_trail, space)) {
+    if (this_class.FutureOrTypeTest(zone, type_arguments, other,
+                                    other_type_arguments, bound_error,
+                                    bound_trail, space)) {
       return true;
     }
-    // In the case of a subtype test, each occurrence of DynamicType in type S
-    // is interpreted as the bottom type, a subtype of all types, but not in
-    // strong mode.
-    // However, DynamicType is not more specific than any type.
+    // DynamicType is not more specific than any type.
     if (this_class.IsDynamicClass()) {
-      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
+      return false;
     }
     // If other is neither Object, dynamic or void, then ObjectType/VoidType
     // can't be a subtype of other.
@@ -4360,20 +4386,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
+        return false;
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
                                      bound_trail, space);
-    }
-    // In strong mode, subtyping rules of callable instances are restricted.
-    if (!FLAG_strong && other.IsDartFunctionClass()) {
-      // Check if type S has a call() method.
-      const Function& call_function =
-          Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
-      if (!call_function.IsNull()) {
-        return true;
-      }
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
@@ -4427,7 +4444,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         }
       }
       // In Dart 2, implementing Function has no meaning.
-      if (FLAG_strong && interface_class.IsDartFunctionClass()) {
+      if (interface_class.IsDartFunctionClass()) {
         continue;
       }
       if (interface_class.TypeTest(test_kind, interface_args, other,
@@ -4473,7 +4490,6 @@ bool Class::FutureOrTypeTest(Zone* zone,
                              Heap::Space space) const {
   // In strong mode, there is no difference between 'is subtype of' and
   // 'is more specific than'.
-  ASSERT(FLAG_strong);
   if (other.IsFutureOrClass()) {
     if (other_type_arguments.IsNull()) {
       return true;
@@ -4554,31 +4570,6 @@ RawFunction* Class::LookupFunction(const String& name) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
-}
-
-RawFunction* Class::LookupCallFunctionForTypeTest() const {
-  // If this class is not compiled yet, it is too early to lookup a call
-  // function. This case should only occur during bounds checking at compile
-  // time. Return null as if the call method did not exist, so the type test
-  // may return false, but without a bound error, and the bound check will get
-  // postponed to runtime.
-  if (!is_finalized()) {
-    return Function::null();
-  }
-  Zone* zone = Thread::Current()->zone();
-  Class& cls = Class::Handle(zone, raw());
-  Function& call_function = Function::Handle(zone);
-  do {
-    ASSERT(cls.is_finalized());
-    call_function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
-    cls = cls.SuperClass();
-  } while (call_function.IsNull() && !cls.IsNull());
-  if (!call_function.IsNull()) {
-    // Make sure the signature is finalized before using it in a type test.
-    ClassFinalizer::FinalizeSignature(
-        cls, call_function, ClassFinalizer::kFinalize);  // No bounds checking.
-  }
-  return call_function.raw();
 }
 
 // Returns true if 'prefix' and 'accessor_name' match 'name'.
@@ -5152,7 +5143,6 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
       name = type.BuildName(name_visibility);
     } else {
       // Show dynamic type argument in strong mode.
-      ASSERT(FLAG_strong);
       name = Symbols::Dynamic().raw();
     }
     pieces.Add(name);
@@ -5902,10 +5892,10 @@ bool Function::HasCode() const {
   NoSafepointScope no_safepoint;
   ASSERT(raw_ptr()->code_ != Code::null());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  return raw_ptr()->code_ != StubCode::LazyCompile().raw();
 #else
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  return raw_ptr()->code_ != StubCode::LazyCompile().raw() &&
+         raw_ptr()->code_ != StubCode::InterpretCall().raw();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5959,7 +5949,7 @@ void Function::AttachBytecode(const Bytecode& value) const {
 
   if (FLAG_enable_interpreter) {
     // Set the code entry_point to InterpretCall stub.
-    SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+    SetInstructions(StubCode::InterpretCall());
   }
 }
 
@@ -5976,10 +5966,10 @@ bool Function::HasCode(RawFunction* function) {
   NoSafepointScope no_safepoint;
   ASSERT(function->ptr()->code_ != Code::null());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  return function->ptr()->code_ != StubCode::LazyCompile().raw();
 #else
-  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
-         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
+  return function->ptr()->code_ != StubCode::LazyCompile().raw() &&
+         function->ptr()->code_ != StubCode::InterpretCall().raw();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -5992,7 +5982,7 @@ void Function::ClearCode() const {
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 
-  SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  SetInstructions(StubCode::LazyCompile());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -6053,10 +6043,10 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
     // Set the lazy compile or interpreter call stub code.
     if (FLAG_enable_interpreter && HasBytecode()) {
       TIR_Print("Switched to interpreter call stub for %s\n", ToCString());
-      SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+      SetInstructions(StubCode::InterpretCall());
     } else {
       TIR_Print("Switched to lazy compile stub for %s\n", ToCString());
-      SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+      SetInstructions(StubCode::LazyCompile());
     }
     return;
   }
@@ -7251,36 +7241,15 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
-  if (FLAG_strong) {
-    const AbstractType& param_type =
-        AbstractType::Handle(ParameterTypeAt(parameter_position));
-    if (param_type.IsTopType()) {
-      return true;
-    }
-    const AbstractType& other_param_type =
-        AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-    return other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                        space);
+  const AbstractType& param_type =
+      AbstractType::Handle(ParameterTypeAt(parameter_position));
+  if (param_type.IsTopType()) {
+    return true;
   }
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (other_param_type.IsDynamicType()) {
-    return true;
-  }
-  const AbstractType& param_type =
-      AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (param_type.IsDynamicType()) {
-    return test_kind == kIsSubtypeOf;
-  }
-  if (test_kind == kIsSubtypeOf) {
-    return param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
-                                  space) ||
-           other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                        space);
-  }
-  ASSERT(test_kind == kIsMoreSpecificThan);
-  return param_type.IsMoreSpecificThan(other_param_type, bound_error,
-                                       bound_trail, space);
+  return other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                      space);
 }
 
 bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
@@ -7342,48 +7311,21 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  if (FLAG_reify_generic_functions) {
-    // Check the type parameters and bounds of generic functions.
-    if (!HasSameTypeParametersAndBounds(other)) {
-      return false;
-    }
+  // Check the type parameters and bounds of generic functions.
+  if (!HasSameTypeParametersAndBounds(other)) {
+    return false;
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
-  if (FLAG_strong) {
-    // In strong mode, 'void Function()' is a subtype of 'Object Function()'.
-    if (!other_res_type.IsTopType()) {
-      const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                space)) {
-        return false;
-      }
-    }
-  } else {
-    // In Dart 1.0, 'void Function()' is not a subtype of 'Object Function()',
-    // but it is a subtype of 'dynamic Function()' and of 'void Function()'.
-    if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
-      const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-      if (res_type.IsVoidType()) {
-        return false;
-      }
-      if (test_kind == kIsSubtypeOf) {
-        if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                  space) &&
-            !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
-                                        space)) {
-          return false;
-        }
-      } else {
-        ASSERT(test_kind == kIsMoreSpecificThan);
-        if (!res_type.IsMoreSpecificThan(other_res_type, bound_error,
-                                         bound_trail, space)) {
-          return false;
-        }
-      }
+  // In strong mode, 'void Function()' is a subtype of 'Object Function()'.
+  if (!other_res_type.IsTopType()) {
+    const AbstractType& res_type = AbstractType::Handle(zone, result_type());
+    if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                              space)) {
+      return false;
     }
   }
   // Check the types of fixed and optional positional parameters.
@@ -7506,8 +7448,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
-  result.SetInstructionsSafe(
-      Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructionsSafe(StubCode::LazyCompile());
   if (kind == RawFunction::kClosureFunction ||
       kind == RawFunction::kImplicitClosureFunction) {
     ASSERT(space == Heap::kOld);
@@ -7725,7 +7666,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.
   // The VM's parser erases covariant types immediately in strong mode.
-  if (FLAG_strong && !is_static() && kernel_offset() > 0) {
+  if (!is_static() && kernel_offset() > 0) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
     translation_helper.InitFromScript(function_script);
@@ -7889,31 +7830,29 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
-  if (FLAG_reify_generic_functions) {
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, type_parameters());
-    if (!type_params.IsNull()) {
-      const intptr_t num_type_params = type_params.Length();
-      ASSERT(num_type_params > 0);
-      TypeParameter& type_param = TypeParameter::Handle(zone);
-      AbstractType& bound = AbstractType::Handle(zone);
-      pieces.Add(Symbols::LAngleBracket());
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param ^= type_params.TypeAt(i);
-        name = type_param.name();
+  const TypeArguments& type_params =
+      TypeArguments::Handle(zone, type_parameters());
+  if (!type_params.IsNull()) {
+    const intptr_t num_type_params = type_params.Length();
+    ASSERT(num_type_params > 0);
+    TypeParameter& type_param = TypeParameter::Handle(zone);
+    AbstractType& bound = AbstractType::Handle(zone);
+    pieces.Add(Symbols::LAngleBracket());
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      name = type_param.name();
+      pieces.Add(name);
+      bound = type_param.bound();
+      if (!bound.IsNull() && !bound.IsObjectType()) {
+        pieces.Add(Symbols::SpaceExtendsSpace());
+        name = bound.BuildName(name_visibility);
         pieces.Add(name);
-        bound = type_param.bound();
-        if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(Symbols::SpaceExtendsSpace());
-          name = bound.BuildName(name_visibility);
-          pieces.Add(name);
-        }
-        if (i < num_type_params - 1) {
-          pieces.Add(Symbols::CommaSpace());
-        }
       }
-      pieces.Add(Symbols::RAngleBracket());
+      if (i < num_type_params - 1) {
+        pieces.Add(Symbols::CommaSpace());
+      }
     }
+    pieces.Add(Symbols::RAngleBracket());
   }
   pieces.Add(Symbols::LParen());
   BuildSignatureParameters(thread, zone, name_visibility, &pieces);
@@ -8693,6 +8632,7 @@ void Field::InitializeNew(const Field& result,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
+  result.set_kind_bits(0);
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
@@ -8709,6 +8649,7 @@ void Field::InitializeNew(const Field& result,
   result.set_is_unboxing_candidate(true);
   result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
+  result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
   Isolate* isolate = Isolate::Current();
@@ -12395,6 +12336,11 @@ RawClass* KernelProgramInfo::InsertClass(Thread* thread,
   return result.raw();
 }
 
+void KernelProgramInfo::set_bytecode_component(
+    const Array& bytecode_component) const {
+  StorePointer(&raw_ptr()->bytecode_component_, bytecode_component.raw());
+}
+
 RawError* Library::CompileAll(bool ignore_error /* = false */) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -12560,7 +12506,7 @@ void Library::CheckFunctionFingerprints() {
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
   }
 
-#define CHECK_FINGERPRINTS2(class_name, function_name, dest, type, fp)         \
+#define CHECK_FINGERPRINTS2(class_name, function_name, dest, fp)               \
   CHECK_FINGERPRINTS(class_name, function_name, dest, fp)
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -13848,19 +13794,14 @@ RawArray* ICData::FindFreeIndex(intptr_t* index) const {
   // when searching.
   const intptr_t len = Length() - 1;
   Array& data = Array::Handle(ic_data());
-  *index = len;
   for (intptr_t i = 0; i < len; i++) {
     if (IsSentinelAt(i)) {
       *index = i;
-      break;
+      return data.raw();
     }
   }
-  if (*index < len) {
-    // We've found a free slot.
-    return data.raw();
-  }
   // Append case.
-  ASSERT(*index == len);
+  *index = len;
   ASSERT(*index >= 0);
   // Grow array.
   const intptr_t new_len = data.Length() + TestEntryLength();
@@ -15086,8 +15027,7 @@ void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code =
-      Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  const Code& new_code = StubCode::FixCallersTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 }
@@ -15097,8 +15037,7 @@ void Code::DisableStubCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code =
-      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  const Code& new_code = StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 #else
@@ -16425,8 +16364,7 @@ bool Instance::IsInstanceOf(
           other_instantiator_type_arguments, other_function_type_arguments,
           kAllFree, bound_error, NULL, NULL, Heap::kOld);
       if ((bound_error != NULL) && !bound_error->IsNull()) {
-        ASSERT(Isolate::Current()->type_checks());
-        return false;
+        UNREACHABLE();
       }
       if (instantiated_other.IsTypeRef()) {
         instantiated_other = TypeRef::Cast(instantiated_other).type();
@@ -16436,8 +16374,7 @@ bool Instance::IsInstanceOf(
         return true;
       }
     }
-    if (FLAG_strong &&
-        IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
+    if (IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
       return true;
     }
     if (!instantiated_other.IsFunctionType()) {
@@ -16473,7 +16410,7 @@ bool Instance::IsInstanceOf(
         other_instantiator_type_arguments, other_function_type_arguments,
         kAllFree, bound_error, NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
-      ASSERT(Isolate::Current()->type_checks());
+      UNREACHABLE();
       return false;
     }
     if (instantiated_other.IsTypeRef()) {
@@ -16484,46 +16421,15 @@ bool Instance::IsInstanceOf(
     }
   }
   other_type_arguments = instantiated_other.arguments();
-  const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
-  // In strong mode, subtyping rules of callable instances are restricted.
-  if (!FLAG_strong &&
-      (other_is_dart_function || instantiated_other.IsFunctionType())) {
-    // Check if this instance understands a call() method of a compatible type.
-    Function& sig_fun =
-        Function::Handle(zone, cls.LookupCallFunctionForTypeTest());
-    if (!sig_fun.IsNull()) {
-      if (other_is_dart_function) {
-        return true;
-      }
-      if (!sig_fun.HasInstantiatedSignature(kCurrentClass)) {
-        // The following signature instantiation of sig_fun does not instantiate
-        // its own function type parameters, i.e there are 0 free function type
-        // params. Note that sig_fun has no generic parent, which is guaranteed
-        // to be the case, since the looked up call() function cannot be nested.
-        // It is most probably not even generic.
-        ASSERT(!sig_fun.HasGenericParent());
-        // No bound error possible, since the instance exists.
-        sig_fun = sig_fun.InstantiateSignatureFrom(
-            type_arguments, Object::null_type_arguments(), kNoneFree,
-            Heap::kOld);
-      }
-      const Function& other_signature =
-          Function::Handle(zone, Type::Cast(instantiated_other).signature());
-      if (sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld)) {
-        return true;
-      }
-    }
-  }
   if (!instantiated_other.IsType()) {
     return false;
   }
   other_class = instantiated_other.type_class();
   if (IsNull()) {
     ASSERT(cls.IsNullClass());
-    // As of Dart 1.5, the null instance and Null type are handled differently.
+    // As of Dart 2.0, the null instance and Null type are handled differently.
     // We already checked other for dynamic and void.
-    if (FLAG_strong &&
-        IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
+    if (IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
       return true;
     }
     return other_class.IsNullClass() || other_class.IsObjectClass();
@@ -16535,7 +16441,6 @@ bool Instance::IsInstanceOf(
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     const AbstractType& other,
                                     Error* bound_error) const {
-  ASSERT(FLAG_strong);
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -17092,10 +16997,6 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         num_type_params = num_args;
       } else {
         ASSERT(num_args == 0);  // Type is raw.
-        // No need to fill up with "dynamic", unless running in strong mode.
-        if (!FLAG_strong) {
-          num_type_params = 0;
-        }
       }
     } else {
       // The actual type argument vector can be longer than necessary, because
@@ -17108,8 +17009,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   }
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
-  if ((num_type_params == 0) ||
-      (!FLAG_strong && args.IsRaw(first_type_param_index, num_type_params))) {
+  if (num_type_params == 0) {
     // Do nothing.
   } else {
     const String& args_name = String::Handle(
@@ -17160,20 +17060,18 @@ bool AbstractType::IsTopType() const {
     return true;
   }
   // In strong mode, FutureOr<T> where T is a top type behaves as a top type.
-  if (FLAG_strong) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    if (Class::Handle(zone, type_class()).IsFutureOrClass()) {
-      if (arguments() == TypeArguments::null()) {
-        return true;
-      }
-      const TypeArguments& type_arguments =
-          TypeArguments::Handle(zone, arguments());
-      const AbstractType& type_arg =
-          AbstractType::Handle(zone, type_arguments.TypeAt(0));
-      if (type_arg.IsTopType()) {
-        return true;
-      }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  if (Class::Handle(zone, type_class()).IsFutureOrClass()) {
+    if (arguments() == TypeArguments::null()) {
+      return true;
+    }
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(zone, arguments());
+    const AbstractType& type_arg =
+        AbstractType::Handle(zone, type_arguments.TypeAt(0));
+    if (type_arg.IsTopType()) {
+      return true;
     }
   }
   return false;
@@ -17258,24 +17156,22 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // However, in checked mode, a function type may include malbounded result
   // type and/or malbounded parameter types, which will then be encountered here
   // at run time.
+  // TODO(regis): malformed types needs to be cleaned up as we won't be
+  // seeing any malformed types in the VM.
   if (IsMalbounded()) {
-    ASSERT(Isolate::Current()->type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
-      *bound_error = error();
+      UNREACHABLE();
     }
     return false;
   }
   if (other.IsMalbounded()) {
-    ASSERT(Isolate::Current()->type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
-      *bound_error = other.error();
+      UNREACHABLE();
     }
     return false;
   }
   // Any type is a subtype of (and is more specific than) Object and dynamic.
-  // As of Dart 1.24, void is dynamically treated like Object (except when
-  // comparing function-types).
-  // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
+  // As of Dart 2.0, the Null type is a subtype of (and is more specific than)
   // any type.
   if (other.IsTopType() || IsNullType()) {
     return true;
@@ -17361,8 +17257,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (FLAG_strong &&
-        FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
+    if (FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -17387,28 +17282,6 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       return fun.TypeTest(test_kind, other_fun, bound_error, bound_trail,
                           space);
     }
-    // In strong mode, subtyping rules of callable instances are restricted.
-    if (!FLAG_strong) {
-      // Check if type S has a call() method of function type T.
-      const Function& call_function =
-          Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
-      if (!call_function.IsNull()) {
-        if (other_is_dart_function_type) {
-          return true;
-        }
-        // Shortcut the test involving the call function if the
-        // pair <this, other> is already in the trail.
-        if (TestAndAddBuddyToTrail(&bound_trail, other)) {
-          return true;
-        }
-        if (call_function.TypeTest(
-                test_kind,
-                Function::Handle(zone, Type::Cast(other).signature()),
-                bound_error, bound_trail, space)) {
-          return true;
-        }
-      }
-    }
     if (other.IsFunctionType() && !other_type_cls.IsTypedefClass()) {
       // [this] is not a function type (and, in non-strong mode, does not
       // declare a compatible call() method as verified above). Therefore,
@@ -17426,8 +17299,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (IsFunctionType()) {
     // In strong mode, check if 'other' is 'FutureOr'.
     // If so, apply additional subtyping rules.
-    if (FLAG_strong &&
-        FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
+    if (FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
       return true;
     }
     return false;
@@ -17445,7 +17317,6 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
                                     Heap::Space space) const {
   // In strong mode, there is no difference between 'is subtype of' and
   // 'is more specific than'.
-  ASSERT(FLAG_strong);
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -17612,18 +17483,7 @@ bool Type::IsMalformed() const {
 }
 
 bool Type::IsMalbounded() const {
-  if (raw_ptr()->sig_or_err_.error_ == LanguageError::null()) {
-    return false;  // Valid type, but not a function type.
-  }
-  if (!Isolate::Current()->type_checks()) {
-    return false;
-  }
-  if (!raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
-    return false;  // Valid function type.
-  }
-  const LanguageError& type_error = LanguageError::Handle(error());
-  ASSERT(!type_error.IsNull());
-  return type_error.kind() == Report::kMalboundedType;
+  return false;
 }
 
 bool Type::IsMalformedOrMalbounded() const {
@@ -17638,7 +17498,7 @@ bool Type::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->type_checks();
+  return false;
 }
 
 RawLanguageError* Type::error() const {
@@ -17896,12 +17756,10 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
-  if (FLAG_reify_generic_functions) {
-    // Compare function type parameters and their bounds.
-    // Check the type parameters and bounds of generic functions.
-    if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
-      return false;
-    }
+  // Compare function type parameters and their bounds.
+  // Check the type parameters and bounds of generic functions.
+  if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
+    return false;
   }
 
   // Compare number of function parameters.
@@ -18907,7 +18765,9 @@ void TypeParameter::set_type_state(int8_t state) const {
 const char* TypeParameter::ToCString() const {
   const char* name_cstr = String::Handle(Name()).ToCString();
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  const char* bound_cstr = String::Handle(upper_bound.Name()).ToCString();
+  const char* bound_cstr = upper_bound.IsNull()
+                               ? "<null>"
+                               : String::Handle(upper_bound.Name()).ToCString();
   if (IsFunctionTypeParameter()) {
     const char* format =
         "TypeParameter: name %s; index: %d; function: %s; bound: %s";
@@ -19035,58 +18895,6 @@ RawAbstractType* BoundedType::InstantiateFrom(
     // (or instantiated), then the instantiated_bounded_type is not finalized
     // (or instantiated) either.
     // Note that instantiator_type_arguments must have the final length, though.
-  }
-  // If instantiated_bounded_type is not finalized, it is too early to check
-  // its upper bound. It will be checked in a second finalization phase.
-  if ((Isolate::Current()->type_checks()) && (bound_error != NULL) &&
-      bound_error->IsNull() && instantiated_bounded_type.IsFinalized()) {
-    AbstractType& upper_bound = AbstractType::Handle(bound());
-    ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
-    AbstractType& instantiated_upper_bound =
-        AbstractType::Handle(upper_bound.raw());
-    if (upper_bound.IsFinalized() &&
-        !upper_bound.IsInstantiated(kAny, num_free_fun_type_params)) {
-      instantiated_upper_bound = upper_bound.InstantiateFrom(
-          instantiator_type_arguments, function_type_arguments,
-          num_free_fun_type_params, bound_error, instantiation_trail,
-          bound_trail, space);
-      // The instantiated_upper_bound may not be finalized or instantiated.
-      // See comment above.
-    }
-    if (bound_error->IsNull()) {
-      // Shortcut the F-bounded case where we have reached a fixpoint.
-      if (instantiated_bounded_type.Equals(bounded_type) &&
-          instantiated_upper_bound.Equals(upper_bound)) {
-        return bounded_type.raw();
-      }
-      const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-      if (instantiated_upper_bound.IsFinalized() &&
-          (!type_param.CheckBound(instantiated_bounded_type,
-                                  instantiated_upper_bound, bound_error,
-                                  bound_trail, space) &&
-           bound_error->IsNull())) {
-        // We cannot determine yet whether the bounded_type is below the
-        // upper_bound, because one or both of them is still being finalized or
-        // uninstantiated. For example, instantiated_bounded_type may be the
-        // still unfinalized cloned type parameter of a mixin application class.
-        // There is another special case where we do not want to report a bound
-        // error yet: if the upper bound is a function type, but the bounded
-        // type is not and its class is not compiled yet, i.e. we cannot look
-        // for a call method yet.
-        ASSERT(!instantiated_bounded_type.IsInstantiated() ||
-               !instantiated_upper_bound.IsInstantiated() ||
-               (!instantiated_bounded_type.IsFunctionType() &&
-                instantiated_upper_bound.IsFunctionType() &&
-                instantiated_bounded_type.HasTypeClass() &&
-                !Class::Handle(instantiated_bounded_type.type_class())
-                     .is_finalized()));
-        // Postpone bound check by returning a new BoundedType with unfinalized
-        // or partially instantiated bounded_type and upper_bound, but keeping
-        // type_param.
-        instantiated_bounded_type = BoundedType::New(
-            instantiated_bounded_type, instantiated_upper_bound, type_param);
-      }
-    }
   }
   return instantiated_bounded_type.raw();
 }
@@ -22383,8 +22191,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code_object.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
+      } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -22472,8 +22279,7 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
+      } else if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
         // The frame immediately after the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -22813,6 +22619,21 @@ RawUserTag* UserTag::FindTagById(uword tag_id) {
 const char* UserTag::ToCString() const {
   const String& tag_label = String::Handle(label());
   return tag_label.ToCString();
+}
+
+void DumpTypeTable(Isolate* isolate) {
+  OS::PrintErr("canonical types:\n");
+  CanonicalTypeSet table(isolate->object_store()->canonical_types());
+  table.Dump();
+  table.Release();
+}
+
+void DumpTypeArgumentsTable(Isolate* isolate) {
+  OS::PrintErr("canonical type arguments:\n");
+  CanonicalTypeArgumentsSet table(
+      isolate->object_store()->canonical_type_arguments());
+  table.Dump();
+  table.Release();
 }
 
 }  // namespace dart

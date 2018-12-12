@@ -36,7 +36,6 @@ namespace dart {
   V(OptimizeBranches)                                                          \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
-  V(ReplaceArrayBoundChecksForAOT)                                             \
   V(SelectRepresentations)                                                     \
   V(SetOuterInliningId)                                                        \
   V(TryCatchOptimization)                                                      \

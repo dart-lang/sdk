@@ -150,6 +150,7 @@
       "tests/standalone/",
       "tests/standalone_2/",
       "pkg/async_helper/",
+      "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/expect/",
       "pkg/front_end/",
@@ -1325,13 +1326,17 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64", "create_sdk" ]
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
+
         },
         {
-          "name": "generate API docs",
+          "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [ "api_docs" ]
+          "arguments": [ "api_docs" ],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
+
         }
       ]
     },
@@ -1343,8 +1348,10 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64", "create_sdk" ]
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-mac"}
+
         }
       ]
     },
@@ -1356,8 +1363,10 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64", "create_sdk" ]
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-win"}
+
         }
       ]
     },

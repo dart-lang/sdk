@@ -91,18 +91,23 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
-    List<TypeVariableBuilder> clonedTypeVariables =
-        new List<TypeVariableBuilder>(typeVariables.length);
-    for (int i = 0; i < clonedTypeVariables.length; i++) {
-      clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
+    List<TypeVariableBuilder> clonedTypeVariables;
+    if (typeVariables != null) {
+      clonedTypeVariables = new List<TypeVariableBuilder>(typeVariables.length);
+      for (int i = 0; i < clonedTypeVariables.length; i++) {
+        clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
+      }
     }
-    List<FormalParameterBuilder> clonedFormals =
-        new List<FormalParameterBuilder>(formals.length);
-    for (int i = 0; i < clonedFormals.length; i++) {
-      clonedFormals[i] = formals[i].clone(newTypes);
+    List<FormalParameterBuilder> clonedFormals;
+    if (formals != null) {
+      clonedFormals = new List<FormalParameterBuilder>(formals.length);
+      for (int i = 0; i < clonedFormals.length; i++) {
+        KernelFormalParameterBuilder formal = formals[i];
+        clonedFormals[i] = formal.clone(newTypes);
+      }
     }
     KernelFunctionTypeBuilder newType = new KernelFunctionTypeBuilder(
-        returnType.clone(newTypes), clonedTypeVariables, clonedFormals);
+        returnType?.clone(newTypes), clonedTypeVariables, clonedFormals);
     newTypes.add(newType);
     return newType;
   }

@@ -466,7 +466,11 @@ class ParsedArguments {
       var arg = args[i];
       var isLastArg = i == len - 1;
       if (isLastArg && arg.startsWith('@')) {
-        newArgs.addAll(_readLines(arg.substring(1)));
+        var extra = _readLines(arg.substring(1)).toList();
+        if (extra.remove('--kernel') || extra.remove('-k')) {
+          isKernel = true;
+        }
+        newArgs.addAll(extra);
       } else if (arg == '--persistent_worker') {
         isWorker = true;
       } else if (isLastArg && arg == '--batch') {

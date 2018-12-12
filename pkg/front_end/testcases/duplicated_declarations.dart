@@ -2,9 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part "duplicated_declarations_part.dart";
+
+import 'duplicated_declarations_lib.dart' as Typedef;
+
+import 'duplicated_declarations_lib.dart' as Typedef;
+
 typedef Typedef = void Function();
 
 typedef Typedef = Object Function();
+
+import 'duplicated_declarations_lib.dart' as Typedef;
 
 typedef void OldTypedef();
 

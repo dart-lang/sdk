@@ -463,11 +463,16 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+  while (defn->IsRedefinition() || defn->IsAssertAssignable() ||
+         defn->IsCheckArrayBound() || defn->IsGenericCheckBound()) {
     if (defn->IsRedefinition()) {
       defn = defn->AsRedefinition()->value()->definition();
-    } else {
+    } else if (defn->IsAssertAssignable()) {
       defn = defn->AsAssertAssignable()->value()->definition();
+    } else if (defn->IsCheckArrayBound()) {
+      defn = defn->AsCheckArrayBound()->index()->definition();
+    } else {
+      defn = defn->AsGenericCheckBound()->index()->definition();
     }
   }
   return defn;
@@ -2675,7 +2680,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
     // In strong mode type is already verified either by static analysis
     // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (FLAG_strong && !value()->Type()->is_nullable()) {
+    if (!value()->Type()->is_nullable()) {
       return value()->definition();
     }
   }
@@ -2781,7 +2786,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (Isolate::Current()->type_checks() || HasUses()) ? this : NULL;
+  return HasUses() ? this : NULL;
 }
 
 LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,
@@ -3917,19 +3922,19 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
 
 // DBC does not use specialized inline cache stubs for smi operations.
 #if !defined(TARGET_ARCH_DBC)
-static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
-    return 0;
+    return Code::null();
   }
   switch (kind) {
     case Token::kADD:
-      return StubCode::SmiAddInlineCache_entry();
+      return StubCode::SmiAddInlineCache().raw();
     case Token::kSUB:
-      return StubCode::SmiSubInlineCache_entry();
+      return StubCode::SmiSubInlineCache().raw();
     case Token::kEQ:
-      return StubCode::SmiEqualInlineCache_entry();
+      return StubCode::SmiEqualInlineCache().raw();
     default:
-      return NULL;
+      return Code::null();
   }
 }
 #else
@@ -4037,16 +4042,17 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
                                    token_pos());
     bool is_smi_two_args_op = false;
-    const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
-    if (stub_entry != nullptr) {
+    const Code& stub =
+        Code::ZoneHandle(TwoArgsSmiOpInlineCacheEntry(token_kind()));
+    if (!stub.IsNull()) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
       is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, deopt_id(),
-                                 token_pos(), locs());
+      compiler->EmitInstanceCall(stub, *call_ic_data, deopt_id(), token_pos(),
+                                 locs());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
                                      *call_ic_data);
@@ -4797,9 +4803,9 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Instruction* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant(RangeBoundary::FromDefinition(length()->definition()))
-             ? NULL
+             ? index()->definition()
              : this;
 }
 

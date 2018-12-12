@@ -212,6 +212,14 @@ f() => x ? _s_ : z;
 ''');
   }
 
+  void test_comma_missing() {
+    testRecovery('''
+f(int a int b) { }
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f(int a, int b) { }
+''');
+  }
+
   void test_equalEqual() {
     testBinaryExpression('==');
   }

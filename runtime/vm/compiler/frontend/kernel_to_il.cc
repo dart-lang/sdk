@@ -154,10 +154,6 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 // arguments of the current function.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   Fragment instructions;
-  if (!FLAG_reify_generic_functions) {
-    instructions += NullConstant();
-    return instructions;
-  }
 
   const Function& function = parsed_function_->function();
 
@@ -442,8 +438,7 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
                                       const Function* function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
   const intptr_t num_args =
-      function->NumParameters() +
-      ((function->IsGeneric() && FLAG_reify_generic_functions) ? 1 : 0);
+      function->NumParameters() + (function->IsGeneric() ? 1 : 0);
   ArgumentArray arguments = GetArguments(num_args);
   NativeCallInstr* call =
       new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
@@ -459,8 +454,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
 
   // Emit a type check of the return type in checked mode for all functions
   // and in strong mode for native functions.
-  if (!omit_result_type_check &&
-      (I->type_checks() || (function.is_native() && FLAG_strong))) {
+  if (!omit_result_type_check && function.is_native()) {
     const AbstractType& return_type =
         AbstractType::Handle(Z, function.result_type());
     instructions += CheckAssignable(return_type, Symbols::FunctionResult());
@@ -552,8 +546,8 @@ void FlowGraphBuilder::SetResultTypeForStaticCall(
     call->set_is_known_list_constructor(true);
     return;
   }
-  if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-    intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
+  if (target.has_pragma()) {
+    intptr_t recognized_cid = MethodRecognizer::ResultCidFromPragma(target);
     if (recognized_cid != kDynamicCid) {
       ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
              (result_type->cid == recognized_cid));
@@ -585,23 +579,6 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   }
   Push(call);
   return Fragment(call);
-}
-
-Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
-    const Field& field,
-    bool is_initialization_store) {
-  Fragment instructions;
-
-  const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
-  if (I->type_checks()) {
-    instructions +=
-        CheckAssignable(dst_type, String::ZoneHandle(Z, field.name()));
-  }
-
-  instructions += BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
-      field, is_initialization_store);
-
-  return instructions;
 }
 
 Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
@@ -921,7 +898,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       break;
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());
-      if (function.IsGeneric() && FLAG_reify_generic_functions) {
+      if (function.IsGeneric()) {
         body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
         body += PushArgument();
       }
@@ -1032,9 +1009,6 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
 Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
     const AbstractType& dst_type,
     const String& name_symbol) {
-  if (I->type_checks()) {
-    return CheckAssignable(dst_type, name_symbol);
-  }
   return Fragment();
 }
 
@@ -1078,12 +1052,10 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
 
 Fragment FlowGraphBuilder::CheckBoolean(TokenPosition position) {
   Fragment instructions;
-  if (FLAG_strong || I->type_checks() || I->asserts()) {
-    LocalVariable* top_of_stack = MakeTemporary();
-    instructions += LoadLocal(top_of_stack);
-    instructions += AssertBool(position);
-    instructions += Drop();
-  }
+  LocalVariable* top_of_stack = MakeTemporary();
+  instructions += LoadLocal(top_of_stack);
+  instructions += AssertBool(position);
+  instructions += Drop();
   return instructions;
 }
 

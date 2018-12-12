@@ -187,6 +187,10 @@ void CallSpecializer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (auto static_call = instr->AsStaticCall()) {
+        // If TFA devirtualized instance calls to static calls we also want to
+        // process them here.
+        VisitStaticCall(static_call);
       } else if (instr->IsPolymorphicInstanceCall()) {
         SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
       }
@@ -1001,8 +1005,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     // Compute if we need to type check the value. Always type check if
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;
-    if (FLAG_strong && !instr->interface_target().IsNull() &&
-        (field.kernel_offset() >= 0)) {
+    if (!instr->interface_target().IsNull() && (field.kernel_offset() >= 0)) {
       bool is_covariant = false;
       bool is_generic_covariant = false;
       field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);

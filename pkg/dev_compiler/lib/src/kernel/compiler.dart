@@ -32,7 +32,7 @@ import 'property_model.dart';
 import 'type_table.dart';
 
 class ProgramCompiler extends Object
-    with SharedCompiler<Library>
+    with SharedCompiler<Library, Class>
     implements
         StatementVisitor<JS.Statement>,
         ExpressionVisitor<JS.Expression>,
@@ -773,7 +773,7 @@ class ProgramCompiler extends Object
           ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
         }
         body.add(_addConstructorToClass(
-            className, name, JS.Fun(jsParams, JS.Block(ctorBody))));
+            c, className, name, JS.Fun(jsParams, JS.Block(ctorBody))));
       }
     }
 
@@ -877,7 +877,7 @@ class ProgramCompiler extends Object
     }
 
     addConstructor(String name, JS.Expression jsCtor) {
-      body.add(_addConstructorToClass(className, name, jsCtor));
+      body.add(_addConstructorToClass(c, className, name, jsCtor));
     }
 
     var fields = c.fields;
@@ -1141,6 +1141,7 @@ class ProgramCompiler extends Object
       for (var f in fields) {
         assert(f.isConst);
         body.add(defineValueOnClass(
+                c,
                 classRef,
                 _emitStaticMemberName(f.name.name),
                 _visitInitializer(f.initializer, f.annotations))
@@ -1600,9 +1601,26 @@ class ProgramCompiler extends Object
   }
 
   JS.Statement _addConstructorToClass(
-      JS.Expression className, String name, JS.Expression jsCtor) {
-    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
+      Class c, JS.Expression className, String name, JS.Expression jsCtor) {
+    jsCtor = defineValueOnClass(c, className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
+  }
+
+  @override
+  bool superclassHasStatic(Class c, String memberName) {
+    // Note: because we're only considering statics, we can ignore mixins.
+    // We're only trying to find conflicts due to JS inheriting statics.
+    var name = Name(memberName, c.enclosingLibrary);
+    while (true) {
+      c = c.superclass;
+      if (c == null) return false;
+      for (var m in c.members) {
+        if (m.name == name &&
+            (m is Procedure && m.isStatic || m is Field && m.isStatic)) {
+          return true;
+        }
+      }
+    }
   }
 
   List<JS.Method> _emitClassMethods(Class c) {

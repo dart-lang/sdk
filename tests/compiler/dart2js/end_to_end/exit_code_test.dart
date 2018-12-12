@@ -21,7 +21,6 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
-import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/types/types.dart';
@@ -58,11 +57,6 @@ class TestCompiler extends apiimpl.CompilerImpl {
   Future<bool> run(Uri uri) {
     test('Compiler.run');
     return super.run(uri);
-  }
-
-  void processLoadedLibraries(LoadedLibraries loadedLibraries) {
-    test('Compiler.processLoadedLibraries');
-    super.processLoadedLibraries(loadedLibraries);
   }
 
   test(String marker) {
@@ -239,7 +233,6 @@ void main() {
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
-    'Compiler.processLoadedLibraries': beforeRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.codegen': duringRun,
   };

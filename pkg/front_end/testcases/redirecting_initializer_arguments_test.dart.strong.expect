@@ -1,7 +1,7 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type '#lib1::Foo::T'.
-// Try changing the type of the parameter, or casting the argument to '#lib1::Foo::T'.
+// pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
+// Try changing the type of the parameter, or casting the argument to 'T'.
 //   Foo.from(String _init) : this._internal(x: _init);
 //                                              ^
 
@@ -12,8 +12,8 @@ import "dart:core" as core;
 class Foo<T extends core::Object = dynamic> extends core::Object {
   generic-covariant-impl field self::Foo::T x;
   constructor from(core::String _init) → self::Foo<self::Foo::T>
-    : this self::Foo::_internal(x: let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type '#lib1::Foo::T'.
-Try changing the type of the parameter, or casting the argument to '#lib1::Foo::T'.
+    : this self::Foo::_internal(x: let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
+Try changing the type of the parameter, or casting the argument to 'T'.
   Foo.from(String _init) : this._internal(x: _init);
                                              ^" in _init as{TypeError} <BottomType>)
     ;

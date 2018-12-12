@@ -380,12 +380,10 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread);
   PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
   uword start;
-  intptr_t size;
   if (is_interpreted()) {
     bytecode = LookupDartBytecode();
     ASSERT(!bytecode.IsNull());
     start = bytecode.PayloadStart();
-    size = bytecode.Size();
     handlers = bytecode.exception_handlers();
     descriptors = bytecode.pc_descriptors();
   } else {
@@ -394,7 +392,6 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
       return false;  // Stub frames do not have exception handlers.
     }
     start = code.PayloadStart();
-    size = code.Size();
     handlers = code.exception_handlers();
     descriptors = code.pc_descriptors();
     *is_optimized = code.is_optimized();

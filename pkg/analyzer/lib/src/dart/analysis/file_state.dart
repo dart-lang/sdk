@@ -214,10 +214,25 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   /**
+   * Return `true` if the file is a stub created for a library in the provided
+   * external summary store.
+   */
+  bool get isExternalLibrary {
+    return _fsState.externalSummaries != null &&
+        _fsState.externalSummaries.linkedMap.containsKey(uriStr);
+  }
+
+  /**
    * Return `true` if the file does not have a `library` directive, and has a
    * `part of` directive, so is probably a part.
    */
-  bool get isPart => _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
+  bool get isPart {
+    if (_fsState.externalSummaries != null &&
+        _fsState.externalSummaries.unlinkedMap.containsKey(uriStr)) {
+      return !_fsState.externalSummaries.linkedMap.containsKey(uriStr);
+    }
+    return _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
+  }
 
   /**
    * Return `true` if the file is the "unresolved" file, which does not have
@@ -699,7 +714,7 @@ class FileStateTestView {
  */
 class FileSystemState {
   final PerformanceLog _logger;
-  final ResourceProvider _resourceProvider;
+  final ResourceProvider resourceProvider;
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
@@ -780,7 +795,7 @@ class FileSystemState {
     this._logger,
     this._byteStore,
     this._contentOverlay,
-    this._resourceProvider,
+    this.resourceProvider,
     this._sourceFactory,
     this._analysisOptions,
     this._unlinkedSalt,
@@ -788,7 +803,7 @@ class FileSystemState {
     this.externalSummaries,
   }) {
     _fileContentCache = _FileContentCache.getInstance(
-      _resourceProvider,
+      resourceProvider,
       _contentOverlay,
     );
     _testView = new FileSystemStateTestView(this);
@@ -818,7 +833,7 @@ class FileSystemState {
   FileState getFileForPath(String path) {
     FileState file = _pathToCanonicalFile[path];
     if (file == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       // Try to get the existing instance.
@@ -869,7 +884,7 @@ class FileSystemState {
       }
 
       String path = uriSource.fullName;
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
@@ -912,7 +927,7 @@ class FileSystemState {
   bool hasUri(String path) {
     bool flag = _hasUriForPath[path];
     if (flag == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       Source uriSource = _sourceFactory.forUri2(uri);

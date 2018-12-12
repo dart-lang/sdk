@@ -1423,7 +1423,8 @@ abstract class Stream<T> {
    * with a [RangeError].
    */
   Future<T> elementAt(int index) {
-    if (index is! int || index < 0) throw new ArgumentError(index);
+    ArgumentError.checkNotNull(index, "index");
+    RangeError.checkNotNegative(index, "index");
     _Future<T> future = new _Future<T>();
     StreamSubscription subscription;
     int elementIndex = 0;
@@ -2015,6 +2016,7 @@ abstract class StreamTransformer<S, T> {
    *     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
    * ```
    */
+  @Since("2.1")
   factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
       _StreamBindTransformer<S, T>;
 

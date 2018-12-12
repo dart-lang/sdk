@@ -366,24 +366,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
-  if (isolate->type_checks()) {
-    Error& bound_error = Error::Handle(zone);
-    type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-        instantiator_type_arguments, function_type_arguments, &bound_error);
-    if (!bound_error.IsNull()) {
-      // Throw a dynamic type error.
-      const TokenPosition location = GetCallerLocation();
-      String& bound_error_message =
-          String::Handle(zone, String::New(bound_error.ToErrorCString()));
-      Exceptions::CreateAndThrowTypeError(
-          location, AbstractType::Handle(zone), AbstractType::Handle(zone),
-          Symbols::Empty(), bound_error_message);
-      UNREACHABLE();
-    }
-  } else {
-    type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-        instantiator_type_arguments, function_type_arguments, NULL);
-  }
+  type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
+      instantiator_type_arguments, function_type_arguments, NULL);
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
@@ -833,8 +817,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     }
     String& bound_error_message = String::Handle(zone);
     if (!bound_error.IsNull()) {
-      ASSERT(isolate->type_checks());
-      bound_error_message = String::New(bound_error.ToErrorCString());
+      UNREACHABLE();
     }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
@@ -1425,8 +1408,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   }
 
   // Call site is not single target, switch to call using ICData.
-  const Code& stub =
-      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  const Code& stub = StubCode::ICCallThroughCode();
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
@@ -1491,8 +1473,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   }
 
   // Patch to call through stub.
-  const Code& stub =
-      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  const Code& stub = StubCode::ICCallThroughCode();
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
@@ -1576,8 +1557,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
       cache.set_entry_point(code.EntryPoint());
       cache.set_lower_limit(lower);
       cache.set_upper_limit(upper);
-      const Code& stub =
-          Code::Handle(zone, StubCode::SingleTargetCall_entry()->code());
+      const Code& stub = StubCode::SingleTargetCall();
       CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, cache,
                                          stub);
       // Return the ICData. The miss stub will jump to continue in the IC call
@@ -1588,8 +1568,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   }
 
   // Patch to call through stub.
-  const Code& stub =
-      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  const Code& stub = StubCode::ICCallThroughCode();
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
@@ -1683,8 +1662,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
         ASSERT(caller_frame->IsDartFrame());
         const Code& caller_code =
             Code::Handle(zone, caller_frame->LookupDartCode());
-        const Code& stub =
-            Code::Handle(zone, StubCode::MegamorphicCall_entry()->code());
+        const Code& stub = StubCode::MegamorphicCall();
 
         CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
                                            cache, stub);

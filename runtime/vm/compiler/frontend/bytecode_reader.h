@@ -14,6 +14,8 @@
 namespace dart {
 namespace kernel {
 
+class BytecodeComponentData;
+
 // Helper class which provides access to bytecode metadata.
 class BytecodeMetadataHelper : public MetadataHelper {
  public:
@@ -27,22 +29,98 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   void ReadMetadata(const Function& function);
 
+  RawArray* ReadBytecodeComponent();
+
  private:
-  // Returns the index of the last read pool entry.
-  intptr_t ReadPoolEntries(const Function& function,
-                           const Function& inner_function,
-                           const ObjectPool& pool,
-                           intptr_t from_index);
+  // These constants should match corresponding constants in class ObjectHandle
+  // (pkg/vm/lib/bytecode/object_table.dart).
+  static const int kReferenceBit = 1 << 0;
+  static const int kIndexShift = 1;
+  static const int kKindShift = 1;
+  static const int kKindMask = 0x0f;
+  static const int kFlagBit0 = 1 << 5;
+  static const int kFlagBit1 = 1 << 6;
+  static const int kFlagBit2 = 1 << 7;
+  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2);
+
+  class FunctionTypeScope : public ValueObject {
+   public:
+    explicit FunctionTypeScope(BytecodeMetadataHelper* bytecode_reader)
+        : bytecode_reader_(bytecode_reader),
+          saved_type_parameters_(
+              bytecode_reader->function_type_type_parameters_) {}
+
+    ~FunctionTypeScope() {
+      bytecode_reader_->function_type_type_parameters_ = saved_type_parameters_;
+    }
+
+   private:
+    BytecodeMetadataHelper* bytecode_reader_;
+    TypeArguments* const saved_type_parameters_;
+  };
+
+  void ReadClosureDeclaration(const Function& function, intptr_t closureIndex);
+  RawType* ReadFunctionSignature(const Function& func,
+                                 bool has_optional_positional_params,
+                                 bool has_optional_named_params,
+                                 bool has_type_params,
+                                 bool has_positional_param_names);
+  void ReadTypeParametersDeclaration(const Class& parameterized_class,
+                                     const Function& parameterized_function,
+                                     intptr_t num_type_params);
+
+  void ReadConstantPool(const Function& function, const ObjectPool& pool);
   RawBytecode* ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Bytecode& bytecode, bool has_exceptions_table);
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
 
+  RawObject* ReadObject();
+  RawObject* ReadObjectContents(uint32_t header);
+  RawString* ReadString(bool is_canonical = true);
+  RawTypeArguments* ReadTypeArguments(const Class& instantiator);
+
   TypeTranslator& type_translator_;
   ActiveClass* const active_class_;
+  BytecodeComponentData* bytecode_component_;
+  Array* closures_;
+  TypeArguments* function_type_type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeMetadataHelper);
+};
+
+class BytecodeComponentData : ValueObject {
+ public:
+  enum {
+    kVersion,
+    kStringsHeaderOffset,
+    kStringsContentsOffset,
+    kObjectsContentsOffset,
+    kNumFields
+  };
+
+  explicit BytecodeComponentData(const Array& data) : data_(data) {}
+
+  intptr_t GetVersion() const;
+  intptr_t GetStringsHeaderOffset() const;
+  intptr_t GetStringsContentsOffset() const;
+  intptr_t GetObjectsContentsOffset() const;
+  void SetObject(intptr_t index, const Object& obj) const;
+  RawObject* GetObject(intptr_t index) const;
+
+  bool IsNull() const { return data_.IsNull(); }
+
+  static RawArray* New(Zone* zone,
+                       intptr_t version,
+                       intptr_t num_objects,
+                       intptr_t strings_header_offset,
+                       intptr_t strings_contents_offset,
+                       intptr_t objects_contents_offset,
+                       Heap::Space space);
+
+ private:
+  const Array& data_;
 };
 
 class BytecodeReader : public AllStatic {

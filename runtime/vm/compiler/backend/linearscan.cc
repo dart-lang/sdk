@@ -65,6 +65,28 @@ static intptr_t ToInstructionEnd(intptr_t pos) {
   return (pos | 1);
 }
 
+// Additional information on loops during register allocation.
+struct ExtraLoopInfo : public ZoneAllocated {
+  ExtraLoopInfo(intptr_t s, intptr_t e)
+      : start(s), end(e), backedge_interference(nullptr) {}
+  intptr_t start;
+  intptr_t end;
+  BitVector* backedge_interference;
+};
+
+// Returns extra loop information.
+static ExtraLoopInfo* ComputeExtraLoopInfo(Zone* zone, LoopInfo* loop_info) {
+  intptr_t start = loop_info->header()->start_pos();
+  intptr_t end = start;
+  for (auto back_edge : loop_info->back_edges()) {
+    intptr_t end_pos = back_edge->end_pos();
+    if (end_pos > end) {
+      end = end_pos;
+    }
+  }
+  return new (zone) ExtraLoopInfo(start, end);
+}
+
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
                                        bool intrinsic_mode)
     : flow_graph_(flow_graph),
@@ -72,16 +94,28 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
       value_representations_(flow_graph.max_virtual_register_number()),
       block_order_(flow_graph.reverse_postorder()),
       postorder_(flow_graph.postorder()),
+      instructions_(),
+      block_entries_(),
+      extra_loop_info_(),
       liveness_(flow_graph),
       vreg_count_(flow_graph.max_virtual_register_number()),
       live_ranges_(flow_graph.max_virtual_register_number()),
+      unallocated_cpu_(),
+      unallocated_xmm_(),
       cpu_regs_(),
       fpu_regs_(),
       blocked_cpu_registers_(),
       blocked_fpu_registers_(),
+      spilled_(),
+      safepoints_(),
+      register_kind_(),
       number_of_registers_(0),
       registers_(),
       blocked_registers_(),
+      unallocated_(),
+      spill_slots_(),
+      quad_spill_slots_(),
+      untagged_spill_slots_(),
       cpu_spill_slot_count_(0),
       intrinsic_mode_(intrinsic_mode) {
   for (intptr_t i = 0; i < vreg_count_; i++) {
@@ -489,19 +523,6 @@ void FlowGraphAllocator::PrintLiveRanges() {
   }
 }
 
-// Returns loops latest position.
-static intptr_t LoopEnd(LoopInfo* loop_info) {
-  intptr_t max_pos = 0;
-  const GrowableArray<BlockEntryInstr*>& back_edges = loop_info->back_edges();
-  for (intptr_t i = 0, n = back_edges.length(); i < n; i++) {
-    intptr_t end_pos = back_edges[i]->end_pos();
-    if (end_pos > max_pos) {
-      max_pos = end_pos;
-    }
-  }
-  return max_pos;
-}
-
 // Returns true if all uses of the given range inside the
 // given loop boundary have Any allocation policy.
 static bool HasOnlyUnconstrainedUsesInLoop(LiveRange* range,
@@ -548,10 +569,12 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     LoopInfo* loop_info = block->loop_info();
     if ((loop_info != nullptr) && (loop_info->IsBackEdge(block))) {
-      if (backedge_interference_[loop_info->id()] != nullptr) {
+      BitVector* backedge_interference =
+          extra_loop_info_[loop_info->id()]->backedge_interference;
+      if (backedge_interference != nullptr) {
         // Restore interference for subsequent backedge a loop
         // (perhaps inner loop's header reset set in the meanwhile).
-        current_interference_set = backedge_interference_[loop_info->id()];
+        current_interference_set = backedge_interference;
       } else {
         // All values flowing into the loop header are live at the
         // back edge and can interfere with phi moves.
@@ -559,7 +582,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
             BitVector(zone, flow_graph_.max_virtual_register_number());
         current_interference_set->AddAll(
             liveness_.GetLiveInSet(loop_info->header()));
-        backedge_interference_[loop_info->id()] = current_interference_set;
+        extra_loop_info_[loop_info->id()]->backedge_interference =
+            current_interference_set;
       }
     }
 
@@ -583,7 +607,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
       for (BitVector::Iterator it(liveness_.GetLiveInSetAt(i)); !it.Done();
            it.Advance()) {
         LiveRange* range = GetLiveRange(it.Current());
-        if (HasOnlyUnconstrainedUsesInLoop(range, LoopEnd(loop_info))) {
+        intptr_t loop_end = extra_loop_info_[loop_info->id()]->end;
+        if (HasOnlyUnconstrainedUsesInLoop(range, loop_end)) {
           range->MarkHasOnlyUnconstrainedUsesInLoop(loop_info->id());
         }
       }
@@ -1608,9 +1633,14 @@ void FlowGraphAllocator::NumberInstructions() {
     }
   }
 
-  // Storage per loop.
-  const intptr_t num_loops = flow_graph_.loop_hierarchy().num_loops();
-  backedge_interference_.EnsureLength(num_loops, nullptr);
+  // Prepare some extra information for each loop.
+  Zone* zone = flow_graph_.zone();
+  const LoopHierarchy& loop_hierarchy = flow_graph_.loop_hierarchy();
+  const intptr_t num_loops = loop_hierarchy.num_loops();
+  for (intptr_t i = 0; i < num_loops; i++) {
+    extra_loop_info_.Add(
+        ComputeExtraLoopInfo(zone, loop_hierarchy.headers()[i]->loop_info()));
+  }
 }
 
 Instruction* FlowGraphAllocator::InstructionAt(intptr_t pos) const {
@@ -1834,13 +1864,40 @@ LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
   if (from < split_block_entry->lifetime_position()) {
     // Interval [from, to) spans multiple blocks.
 
-    // If last block is inside a loop prefer splitting at outermost loop's
-    // header.
+    // If the last block is inside a loop, prefer splitting at the outermost
+    // loop's header that follows the definition. Note that, as illustrated
+    // below, if the potential split S linearly appears inside a loop, even
+    // though it technically does not belong to the natural loop, we still
+    // prefer splitting at the header H. Splitting in the "middle" of the loop
+    // would disconnect the prefix of the loop from any block X that follows,
+    // increasing the chance of "disconnected" allocations.
+    //
+    //            +--------------------+
+    //            v                    |
+    //            |loop|          |loop|
+    // . . . . . . . . . . . . . . . . . . . . .
+    //     def------------use     -----------
+    //            ^      ^        ^
+    //            H      S        X
     LoopInfo* loop_info = split_block_entry->loop_info();
+    if (loop_info == nullptr) {
+      const LoopHierarchy& loop_hierarchy = flow_graph_.loop_hierarchy();
+      const intptr_t num_loops = loop_hierarchy.num_loops();
+      for (intptr_t i = 0; i < num_loops; i++) {
+        if (extra_loop_info_[i]->start < to && to < extra_loop_info_[i]->end) {
+          // Split loop found!
+          loop_info = loop_hierarchy.headers()[i]->loop_info();
+          break;
+        }
+      }
+    }
     while ((loop_info != nullptr) &&
            (from < loop_info->header()->lifetime_position())) {
       split_block_entry = loop_info->header();
       loop_info = loop_info->outer();
+      TRACE_ALLOC(THR_Print("  move back to loop header B%" Pd " at %" Pd "\n",
+                            split_block_entry->block_id(),
+                            split_block_entry->lifetime_position()));
     }
 
     // Split at block's start.
@@ -2173,8 +2230,9 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   // edge.
   LoopInfo* loop_info = BlockEntryAt(unallocated->Start())->loop_info();
   if ((unallocated->vreg() >= 0) && (loop_info != nullptr) &&
-      (free_until >= LoopEnd(loop_info)) &&
-      backedge_interference_[loop_info->id()]->Contains(unallocated->vreg())) {
+      (free_until >= extra_loop_info_[loop_info->id()]->end) &&
+      extra_loop_info_[loop_info->id()]->backedge_interference->Contains(
+          unallocated->vreg())) {
     GrowableArray<bool> used_on_backedge(number_of_registers_);
     for (intptr_t i = 0; i < number_of_registers_; i++) {
       used_on_backedge.Add(false);
@@ -2206,12 +2264,13 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     }
 
     if (used_on_backedge[candidate]) {
-      TRACE_ALLOC(
-          THR_Print("considering %s for v%" Pd
-                    ": has interference on the back edge"
-                    " {loop [%" Pd ", %" Pd ")}\n",
-                    MakeRegisterLocation(candidate).Name(), unallocated->vreg(),
-                    loop_info->header()->start_pos(), LoopEnd(loop_info)));
+      TRACE_ALLOC(THR_Print("considering %s for v%" Pd
+                            ": has interference on the back edge"
+                            " {loop [%" Pd ", %" Pd ")}\n",
+                            MakeRegisterLocation(candidate).Name(),
+                            unallocated->vreg(),
+                            extra_loop_info_[loop_info->id()]->start,
+                            extra_loop_info_[loop_info->id()]->end));
       for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
         if (blocked_registers_[reg] || (reg == candidate) ||
             used_on_backedge[reg]) {
@@ -2261,16 +2320,13 @@ bool FlowGraphAllocator::RangeHasOnlyUnconstrainedUsesInLoop(LiveRange* range,
   return false;
 }
 
-bool FlowGraphAllocator::IsCheapToEvictRegisterInLoop(BlockEntryInstr* header,
+bool FlowGraphAllocator::IsCheapToEvictRegisterInLoop(LoopInfo* loop_info,
                                                       intptr_t reg) {
-  LoopInfo* loop_info = header->loop_info();
-
-  const intptr_t loop_start = header->start_pos();
-  const intptr_t loop_end = LoopEnd(loop_info);
+  const intptr_t loop_start = extra_loop_info_[loop_info->id()]->start;
+  const intptr_t loop_end = extra_loop_info_[loop_info->id()]->end;
 
   for (intptr_t i = 0; i < registers_[reg]->length(); i++) {
     LiveRange* allocated = (*registers_[reg])[i];
-
     UseInterval* interval = allocated->finger()->first_pending_use_interval();
     if (interval->Contains(loop_start)) {
       if (!RangeHasOnlyUnconstrainedUsesInLoop(allocated, loop_info->id())) {
@@ -2294,7 +2350,7 @@ bool FlowGraphAllocator::HasCheapEvictionCandidate(LiveRange* phi_range) {
 
   for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
     if (blocked_registers_[reg]) continue;
-    if (IsCheapToEvictRegisterInLoop(header, reg)) {
+    if (IsCheapToEvictRegisterInLoop(header->loop_info(), reg)) {
       return true;
     }
   }

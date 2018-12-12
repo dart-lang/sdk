@@ -71,7 +71,8 @@ class LegacyCompilerOutput implements CompilerOutput {
   OutputSink createOutputSink(String name, String extension, OutputType type) {
     if (_outputProvider != null) {
       switch (type) {
-        case OutputType.info:
+        case OutputType.dumpInfo:
+        case OutputType.deferredMap:
           if (extension == '') {
             // Needed to make Pub generate the same output name.
             extension = 'deferred_map';

@@ -288,7 +288,7 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
   return page_size >> kWordSizeLog2;
 }
 
-HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
+HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
   const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
@@ -301,31 +301,34 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   }
 
   MutexLocker ml(pages_lock_);
-  if (!is_exec) {
-    if (pages_ == NULL) {
-      pages_ = page;
+  if (link) {
+    if (!is_exec) {
+      if (pages_ == NULL) {
+        pages_ = page;
+      } else {
+        pages_tail_->set_next(page);
+      }
+      pages_tail_ = page;
     } else {
-      pages_tail_->set_next(page);
-    }
-    pages_tail_ = page;
-  } else {
-    // Should not allocate executable pages when running from a precompiled
-    // snapshot.
-    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
+      // Should not allocate executable pages when running from a precompiled
+      // snapshot.
+      ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
 
-    if (exec_pages_ == NULL) {
-      exec_pages_ = page;
-    } else {
-      if (FLAG_write_protect_code) {
-        exec_pages_tail_->WriteProtect(false);
+      if (exec_pages_ == NULL) {
+        exec_pages_ = page;
+      } else {
+        if (FLAG_write_protect_code) {
+          exec_pages_tail_->WriteProtect(false);
+        }
+        exec_pages_tail_->set_next(page);
+        if (FLAG_write_protect_code) {
+          exec_pages_tail_->WriteProtect(true);
+        }
       }
-      exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code) {
-        exec_pages_tail_->WriteProtect(true);
-      }
+      exec_pages_tail_ = page;
     }
-    exec_pages_tail_ = page;
   }
+
   IncreaseCapacityInWordsLocked(kPageSizeInWords);
   page->set_object_end(page->memory_->end());
   return page;
@@ -1078,7 +1081,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages writable.
-  WriteProtectCode(false);
+  if (finalize) WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = GetCurrentUsage();
@@ -1183,7 +1186,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages read-only.
-  WriteProtectCode(true);
+  if (finalize) WriteProtectCode(true);
 
   int64_t end = OS::GetCurrentMonotonicMicros();
 

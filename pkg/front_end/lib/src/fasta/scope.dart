@@ -4,7 +4,8 @@
 
 library fasta.scope;
 
-import 'builder/builder.dart' show Declaration, TypeVariableBuilder;
+import 'builder/builder.dart'
+    show Declaration, NameIterator, TypeVariableBuilder;
 
 import 'fasta_codes.dart'
     show
@@ -28,13 +29,14 @@ class MutableScope {
   /// level scope.
   Scope parent;
 
-  final String debugName;
+  final String classNameOrDebugName;
 
-  MutableScope(this.local, this.setters, this.parent, this.debugName) {
-    assert(debugName != null);
+  MutableScope(
+      this.local, this.setters, this.parent, this.classNameOrDebugName) {
+    assert(classNameOrDebugName != null);
   }
 
-  String toString() => "Scope($debugName, ${local.keys})";
+  String toString() => "Scope($classNameOrDebugName, ${local.keys})";
 }
 
 class Scope extends MutableScope {
@@ -66,6 +68,14 @@ class Scope extends MutableScope {
       : this(
             <String, Declaration>{}, <String, Declaration>{}, parent, debugName,
             isModifiable: isModifiable);
+
+  Iterator<Declaration> get iterator {
+    return new ScopeLocalDeclarationIterator(this);
+  }
+
+  NameIterator get nameIterator {
+    return new ScopeLocalDeclarationNameIterator(this);
+  }
 
   Scope copyWithParent(Scope parent, String debugName) {
     return new Scope(super.local, super.setters, parent, debugName,
@@ -128,7 +138,8 @@ class Scope extends MutableScope {
     Declaration builder = map[name];
     if (builder == null) return null;
     if (builder.next != null) {
-      return new AmbiguousBuilder(name, builder, charOffset, fileUri);
+      return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
+          builder, charOffset, fileUri);
     } else if (!isInstanceScope && builder.isInstanceMember) {
       return null;
     } else {
@@ -361,5 +372,76 @@ class AmbiguousBuilder extends ProblemBuilder {
       declaration = declaration.next;
     }
     return declaration;
+  }
+}
+
+class ScopeLocalDeclarationIterator implements Iterator<Declaration> {
+  Iterator<Declaration> local;
+  final Iterator<Declaration> setters;
+  Declaration current;
+
+  ScopeLocalDeclarationIterator(Scope scope)
+      : local = scope.local.values.iterator,
+        setters = scope.setters.values.iterator;
+
+  bool moveNext() {
+    Declaration next = current?.next;
+    if (next != null) {
+      current = next;
+      return true;
+    }
+    if (local != null) {
+      if (local.moveNext()) {
+        current = local.current;
+        return true;
+      }
+      local = null;
+    }
+    if (setters.moveNext()) {
+      current = setters.current;
+      return true;
+    } else {
+      current = null;
+      return false;
+    }
+  }
+}
+
+class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
+    implements NameIterator {
+  Iterator<String> localNames;
+  final Iterator<String> setterNames;
+
+  String name;
+
+  ScopeLocalDeclarationNameIterator(Scope scope)
+      : localNames = scope.local.keys.iterator,
+        setterNames = scope.setters.keys.iterator,
+        super(scope);
+
+  bool moveNext() {
+    Declaration next = current?.next;
+    if (next != null) {
+      current = next;
+      return true;
+    }
+    if (local != null) {
+      if (local.moveNext()) {
+        localNames.moveNext();
+        current = local.current;
+        name = localNames.current;
+        return true;
+      }
+      localNames = null;
+    }
+    if (setters.moveNext()) {
+      setterNames.moveNext();
+      current = setters.current;
+      name = setterNames.current;
+      return true;
+    } else {
+      current = null;
+      return false;
+    }
   }
 }

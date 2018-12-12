@@ -263,6 +263,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     compilationStrategy = CompilationStrategy.fromData;
   }
 
+  void setCfeOnly(String argument) {
+    compilationStrategy = CompilationStrategy.toKernel;
+  }
+
   void setWriteData(String argument) {
     if (compilationStrategy == CompilationStrategy.fromData) {
       fail("Cannot read and write serialized simultaneously.");
@@ -333,6 +337,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--libraries-spec=.+', setLibrarySpecificationUri),
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    new OptionHandler(Flags.cfeOnly, setCfeOnly),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
@@ -407,6 +412,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     new OptionHandler(Flags.experimentLocalNames, passThrough),
+    new OptionHandler(Flags.experimentStartupFunctions, passThrough),
+    new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -490,6 +497,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     case CompilationStrategy.direct:
       out ??= currentDirectory.resolve('out.js');
       break;
+    case CompilationStrategy.toKernel:
+      out ??= currentDirectory.resolve('out.dill');
+      options.add(Flags.cfeOnly);
+      break;
     case CompilationStrategy.toData:
       out ??= currentDirectory.resolve('out.dill');
       writeDataUri ??= currentDirectory.resolve('$out.data');
@@ -541,6 +552,18 @@ Future<api.CompilationResult> compile(List<String> argv,
             print('Emitted file $jsCount JavaScript files.');
           }
         }
+        break;
+      case CompilationStrategy.toKernel:
+        int dartCharactersRead = inputProvider.dartCharactersRead;
+        int dataBytesWritten = outputProvider.totalDataWritten;
+        print('Compiled '
+            '${_formatCharacterCount(dartCharactersRead)} characters Dart to '
+            '${_formatCharacterCount(dataBytesWritten)} kernel bytes in '
+            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+        String input = uriPathToNative(scriptName);
+        String dillOutput =
+            relativize(currentDirectory, out, Platform.isWindows);
+        print('Dart file ($input) compiled to ${dillOutput}.');
         break;
       case CompilationStrategy.toData:
         int dartCharactersRead = inputProvider.dartCharactersRead;
@@ -1005,4 +1028,4 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
-enum CompilationStrategy { direct, toData, fromData }
+enum CompilationStrategy { direct, toKernel, toData, fromData }

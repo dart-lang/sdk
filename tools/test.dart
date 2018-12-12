@@ -233,6 +233,7 @@ ${parser.usage}""");
           ..addAll([
             "--output-directory=${deflakeDirectory.path}",
             "--write-results",
+            "--write-logs",
             "--test-list=$deflakeListPath"
           ])
           ..addAll(options.rest);
@@ -265,6 +266,7 @@ ${parser.usage}""");
       "--failing",
       "--passing",
       "--flakiness-data=${outDirectory.path}/flaky.json",
+      "--logs=${outDirectory.path}/logs.json",
       "${outDirectory.path}/previous.json",
       "${outDirectory.path}/results.json"
     ]);

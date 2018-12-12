@@ -778,6 +778,13 @@ typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 class Class : public Object {
  public:
+  enum InvocationDispatcherEntry {
+    kInvocationDispatcherName,
+    kInvocationDispatcherArgsDesc,
+    kInvocationDispatcherFunction,
+    kInvocationDispatcherEntrySize,
+  };
+
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
@@ -1080,7 +1087,6 @@ class Class : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupCallFunctionForTypeTest() const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -2228,6 +2234,9 @@ class Function : public Object {
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
 
+  // The parameters, starting with NumImplicitParameters() parameters which are
+  // only visible to the VM, but not to Dart users.
+  // Note that type checks exclude implicit parameters.
   RawAbstractType* ParameterTypeAt(intptr_t index) const;
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
   RawArray* parameter_types() const { return raw_ptr()->parameter_types_; }
@@ -2273,8 +2282,6 @@ class Function : public Object {
 
   // Return true if any parent function of this function is generic.
   bool HasGenericParent() const;
-
-  bool FindPragma(Isolate* I, const String& pragma_name, Object* options) const;
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -2486,14 +2493,11 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (FLAG_strong) {
-      if (!I->should_emit_strong_mode_checks()) {
-        return false;
-      }
-      return IsClosureFunction() ||
-             !(is_static() || (kind() == RawFunction::kConstructor));
+    if (!I->should_emit_strong_mode_checks()) {
+      return false;
     }
-    return I->type_checks();
+    return IsClosureFunction() ||
+           !(is_static() || (kind() == RawFunction::kConstructor));
   }
 
   bool MayHaveUncheckedEntryPoint(Isolate* I) const;
@@ -3218,6 +3222,13 @@ class Field : public Object {
         value, raw_ptr()->kind_bits_));
   }
 
+  bool has_pragma() const {
+    return HasPragmaBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_has_pragma(bool value) const {
+    set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -3475,22 +3486,24 @@ class Field : public Object {
     kReflectableBit,
     kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
+    kHasPragmaBit,
   };
-  class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
-  class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
-  class FinalBit : public BitField<uint8_t, bool, kFinalBit, 1> {};
+  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
+  class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
   class HasInitializerBit
-      : public BitField<uint8_t, bool, kHasInitializerBit, 1> {};
+      : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
   class UnboxingCandidateBit
-      : public BitField<uint8_t, bool, kUnboxingCandidateBit, 1> {};
-  class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
+      : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
+  class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
-      : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
+      : public BitField<uint16_t, bool, kDoubleInitializedBit, 1> {};
   class InitializerChangedAfterInitializatonBit
-      : public BitField<uint8_t,
+      : public BitField<uint16_t,
                         bool,
                         kInitializerChangedAfterInitializatonBit,
                         1> {};
+  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3523,7 +3536,7 @@ class Field : public Object {
   void set_end_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
   }
-  void set_kind_bits(uint8_t value) const {
+  void set_kind_bits(uint16_t value) const {
     StoreNonPointer(&raw_ptr()->kind_bits_, value);
   }
 
@@ -3812,6 +3825,18 @@ class Library : public Object {
                          const Function& from_fun,
                          const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
+
+  // Tries to finds a @pragma annotation on [object].
+  //
+  // If successful returns `true`. If an error happens during constant
+  // evaluation, returns `false.
+  //
+  // WARNING: If the isolate received an [UnwindError] this function will not
+  // return and rather unwinds until the enclosing setjmp() handler.
+  bool FindPragma(Thread* T,
+                  const Object& object,
+                  const String& pragma_name,
+                  Object* options) const;
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;
@@ -4128,6 +4153,11 @@ class KernelProgramInfo : public Object {
                         const Smi& name_index,
                         const Class& klass) const;
 
+  RawArray* bytecode_component() const {
+    return raw_ptr()->bytecode_component_;
+  }
+  void set_bytecode_component(const Array& bytecode_component) const;
+
  private:
   static RawKernelProgramInfo* New();
 
@@ -4431,6 +4461,7 @@ class Instructions : public Object {
   friend class Code;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
+  friend class ImageWriter;
 };
 
 class LocalVarDescriptors : public Object {
@@ -9703,8 +9734,13 @@ class ArrayOfTuplesView {
   intptr_t index_;
 };
 
+using InvocationDispatcherTable =
+    ArrayOfTuplesView<Class::InvocationDispatcherEntry,
+                      std::tuple<String, Array, Function>>;
+
 using StaticCallsTable =
     ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
                                                            Object,
@@ -9713,6 +9749,9 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments>>;
+
+void DumpTypeTable(Isolate* isolate);
+void DumpTypeArgumentsTable(Isolate* isolate);
 
 }  // namespace dart
 

@@ -65,7 +65,7 @@ import 'type_utilities.dart';
 // expressions (which result in JS.Expression) and statements
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
-    with NullableTypeInference, SharedCompiler<LibraryElement>
+    with NullableTypeInference, SharedCompiler<LibraryElement, ClassElement>
     implements AstVisitor<JS.Node> {
   final SummaryDataStore summaryData;
 
@@ -1318,8 +1318,8 @@ class CodeGenerator extends Object
           ctorBody
               .add(_emitSuperConstructorCall(className, ctor.name, jsParams));
         }
-        body.add(_addConstructorToClass(
-            className, ctor.name, JS.Fun(jsParams, JS.Block(ctorBody))));
+        body.add(_addConstructorToClass(classElem, className, ctor.name,
+            JS.Fun(jsParams, JS.Block(ctorBody))));
       }
     }
 
@@ -1879,7 +1879,7 @@ class CodeGenerator extends Object
     }
 
     addConstructor(String name, JS.Expression jsCtor) {
-      body.add(_addConstructorToClass(className, name, jsCtor));
+      body.add(_addConstructorToClass(classElem, className, name, jsCtor));
     }
 
     if (classElem.isEnum) {
@@ -1943,10 +1943,29 @@ class CodeGenerator extends Object
             c.isSynthetic && c.name != '' || c.isFactory || c.isExternal);
   }
 
-  JS.Statement _addConstructorToClass(
-      JS.Expression className, String name, JS.Expression jsCtor) {
-    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
+  JS.Statement _addConstructorToClass(ClassElement c, JS.Expression className,
+      String name, JS.Expression jsCtor) {
+    jsCtor = defineValueOnClass(c, className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
+  }
+
+  @override
+  bool superclassHasStatic(ClassElement c, String name) {
+    // Note: because we're only considering statics, we can ignore mixins.
+    // We're only trying to find conflicts due to JS inheriting statics.
+    var library = c.library;
+    while (true) {
+      var supertype = c.supertype;
+      if (supertype == null) return false;
+      c = supertype.element;
+      for (var members in [c.methods, c.accessors]) {
+        for (var m in members) {
+          if (m.isStatic && m.name == name && m.isAccessibleIn(library)) {
+            return true;
+          }
+        }
+      }
+    }
   }
 
   /// Emits static fields for a class, and initialize them eagerly if possible,
@@ -1957,7 +1976,7 @@ class CodeGenerator extends Object
       // Emit enum static fields
       var type = classElem.type;
       void addField(FieldElement e, JS.Expression value) {
-        body.add(defineValueOnClass(_emitStaticClassName(classElem),
+        body.add(defineValueOnClass(classElem, _emitStaticClassName(classElem),
                 _declareMemberName(e.getter), value)
             .toStatement());
       }
@@ -2252,8 +2271,8 @@ class CodeGenerator extends Object
     var parameters = element.parameters
         .map((p) => ParameterElementImpl.synthetic(
             p.name,
-            // ignore: deprecated_member_use
             _isCovariant(p) ? objectClass.type : p.type,
+            // ignore: deprecated_member_use
             p.parameterKind))
         .toList();
 

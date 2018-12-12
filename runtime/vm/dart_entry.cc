@@ -117,7 +117,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // and never start the VM service isolate. So we should never end up invoking
   // any dart code in the Dart 2.0 AOT compiler.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_strong && FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -167,8 +167,8 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 // Now Call the invoke stub which will invoke the dart function.
 #if !defined(TARGET_ARCH_DBC)
-  invokestub entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCode_entry()->EntryPoint());
+  invokestub entrypoint =
+      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
 #endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());

@@ -85,19 +85,19 @@ static method main() → dynamic {
     self::use(self::Foo::staticSetter = (let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/rasta/static.dart:51:15: Error: Getter not found: 'staticSetter'.
     use(++Foo.staticSetter);
               ^^^^^^^^^^^^").+(1));
-    let final core::int #t11 = self::Foo::staticConstant in invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'dart.core::int'.
+    let final core::int #t11 = self::Foo::staticConstant in invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticConstant();
                       ^";
-    self::use(let final core::int #t12 = self::Foo::staticConstant in invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'dart.core::int'.
+    self::use(let final core::int #t12 = self::Foo::staticConstant in invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticConstant());
                           ^");
-    let final core::int #t13 = self::Foo::staticField in invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'dart.core::int'.
+    let final core::int #t13 = self::Foo::staticField in invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticField();
                    ^";
-    self::use(let final core::int #t14 = self::Foo::staticField in invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'dart.core::int'.
+    self::use(let final core::int #t14 = self::Foo::staticField in invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticField());
                        ^");

@@ -17,6 +17,7 @@ import 'deferred_load.dart';
 import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'ir/static_type.dart';
 import 'js_backend/annotations.dart';
 import 'js_backend/allocator_analysis.dart'
     show JAllocatorAnalysis, KAllocatorAnalysis;
@@ -225,10 +226,11 @@ abstract class OpenWorld implements World {
   ///     abstract class I { m(); }
   ///     abstract class J implements A { }
   ///
-  /// Here `A.m` is inherited into `A`, `B`, and `C`. Becausec `B` and
-  /// `C` implement `I`, `isInheritedInSubtypeOf(A.M, I)` is true, but
-  /// `isInheritedInSubtypeOf(A.M, J)` is false.
-  bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type);
+  /// Here `A.m` is inherited into `A`, `B`, and `C`. Because `B` and
+  /// `C` implement `I`, `isInheritedInSubtypeOf(A.m, I)` is true, but
+  /// `isInheritedInSubtypeOf(A.m, J)` is false.
+  bool isInheritedIn(
+      MemberEntity member, ClassEntity type, ClassRelation relation);
 }
 
 abstract class KClosedWorld {

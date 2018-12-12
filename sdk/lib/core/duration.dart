@@ -211,7 +211,7 @@ class Duration implements Comparable<Duration> {
   int get inMicroseconds => _duration;
 
   /**
-   * Returns `true` if this [Duration] is the same object as [other].
+   * Returns `true` if this [Duration] has the same value as [other].
    */
   bool operator ==(dynamic other) =>
       other is Duration && _duration == other.inMicroseconds;

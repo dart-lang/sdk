@@ -732,12 +732,13 @@ class _WebSocketOutgoingTransformer
 
   void addFrame(int opcode, List<int> data) {
     createFrame(
-        opcode,
-        data,
-        webSocket._serverSide,
-        _deflateHelper != null &&
-            (opcode == _WebSocketOpcode.TEXT ||
-                opcode == _WebSocketOpcode.BINARY)).forEach((e) {
+            opcode,
+            data,
+            webSocket._serverSide,
+            _deflateHelper != null &&
+                (opcode == _WebSocketOpcode.TEXT ||
+                    opcode == _WebSocketOpcode.BINARY))
+        .forEach((e) {
       _eventSink.add(e);
     });
   }
@@ -1204,9 +1205,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   }
 
   void addUtf8Text(List<int> bytes) {
-    if (bytes is! List<int>) {
-      throw new ArgumentError.value(bytes, "bytes", "Is not a list of bytes");
-    }
+    ArgumentError.checkNotNull(bytes, "bytes");
     _sink.add(new _EncodedString(bytes));
   }
 

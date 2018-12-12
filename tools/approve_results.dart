@@ -73,8 +73,30 @@ Future<Map<String, Map<String, dynamic>>> loadResultsMapIfExists(
         ? loadResultsMap(path)
         : <String, Map<String, dynamic>>{};
 
+/// Loads a log from logdog.
+Future<String> loadLog(String id, String step) async {
+  final logUrl = Uri.parse("https://logs.chromium.org/"
+      "logs/dart/buildbucket/cr-buildbucket.appspot.com/"
+      "$id/+/steps/$step?format=raw");
+  final client = new HttpClient();
+  final request =
+      await client.getUrl(logUrl).timeout(const Duration(seconds: 60));
+  final response = await request.close().timeout(const Duration(seconds: 60));
+  if (response.statusCode != HttpStatus.ok) {
+    throw new Exception("The log at $logUrl doesn't exist");
+  }
+  final contents = (await response
+          .transform(new Utf8Decoder())
+          .timeout(const Duration(seconds: 60))
+          .toList())
+      .join("");
+  client.close();
+  return contents;
+}
+
 /// Loads the results from the bot.
-Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
+Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
+    Map<String, dynamic> changelistBuild) async {
   if (options["verbose"]) {
     print("Loading $bot...");
   }
@@ -82,16 +104,28 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
   final tmpdir = await Directory.systemTemp.createTemp("approve_results.");
   try {
     // The 'latest' file contains the name of the latest build that we
-    // should download.
-    final build = await readFile(bot, "latest");
+    // should download. When preapproving a changelist, we instead find out
+    // which build the commit queue was rebased on.
+    final build = (changelistBuild != null
+            ? await loadLog(changelistBuild["id"],
+                "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
+            : await readFile(bot, "latest"))
+        .trim();
 
     // Asynchronously download the latest build and the current approved
-    // results.
+    // results. Download try results from trybot try runs if preapproving.
+    final tryResults = <String, Map<String, dynamic>>{};
     await Future.wait([
       cpRecursiveGsutil(buildCloudPath(bot, build), tmpdir.path),
       cpRecursiveGsutil(
           "$approvedResultsStoragePath/$bot/approved_results.json",
           "${tmpdir.path}/approved_results.json"),
+      new Future(() async {
+        if (changelistBuild != null) {
+          tryResults.addAll(parseResultsMap(await loadLog(
+              changelistBuild["id"], "test_results/0/logs/results.json/0")));
+        }
+      }),
     ]);
 
     // Check the build was properly downloaded.
@@ -123,8 +157,56 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options) async {
       final result = results[key];
       final approvedResult = approvedResults[key];
       final flakiness = flaky[key];
+      // If preapproving results, allow new non-matching results that are
+      // different from the baseline. The approved results will be the current
+      // approved results, plus the difference between the tryrun's baseline and
+      // the tryrun's results.
+      if (tryResults.containsKey(key)) {
+        final tryResult = tryResults[key];
+        final wasFlake = flakiness != null &&
+            (flakiness["outcomes"] as List<dynamic>)
+                .contains(tryResult["result"]);
+        // Pick the try run result if the try result was not a flake and it's a
+        // non-matching result that's different than the approved result. If
+        // there is no approved result yet, use the latest result from the
+        // builder instead.
+        final baseResult = approvedResult ?? result;
+        if ((!wasFlake &&
+            !tryResult["matches"] &&
+            tryResult["result"] != result["result"])) {
+          // The approved_results.json format currently does not natively
+          // support preapproval, so preapproving turning one failure into
+          // another will turn the builder in question red until the CL lands.
+          if (!baseResult["matches"]) {
+            print("Warning: Preapproving changed failure modes will turn the "
+                "CI red until the CL is submitted: $bot: $key: "
+                "${baseResult["result"]} -> ${tryResult["result"]}");
+          }
+          result.clear();
+          result.addAll(tryResult);
+        } else {
+          if (approvedResult != null) {
+            result.clear();
+            result.addAll(approvedResult);
+          }
+        }
+      } else if (tryResults.isNotEmpty && approvedResult != null) {
+        result.clear();
+        result.addAll(approvedResult);
+      }
       final name = result["name"];
       final test = new Test(bot, name, result, approvedResult, flakiness);
+      tests.add(test);
+    }
+    // If preapproving and the CL has introduced new tests, add the new tests
+    // as well to the approved data.
+    final newTestKeys = new Set<String>.from(tryResults.keys)
+        .difference(new Set<String>.from(results.keys));
+    for (final key in newTestKeys) {
+      final result = tryResults[key];
+      final flakiness = flaky[key];
+      final name = result["name"];
+      final test = new Test(bot, name, result, null, flakiness);
       tests.add(test);
     }
     if (options["verbose"]) {
@@ -150,13 +232,18 @@ main(List<String> args) async {
       abbr: "n",
       help: "Show changed results but don't approve.",
       negatable: false);
+  parser.addOption("preapprove",
+      abbr: "p", help: "Preapprove the new failures in a gerrit CL.");
   parser.addFlag("verbose",
       abbr: "v", help: "Describe asynchronous operations.", negatable: false);
   parser.addFlag("yes",
       abbr: "y", help: "Approve the results.", negatable: false);
 
   final options = parser.parse(args);
-  if ((options["bot"].isEmpty && !options["list"]) || options["help"]) {
+  if ((options["preapprove"] == null &&
+          options["bot"].isEmpty &&
+          !options["list"]) ||
+      options["help"]) {
     print("""
 Usage: approve_results.dart [OPTION]...
 List tests whose results are different from the previously approved results, and
@@ -218,12 +305,106 @@ ${parser.usage}""");
     return;
   }
 
+  // Determine which builders have run for the changelist.
+  final changelistBuilds = <String, Map<String, dynamic>>{};
+  if (options["preapprove"] != null) {
+    if (options["verbose"]) {
+      print("Loading list of try runs...");
+    }
+    final gerritHost = "dart-review.googlesource.com";
+    final gerritProject = "sdk";
+    final prefix = "https://$gerritHost/c/$gerritProject/+/";
+    final gerrit = options["preapprove"];
+    if (!gerrit.startsWith(prefix)) {
+      stderr.writeln("error: $gerrit doesn't start with $prefix");
+      exitCode = 1;
+      return;
+    }
+    final components = gerrit.substring(prefix.length).split("/");
+    if (components.length != 2 ||
+        int.tryParse(components[0]) == null ||
+        int.tryParse(components[1]) == null) {
+      stderr.writeln("error: $gerrit must be in the form of "
+          "$prefix<changelist>/<patchset>");
+      exitCode = 1;
+      return;
+    }
+    final changelist = int.parse(components[0]);
+    final patchset = int.parse(components[1]);
+    final buildset = "buildset:patch/gerrit/$gerritHost/$changelist/$patchset";
+    final url = Uri.parse(
+        "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
+        "?bucket=luci.dart.try"
+        "&tag=${Uri.encodeComponent(buildset)}"
+        "&fields=builds(id%2Ctags%2Cstatus%2Cstarted_ts)");
+    final client = new HttpClient();
+    final request =
+        await client.getUrl(url).timeout(const Duration(seconds: 30));
+    final response = await request.close().timeout(const Duration(seconds: 30));
+    if (response.statusCode != HttpStatus.ok) {
+      throw new Exception("Failed to request try runs for $gerrit");
+    }
+    final Map<String, dynamic> object = await response
+        .transform(new Utf8Decoder())
+        .transform(new JsonDecoder())
+        .first
+        .timeout(const Duration(seconds: 30));
+    client.close();
+    final builds = object["builds"];
+    if (builds == null) {
+      stderr.writeln(
+          "error: $prefix$changelist has no try runs for patchset $patchset");
+      exitCode = 1;
+      return;
+    }
+
+    // Prefer the newest completed build.
+    Map<String, dynamic> preferredBuild(
+        Map<String, dynamic> a, Map<String, dynamic> b) {
+      if (a != null && b == null) return a;
+      if (a == null && b != null) return b;
+      if (a != null && b != null) {
+        if (a["status"] == "COMPLETED" && b["status"] != "COMPLETED") return a;
+        if (a["status"] != "COMPLETED" && b["status"] == "COMPLETED") return b;
+        if (a["started_ts"] == null && b["started_ts"] != null) return a;
+        if (a["started_ts"] != null && b["started_ts"] == null) return b;
+        if (a["started_ts"] != null && b["started_ts"] != null) {
+          if (int.parse(a["started_ts"]) > int.parse(b["started_ts"])) return a;
+          if (int.parse(a["started_ts"]) < int.parse(b["started_ts"])) return b;
+        }
+      }
+      return b;
+    }
+
+    for (final build in builds) {
+      final tags = (build["tags"] as List<dynamic>).cast<String>();
+      final builder = tags
+          .firstWhere((tag) => tag.startsWith("builder:"))
+          .substring("builder:".length);
+      final ciBuilder = builder.replaceFirst(new RegExp("-try\$"), "");
+      if (!allBots.contains(ciBuilder)) {
+        continue;
+      }
+      changelistBuilds[ciBuilder] =
+          preferredBuild(changelistBuilds[ciBuilder], build);
+    }
+    if (options["verbose"]) {
+      print("Loaded list of try runs.");
+    }
+  }
+  final changelistBuilders = new Set<String>.from(changelistBuilds.keys);
+
   // Select all the bots matching the glob patterns,
+  final finalBotList =
+      options["preapprove"] != null ? changelistBuilders : allBots;
+  final botPatterns = options["preapprove"] != null && options["bot"].isEmpty
+      ? ["*"]
+      : options["bot"];
   final bots = new Set<String>();
-  for (final botPattern in options["bot"]) {
+  for (final botPattern in botPatterns) {
     final glob = new Glob(botPattern);
     bool any = false;
-    for (final bot in allBots) {
+    for (final bot in finalBotList) {
       if (glob.matches(bot)) {
         bots.add(bot);
         any = true;
@@ -240,12 +421,28 @@ ${parser.usage}""");
     print("Selected bot: $bot");
   }
 
+  // Error out if any of the requested try runs are incomplete.
+  bool anyIncomplete = false;
+  for (final bot in bots) {
+    if (options["preapprove"] != null &&
+        changelistBuilds[bot]["status"] != "COMPLETED") {
+      stderr.writeln("error: The try run for $bot isn't complete yet" +
+          changelistBuilds[bot]["status"]);
+      anyIncomplete = true;
+    }
+  }
+  if (anyIncomplete) {
+    exitCode = 1;
+    return;
+  }
+
   // Load all the latest results for the selected bots, as well as flakiness
   // data, and the set of currently approved results. Each bot's latest build
   // is downloaded in parallel to make this phase faster.
   final testListFutures = <Future>[];
   for (final String bot in bots) {
-    testListFutures.add(loadResultsFromBot(bot, options));
+    testListFutures
+        .add(loadResultsFromBot(bot, options, changelistBuilds[bot]));
   }
 
   // Collect all the tests from the synchronous downloads.
@@ -358,10 +555,10 @@ ${parser.usage}""");
 
   // Stop if this is a dry run.
   if (options["no"]) {
-    if (unapprovedBots.length == 1) {
+    if (unapprovedTests.length == 1) {
       print("1 test has a changed result and needs approval");
     } else {
-      print("${unapprovedBots.length} "
+      print("${unapprovedTests.length} "
           "tests have changed results and need approval");
     }
     return;
@@ -376,6 +573,10 @@ ${parser.usage}""");
       final botPlural = bots.length == 1 ? "bot" : "bots";
       print("Note: Approving the failures will turn the "
           "$botPlural green on the next commit.");
+    }
+    if (options["preapprove"] != null) {
+      print("Warning: Preapproval is currently not sticky and somebody else "
+          "approving before your CL has landed will undo your preapproval.");
     }
     while (true) {
       stdout.write("Do you want to approve? (yes/no) [yes] ");

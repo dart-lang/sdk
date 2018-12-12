@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:convert' show utf8;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show LibrariesSpecification, TargetLibrariesSpecification, LibraryInfo;
+    show getSupportedLibraryNames;
 
 import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show GenericTask, Measurer;
@@ -54,7 +54,7 @@ class CompilerImpl extends Compiler {
   Future setupSdk() {
     var future = new Future.value(null);
     _Environment env = environment;
-    if (env.librariesSpecification == null) {
+    if (env.supportedLibraries == null) {
       future = future.then((_) {
         Uri specificationUri = options.librariesSpecificationUri;
         return provider.readFromUri(specificationUri).then((api.Input spec) {
@@ -69,10 +69,9 @@ class CompilerImpl extends Compiler {
 
           // TODO(sigmund): would be nice to front-load some of the CFE option
           // processing and parse this .json file only once.
-          env.librariesSpecification =
-              LibrariesSpecification.parse(specificationUri, json)
-                  .specificationFor(
-                      options.compileForServer ? "dart2js_server" : "dart2js");
+          env.supportedLibraries = getSupportedLibraryNames(specificationUri,
+                  json, options.compileForServer ? "dart2js_server" : "dart2js")
+              .toSet();
         });
       });
     }
@@ -83,8 +82,8 @@ class CompilerImpl extends Compiler {
   }
 
   Future<bool> run(Uri uri) {
-    Duration setupDuration = measurer.wallClock.elapsed;
-    return selfTask.measureSubtask("CompilerImpl.run", () {
+    Duration setupDuration = measurer.elapsedWallClock;
+    return selfTask.measureSubtask("impl.run", () {
       return setupSdk().then((_) {
         return super.run(uri);
       }).then((bool success) {
@@ -104,23 +103,36 @@ class CompilerImpl extends Compiler {
 
   void computeTimings(Duration setupDuration, StringBuffer timings) {
     timings.writeln("Timings:");
-    Duration totalDuration = measurer.wallClock.elapsed;
-    Duration asyncDuration = measurer.asyncWallClock.elapsed;
+    Duration totalDuration = measurer.elapsedWallClock;
+    Duration asyncDuration = measurer.elapsedAsyncWallClock;
     Duration cumulatedDuration = Duration.zero;
+    List<_TimingData> timingData = [];
     for (final task in tasks) {
-      String running = task.isRunning ? "*" : "";
+      String running = task.isRunning ? "*" : " ";
       Duration duration = task.duration;
       if (duration != Duration.zero) {
         cumulatedDuration += duration;
-        timings.writeln('    $running${task.name}:'
-            ' ${_formatMs(duration.inMilliseconds)}');
+        int milliseconds = duration.inMilliseconds;
+        timingData.add(_TimingData('   $running${task.name}:', milliseconds,
+            milliseconds * 100 / totalDuration.inMilliseconds));
         for (String subtask in task.subtasks) {
           int subtime = task.getSubtaskTime(subtask);
-          String running = task.getSubtaskIsRunning(subtask) ? "*" : "";
-          timings.writeln(
-              '    $running${task.name} > $subtask: ${_formatMs(subtime)}');
+          String running = task.getSubtaskIsRunning(subtask) ? "*" : " ";
+          timingData.add(_TimingData('   $running${task.name} > $subtask:',
+              subtime, subtime * 100 / totalDuration.inMilliseconds));
         }
       }
+    }
+    int longestDescription = timingData
+        .map((d) => d.description.length)
+        .fold(0, (a, b) => a < b ? b : a);
+    for (var data in timingData) {
+      var ms = _formatMs(data.milliseconds);
+      var padding =
+          " " * (longestDescription + 10 - data.description.length - ms.length);
+      var percentPadding = data.percent < 10 ? " " : "";
+      timings.writeln('${data.description}$padding $ms '
+          '$percentPadding(${data.percent.toStringAsFixed(1)}%)');
     }
     Duration unaccountedDuration =
         totalDuration - cumulatedDuration - setupDuration - asyncDuration;
@@ -181,8 +193,7 @@ class CompilerImpl extends Compiler {
 
 class _Environment implements Environment {
   final Map<String, String> definitions;
-
-  TargetLibrariesSpecification librariesSpecification;
+  Set<String> supportedLibraries;
 
   _Environment(this.definitions);
 
@@ -195,10 +206,7 @@ class _Environment implements Environment {
 
     // Private libraries are not exposed to the users.
     if (libraryName.startsWith("_")) return null;
-    LibraryInfo info = librariesSpecification.libraryInfoFor(libraryName);
-    if (info != null && info.isSupported) {
-      return "true";
-    }
+    if (supportedLibraries.contains(libraryName)) return "true";
     return null;
   }
 }
@@ -210,3 +218,11 @@ class _Environment implements Environment {
 /// For example 'dart:html' has the environment variable 'dart.library.html' set
 /// to "true".
 const String _dartLibraryEnvironmentPrefix = 'dart.library.';
+
+class _TimingData {
+  final String description;
+  final int milliseconds;
+  final double percent;
+
+  _TimingData(this.description, this.milliseconds, this.percent);
+}

@@ -171,8 +171,7 @@ void StubCode::GenerateBuildMethodExtractorStub(Assembler* assembler) {
 
   const intptr_t kReceiverOffset = compiler_frame_layout.param_end_from_fp + 1;
 
-  const auto& context_allocation_stub =
-      Code::ZoneHandle(StubCode::AllocateContext_entry()->code());
+  const auto& context_allocation_stub = StubCode::AllocateContext();
 
   __ EnterStubFrame();
 
@@ -500,7 +499,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object());
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
-  __ Call(*StubCode::AllocateArray_entry());
+  __ Call(StubCode::AllocateArray());
   __ SmiUntag(R10);
   // RAX: newly allocated array.
   // R10: length of the array (was preserved by the stub).
@@ -2675,7 +2674,7 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   __ Bind(&is_simple_case);
   {
-    __ Call(*StubCode::Subtype2TestCache_entry());
+    __ Call(StubCode::Subtype2TestCache());
     __ CompareObject(R8, Bool::True());
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime);
@@ -2683,7 +2682,7 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   __ Bind(&is_complex_case);
   {
-    __ Call(*StubCode::Subtype6TestCache_entry());
+    __ Call(StubCode::Subtype6TestCache());
     __ CompareObject(R8, Bool::True());
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     // Fall through to runtime_call

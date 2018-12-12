@@ -180,6 +180,10 @@ class FlowGraph : public ZoneAllocated {
                                 intptr_t deopt_id,
                                 TokenPosition token_pos);
 
+  Definition* CreateCheckBound(Definition* length,
+                               Definition* index,
+                               intptr_t deopt_id);
+
   void AddExactnessGuard(InstanceCallInstr* call, intptr_t receiver_cid);
 
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
@@ -266,7 +270,7 @@ class FlowGraph : public ZoneAllocated {
                                         CompileType compile_type);
 
   // Remove the redefinition instructions inserted to inhibit code motion.
-  void RemoveRedefinitions();
+  void RemoveRedefinitions(bool keep_checks = false);
 
   // Copy deoptimization target from one instruction to another if we still
   // have to keep deoptimization environment at gotos for LICM purposes.

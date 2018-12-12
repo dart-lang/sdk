@@ -68,7 +68,6 @@ DECLARE_FLAG(bool, trace_reload);
 #if !defined(PRODUCT)
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
-  FLAG_enable_type_checks = value;
 }
 
 // --enable-checked-mode and --checked both enable checked mode which is
@@ -926,6 +925,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
           new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_"))),
       kernel_data_class_cache_mutex_(
           new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_"))),
+      kernel_constants_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_constants_mutex_"))),
       message_handler_(NULL),
       spawn_state_(NULL),
       defer_finalization_count_(0),
@@ -1006,6 +1007,8 @@ Isolate::~Isolate() {
   constant_canonicalization_mutex_ = NULL;
   delete megamorphic_lookup_mutex_;
   megamorphic_lookup_mutex_ = NULL;
+  delete kernel_constants_mutex_;
+  kernel_constants_mutex_ = nullptr;
   delete kernel_data_lib_cache_mutex_;
   kernel_data_lib_cache_mutex_ = NULL;
   delete kernel_data_class_cache_mutex_;
@@ -1121,8 +1124,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
   result->BuildName(name_prefix);
 #if !defined(PRODUCT)
-  result->debugger_ = new Debugger();
-  result->debugger_->Initialize(result);
+  result->debugger_ = new Debugger(result);
 #endif
   if (FLAG_trace_isolates) {
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {

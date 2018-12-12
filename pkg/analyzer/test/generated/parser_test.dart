@@ -3212,8 +3212,14 @@ class Foo {
     createParser('external factory C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, 21, 1)]);
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY
+              : ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY,
+          21,
+          1)
+    ]);
   }
 
   void test_externalConstructorWithBody_named() {
@@ -6912,6 +6918,15 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseMapLiteral_multiple() {
     MapLiteral literal = parseMapLiteral(null, null, "{'a' : b, 'x' : y}");
+    expect(literal, isNotNull);
+    assertNoErrors();
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(2));
+    expect(literal.rightBracket, isNotNull);
+  }
+
+  void test_parseMapLiteral_multiple_trailing_comma() {
+    MapLiteral literal = parseMapLiteral(null, null, "{'a' : b, 'x' : y,}");
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);

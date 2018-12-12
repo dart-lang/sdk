@@ -36,13 +36,15 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "740cb9e9b3fc8e1da2f55e10554ffeac90461b73",
+  "co19_2_rev": "92eb86a60b26089eaffc4fa9703895f71a251a76",
 
-  # As Flutter does, we pull buildtools, including the clang toolchain, from
-  # Fuchsia. This revision should be kept up to date with the revision pulled
-  # by the Flutter engine. If there are problems with the toolchain, contact
-  # fuchsia-toolchain@.
-  "buildtools_revision": "446d5b1019dcbe7835236dc85261e91cf29a9239",
+  # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
+  # should be kept up to date with the revisions pulled by the Flutter engine.
+  # The list of revisions for these tools comes from Fuchsia, here:
+  # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
+  # If there are problems with the toolchain, contact fuchsia-toolchain@.
+  "clang_revision": "de39621f0f03f20633bdfa50bde97a3908bf6e98",
+  "gn_revision": "bdb0fd02324b120cacde634a9235405061c8ea06",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -63,7 +65,7 @@ vars = {
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.13",
+  "dart2js_info_tag" : "0.5.15",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -77,7 +79,7 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.0",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.1",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.24.1",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
@@ -95,7 +97,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.71",
+  "linter_tag": "0.1.73",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
@@ -152,8 +154,6 @@ vars = {
 
 deps = {
   # Stuff needed for GN build.
-  Var("dart_root") + "/buildtools":
-     Var("fuchsia_git") + "/buildtools" + "@" + Var("buildtools_revision"),
   Var("dart_root") + "/buildtools/clang_format/script":
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
@@ -162,7 +162,7 @@ deps = {
       "packages": [
           {
               "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.1.0-dev.6.0",
+              "version": "version:2.2.0-dev.0.0",
           },
       ],
       "dep_type": "cipd",
@@ -379,6 +379,27 @@ deps = {
       "@" + Var("web_socket_channel_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_tag"),
+
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/clang/${{platform}}",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "(host_os == 'linux' or host_os == 'mac') and (host_cpu == 'x64' or host_cpu == 'arm64')",
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/buildtools": {
+      "packages": [
+          {
+              "package": "gn/gn/${{platform}}",
+              "version": "git_revision:" + Var("gn_revision"),
+          },
+      ],
+      "dep_type": "cipd",
+  },
 }
 
 deps_os = {

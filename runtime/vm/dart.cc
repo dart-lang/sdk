@@ -143,12 +143,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         "a sim* architecture.");
 #endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
 
-#if defined(TARGET_OS_WINDOWS)
-    // TODO(34393): The interpreter currently relies on computed gotos, which
-    // aren't supported on Windows.
-    return strdup("--enable-interpreter is not supported on Windows.");
-#endif  // defined(TARGET_OS_WINDOWS)
-
     FLAG_use_field_guards = false;
   }
 
@@ -326,7 +320,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   }
 
   const bool is_dart2_aot_precompiler =
-      FLAG_strong && FLAG_precompiled_mode && !kDartPrecompiledRuntime;
+      FLAG_precompiled_mode && !kDartPrecompiledRuntime;
 
   if (!is_dart2_aot_precompiler &&
       (FLAG_support_service || !kDartPrecompiledRuntime)) {
@@ -717,25 +711,11 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
   } while (0);
 
-  // We don't write the strong flag into the features list for the VM isolate
-  // snapshot as the implementation is in an intermediate state where the VM
-  // isolate is always initialized from a vm_snapshot generated in non strong
-  // mode.
-  if (!is_vm_isolate) {
-    buffer.AddString(FLAG_strong ? " strong" : " no-strong");
-  }
-
   if (Snapshot::IncludesCode(kind)) {
-    // Checked mode affects deopt ids.
-    ADD_FLAG(type_checks, enable_type_checks, FLAG_enable_type_checks);
+    // enabling assertions affects deopt ids.
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
-             FLAG_error_on_bad_type);
-    // sync-async and reify_generic_functions also affect deopt_ids.
+    // sync-async affects deopt_ids.
     buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
-    buffer.AddString(FLAG_reify_generic_functions
-                         ? " reify_generic_functions"
-                         : " no-reify_generic_functions");
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);

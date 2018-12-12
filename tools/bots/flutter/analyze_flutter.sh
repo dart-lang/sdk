@@ -6,8 +6,9 @@
 # Runs flutter's analyzer related tests with a locally built SDK.
 set -e
 
-dart=$(pwd)/tools/sdks/dart-sdk/bin/dart
-sdk=$(pwd)/out/ReleaseX64/dart-sdk
+checkout=$(pwd)
+dart=$checkout/tools/sdks/dart-sdk/bin/dart
+sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
 cleanup() {
   rm -rf "$tmpdir"
@@ -20,6 +21,13 @@ git clone -vv https://chromium.googlesource.com/external/github.com/flutter/flut
 cd flutter
 
 bin/flutter config --no-analytics
+
+pinned_dart_sdk=$(cat bin/cache/dart-sdk/revision)
+patch=$checkout/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
+if [ -e "$patch" ]; then
+  git apply $patch
+fi
+
 bin/flutter update-packages
 
 $dart dev/bots/analyze.dart --dart-sdk $sdk

@@ -453,7 +453,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   bool get isEligibleForTopLevelInference {
     if (formals != null) {
       for (var formal in formals) {
-        if (formal.type == null && formal.hasThis) return true;
+        if (formal.type == null && formal.isInitializingFormal) return true;
       }
     }
     return false;
@@ -472,7 +472,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     }
     if (!library.disableTypeInference && isEligibleForTopLevelInference) {
       for (KernelFormalParameterBuilder formal in formals) {
-        if (formal.type == null && formal.hasThis) {
+        if (formal.type == null && formal.isInitializingFormal) {
           formal.declaration.type = null;
         }
       }
@@ -505,7 +505,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, noLength).desugared,
+        helper.desugarSyntheticExpression(
+            helper.buildProblem(message, charOffset, noLength)),
         charOffset);
     initializers.add(error..parent = constructor);
     initializers.add(lastInitializer);
@@ -529,10 +530,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       } else if (constructor.initializers.isNotEmpty) {
         Initializer first = constructor.initializers.first;
         Initializer error = helper.buildInvalidInitializer(
-            helper
-                .buildProblem(
-                    messageThisInitializerNotAlone, first.fileOffset, noLength)
-                .desugared,
+            helper.desugarSyntheticExpression(helper.buildProblem(
+                messageThisInitializerNotAlone, first.fileOffset, noLength)),
             first.fileOffset);
         initializers.add(error..parent = constructor);
       } else {

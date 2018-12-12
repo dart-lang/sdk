@@ -612,10 +612,16 @@ class ClassSet {
     return true;
   }
 
+  /// Returns an [Iterable] of the classes that implement [cls] directly or
+  /// through supertypes.
+  ///
+  /// A class that implements [cls] through its superclasses is not included in
+  /// the iterable.
   Iterable<ClassHierarchyNode> get subtypeNodes {
     return _subtypes ?? const <ClassHierarchyNode>[];
   }
 
+  /// Returns an [Iterable] of the classes that mix in [cls] directly.
   Iterable<ClassHierarchyNode> get mixinApplicationNodes {
     return _mixinApplications ?? const <ClassHierarchyNode>[];
   }

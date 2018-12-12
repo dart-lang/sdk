@@ -33,12 +33,12 @@ void CodeBreakpoint::PatchCode() {
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
       case RawPcDescriptors::kUnoptStaticCall: {
-        stub_target = StubCode::ICCallBreakpoint_entry()->code();
+        stub_target = StubCode::ICCallBreakpoint().raw();
         break;
       }
       case RawPcDescriptors::kRuntimeCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-        stub_target = StubCode::RuntimeCallBreakpoint_entry()->code();
+        stub_target = StubCode::RuntimeCallBreakpoint().raw();
         break;
       }
       default:

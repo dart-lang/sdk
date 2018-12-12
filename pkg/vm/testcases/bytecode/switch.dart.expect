@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
   CheckStack           0
   PushNull
@@ -71,7 +71,7 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
   CheckStack           0
   PushNull
@@ -156,7 +156,7 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
   CheckStack           0
   PushNull
@@ -240,7 +240,7 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
   CheckStack           0
   PushNull

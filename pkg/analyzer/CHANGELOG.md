@@ -1,3 +1,44 @@
+## 0.33.6+1-dev
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+
+## 0.33.6
+* Deprecated `AstNode.getAncestor` and introduced
+  `AstNode.thisOrAncestorMatching` as its replacement.
+
+## 0.33.5
+* Add AnalysisSession.getResolvedLibrary()/ByElement() APIs.
+
+## 0.33.4
+* Add a hint when either Future or Stream are imported from dart:core in a package that is expected to work with an SDK before 2.1 where they were required to be imported from dart:async.
+* Add a new "deprecated" maturity for lints
+* Don't report DEPRECATED_MEMBER_USE for deprecated mixins, top-level variables, and class fields.
+* Various bug fixes.
+
+## 0.33.3+2
+* Update SDK requirement to 2.1.0-dev.5.0.  From now on, the analyzer may import
+  Future from dart:core. (#35158)
+
+## 0.33.3+1
+* Fix missing import of dart:async. (#35158)
+
+## 0.33.3
+* Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
+
+## 0.33.2
+* Protect against self-referencing classes in InheritanceManager2. (#34333)
+* Introduce API so that the linter can be migrated away from Element.context.
+
+## 0.33.1
+* Fix circular typedef stack overflow. (#33599)
+* Check that the implemented member is a valid override of the member from
+  the super constraint. (#34693)
+* Begin replacing InheritanceManager with InheritanceManager2 and
+  deprecate older members.
+* Performance fixups with Analysis Driver.
+* Verify the superconstraint signature invoked by a mixin. (#34896)
+* In_matchInterfaceSubtypeOf, account for mixins having null. (#34907)
+
 ## 0.33.0
 * Support handling 'class C with M', with extends missing.
 * Report ABSTRACT_SUPER_MEMBER_REFERENCE as an error.

@@ -7,6 +7,7 @@
 
 #include "include/dart_tools_api.h"
 
+#include "bin/kernel_isolate.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"

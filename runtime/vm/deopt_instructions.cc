@@ -742,8 +742,8 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     if (function.IsNull()) {
       *reinterpret_cast<RawObject**>(dest_addr) =
           deopt_context->is_lazy_deopt()
-              ? StubCode::DeoptimizeLazyFromReturn_entry()->code()
-              : StubCode::Deoptimize_entry()->code();
+              ? StubCode::DeoptimizeLazyFromReturn().raw()
+              : StubCode::Deoptimize().raw();
       return;
     }
 
@@ -753,7 +753,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // materialization to maintain the invariant that Dart frames always have
     // a pc marker.
     *reinterpret_cast<RawObject**>(dest_addr) =
-        StubCode::FrameAwaitingMaterialization_entry()->code();
+        StubCode::FrameAwaitingMaterialization().raw();
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 

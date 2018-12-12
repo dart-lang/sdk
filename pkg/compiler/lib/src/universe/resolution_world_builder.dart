@@ -8,6 +8,7 @@ import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart'
@@ -970,11 +971,28 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     _classHierarchyBuilder.registerClass(cls);
   }
 
-  bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type) {
+  @override
+  bool isInheritedIn(
+      MemberEntity member, ClassEntity type, ClassRelation relation) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
     // that are overridden.
-    return _classHierarchyBuilder.isInheritedInSubtypeOf(
-        member.enclosingClass, type);
+    return isInheritedInClass(member.enclosingClass, type, relation);
+  }
+
+  bool isInheritedInClass(ClassEntity memberHoldingClass, ClassEntity type,
+      ClassRelation relation) {
+    switch (relation) {
+      case ClassRelation.exact:
+        return _classHierarchyBuilder.isInheritedInExactClass(
+            memberHoldingClass, type);
+      case ClassRelation.thisExpression:
+        return _classHierarchyBuilder.isInheritedInThisClass(
+            memberHoldingClass, type);
+      case ClassRelation.subtype:
+        return _classHierarchyBuilder.isInheritedInSubtypeOf(
+            memberHoldingClass, type);
+    }
+    throw new UnsupportedError("Unexpected ClassRelation $relation.");
   }
 
   @override
@@ -1000,12 +1018,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
     BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
-    assert(
-        _classHierarchyBuilder.classHierarchyNodes.length ==
-            _classHierarchyBuilder.classSets.length,
-        "ClassHierarchyNode/ClassSet mismatch: "
-        "${_classHierarchyBuilder.classHierarchyNodes} vs "
-        "${_classHierarchyBuilder.classSets}");
 
     AnnotationsData annotationsData = processAnnotations(
         reporter, _commonElements, _elementEnvironment, _processedMembers);
@@ -1029,8 +1041,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         processedMembers: _processedMembers,
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
-        classHierarchyNodes: _classHierarchyBuilder.classHierarchyNodes,
-        classSets: _classHierarchyBuilder.classSets,
+        classHierarchy: _classHierarchyBuilder.close(),
         annotationsData: annotationsData);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;

@@ -7,7 +7,7 @@
 /// used by patches of that library. We plan to change this when we have a
 /// shared front end and simply use parts.
 
-import "dart:_internal" show POWERS_OF_TEN, patch;
+import "dart:_internal" show POWERS_OF_TEN, patch, ClassID;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
@@ -1815,4 +1815,28 @@ class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
     _sink.add(decoded);
     _sink.close();
   }
+}
+
+@patch
+int _scanOneByteCharacters(List<int> units, int from, int endIndex) {
+  final to = endIndex;
+
+  // Special case for _Uint8ArrayView.
+  final cid = ClassID.getID(units);
+  if (identical(cid, ClassID.cidUint8ArrayView)) {
+    if (from >= 0 && to >= 0 && to <= units.length) {
+      for (int i = from; i < to; i++) {
+        final unit = units[i];
+        if ((unit & _ONE_BYTE_LIMIT) != unit) return i - from;
+      }
+      return to - from;
+    }
+  }
+
+  // Fall through to normal case.
+  for (var i = from; i < to; i++) {
+    final unit = units[i];
+    if ((unit & _ONE_BYTE_LIMIT) != unit) return i - from;
+  }
+  return to - from;
 }

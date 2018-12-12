@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart' show Library, Component, Source;
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 
+import '../compiler_context.dart' show CompilerContext;
+
 import '../kernel/kernel_builder.dart' show LibraryBuilder;
 
 import '../loader.dart' show Loader;
@@ -26,9 +28,11 @@ class DillLoader extends Loader<Library> {
   final libraries = <Library>[];
 
   /// Sources for all appended components.
-  final Map<Uri, Source> uriToSource = <Uri, Source>{};
+  final Map<Uri, Source> uriToSource;
 
-  DillLoader(TargetImplementation target) : super(target);
+  DillLoader(TargetImplementation target)
+      : uriToSource = CompilerContext.current.uriToSource,
+        super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateDillOutlineSummary;

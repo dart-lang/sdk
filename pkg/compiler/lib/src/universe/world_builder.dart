@@ -7,6 +7,7 @@ library world_builder;
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/static_type.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../world.dart' show World, JClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
@@ -158,34 +159,42 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
 
 class StrongModeConstraint {
   final ClassEntity cls;
+  final ClassRelation relation;
 
   factory StrongModeConstraint(CommonElements commonElements,
-      NativeBasicData nativeBasicData, ClassEntity cls) {
+      NativeBasicData nativeBasicData, ClassEntity cls,
+      [ClassRelation relation = ClassRelation.subtype]) {
     if (nativeBasicData.isJsInteropClass(cls)) {
       // We can not tell js-interop classes apart, so we just assume the
       // receiver could be any js-interop class.
       cls = commonElements.jsJavaScriptObjectClass;
+      relation = ClassRelation.subtype;
     }
-    return new StrongModeConstraint.internal(cls);
+    return new StrongModeConstraint.internal(cls, relation);
   }
 
-  const StrongModeConstraint.internal(this.cls);
+  const StrongModeConstraint.internal(this.cls, this.relation);
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 
   bool canHit(MemberEntity element, Selector selector, OpenWorld world) {
-    return world.isInheritedInSubtypeOf(element, cls);
+    return world.isInheritedIn(element, cls, relation);
   }
 
-  bool operator ==(other) {
+  bool get isExact => relation == ClassRelation.exact;
+
+  bool get isThis => relation == ClassRelation.thisExpression;
+
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! StrongModeConstraint) return false;
-    return cls == other.cls;
+    return other is StrongModeConstraint &&
+        cls == other.cls &&
+        relation == other.relation;
   }
 
   int get hashCode => cls.hashCode * 13;
 
-  String toString() => 'StrongModeConstraint($cls)';
+  String toString() => 'StrongModeConstraint($cls,$relation)';
 }
 
 /// The [WorldBuilder] is an auxiliary class used in the process of computing

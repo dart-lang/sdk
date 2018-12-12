@@ -62,6 +62,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// If this is set, the compilation stops after type inference.
   Uri writeDataUri;
 
+  /// Whether to run only the CFE and emit the generated kernel file in
+  /// [outputUri].
+  bool cfeOnly = false;
+
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   Map<String, String> environment = const <String, String>{};
@@ -238,6 +242,15 @@ class CompilerOptions implements DiagnosticOptions {
   /// Expermental optimization.
   bool experimentLocalNames = false;
 
+  /// Experimental part file function generation.
+  bool experimentStartupFunctions = false;
+
+  /// Experimental instrumentation to investigate code bloat.
+  ///
+  /// If [true], the compiler will emit code that logs whenever a method is
+  /// called.
+  bool experimentCallInstrumentation = false;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using
@@ -293,6 +306,10 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentalAllocationsPath = _extractStringOption(
           options, "${Flags.experimentalAllocationsPath}=", null)
       ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
+      ..experimentStartupFunctions =
+          _hasOption(options, Flags.experimentStartupFunctions)
+      ..experimentCallInstrumentation =
+          _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
@@ -319,7 +336,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
-      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=');
+      ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..cfeOnly = _hasOption(options, Flags.cfeOnly);
   }
 
   void validate() {
@@ -417,18 +435,13 @@ class CheckPolicy {
   /// Whether the type assertion should be emitted and checked.
   final bool isEmitted;
 
-  /// Whether the type assertion should be ignored.
-  final bool isIgnored;
-
-  const CheckPolicy(
-      {this.isTrusted: false, this.isEmitted: false, this.isIgnored: false});
+  const CheckPolicy({this.isTrusted: false, this.isEmitted: false});
 
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
-  static const ignored = const CheckPolicy(isIgnored: true);
 
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
-      'isEmitted=$isEmitted,isIgnored=$isIgnored)';
+      'isEmitted=$isEmitted)';
 }
 
 String _extractStringOption(

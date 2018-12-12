@@ -9,12 +9,12 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
-import '../common/resolution.dart';
 import '../common_elements.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
 import '../js_backend/native_data.dart';
@@ -28,26 +28,16 @@ import '../universe/world_builder.dart';
 import 'element_map.dart';
 import 'runtime_type_analysis.dart';
 
-ResolutionImpact buildKernelImpact(
-    ir.Member member,
-    KernelToElementMap elementMap,
-    DiagnosticReporter reporter,
-    CompilerOptions options) {
-  KernelImpactBuilder builder = new KernelImpactBuilder(
-      elementMap, elementMap.getMember(member), reporter, options);
-  member.accept(builder);
-  return builder.impactBuilder;
-}
-
 class KernelImpactBuilder extends StaticTypeVisitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
   final CompilerOptions _options;
   final MemberEntity currentMember;
+  final VariableScopeModel variableScopeModel;
 
-  KernelImpactBuilder(
-      this.elementMap, this.currentMember, this.reporter, this._options)
+  KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
+      this._options, this.variableScopeModel)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
         super(elementMap.typeEnvironment);
@@ -517,7 +507,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       ir.DartType returnType) {
     Selector selector = elementMap.getSelector(node);
     List<DartType> typeArguments = _getTypeArguments(node.arguments);
-    var receiver = node.receiver;
+    ir.Expression receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.isFinal &&
         receiver.variable.parent is ir.FunctionDeclaration) {
@@ -533,6 +523,9 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       impactBuilder.registerDynamicUse(
           new ConstrainedDynamicUse(selector, null, typeArguments));
     } else {
+      ClassRelation relation = receiver is ir.ThisExpression
+          ? ClassRelation.thisExpression
+          : ClassRelation.subtype;
       DartType receiverDartType = elementMap.getDartType(receiverType);
 
       ir.Member interfaceTarget = node.interfaceTarget;
@@ -548,8 +541,8 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       } else {
         Object constraint;
         if (receiverDartType is InterfaceType) {
-          constraint = new StrongModeConstraint(
-              commonElements, _nativeBasicData, receiverDartType.element);
+          constraint = new StrongModeConstraint(commonElements,
+              _nativeBasicData, receiverDartType.element, relation);
         }
 
         if (interfaceTarget is ir.Field ||
@@ -585,8 +578,11 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     Object constraint;
     DartType receiverDartType = elementMap.getDartType(receiverType);
     if (receiverDartType is InterfaceType) {
+      ClassRelation relation = node.receiver is ir.ThisExpression
+          ? ClassRelation.thisExpression
+          : ClassRelation.subtype;
       constraint = new StrongModeConstraint(
-          commonElements, _nativeBasicData, receiverDartType.element);
+          commonElements, _nativeBasicData, receiverDartType.element, relation);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.getter(elementMap.getName(node.name)),
@@ -624,8 +620,11 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     Object constraint;
     DartType receiverDartType = elementMap.getDartType(receiverType);
     if (receiverDartType is InterfaceType) {
+      ClassRelation relation = node.receiver is ir.ThisExpression
+          ? ClassRelation.thisExpression
+          : ClassRelation.subtype;
       constraint = new StrongModeConstraint(
-          commonElements, _nativeBasicData, receiverDartType.element);
+          commonElements, _nativeBasicData, receiverDartType.element, relation);
     }
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.setter(elementMap.getName(node.name)),

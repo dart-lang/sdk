@@ -87,7 +87,7 @@ struct LibraryInstrinsicsDesc {
   IntrinsicDesc* intrinsics;
 };
 
-#define DEFINE_INTRINSIC(class_name, function_name, destination, type, fp)     \
+#define DEFINE_INTRINSIC(class_name, function_name, destination, fp)           \
   {#class_name, #function_name},
 
 // clang-format off
@@ -230,7 +230,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name:                                         \
     if (!Build_##enum_name(graph)) return false;                               \
     break;
@@ -247,6 +247,9 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     FlowGraphPrinter printer(*graph);
     printer.PrintBlocks();
   }
+
+  // Prepare for register allocation (cf. FinalizeGraph).
+  graph->RemoveRedefinitions();
 
   // Ensure loop hierarchy has been computed.
   GrowableArray<BitVector*> dominance_frontier;
@@ -300,7 +303,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 #define EMIT_BREAKPOINT()
 #endif
 
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name: {                                       \
     compiler->assembler()->Comment("Intrinsic");                               \
     Label normal_ir_body;                                                      \
@@ -477,14 +480,19 @@ class BlockBuilder : public ValueObject {
   Environment* fall_through_env_;
 };
 
-static void PrepareIndexedOp(BlockBuilder* builder,
-                             Definition* array,
-                             Definition* index,
-                             const Slot& length_field) {
+static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
+                                    BlockBuilder* builder,
+                                    Definition* array,
+                                    Definition* index,
+                                    const Slot& length_field) {
   Definition* length = builder->AddDefinition(new LoadFieldInstr(
       new Value(array), length_field, TokenPosition::kNoSource));
-  builder->AddInstruction(new CheckArrayBoundInstr(
-      new Value(length), new Value(index), DeoptId::kNone));
+  // Note that the intrinsifier must always use deopting array bound
+  // checks, because intrinsics currently don't support calls.
+  Definition* safe_index = new CheckArrayBoundInstr(
+      new Value(length), new Value(index), DeoptId::kNone);
+  builder->AddDefinition(safe_index);
+  return safe_index;
 }
 
 static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
@@ -496,8 +504,8 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   Definition* index = builder.AddParameter(1);
   Definition* array = builder.AddParameter(2);
 
-  PrepareIndexedOp(&builder, array, index,
-                   Slot::GetLengthFieldForArrayCid(array_cid));
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::GetLengthFieldForArrayCid(array_cid));
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
@@ -574,8 +582,8 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  PrepareIndexedOp(&builder, array, index,
-                   Slot::GetLengthFieldForArrayCid(array_cid));
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::GetLengthFieldForArrayCid(array_cid));
 
   // Value check/conversion.
   switch (array_cid) {
@@ -769,7 +777,9 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
 
   Definition* index = builder.AddParameter(1);
   Definition* str = builder.AddParameter(2);
-  PrepareIndexedOp(&builder, str, index, Slot::String_length());
+
+  index =
+      PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
 
   // For external strings: Load external data.
   if (cid == kExternalOneByteStringCid) {
@@ -950,8 +960,8 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   Definition* index = builder.AddParameter(1);
   Definition* growable_array = builder.AddParameter(2);
 
-  PrepareIndexedOp(&builder, growable_array, index,
-                   Slot::GrowableObjectArray_length());
+  index = PrepareIndexedOp(flow_graph, &builder, growable_array, index,
+                           Slot::GrowableObjectArray_length());
 
   Definition* backing_store = builder.AddDefinition(
       new LoadFieldInstr(new Value(growable_array),
@@ -981,7 +991,8 @@ bool Intrinsifier::Build_ObjectArraySetIndexedUnchecked(FlowGraph* flow_graph) {
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  PrepareIndexedOp(&builder, array, index, Slot::Array_length());
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::Array_length());
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
@@ -1011,7 +1022,8 @@ bool Intrinsifier::Build_GrowableArraySetIndexedUnchecked(
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  PrepareIndexedOp(&builder, array, index, Slot::GrowableObjectArray_length());
+  index = PrepareIndexedOp(flow_graph, &builder, array, index,
+                           Slot::GrowableObjectArray_length());
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
       new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));

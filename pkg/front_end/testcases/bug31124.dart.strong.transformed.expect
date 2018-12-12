@@ -11,5 +11,6 @@
 
 library;
 import self as self;
+import "dart:core" as core;
 
-static field dynamic a;
+static field () → core::String a;

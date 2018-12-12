@@ -5,11 +5,11 @@
 import 'dart:async';
 import 'dart:io' show File, Platform;
 
-import 'package:analysis_server_client/server.dart';
 import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/handler/analysis_complete_handler.dart';
 import 'package:dartfix/listener/bad_message_listener.dart';
@@ -19,6 +19,8 @@ import 'package:dartfix/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
+  static final expectedProtocolVersion = new Version.parse('1.21.1');
+
   Context context;
   _Handler handler;
   Logger logger;
@@ -69,7 +71,7 @@ class Driver {
     String serverPath = findServerPath();
     await server.start(
       clientId: 'dartfix',
-      clientVersion: pubspecVersion,
+      clientVersion: 'unspecified',
       sdkPath: options.sdkPath,
       serverPath: serverPath,
     );
@@ -216,8 +218,32 @@ class _Handler
 
   @override
   void onProtocolNotSupported(Version version) {
-    logger.stderr('Expected protocol version $PROTOCOL_VERSION,'
+    logger.stderr('Expected protocol version ${Driver.expectedProtocolVersion},'
         ' but found $version');
+    if (version > Driver.expectedProtocolVersion) {
+      logger.stdout('''
+This version of dartfix is incompatible with the current Dart SDK. 
+Try installing a newer version of dartfix by running
+
+    pub global activate dartfix
+''');
+    } else {
+      logger.stdout('''
+This version of dartfix is too new to be used with the current Dart SDK.
+Try upgrading the Dart SDK to a newer version
+or installing an older version of dartfix using
+
+    pub global activate dartfix <version>
+''');
+    }
+  }
+
+  @override
+  bool checkServerProtocolVersion(Version version) {
+    // This overrides the default protocol version check to be more narrow
+    // because the edit.dartfix protocol is experimental
+    // and will continue to evolve.
+    return version == Driver.expectedProtocolVersion;
   }
 
   @override

@@ -216,14 +216,6 @@ class CompilerAnalysisDriver {
       prepareUnlinkedUnit(sourcesToProcess.removeFirst());
     }
 
-    /// Gets the URIs to link.
-    ///
-    /// Unlike analyzer_cli, this only includes library URIs, not all
-    /// compilation units. This appears to be what [summary_link.link] wants as
-    /// input. If all units are passed in, the resulting summary has extra data
-    /// in the linkedLibraries list, which appears to be unnecessary.
-    var unlinkedUris = Set<String>.from(summaryData.uriToSummaryPath.keys)
-      ..addAll(libraryUris);
     var declaredVariables = DeclaredVariables.fromMap(
         Map.of(options.declaredVariables)..addAll(sdkLibraryVariables));
 
@@ -232,7 +224,7 @@ class CompilerAnalysisDriver {
     /// TODO(jmesserly): can we pass in `getAst` to reuse existing ASTs we
     /// created when we did `file.parse()` in [prepareUnlinkedUnit]?
     var linkResult = summary_link.link(
-        unlinkedUris,
+        libraryUris.toSet(),
         (uri) => summaryData.linkedMap[uri],
         (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
         declaredVariables.get);
@@ -332,7 +324,8 @@ class LinkedAnalysisDriver {
         (uri) => _isLibraryUri('$uri'),
         context,
         resynthesizer,
-        libraryFile);
+        libraryFile,
+        _fsState.resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
     // but it's async. We can't use `async` here because it would break our
     // developer tools extension (see web/web_command.dart). We should be able

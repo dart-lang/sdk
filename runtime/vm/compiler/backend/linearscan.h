@@ -46,6 +46,9 @@ class SSALivenessAnalysis : public LivenessAnalysis {
   GraphEntryInstr* graph_entry_;
 };
 
+// Forward.
+struct ExtraLoopInfo;
+
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a fpu register spill slot.
@@ -191,7 +194,7 @@ class FlowGraphAllocator : public ValueObject {
   // performance because it introduces multiple operations with memory
   // inside the loop body and on the back edge.
   bool HasCheapEvictionCandidate(LiveRange* phi_range);
-  bool IsCheapToEvictRegisterInLoop(BlockEntryInstr* block, intptr_t reg);
+  bool IsCheapToEvictRegisterInLoop(LoopInfo* loop_info, intptr_t reg);
 
   // Assign selected non-free register to an unallocated live range and
   // evict any interference that can be evicted by splitting and spilling
@@ -256,8 +259,8 @@ class FlowGraphAllocator : public ValueObject {
   // Mapping between lifetime positions and block entries.
   GrowableArray<BlockEntryInstr*> block_entries_;
 
-  // Mapping between loops and backedge interferences.
-  GrowableArray<BitVector*> backedge_interference_;
+  // Mapping between loops and additional information.
+  GrowableArray<ExtraLoopInfo*> extra_loop_info_;
 
   SSALivenessAnalysis liveness_;
 

@@ -3,12 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
-#
-# Note: Sections in this file are normalized so we can update them with
-# automated tools. Please add any new status lines affecting those two compilers
-# in the existing sections, if possible keep the alphabetic ordering. If we are
-# missing a section you need, please reach out to sigmund@ to see the best way
-# to add them.
 
 [ $compiler == app_jitk ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
@@ -365,6 +359,10 @@ type_promotion_functions_test/10: Pass
 vm/precompiled_static_initializer_test: Pass, Slow
 
 [ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
+async_star/async_star_await_for_test: RuntimeError
+async_star/async_star_cancel_test: RuntimeError
+async_star/async_star_invalid_test/none: RuntimeError
+async_star/async_star_test: RuntimeError
 vm/type_vm_test/28: MissingRuntimeError
 vm/type_vm_test/29: MissingRuntimeError
 vm/type_vm_test/30: MissingRuntimeError
@@ -412,6 +410,13 @@ assertion_initializer_const_error2_test/cc10: Crash
 assertion_initializer_const_error2_test/cc11: Crash
 async_await_test: RuntimeError
 async_return_types_test/nestedFuture: Fail
+async_star/async_star_cancel_test: DartkCrash
+async_star/async_star_invalid_test/01: DartkCrash
+async_star/async_star_invalid_test/02: DartkCrash
+async_star/async_star_invalid_test/03: DartkCrash
+async_star/async_star_invalid_test/04: DartkCrash
+async_star/async_star_invalid_test/none: DartkCrash
+async_star/async_star_test: DartkCrash
 compile_time_constant_checked_test/02: MissingCompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError

@@ -553,13 +553,11 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000009)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000a)
 
 typedef struct {
   int32_t version;
-  bool enable_type_checks;
   bool enable_asserts;
-  bool enable_error_on_bad_type;
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;
@@ -601,7 +599,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   Isolate.spawn, or the argument to Isolate.spawnUri canonicalized by the
  *   library tag handler of the parent isolate.
  *   The callback is responsible for loading the program by a call to
- *   Dart_LoadScript or Dart_LoadScriptFromKernel.
+ *   Dart_LoadScriptFromKernel.
  * \param main The name of the main entry point this isolate will
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
@@ -1509,6 +1507,19 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function);
  */
 DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
                                               bool* is_static);
+
+/**
+ * Is this object a closure resulting from a tear-off (closurized method)?
+ *
+ * Returns true for closures produced when an ordinary method is accessed
+ * through a getter call. Returns false otherwise, in particular for closures
+ * produced from local function declarations.
+ *
+ * \param object Some Object.
+ *
+ * \return true if Object is a tear-off.
+ */
+DART_EXPORT bool Dart_IsTearOff(Dart_Handle object);
 
 /**
  * Retrieves the function of a closure.
@@ -2820,26 +2831,18 @@ typedef enum {
  *
  * Dart_kScriptTag
  *
- * This tag indicates that the root script should be loaded from
- * 'url'.  If the 'library' parameter is not null, it is the url of the
- * package map that should be used when loading.  Once the root
- * script is loaded, the embedder should call Dart_LoadScript to
- * install the root script in the VM.  The return value should be an
- * error or null.
+ * No longer used.
  *
  * Dart_kSourceTag
  *
- * This tag is used to load a file referenced by Dart language "part
- * of" directive.  Once the file's source is loaded, the embedder
- * should call Dart_LoadSource to provide the file contents to the VM.
- * The return value should be an error or null.
+ * No longer used.
  *
  * Dart_kImportTag
  *
- * This tag is used to load a script referenced by Dart language
- * "import" directive.  Once the script is loaded, the embedder should
- * call Dart_LoadLibrary to provide the script source to the VM.  The
- * return value should be an error or null.
+ * This tag is used to load a library from IsolateMirror.loadUri. The embedder
+ * should call Dart_LoadLibraryFromKernel to provide the library to the VM. The
+ * return value should be an error or library (the result from
+ * Dart_LoadLibraryFromKernel).
  *
  * Dart_kKernelTag
  *
@@ -2848,7 +2851,8 @@ typedef enum {
  * of an application is needed and the VM is 'use dart front end' mode.
  * The dart front end typically compiles all the scripts, imports and part
  * files into one intermediate file hence we don't use the source/import or
- * script tags.
+ * script tags. The return value should be an error or a TypedData containing
+ * the kernel bytes.
  *
  * Dart_kImportExtensionTag
  *
@@ -3070,65 +3074,6 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer);
  *   bool.
  */
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
-
-/*
- * ======
- * Kernel
- * ======
- */
-
-/**
- * Experimental support for Dart to Kernel parser isolate.
- *
- * TODO(hausner): Document finalized interface.
- *
- */
-
-// TODO(33433): Remove kernel service from the embedding API.
-
-typedef enum {
-  Dart_KernelCompilationStatus_Unknown = -1,
-  Dart_KernelCompilationStatus_Ok = 0,
-  Dart_KernelCompilationStatus_Error = 1,
-  Dart_KernelCompilationStatus_Crash = 2,
-} Dart_KernelCompilationStatus;
-
-typedef struct {
-  Dart_KernelCompilationStatus status;
-  char* error;
-
-  uint8_t* kernel;
-  intptr_t kernel_size;
-} Dart_KernelCompilationResult;
-
-DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
-DART_EXPORT bool Dart_KernelIsolateIsRunning();
-DART_EXPORT Dart_Port Dart_KernelPort();
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernel(const char* script_uri,
-                     const uint8_t* platform_kernel,
-                     const intptr_t platform_kernel_size,
-                     bool incremental_compile,
-                     const char* package_config);
-
-typedef struct {
-  const char* uri;
-  const char* source;
-} Dart_SourceFile;
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile source_files[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme);
-
-DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
-
-#define DART_KERNEL_ISOLATE_NAME "kernel-service"
 
 /*
  * =======

@@ -4,7 +4,7 @@
 
 library vm.bytecode.exceptions;
 
-import 'package:kernel/ast.dart' show BinarySink, BinarySource;
+import 'bytecode_serialization.dart' show BufferedWriter, BufferedReader;
 
 /*
 
@@ -59,26 +59,26 @@ class TryBlock {
     flags = (flags & ~flagIsSynthetic) | (value ? flagIsSynthetic : 0);
   }
 
-  void writeToBinary(BinarySink sink) {
-    sink.writeUInt30(outerTryIndex + 1);
-    sink.writeUInt30(startPC);
-    sink.writeUInt30(endPC);
-    sink.writeUInt30(handlerPC);
-    sink.writeByte(flags);
-    sink.writeUInt30(types.length);
-    types.forEach(sink.writeUInt30);
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(outerTryIndex + 1);
+    writer.writePackedUInt30(startPC);
+    writer.writePackedUInt30(endPC);
+    writer.writePackedUInt30(handlerPC);
+    writer.writeByte(flags);
+    writer.writePackedUInt30(types.length);
+    types.forEach(writer.writePackedUInt30);
   }
 
-  factory TryBlock.readFromBinary(BinarySource source, int tryIndex) {
-    final outerTryIndex = source.readUInt() - 1;
-    final startPC = source.readUInt();
+  factory TryBlock.read(BufferedReader reader, int tryIndex) {
+    final outerTryIndex = reader.readPackedUInt30() - 1;
+    final startPC = reader.readPackedUInt30();
     final tryBlock = new TryBlock._(tryIndex, outerTryIndex, startPC);
 
-    tryBlock.endPC = source.readUInt();
-    tryBlock.handlerPC = source.readUInt();
-    tryBlock.flags = source.readByte();
-    tryBlock.types =
-        new List<int>.generate(source.readUInt(), (_) => source.readUInt());
+    tryBlock.endPC = reader.readPackedUInt30();
+    tryBlock.handlerPC = reader.readPackedUInt30();
+    tryBlock.flags = reader.readByte();
+    tryBlock.types = new List<int>.generate(
+        reader.readPackedUInt30(), (_) => reader.readPackedUInt30());
 
     return tryBlock;
   }
@@ -114,14 +114,14 @@ class ExceptionsTable {
     return -1;
   }
 
-  void writeToBinary(BinarySink sink) {
-    sink.writeUInt30(blocks.length);
-    blocks.forEach((b) => b.writeToBinary(sink));
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(blocks.length);
+    blocks.forEach((b) => b.write(writer));
   }
 
-  ExceptionsTable.readFromBinary(BinarySource source)
-      : blocks = new List<TryBlock>.generate(source.readUInt(),
-            (int index) => new TryBlock.readFromBinary(source, index));
+  ExceptionsTable.read(BufferedReader reader)
+      : blocks = new List<TryBlock>.generate(reader.readPackedUInt30(),
+            (int index) => new TryBlock.read(reader, index));
 
   @override
   String toString() {

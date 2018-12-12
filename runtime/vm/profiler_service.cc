@@ -2542,6 +2542,14 @@ void Profile::PrintProfileJSON(JSONStream* stream) {
     ASSERT(root != NULL);
     root->PrintToJSONArray(&function_trie);
   }
+  {
+    ProfilerCounters counters = Profiler::counters();
+    JSONObject js_counters(&obj, "counters");
+#define ADD_PROFILER_COUNTER(name)                                             \
+    js_counters.AddProperty64("" #name, counters.name);
+PROFILER_COUNTERS(ADD_PROFILER_COUNTER)
+#undef ADD_PROFILER_COUNTER
+  }
 }
 
 void ProfileTrieWalker::Reset(Profile::TrieKind trie_kind) {

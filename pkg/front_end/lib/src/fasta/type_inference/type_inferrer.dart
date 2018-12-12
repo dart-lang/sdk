@@ -54,7 +54,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy, MixinInferrer;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart'
-    show calculateBounds, getFreshTypeParameters, Substitution;
+    show getFreshTypeParameters, Substitution;
+
+import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
 import '../../base/instrumentation.dart'
     show
@@ -455,9 +457,6 @@ abstract class TypeInferrer {
       InterfaceType thisType,
       KernelLibraryBuilder library) = ShadowTypeInferrer.private;
 
-  factory TypeInferrer.disabled(TypeSchemaEnvironment typeSchemaEnvironment) =
-      TypeInferrerDisabled.private;
-
   KernelLibraryBuilder get library;
 
   /// Gets the [TypePromoter] that can be used to perform type promotion within
@@ -494,50 +493,6 @@ abstract class TypeInferrer {
   /// expression.
   void inferParameterInitializer(InferenceHelper helper,
       kernel.Expression initializer, DartType declaredType);
-}
-
-/// Implementation of [TypeInferrer] which doesn't do any type inference.
-///
-/// This is intended for profiling, to ensure that type inference and type
-/// promotion do not slow down compilation too much.
-class TypeInferrerDisabled extends TypeInferrer {
-  @override
-  final typePromoter = new TypePromoter.disabled();
-
-  @override
-  final TypeSchemaEnvironment typeSchemaEnvironment;
-
-  TypeInferrerDisabled.private(this.typeSchemaEnvironment)
-      : super.private(null);
-
-  @override
-  KernelLibraryBuilder get library => null;
-
-  @override
-  Uri get uri => null;
-
-  @override
-  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
-      kernel.Expression initializer) {}
-
-  @override
-  void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body) {}
-
-  @override
-  void inferInitializer(
-      InferenceHelper helper, kernel.Initializer initializer) {}
-
-  @override
-  void inferMetadata(
-      InferenceHelper helper, List<kernel.Expression> annotations) {}
-
-  @override
-  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {}
-
-  @override
-  void inferParameterInitializer(InferenceHelper helper,
-      kernel.Expression initializer, DartType declaredType) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -828,12 +783,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper
-                  .buildProblem(
-                      errorTemplate.withArguments(name.name, receiverType),
-                      fileOffset,
-                      length)
-                  .desugared)
+              helper.desugarSyntheticExpression(helper.buildProblem(
+                  errorTemplate.withArguments(name.name, receiverType),
+                  fileOffset,
+                  length)))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1330,10 +1283,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         var name = named[1].name;
-        var error = helper
-            .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                named[1].fileOffset, name.length)
-            .desugared;
+        var error = helper.desugarSyntheticExpression(helper.buildProblem(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length));
         arguments.named = [new kernel.NamedExpression(named[1].name, error)];
         formalTypes.removeLast();
         actualTypes.removeLast();
@@ -1348,10 +1301,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           var prevNamedExpression = seenNames[name];
-          prevNamedExpression.value = helper
-              .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                  expression.fileOffset, name.length)
-              .desugared
+          prevNamedExpression.value = helper.desugarSyntheticExpression(
+              helper.buildProblem(
+                  templateDuplicatedNamedArgument.withArguments(name),
+                  expression.fileOffset,
+                  name.length))
             ..parent = prevNamedExpression;
           formalTypes.removeAt(namedTypeIndex);
           actualTypes.removeAt(namedTypeIndex);

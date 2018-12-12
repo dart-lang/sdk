@@ -209,19 +209,19 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   if (test_kind == kTestTypeOneArg) {
     ASSERT(instantiator_type_arguments_reg == kNoRegister);
     ASSERT(function_type_arguments_reg == kNoRegister);
-    __ Call(*StubCode::Subtype1TestCache_entry());
+    __ Call(StubCode::Subtype1TestCache());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(instantiator_type_arguments_reg == kNoRegister);
     ASSERT(function_type_arguments_reg == kNoRegister);
-    __ Call(*StubCode::Subtype2TestCache_entry());
+    __ Call(StubCode::Subtype2TestCache());
   } else if (test_kind == kTestTypeFourArgs) {
     ASSERT(RDX == instantiator_type_arguments_reg);
     ASSERT(RCX == function_type_arguments_reg);
-    __ Call(*StubCode::Subtype4TestCache_entry());
+    __ Call(StubCode::Subtype4TestCache());
   } else if (test_kind == kTestTypeSixArgs) {
     ASSERT(RDX == instantiator_type_arguments_reg);
     ASSERT(RCX == function_type_arguments_reg);
-    __ Call(*StubCode::Subtype6TestCache_entry());
+    __ Call(StubCode::Subtype6TestCache());
   } else {
     UNREACHABLE();
   }
@@ -504,7 +504,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!FLAG_strong || !Class::Handle(type.type_class()).IsFutureOrClass()) {
+    if (!Class::Handle(type.type_class()).IsFutureOrClass()) {
       __ testq(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
       __ j(ZERO, is_not_instance_lbl);
     }
@@ -875,7 +875,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
       __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
               Immediate(GetOptimizationThreshold()));
       ASSERT(function_reg == RDI);
-      __ J(GREATER_EQUAL, *StubCode::OptimizeFunction_entry(), new_pp);
+      __ J(GREATER_EQUAL, StubCode::OptimizeFunction(), new_pp);
     }
     ASSERT(StackSize() >= 0);
     __ Comment("Enter frame");
@@ -951,29 +951,29 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
-                                     const StubEntry& stub_entry,
+                                     const Code& stub,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ Call(stub_entry);
+  __ Call(stub);
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
-  AddStubCallTarget(Code::ZoneHandle(stub_entry.code()));
+  AddStubCallTarget(stub);
 }
 
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
-                                              const StubEntry& stub_entry,
+                                              const Code& stub,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
-  __ CallPatchable(stub_entry);
+  __ CallPatchable(stub);
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
-                                         const StubEntry& stub_entry,
+                                         const Code& stub,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          Code::EntryKind entry_kind) {
-  __ CallPatchable(stub_entry, entry_kind);
+  __ CallPatchable(stub, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
@@ -987,7 +987,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   // call sites are never patched for breakpoints: the function is deoptimized
   // and the unoptimized code with IC calls for static calls is patched instead.
   ASSERT(is_optimizing());
-  const auto& stub_entry = *StubCode::CallStaticFunction_entry();
+  const auto& stub_entry = StubCode::CallStaticFunction();
   __ CallWithEquivalence(stub_entry, target, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
@@ -1007,10 +1007,10 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
                                                   const ICData& ic_data) {
-  const StubEntry* stub_entry =
+  const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(RBX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, *stub_entry,
+  GenerateDartCall(deopt_id, token_pos, stub,
                    RawPcDescriptors::kUnoptStaticCall, locs);
   __ Drop(count_with_type_args, RCX);
 }
@@ -1028,7 +1028,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(edge_id)), 1);
 }
 
-void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
+void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
                                                   const ICData& ic_data,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
@@ -1043,20 +1043,19 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
   // Pass the function explicitly, it is used in IC stub.
   __ LoadObject(RDI, parsed_function().function());
   __ LoadUniqueObject(RBX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
-                   locs, entry_kind);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   entry_kind);
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
 }
 
-void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
+void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
                                          const ICData& ic_data,
                                          intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   __ LoadUniqueObject(RBX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
-                   locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
 }
 
@@ -1107,8 +1106,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
                                                    TokenPosition token_pos,
                                                    LocationSummary* locs) {
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub =
-      Code::ZoneHandle(StubCode::ICCallThroughFunction_entry()->code());
+  const Code& initial_stub = StubCode::ICCallThroughFunction();
 
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
@@ -1131,8 +1129,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters() ||
-      (FLAG_reify_generic_functions && function.IsGeneric())) {
+  if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
     __ xorl(R10, R10);  // GC safe smi zero because of stub.
@@ -1162,9 +1159,9 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ pushq(reg);
     __ PushObject(obj);
     if (is_optimizing()) {
-      __ CallPatchable(*StubCode::OptimizedIdenticalWithNumberCheck_entry());
+      __ CallPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
-      __ CallPatchable(*StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
+      __ CallPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
     AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmpq, we need ZF computed).
@@ -1185,9 +1182,9 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ pushq(left);
     __ pushq(right);
     if (is_optimizing()) {
-      __ CallPatchable(*StubCode::OptimizedIdenticalWithNumberCheck_entry());
+      __ CallPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
-      __ CallPatchable(*StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
+      __ CallPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
     AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmpq, we need ZF computed).

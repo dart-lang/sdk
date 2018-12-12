@@ -1567,6 +1567,12 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
   }
 }
 
+intptr_t MetadataHelper::GetComponentMetadataPayloadOffset() {
+  const intptr_t kComponentNodeOffset = 0;
+  return GetNextMetadataPayloadOffset(kComponentNodeOffset -
+                                      helper_->data_program_offset_);
+}
+
 DirectCallMetadataHelper::DirectCallMetadataHelper(KernelReaderHelper* helper)
     : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
 
@@ -2944,16 +2950,12 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        if (FLAG_reify_generic_functions) {
-          result_ ^=
-              TypeArguments::Handle(Z, active_class_->member->type_parameters())
-                  .TypeAt(parameter_index);
-          if (finalize_) {
-            result_ =
-                ClassFinalizer::FinalizeType(*active_class_->klass, result_);
-          }
-        } else {
-          result_ ^= Type::DynamicType();
+        result_ ^=
+            TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                .TypeAt(parameter_index);
+        if (finalize_) {
+          result_ =
+              ClassFinalizer::FinalizeType(*active_class_->klass, result_);
         }
         return;
       }
@@ -2963,12 +2965,7 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      if (FLAG_reify_generic_functions) {
-        result_ ^=
-            active_class_->local_type_parameters->TypeAt(parameter_index);
-      } else {
-        result_ ^= Type::DynamicType();
-      }
+      result_ ^= active_class_->local_type_parameters->TypeAt(parameter_index);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }

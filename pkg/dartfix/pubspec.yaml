@@ -1,5 +1,5 @@
 name: dartfix
-version: 0.1.0
+version: 0.1.1
 author: Dart Team <misc@dartlang.org>
 description:
   A tool for migrating Dart source to newer versions of the Dart SDK,
@@ -8,9 +8,13 @@ homepage: https://github.com/dart-lang/sdk/tree/master/pkg/dartfix
 executables:
   dartfix: fix
 environment:
-  sdk: '>=2.1.0-dev.9.2 <2.1.0'
+  # pin to a narrow SDK range because there will be future versions of dartfix
+  # which are more appropriate for those future versions of the SDK
+  sdk: '>=2.1.0-dev.9.2 <2.3.0'
 dependencies:
-  analysis_server_client: ^1.1.0
+  # pin to an exact version of analysis_server_client because the edit.dartfix protocol
+  # is experimental and will continue to evolve
+  analysis_server_client: 1.1.1
   args: ^1.4.0
   cli_util: ^0.1.3
   path: ^1.6.0

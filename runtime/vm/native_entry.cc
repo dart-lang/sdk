@@ -296,8 +296,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
               reinterpret_cast<uword>(LinkNativeCall),
               Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments)));
 #endif
-      ASSERT(current_trampoline.raw() ==
-             StubCode::CallBootstrapNative_entry()->code());
+      ASSERT(current_trampoline.raw() == StubCode::CallBootstrapNative().raw());
     }
 #endif
 
@@ -333,7 +332,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     } else {
       Code& trampoline = Code::Handle(zone);
       if (is_bootstrap_native) {
-        trampoline = StubCode::CallBootstrapNative_entry()->code();
+        trampoline = StubCode::CallBootstrapNative().raw();
 #if defined(USING_SIMULATOR)
         patch_target_function = reinterpret_cast<NativeFunction>(
             Simulator::RedirectExternalReference(
@@ -341,9 +340,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                 Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
 #endif  // defined USING_SIMULATOR
       } else if (is_auto_scope) {
-        trampoline = StubCode::CallAutoScopeNative_entry()->code();
+        trampoline = StubCode::CallAutoScopeNative().raw();
       } else {
-        trampoline = StubCode::CallNoScopeNative_entry()->code();
+        trampoline = StubCode::CallNoScopeNative().raw();
       }
       CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                      patch_target_function, trampoline);

@@ -165,8 +165,8 @@ class FileStat {
     if (Platform.isWindows) {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
-    return _File._dispatchWithNamespace(_IOService.fileStat, [null, path]).then(
-        (response) {
+    return _File._dispatchWithNamespace(_IOService.fileStat, [null, path])
+        .then((response) {
       if (_isErrorResponse(response)) {
         return FileStat._notFound;
       }
@@ -846,7 +846,7 @@ abstract class FileSystemEntity {
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
-    if (path is! String) return path;
+    if (path == null) return path;
     if (Platform.isWindows) {
       while (path.length > 1 &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
@@ -863,7 +863,7 @@ abstract class FileSystemEntity {
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _ensureTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
-    if (path is! String) return path;
+    if (path == null) return path;
     if (path.isEmpty) path = '.';
     if (Platform.isWindows) {
       while (!path.endsWith(Platform.pathSeparator) && !path.endsWith('/')) {

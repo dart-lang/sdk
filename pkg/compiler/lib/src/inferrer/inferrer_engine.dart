@@ -19,7 +19,7 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_model/element_map.dart';
 import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
-import '../native/behavior.dart' as native;
+import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../types/abstract_value_domain.dart';
@@ -216,8 +216,8 @@ abstract class InferrerEngine {
   TypeInformation typeOfParameter(Local element);
 
   /// Returns the type for [nativeBehavior]. See documentation on
-  /// [native.NativeBehavior].
-  TypeInformation typeOfNativeBehavior(native.NativeBehavior nativeBehavior);
+  /// [NativeBehavior].
+  TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
 
   bool returnsListElementType(Selector selector, AbstractValue mask);
 
@@ -346,14 +346,14 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  TypeInformation typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
+  TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return types.dynamicType;
     TypeInformation returnType;
     for (var type in typesReturned) {
       TypeInformation mappedType;
-      if (type == native.SpecialType.JsObject) {
+      if (type == SpecialType.JsObject) {
         mappedType = types.nonNullExact(commonElements.objectClass);
       } else if (type == commonElements.stringType) {
         mappedType = types.stringType;

@@ -254,8 +254,6 @@ RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
 }
 
 RawObject* ConstantEvaluator::EvaluateAnnotations() {
-  BailoutIfBackgroundCompilation();
-
   intptr_t list_length = helper_->ReadListLength();  // read list length.
   const Array& metadata_values =
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
@@ -858,6 +856,10 @@ void ConstantEvaluator::EvaluateNullLiteral() {
 }
 
 void ConstantEvaluator::EvaluateConstantExpression() {
+  // Please note that this constants array is constructed exactly once, see
+  // ReadConstantTable() and is immutable from that point on, so there is no
+  // need to guard against concurrent access between mutator and background
+  // compiler.
   KernelConstantsMap constant_map(H.constants().raw());
   result_ ^= constant_map.GetOrDie(helper_->ReadUInt());
   ASSERT(constant_map.Release().raw() == H.constants().raw());
@@ -872,7 +874,7 @@ const Object& ConstantEvaluator::RunFunction(TokenPosition position,
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (FLAG_strong && FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -954,7 +956,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
   // we should never end up evaluating constants using the VM's constant
   // evaluator.
-  if (FLAG_strong && FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
     UNREACHABLE();
   }
 
@@ -1042,13 +1044,16 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
-  KernelConstantsMap constants(script_.compile_time_constants());
-  *value ^= constants.GetOrNull(kernel_offset + helper_->data_program_offset_,
-                                &is_present);
-  // Mutator compiler thread may add constants while background compiler
-  // is running, and thus change the value of 'compile_time_constants';
-  // do not assert that 'compile_time_constants' has not changed.
-  constants.Release();
+  {
+    // Any access to constants arrays must be locked since mutator and
+    // background compiler can access the array at the same time.
+    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+
+    KernelConstantsMap constants(script_.compile_time_constants());
+    *value ^= constants.GetOrNull(kernel_offset + helper_->data_program_offset_,
+                                  &is_present);
+    constants.Release();
+  }
   return is_present;
 }
 
@@ -1071,10 +1076,16 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
     script_.set_compile_time_constants(array);
   }
-  KernelConstantsMap constants(script_.compile_time_constants());
-  constants.InsertNewOrGetValue(kernel_offset + helper_->data_program_offset_,
-                                value);
-  script_.set_compile_time_constants(constants.Release());
+  {
+    // Any access to constants arrays must be locked since mutator and
+    // background compiler can access the array at the same time.
+    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+
+    KernelConstantsMap constants(script_.compile_time_constants());
+    constants.InsertNewOrGetValue(kernel_offset + helper_->data_program_offset_,
+                                  value);
+    script_.set_compile_time_constants(constants.Release());
+  }
 }
 
 ConstantHelper::ConstantHelper(Zone* zone,

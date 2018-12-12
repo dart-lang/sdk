@@ -30,7 +30,7 @@ DECLARE_FLAG(bool, trace_constant_propagation);
 void RangeAnalysis::Analyze() {
   CollectValues();
   InsertConstraints();
-  DiscoverSimpleInductionVariables();
+  flow_graph_->GetLoopHierarchy().ComputeInduction();
   InferRanges();
   EliminateRedundantBoundsChecks();
   MarkUnreachableBlocks();
@@ -43,172 +43,12 @@ void RangeAnalysis::Analyze() {
   RemoveConstraints();
 }
 
+// Helper method to chase to a constrained definition.
 static Definition* UnwrapConstraint(Definition* defn) {
   while (defn->IsConstraint()) {
     defn = defn->AsConstraint()->value()->definition();
   }
   return defn;
-}
-
-// Simple induction variable is a variable that satisfies the following pattern:
-//
-//                         v1 <- phi(v0, v1 + 1)
-//
-// If there are two simple induction variables in the same block and one of
-// them is constrained - then another one is constrained as well, e.g.
-// from
-//
-//                        B1:
-//                         v3 <- phi(v0, v3 + 1)
-//                         v4 <- phi(v2, v4 + 1)
-//                        Bx:
-//                         v3 is constrained to [v0, v1]
-//
-// it follows that
-//
-//                        Bx:
-//                         v4 is constrained to [v2, v2 + (v0 - v1)]
-//
-// This pass essentially pattern matches induction variables introduced
-// like this:
-//
-//                  for (var i = i0, j = j0; i < L; i++, j++) {
-//                      j is known to be within [j0, j0 + (L - i0 - 1)]
-//                  }
-//
-class InductionVariableInfo : public ZoneAllocated {
- public:
-  InductionVariableInfo(PhiInstr* phi,
-                        Definition* initial_value,
-                        BinarySmiOpInstr* increment,
-                        ConstraintInstr* limit)
-      : phi_(phi),
-        initial_value_(initial_value),
-        increment_(increment),
-        limit_(limit),
-        bound_(NULL) {}
-
-  PhiInstr* phi() const { return phi_; }
-  Definition* initial_value() const { return initial_value_; }
-  BinarySmiOpInstr* increment() const { return increment_; }
-
-  // Outermost constraint that constrains this induction variable into
-  // [-inf, X] range.
-  ConstraintInstr* limit() const { return limit_; }
-
-  // Induction variable from the same join block that has limiting constraint.
-  PhiInstr* bound() const { return bound_; }
-  void set_bound(PhiInstr* bound) { bound_ = bound; }
-
- private:
-  PhiInstr* phi_;
-  Definition* initial_value_;
-  BinarySmiOpInstr* increment_;
-  ConstraintInstr* limit_;
-
-  PhiInstr* bound_;
-};
-
-static ConstraintInstr* FindBoundingConstraint(PhiInstr* phi,
-                                               Definition* defn) {
-  ConstraintInstr* limit = NULL;
-  for (ConstraintInstr* constraint = defn->AsConstraint(); constraint != NULL;
-       constraint = constraint->value()->definition()->AsConstraint()) {
-    if (constraint->target() == NULL) {
-      continue;  // Only interested in non-artifical constraints.
-    }
-
-    Range* constraining_range = constraint->constraint();
-    if (constraining_range->min().Equals(RangeBoundary::MinSmi()) &&
-        (constraining_range->max().IsSymbol() &&
-         phi->IsDominatedBy(constraining_range->max().symbol()))) {
-      limit = constraint;
-    }
-  }
-
-  return limit;
-}
-
-static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
-  if (phi->Type()->ToCid() != kSmiCid) {
-    return NULL;
-  }
-
-  if (phi->InputCount() != 2) {
-    return NULL;
-  }
-
-  BitVector* loop_blocks = phi->block()->loop_info()->blocks();
-
-  const intptr_t backedge_idx =
-      loop_blocks->Contains(phi->block()->PredecessorAt(0)->preorder_number())
-          ? 0
-          : 1;
-
-  Definition* initial_value = phi->InputAt(1 - backedge_idx)->definition();
-
-  BinarySmiOpInstr* increment =
-      UnwrapConstraint(phi->InputAt(backedge_idx)->definition())
-          ->AsBinarySmiOp();
-
-  if ((increment != NULL) && (increment->op_kind() == Token::kADD) &&
-      (UnwrapConstraint(increment->left()->definition()) == phi) &&
-      increment->right()->BindsToConstant() &&
-      increment->right()->BoundConstant().IsSmi() &&
-      (Smi::Cast(increment->right()->BoundConstant()).Value() == 1)) {
-    return new InductionVariableInfo(
-        phi, initial_value, increment,
-        FindBoundingConstraint(phi, increment->left()->definition()));
-  }
-
-  return NULL;
-}
-
-// TODO(ajcbik): move induction variable recognition in loop framework
-void RangeAnalysis::DiscoverSimpleInductionVariables() {
-  GrowableArray<InductionVariableInfo*> loop_variables;
-
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-
-    JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL && join->loop_info() != NULL &&
-        join->loop_info()->header() == join) {
-      loop_variables.Clear();
-
-      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
-        PhiInstr* current = phi_it.Current();
-
-        InductionVariableInfo* info = DetectSimpleInductionVariable(current);
-        if (info != NULL) {
-          if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-            THR_Print("Simple loop variable: %s bound <%s>\n",
-                      current->ToCString(),
-                      info->limit() != NULL ? info->limit()->ToCString() : "?");
-          }
-
-          loop_variables.Add(info);
-        }
-      }
-    }
-
-    InductionVariableInfo* bound = NULL;
-    for (intptr_t i = 0; i < loop_variables.length(); i++) {
-      if (loop_variables[i]->limit() != NULL) {
-        bound = loop_variables[i];
-        break;
-      }
-    }
-
-    if (bound != NULL) {
-      for (intptr_t i = 0; i < loop_variables.length(); i++) {
-        InductionVariableInfo* info = loop_variables[i];
-        info->set_bound(bound->phi());
-        info->phi()->set_induction_variable_info(info);
-      }
-    }
-  }
 }
 
 void RangeAnalysis::CollectValues() {
@@ -266,7 +106,8 @@ void RangeAnalysis::CollectValues() {
             shift_int64_ops_.Add(defn->AsShiftIntegerOp());
           }
         }
-      } else if (current->IsCheckArrayBound()) {
+      }
+      if (current->IsCheckArrayBound()) {
         bounds_checks_.Add(current->AsCheckArrayBound());
       }
     }
@@ -999,6 +840,9 @@ class BoundsCheckGeneralizer {
     // certain preconditions. Start by emitting this preconditions.
     scheduler_.Start();
 
+    // AOT should only see non-deopting GenericCheckBound.
+    ASSERT(!FLAG_precompiled_mode);
+
     ConstantInstr* max_smi =
         flow_graph_->GetConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
     for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
@@ -1048,6 +892,7 @@ class BoundsCheckGeneralizer {
     if (binary_op != NULL) {
       binary_op->set_can_overflow(false);
     }
+    check->ReplaceUsesWith(check->index()->definition());
     check->RemoveFromGraph();
   }
 
@@ -1077,6 +922,8 @@ class BoundsCheckGeneralizer {
   }
 
   typedef Definition* (BoundsCheckGeneralizer::*PhiBoundFunc)(PhiInstr*,
+                                                              LoopInfo*,
+                                                              InductionVar*,
                                                               Instruction*);
 
   // Construct symbolic lower bound for a value at the given point.
@@ -1089,6 +936,52 @@ class BoundsCheckGeneralizer {
   Definition* ConstructUpperBound(Definition* value, Instruction* point) {
     return ConstructBound(&BoundsCheckGeneralizer::InductionVariableUpperBound,
                           value, point);
+  }
+
+  // Helper methods to implement "older" business logic.
+  // TODO(ajcbik): generalize with new induction variable information
+
+  // Only accept loops with a smi constraint on smi induction.
+  LoopInfo* GetSmiBoundedLoop(PhiInstr* phi) {
+    LoopInfo* loop = phi->GetBlock()->loop_info();
+    if (loop == nullptr) {
+      return nullptr;
+    }
+    ConstraintInstr* limit = loop->limit();
+    if (limit == nullptr) {
+      return nullptr;
+    }
+    Definition* def = UnwrapConstraint(limit->value()->definition());
+    Range* constraining_range = limit->constraint();
+    if (GetSmiInduction(loop, def) != nullptr &&
+        constraining_range->min().Equals(RangeBoundary::MinSmi()) &&
+        constraining_range->max().IsSymbol() &&
+        def->IsDominatedBy(constraining_range->max().symbol())) {
+      return loop;
+    }
+    return nullptr;
+  }
+
+  // Only accept smi linear induction with unit stride.
+  InductionVar* GetSmiInduction(LoopInfo* loop, Definition* def) {
+    if (loop != nullptr && def->Type()->ToCid() == kSmiCid) {
+      InductionVar* induc = loop->LookupInduction(def);
+      if (induc != nullptr && induc->kind() == InductionVar::kLinear &&
+          induc->next()->offset() == 1 && induc->next()->mult() == 0) {
+        return induc;
+      }
+    }
+    return nullptr;
+  }
+
+  // Reconstruct invariant (phi-init is always already in the graph).
+  Definition* GenerateInvariant(InductionVar* induc) {
+    if (induc->mult() == 0) {
+      return flow_graph_->GetConstant(
+          Smi::ZoneHandle(Smi::New(induc->offset())));
+    }
+    ASSERT(induc->offset() == 0 && induc->mult() == 1);
+    return induc->def();
   }
 
   // Construct symbolic bound for a value at the given point:
@@ -1109,8 +1002,10 @@ class BoundsCheckGeneralizer {
     value = UnwrapConstraint(value);
     if (value->IsPhi()) {
       PhiInstr* phi = value->AsPhi();
-      if (phi->induction_variable_info() != NULL) {
-        return (this->*phi_bound_func)(phi, point);
+      LoopInfo* loop = GetSmiBoundedLoop(phi);
+      InductionVar* induc = GetSmiInduction(loop, phi);
+      if (induc != nullptr) {
+        return (this->*phi_bound_func)(phi, loop, induc, point);
       }
     } else if (value->IsBinarySmiOp()) {
       BinarySmiOpInstr* bin_op = value->AsBinarySmiOp();
@@ -1131,58 +1026,61 @@ class BoundsCheckGeneralizer {
         }
       }
     }
-
     return value;
   }
 
-  Definition* InductionVariableUpperBound(PhiInstr* phi, Instruction* point) {
-    const InductionVariableInfo& info = *phi->induction_variable_info();
-    if (info.bound() == phi) {
-      if (point->IsDominatedBy(info.limit())) {
-        // Given induction variable
-        //
-        //          x <- phi(x0, x + 1)
-        //
-        // and a constraint x <= M that dominates the given
-        // point we conclude that M is an upper bound for x.
-        return RangeBoundaryToDefinition(info.limit()->constraint()->max());
-      }
-    } else {
-      const InductionVariableInfo& bound_info =
-          *info.bound()->induction_variable_info();
-      if (point->IsDominatedBy(bound_info.limit())) {
-        // Given two induction variables
-        //
-        //          x <- phi(x0, x + 1)
-        //          y <- phi(y0, y + 1)
-        //
-        // and a constraint x <= M that dominates the given
-        // point we can conclude that
-        //
-        //          y <= y0 + (M - x0)
-        //
-        Definition* limit =
-            RangeBoundaryToDefinition(bound_info.limit()->constraint()->max());
-        BinarySmiOpInstr* loop_length = MakeBinaryOp(
-            Token::kSUB, ConstructUpperBound(limit, point),
-            ConstructLowerBound(bound_info.initial_value(), point));
-        return MakeBinaryOp(Token::kADD,
-                            ConstructUpperBound(info.initial_value(), point),
-                            loop_length);
-      }
+  Definition* InductionVariableUpperBound(PhiInstr* phi,
+                                          LoopInfo* loop,
+                                          InductionVar* induc,
+                                          Instruction* point) {
+    // Test if limit dominates given point.
+    ConstraintInstr* limit = loop->limit();
+    if (!point->IsDominatedBy(limit)) {
+      return phi;
     }
-
-    return phi;
+    // Decide between direct or indirect bound.
+    Definition* bounded_phi = UnwrapConstraint(limit->value()->definition());
+    if (bounded_phi == phi) {
+      // Given a smi bounded loop with smi induction variable
+      //
+      //          x <- phi(x0, x + 1)
+      //
+      // and a constraint x <= M that dominates the given
+      // point we conclude that M is an upper bound for x.
+      return RangeBoundaryToDefinition(limit->constraint()->max());
+    } else {
+      // Given a smi bounded loop with two smi induction variables
+      //
+      //          x <- phi(x0, x + 1)
+      //          y <- phi(y0, y + 1)
+      //
+      // and a constraint x <= M that dominates the given
+      // point we can conclude that
+      //
+      //          y <= y0 + (M - x0)
+      //
+      InductionVar* bounded_induc = GetSmiInduction(loop, bounded_phi);
+      Definition* x0 = GenerateInvariant(bounded_induc->initial());
+      Definition* y0 = GenerateInvariant(induc->initial());
+      Definition* m = RangeBoundaryToDefinition(limit->constraint()->max());
+      BinarySmiOpInstr* loop_length =
+          MakeBinaryOp(Token::kSUB, ConstructUpperBound(m, point),
+                       ConstructLowerBound(x0, point));
+      return MakeBinaryOp(Token::kADD, ConstructUpperBound(y0, point),
+                          loop_length);
+    }
   }
 
-  Definition* InductionVariableLowerBound(PhiInstr* phi, Instruction* point) {
-    // Given induction variable
+  Definition* InductionVariableLowerBound(PhiInstr* phi,
+                                          LoopInfo* loop,
+                                          InductionVar* induc,
+                                          Instruction* point) {
+    // Given a smi bounded loop with smi induction variable
     //
     //          x <- phi(x0, x + 1)
     //
     // we can conclude that LowerBound(x) == x0.
-    const InductionVariableInfo& info = *phi->induction_variable_info();
-    return ConstructLowerBound(info.initial_value(), point);
+    return ConstructLowerBound(GenerateInvariant(induc->initial()), point);
   }
 
   // Try to re-associate binary operations in the floating DAG of operations
@@ -1449,6 +1347,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) {
+        check->ReplaceUsesWith(check->index()->definition());
         check->RemoveFromGraph();
       } else if (try_generalization) {
         generalizer.TryGeneralize(check, array_length);

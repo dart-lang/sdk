@@ -49,34 +49,12 @@ DEFINE_FLAG(bool,
             "Trace debugger stacktrace collection");
 DEFINE_FLAG(bool, trace_rewind, false, "Trace frame rewind");
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
-DEFINE_FLAG(bool,
-            steal_breakpoints,
-            false,
-            "Intercept breakpoints and other pause events before they "
-            "are sent to the embedder and use a generic VM breakpoint "
-            "handler instead.  This handler dispatches breakpoints to "
-            "the VM service.");
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 #ifndef PRODUCT
-
-Debugger::EventHandler* Debugger::event_handler_ = NULL;
-
-class RemoteObjectCache : public ZoneAllocated {
- public:
-  explicit RemoteObjectCache(intptr_t initial_size);
-  intptr_t AddObject(const Object& obj);
-  RawObject* GetObj(intptr_t obj_id) const;
-  bool IsValidId(intptr_t obj_id) const { return obj_id < objs_->Length(); }
-
- private:
-  GrowableObjectArray* objs_;
-
-  DISALLOW_COPY_AND_ASSIGN(RemoteObjectCache);
-};
 
 // Create an unresolved breakpoint in given token range and script.
 BreakpointLocation::BreakpointLocation(const Script& script,
@@ -320,25 +298,18 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return (!Isolate::IsVMInternalIsolate(isolate_) &&
-          ((event_handler_ != NULL) || Service::isolate_stream.enabled()));
+  return !Isolate::IsVMInternalIsolate(isolate_) &&
+         Service::isolate_stream.enabled();
 }
 
 bool Debugger::NeedsDebugEvents() {
   ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
-  return (FLAG_warn_on_pause_with_no_debugger || (event_handler_ != NULL) ||
-          Service::debug_stream.enabled());
+  return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
 
 void Debugger::InvokeEventHandler(ServiceEvent* event) {
   ASSERT(!event->IsPause());  // For pause events, call Pause instead.
   Service::HandleEvent(event);
-
-  // Call the embedder's event handler, if it exists.
-  if (event_handler_ != NULL) {
-    TransitionVMToNative transition(Thread::Current());
-    (*event_handler_)(event);
-  }
 }
 
 RawError* Debugger::PauseInterrupted() {
@@ -1637,31 +1608,8 @@ void CodeBreakpoint::Disable() {
   ASSERT(!is_enabled_);
 }
 
-RemoteObjectCache::RemoteObjectCache(intptr_t initial_size) {
-  objs_ =
-      &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New(initial_size));
-}
-
-intptr_t RemoteObjectCache::AddObject(const Object& obj) {
-  intptr_t len = objs_->Length();
-  for (intptr_t i = 0; i < len; i++) {
-    if (objs_->At(i) == obj.raw()) {
-      return i;
-    }
-  }
-  objs_->Add(obj);
-  return len;
-}
-
-RawObject* RemoteObjectCache::GetObj(intptr_t obj_id) const {
-  ASSERT(IsValidId(obj_id));
-  return objs_->At(obj_id);
-}
-
-Debugger::Debugger()
-    : isolate_(NULL),
-      isolate_id_(ILLEGAL_ISOLATE_ID),
-      initialized_(false),
+Debugger::Debugger(Isolate* isolate)
+    : isolate_(isolate),
       next_id_(1),
       latent_locations_(NULL),
       breakpoint_locations_(NULL),
@@ -1671,7 +1619,6 @@ Debugger::Debugger()
       post_deopt_frame_index_(-1),
       ignore_breakpoints_(false),
       pause_event_(NULL),
-      obj_cache_(NULL),
       stack_trace_(NULL),
       async_causal_stack_trace_(NULL),
       awaiter_stack_trace_(NULL),
@@ -1684,14 +1631,12 @@ Debugger::Debugger()
       exc_pause_info_(kNoPauseOnExceptions) {}
 
 Debugger::~Debugger() {
-  isolate_id_ = ILLEGAL_ISOLATE_ID;
   ASSERT(!IsPaused());
   ASSERT(latent_locations_ == NULL);
   ASSERT(breakpoint_locations_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
   ASSERT(async_causal_stack_trace_ == NULL);
-  ASSERT(obj_cache_ == NULL);
   ASSERT(synthetic_async_breakpoint_ == NULL);
 }
 
@@ -2037,7 +1982,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
         break;
       }
       if (async_stack_trace.CodeAtFrame(i) ==
-          StubCode::AsynchronousGapMarker_entry()->code()) {
+          StubCode::AsynchronousGapMarker().raw()) {
         stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
         // The frame immediately below the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -2251,7 +2196,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         break;
       }
       if (async_stack_trace.CodeAtFrame(i) ==
-          StubCode::AsynchronousGapMarker_entry()->code()) {
+          StubCode::AsynchronousGapMarker().raw()) {
         stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
         // The frame immediately below the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
@@ -3139,198 +3084,6 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   return bpt;
 }
 
-intptr_t Debugger::CacheObject(const Object& obj) {
-  ASSERT(obj_cache_ != NULL);
-  return obj_cache_->AddObject(obj);
-}
-
-bool Debugger::IsValidObjectId(intptr_t obj_id) {
-  ASSERT(obj_cache_ != NULL);
-  return obj_cache_->IsValidId(obj_id);
-}
-
-RawObject* Debugger::GetCachedObject(intptr_t obj_id) {
-  ASSERT(obj_cache_ != NULL);
-  return obj_cache_->GetObj(obj_id);
-}
-
-// TODO(hausner): Merge some of this functionality with the code in
-// dart_api_impl.cc.
-RawObject* Debugger::GetInstanceField(const Class& cls,
-                                      const String& field_name,
-                                      const Instance& object) {
-  const Function& getter_func =
-      Function::Handle(cls.LookupGetterFunction(field_name));
-  ASSERT(!getter_func.IsNull());
-
-  PassiveObject& result = PassiveObject::Handle();
-  bool saved_ignore_flag = ignore_breakpoints_;
-  ignore_breakpoints_ = true;
-
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, object);
-    result = DartEntry::InvokeFunction(getter_func, args);
-  } else {
-    result = Thread::Current()->sticky_error();
-  }
-  ignore_breakpoints_ = saved_ignore_flag;
-  return result.raw();
-}
-
-RawObject* Debugger::GetStaticField(const Class& cls,
-                                    const String& field_name) {
-  const Field& fld =
-      Field::Handle(cls.LookupStaticFieldAllowPrivate(field_name));
-  if (!fld.IsNull()) {
-    // Return the value in the field if it has been initialized already.
-    const Instance& value = Instance::Handle(fld.StaticValue());
-    ASSERT(value.raw() != Object::transition_sentinel().raw());
-    if (value.raw() != Object::sentinel().raw()) {
-      return value.raw();
-    }
-  }
-  // There is no field or the field has not been initialized yet.
-  // We must have a getter. Run the getter.
-  const Function& getter_func =
-      Function::Handle(cls.LookupGetterFunction(field_name));
-  ASSERT(!getter_func.IsNull());
-  if (getter_func.IsNull()) {
-    return Object::null();
-  }
-
-  PassiveObject& result = PassiveObject::Handle();
-  bool saved_ignore_flag = ignore_breakpoints_;
-  ignore_breakpoints_ = true;
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    result = DartEntry::InvokeFunction(getter_func, Object::empty_array());
-  } else {
-    result = Thread::Current()->sticky_error();
-  }
-  ignore_breakpoints_ = saved_ignore_flag;
-  return result.raw();
-}
-
-RawArray* Debugger::GetInstanceFields(const Instance& obj) {
-  Class& cls = Class::Handle(obj.clazz());
-  Array& fields = Array::Handle();
-  Field& field = Field::Handle();
-  const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  String& field_name = String::Handle();
-  PassiveObject& field_value = PassiveObject::Handle();
-  // Iterate over fields in class hierarchy to count all instance fields.
-  while (!cls.IsNull()) {
-    fields = cls.fields();
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      field ^= fields.At(i);
-      if (!field.is_static()) {
-        field_name = field.name();
-        field_list.Add(field_name);
-        field_value = GetInstanceField(cls, field_name, obj);
-        field_list.Add(field_value);
-      }
-    }
-    cls = cls.SuperClass();
-  }
-  return Array::MakeFixedLength(field_list);
-}
-
-RawArray* Debugger::GetStaticFields(const Class& cls) {
-  const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  Array& fields = Array::Handle(cls.fields());
-  Field& field = Field::Handle();
-  String& field_name = String::Handle();
-  PassiveObject& field_value = PassiveObject::Handle();
-  for (intptr_t i = 0; i < fields.Length(); i++) {
-    field ^= fields.At(i);
-    if (field.is_static()) {
-      field_name = field.name();
-      field_value = GetStaticField(cls, field_name);
-      field_list.Add(field_name);
-      field_list.Add(field_value);
-    }
-  }
-  return Array::MakeFixedLength(field_list);
-}
-
-void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
-                                    const Library& lib,
-                                    const String& prefix,
-                                    bool include_private_fields) {
-  DictionaryIterator it(lib);
-  Zone* zone = Thread::Current()->zone();
-  Object& entry = Object::Handle(zone);
-  Field& field = Field::Handle(zone);
-  String& field_name = String::Handle(zone);
-  PassiveObject& field_value = PassiveObject::Handle(zone);
-  while (it.HasNext()) {
-    entry = it.GetNext();
-    if (entry.IsField()) {
-      field ^= entry.raw();
-      ASSERT(field.is_static());
-      field_name = field.name();
-      if ((field_name.CharAt(0) == '_') && !include_private_fields) {
-        // Skip library-private field.
-        continue;
-      }
-      // If the field is not initialized yet, report the value to be
-      // "<not initialized>". We don't want to execute the implicit getter
-      // since it may have side effects.
-      if ((field.StaticValue() == Object::sentinel().raw()) ||
-          (field.StaticValue() == Object::transition_sentinel().raw())) {
-        field_value = Symbols::NotInitialized().raw();
-      } else {
-        field_value = field.StaticValue();
-      }
-      if (!prefix.IsNull()) {
-        field_name = String::Concat(prefix, field_name);
-      }
-      field_list.Add(field_name);
-      field_list.Add(field_value);
-    }
-  }
-}
-
-RawArray* Debugger::GetLibraryFields(const Library& lib) {
-  Zone* zone = Thread::Current()->zone();
-  const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  CollectLibraryFields(field_list, lib, String::Handle(zone), true);
-  return Array::MakeFixedLength(field_list);
-}
-
-RawArray* Debugger::GetGlobalFields(const Library& lib) {
-  Zone* zone = Thread::Current()->zone();
-  const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New(8));
-  String& prefix_name = String::Handle(zone);
-  CollectLibraryFields(field_list, lib, prefix_name, true);
-  Library& imported = Library::Handle(zone);
-  intptr_t num_imports = lib.num_imports();
-  for (intptr_t i = 0; i < num_imports; i++) {
-    imported = lib.ImportLibraryAt(i);
-    ASSERT(!imported.IsNull());
-    CollectLibraryFields(field_list, imported, prefix_name, false);
-  }
-  LibraryPrefix& prefix = LibraryPrefix::Handle(zone);
-  LibraryPrefixIterator it(lib);
-  while (it.HasNext()) {
-    prefix = it.GetNext();
-    prefix_name = prefix.name();
-    ASSERT(!prefix_name.IsNull());
-    prefix_name = String::Concat(prefix_name, Symbols::Dot());
-    for (int32_t i = 0; i < prefix.num_imports(); i++) {
-      imported = prefix.GetLibrary(i);
-      CollectLibraryFields(field_list, imported, prefix_name, false);
-    }
-  }
-  return Array::MakeFixedLength(field_list);
-}
-
 // static
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
@@ -3352,20 +3105,13 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_frame_awaiter_));
 }
 
-// static
-void Debugger::SetEventHandler(EventHandler* handler) {
-  event_handler_ = handler;
-}
-
 void Debugger::Pause(ServiceEvent* event) {
   ASSERT(event->IsPause());      // Should call InvokeEventHandler instead.
   ASSERT(!ignore_breakpoints_);  // We shouldn't get here when ignoring bpts.
   ASSERT(!IsPaused());           // No recursive pausing.
-  ASSERT(obj_cache_ == NULL);
 
   pause_event_ = event;
   pause_event_->UpdateTimestamp();
-  obj_cache_ = new RemoteObjectCache(64);
 
   // We are about to invoke the debugger's event handler. Disable
   // interrupts for this thread while waiting for debug commands over
@@ -3380,13 +3126,8 @@ void Debugger::Pause(ServiceEvent* event) {
     Service::HandleEvent(event);
 
     {
-      TransitionVMToNative transition(Thread::Current());
-      if (FLAG_steal_breakpoints || (event_handler_ == NULL)) {
-        // We allow the embedder's default breakpoint handler to be overridden.
-        isolate_->PauseEventHandler();
-      } else if (event_handler_ != NULL) {
-        (*event_handler_)(event);
-      }
+      TransitionVMToNative transition(thread);
+      isolate_->PauseEventHandler();
     }
 
     // Notify the service that we have resumed.
@@ -3406,7 +3147,6 @@ void Debugger::Pause(ServiceEvent* event) {
     RemoveUnlinkedCodeBreakpoints();
   }
   pause_event_ = NULL;
-  obj_cache_ = NULL;  // Zone allocated
 }
 
 void Debugger::EnterSingleStepMode() {
@@ -3722,7 +3462,7 @@ void Debugger::RewindToOptimizedFrame(StackFrame* frame,
   }
   Thread* thread = Thread::Current();
   thread->set_resume_pc(frame->pc());
-  uword deopt_stub_pc = StubCode::DeoptForRewind_entry()->EntryPoint();
+  uword deopt_stub_pc = StubCode::DeoptForRewind().EntryPoint();
   Exceptions::JumpToFrame(thread, deopt_stub_pc, frame->sp(), frame->fp(),
                           true /* clear lazy deopt at target */);
   UNREACHABLE();
@@ -3785,7 +3525,6 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   ResetSteppingFramePointers();
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
-  ASSERT(obj_cache_ == NULL);
   if ((bpt != NULL) && bpt->IsSingleShot()) {
     RemoveBreakpoint(bpt->id());
     bpt = NULL;
@@ -4047,19 +3786,6 @@ void Debugger::PauseDeveloper(const String& msg) {
   SetResumeAction(kStepOut);
   HandleSteppingRequest(stack_trace_);
   ClearCachedStackTraces();
-}
-
-void Debugger::Initialize(Isolate* isolate) {
-  if (initialized_) {
-    return;
-  }
-  isolate_ = isolate;
-
-  // Use the isolate's control port as the isolate_id for debugging.
-  // This port will be used as a unique ID to represent the isolate in
-  // the debugger embedder api.
-  isolate_id_ = isolate_->main_port();
-  initialized_ = true;
 }
 
 void Debugger::NotifyIsolateCreated() {

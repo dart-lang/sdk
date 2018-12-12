@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
 import 'package:front_end/src/fasta/parser/type_info_impl.dart';
-import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/scanner.dart' hide scanString;
+import 'package:front_end/src/fasta/scanner/recover.dart'
+    show defaultRecoveryStrategy;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,6 +28,35 @@ main() {
     defineReflectiveTests(SimpleTypeParamOrArgTest);
     defineReflectiveTests(TypeParamOrArgInfoTest);
   });
+}
+
+/// TODO(danrubel): Remove this and use scanner.dart scanString
+/// once support for `>>>` is permanently enabled.
+///
+/// Scan/tokenize the given [source].
+/// If [recover] is null, then the [defaultRecoveryStrategy] is used.
+ScannerResult scanString(String source,
+    {bool includeComments: false,
+    bool scanLazyAssignmentOperators: false,
+    Recover recover}) {
+  assert(source != null, 'source must not be null');
+  StringScanner scanner =
+      new StringScanner(source, includeComments: includeComments)
+        ..enableGtGtGt = true;
+  return _tokenizeAndRecover(scanner, recover, source: source);
+}
+
+/// TODO(danrubel): Remove this once support for `>>>` is permanently enabled.
+ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
+    {List<int> bytes, String source}) {
+  Token tokens = scanner.tokenize();
+  if (scanner.hasErrors) {
+    if (bytes == null) bytes = utf8.encode(source);
+    recover ??= defaultRecoveryStrategy;
+    tokens = recover(bytes, tokens, scanner.lineStarts);
+  }
+  return new ScannerResult(
+      tokens, scanner.lineStarts, scanner.hasErrors, scanner.errors);
 }
 
 @reflectiveTest
@@ -1250,6 +1283,39 @@ class TypeParamOrArgInfoTest {
           'handleType S',
           'endTypeArguments 1 < >'
         ]);
+    expectComplexTypeArg('<S<T<U>>>', typeArgumentCount: 1, expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier U typeReference',
+      'handleNoTypeArguments >>>',
+      'handleType U',
+      'endTypeArguments 1 < >',
+      'handleType T',
+      'endTypeArguments 1 < >',
+      'handleType S',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeArg('<S<T<U,V>>>', typeArgumentCount: 1, expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier U typeReference',
+      'handleNoTypeArguments ,',
+      'handleType U',
+      'handleIdentifier V typeReference',
+      'handleNoTypeArguments >>>',
+      'handleType V',
+      'endTypeArguments 2 < >',
+      'handleType T',
+      'endTypeArguments 1 < >',
+      'handleType S',
+      'endTypeArguments 1 < >'
+    ]);
     expectComplexTypeArg('<S<Function()>>',
         typeArgumentCount: 1,
         expectedCalls: [
@@ -1295,6 +1361,26 @@ class TypeParamOrArgInfoTest {
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
+    expectComplexTypeArg('<S<T<void Function()>>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleVoidKeyword void', // was 'handleNoType <'
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >',
+          'handleType T',
           'endTypeArguments 1 < >',
           'handleType S',
           'endTypeArguments 1 < >'
@@ -1751,10 +1837,36 @@ class TypeParamOrArgInfoTest {
           'handleIdentifier List typeReference',
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
-          'handleNoTypeArguments >',
+          'handleNoTypeArguments >>>',
           'handleType T',
           'endTypeArguments 1 < >',
           'handleType List',
+          'endTypeArguments 1 < >',
+          'handleType List',
+          'endTypeVariable > 0 extends',
+          'endTypeVariables < >'
+        ]);
+    expectComplexTypeParam('<T extends List<Map<S, T>>>',
+        typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined > 1',
+          'handleIdentifier List typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier Map typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments ,',
+          'handleType S',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >>>',
+          'handleType T',
+          'endTypeArguments 2 < >',
+          'handleType Map',
           'endTypeArguments 1 < >',
           'handleType List',
           'endTypeVariable > 0 extends',

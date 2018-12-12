@@ -493,40 +493,44 @@ class BinaryBuilder {
   }
 
   void _checkCanonicalNameChildren(CanonicalName parent) {
-    for (CanonicalName child in parent.children) {
-      if (child.name != '@methods' &&
-          child.name != '@typedefs' &&
-          child.name != '@fields' &&
-          child.name != '@getters' &&
-          child.name != '@setters' &&
-          child.name != '@factories' &&
-          child.name != '@constructors') {
-        bool checkReferenceNode = true;
-        if (child.reference == null) {
-          // OK for "if private: URI of library" part of "Qualified name"...
-          Iterable<CanonicalName> children = child.children;
-          if (parent.parent != null &&
-              children.isNotEmpty &&
-              children.first.name.startsWith("_")) {
-            // OK then.
-            checkReferenceNode = false;
-          } else {
-            throw new CanonicalNameError(
-                "Null reference (${child.name}) ($child).");
+    Iterable<CanonicalName> parentChildren = parent.childrenOrNull;
+    if (parentChildren != null) {
+      for (CanonicalName child in parentChildren) {
+        if (child.name != '@methods' &&
+            child.name != '@typedefs' &&
+            child.name != '@fields' &&
+            child.name != '@getters' &&
+            child.name != '@setters' &&
+            child.name != '@factories' &&
+            child.name != '@constructors') {
+          bool checkReferenceNode = true;
+          if (child.reference == null) {
+            // OK for "if private: URI of library" part of "Qualified name"...
+            Iterable<CanonicalName> children = child.childrenOrNull;
+            if (parent.parent != null &&
+                children != null &&
+                children.isNotEmpty &&
+                children.first.name.startsWith("_")) {
+              // OK then.
+              checkReferenceNode = false;
+            } else {
+              throw new CanonicalNameError(
+                  "Null reference (${child.name}) ($child).");
+            }
+          }
+          if (checkReferenceNode) {
+            if (child.reference.canonicalName != child) {
+              throw new CanonicalNameError(
+                  "Canonical name and reference doesn't agree.");
+            }
+            if (child.reference.node == null) {
+              throw new CanonicalNameError(
+                  "Reference is null (${child.name}) ($child).");
+            }
           }
         }
-        if (checkReferenceNode) {
-          if (child.reference.canonicalName != child) {
-            throw new CanonicalNameError(
-                "Canonical name and reference doesn't agree.");
-          }
-          if (child.reference.node == null) {
-            throw new CanonicalNameError(
-                "Reference is null (${child.name}) ($child).");
-          }
-        }
+        _checkCanonicalNameChildren(child);
       }
-      _checkCanonicalNameChildren(child);
     }
   }
 
@@ -621,6 +625,8 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForStringTable; // Read backwards.
     _readMetadataMappings(component, index.binaryOffsetForMetadataPayloads);
 
+    _associateMetadata(component, _componentStartOffset);
+
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
     component.uriToSource.addAll(uriToSource);
@@ -637,8 +643,6 @@ class BinaryBuilder {
     var mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     component.mainMethodName ??= mainMethod;
-
-    _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
@@ -1155,7 +1159,10 @@ class BinaryBuilder {
     var flags = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+    assert(() {
+      debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+      return true;
+    }());
     var targetReference = readMemberReference();
     var typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;

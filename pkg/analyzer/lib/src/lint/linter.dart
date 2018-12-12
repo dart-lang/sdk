@@ -348,7 +348,9 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
 class Maturity implements Comparable<Maturity> {
   static const Maturity stable = const Maturity._('stable', ordinal: 0);
-  static const Maturity experimental = const Maturity._('stable', ordinal: 1);
+  static const Maturity experimental =
+      const Maturity._('experimental', ordinal: 1);
+  static const Maturity deprecated = const Maturity._('deprecated', ordinal: 2);
 
   final String name;
   final int ordinal;
@@ -359,6 +361,8 @@ class Maturity implements Comparable<Maturity> {
         return stable;
       case 'experimental':
         return experimental;
+      case 'deprecated':
+        return deprecated;
       default:
         return new Maturity._(name, ordinal: ordinal);
     }

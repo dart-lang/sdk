@@ -166,7 +166,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   ASSERT(deopt_env() != NULL);
   __ pushl(CODE_REG);
-  __ Call(*StubCode::Deoptimize_entry());
+  __ Call(StubCode::Deoptimize());
   set_pc_offset(assembler->CodeSize());
   __ int3();
 #undef __
@@ -210,21 +210,21 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     ASSERT(function_type_arguments_reg == kNoRegister);
     __ pushl(raw_null);
     __ pushl(raw_null);
-    __ Call(*StubCode::Subtype1TestCache_entry());
+    __ Call(StubCode::Subtype1TestCache());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(instantiator_type_arguments_reg == kNoRegister);
     ASSERT(function_type_arguments_reg == kNoRegister);
     __ pushl(raw_null);
     __ pushl(raw_null);
-    __ Call(*StubCode::Subtype2TestCache_entry());
+    __ Call(StubCode::Subtype2TestCache());
   } else if (test_kind == kTestTypeFourArgs) {
     __ pushl(instantiator_type_arguments_reg);
     __ pushl(function_type_arguments_reg);
-    __ Call(*StubCode::Subtype4TestCache_entry());
+    __ Call(StubCode::Subtype4TestCache());
   } else if (test_kind == kTestTypeSixArgs) {
     __ pushl(instantiator_type_arguments_reg);
     __ pushl(function_type_arguments_reg);
-    __ Call(*StubCode::Subtype6TestCache_entry());
+    __ Call(StubCode::Subtype6TestCache());
   } else {
     UNREACHABLE();
   }
@@ -498,7 +498,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!FLAG_strong || !Class::Handle(type.type_class()).IsFutureOrClass()) {
+    if (!Class::Handle(type.type_class()).IsFutureOrClass()) {
       __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
       __ j(ZERO, is_not_instance_lbl);
     }
@@ -799,7 +799,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
             Immediate(GetOptimizationThreshold()));
     ASSERT(function_reg == EBX);
-    __ J(GREATER_EQUAL, *StubCode::OptimizeFunction_entry());
+    __ J(GREATER_EQUAL, StubCode::OptimizeFunction());
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -855,22 +855,22 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
-                                     const StubEntry& stub_entry,
+                                     const Code& stub,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ Call(stub_entry);
+  __ Call(stub);
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
-  AddStubCallTarget(Code::ZoneHandle(stub_entry.code()));
+  AddStubCallTarget(stub);
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
-                                         const StubEntry& stub_entry,
+                                         const Code& stub,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          Code::EntryKind entry_kind) {
   // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
-  __ Call(stub_entry);
+  __ Call(stub);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
@@ -881,8 +881,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
   // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
-  const auto& stub_entry = *StubCode::CallStaticFunction_entry();
-  __ Call(stub_entry, true /* movable_target */);
+  const auto& stub = StubCode::CallStaticFunction();
+  __ Call(stub, true /* movable_target */);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
 }
@@ -901,10 +901,10 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
                                                   const ICData& ic_data) {
-  const StubEntry& stub_entry =
-      *StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
+  const Code& stub =
+      StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(ECX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub_entry,
+  GenerateDartCall(deopt_id, token_pos, stub,
                    RawPcDescriptors::kUnoptStaticCall, locs);
   __ Drop(count_with_type_args);
 }
@@ -921,7 +921,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(edge_id)), 1);
 }
 
-void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
+void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
                                                   const ICData& ic_data,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
@@ -937,20 +937,18 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
   // Pass the function explicitly, it is used in IC stub.
   __ LoadObject(EBX, parsed_function().function());
   __ LoadObject(ECX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
-                   locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
+void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
                                          const ICData& ic_data,
                                          intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   __ LoadObject(ECX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
-                   locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -1008,8 +1006,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
   // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
-  if (function.HasOptionalParameters() ||
-      (FLAG_reify_generic_functions && function.IsGeneric())) {
+  if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(EDX, arguments_descriptor);
   } else {
     __ xorl(EDX, EDX);  // GC safe smi zero because of stub.
@@ -1039,9 +1036,9 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ pushl(reg);
     __ PushObject(obj);
     if (is_optimizing()) {
-      __ Call(*StubCode::OptimizedIdenticalWithNumberCheck_entry());
+      __ Call(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
-      __ Call(*StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
+      __ Call(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
     AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
@@ -1062,9 +1059,9 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ pushl(left);
     __ pushl(right);
     if (is_optimizing()) {
-      __ Call(*StubCode::OptimizedIdenticalWithNumberCheck_entry());
+      __ Call(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
-      __ Call(*StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
+      __ Call(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
     AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmpl, we need ZF computed).

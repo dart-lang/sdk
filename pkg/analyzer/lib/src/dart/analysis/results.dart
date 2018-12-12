@@ -144,9 +144,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   final LibraryElement element;
 
   @override
-  final ResultState state = ResultState.VALID;
-
-  @override
   final TypeProvider typeProvider;
 
   @override
@@ -156,8 +153,23 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       this.element, this.typeProvider, this.units)
       : super(session, path, uri);
 
+  ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
+      : this(session, null, uri, null, null, null);
+
+  @override
+  ResultState get state {
+    if (path == null) {
+      return ResultState.NOT_A_FILE;
+    }
+    return ResultState.VALID;
+  }
+
   @override
   ElementDeclarationResult getElementDeclaration(Element element) {
+    if (state != ResultState.VALID) {
+      throw StateError('The result is not valid: $state');
+    }
+
     var elementPath = element.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,

@@ -4,6 +4,7 @@
 
 // SharedOptions=--enable-experiment=set-literals
 
+import 'dart:async';
 import "dart:collection" show LinkedHashSet;
 
 import "package:expect/expect.dart";
@@ -12,7 +13,7 @@ void main() {
   test();
 }
 
-void test<S extends Set<num>, I extends Iterable<num>>() {
+void test() {
   checkSet<T>(Object o, List elements) {
     Expect.type<LinkedHashSet<T>>(o);
     Set<T> set = o;
@@ -22,9 +23,7 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Object setContext<T>(Set<T> object) => object;
   Object iterableContext<T>(Iterable<T> object) => object;
   Object foSetContext<T>(FutureOr<Set<T>> object) => object;
-  cbject foIterableContext<T>(FutureOr<Iterable<T>> object) => object;
-  Object sContext(S object) => object;
-  Object iContext(I object) => object;
+  Object foIterableContext<T>(FutureOr<Iterable<T>> object) => object;
 
   // Empty literal, no type arguments.
   // No context.
@@ -39,8 +38,6 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   checkSet<int>(iterableContext<int>({}), []);
   checkSet<int>(foSetContext<int>({}), []);
   checkSet<int>(foIterableContext<int>({}), []);
-  checkSet<num>(sContext({}), []);
-  checkSet<num>(iContext({}), []);
 
   // Non-empty set literal, no type argument.
   // No context.
@@ -60,14 +57,10 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   checkSet<num>(iterableContext<num>({1}), [1]);
   checkSet<num>(foSetContext<num>({1}), [1]);
   checkSet<num>(foIterableContext<num>({1}), [1]);
-  checkSet<num>(sContext({1}), [1]);
-  checkSet<num>(iContext({1}), [1]);
   checkSet<num>(setContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
   checkSet<num>(iterableContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
   checkSet<num>(foSetContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
   checkSet<num>(foIterableContext<num>({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(sContext({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
-  checkSet<num>(iContext({3, 1, 2, 4, 1, 4}), [3, 1, 2, 4]);
 
   // Non-empty set literal with type argument.
   checkSet<num>(<num>{1}, [1]);
@@ -113,8 +106,8 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
   Expect.equals(0, set.first.length);
 
   set = {{1}, {}};  // Set<Object>
-  Expect.type<Set<Object>>(x);
-  Expect.notType<Set<Set<Object>>>(x);
+  Expect.type<Set<Object>>(set);
+  Expect.notType<Set<Set<Object>>>(set);
 
   // Trailing comma.
   Iterable<Object> i;
@@ -124,7 +117,8 @@ void test<S extends Set<num>, I extends Iterable<num>>() {
 
   o = {1, 2, 3,};
   Expect.type<Set<int>>(o);
-  Expect.equals(3, o.length);
+  set = o;
+  Expect.equals(3, set.length);
 }
 
 class Equality {
@@ -132,6 +126,6 @@ class Equality {
   final String name;
   const Equality(this.id, this.name);
   int get hashCode => id;
-  bool operator==(Object other) => other is Equality && id = other.id;
+  bool operator==(Object other) => other is Equality && id == other.id;
   String toString() => "$id:$name";
 }

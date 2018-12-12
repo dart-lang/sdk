@@ -622,8 +622,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
 #if !defined(TARGET_ARCH_DBC)
       RawCode* marker = PCMarker(in_interpreted_frame);
-      if (marker == StubCode::InvokeDartCode_entry()->code() ||
-          marker == StubCode::InvokeDartCodeFromBytecode_entry()->code()) {
+      if (marker == StubCode::InvokeDartCode().raw() ||
+          marker == StubCode::InvokeDartCodeFromBytecode().raw()) {
         // During the prologue of a function, CallerPC will return the caller's
         // caller. For most frames, the missing PC will be added during profile
         // processing. However, during this stack walk, it can cause us to fail
@@ -725,7 +725,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 //
 class ProfilerNativeStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerNativeStackWalker(Dart_Port port_id,
+  ProfilerNativeStackWalker(ProfilerCounters* counters,
+                            Dart_Port port_id,
                             Sample* sample,
                             SampleBuffer* sample_buffer,
                             uword stack_lower,
@@ -740,6 +741,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
                             sample_buffer,
                             skip_count,
                             try_symbolize_dart_frames),
+        counters_(counters),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -759,10 +761,14 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     if (gap >= kMaxStep) {
       // Gap between frame pointer and stack pointer is
       // too large.
+      AtomicOperations::IncrementInt64By(&counters_->incomplete_sample_fp_step,
+                                         1);
       return;
     }
 
     if (!ValidFramePointer(fp)) {
+      AtomicOperations::IncrementInt64By(
+          &counters_->incomplete_sample_fp_bounds, 1);
       return;
     }
 
@@ -781,17 +787,23 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
       if (fp <= previous_fp) {
         // Frame pointer did not move to a higher address.
+        AtomicOperations::IncrementInt64By(
+            &counters_->incomplete_sample_fp_step, 1);
         return;
       }
 
       gap = fp - previous_fp;
       if (gap >= kMaxStep) {
         // Frame pointer step is too large.
+        AtomicOperations::IncrementInt64By(
+            &counters_->incomplete_sample_fp_step, 1);
         return;
       }
 
       if (!ValidFramePointer(fp)) {
         // Frame pointer is outside of isolate stack boundary.
+        AtomicOperations::IncrementInt64By(
+            &counters_->incomplete_sample_fp_bounds, 1);
         return;
       }
 
@@ -801,6 +813,8 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         // the pc is so large that adding one to it will cause an
         // overflow it is invalid and it will cause headaches later
         // while we are building the profile.  Discard it.
+        AtomicOperations::IncrementInt64By(&counters_->incomplete_sample_bad_pc,
+                                           1);
         return;
       }
 
@@ -838,6 +852,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     return r;
   }
 
+  ProfilerCounters* const counters_;
   const uword stack_upper_;
   const uword original_pc_;
   const uword original_fp_;
@@ -1127,8 +1142,11 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
-  OS::PrintErr("Dumping native stack trace for thread %" Px "\n",
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
+  Isolate* isolate = Isolate::Current();
+  const char* name = isolate == NULL ? NULL : isolate->name();
+  OS::PrintErr("thread=%" Pd ", isolate=%s(%p)\n",
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
+               isolate);
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
@@ -1146,7 +1164,8 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp, sp,
+      &counters_, ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp,
+      sp,
       /*skip_count=*/0,
       /*try_symbolize_dart_frames=*/!for_crash);
   native_stack_walker.walk();
@@ -1194,8 +1213,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 
   if (FLAG_profile_vm_allocation) {
     ProfilerNativeStackWalker native_stack_walker(
-        (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
-        sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+        &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
+        sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
     ProfilerDartStackWalker dart_exit_stack_walker(
@@ -1257,8 +1276,8 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
   sample->set_native_allocation_size_bytes(allocation_size);
 
   ProfilerNativeStackWalker native_stack_walker(
-      ILLEGAL_PORT, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
-      skip_count);
+      &counters_, ILLEGAL_PORT, sample, sample_buffer, stack_lower, stack_upper,
+      pc, fp, sp, skip_count);
 
   native_stack_walker.walk();
 
@@ -1396,8 +1415,8 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
-      sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+      &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
+      sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
   ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer,
                                             stack_lower, stack_upper, pc, fp,

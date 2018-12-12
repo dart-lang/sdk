@@ -4,13 +4,14 @@
 
 // SharedOptions=--enable-experiment=set-literals
 
-import "dart:collection" show LinkedHashSet;
+import "dart:collection" show HashSet, LinkedHashSet;
 
 import "package:expect/expect.dart";
 
 const Object d = 3.5;
 
-void main()  var o //
+void main() {
+   var o //
       = <int>{1: 1} //# 01: compile-time error
       = <int, int, int>{} //# 02: compile-time error
       = <int, int, int>{1} //# 03: compile-time error
@@ -67,4 +68,13 @@ void main()  var o //
         ;
     Expect.isNull(o);
   }<int>(42);
+
+  <T extends Set<num>>() {
+    // Regression test for http://dartbug.com/35300.
+    // The `Set<Null>` type is not assignable to `T extends Set<num>`,
+    // so we don't make this a set. You can't assign a map to `T`.
+    T o //
+    = {}; //# 28: compile-time error
+    ;
+  }();
 }
