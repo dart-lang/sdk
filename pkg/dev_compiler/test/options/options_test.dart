@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:analyzer/analyzer.dart';
+
 import 'package:analyzer/src/command_line/arguments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';

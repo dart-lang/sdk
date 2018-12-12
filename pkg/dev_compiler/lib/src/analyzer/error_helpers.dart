@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart'
-    show
-        AnalysisError,
-        ErrorSeverity,
-        ErrorType,
-        StrongModeCode,
-        StaticTypeWarningCode;
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:path/path.dart' as path;
 

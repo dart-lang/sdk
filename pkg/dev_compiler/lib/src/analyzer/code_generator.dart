@@ -5,13 +5,14 @@
 import 'dart:collection' show HashMap, HashSet;
 import 'dart:math' show min, max;
 
-import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/generated/constant.dart'
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
@@ -2680,7 +2682,7 @@ class CodeGenerator extends Object
   }
 
   bool _executesAtTopLevel(AstNode node) {
-    var ancestor = node.getAncestor((n) =>
+    var ancestor = node.thisOrAncestorMatching((n) =>
         n is FunctionBody ||
         n is FieldDeclaration && n.staticKeyword == null ||
         n is ConstructorDeclaration && n.constKeyword == null);

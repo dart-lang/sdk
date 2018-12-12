@@ -1,10 +1,9 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHO@override S file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide MapEntry;
 import 'dart:collection';
-import 'package:analyzer/analyzer.dart' as a;
 import 'package:analyzer/dart/element/element.dart' as a;
 import 'package:analyzer/dart/element/type.dart' as a;
 import 'package:analyzer/file_system/physical_file_system.dart' as a;
