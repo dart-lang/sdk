@@ -60,8 +60,8 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (refactors) | | | | |
-| textDocument/codeAction (assists) | | | | |
-| textDocument/codeAction (fixes) | | | | |
+| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | |
+| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | |
 | textDocument/codeLens | | | | |
 | codeLens/resolve | | | | |
 | textDocument/documentLink | | | | |

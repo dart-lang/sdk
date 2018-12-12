@@ -7,6 +7,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -14,15 +15,14 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceChange;
+import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-
-typedef ActionHandler = Future<List<Either2<Command, CodeAction>>> Function(
-    HashSet<CodeActionKind>, bool, String, Range, ResolvedUnitResult);
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
@@ -45,12 +45,25 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireUnit);
-    return unit.mapResult((unit) => _getCodeActions(
-        clientSupportedCodeActionKinds,
-        clientSupportsLiteralCodeActions,
-        path.result,
-        params.range,
-        unit));
+
+    return unit.mapResult((unit) {
+      final startOffset = toOffset(unit.lineInfo, params.range.start);
+      final endOffset = toOffset(unit.lineInfo, params.range.end);
+      return startOffset.mapResult((startOffset) {
+        return endOffset.mapResult((endOffset) {
+          final offset = startOffset;
+          final length = endOffset - startOffset;
+          return _getCodeActions(
+              clientSupportedCodeActionKinds,
+              clientSupportsLiteralCodeActions,
+              path.result,
+              params.range,
+              offset,
+              length,
+              unit);
+        });
+      });
+    });
   }
 
   /// Wraps a command in a CodeAction if the client supports it so that a
@@ -65,6 +78,16 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             new CodeAction(command.title, kind, null, null, command),
           )
         : Either2<Command, CodeAction>.t1(command);
+  }
+
+  Either2<Command, CodeAction> _createAssistAction(Assist assist) {
+    return new Either2<Command, CodeAction>.t2(new CodeAction(
+      assist.change.message,
+      CodeActionKind.Refactor,
+      const [],
+      _createWorkspaceEdit(assist.change),
+      null,
+    ));
   }
 
   Either2<Command, CodeAction> _createFixAction(
@@ -92,36 +115,49 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
-    String path,
-    Range range,
+    int offset,
+    int length,
     ResolvedUnitResult unit,
   ) async {
-    // TODO(dantup): Implement assists.
-    return [];
+    // TODO(dantup): Is it acceptable not to support these for clients that can't
+    // handle Code Action literals? (Doing so requires we encode this into a
+    // command/arguments set and allow the client to call us back later).
+    if (!clientSupportsLiteralCodeActions ||
+        !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
+      return const [];
+    }
+
+    try {
+      var context = new DartAssistContextImpl(unit, offset, length);
+      final processor = new AssistProcessor(context);
+      final assists = await processor.compute();
+      assists.sort(Assist.SORT_BY_RELEVANCE);
+
+      return assists.map(_createAssistAction).toList();
+    } catch (_) {
+      // TODO(dantup): This is what the existing server does, but I'm not sure why.
+      // In fixes, we will retry if the exception is InconsistentAnalysisException
+      // but otherwise propogate the exception. I'm not sure if these could be
+      // consistent?
+      return [];
+    }
   }
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
-    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
-    bool clientSupportsLiteralCodeActions,
+    HashSet<CodeActionKind> kinds,
+    bool supportsLiterals,
     String path,
     Range range,
+    int offset,
+    int length,
     ResolvedUnitResult unit,
   ) async {
-    // Join the results of computing all of our different types.
-    final List<ActionHandler> handlers = [
-      _getSourceActions,
-      _getAssistActions,
-      _getRefactorActions,
-      _getFixActions,
-    ];
-    final futures = handlers.map((f) => f(
-          clientSupportedCodeActionKinds,
-          clientSupportsLiteralCodeActions,
-          path,
-          range,
-          unit,
-        ));
-    final results = await Future.wait(futures);
+    final results = await Future.wait([
+      _getSourceActions(kinds, supportsLiterals, path),
+      _getAssistActions(kinds, supportsLiterals, offset, length, unit),
+      _getRefactorActions(kinds, supportsLiterals, path, range, unit),
+      _getFixActions(kinds, supportsLiterals, range, unit),
+    ]);
     final flatResults = results.expand((x) => x).toList();
     return success(flatResults);
   }
@@ -129,14 +165,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
-    String path,
     Range range,
     ResolvedUnitResult unit,
   ) async {
     // TODO(dantup): Is it acceptable not to support these for clients that can't
     // handle Code Action literals? (Doing so requires we encode this into a
     // command/arguments set and allow the client to call us back later).
-    if (!clientSupportsLiteralCodeActions) {
+    if (!clientSupportsLiteralCodeActions ||
+        !clientSupportedCodeActionKinds.contains(CodeActionKind.QuickFix)) {
       return const [];
     }
     // Keep trying until we run without getting an `InconsistentAnalysisException`.
@@ -176,6 +212,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     Range range,
     ResolvedUnitResult unit,
   ) async {
+    // TODO(dantup): Is it acceptable not to support these for clients that can't
+    // handle Code Action literals? (Doing so requires we encode this into a
+    // command/arguments set and allow the client to call us back later).
+    if (!clientSupportsLiteralCodeActions ||
+        !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
+      return const [];
+    }
+
     // TODO(dantup): Implement refactors.
     return [];
   }
@@ -186,8 +230,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
-    Range range,
-    ResolvedUnitResult unit,
   ) async {
     // The source actions supported are only valid for Dart files.
     if (!AnalysisEngine.isDartFileName(path)) {
