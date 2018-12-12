@@ -28,7 +28,7 @@ var tests = <IsolateTest>[
     expect(stack['frames'].length, greaterThan(3));
 
     var frame = stack['frames'][0];
-    expect(frame.function.name, equals('Completer.sync'));
+    expect(frame.function.name, equals('_AsyncAwaitCompleter'));
     expect(await frame.location.getLine(), greaterThan(0));
     expect(await frame.location.getColumn(), greaterThan(0));
 

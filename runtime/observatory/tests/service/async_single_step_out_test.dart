@@ -27,18 +27,30 @@ testMain() async {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
-  stepOver, // print.
+  stoppedAtLine(LINE_C), // print mmmm
+  stepOver,
+
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_D),
+  stoppedAtLine(LINE_D), // await helper
   stepInto,
+
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  stepOver, // print.
+  stoppedAtLine(LINE_A), // print.
+  stepOver,
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B), // return null.
   stepInto, // exit helper via a single step.
+
   hasStoppedAtBreakpoint,
+  stoppedAtLine(19), // return null (weird dispatching)
+  stepInto, // exit helper via a single step.
+
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(24), // await helper (weird dispatching)
+  smartNext,
+
+  hasStoppedAtBreakpoint, //19
   stoppedAtLine(LINE_E), // arrive after the await.
   resumeIsolate
 ];

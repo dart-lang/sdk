@@ -38,27 +38,41 @@ testMain() async {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
-  stepOver, // print.
+  stoppedAtLine(LINE_C), // print mmmm
+  smartNext,
+
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_D),
+  stoppedAtLine(LINE_D), // await helper
   stepInto,
+
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  stepOver, // print.
+  stoppedAtLine(LINE_A), // print helper
+  smartNext,
+
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_B), // throw 'a'.
-  stepInto, // exit helper via a throw.
+  stoppedAtLine(LINE_B), // throw a
+  smartNext,
+
   hasStoppedAtBreakpoint,
-  stepInto, // exit helper via a throw.
+  stoppedAtLine(22), // } (weird dispatching)
+  smartNext,
+
   hasStoppedAtBreakpoint,
-  stepInto, // step once from entry to main.
+  stoppedAtLine(LINE_D), // await helper (weird dispatching)
+  smartNext,
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E), // print(error)
-  stepOver,
+  smartNext,
+
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_E), // print(error) (weird finally dispatching)
+  smartNext,
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_F), // print(foo)
-  stepOver,
+  smartNext,
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_G), // print(z)
   resumeIsolate
