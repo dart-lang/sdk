@@ -894,10 +894,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ir.Class callerClass = caller.enclosingClass;
     ir.Supertype supertype = callerClass.supertype;
 
-    if (callerClass.mixedInType != null) {
-      _collectFieldValues(callerClass.mixedInType.classNode, constructorData);
-    }
-
     // The class of the super-constructor may not be the supertype class. In
     // this case, we must go up the class hierarchy until we reach the class
     // containing the super-constructor.

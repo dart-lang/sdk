@@ -32,7 +32,7 @@ abstract class _C&A&B extends self::A implements self::B {
 }
 class C extends self::_C&A&B {
   synthetic constructor •() → self::C
-    : super self::A::•()
+    : super self::_C&A&B::•()
     ;
 }
 static method main() → dynamic {}

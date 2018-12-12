@@ -46,7 +46,7 @@ abstract class _G&Object&B = core::Object with self::B {
 class G extends self::_G&Object&B {
   field dynamic x = null;
   synthetic constructor •() → self::G
-    : super core::Object::•()
+    : super self::_G&Object&B::•()
     ;
 }
 static method main() → dynamic {}

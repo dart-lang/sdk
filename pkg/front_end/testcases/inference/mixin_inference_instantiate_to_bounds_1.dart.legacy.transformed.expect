@@ -36,7 +36,7 @@ abstract class _A&M1&M0 extends self::M1 implements self::M0<dynamic, dynamic> {
 }
 class A extends self::_A&M1&M0 {
   synthetic constructor •() → self::A
-    : super self::M1::•()
+    : super self::_A&M1&M0::•()
     ;
 }
 static method main() → dynamic {}
