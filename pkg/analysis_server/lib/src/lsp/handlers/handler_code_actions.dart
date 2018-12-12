@@ -7,11 +7,18 @@ import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analysis_server/src/protocol_server.dart' show SourceChange;
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart'
+    show InconsistentAnalysisException;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 typedef ActionHandler = Future<List<Either2<Command, CodeAction>>> Function(
@@ -21,20 +28,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   CodeActionHandler(LspAnalysisServer server) : super(server);
   Method get handlesMessage => Method.textDocument_codeAction;
-
-  /// Wraps a command in a CodeAction if the client supports it so that a
-  /// CodeActionKind can be supplied.
-  Either2<Command, CodeAction> commandOrCodeAction(
-    bool clientSupportsLiteralCodeActions,
-    CodeActionKind kind,
-    Command command,
-  ) {
-    return clientSupportsLiteralCodeActions
-        ? Either2<Command, CodeAction>.t2(
-            new CodeAction(command.title, kind, null, null, command),
-          )
-        : Either2<Command, CodeAction>.t1(command);
-  }
 
   @override
   CodeActionParams convertParams(Map<String, dynamic> json) =>
@@ -58,6 +51,42 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         path.result,
         params.range,
         unit));
+  }
+
+  /// Wraps a command in a CodeAction if the client supports it so that a
+  /// CodeActionKind can be supplied.
+  Either2<Command, CodeAction> _commandOrCodeAction(
+    bool clientSupportsLiteralCodeActions,
+    CodeActionKind kind,
+    Command command,
+  ) {
+    return clientSupportsLiteralCodeActions
+        ? Either2<Command, CodeAction>.t2(
+            new CodeAction(command.title, kind, null, null, command),
+          )
+        : Either2<Command, CodeAction>.t1(command);
+  }
+
+  Either2<Command, CodeAction> _createFixAction(
+      Fix fix, Diagnostic diagnostic) {
+    return new Either2<Command, CodeAction>.t2(new CodeAction(
+      fix.change.message,
+      CodeActionKind.QuickFix,
+      [diagnostic],
+      _createWorkspaceEdit(fix.change),
+      null,
+    ));
+  }
+
+  WorkspaceEdit _createWorkspaceEdit(SourceChange change) {
+    return toWorkspaceEdit(
+        server.clientCapabilities?.workspace,
+        change.edits
+            .map((e) => new FileEditInformation(
+                server.getVersionedDocumentIdentifier(e.file),
+                server.getLineInfo(e.file),
+                e.edits))
+            .toList());
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
@@ -104,8 +133,40 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     Range range,
     ResolvedUnitResult unit,
   ) async {
-    // TODO(dantup): Implement fixes.
-    return [];
+    // TODO(dantup): Is it acceptable not to support these for clients that can't
+    // handle Code Action literals? (Doing so requires we encode this into a
+    // command/arguments set and allow the client to call us back later).
+    if (!clientSupportsLiteralCodeActions) {
+      return const [];
+    }
+    // Keep trying until we run without getting an `InconsistentAnalysisException`.
+    while (true) {
+      final lineInfo = unit.lineInfo;
+      final codeActions = <Either2<Command, CodeAction>>[];
+      final fixContributor = new DartFixContributor();
+      try {
+        for (final error in unit.errors) {
+          // Server lineNumber is one-based so subtract one.
+          int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
+          if (errorLine >= range.start.line && errorLine <= range.end.line) {
+            var context = new DartFixContextImpl(unit, error);
+            final fixes = await fixContributor.computeFixes(context);
+            if (fixes.isNotEmpty) {
+              fixes.sort(Fix.SORT_BY_RELEVANCE);
+
+              final diagnostic = toDiagnostic(lineInfo, error);
+              codeActions.addAll(
+                fixes.map((fix) => _createFixAction(fix, diagnostic)),
+              );
+            }
+          }
+        }
+
+        return codeActions;
+      } on InconsistentAnalysisException {
+        // Loop around to try again to compute the fixes.
+      }
+    }
   }
 
   Future<List<Either2<Command, CodeAction>>> _getRefactorActions(
@@ -141,12 +202,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     return [
-      commandOrCodeAction(
+      _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         DartCodeActionKind.SortMembers,
         new Command('Sort Members', Commands.sortMembers, [path]),
       ),
-      commandOrCodeAction(
+      _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         CodeActionKind.SourceOrganizeImports,
         new Command('Organize Imports', Commands.organizeImports, [path]),
