@@ -61,7 +61,7 @@ Feedback is, of course, greatly appreciated and contributions are welcome! Pleas
 
 ## Features and bugs
 
-Please file feature requests and bugs at the [issue tracker][tracker].
+Please file feature requests and bugs in the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/linter/issues
 [lints]: https://dart-lang.github.io/linter/lints/
