@@ -128,9 +128,14 @@ abstract class TestSuite {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
     };
-    if (configuration.copyCoreDumps && Platform.isWindows) {
-      _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-          new Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
+    if (Platform.isWindows) {
+      _environmentOverrides['DART_SUPPRESS_WER'] = '1';
+      if (configuration.copyCoreDumps) {
+        _environmentOverrides['DART_CRASHPAD_HANDLER'] =
+            new Path(buildDir + '/crashpad_handler.exe')
+                .absolute
+                .toNativePath();
+      }
     }
   }
 
