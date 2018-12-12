@@ -14,6 +14,9 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
+typedef ActionHandler = Future<List<Either2<Command, CodeAction>>> Function(
+    HashSet<CodeActionKind>, bool, String, Range, ResolvedUnitResult);
+
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   CodeActionHandler(LspAnalysisServer server) : super(server);
@@ -53,71 +56,78 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         clientSupportedCodeActionKinds,
         clientSupportsLiteralCodeActions,
         path.result,
+        params.range,
         unit));
   }
 
-  List<Either2<Command, CodeAction>> _getAssistActions(
+  Future<List<Either2<Command, CodeAction>>> _getAssistActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
+    Range range,
     ResolvedUnitResult unit,
-  ) {
+  ) async {
     // TODO(dantup): Implement assists.
     return [];
   }
 
-  ErrorOr<List<Either2<Command, CodeAction>>> _getCodeActions(
+  Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
+    Range range,
     ResolvedUnitResult unit,
-  ) {
+  ) async {
     // Join the results of computing all of our different types.
-    final allActions = [
+    final List<ActionHandler> handlers = [
       _getSourceActions,
       _getAssistActions,
       _getRefactorActions,
       _getFixActions,
-    ]
-        .expand((f) => f(
-              clientSupportedCodeActionKinds,
-              clientSupportsLiteralCodeActions,
-              path,
-              unit,
-            ))
-        .toList();
-
-    return success(allActions);
+    ];
+    final futures = handlers.map((f) => f(
+          clientSupportedCodeActionKinds,
+          clientSupportsLiteralCodeActions,
+          path,
+          range,
+          unit,
+        ));
+    final results = await Future.wait(futures);
+    final flatResults = results.expand((x) => x).toList();
+    return success(flatResults);
   }
 
-  List<Either2<Command, CodeAction>> _getFixActions(
+  Future<List<Either2<Command, CodeAction>>> _getFixActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
+    Range range,
     ResolvedUnitResult unit,
-  ) {
+  ) async {
     // TODO(dantup): Implement fixes.
     return [];
   }
 
-  List<Either2<Command, CodeAction>> _getRefactorActions(
+  Future<List<Either2<Command, CodeAction>>> _getRefactorActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
+    Range range,
     ResolvedUnitResult unit,
-  ) {
+  ) async {
     // TODO(dantup): Implement refactors.
     return [];
   }
 
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
-  List<Either2<Command, CodeAction>> _getSourceActions(
+  Future<List<Either2<Command, CodeAction>>> _getSourceActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
+    Range range,
     ResolvedUnitResult unit,
-  ) {
+  ) async {
     // The source actions supported are only valid for Dart files.
     if (!AnalysisEngine.isDartFileName(path)) {
       return [];

@@ -7,12 +7,14 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
+import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/generated/source.dart' as server;
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 
 const languageSourceName = 'dart';
 
@@ -486,14 +488,10 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   );
 }
 
-lsp.TextDocumentEdit toTextDocumentEdit(
-  VersionedTextDocumentIdentifier doc,
-  server.LineInfo lineInfo,
-  List<server.SourceEdit> edits,
-) {
+lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
   return new TextDocumentEdit(
-    doc,
-    edits.map((e) => toTextEdit(lineInfo, e)).toList(),
+    edit.doc,
+    edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
   );
 }
 
@@ -506,9 +504,7 @@ lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
 
 lsp.WorkspaceEdit toWorkspaceEdit(
   WorkspaceClientCapabilities capabilities,
-  VersionedTextDocumentIdentifier doc,
-  server.LineInfo lineInfo,
-  List<server.SourceEdit> edits,
+  List<FileEditInformation> edits,
 ) {
   final clientSupportsTextDocumentEdits =
       capabilities?.workspaceEdit?.documentChanges == true;
@@ -520,23 +516,22 @@ lsp.WorkspaceEdit toWorkspaceEdit(
             List<
                 Either4<TextDocumentEdit, CreateFile, RenameFile,
                     DeleteFile>>>.t1(
-          [toTextDocumentEdit(doc, lineInfo, edits)],
+          edits.map(toTextDocumentEdit).toList(),
         ));
   } else {
-    return new WorkspaceEdit(
-        toWorkspaceEditChanges(doc, lineInfo, edits), null);
+    return new WorkspaceEdit(toWorkspaceEditChanges(edits), null);
   }
 }
 
 Map<String, List<TextEdit>> toWorkspaceEditChanges(
-  VersionedTextDocumentIdentifier doc,
-  server.LineInfo lineInfo,
-  List<server.SourceEdit> edits,
-) {
-  // TODO(dantup): Fix codegen for WorkspaceEditChanges to be Map<String, TextEdit>
-  return Map<String, List<TextEdit>>.fromEntries(
-    edits.map((e) => new MapEntry(doc.uri, [toTextEdit(lineInfo, e)])),
-  );
+    List<FileEditInformation> edits) {
+  createEdit(FileEditInformation file) {
+    final edits =
+        file.edits.map((edit) => toTextEdit(file.lineInfo, edit)).toList();
+    return new MapEntry(file.doc.uri, edits);
+  }
+
+  return Map<String, List<TextEdit>>.fromEntries(edits.map(createEdit));
 }
 
 lsp.MarkupContent _asMarkup(

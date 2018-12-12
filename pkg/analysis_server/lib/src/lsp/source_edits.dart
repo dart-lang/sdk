@@ -1,6 +1,8 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/protocol_server.dart' as server
+    show SourceEdit;
 import 'package:analyzer/source/line_info.dart';
 import 'package:dart_style/dart_style.dart';
 
@@ -58,4 +60,14 @@ List<TextEdit> generateEditsForFormatting(String unformattedSource) {
       formattedSource,
     )
   ];
+}
+
+/// Helper class that bundles up all information required when converting server
+/// SourceEdits into LSP-compatible WorkspaceEdits.
+class FileEditInformation {
+  final VersionedTextDocumentIdentifier doc;
+  final LineInfo lineInfo;
+  final List<server.SourceEdit> edits;
+
+  FileEditInformation(this.doc, this.lineInfo, this.edits);
 }

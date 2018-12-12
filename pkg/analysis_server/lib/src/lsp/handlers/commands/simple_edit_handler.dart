@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
@@ -34,9 +35,7 @@ abstract class SimpleEditCommandHandler
 
     final workspaceEdit = toWorkspaceEdit(
       server.clientCapabilities?.workspace,
-      docIdentifier,
-      unit.lineInfo,
-      edits,
+      [new FileEditInformation(docIdentifier, unit.lineInfo, edits)],
     );
 
     // Send the edit to the client via a applyEdit request (this is a request
