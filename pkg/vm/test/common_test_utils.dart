@@ -32,7 +32,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target, bool enableSuperMixins: false}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-  target ??= new TestingVmTarget(new TargetFlags())
+  target ??= new TestingVmTarget(new TargetFlags(syncAsync: false))
     ..enableSuperMixins = enableSuperMixins;
   final options = new CompilerOptions()
     ..target = target

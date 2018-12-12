@@ -105,7 +105,7 @@ testEnabledSuperMixins() async {
   var missingSuperMethodNames = new Set<String>();
   var options = new CompilerOptions()
     ..onDiagnostic = _makeDiagnosticMessageHandler(missingSuperMethodNames)
-    ..target = new NoneTargetWithSuperMixins(new TargetFlags());
+    ..target = new NoneTargetWithSuperMixins(new TargetFlags(syncAsync: false));
   await compileScript(testSource, options: options);
   Expect.setEquals(
       const <String>['baz', 'foo', 'quux'], missingSuperMethodNames);

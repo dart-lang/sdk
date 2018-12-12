@@ -35,7 +35,7 @@ void diagnosticMessageHandler(DiagnosticMessage message) {
 test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
-    ..target = new VmTarget(new TargetFlags(legacyMode: true))
+    ..target = new VmTarget(new TargetFlags(legacyMode: true, syncAsync: false))
     ..legacyMode = true
     ..onDiagnostic = diagnosticMessageHandler;
 

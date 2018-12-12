@@ -290,8 +290,8 @@ class ProcessedOptions {
   bool get bytecode => _raw.bytecode;
 
   Target _target;
-  Target get target => _target ??=
-      _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
+  Target get target => _target ??= _raw.target ??
+      new NoneTarget(new TargetFlags(legacyMode: legacyMode, syncAsync: false));
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".

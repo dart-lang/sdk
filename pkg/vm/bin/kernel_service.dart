@@ -87,7 +87,7 @@ abstract class Compiler {
 
     options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags(syncAsync: true))
+      ..target = new VmTarget(new TargetFlags())
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose

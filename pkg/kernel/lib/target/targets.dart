@@ -22,7 +22,7 @@ class TargetFlags {
   TargetFlags(
       {this.legacyMode: false,
       this.treeShake: false,
-      this.syncAsync: false,
+      this.syncAsync: true,
       this.programRoots: const <ProgramRoot>[],
       this.kernelRuntime});
 }

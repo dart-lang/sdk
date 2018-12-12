@@ -71,7 +71,7 @@ DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
 // legacyMode flag get merged, and we have a single way of specifying the
 // legacy-mode flag to the FE.
 Target createTarget({bool isFlutter: false, bool legacyMode: false}) {
-  var flags = new TargetFlags(legacyMode: legacyMode);
+  var flags = new TargetFlags(legacyMode: legacyMode, syncAsync: false);
   if (isFlutter) {
     return legacyMode
         ? new LegacyFlutterTarget(flags)

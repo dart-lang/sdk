@@ -100,8 +100,11 @@ main() {
         new KernelTarget(
                 null,
                 false,
-                new DillTarget(null, null,
-                    new NoneTarget(new TargetFlags(legacyMode: true))),
+                new DillTarget(
+                    null,
+                    null,
+                    new NoneTarget(
+                        new TargetFlags(legacyMode: true, syncAsync: false))),
                 null)
             .loader,
         null,

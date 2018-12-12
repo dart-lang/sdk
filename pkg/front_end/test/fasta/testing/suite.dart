@@ -291,8 +291,11 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       CompilerContext.current.disableColors();
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
-      DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(legacyMode: legacyMode)));
+      DillTarget dillTarget = new DillTarget(
+          ticker,
+          context.uriTranslator,
+          new TestVmTarget(
+              new TargetFlags(legacyMode: legacyMode, syncAsync: false)));
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.

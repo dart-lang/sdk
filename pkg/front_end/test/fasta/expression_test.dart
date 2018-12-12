@@ -388,7 +388,7 @@ Future<Context> createContext(
   final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..target = new VmTarget(new TargetFlags())
+    ..target = new VmTarget(new TargetFlags(syncAsync: false))
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
