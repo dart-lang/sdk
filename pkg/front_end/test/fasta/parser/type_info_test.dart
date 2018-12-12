@@ -700,7 +700,7 @@ class TypeInfoTest {
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
+      'endFunctionType Function null',
     ]);
     expectComplexInfo('Function<T>() m', expectedAfter: 'm', expectedCalls: [
       'beginTypeVariables <',
@@ -716,7 +716,7 @@ class TypeInfoTest {
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
+      'endFunctionType Function null',
     ]);
     expectComplexInfo('Function(int) m', expectedAfter: 'm', expectedCalls: [
       'handleNoTypeVariables (',
@@ -734,7 +734,7 @@ class TypeInfoTest {
       'endFormalParameter null null ) FormalParameterKind.mandatory '
           'MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
+      'endFunctionType Function null',
     ]);
     expectComplexInfo('Function<T>(int) m', expectedAfter: 'm', expectedCalls: [
       'beginTypeVariables <',
@@ -760,7 +760,7 @@ class TypeInfoTest {
       'endFormalParameter null null ) FormalParameterKind.mandatory'
           ' MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
+      'endFunctionType Function null',
     ]);
 
     expectComplexInfo('Function(int x)', required: true);
@@ -796,7 +796,7 @@ class TypeInfoTest {
           'handleType C null',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
         ]);
   }
 
@@ -878,7 +878,7 @@ class TypeInfoTest {
           'handleType C null',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
         ]);
     expectComplexInfo('C<T> Function<T>(int x) Function<T>(int x)',
         required: false, expectedAfter: 'Function');
@@ -992,7 +992,7 @@ class TypeInfoTest {
           'handleType C null',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
         ]);
     expectComplexInfo('C.a Function<T>(int x) Function<T>(int x)',
         required: false, expectedAfter: 'Function');
@@ -1071,7 +1071,7 @@ class TypeInfoTest {
           'endFormalParameter null null x FormalParameterKind.mandatory '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'beginMetadataStar int',
           'endMetadataStar 0',
@@ -1084,7 +1084,7 @@ class TypeInfoTest {
           'endFormalParameter null null x FormalParameterKind.mandatory '
               'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
         ]);
   }
 
@@ -1097,7 +1097,7 @@ class TypeInfoTest {
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
         ]);
   }
 
@@ -1108,7 +1108,7 @@ class TypeInfoTest {
       'handleVoidKeyword void',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function',
+      'endFunctionType Function null',
     ]);
 
     expectComplexInfo('void Function<T>()', required: true);
@@ -1367,7 +1367,7 @@ class TypeParamOrArgInfoTest {
           'handleType S null',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeArguments 1 < >'
         ]);
     expectComplexTypeArg('<void Function()>',
@@ -1379,7 +1379,7 @@ class TypeParamOrArgInfoTest {
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeArguments 1 < >'
         ]);
     expectComplexTypeArg('<S<T>>', typeArgumentCount: 1, expectedCalls: [
@@ -1451,7 +1451,7 @@ class TypeParamOrArgInfoTest {
           'handleNoType <',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeArguments 1 < >',
           'handleType S null',
           'endTypeArguments 1 < >'
@@ -1468,7 +1468,7 @@ class TypeParamOrArgInfoTest {
           'handleNoType <',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeArguments 1 < >',
           'handleType S null',
           'endTypeArguments 1 < >'
@@ -1484,7 +1484,7 @@ class TypeParamOrArgInfoTest {
           'handleVoidKeyword void', // was 'handleNoType <'
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeArguments 1 < >',
           'handleType S null',
           'endTypeArguments 1 < >'
@@ -1502,7 +1502,7 @@ class TypeParamOrArgInfoTest {
           'handleVoidKeyword void', // was 'handleNoType <'
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeArguments 1 < >',
           'handleType T null',
           'endTypeArguments 1 < >',
@@ -1680,7 +1680,7 @@ class TypeParamOrArgInfoTest {
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeVariable > 1 extends',
           'handleNoType R',
           'endTypeVariable , 0 null',
@@ -1943,7 +1943,7 @@ class TypeParamOrArgInfoTest {
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function',
+          'endFunctionType Function null',
           'endTypeVariable > 0 extends',
           'endTypeVariables < >'
         ]);
@@ -2339,8 +2339,8 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
-    calls.add('endFunctionType $functionToken');
+  void endFunctionType(Token functionToken, Token questionMark) {
+    calls.add('endFunctionType $functionToken $questionMark');
   }
 
   @override

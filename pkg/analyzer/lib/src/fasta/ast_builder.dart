@@ -1118,9 +1118,10 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
+    reportErrorIfNullableType(questionMark);
 
     FormalParameterList parameters = pop();
     TypeAnnotation returnType = pop();

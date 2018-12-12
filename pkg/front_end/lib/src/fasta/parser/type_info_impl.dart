@@ -469,7 +469,7 @@ class ComplexTypeInfo implements TypeInfo {
       --endGroupIndex;
       token = parser.parseFormalParametersRequiredOpt(
           token, MemberKind.GeneralizedFunctionType);
-      parser.listener.endFunctionType(functionToken);
+      parser.listener.endFunctionType(functionToken, null);
     }
 
     // There are two situations in which the [token] != [end]:

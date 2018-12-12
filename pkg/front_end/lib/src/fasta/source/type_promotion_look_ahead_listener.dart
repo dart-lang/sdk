@@ -619,7 +619,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType", functionToken);
   }
 

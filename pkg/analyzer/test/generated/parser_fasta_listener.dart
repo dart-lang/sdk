@@ -776,9 +776,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     end('FunctionType');
-    super.endFunctionType(functionToken);
+    super.endFunctionType(functionToken, questionMark);
   }
 
   @override
