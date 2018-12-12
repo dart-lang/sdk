@@ -800,6 +800,19 @@ class TypeInfoTest {
         ]);
   }
 
+  void test_computeType_identifierComplex_questionMark() {
+    expectComplexInfo('C? Function()', required: true, expectedCalls: [
+      'handleNoTypeVariables (',
+      'beginFunctionType C',
+      'handleIdentifier C typeReference',
+      'handleNoTypeArguments ?',
+      'handleType C ?',
+      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+      'endFunctionType Function null',
+    ]);
+  }
+
   void test_computeType_identifierTypeArg() {
     expectComplexInfo('C<void>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
