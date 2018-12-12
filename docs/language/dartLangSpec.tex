@@ -4,6 +4,7 @@
 \usepackage{xcolor}
 \usepackage{syntax}
 \usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
 \usepackage{semantic}
 \usepackage{dart}
 \usepackage{hyperref}
@@ -4960,6 +4961,436 @@ of expressions whose type proceeds beyond the given finite unfolding.
 }
 
 
+\subsection{Instantiation to Bound}
+\LMLabel{instantiationToBound}
+
+\LMHash{}%
+This section describes how to compute type arguments
+that are omitted from a type,
+or from an invocation of a generic function.
+
+\commentary{%
+Note that type inference is assumed to have taken place already
+(\ref{overview}),
+so type arguments are not considered to be omitted if they are inferred.
+This means that instantiation to bound is a backup mechanism,
+which will be used when no information is available for inference.
+}
+
+\LMHash{}%
+Consider the situation where a term $t$ of the form \synt{qualified}
+(\commentary{which is syntactically the same as \synt{typeName}})
+denotes a generic type declaration,
+and it is used as a type or as an expression in the enclosing program.
+\commentary{%
+This implies that type arguments are accepted, but not provided.%
+}
+We use the phrase
+\Index{raw type} respectively \Index{raw type expression}
+to identify such terms.
+In the following we only mention raw types,
+because everything said about raw types
+is applicable to raw type expressions in the obvious manner.
+
+\rationale{%
+A raw type cannot denote a higher-kinded type
+(Dart does not support such types),
+so we can unambiguously define them to denote
+the result of applying the generic type
+to a list of implicitly provided actual type arguments.
+Instantiation to bound is a mechanism that does just that.%
+}
+
+\rationale{%
+In the typical case where only covariance is encountered,
+instantiation to bound will yield a \emph{supertype} of
+all the regular-bounded types that can be expressed.
+This allows developers to consider a raw type as a type
+which is used to specify that
+``the actual type arguments do not matter''$\!$.%
+}
+\commentary{%
+For example, assuming the declaration
+\code{\CLASS{} C<X extends num> \{\ldots\}},
+instantiation to bound on \code{C} yields \code{C<num>},
+and this means that \code{C x;} can be used to declare a variable \code{x}
+whose value can be a \code{C<$T$>} for \emph{all possible} values of $T$.%
+}
+
+\rationale{%
+Conversely, consider the situation where
+a generic type alias denotes a function type,
+and it has one type parameter which is contravariant.
+Instantiation to bound on that type alias will then yield a \emph{subtype} of
+all the regular-bounded types that can be expressed
+by varying that type argument.
+This allows developers to consider such a type alias used as a raw type
+as a function type which allows the function to be passed to clients
+``where it does not matter which values
+for the type argument the client expects''$\!$.%
+}
+\commentary{%
+E.g., with
+\code{\TYPEDEF{} F<X> = \FUNCTION(X);}
+instantiation to bound on \code{F} yields \code{F<dynamic>},
+and this means that \code{F f;} can be used to declare a variable \code{f}
+whose value will be a function that can be passed to clients expecting
+an \code{F<$T$>} for \emph{all possible} values of $T$.
+}
+
+
+\subsubsection{Auxiliary Concepts for Instantiation to Bound}
+\LMLabel{auxiliaryConceptsForInstantiationToBound}
+
+\LMHash{}%
+Before we specify instantiation to bound we need to define two auxiliary concepts.
+Let $T$ be a raw type.
+A type $S$ then
+\IndexCustom{raw-depends on}{raw-depends on!type}
+$T$ if one or more of the following conditions hold:
+
+\begin{itemize}
+\item
+  $S$ is of the form \synt{typeName}, and $S$ is $T$.
+  \commentary{%
+  Note that this case is not applicable
+  if $S$ is a subterm of a term of the form
+  \syntax{$S$ <typeArguments>},
+  that is,
+  if $S$ receives any type arguments.
+  Also note that $S$ cannot be a type variable,
+  because then `$S$ is $T$' cannot hold.
+  See the discussion below and the reference to~\ref{subtypeRules}
+  for more details about why this is so.%
+  }
+\item
+  $S$ is of the form \syntax{<typeName> <typeArguments>},
+  and one of the type arguments raw-depends on $T$.
+\item
+  $S$ is of the form \syntax{<typeName> <typeArguments>?}\ where
+  \synt{typeName} denotes a type alias $F$,
+  and the body of $F$ raw-depends on $T$.
+\item
+  $S$ is of the form
+  \syntax{<type>? \FUNCTION{} <typeParameters>? <parameterTypeList>} and
+  \syntax{<type>?}\ raw-depends on $T$,
+  or a bound in \syntax{<typeParameters>?}\ raw-depends on $T$,
+  or a type in \synt{parameterTypeList} raw-depends on $T$.
+\end{itemize}
+
+\commentary{%
+Meta-variables
+(\ref{metaVariables})
+like $S$ and $T$ are understood to denote types,
+and they are considered to be equal (as in `$S$ is $T$')
+in the same sense as in the section about subtype rules
+(\ref{subtypeRules}).
+%
+In particular,
+even though two identical pieces of syntax may denote two distinct types,
+and two different pieces of syntax may denote the same type,
+the property of interest here is whether they denote the same type
+and not whether they are spelled identically.
+
+The intuition behind the situation where a type raw-depends on another type is
+that we need to compute any missing type arguments for the latter
+in order to be able to tell what the former means.
+
+In the rule about type aliases, $F$ may or may not be generic,
+and type arguments may or may not be present.
+However, there is no need to consider the result of substituting
+actual type arguments for formal type parameters in the body of $F$
+(or even the correctness of passing those type arguments to $F$),
+because we only need to inspect
+all types of the form \synt{typeName} in its body,
+and they are not affected by such a substitution.
+In other words, raw-dependency is a relation
+which is simple and cheap to compute.
+}
+
+\LMHash{}%
+Let $G$ be a generic class or a generic type alias
+with $k$ formal type parameter declarations
+containing formal type parameters \List{X}{1}{k} and bounds \List{B}{1}{k}.
+For any $j \in 1 .. k$,
+we say that the formal type parameter $X_j$ has a \Index{simple bound}
+when one of the following requirements is satisfied:
+
+\begin{itemize}
+\item $B_j$ is omitted.
+
+\item $B_j$ is included, but does not contain any of \List{X}{1}{k}.
+  If $B_j$ raw-depends on a raw type $T$
+  then every type parameter of $T$ must have a simple bound.
+\end{itemize}
+
+\LMHash{}%
+The notion of a simple bound must be interpreted inductively rather than
+coinductively, i.e., if a bound $B_j$ of a generic class or
+generic type alias $G$ is reached during an investigation of whether
+$B_j$ is a simple bound, the answer is no.
+
+\commentary{%
+For example, with
+\code{\CLASS{} C<X \EXTENDS{} C> \{\}},
+the type parameter \code{X} does not have a simple bound:
+A raw \code{C} is used as a bound for \code{X},
+so \code{C} must have simple bounds,
+but one of the bounds of \code{C} is the bound of \code{X},
+and that bound is \code{C}, so \code{C} must have simple bounds:
+That was a cycle, so the answer is ``no'',
+\code{C} does not have simple bounds.%
+}
+
+\LMHash{}%
+Let $G$ be a generic class or a generic type alias.
+We say that $G$
+\IndexCustom{has simple bounds}{type!generic, has simple bounds}
+if{}f every type parameter of $G$ has simple bounds.
+
+\commentary{%
+We can now specify in which sense instantiation to bound requires
+the involved types to be "simple enough".
+We impose the following constraint on all type parameter bounds,
+because all type parameters may be subject to instantiation to bound.%
+}
+
+\LMHash{}%
+It is a compile-time error
+if a formal type parameter bound $B$ contains a raw type $T$,
+unless $T$ has simple bounds.
+
+\commentary{%
+So type arguments on bounds can only be omitted
+if they themselves have simple bounds.
+In particular,
+\code{\CLASS{} C<X \EXTENDS{} C> \{\}}
+is a compile-time error,
+because the bound \code{C} is raw,
+and the formal type parameter \code{X}
+that corresponds to the omitted type argument
+does not have a simple bound.%
+}
+
+\LMHash{}%
+Let $T$ be a type of the form \synt{typeName}
+which denotes a generic class or a generic type alias
+(\commentary{so $T$ is raw}).
+Then $T$ is equivalent to the parameterized type which is
+the result obtained by applying instantiation to bound to $T$.
+It is a compile-time error if the instantiation to bound fails.
+
+\commentary{%
+This rule is applicable for all occurrences of raw types,
+e.g., when it occurs as a type annotation of a variable or a parameter,
+as a return type of a function,
+as a type which is tested in a type test,
+as the type in an \synt{onPart},
+etc.
+}
+
+\subsubsection{The Instantiation to Bound Algorithm}
+\LMLabel{theInstantiationToBoundAlgorithm}
+
+\LMHash{}%
+We now specify how the
+\Index{instantiation to bound}
+algorithm proceeds.
+Let $T$ be a raw type.
+Let \List{X}{1}{k} be the formal type parameters in the declaration of $G$,
+and let \List{B}{1}{k} be their bounds.
+For each $i \in 1 .. k$,
+let $S_i$ denote the result of instantiation to bound on $B_i$;
+in the case where the $i$th bound is omitted, let $S_i$ be \DYNAMIC.
+
+\commentary{%
+If $B_i$ for some $i$ is raw (in general: if it raw-depends on some type $U$)
+then all its (respectively $U$'s) omitted type arguments have simple bounds.
+This limits the complexity of instantiation to bound for $B_i$,
+and in particular it cannot involve a dependency cycle
+where we need the result from instantiation to bound for $G$
+in order to compute the instantiation to bound for $G$.%
+}
+
+\LMHash{}%
+Let $U_{i,0}$ be $S_i$, for all $i \in 1 .. k$.
+\commentary{%
+This is the "current value" of the bound for type variable $i$, at step 0;
+in general we will consider the current step, $m$, and use data for that step,
+e.g., the bound $U_{i,m}$, to compute the data for step $m + 1$.%
+}
+
+{ %% Scope for definitions of relations used during i2b
+
+\def\Depends{\ensuremath{\rightarrow_m}}
+\def\TransitivelyDepends{\ensuremath{\rightarrow^{+}_m}}
+
+\LMHash{}%
+Let \Depends{} be a relation among the type variables
+\List{X}{1}{k} such that
+$X_p \Depends X_q$ iff $X_q$ occurs in $U_{p,m}$.
+\commentary{%
+So each type variable is related to, that is, depends on,
+every type variable in its bound, which might include itself.%
+}
+Let \TransitivelyDepends{} be the transitive
+(\commentary{but not reflexive})
+closure of \Depends.
+For each $m$, let $U_{i,m+1}$, for $i \in 1 .. k$,
+be determined by the following iterative process, where $V_m$ denotes
+\code{$G$<$U_{1,m},\ \ldots,\ U_{k,m}$>}:
+
+\begin{itemize}
+\item[1.]
+  If there exists a $j \in 1 .. k$ such that
+  $X_j \TransitivelyDepends X_j$
+  (\commentary{that is, if the dependency graph has a cycle})
+  let \List{M}{1}{p} be the strongly connected components (SCCs)
+  with respect to \Depends{}.
+  \commentary{
+  That is, the maximal subsets of \List{X}{1}{k}
+  where every pair of variables in each subset 
+  are related in both directions by \TransitivelyDepends;
+  note that the SCCs are pairwise disjoint;
+  also, they are uniquely defined up to reordering,
+  and the order does not matter for this algorithm.%
+  }
+  Let $M$ be the union of \List{M}{1}{p}
+  (\commentary{that is, all variables that participate in a dependency cycle}).
+  Let $i \in 1 .. k$.
+  If $X_i$ does not belong to $M$ then $U_{i,m+1}$ is $U_{i,m}$.
+  Otherwise there exists a $q$ such that $X_i \in M_q$;
+  $U_{i,m+1}$ is then obtained from $U_{i,m}$
+  by substituting \DYNAMIC{} for every occurrence of a variable in $M_q$
+  that is in a position in $V_m$ which is not contravariant,
+  and substituting \code{Null} for every occurrence of a variable in $M_q$
+  which is in a contravariant position in $V_m$.
+
+\item[2.]
+  Otherwise (\commentary{when there are no dependency cycles}),
+  let $j$ be the lowest number such that $X_j$ occurs in $U_{p,m}$ for some $p$
+  and $X_j \not\rightarrow_m X_q$ for all $q$ in $1 .. k$
+  (\commentary{%
+  that is, the bound of $X_j$ does not contain any type variables,
+  but $X_j$ occurs in the bound of some other type variable%
+  }).
+  Then, for all $i \in 1 .. k$,
+  $U_{i,m+1}$ is obtained from $U_{i,m}$
+  by substituting $U_{j,m}$ for every occurrence of $X_j$
+  that is in a position in $V_m$ which  is not contravariant,
+  and substituting \code{Null} for every occurrence of $X_j$
+  which is in a contravariant position in $V_m$.
+
+\item[3.]
+  Otherwise (\commentary{when there are no dependencies at all}),
+  terminate with the result \code{<$U_{1,m},\ \ldots,\ U_{k,m}$>}.
+\end{itemize}
+
+\commentary{%
+This process will always terminate, because the total number of
+occurrences of type variables from $\{\,\List{X}{1}{k}\,\}$ in
+the current bounds is strictly decreasing with each step, and we terminate
+when that number reaches zero.
+}
+
+\rationale{%
+It may seem somewhat arbitrary to treat unused and invariant parameters
+in the same way as covariant parameters,
+in particular because invariant parameters fail to satisfy the expectation that
+a raw type denotes a supertype of all the expressible regular-bounded types.
+
+We could easily have made every instantiation to bound an error
+when applied to a type where invariance occurs anywhere during the run of the algorithm.
+However, there are a number of cases where this choice produces a usable type,
+and we decided that it is not helpful to outlaw such cases.%
+}
+
+\begin{dartCode}
+\TYPEDEF{} Inv<X> = X \FUNCTION(X);
+\CLASS{} B<Y \EXTENDS{} num, Z \EXTENDS{} Inv<Y>{}> \{\}
+\\
+B b; // \comment{The raw B means} B<num, Inv<num>{}>.
+\end{dartCode}
+
+\commentary{%
+For example, the value of \code{b} can have dynamic type
+\code{B<int,\,int\,\FUNCTION(num)>}.
+However, the type arguments have to be chosen carefully,
+or the result will not be a subtype of \code{B}.
+For instance, \code{b} cannot have dynamic type
+\code{B<int, Inv<int>{}>},
+because \code{Inv<int>} is not a subtype of \code{Inv<num>}.%
+}
+
+\LMHash{}%
+A raw type $T$ is a compile-time error if instantiation to bound on $T$
+yields a type which is not well-bounded
+(\ref{superBoundedTypes}).
+
+\commentary{%
+This kind of error can occur, as demonstrated by the following example:%
+}  
+
+\begin{dartCode}
+\CLASS{} C<X \EXTENDS{} C<X>{}> \{\}
+\TYPEDEF{} F<X \EXTENDS{} C<X>{}> = X \FUNCTION(X);
+\\
+F f; // \comment{Compile-time error.}
+\end{dartCode}
+
+\commentary{%
+With these declarations,
+the raw \code{F} which is used as a type annotation is a compile-time error:
+The algorithm yields \code{F<C<\DYNAMIC{}>{}>},
+and that is neither a regular-bounded nor a super-bounded type.
+%
+The resulting type can be specified explicitly as
+\code{C<\DYNAMIC{}> \FUNCTION(C<\DYNAMIC{}>)}.
+That type exists,
+we just cannot express it by passing a type argument to \code{F},
+so we make it an error rather than allowing it implicitly.%
+}
+
+\rationale{%
+The core reason why it makes sense to make such a raw type an error
+is that there is no subtype relationship
+between the relevant parameterized types.%
+}
+\commentary{%
+For instance, \code{F<T1>} and \code{F<T2>} are unrelated,
+even when \SubtypeNE{\code{T1}}{\code{T2}} or vice versa.
+In fact, there is no type \code{T} whatsoever
+such that a variable with declared type \code{F<T>}
+could be assigned to a variable of type
+\code{C<\DYNAMIC{}> \FUNCTION(C<\DYNAMIC{}>)}.
+%
+So the raw \code{F}, if permitted,
+would not be ``a supertype of \code{F<T>} for all possible \code{T}'',
+it would be a type which is unrelated to \code{F<T>}
+for \emph{every single} \code{T} that satisfies the bound of \code{F}.
+This is so useless that we made it an error.%
+}
+
+\LMHash{}%
+When instantiation to bound is applied to a type, it proceeds recursively:
+For a parameterized type \code{$G$<\List{T}{1}{k}>}
+it is applied to \List{T}{1}{k}.
+For a function type
+\FunctionTypePositionalStd{T_0}
+
+\noindent
+and a function type
+\FunctionTypeNamedStd{T_0}
+it is applied to \List{T}{0}{n+k}.
+
+\commentary{%
+This means that instantiation to bound has no effect on
+a type that does not contain any raw types.
+Conversely, instantiation to bound acts on types which are syntactic subterms,
+also when they are deeply nested.%
+}
+
+
 \section{Metadata}
 \LMLabel{metadata}
 
@@ -5260,7 +5691,7 @@ including whether it's potentially constant or constant.
 A constant type expression is one of:
 \begin{itemize}
 \item An simple or qualified identifier denoting a type declaration (a type alias, class or mixin declaration) that is not qualified by a deferred prefix,
-optionally followed by type arguments on the form
+optionally followed by type arguments of the form
 \code{<$T_1$,\ \ldots,\ $T_n$>}
 where $T_1$, \ldots{}, $T_n$ are constant type expressions.
 \item A type of the form \code{FutureOr<$T$>} where $T$ is a constant type expression.
@@ -12357,7 +12788,7 @@ and the subtype relationship is always determined in the same way.
 \end{figure}
 
 
-\paragraph{Meta-Variables}
+\subsubsection{Meta-Variables}
 \LMLabel{metaVariables}
 
 \LMHash{}%
@@ -12389,8 +12820,8 @@ In this section we use the following meta-variables:
 \end{itemize}
 
 
-\paragraph{Subtype Rules}
-\LMLabel{typeRules}
+\subsubsection{Subtype Rules}
+\LMLabel{subtypeRules}
 
 \LMHash{}%
 We define several rules about subtyping in this section.
@@ -12535,7 +12966,7 @@ that is, in the premises as well as in the conclusion, simultaneously.
 }
 
 
-\paragraph{Being a subtype}
+\subsubsection{Being a subtype}
 \LMLabel{beingASubtype}
 
 \LMHash{}%
@@ -12645,7 +13076,7 @@ where $C$ denotes a generic class.
 }
 
 
-\paragraph{Informal Subtype Rule Descriptions}
+\subsubsection{Informal Subtype Rule Descriptions}
 \LMLabel{informalSubtypeRuleDescriptions}
 
 \commentary{
@@ -12809,7 +13240,7 @@ include the application of a rule where the environment is used.
 }
 
 
-\paragraph{Additional Subtyping Concepts}
+\subsubsection{Additional Subtyping Concepts}
 \LMLabel{additionalSubtypingConcepts}
 
 \LMHash{}%
