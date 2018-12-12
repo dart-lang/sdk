@@ -155,6 +155,10 @@
 %   which in particular means that the notion of being a more specific type
 %   is eliminated, and function types are made contravariant in their
 %   parameter types.
+% - Integrate instantiation to bound. This introduces the notions of raw
+%   types, the raw-depends relation, and simple bounds; and it specifies
+%   the algorithm which is used to expand a raw type (e.g., `C`) to a
+%   parameterized type (e.g., `C<int>`).
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -4991,6 +4995,18 @@ to identify such terms.
 In the following we only mention raw types,
 because everything said about raw types
 is applicable to raw type expressions in the obvious manner.
+
+\commentary{%
+For instance, with the declaration \code{Type listType() => List;},
+evaluation of the raw type expression \code{List} in the body yields
+an instance of class \code{Type} reifying \code{List<dynamic>},
+because \code{List} is subject to instantiation to bound.
+Note that \code{List<dynamic>} is not syntactically an expression,
+but it is still possible to get access to
+a \code{Type} instance reifying \code{List<dynamic>}
+without instantiation to bound,
+because it can be the value of a type variable.%
+}
 
 \rationale{%
 A raw type cannot denote a higher-kinded type
