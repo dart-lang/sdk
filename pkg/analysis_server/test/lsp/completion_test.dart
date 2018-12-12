@@ -40,17 +40,16 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final content = "import '^';";
 
     // Tell the server we support some specific CompletionItemKinds.
-    await initialize(textDocumentCapabilities: {
-      'completion': {
-        'completionItemKind': {
-          'valueSet': [
-            CompletionItemKind.File.toJson(),
-            CompletionItemKind.Folder.toJson(),
-            CompletionItemKind.Module.toJson(),
-          ],
-        }
-      },
-    });
+    await initialize(
+      textDocumentCapabilities: withCompletionItemKinds(
+        emptyTextDocumentClientCapabilities,
+        [
+          CompletionItemKind.File,
+          CompletionItemKind.Folder,
+          CompletionItemKind.Module,
+        ],
+      ),
+    );
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
 
@@ -75,15 +74,10 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     ''';
 
     // Tell the server we only support the Field CompletionItemKind.
-    await initialize(textDocumentCapabilities: {
-      'completion': {
-        'completionItemKind': {
-          'valueSet': [
-            CompletionItemKind.Field.toJson(),
-          ],
-        }
-      },
-    });
+    await initialize(
+      textDocumentCapabilities: withCompletionItemKinds(
+          emptyTextDocumentClientCapabilities, [CompletionItemKind.Field]),
+    );
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final kinds = res.map((item) => item.kind).toList();
@@ -171,13 +165,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    await initialize(textDocumentCapabilities: {
-      'completion': {
-        'completionItem': {
-          'deprecatedSupport': true,
-        }
-      },
-    });
+    await initialize(
+        textDocumentCapabilities: withCompletionItemDeprecatedSupport(
+            emptyTextDocumentClientCapabilities));
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
@@ -223,13 +213,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    await initialize(textDocumentCapabilities: {
-      'completion': {
-        'completionItem': {
-          'snippetSupport': true,
-        }
-      }
-    });
+    await initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities));
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);

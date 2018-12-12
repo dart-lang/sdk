@@ -27,7 +27,8 @@ const debugPrintCommunication = false;
 
 final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
 
-abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
+abstract class AbstractLspAnalysisServerTest
+    with ResourceProviderMixin, ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';
@@ -42,31 +43,15 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   String projectFolderPath, mainFilePath;
   Uri mainFileUri;
 
-  final emptyTextDocumentClientCapabilities =
-      new TextDocumentClientCapabilities(
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null);
-
-  final emptyWorkspaceClientCapabilities = new WorkspaceClientCapabilities(
-      null, null, null, null, null, null, null, null);
+  void applyChanges(
+    Map<String, String> fileContents,
+    Map<String, List<TextEdit>> changes,
+  ) {
+    changes.forEach((fileUri, edits) {
+      final path = Uri.parse(fileUri).toFilePath();
+      fileContents[path] = applyTextEdits(fileContents[path], edits);
+    });
+  }
 
   void applyDocumentChanges(
       Map<String, String> fileContents,
@@ -80,16 +65,6 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
       (edits) => applyTextDocumentEdits(fileContents, edits),
       (changes) => applyResourceChanges(fileContents, changes),
     );
-  }
-
-  void applyChanges(
-    Map<String, String> fileContents,
-    Map<String, List<TextEdit>> changes,
-  ) {
-    changes.forEach((fileUri, edits) {
-      final path = Uri.parse(fileUri).toFilePath();
-      fileContents[path] = applyTextEdits(fileContents[path], edits);
-    });
   }
 
   void applyResourceChanges(
@@ -387,14 +362,10 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   /// match the spec exactly and are not verified.
   Future<ResponseMessage> initialize({
     String rootPath,
-    Map<String, dynamic> textDocumentCapabilities,
-    Map<String, dynamic> workspaceCapabilities,
+    TextDocumentClientCapabilities textDocumentCapabilities,
+    WorkspaceClientCapabilities workspaceCapabilities,
   }) async {
     final rootUri = Uri.file(rootPath ?? projectFolderPath).toString();
-    final newTextDocumentCapabilities =
-        overrideTextDocumentCapabilities(textDocumentCapabilities);
-    final newWorkspaceCapabilities =
-        overrideWorkspaceCapabilities(workspaceCapabilities);
     final request = makeRequest(
         Method.initialize,
         new InitializeParams(
@@ -403,8 +374,8 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
             rootUri,
             null,
             new ClientCapabilities(
-              newWorkspaceCapabilities,
-              newTextDocumentCapabilities,
+              workspaceCapabilities,
+              textDocumentCapabilities,
               null,
             ),
             null,
@@ -437,28 +408,6 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
     );
     channel.sendNotificationToServer(notification);
     await pumpEventQueue();
-  }
-
-  TextDocumentClientCapabilities overrideTextDocumentCapabilities(
-      Map<String, dynamic> textDocumentCapabilities) {
-    final json = emptyTextDocumentClientCapabilities.toJson();
-    if (textDocumentCapabilities != null) {
-      textDocumentCapabilities.keys.forEach((key) {
-        json[key] = textDocumentCapabilities[key];
-      });
-    }
-    return TextDocumentClientCapabilities.fromJson(json);
-  }
-
-  WorkspaceClientCapabilities overrideWorkspaceCapabilities(
-      Map<String, dynamic> workspaceCapabilities) {
-    final json = emptyWorkspaceClientCapabilities.toJson();
-    if (workspaceCapabilities != null) {
-      workspaceCapabilities.keys.forEach((key) {
-        json[key] = workspaceCapabilities[key];
-      });
-    }
-    return WorkspaceClientCapabilities.fromJson(json);
   }
 
   Position positionFromMarker(String contents) =>
@@ -547,4 +496,142 @@ abstract class AbstractLspAnalysisServerTest with ResourceProviderMixin {
   /// positions/ranges in strings to avoid hard-coding positions in tests.
   String withoutMarkers(String contents) =>
       contents.replaceAll(allMarkersPattern, '');
+}
+
+mixin ClientCapabilitiesHelperMixin {
+  final emptyTextDocumentClientCapabilities =
+      new TextDocumentClientCapabilities(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null);
+
+  final emptyWorkspaceClientCapabilities = new WorkspaceClientCapabilities(
+      null, null, null, null, null, null, null, null);
+
+  TextDocumentClientCapabilities extendTextDocumentCapabilities(
+    TextDocumentClientCapabilities source,
+    Map<String, dynamic> textDocumentCapabilities,
+  ) {
+    final json = source.toJson();
+    if (textDocumentCapabilities != null) {
+      textDocumentCapabilities.keys.forEach((key) {
+        json[key] = textDocumentCapabilities[key];
+      });
+    }
+    return TextDocumentClientCapabilities.fromJson(json);
+  }
+
+  WorkspaceClientCapabilities extendWorkspaceCapabilities(
+    WorkspaceClientCapabilities source,
+    Map<String, dynamic> workspaceCapabilities,
+  ) {
+    final json = source.toJson();
+    if (workspaceCapabilities != null) {
+      workspaceCapabilities.keys.forEach((key) {
+        json[key] = workspaceCapabilities[key];
+      });
+    }
+    return WorkspaceClientCapabilities.fromJson(json);
+  }
+
+  TextDocumentClientCapabilities withCodeActionKinds(
+    TextDocumentClientCapabilities source,
+    List<CodeActionKind> kinds,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'codeAction': {
+        'codeActionLiteralSupport': {
+          'codeActionKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
+        }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemDeprecatedSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'deprecatedSupport': true}
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemSnippetSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'snippetSupport': true}
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemKinds(
+    TextDocumentClientCapabilities source,
+    List<CompletionItemKind> kinds,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItemKind': {
+          'valueSet': kinds.map((k) => k.toJson()).toList()
+        }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withHoverContentFormat(
+    TextDocumentClientCapabilities source,
+    List<MarkupKind> formats,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
+    });
+  }
+
+  TextDocumentClientCapabilities withSignatureHelpContentFormat(
+    TextDocumentClientCapabilities source,
+    List<MarkupKind> formats,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'signatureHelp': {
+        'signatureInformation': {
+          'documentationFormat': formats.map((k) => k.toJson()).toList()
+        }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
+    });
+  }
+
+  WorkspaceClientCapabilities withDocumentChangesSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'workspaceEdit': {'documentChanges': true}
+    });
+  }
 }

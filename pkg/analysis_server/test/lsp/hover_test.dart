@@ -18,14 +18,6 @@ main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
-  Future<void> initializeSupportingMarkupContent([
-    List<MarkupKind> formats = const [MarkupKind.Markdown],
-  ]) async {
-    await initialize(textDocumentCapabilities: {
-      'hover': {'contentFormat': formats.map((f) => f.toJson())}
-    });
-  }
-
   test_hover_bad_position() async {
     await initialize();
     await openFile(mainFileUri, '');
@@ -66,7 +58,9 @@ print();
     '''
         .trim();
 
-    await initializeSupportingMarkupContent([MarkupKind.Markdown]);
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
@@ -83,7 +77,9 @@ print();
     String [[a^bc]];
     ''';
 
-    await initializeSupportingMarkupContent();
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
@@ -103,7 +99,9 @@ print();
     int a;
     ''';
 
-    await initializeSupportingMarkupContent();
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
     await openFile(mainFileUri, withoutMarkers(content));
     var hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNull);
@@ -115,7 +113,9 @@ print();
     String [[a^bc]];
     ''';
 
-    await initializeSupportingMarkupContent([MarkupKind.PlainText]);
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);

@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
-import 'code_actions_abstract.dart';
+import 'server_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,8 +18,69 @@ main() {
   });
 }
 
+abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
+  Future<void> checkCodeActionAvailable(
+    Uri uri,
+    String command,
+    String title, {
+    bool asCodeActionLiteral = false,
+    bool asCommand = false,
+  }) async {
+    final codeActions = await getCodeActions(uri.toString());
+    final codeAction = findCommand(codeActions, command);
+    expect(codeAction, isNotNull);
+
+    codeAction.map(
+      (command) {
+        if (!asCommand) {
+          throw 'Got Command but expected CodeAction literal';
+        }
+        expect(command.title, equals(title));
+        expect(command.arguments, equals([uri.toFilePath()]));
+      },
+      (codeAction) {
+        if (!asCodeActionLiteral) {
+          throw 'Got CodeAction literal but expected Command';
+        }
+        expect(codeAction, isNotNull);
+        expect(codeAction.title, equals(title));
+        expect(codeAction.command.title, equals(title));
+        expect(codeAction.command.arguments, equals([uri.toFilePath()]));
+      },
+    );
+  }
+
+  Either2<Command, CodeAction> findCommand(
+      List<Either2<Command, CodeAction>> actions, String commandID) {
+    for (var codeAction in actions) {
+      final id = codeAction.map(
+          (cmd) => cmd.command, (action) => action.command.command);
+      if (id == commandID) {
+        return codeAction;
+      }
+    }
+    return null;
+  }
+
+  CodeAction findEditAction(List<Either2<Command, CodeAction>> actions,
+      CodeActionKind actionKind, String title) {
+    for (var codeAction in actions) {
+      final codeActionLiteral =
+          codeAction.map((cmd) => null, (action) => action);
+      if (codeActionLiteral?.kind == actionKind &&
+          codeActionLiteral?.title == title) {
+        // We're specifically looking for an action that contains an edit.
+        assert(codeActionLiteral.command == null);
+        assert(codeActionLiteral.edit != null);
+        return codeActionLiteral;
+      }
+    }
+    return null;
+  }
+}
+
 @reflectiveTest
-class OrganizeImportsSourceCodeActionsTest extends SourceCodeActionsTest {
+class OrganizeImportsSourceCodeActionsTest extends AbstractCodeActionsTest {
   test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
 import 'dart:math';
@@ -37,10 +98,12 @@ Future foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
-    await initializeWithDocumentChangesSupport();
+    await initialize(
+        workspaceCapabilities:
+            withDocumentChangesSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -97,7 +160,7 @@ int minified(int x, int y) => min(x, y);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -136,7 +199,10 @@ int minified(int x, int y) => min(x, y);
 
   test_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
-    await initializeWithSupportForKinds([CodeActionKind.Source]);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
+    );
 
     await checkCodeActionAvailable(
       mainFileUri,
@@ -164,7 +230,7 @@ int minified(int x, int y) => min(x, y);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -190,7 +256,7 @@ int minified(int x, int y) => min(x, y);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -207,16 +273,19 @@ int minified(int x, int y) => min(x, y);
 
   test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
-    await initializeWithSupportForKinds([CodeActionKind.Refactor]);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+    );
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.organizeImports);
+    final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNull);
   }
 }
 
 @reflectiveTest
-class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
+class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
   test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
     String b;
@@ -227,10 +296,12 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
     String b;
     ''';
     await newFile(mainFilePath, content: content);
-    await initializeWithDocumentChangesSupport();
+    await initialize(
+        workspaceCapabilities:
+            withDocumentChangesSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -280,7 +351,7 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -319,7 +390,10 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
 
   test_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
-    await initializeWithSupportForKinds([CodeActionKind.Source]);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
+    );
 
     await checkCodeActionAvailable(
       mainFileUri,
@@ -350,7 +424,7 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -380,7 +454,7 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNotNull);
 
     final command = codeAction.map(
@@ -396,63 +470,13 @@ class SortMembersSourceCodeActionsTest extends SourceCodeActionsTest {
 
   test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
-    await initializeWithSupportForKinds([CodeActionKind.Refactor]);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+    );
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = _findCommand(codeActions, Commands.sortMembers);
+    final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNull);
-  }
-}
-
-abstract class SourceCodeActionsTest extends AbstractCodeActionsTest {
-  Future<void> checkCodeActionAvailable(
-    Uri uri,
-    String command,
-    String title, {
-    bool asCodeActionLiteral = false,
-    bool asCommand = false,
-  }) async {
-    final codeActions = await getCodeActions(uri.toString());
-    final codeAction = _findCommand(codeActions, command);
-    expect(codeAction, isNotNull);
-
-    codeAction.map(
-      (command) {
-        if (!asCommand) {
-          throw 'Got Command but expected CodeAction literal';
-        }
-        expect(command.title, equals(title));
-        expect(command.arguments, equals([uri.toFilePath()]));
-      },
-      (codeAction) {
-        if (!asCodeActionLiteral) {
-          throw 'Got CodeAction literal but expected Command';
-        }
-        expect(codeAction, isNotNull);
-        expect(codeAction.title, equals(title));
-        expect(codeAction.command.title, equals(title));
-        expect(codeAction.command.arguments, equals([uri.toFilePath()]));
-      },
-    );
-  }
-
-  Future<void> initializeWithDocumentChangesSupport() async {
-    await initialize(workspaceCapabilities: {
-      'workspaceEdit': {
-        'documentChanges': true,
-      },
-    });
-  }
-
-  Either2<Command, CodeAction> _findCommand(
-      List<Either2<Command, CodeAction>> actions, String commandID) {
-    for (var codeAction in actions) {
-      final id = codeAction.map(
-          (cmd) => cmd.command, (action) => action.command.command);
-      if (id == commandID) {
-        return codeAction;
-      }
-    }
-    return null;
   }
 }
