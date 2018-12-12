@@ -41,7 +41,7 @@ abstract class _A&Object&M0&M1 extends self::_A&Object&M0 implements self::M1<dy
 }
 class A extends self::_A&Object&M0&M1 {
   synthetic constructor •() → self::A
-    : super self::_A&Object&M0&M1::•()
+    : super core::Object::•()
     ;
 }
 static method main() → dynamic {}

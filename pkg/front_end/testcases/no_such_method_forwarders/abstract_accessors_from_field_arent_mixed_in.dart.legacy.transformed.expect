@@ -32,7 +32,7 @@ abstract class _C&Object&B extends core::Object implements self::B {
 }
 class C extends self::_C&Object&B {
   synthetic constructor •() → self::C
-    : super self::_C&Object&B::•()
+    : super core::Object::•()
     ;
   get foo() → core::int
     return 42;

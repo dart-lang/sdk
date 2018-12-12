@@ -23,7 +23,7 @@ abstract class _Sub&Base&Mixin extends self::Base implements self::Mixin {
 }
 class Sub extends self::_Sub&Base&Mixin {
   synthetic constructor •() → self::Sub
-    : super self::_Sub&Base&Mixin::•()
+    : super self::Base::•()
     ;
 }
 static method main() → dynamic {

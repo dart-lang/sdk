@@ -118,7 +118,7 @@ abstract class _B0&S&M extends self::S implements self::M {
 }
 class B0 extends self::_B0&S&M {
   synthetic constructor •() → self::B0
-    : super self::_B0&S&M::•()
+    : super self::S::•()
     ;
 }
 abstract class _B1&S&M1 extends self::S implements self::M1 {
@@ -134,7 +134,7 @@ abstract class _B1&S&M1&M extends self::_B1&S&M1 implements self::M {
 }
 class B1 extends self::_B1&S&M1&M {
   synthetic constructor •() → self::B1
-    : super self::_B1&S&M1&M::•()
+    : super self::S::•()
     ;
 }
 abstract class _B2&S&M1 extends self::S implements self::M1 {
@@ -155,7 +155,7 @@ abstract class _B2&S&M1&M2&M extends self::_B2&S&M1&M2 implements self::M {
 }
 class B2 extends self::_B2&S&M1&M2&M {
   synthetic constructor •() → self::B2
-    : super self::_B2&S&M1&M2&M::•()
+    : super self::S::•()
     ;
 }
 abstract class _B0X&S&M extends self::S implements self::M {
@@ -171,7 +171,7 @@ abstract class _B0X&S&M&MX extends self::_B0X&S&M implements self::MX {
 }
 class B0X extends self::_B0X&S&M&MX {
   synthetic constructor •() → self::B0X
-    : super self::_B0X&S&M&MX::•()
+    : super self::S::•()
     ;
 }
 abstract class _B1X&S&M1 extends self::S implements self::M1 {
@@ -192,7 +192,7 @@ abstract class _B1X&S&M1&M&MX extends self::_B1X&S&M1&M implements self::MX {
 }
 class B1X extends self::_B1X&S&M1&M&MX {
   synthetic constructor •() → self::B1X
-    : super self::_B1X&S&M1&M&MX::•()
+    : super self::S::•()
     ;
 }
 abstract class _B2X&S&M1 extends self::S implements self::M1 {
@@ -218,7 +218,7 @@ abstract class _B2X&S&M1&M2&M&MX extends self::_B2X&S&M1&M2&M implements self::M
 }
 class B2X extends self::_B2X&S&M1&M2&M&MX {
   synthetic constructor •() → self::B2X
-    : super self::_B2X&S&M1&M2&M&MX::•()
+    : super self::S::•()
     ;
 }
 static method main() → dynamic {}

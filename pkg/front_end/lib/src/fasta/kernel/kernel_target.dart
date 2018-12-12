@@ -822,13 +822,14 @@ class KernelTarget extends TargetImplementation {
 /// arguments.
 Constructor defaultSuperConstructor(Class cls) {
   Class superclass = cls.superclass;
-  if (superclass != null) {
-    for (Constructor constructor in superclass.constructors) {
-      if (constructor.name.name.isEmpty) {
-        return constructor.function.requiredParameterCount == 0
-            ? constructor
-            : null;
-      }
+  while (superclass != null && superclass.isMixinApplication) {
+    superclass = superclass.superclass;
+  }
+  for (Constructor constructor in superclass.constructors) {
+    if (constructor.name.name.isEmpty) {
+      return constructor.function.requiredParameterCount == 0
+          ? constructor
+          : null;
     }
   }
   return null;
