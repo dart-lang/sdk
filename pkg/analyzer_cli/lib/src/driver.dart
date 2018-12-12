@@ -800,48 +800,23 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// Return whether the [newOptions] are equal to the [previous].
   static bool _equalCommandLineOptions(
       CommandLineOptions previous, CommandLineOptions newOptions) {
-    if (previous == null || newOptions == null) {
-      return false;
-    }
-    if (newOptions.packageRootPath != previous.packageRootPath) {
-      return false;
-    }
-    if (newOptions.packageConfigPath != previous.packageConfigPath) {
-      return false;
-    }
-    if (!_equalMaps(newOptions.definedVariables, previous.definedVariables)) {
-      return false;
-    }
-    if (newOptions.log != previous.log) {
-      return false;
-    }
-    if (newOptions.disableHints != previous.disableHints) {
-      return false;
-    }
-    if (newOptions.showPackageWarnings != previous.showPackageWarnings) {
-      return false;
-    }
-    if (newOptions.showPackageWarningsPrefix !=
-        previous.showPackageWarningsPrefix) {
-      return false;
-    }
-    if (newOptions.showSdkWarnings != previous.showSdkWarnings) {
-      return false;
-    }
-    if (newOptions.lints != previous.lints) {
-      return false;
-    }
-    if (newOptions.strongMode != previous.strongMode) {
-      return false;
-    }
-    if (!_equalLists(
-        newOptions.buildSummaryInputs, previous.buildSummaryInputs)) {
-      return false;
-    }
-    if (newOptions.disableCacheFlushing != previous.disableCacheFlushing) {
-      return false;
-    }
-    return true;
+    return previous != null &&
+        newOptions != null &&
+        newOptions.packageRootPath == previous.packageRootPath &&
+        newOptions.packageConfigPath == previous.packageConfigPath &&
+        _equalMaps(newOptions.definedVariables, previous.definedVariables) &&
+        newOptions.log == previous.log &&
+        newOptions.disableHints == previous.disableHints &&
+        newOptions.showPackageWarnings == previous.showPackageWarnings &&
+        newOptions.showPackageWarningsPrefix ==
+            previous.showPackageWarningsPrefix &&
+        newOptions.showSdkWarnings == previous.showSdkWarnings &&
+        newOptions.lints == previous.lints &&
+        newOptions.strongMode == previous.strongMode &&
+        _equalLists(
+            newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
+        newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
+        _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);
   }
 
   /// Perform a deep comparison of two string lists.
