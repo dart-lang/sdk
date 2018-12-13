@@ -69,7 +69,7 @@ class KernelLoaderTask extends CompilerTask {
         String platform = '${targetName}_platform.dill';
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
-            new Dart2jsTarget(targetName, new TargetFlags(syncAsync: false)),
+            new Dart2jsTarget(targetName, new TargetFlags()),
             _options.librariesSpecificationUri,
             _options.platformBinaries.resolve(platform),
             _options.packageConfig);
