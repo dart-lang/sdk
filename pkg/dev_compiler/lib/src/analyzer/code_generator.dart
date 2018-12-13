@@ -105,7 +105,7 @@ class CodeGenerator extends Object
   Expression _cascadeTarget;
 
   /// The variable for the current catch clause
-  SimpleIdentifier _catchParameter;
+  SimpleIdentifier _rethrowParameter;
 
   /// In an async* function, this represents the stream controller parameter.
   JS.TemporaryId _asyncStarController;
@@ -754,11 +754,16 @@ class CodeGenerator extends Object
   }
 
   @override
-  visitIsExpression(IsExpression node) {
+  JS.Expression visitIsExpression(IsExpression node) {
+    return _emitIsExpression(
+        node.expression, node.type.type, node.notOperator != null);
+  }
+
+  JS.Expression _emitIsExpression(Expression operand, DartType type,
+      [bool negated = false]) {
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     JS.Expression result;
-    var type = node.type.type;
-    var lhs = _visitExpression(node.expression);
+    var lhs = _visitExpression(operand);
     var typeofName = jsTypeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
     if (typeofName != null && type != types.intType) {
@@ -767,10 +772,7 @@ class CodeGenerator extends Object
       result = js.call('#.is(#)', [_emitType(type), lhs]);
     }
 
-    if (node.notOperator != null) {
-      return js.call('!#', result);
-    }
-    return result;
+    return negated ? js.call('!#', result) : result;
   }
 
   /// No-op, typedefs are emitted as their corresponding function type.
@@ -2682,11 +2684,14 @@ class CodeGenerator extends Object
   }
 
   bool _executesAtTopLevel(AstNode node) {
-    var ancestor = node.thisOrAncestorMatching((n) =>
-        n is FunctionBody ||
-        n is FieldDeclaration && n.staticKeyword == null ||
-        n is ConstructorDeclaration && n.constKeyword == null);
-    return ancestor == null;
+    for (var n = node.parent; n != null; n = n.parent) {
+      if (n is FunctionBody ||
+          n is FieldDeclaration && n.staticKeyword == null ||
+          n is ConstructorDeclaration && n.constKeyword == null) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Whether the expression for [type] can be evaluated at this point in the JS
@@ -5387,7 +5392,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Expression visitRethrowExpression(RethrowExpression node) {
-    return runtimeCall('rethrow(#)', _visitExpression(_catchParameter));
+    return runtimeCall('rethrow(#)', _emitSimpleIdentifier(_rethrowParameter));
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope
@@ -5406,7 +5411,7 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.If visitIfStatement(IfStatement node) {
+  JS.Statement visitIfStatement(IfStatement node) {
     return JS.If(_visitTest(node.condition), _visitScope(node.thenStatement),
         _visitScope(node.elseStatement));
   }
@@ -5537,82 +5542,84 @@ class CodeGenerator extends Object
   JS.Catch _visitCatch(NodeList<CatchClause> clauses) {
     if (clauses == null || clauses.isEmpty) return null;
 
-    // TODO(jmesserly): need a better way to get a temporary variable.
-    // This could incorrectly shadow a user's name.
-    var savedCatch = _catchParameter;
+    var caughtError = _createTemporary('e', types.dynamicType);
+    var savedRethrow = _rethrowParameter;
+    _rethrowParameter = caughtError;
 
-    var isSingleCatch =
-        clauses.length == 1 && clauses.single.exceptionParameter != null;
-    if (isSingleCatch) {
-      // Special case for a single catch.
-      _catchParameter = clauses.single.exceptionParameter;
-    } else {
-      _catchParameter = _createTemporary('e', types.dynamicType);
-    }
+    // If we have more than one catch clause, always create a temporary so we
+    // don't shadow any names.
+    var exceptionParameter =
+        (clauses.length == 1 ? clauses[0].exceptionParameter : null) ??
+            _createTemporary('ex', types.dynamicType);
 
-    JS.Statement catchBody =
-        js.statement('throw #;', _emitSimpleIdentifier(_catchParameter));
+    var stackTraceParameter =
+        (clauses.length == 1 ? clauses[0].stackTraceParameter : null) ??
+            (clauses.any((c) => c.stackTraceParameter != null)
+                ? _createTemporary('st', types.dynamicType)
+                : null);
+
+    // Rethrow if the exception type didn't match.
+    JS.Statement catchBody = JS.Throw(_emitSimpleIdentifier(caughtError));
     for (var clause in clauses.reversed) {
-      catchBody = _catchClauseGuard(clause, catchBody);
+      catchBody = _catchClauseGuard(
+          clause, catchBody, exceptionParameter, stackTraceParameter);
     }
+    var catchStatements = [
+      js.statement('let # = #.getThrown(#)', [
+        _emitVariableDef(exceptionParameter),
+        runtimeModule,
+        _emitSimpleIdentifier(caughtError)
+      ]),
+    ];
+    if (stackTraceParameter != null) {
+      catchStatements.add(js.statement('let # = #.stackTrace(#)', [
+        _emitVariableDef(stackTraceParameter),
+        runtimeModule,
+        _emitSimpleIdentifier(caughtError)
+      ]));
+    }
+    catchStatements.add(catchBody);
 
-    var catchVarDecl = _emitSimpleIdentifier(_catchParameter) as JS.Identifier;
-    if (isSingleCatch) {
-      catchVarDecl..sourceInformation = _nodeStart(_catchParameter);
-    }
-    _catchParameter = savedCatch;
-    return JS.Catch(catchVarDecl, JS.Block([catchBody]));
+    var catchVarDecl = _emitSimpleIdentifier(caughtError) as JS.Identifier;
+    _rethrowParameter = savedRethrow;
+    return JS.Catch(catchVarDecl, JS.Block(catchStatements));
   }
 
-  JS.Statement _catchClauseGuard(CatchClause clause, JS.Statement otherwise) {
-    var then = visitCatchClause(clause);
-
-    // Discard following clauses, if any, as they are unreachable.
-    if (clause.exceptionType == null) return then;
-
-    // TODO(jmesserly): this is inconsistent with [visitIsExpression], which
-    // has special case for typeof.
-    var castType = _emitType(clause.exceptionType.type);
-
-    return JS.If(
-        js.call('#.is(#)', [castType, _emitSimpleIdentifier(_catchParameter)]),
-        then,
-        otherwise)
-      ..sourceInformation = _nodeStart(clause);
-  }
-
-  /// Visits the catch clause body. This skips the exception type guard, if any.
-  /// That is handled in [_visitCatch].
-  @override
-  JS.Statement visitCatchClause(CatchClause node) {
+  JS.Statement _catchClauseGuard(
+      CatchClause node,
+      JS.Statement otherwise,
+      SimpleIdentifier exceptionParameter,
+      SimpleIdentifier stackTraceParameter) {
     var body = <JS.Statement>[];
-
-    var savedCatch = _catchParameter;
     var vars = HashSet<String>();
+
+    void declareVariable(SimpleIdentifier variable, SimpleIdentifier value) {
+      if (variable == null) return;
+      vars.add(variable.name);
+      if (variable.name != value.name) {
+        body.add(js.statement('let # = #',
+            [visitSimpleIdentifier(variable), _emitSimpleIdentifier(value)]));
+      }
+    }
+
     if (node.catchKeyword != null) {
-      var name = node.exceptionParameter;
-      if (name == _catchParameter) {
-        vars.add(name.name);
-      } else if (name != null) {
-        vars.add(name.name);
-        body.add(js.statement('let # = #;',
-            [_emitVariableDef(name), _emitSimpleIdentifier(_catchParameter)]));
-        _catchParameter = name;
-      }
-      var stackVar = node.stackTraceParameter;
-      if (stackVar != null) {
-        vars.add(stackVar.name);
-        body.add(js.statement('let # = #.stackTrace(#);', [
-          _emitVariableDef(stackVar),
-          runtimeModule,
-          _emitSimpleIdentifier(name)
-        ]));
-      }
+      declareVariable(node.exceptionParameter, exceptionParameter);
+      declareVariable(node.stackTraceParameter, stackTraceParameter);
     }
 
     body.add(_visitStatement(node.body).toScopedBlock(vars));
-    _catchParameter = savedCatch;
-    return JS.Statement.from(body);
+    var then = JS.Statement.from(body);
+
+    // Discard following clauses, if any, as they are unreachable.
+    if (node.exceptionType == null ||
+        rules.isSubtypeOf(types.objectType, node.exceptionType.type)) {
+      return then;
+    }
+
+    var condition =
+        _emitIsExpression(exceptionParameter, node.exceptionType.type);
+    return JS.If(condition, then, otherwise)
+      ..sourceInformation = _nodeStart(node);
   }
 
   @override
@@ -6265,6 +6272,10 @@ class CodeGenerator extends Object
   /// Unused, see [_emitFieldInitializers].
   @override
   visitAssertInitializer(node) => _unreachable(node);
+
+  /// Unused, see [_catchClauseGuard].
+  @override
+  visitCatchClause(CatchClause node) => _unreachable(node);
 
   /// Not visited, but maybe they should be?
   /// See <https://github.com/dart-lang/sdk/issues/29347>

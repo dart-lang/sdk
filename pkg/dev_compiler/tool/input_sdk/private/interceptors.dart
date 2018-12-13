@@ -138,7 +138,7 @@ class JSNoSuchMethodError extends NativeError implements NoSuchMethodError {
     return stack;
   }
 
-  StackTrace get stackTrace => getTraceFromException(this);
+  StackTrace get stackTrace => dart.stackTrace(this);
 
   String toString() {
     String message = JS('!', '#.message', this);
@@ -211,7 +211,7 @@ final Object jsNull = JSNull();
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'RangeError')
 class JSRangeError extends Interceptor implements ArgumentError {
-  StackTrace get stackTrace => getTraceFromException(this);
+  StackTrace get stackTrace => dart.stackTrace(this);
 
   get invalidValue => null;
   get name => null;

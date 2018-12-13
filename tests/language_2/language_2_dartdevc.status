@@ -340,7 +340,6 @@ const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, a
 const_switch_test/04: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <1.0>) fails.
 constructor12_test: RuntimeError # Issue 29920; ReferenceError: JSArrayOfT is not defined
 ct_const_test: RuntimeError # Issue 2992; RangeError: Maximum call stack size exceeded
-custom_await_stack_trace_test: RuntimeError # Issue 29920; Uncaught Expect.equals(at index 0: Expected <Blah \x0ABloop\x0ABleep\x0A...>
 cyclic_type2_test: RuntimeError # Issue 29920; Uncaught ReferenceError: V is not defined
 cyclic_type_test/02: RuntimeError # Issue 29920; Uncaught RangeError: Maximum call stack size exceeded
 cyclic_type_test/03: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
