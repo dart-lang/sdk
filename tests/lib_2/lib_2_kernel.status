@@ -136,7 +136,7 @@ async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/issue_21398_parent_isolate1_test: RuntimeError # Issue 31402 (List literal)
+isolate/issue_21398_parent_isolate1_test: RuntimeError, Crash # Issue 31402 (List literal), Issue 35374.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -307,40 +307,8 @@ mirrors/redirecting_factory_reflection_test: RuntimeError
 *: SkipByDesign
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-async/stream_from_iterable_test: Skip # Timeout
-async/stream_iterator_test: Skip # Timeout
-async/stream_periodic2_test: Skip # Timeout
-async/stream_periodic3_test: Skip # Timeout
-async/stream_periodic4_test: Skip # Timeout
-async/stream_periodic5_test: Skip # Timeout
-async/stream_periodic6_test: Skip # Timeout
-async/stream_periodic_test: Skip # Timeout
-async/stream_single_test: Skip # Timeout
-async/stream_single_to_multi_subscriber_test: Skip # Timeout
-async/stream_state_test: Skip # Timeout
-async/stream_timeout_test: Skip # Timeout
-async/stream_transform_test: Skip # Timeout
-async/stream_transformation_broadcast_test: Skip # Timeout
-async/timer_cancel1_test: Skip # Timeout
-async/timer_isActive_test: Skip # Timeout
-async/timer_test: Skip # Timeout
-isolate/count_test: Skip # Timeout
-isolate/cross_isolate_message_test: Skip # Timeout
-isolate/isolate_complex_messages_test: Skip # Timeout
-isolate/isolate_import_test/none: Skip # Timeout
-isolate/issue_21398_parent_isolate1_test: Skip # Timeout
-isolate/mandel_isolate_test: Skip # Timeout
-isolate/message2_test: Skip # Timeout
+isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
 isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
-isolate/nested_spawn2_test: Skip # Timeout
-isolate/nested_spawn_test: Skip # Timeout
-isolate/raw_port_test: Skip # Timeout
-isolate/spawn_function_test: Skip # Timeout
-isolate/spawn_uri_test: Skip # Timeout
-isolate/spawn_uri_vm_test: Skip # Timeout
-isolate/timer_isolate_test: Skip # Timeout
-isolate/timer_multiple_isolates_test: Skip # Timeout
-isolate/unresolved_ports_test: Skip # Timeout
 mirrors/dynamic_load_test: Crash
 mirrors/library_uri_io_test: Skip # Timeout
 mirrors/library_uri_package_test: Skip # Timeout
