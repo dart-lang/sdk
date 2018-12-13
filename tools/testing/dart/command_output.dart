@@ -91,6 +91,11 @@ class CommandOutput extends UniqueObject {
     return exitCode < 0;
   }
 
+  bool get hasCoreDump {
+    // dart2js crashes don't produce crashdumps.
+    return hasCrashed && exitCode != 253;
+  }
+
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
   bool get canRunDependendCommands {
