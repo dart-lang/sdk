@@ -73,7 +73,6 @@ cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
-dart/appjit_determinism_test: Pass, Fail # Issue 31427 - Lingering non-determinism.
 
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
