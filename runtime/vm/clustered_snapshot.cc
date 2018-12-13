@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/relocation.h"
 #include "vm/dart.h"
 #include "vm/heap/heap.h"
 #include "vm/image_snapshot.h"
@@ -22,6 +23,41 @@
 #define LOG_SECTION_BOUNDARIES false
 
 namespace dart {
+
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_DBC)
+
+static void RelocateCodeObjects(
+    bool is_vm,
+    GrowableArray<RawCode*>* code_objects,
+    GrowableArray<ImageWriterCommand>* image_writer_commands) {
+  auto thread = Thread::Current();
+  auto isolate = is_vm ? Dart::vm_isolate() : thread->isolate();
+
+  WritableCodePages writable_code_pages(thread, isolate);
+  CodeRelocator::Relocate(thread, code_objects, image_writer_commands, is_vm);
+}
+
+class RawCodeKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const RawCode* Key;
+  typedef const RawCode* Value;
+  typedef const RawCode* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+  static Value ValueOf(Pair kv) { return kv; }
+  static inline intptr_t Hashcode(Key key) {
+    return reinterpret_cast<intptr_t>(key);
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
+};
+
+typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
+
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&          \
+        // !defined(TARGET_ARCH_DBC)
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -1397,6 +1433,8 @@ class CodeSerializationCluster : public SerializationCluster {
     }
   }
 
+  GrowableArray<RawCode*>* discovered_objects() { return &objects_; }
+
  private:
   GrowableArray<RawCode*> objects_;
 };
@@ -1410,7 +1448,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
+    const intptr_t count = d->ReadUnsigned();
+
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(AllocateUninitialized(old_space, Code::InstanceSize(0)));
     }
@@ -1418,7 +1457,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawCode* code = reinterpret_cast<RawCode*>(d->Ref(id));
@@ -4419,7 +4458,6 @@ void Serializer::Push(RawObject* object) {
     ASSERT(heap_->GetObjectId(object) != 0);
     stack_.Add(object);
     num_written_objects_++;
-
 #if defined(SNAPSHOT_BACKTRACE)
     parent_pairs_.Add(&Object::Handle(zone_, object));
     parent_pairs_.Add(&Object::Handle(zone_, current_parent_));
@@ -4521,9 +4559,45 @@ void Serializer::Serialize() {
     Trace(stack_.RemoveLast());
   }
 
+  intptr_t code_order_length = 0;
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_DBC)
   if (Snapshot::IncludesCode(kind_)) {
-    image_writer_->PrepareForSerialization(nullptr);
+    auto code_objects =
+        static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
+            ->discovered_objects();
+
+    GrowableArray<ImageWriterCommand> writer_commands;
+    RelocateCodeObjects(vm_, code_objects, &writer_commands);
+    image_writer_->PrepareForSerialization(&writer_commands);
+
+    // We permute the code objects in the [CodeSerializationCluster] so they
+    // will arrive in the order in which the [Code]'s instructions will be in
+    // memory at AOT runtime.
+    GrowableArray<RawCode*> code_order;
+    RawCodeSet code_set;
+    for (auto& command : writer_commands) {
+      if (command.op == ImageWriterCommand::InsertInstructionOfCode) {
+        RawCode* code = command.insert_instruction_of_code.code;
+        ASSERT(!code_set.HasKey(code));
+        code_set.Insert(code);
+        code_order.Add(code);
+        code_order_length++;
+      }
+    }
+    for (RawCode* code : *code_objects) {
+      if (!code_set.HasKey(code)) {
+        code_set.Insert(code);
+        code_order.Add(code);
+      }
+    }
+    RELEASE_ASSERT(code_order.length() == code_objects->length());
+    for (intptr_t i = 0; i < code_objects->length(); ++i) {
+      (*code_objects)[i] = code_order[i];
+    }
   }
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&          \
+        // !defined(TARGET_ARCH_DBC)
 
   intptr_t num_clusters = 0;
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
@@ -4543,6 +4617,7 @@ void Serializer::Serialize() {
   WriteUnsigned(num_base_objects_);
   WriteUnsigned(num_objects);
   WriteUnsigned(num_clusters);
+  WriteUnsigned(code_order_length);
 
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -4761,7 +4836,6 @@ Deserializer::~Deserializer() {
 
 DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
-
   Zone* Z = zone_;
   if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
       RawObject::IsTypedDataViewClassId(cid)) {
@@ -4971,6 +5045,7 @@ void Deserializer::Prepare() {
   num_base_objects_ = ReadUnsigned();
   num_objects_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
+  code_order_length_ = ReadUnsigned();
 
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs_ = Array::New(num_objects_ + 1, Heap::kOld);

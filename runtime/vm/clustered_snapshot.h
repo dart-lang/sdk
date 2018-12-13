@@ -528,6 +528,21 @@ class Deserializer : public StackResource {
   Heap* heap() const { return heap_; }
   Snapshot::Kind kind() const { return kind_; }
 
+  // The number of code objects which were relocated during AOT snapshot
+  // writing.
+  //
+  // After relocating the instructions in the ".text" segment, the
+  // [CodeSerializationCluster] will re-order those code objects that get
+  // written out in the cluster.  The order will be dictated by the order of
+  // the code's instructions in the ".text" segment.
+  //
+  // The [code_order_length] represents therefore the prefix of code objects in
+  // the written out code cluster. (There might be code objects for which no
+  // relocation was performed.)
+  //
+  // This will be used to construct [ObjectStore::code_order_table].
+  intptr_t code_order_length() const { return code_order_length_; }
+
  private:
   Heap* heap_;
   Zone* zone_;
@@ -537,6 +552,7 @@ class Deserializer : public StackResource {
   intptr_t num_base_objects_;
   intptr_t num_objects_;
   intptr_t num_clusters_;
+  intptr_t code_order_length_ = 0;
   RawArray* refs_;
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;

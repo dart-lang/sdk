@@ -977,6 +977,15 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   }
 }
 
+WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
+    : StackResource(thread), isolate_(isolate) {
+  isolate_->heap()->WriteProtectCode(false);
+}
+
+WritableCodePages::~WritableCodePages() {
+  isolate_->heap()->WriteProtectCode(true);
+}
+
 BumpAllocateScope::BumpAllocateScope(Thread* thread)
     : StackResource(thread), no_reload_scope_(thread->isolate(), thread) {
   ASSERT(!thread->bump_allocate());

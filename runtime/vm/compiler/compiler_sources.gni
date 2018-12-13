@@ -117,6 +117,8 @@ compiler_sources = [
   "jit/jit_call_specializer.h",
   "method_recognizer.cc",
   "method_recognizer.h",
+  "relocation.cc",
+  "relocation.h",
 ]
 
 compiler_sources_tests = [
