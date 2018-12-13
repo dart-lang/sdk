@@ -215,7 +215,7 @@ io/addlatexhash_test: Skip # Timeout
 io/http_advanced_test: Skip # Timeout
 io/http_auth_digest_test: Crash
 io/http_auth_test: Skip # Timeout
-io/http_basic_test: Pass, Crash # Sporadic crash, issue 33824
+io/http_basic_test: Pass, Timeout # Issue 28046
 io/http_proxy_advanced_test: Skip # Timeout
 io/http_read_test: Skip # Timeout
 io/non_utf8_directory_test: Pass, Timeout

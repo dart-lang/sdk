@@ -18,9 +18,6 @@ assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not repo
 set_literals/*: Skip
 
 [ $runtime == vm ]
-async_star/async_star_await_for_test: RuntimeError
-async_star/async_star_cancel_test: RuntimeError
-async_star/async_star_test: RuntimeError
 set_literals/*: Skip
 
 [ $arch == arm64 && $runtime == vm ]

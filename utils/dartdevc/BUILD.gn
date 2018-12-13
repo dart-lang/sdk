@@ -9,6 +9,7 @@ import("../create_timestamp.gni")
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
+sdk_libraries_json = "$target_gen_dir/libraries.json"
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -48,7 +49,7 @@ application_snapshot("dartdevk") {
     ":dartdevk_sdk",
   ]
 
-  inputs = [ sdk_dill ]
+  inputs = [ sdk_dill, sdk_libraries_json ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -269,6 +270,7 @@ prebuilt_dart_action("dartdevc_test_pkg") {
 
   inputs = [
     sdk_dill,
+    sdk_libraries_json,
     sdk_summary,
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
@@ -348,6 +350,7 @@ prebuilt_dart_action("dartdevk_sdk") {
 
   outputs = [
     sdk_dill,
+    sdk_libraries_json,
     "$target_gen_dir/kernel/amd/dart_sdk.js",
     "$target_gen_dir/kernel/amd/dart_sdk.js.map",
     "$target_gen_dir/kernel/common/dart_sdk.js",

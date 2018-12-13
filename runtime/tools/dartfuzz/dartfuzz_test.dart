@@ -38,7 +38,7 @@ TestResult runCommand(List<String> cmd, Map<String, String> env) {
   if (res.exitCode == -sigkill) {
     return new TestResult(ResultCode.timeout, res.stdout);
   } else if (res.exitCode != 0) {
-    return new TestResult(ResultCode.error, res.stdout);
+    return new TestResult(ResultCode.error, res.stderr);
   }
   return new TestResult(ResultCode.success, res.stdout);
 }
@@ -336,8 +336,20 @@ class DartFuzzTest {
     numDivergences++;
     print(
         '\n${isolate}: !DIVERGENCE! $version:$seed (output=${outputDivergence})');
-    if (showStats && outputDivergence) {
-      print('out1:\n${result1.output}\nout2:\n${result2.output}\n');
+    if (outputDivergence) {
+      // Only report the actual output divergence details when requested,
+      // since this output may be lengthy and should be reproducable anyway.
+      if (showStats) {
+        print('\nout1:\n${result1.output}\nout2:\n${result2.output}\n');
+      }
+    } else {
+      // For any other divergence, always report what went wrong.
+      if (result1.code != ResultCode.success) {
+        print('\nfail1:\n${result1.output}\n');
+      }
+      if (result2.code != ResultCode.success) {
+        print('\nfail2:\n${result2.output}\n');
+      }
     }
   }
 
@@ -452,7 +464,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      int cluster_modes = modes.length - 15;
+      int cluster_modes = modes.indexOf('aot-debug-arm32');
       Random rand = new Random();
       do {
         mode = modes[rand.nextInt(cluster_modes)];
@@ -502,7 +514,9 @@ class DartFuzzTestSession {
     'kbc-cmp-x64',
     'kbc-mix-x64',
     // Times out often:
+    'aot-debug-arm32',
     'aot-debug-arm64',
+    'aot-arm32',
     'aot-arm64',
     // Too many divergences (due to arithmetic):
     'js',
@@ -519,6 +533,9 @@ class DartFuzzTestSession {
     'jit-opt-arm64',
     'jit-opt-dbc',
     'jit-opt-dbc64',
+    // Not supported:
+    'aot-debug-ia32',
+    'aot-ia32',
   ];
 }
 

@@ -125,8 +125,30 @@ Future<CompilerResult> _compile(List<String> args,
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
   var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
-  var sdkSummaryPath = argResults['dart-sdk-summary'] as String ??
-      (useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath);
+  var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
+  String librarySpecPath;
+  if (sdkSummaryPath == null) {
+    sdkSummaryPath =
+        useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath;
+    librarySpecPath = defaultLibrarySpecPath;
+  } else {
+    // TODO(jmesserly): the `isSupported` bit should be included in the SDK
+    // summary, but front_end requires a separate file, so we have to work
+    // around that, while avoiding yet another command line option.
+    //
+    // Right now we search two locations: one level above the SDK summary
+    // (this works for the build and SDK layouts) or next to the SDK summary
+    // (if the user is doing something custom).
+    //
+    // Another option: we could make an in-memory file with the relevant info.
+    librarySpecPath =
+        path.join(path.dirname(path.dirname(sdkSummaryPath)), "libraries.json");
+    if (!File(librarySpecPath).existsSync()) {
+      librarySpecPath =
+          path.join(path.dirname(sdkSummaryPath), "libraries.json");
+    }
+  }
+
   useAnalyzer = useAnalyzer || !sdkSummaryPath.endsWith('.dill');
 
   /// The .packages file path provided by the user.
@@ -158,6 +180,7 @@ Future<CompilerResult> _compile(List<String> args,
       oldCompilerState,
       sourcePathToUri(sdkSummaryPath),
       sourcePathToUri(packageFile),
+      sourcePathToUri(librarySpecPath),
       summaryModules.keys.toList(),
       DevCompilerTarget(),
       fileSystem: fileSystem);
@@ -331,6 +354,8 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 /// The default path of the kernel summary for the Dart SDK.
 final defaultSdkSummaryPath =
     path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+
+final defaultLibrarySpecPath = path.join(getSdkPath(), 'lib', 'libraries.json');
 
 final defaultAnalyzerSdkSummaryPath =
     path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.sum');
