@@ -9113,8 +9113,6 @@ class RegExp : public Instance {
     StoreNonPointer(&raw_ptr()->num_registers_, value);
   }
 
-  void* GetDataStartAddress() const;
-  static RawRegExp* FromDataStartAddress(void* data);
   const char* Flags() const;
 
   virtual bool CanonicalizeEquals(const Instance& other) const;

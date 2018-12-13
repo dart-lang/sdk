@@ -21757,18 +21757,6 @@ RawRegExp* RegExp::New(Heap::Space space) {
   return result.raw();
 }
 
-void* RegExp::GetDataStartAddress() const {
-  intptr_t addr = reinterpret_cast<intptr_t>(raw_ptr());
-  return reinterpret_cast<void*>(addr + sizeof(RawRegExp));
-}
-
-RawRegExp* RegExp::FromDataStartAddress(void* data) {
-  RegExp& regexp = RegExp::Handle();
-  intptr_t addr = reinterpret_cast<intptr_t>(data) - sizeof(RawRegExp);
-  regexp ^= RawObject::FromAddr(addr);
-  return regexp.raw();
-}
-
 const char* RegExp::Flags() const {
   switch (flags()) {
     case kGlobal | kIgnoreCase | kMultiLine:

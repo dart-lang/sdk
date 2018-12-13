@@ -352,20 +352,7 @@ class ObjIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.value_; }
 
-  static intptr_t Hashcode(Key key) {
-    if (key.type() != ObjectPool::kTaggedObject) {
-      return key.raw_value_;
-    }
-    if (key.obj_->IsSmi()) {
-      return Smi::Cast(*key.obj_).Value();
-    }
-    // TODO(asiva) For now we assert that the object is from Old space
-    // and use the address of the raw object, once the weak_entry_table code
-    // in heap allows for multiple thread access we should switch this code
-    // to create a temporary raw obj => id mapping and use that.
-    ASSERT(key.obj_->IsOld());
-    return reinterpret_cast<intptr_t>(key.obj_->raw());
-  }
+  static intptr_t Hashcode(Key key);
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     if (kv.key_.entry_bits_ != key.entry_bits_) return false;

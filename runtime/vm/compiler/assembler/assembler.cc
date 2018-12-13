@@ -227,6 +227,30 @@ const Code::Comments& AssemblerBase::GetCodeComments() const {
   return comments;
 }
 
+intptr_t ObjIndexPair::Hashcode(Key key) {
+  if (key.type() != ObjectPool::kTaggedObject) {
+    return key.raw_value_;
+  }
+  if (key.obj_->IsNull()) {
+    return 2011;
+  }
+  if (key.obj_->IsString() || key.obj_->IsNumber()) {
+    return Instance::Cast(*key.obj_).CanonicalizeHash();
+  }
+  if (key.obj_->IsCode()) {
+    // Instructions don't move during compaction.
+    return Code::Cast(*key.obj_).PayloadStart();
+  }
+  if (key.obj_->IsFunction()) {
+    return Function::Cast(*key.obj_).Hash();
+  }
+  if (key.obj_->IsField()) {
+    return String::HashRawSymbol(Field::Cast(*key.obj_).name());
+  }
+  // Unlikely.
+  return key.obj_->GetClassId();
+}
+
 intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
                                       ObjectPool::Patchability patchable) {
   ASSERT(obj.IsNotTemporaryScopedHandle());
