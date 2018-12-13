@@ -27,12 +27,6 @@ class DeprecatedLint extends LintRule {
             maturity: Maturity.deprecated);
 }
 
-class StableLint extends LintRule {
-  StableLint()
-      : super(
-            name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
-}
-
 @reflectiveTest
 class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
   LinterRuleOptionsValidator validator = new LinterRuleOptionsValidator(
@@ -58,6 +52,15 @@ linter:
       ''', [DEPRECATED_LINT_HINT]);
   }
 
+  test_duplicated_rule() {
+    assertErrors('''
+linter:
+  rules:
+    - stable_lint
+    - stable_lint
+      ''', [DUPLICATE_RULE_HINT]);
+  }
+
   test_stable_rule() {
     assertErrors('''
 linter:
@@ -73,4 +76,10 @@ linter:
     - this_rule_does_not_exist
       ''', [UNDEFINED_LINT_WARNING]);
   }
+}
+
+class StableLint extends LintRule {
+  StableLint()
+      : super(
+            name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
 }

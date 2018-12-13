@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
@@ -20,6 +22,17 @@ import 'package:yaml/yaml.dart';
 const AnalysisOptionsHintCode DEPRECATED_LINT_HINT =
     const AnalysisOptionsHintCode('DEPRECATED_LINT_HINT',
         "'{0}' is a deprecated lint rule and should not be used");
+
+/**
+ * Duplicate rules.
+ *
+ * Parameters:
+ * 0: the rule name
+ */
+const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = const AnalysisOptionsHintCode(
+    'DUPLICATE_RULE',
+    "The rule {0} is already specified and doesn't need to be specified again.",
+    correction: "Try removing all but one specification of the rule.");
 
 /**
  * An error code indicating an undefined lint rule.
@@ -48,6 +61,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   LinterRuleOptionsValidator({LintRuleProvider provider})
       : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
 
+  LintRule getRegisteredLint(Object value) => ruleProvider()
+      .firstWhere((rule) => rule.name == value, orElse: () => null);
+
   @override
   List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
     List<AnalysisError> errors = <AnalysisError>[];
@@ -61,6 +77,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   validateRules(YamlNode rules, ErrorReporter reporter) {
     if (rules is YamlList) {
+      Set<String> seenRules = new HashSet<String>();
       rules.nodes.forEach((YamlNode ruleNode) {
         Object value = ruleNode.value;
         if (value != null) {
@@ -68,6 +85,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (rule == null) {
             reporter.reportErrorForSpan(
                 UNDEFINED_LINT_WARNING, ruleNode.span, [value]);
+          } else if (!seenRules.add(rule.name)) {
+            reporter.reportErrorForSpan(
+                DUPLICATE_RULE_HINT, ruleNode.span, [value]);
           } else if (rule.maturity == Maturity.deprecated) {
             reporter.reportErrorForSpan(
                 DEPRECATED_LINT_HINT, ruleNode.span, [value]);
@@ -76,7 +96,4 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       });
     }
   }
-
-  LintRule getRegisteredLint(Object value) => ruleProvider()
-      .firstWhere((rule) => rule.name == value, orElse: () => null);
 }
