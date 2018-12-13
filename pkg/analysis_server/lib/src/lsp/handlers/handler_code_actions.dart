@@ -134,11 +134,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       assists.sort(Assist.SORT_BY_RELEVANCE);
 
       return assists.map(_createAssistAction).toList();
-    } catch (_) {
-      // TODO(dantup): This is what the existing server does, but I'm not sure why.
-      // In fixes, we will retry if the exception is InconsistentAnalysisException
-      // but otherwise propogate the exception. I'm not sure if these could be
-      // consistent?
+    } on InconsistentAnalysisException {
+      // If an InconsistentAnalysisException occurs, it's likely the user modified
+      // the source and therefore is no longer interested in the results, so
+      // just return an empty set.
       return [];
     }
   }
@@ -175,33 +174,34 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         !clientSupportedCodeActionKinds.contains(CodeActionKind.QuickFix)) {
       return const [];
     }
-    // Keep trying until we run without getting an `InconsistentAnalysisException`.
-    while (true) {
-      final lineInfo = unit.lineInfo;
-      final codeActions = <Either2<Command, CodeAction>>[];
-      final fixContributor = new DartFixContributor();
-      try {
-        for (final error in unit.errors) {
-          // Server lineNumber is one-based so subtract one.
-          int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
-          if (errorLine >= range.start.line && errorLine <= range.end.line) {
-            var context = new DartFixContextImpl(unit, error);
-            final fixes = await fixContributor.computeFixes(context);
-            if (fixes.isNotEmpty) {
-              fixes.sort(Fix.SORT_BY_RELEVANCE);
 
-              final diagnostic = toDiagnostic(lineInfo, error);
-              codeActions.addAll(
-                fixes.map((fix) => _createFixAction(fix, diagnostic)),
-              );
-            }
+    final lineInfo = unit.lineInfo;
+    final codeActions = <Either2<Command, CodeAction>>[];
+    final fixContributor = new DartFixContributor();
+
+    try {
+      for (final error in unit.errors) {
+        // Server lineNumber is one-based so subtract one.
+        int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
+        if (errorLine >= range.start.line && errorLine <= range.end.line) {
+          var context = new DartFixContextImpl(unit, error);
+          final fixes = await fixContributor.computeFixes(context);
+          if (fixes.isNotEmpty) {
+            fixes.sort(Fix.SORT_BY_RELEVANCE);
+
+            final diagnostic = toDiagnostic(lineInfo, error);
+            codeActions.addAll(
+              fixes.map((fix) => _createFixAction(fix, diagnostic)),
+            );
           }
         }
-
-        return codeActions;
-      } on InconsistentAnalysisException {
-        // Loop around to try again to compute the fixes.
       }
+      return codeActions;
+    } on InconsistentAnalysisException {
+      // If an InconsistentAnalysisException occurs, it's likely the user modified
+      // the source and therefore is no longer interested in the results, so
+      // just return an empty set.
+      return [];
     }
   }
 
@@ -220,8 +220,15 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return const [];
     }
 
-    // TODO(dantup): Implement refactors.
-    return [];
+    try {
+      // TODO(dantup): Implement refactors.
+      return [];
+    } on InconsistentAnalysisException {
+      // If an InconsistentAnalysisException occurs, it's likely the user modified
+      // the source and therefore is no longer interested in the results, so
+      // just return an empty set.
+      return [];
+    }
   }
 
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
