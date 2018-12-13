@@ -7947,6 +7947,8 @@ class Array : public Instance {
     return memcmp(a->ptr()->data(), b->ptr()->data(), kWordSize * length) == 0;
   }
 
+  static RawObject** DataOf(RawArray* array) { return array->ptr()->data(); }
+
   RawObject* At(intptr_t index) const { return *ObjectAddr(index); }
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.

@@ -36,6 +36,7 @@
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
@@ -946,7 +947,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       handler_info_cache_(),
       catch_entry_moves_cache_(),
       embedder_entry_points_(NULL),
-      obfuscation_map_(NULL) {
+      obfuscation_map_(NULL),
+      reverse_pc_lookup_cache_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   set_compilation_allowed(true);
@@ -973,6 +975,9 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  delete reverse_pc_lookup_cache_;
+  reverse_pc_lookup_cache_ = nullptr;
 
   delete background_compiler_;
   background_compiler_ = NULL;

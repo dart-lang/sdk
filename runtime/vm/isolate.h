@@ -64,6 +64,7 @@ class RawInteger;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
+class ReversePcLookupCache;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
@@ -704,6 +705,17 @@ class Isolate : public BaseIsolate {
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
+  // Returns the pc -> code lookup cache object for this isolate.
+  ReversePcLookupCache* reverse_pc_lookup_cache() const {
+    return reverse_pc_lookup_cache_;
+  }
+
+  // Sets the pc -> code lookup cache object for this isolate.
+  void set_reverse_pc_lookup_cache(ReversePcLookupCache* table) {
+    ASSERT(reverse_pc_lookup_cache_ == nullptr);
+    reverse_pc_lookup_cache_ = table;
+  }
+
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags) const;
@@ -1005,6 +1017,8 @@ class Isolate : public BaseIsolate {
 
   Dart_QualifiedFunctionName* embedder_entry_points_;
   const char** obfuscation_map_;
+
+  ReversePcLookupCache* reverse_pc_lookup_cache_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
