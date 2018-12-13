@@ -7,6 +7,16 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow # Does many cal
 LibTest/core/List/List_class_A01_t02: Pass, Slow # Does many calls
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/186
 LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flacky. Skip them all until rewritten
+LibTest/io/Stdout/add_A02_t03: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/add_A02_t04: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/add_A02_t05: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/add_A02_t06: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/add_A02_t07: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/add_A02_t08: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/add_A02_t09: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/writeCharCode_A01_t03: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/write_A01_t04: Skip # https://github.com/dart-lang/co19/pull/204
+LibTest/io/Stdout/write_A01_t05: Skip # https://github.com/dart-lang/co19/pull/204
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
