@@ -72,6 +72,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parent is ConditionalExpression) return;
       if (parent is CascadeExpression) return;
       if (parent is FunctionExpressionInvocation) return;
+
+      // A prefix expression (! or -) can have an argument wrapped in
+      // "unnecessary" parens if that argument has potentially confusing
+      // whitespace after its first token.
+      if (parent is PrefixExpression &&
+          _expressionStartsWithWhitespace(node.expression)) return;
       if (parent.precedence < node.expression.precedence) {
         rule.reportLint(node);
         return;
@@ -81,4 +87,24 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
   }
+
+  /// Returns whether [node] "starts" with whitespace.
+  ///
+  /// That is, is there definitely whitespace after the first token in [node]?
+  bool _expressionStartsWithWhitespace(Expression node) =>
+      // As in, `!(await foo)`.
+      node is AwaitExpression ||
+      // As in, `!(new Foo())`.
+      (node is InstanceCreationExpression && node.keyword != null) ||
+      // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-` or
+      // `!` as a prefix operator, but this method can be called recursively,
+      // so this catches things like `!(const [].contains(42))`.
+      (node is TypedLiteral && node.constKeyword != null) ||
+      // As in, `!(const List(3).contains(7))`, and chains like
+      // `-(new List(3).skip(1).take(3).skip(1).length)`.
+      (node is MethodInvocation &&
+          _expressionStartsWithWhitespace(node.target)) ||
+      // As in, `-(new List(3).length)`, and chains like
+      // `-(new List(3).length.bitLength.bitLength)`.
+      (node is PropertyAccess && _expressionStartsWithWhitespace(node.target));
 }
