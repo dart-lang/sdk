@@ -10,6 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GnWorkspaceTest);
+    defineReflectiveTests(GnWorkspacePackageTest);
   });
 }
 
@@ -33,7 +34,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_find_notAbsolute() {
     expect(
         () => GnWorkspace.find(resourceProvider, convertPath('not_absolute')),
-        throwsA(const TypeMatcher<AssertionError>()));
+        throwsA(const TypeMatcher<ArgumentError>()));
   }
 
   void test_find_withRoot() {
@@ -170,5 +171,87 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace.packageMap.length, 2);
     expect(workspace.packageMap['flutter'][0].path, packageOneLocation);
     expect(workspace.packageMap['rettulf'][0].path, packageTwoLocation);
+  }
+}
+
+@reflectiveTest
+class GnWorkspacePackageTest with ResourceProviderMixin {
+  GnWorkspace _buildStandardGnWorkspace() {
+    newFolder('/ws/.jiri_root');
+    String buildDir = convertPath('out/debug-x87_128');
+    newFile('/ws/.config',
+        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
+    return GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+  }
+
+  void test_findPackageFor_missingBuildFile() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/lib/code.dart');
+
+    var package =
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
+    expect(package, isNull);
+  }
+
+  void test_findPackageFor_buildFileExists() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/BUILD.gn');
+    var targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_contains_differentWorkspace() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/BUILD.gn');
+    var targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package.contains('/ws2/some/file.dart'), isFalse);
+  }
+
+  void test_contains_differentPackageInWorkspace() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/BUILD.gn');
+    var targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    // A file that is _not_ in this package is not required to have a BUILD.gn
+    // file above it, for simplicity and reduced I/O.
+    expect(package.contains('/ws/some/other/code/file.dart'), isFalse);
+  }
+
+  void test_contains_samePackage() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/BUILD.gn');
+    var targetFile = newFile('/ws/some/code/lib/code.dart');
+    var targetFile2 = newFile('/ws/some/code/lib/code2.dart');
+    var targetFile3 = newFile('/ws/some/code/lib/src/code3.dart');
+    var targetBinFile = newFile('/ws/some/code/bin/code.dart');
+    var targetTestFile = newFile('/ws/some/code/test/code_test.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package.contains(targetFile2.path), isTrue);
+    expect(package.contains(targetFile3.path), isTrue);
+    expect(package.contains(targetBinFile.path), isTrue);
+    expect(package.contains(targetTestFile.path), isTrue);
+  }
+
+  void test_contains_subPackage() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/BUILD.gn');
+    newFile('/ws/some/code/lib/code.dart');
+    newFile('/ws/some/code/testing/BUILD.gn');
+    newFile('/ws/some/code/testing/lib/testing.dart');
+
+    var package =
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
+    expect(
+        package.contains(convertPath('/ws/some/code/testing/lib/testing.dart')),
+        isFalse);
   }
 }

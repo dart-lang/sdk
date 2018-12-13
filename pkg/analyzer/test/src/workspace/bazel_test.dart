@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(BazelFileUriResolverTest);
     defineReflectiveTests(BazelPackageUriResolverTest);
     defineReflectiveTests(BazelWorkspaceTest);
+    defineReflectiveTests(BazelWorkspacePackageTest);
   });
 }
 
@@ -487,7 +488,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     expect(
         () =>
             BazelWorkspace.find(resourceProvider, convertPath('not_absolute')),
-        throwsA(const TypeMatcher<AssertionError>()));
+        throwsA(const TypeMatcher<ArgumentError>()));
   }
 
   void test_find_hasReadonlyFolder() {
@@ -667,6 +668,81 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     expect(
         workspace.findFile(convertPath('/workspace/my/module/test3.dart')).path,
         convertPath('/workspace/bazel-genfiles/my/module/test3.dart'));
+  }
+}
+
+@reflectiveTest
+class BazelWorkspacePackageTest with ResourceProviderMixin {
+  BazelWorkspace workspace;
+
+  void setUp() {
+    newFile('/ws/WORKSPACE');
+    newFolder('/ws/bazel-genfiles');
+    workspace =
+        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+  }
+
+  void test_findPackageFor_missingBuildFile() {
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package, isNull);
+  }
+
+  void test_findPackageFor_buildFileExists() {
+    newFile('/ws/some/code/BUILD');
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_contains_differentWorkspace() {
+    newFile('/ws/some/code/BUILD');
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package.contains('/ws2/some/file.dart'), isFalse);
+  }
+
+  void test_contains_differentPackageInWorkspace() {
+    newFile('/ws/some/code/BUILD');
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    // A file that is _not_ in this package is not required to have a BUILD.gn
+    // file above it, for simplicity and reduced I/O.
+    expect(package.contains('/ws/some/other/code/file.dart'), isFalse);
+  }
+
+  void test_contains_samePackage() {
+    newFile('/ws/some/code/BUILD');
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+    final targetFile2 = newFile('/ws/some/code/lib/code2.dart');
+    final targetFile3 = newFile('/ws/some/code/lib/src/code3.dart');
+    final targetBinFile = newFile('/ws/some/code/bin/code.dart');
+    final targetTestFile = newFile('/ws/some/code/test/code_test.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package.contains(targetFile2.path), isTrue);
+    expect(package.contains(targetFile3.path), isTrue);
+    expect(package.contains(targetBinFile.path), isTrue);
+    expect(package.contains(targetTestFile.path), isTrue);
+  }
+
+  void test_contains_subPackage() {
+    newFile('/ws/some/code/BUILD');
+    newFile('/ws/some/code/lib/code.dart');
+    newFile('/ws/some/code/testing/BUILD');
+    newFile('/ws/some/code/testing/lib/testing.dart');
+
+    var package =
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
+    expect(
+        package.contains(convertPath('/ws/some/code/testing/lib/testing.dart')),
+        isFalse);
   }
 }
 

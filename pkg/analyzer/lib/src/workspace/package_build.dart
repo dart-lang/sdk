@@ -174,6 +174,13 @@ class PackageBuildWorkspace extends Workspace {
    */
   Packages _packages;
 
+  /**
+   * The singular package in this workspace.
+   *
+   * Each "package:build" workspace is itself one package.
+   */
+  PackageBuildWorkspacePackage _theOnlyPackage;
+
   PackageBuildWorkspace._(
       this.provider, this.root, this.projectPackageName, this._builder);
 
@@ -263,6 +270,17 @@ class PackageBuildWorkspace extends Workspace {
     }
   }
 
+  @override
+  WorkspacePackage findPackageFor(String filePath) {
+    final Folder folder = provider.getFolder(filePath);
+    if (provider.pathContext.isWithin(root, folder.path)) {
+      _theOnlyPackage ??= new PackageBuildWorkspacePackage(root, this);
+      return _theOnlyPackage;
+    } else {
+      return null;
+    }
+  }
+
   /**
    * Find the package:build workspace that contains the given [filePath].
    *
@@ -270,9 +288,6 @@ class PackageBuildWorkspace extends Workspace {
    */
   static PackageBuildWorkspace find(
       ResourceProvider provider, String filePath, ContextBuilder builder) {
-    path.Context context = provider.pathContext;
-    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
-    filePath = context.normalize(filePath);
     Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
@@ -299,5 +314,28 @@ class PackageBuildWorkspace extends Workspace {
       // Go up the folder.
       folder = parent;
     }
+  }
+}
+
+/**
+ * Information about a package defined in a PackageBuildWorkspace.
+ *
+ * Separate from [Packages] or package maps, this class is designed to simply
+ * understand whether arbitrary file paths represent libraries declared within
+ * a given package in a PackageBuildWorkspace.
+ */
+class PackageBuildWorkspacePackage extends WorkspacePackage {
+  final String root;
+
+  final PackageBuildWorkspace workspace;
+
+  PackageBuildWorkspacePackage(this.root, this.workspace);
+
+  @override
+  bool contains(String path) {
+    // There is a 1-1 relationship between PackageBuildWorkspaces and
+    // PackageBuildWorkspacePackages. If a file is in a package's workspace,
+    // then it is in the package as well.
+    return workspace.findFile(path) != null;
   }
 }

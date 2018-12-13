@@ -150,6 +150,13 @@ class BazelWorkspace extends Workspace {
   static const String _READONLY = 'READONLY';
 
   /**
+   * The name of the file that identifies a set of Bazel Targets.
+   *
+   * For Dart package purposes, a BUILD file identifies a package.
+   */
+  static const String _buildFileName = 'BUILD';
+
+  /**
    * Default prefix for "-genfiles" and "-bin" that will be assumed if no build
    * output symlinks are found.
    */
@@ -251,8 +258,35 @@ class BazelWorkspace extends Workspace {
     }
   }
 
+  @override
+  WorkspacePackage findPackageFor(String filePath) {
+    path.Context context = provider.pathContext;
+    Folder folder = provider.getFolder(context.dirname(filePath));
+    String immediateParentPath = folder.path;
+
+    while (true) {
+      Folder parent = folder.parent;
+      if (parent == null) {
+        return null;
+      }
+      if (parent.path.length < root.length) {
+        // We've walked up outside of [root], so [path] is definitely not
+        // defined in any package in this workspace.
+        return null;
+      }
+
+      if (folder.getChildAssumingFile(_buildFileName).exists) {
+        // Found the BUILD file, denoting a Dart package.
+        return BazelWorkspacePackage(folder.path, this);
+      }
+
+      // Go up a folder.
+      folder = parent;
+    }
+  }
+
   /**
-   * Find the Bazel workspace that contains the given [path].
+   * Find the Bazel workspace that contains the given [filePath].
    *
    * Return `null` if a workspace markers, such as the `WORKSPACE` file, or
    * the sibling `READONLY` folder cannot be found.
@@ -266,9 +300,6 @@ class BazelWorkspace extends Workspace {
    */
   static BazelWorkspace find(ResourceProvider provider, String filePath) {
     path.Context context = provider.pathContext;
-    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
-    filePath = context.normalize(filePath);
-
     Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
@@ -331,5 +362,35 @@ class BazelWorkspace extends Workspace {
     }
     // Couldn't find it.  Make a default assumption.
     return defaultSymlinkPrefix;
+  }
+}
+
+/**
+ * Information about a package defined in a BazelWorkspace.
+ *
+ * Separate from [Packages] or package maps, this class is designed to simply
+ * understand whether arbitrary file paths represent libraries declared within
+ * a given package in a BazelWorkspace.
+ */
+class BazelWorkspacePackage extends WorkspacePackage {
+  final String root;
+
+  final BazelWorkspace workspace;
+
+  BazelWorkspacePackage(this.root, this.workspace);
+
+  @override
+  bool contains(String path) {
+    if (workspace.findFile(path) == null) {
+      return false;
+    }
+    if (!workspace.provider.pathContext.isWithin(root, path)) {
+      return false;
+    }
+
+    // Just because [path] is within [root] does not mean it is in this
+    // package; it could be in a "subpackage." Must go through the work of
+    // learning exactly which package [path] is contained in.
+    return workspace.findPackageFor(path).root == root;
   }
 }

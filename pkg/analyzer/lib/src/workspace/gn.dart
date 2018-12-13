@@ -14,6 +14,7 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -27,6 +28,13 @@ class GnWorkspace extends Workspace {
    * The name of the directory that identifies the root of the workspace.
    */
   static const String _jiriRootName = '.jiri_root';
+
+  /**
+   * The name of the file that identifies a set of GN Targets.
+   *
+   * For Dart package purposes, a BUILD.gn file identifies a package.
+   */
+  static const String _buildFileName = 'BUILD.gn';
 
   /**
    * The resource provider used to access the file system.
@@ -83,6 +91,46 @@ class GnWorkspace extends Workspace {
     resolvers.add(packageUriResolver);
     resolvers.add(new ResourceUriResolver(provider));
     return new SourceFactory(resolvers, packages, provider);
+  }
+
+  /**
+   * Return the file with the given [absolutePath].
+   *
+   * Return `null` if the given [absolutePath] is not in the workspace [root].
+   */
+  File findFile(String absolutePath) {
+    try {
+      File writableFile = provider.getFile(absolutePath);
+      if (writableFile.exists) {
+        return writableFile;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  @override
+  WorkspacePackage findPackageFor(String path) {
+    Folder folder = provider.getFolder(provider.pathContext.dirname(path));
+    String immediateParentPath = folder.path;
+
+    while (true) {
+      Folder parent = folder.parent;
+      if (parent == null) {
+        return null;
+      }
+      if (parent.path.length < root.length) {
+        // We've walked up outside of [root], so [path] is definitely not
+        // defined in any package in this workspace.
+        return null;
+      }
+
+      if (folder.getChildAssumingFile(_buildFileName).exists) {
+        return GnWorkspacePackage(folder.path, this);
+      }
+
+      // Go up a folder.
+      folder = parent;
+    }
   }
 
   /**
@@ -152,10 +200,6 @@ class GnWorkspace extends Workspace {
    * file must be found in [filePath]'s output directory.
    */
   static GnWorkspace find(ResourceProvider provider, String filePath) {
-    path.Context context = provider.pathContext;
-    assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
-    filePath = context.normalize(filePath);
-
     Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
@@ -163,8 +207,8 @@ class GnWorkspace extends Workspace {
         return null;
       }
 
-      // Found the .jiri_root file, must be a non-git workspace.
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
+        // Found the .jiri_root file, must be a non-git workspace.
         String root = folder.path;
         List<String> packagesFiles =
             _findPackagesFile(provider, root, filePath);
@@ -174,7 +218,7 @@ class GnWorkspace extends Workspace {
         return new GnWorkspace._(provider, root, packagesFiles);
       }
 
-      // Go up one folder.
+      // Go up a folder.
       folder = parent;
     }
   }
@@ -250,5 +294,35 @@ class GnWorkspace extends Workspace {
       // to the config-based method.
       return baseName.startsWith('debug') || baseName.startsWith('release');
     }, orElse: () => null);
+  }
+}
+
+/**
+ * Information about a package defined in a GnWorkspace.
+ *
+ * Separate from [Packages] or package maps, this class is designed to simply
+ * understand whether arbitrary file paths represent libraries declared within
+ * a given package in a GnWorkspace.
+ */
+class GnWorkspacePackage extends WorkspacePackage {
+  final String root;
+
+  final GnWorkspace workspace;
+
+  GnWorkspacePackage(this.root, this.workspace);
+
+  @override
+  bool contains(String path) {
+    if (workspace.findFile(path) == null) {
+      return false;
+    }
+    if (!workspace.provider.pathContext.isWithin(root, path)) {
+      return false;
+    }
+
+    // Just because [path] is within [root] does not mean it is in this
+    // package; it could be in a "subpackage." Must go through the work of
+    // learning exactly which package [path] is contained in.
+    return workspace.findPackageFor(path).root == root;
   }
 }

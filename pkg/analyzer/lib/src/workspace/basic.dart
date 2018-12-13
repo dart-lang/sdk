@@ -32,6 +32,13 @@ class BasicWorkspace extends Workspace {
 
   Packages _packages;
 
+  /**
+   * The singular package in this workspace.
+   *
+   * Each basic workspace is itself one package.
+   */
+  BasicWorkspacePackage _theOnlyPackage;
+
   BasicWorkspace._(this.provider, this.root, this._builder);
 
   @override
@@ -64,22 +71,49 @@ class BasicWorkspace extends Workspace {
     return new SourceFactory(resolvers, packages, provider);
   }
 
+  @override
+  WorkspacePackage findPackageFor(String filePath) {
+    final Folder folder = provider.getFolder(filePath);
+    if (provider.pathContext.isWithin(root, folder.path)) {
+      _theOnlyPackage ??= new BasicWorkspacePackage(root, this);
+      return _theOnlyPackage;
+    } else {
+      return null;
+    }
+  }
+
   /**
    * Find the basic workspace that contains the given [path].
    */
   static BasicWorkspace find(
       ResourceProvider provider, String path, ContextBuilder builder) {
-    Context context = provider.pathContext;
-
-    // Ensure that the path is absolute and normalized.
-    if (!context.isAbsolute(path)) {
-      throw new ArgumentError('not absolute: $path');
-    }
-    path = context.normalize(path);
     Resource resource = provider.getResource(path);
     if (resource is File) {
       path = resource.parent.path;
     }
     return new BasicWorkspace._(provider, path, builder);
+  }
+}
+
+/**
+ * Information about a package defined in a _BasicWorkspace.
+ *
+ * Separate from [Packages] or package maps, this class is designed to simply
+ * understand whether arbitrary file paths represent libraries declared within
+ * a given package in a _BasicWorkspace.
+ */
+class BasicWorkspacePackage extends WorkspacePackage {
+  final String root;
+
+  final BasicWorkspace workspace;
+
+  BasicWorkspacePackage(this.root, this.workspace);
+
+  @override
+  bool contains(String path) {
+    // There is a 1-1 relationship between _BasicWorkspaces and
+    // _BasicWorkspacePackages. If a file is in a package's workspace,
+    // then it is in the package as well.
+    return workspace.provider.pathContext.isWithin(root, path);
   }
 }

@@ -16,6 +16,7 @@ main() {
     defineReflectiveTests(PackageBuildFileUriResolverTest);
     defineReflectiveTests(PackageBuildPackageUriResolverTest);
     defineReflectiveTests(PackageBuildWorkspaceTest);
+    defineReflectiveTests(PackageBuildWorkspacePackageTest);
   });
 }
 
@@ -270,7 +271,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     expect(
         () => PackageBuildWorkspace.find(resourceProvider,
             convertPath('not_absolute'), new MockContextBuilder()),
-        throwsA(const TypeMatcher<AssertionError>()));
+        throwsA(const TypeMatcher<ArgumentError>()));
   }
 
   void test_find_hasDartToolAndPubspec() {
@@ -479,5 +480,61 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     contextBuilder.packagesToMapMap[packages] = packageMap;
     return PackageBuildWorkspace.find(
         resourceProvider, convertPath(root), contextBuilder);
+  }
+}
+
+@reflectiveTest
+class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
+  PackageBuildWorkspace _createPackageBuildWorkspace() {
+    final contextBuilder = new MockContextBuilder();
+    final packages = new MockPackages();
+    final packageMap = <String, List<Folder>>{'project': []};
+    contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
+    contextBuilder.packagesToMapMap[packages] = packageMap;
+
+    newFolder('/workspace/.dart_tool/build');
+    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    return PackageBuildWorkspace.find(
+        resourceProvider, convertPath('/workspace'), contextBuilder);
+  }
+
+  void test_findPackageFor_unrelatedFile() {
+    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
+    newFile('/workspace/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
+    expect(package, isNull);
+  }
+
+  void test_findPackageFor_includedFile() {
+    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
+    newFile('/workspace/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/workspace'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_contains_differentWorkspace() {
+    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
+    newFile('/workspace2/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
+    expect(package.contains('/workspace2/project/lib/file.dart'), isFalse);
+  }
+
+  void test_contains_sameWorkspace() {
+    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
+    newFile('/workspace/project/lib/file2.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
+    expect(package.contains('/workspace/project/lib/file2.dart'), isTrue);
+    expect(package.contains('/workspace/project/bin/bin.dart'), isTrue);
+    expect(package.contains('/workspace/project/test/test.dart'), isTrue);
   }
 }
