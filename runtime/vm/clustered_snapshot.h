@@ -13,6 +13,7 @@
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap/heap.h"
+#include "vm/image_snapshot.h"
 #include "vm/object.h"
 #include "vm/raw_object_fields.h"
 #include "vm/snapshot.h"

@@ -4521,6 +4521,10 @@ void Serializer::Serialize() {
     Trace(stack_.RemoveLast());
   }
 
+  if (Snapshot::IncludesCode(kind_)) {
+    image_writer_->PrepareForSerialization(nullptr);
+  }
+
   intptr_t num_clusters = 0;
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
