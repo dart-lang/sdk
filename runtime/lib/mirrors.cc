@@ -316,24 +316,16 @@ static RawInstance* CreateClassMirror(const Class& cls,
     return CreateTypedefMirror(cls, type, is_declaration, owner_mirror);
   }
 
-  const Array& args = Array::Handle(Array::New(10));
+  const Array& args = Array::Handle(Array::New(9));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  // Note that the VM does not consider mixin application aliases to be mixin
-  // applications, so this only covers anonymous mixin applications. We do not
-  // set the names of anonymous mixin applications here because the mirrors
-  // use a different naming convention than the VM (lib.S with lib.M and S&M
-  // respectively).
-  if (!cls.IsMixinApplication()) {
-    args.SetAt(2, String::Handle(cls.Name()));
-  }
+  args.SetAt(2, String::Handle(cls.Name()));
   args.SetAt(3, owner_mirror);
   args.SetAt(4, Bool::Get(cls.is_abstract()));
   args.SetAt(5, Bool::Get(cls.IsGeneric()));
-  args.SetAt(6, Bool::Get(cls.is_mixin_app_alias()));
-  args.SetAt(7, Bool::Get(cls.is_transformed_mixin_application()));
-  args.SetAt(8, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
-  args.SetAt(9, Bool::Get(cls.is_enum_class()));
+  args.SetAt(6, Bool::Get(cls.is_transformed_mixin_application()));
+  args.SetAt(7, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
+  args.SetAt(8, Bool::Get(cls.is_enum_class()));
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
@@ -930,8 +922,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 0, 1) {
   if (cls.is_transformed_mixin_application()) {
     const Array& interfaces = Array::Handle(cls.interfaces());
     mixin_type ^= interfaces.At(interfaces.Length() - 1);
-  } else {
-    mixin_type = cls.mixin();
   }
   ASSERT(mixin_type.IsNull() || mixin_type.IsFinalized());
   return mixin_type.raw();
@@ -947,8 +937,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 0, 2) {
   if (cls.is_transformed_mixin_application()) {
     const Array& interfaces = Array::Handle(cls.interfaces());
     mixin_type ^= interfaces.At(interfaces.Length() - 1);
-  } else {
-    mixin_type = cls.mixin();
   }
   if (mixin_type.IsNull()) {
     return mixin_type.raw();
@@ -1057,11 +1045,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
       const Class& klass = Class::Cast(entry);
-      // We filter out mixin application classes and dynamic.
+      // We filter out dynamic.
       // TODO(12478): Should not need to filter out dynamic.
-      // Note that the VM does not consider mixin application aliases to be
-      // mixin applications.
-      if (!klass.IsDynamicClass() && !klass.IsMixinApplication()) {
+      if (!klass.IsDynamicClass()) {
         type = klass.DeclarationType();
         member_mirror = CreateClassMirror(klass, type,
                                           Bool::True(),  // is_declaration
@@ -1347,7 +1333,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   Class& redirected_klass = Class::Handle(klass.raw());
   Function& redirected_constructor = Function::Handle(lookup_constructor.raw());
   if (lookup_constructor.IsRedirectingFactory()) {
-    ClassFinalizer::ResolveRedirectingFactory(klass, lookup_constructor);
+    // Redirecting factory must be resolved.
+    ASSERT(lookup_constructor.RedirectionTarget() != Function::null());
     Type& redirect_type = Type::Handle(lookup_constructor.RedirectionType());
 
     if (!redirect_type.IsInstantiated()) {
@@ -1548,8 +1535,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
   } else if (decl.IsClass()) {
     const Class& cls = Class::Cast(decl);
     const bool is_typedef = cls.IsTypedefClass();
-    if (cls.is_synthesized_class() && !is_typedef &&
-        !cls.is_mixin_app_alias() && !cls.is_enum_class()) {
+    if (cls.is_synthesized_class() && !is_typedef && !cls.is_enum_class()) {
       return Instance::null();  // Synthetic.
     }
     script = cls.script();

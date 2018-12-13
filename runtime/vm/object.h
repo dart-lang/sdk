@@ -953,12 +953,6 @@ class Class : public Object {
   // classes.
   RawClass* SuperClass(bool original_classes = false) const;
 
-  RawType* mixin() const { return raw_ptr()->mixin_; }
-  void set_mixin(const Type& value) const;
-
-  // Note this returns false for mixin application aliases.
-  bool IsMixinApplication() const;
-
   RawClass* GetPatchClass() const;
 
   // Interfaces is an array of Types.
@@ -1164,16 +1158,6 @@ class Class : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
-  bool is_mixin_app_alias() const {
-    return MixinAppAliasBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_is_mixin_app_alias() const;
-
-  bool is_mixin_type_applied() const {
-    return MixinTypeAppliedBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_is_mixin_type_applied() const;
-
   // Tests if this is a mixin application class which was desugared
   // to a normal class by kernel mixin transformation
   // (pkg/kernel/lib/transformations/mixin_full_resolution.dart).
@@ -1377,10 +1361,6 @@ class Class : public Object {
       : public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
   class MarkedForParsingBit
       : public BitField<uint16_t, bool, kMarkedForParsingBit, 1> {};
-  class MixinAppAliasBit
-      : public BitField<uint16_t, bool, kMixinAppAliasBit, 1> {};
-  class MixinTypeAppliedBit
-      : public BitField<uint16_t, bool, kMixinTypeAppliedBit, 1> {};
   class FieldsMarkedNullableBit
       : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
   class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
@@ -2847,10 +2827,6 @@ class Function : public Object {
                                              bool allow_add = true) const;
 #endif
 
-  // Allocate new function object, clone values from this function. The
-  // owner of the clone is new_owner.
-  RawFunction* Clone(const Class& new_owner) const;
-
   // Slow function, use in asserts to track changes in important library
   // functions.
   int32_t SourceFingerprint() const;
@@ -3266,9 +3242,6 @@ class Field : public Object {
                                TokenPosition token_pos,
                                TokenPosition end_token_pos);
 
-  // Allocate new field object, clone values from this field. The
-  // owner of the clone is new_owner.
-  RawField* Clone(const Class& new_owner) const;
   // Allocate new field object, clone values from this field. The
   // original is specified.
   RawField* Clone(const Field& original) const;
@@ -6121,26 +6094,11 @@ class TypeArguments : public Instance {
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
   bool CanShareFunctionTypeArguments(const Function& function) const;
 
-  // Return true if all types of this vector are respectively, resolved,
-  // finalized, or bounded.
-  bool IsResolved() const;
+  // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
 
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
-
-  // Set the scope of this type argument vector to the given function.
-  void SetScopeFunction(const Function& function) const;
-
-  // Clone this type argument vector and clone all unfinalized type arguments.
-  // Finalized type arguments are shared.
-  RawTypeArguments* CloneUnfinalized() const;
-
-  // Clone this type argument vector and clone all uninstantiated type
-  // arguments, changing the class owner of type parameters.
-  // Instantiated type arguments are shared.
-  RawTypeArguments* CloneUninstantiated(const Class& new_owner,
-                                        TrailPtr trail = NULL) const;
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
@@ -6257,8 +6215,6 @@ class AbstractType : public Instance {
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual void SetIsBeingFinalized() const;
-  virtual bool IsResolved() const;
-  virtual void SetIsResolved() const;
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
@@ -6277,9 +6233,6 @@ class AbstractType : public Instance {
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
-
-  // Set the scope of this type to the given function.
-  virtual void SetScopeFunction(const Function& function) const;
 
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
@@ -6301,19 +6254,6 @@ class AbstractType : public Instance {
       intptr_t num_free_fun_type_params,
       TrailPtr instantiation_trail,
       Heap::Space space) const;
-
-  // Return a clone of this unfinalized type or the type itself if it is
-  // already finalized. Apply recursively to type arguments, i.e. finalized
-  // type arguments of an unfinalized type are not cloned, but shared.
-  virtual RawAbstractType* CloneUnfinalized() const;
-
-  // Return a clone of this uninstantiated type where all references to type
-  // parameters are replaced with references to type parameters of the same name
-  // but belonging to the new owner class.
-  // Apply recursively to type arguments, i.e. instantiated type arguments of
-  // an uninstantiated type are not cloned, but shared.
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner,
-                                               TrailPtr trail = NULL) const;
 
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const {
@@ -6504,10 +6444,6 @@ class Type : public AbstractType {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
   virtual void SetIsBeingFinalized() const;
-  virtual bool IsResolved() const {
-    return raw_ptr()->type_state_ >= RawType::kResolved;
-  }
-  virtual void SetIsResolved() const;
   virtual bool HasTypeClass() const {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
@@ -6523,7 +6459,6 @@ class Type : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
-  virtual void SetScopeFunction(const Function& function) const;
   // If signature is not null, this type represents a function type. Note that
   // the signature fully represents the type and type arguments can be ignored.
   // However, in case of a generic typedef, they document how the typedef class
@@ -6541,9 +6476,6 @@ class Type : public AbstractType {
       intptr_t num_free_fun_type_params,
       TrailPtr instantiation_trail,
       Heap::Space space) const;
-  virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner,
-                                               TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 #if defined(DEBUG)
   // Check if type is canonical.
@@ -6647,7 +6579,6 @@ class TypeRef : public AbstractType {
     const AbstractType& ref_type = AbstractType::Handle(type());
     return ref_type.IsNull() || ref_type.IsBeingFinalized();
   }
-  virtual bool IsResolved() const { return true; }
   virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
@@ -6671,15 +6602,12 @@ class TypeRef : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
-  virtual void SetScopeFunction(const Function& function) const;
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       TrailPtr instantiation_trail,
       Heap::Space space) const;
-  virtual RawTypeRef* CloneUninstantiated(const Class& new_owner,
-                                          TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 #if defined(DEBUG)
   // Check if typeref is canonical.
@@ -6720,7 +6648,6 @@ class TypeParameter : public AbstractType {
   }
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
-  virtual bool IsResolved() const { return true; }
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
@@ -6745,16 +6672,12 @@ class TypeParameter : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
-  virtual void SetScopeFunction(const Function& function) const {}
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       TrailPtr instantiation_trail,
       Heap::Space space) const;
-  virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner,
-                                               TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
@@ -6793,53 +6716,6 @@ class TypeParameter : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
   friend class ClearTypeHashVisitor;
-};
-
-// A MixinAppType represents a parsed mixin application clause, e.g.
-// "S<T> with M<U>, N<V>".
-// MixinAppType objects do not survive finalization, so they do not
-// need to be written to and read from snapshots.
-// The class finalizer creates synthesized classes S&M and S&M&N if they do not
-// yet exist in the library declaring the mixin application clause.
-class MixinAppType : public AbstractType {
- public:
-  // A MixinAppType object is unfinalized by definition, since it is replaced at
-  // class finalization time with a finalized Type object.
-  virtual bool IsFinalized() const { return false; }
-  virtual bool IsResolved() const { return false; }
-  virtual bool HasTypeClass() const { return false; }
-  virtual RawString* Name() const;
-  virtual TokenPosition token_pos() const;
-
-  // Returns the mixin composition depth of this mixin application type.
-  intptr_t Depth() const;
-
-  // Returns the declared super type of the mixin application, which will also
-  // be the super type of the first synthesized class, e.g. class "S&M" will
-  // refer to super type "S<T>".
-  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
-
-  // Returns the mixin type at the given mixin composition depth, e.g. N<V> at
-  // depth 0 and M<U> at depth 1.
-  RawAbstractType* MixinTypeAt(intptr_t depth) const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawMixinAppType));
-  }
-
-  static RawMixinAppType* New(const AbstractType& super_type,
-                              const Array& mixin_types);
-
- private:
-  void set_super_type(const AbstractType& value) const;
-
-  RawArray* mixin_types() const { return raw_ptr()->mixin_types_; }
-  void set_mixin_types(const Array& value) const;
-
-  static RawMixinAppType* New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(MixinAppType, AbstractType);
-  friend class Class;
 };
 
 class Number : public Instance {

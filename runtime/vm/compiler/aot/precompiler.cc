@@ -575,9 +575,6 @@ void Precompiler::AddTypesOf(const Class& cls) {
   type = cls.super_type();
   AddType(type);
 
-  type = cls.mixin();
-  AddType(type);
-
   if (cls.IsTypedefClass()) {
     AddTypesOf(Function::Handle(Z, cls.signature_function()));
   }
@@ -1421,24 +1418,18 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   for (intptr_t i = 0; i < types.length(); i++) {
     const AbstractType& type = types.At(i);
 
-    if (!type.IsResolved()) {
-      continue;
-    }
-
     if (type.InVMHeap()) {
       // The only important types in the vm isolate are "dynamic"/"void", which
       // will get their optimized top-type testing stub installed at creation.
       continue;
     }
 
-    if (type.IsResolved()) {
-      if (type_usage_info->IsUsedInTypeTest(type)) {
-        instr = type_testing_stubs.OptimizedCodeForType(type);
-        type.SetTypeTestingStub(instr);
+    if (type_usage_info->IsUsedInTypeTest(type)) {
+      instr = type_testing_stubs.OptimizedCodeForType(type);
+      type.SetTypeTestingStub(instr);
 
-        // Ensure we retain the type.
-        AddType(type);
-      }
+      // Ensure we retain the type.
+      AddType(type);
     }
   }
 

@@ -839,14 +839,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       AbstractType& type = AbstractType::ZoneHandle(Z);
       type ^= Type::New(owner, TypeArguments::Handle(Z), owner.token_pos(),
                         Heap::kOld);
-      // If the current class is the result of a mixin application, we must
-      // use the class scope of the class from which the function originates.
-      if (owner.IsMixinApplication()) {
-        ClassFinalizer::FinalizeType(
-            Class::Handle(Z, parsed_function()->function().origin()), type);
-      } else {
-        type ^= ClassFinalizer::FinalizeType(owner, type);
-      }
+      type ^= ClassFinalizer::FinalizeType(owner, type);
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function()->current_context_var());

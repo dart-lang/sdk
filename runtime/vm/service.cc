@@ -4666,7 +4666,7 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   }
   {
     JSONArray internals(&map, "Type");
-    for (intptr_t id = kAbstractTypeCid; id <= kMixinAppTypeCid; ++id) {
+    for (intptr_t id = kAbstractTypeCid; id <= kTypeParameterCid; ++id) {
       DEFINE_ADD_VALUE_F(id);
     }
   }

@@ -3801,7 +3801,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 
   Instance& new_object = Instance::Handle(Z);
   if (constructor.IsRedirectingFactory()) {
-    ClassFinalizer::ResolveRedirectingFactory(cls, constructor);
     Type& redirect_type = Type::Handle(constructor.RedirectionType());
     constructor = constructor.RedirectionTarget();
     ASSERT(!constructor.IsNull());

@@ -1292,11 +1292,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     ASSERT(!func.IsNull());
     if (!func.HasCode() &&
         !func.is_abstract() && !func.IsRedirectingFactory()) {
-      if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
-          func.HasOptionalParameters()) {
-        // Skipping optional parameters in mixin application.
-        continue;
-      }
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();

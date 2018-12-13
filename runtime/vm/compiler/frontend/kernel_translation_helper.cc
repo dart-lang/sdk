@@ -568,13 +568,9 @@ RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     ASSERT(!function.IsNull());
-
-    // TODO(27590): We can probably get rid of this after no longer using
-    // core libraries from the source.
-    if (function.IsRedirectingFactory()) {
-      ClassFinalizer::ResolveRedirectingFactory(klass, function);
-      function = function.RedirectionTarget();
-    }
+    // Redirecting factory must be resolved.
+    ASSERT(!function.IsRedirectingFactory() ||
+           function.RedirectionTarget() != Function::null());
     return function.raw();
   }
 }

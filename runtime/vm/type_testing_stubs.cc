@@ -117,7 +117,6 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
     return should_specialize ? StubCode::LazySpecializeTypeTest().instructions()
                              : StubCode::DefaultTypeTest().instructions();
   } else {
-    ASSERT(type.IsMixinAppType());
     return StubCode::UnreachableTypeTest().instructions();
   }
 }

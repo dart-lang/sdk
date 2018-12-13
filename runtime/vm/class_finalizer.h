@@ -17,13 +17,10 @@ class ClassFinalizer : public AllStatic {
  public:
   typedef ZoneGrowableHandlePtrArray<const AbstractType> PendingTypes;
 
-  // Modes for type resolution and finalization. The ordering is relevant.
+  // Modes for finalization. The ordering is relevant.
   enum FinalizationKind {
-    kIgnore,                 // Type is ignored and replaced by dynamic.
-    kDoNotResolve,           // Type resolution is postponed.
-    kResolveTypeParameters,  // Resolve type parameters only.
-    kFinalize,               // Resolve and finalize type and type arguments.
-    kCanonicalize            // Finalize, check bounds, and canonicalize.
+    kFinalize,     // Finalize type and type arguments.
+    kCanonicalize  // Finalize and canonicalize.
   };
 
   // Finalize given type while parsing class cls.
@@ -69,47 +66,15 @@ class ClassFinalizer : public AllStatic {
   static void VerifyBootstrapClasses();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  // Resolve the class of the type, but not the type's type arguments.
-  // May promote the type to function type by setting its signature field.
-  static void ResolveTypeClass(const Class& cls, const Type& type);
-
-  // Resolve the type and target of the redirecting factory.
-  static void ResolveRedirectingFactory(const Class& cls,
-                                        const Function& factory);
-
-  // Apply the mixin type to the mixin application class.
-  static void ApplyMixinType(const Class& mixin_app_class,
-                             PendingTypes* pending_types = NULL);
-
  private:
   static void AllocateEnumValues(const Class& enum_cls);
   static bool IsSuperCycleFree(const Class& cls);
   static bool IsTypedefCycleFree(const Class& cls,
                                  const AbstractType& type,
                                  GrowableArray<intptr_t>* visited);
-  static bool IsMixinCycleFree(const Class& cls,
-                               GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
-  static void ResolveType(const Class& cls, const AbstractType& type);
-  static void ResolveRedirectingFactoryTarget(
-      const Class& cls,
-      const Function& factory,
-      const GrowableObjectArray& visited_factories);
-  static void CloneMixinAppTypeParameters(const Class& mixin_app_class);
-  static void ApplyMixinAppAlias(const Class& mixin_app_class,
-                                 const TypeArguments& instantiator);
-  static void ApplyMixinMembers(const Class& cls);
-  static void CreateForwardingConstructors(
-      const Class& mixin_app,
-      const Class& mixin_cls,
-      const GrowableObjectArray& cloned_funcs);
-  static void CollectTypeArguments(const Class& cls,
-                                   const Type& type,
-                                   const GrowableObjectArray& collected_args);
-  static RawType* ResolveMixinAppType(const Class& cls,
-                                      const MixinAppType& mixin_app_type);
-  static void ResolveSuperTypeAndInterfaces(const Class& cls,
-                                            GrowableArray<intptr_t>* visited);
+  static void CheckSuperTypeAndInterfaces(const Class& cls,
+                                          GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls,
                                      PendingTypes* pending_types = NULL);
   static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,
@@ -123,15 +88,11 @@ class ClassFinalizer : public AllStatic {
   static void CheckRecursiveType(const Class& cls,
                                  const AbstractType& type,
                                  PendingTypes* pending_types);
-  static void ResolveUpperBounds(const Class& cls);
   static void FinalizeUpperBounds(
       const Class& cls,
       FinalizationKind finalization = kCanonicalize);
-  static void ResolveSignature(const Class& cls, const Function& function);
-  static void ResolveAndFinalizeMemberTypes(const Class& cls);
+  static void FinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
-  static void CollectInterfaces(const Class& cls,
-                                GrowableArray<const Class*>* collected);
 
   static void ReportError(const Error& error);
   static void ReportError(const Class& cls,

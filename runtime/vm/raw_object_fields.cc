@@ -20,7 +20,6 @@ namespace dart {
   F(Class, library_)                                                           \
   F(Class, type_parameters_)                                                   \
   F(Class, super_type_)                                                        \
-  F(Class, mixin_)                                                             \
   F(Class, signature_function_)                                                \
   F(Class, constants_)                                                         \
   F(Class, canonical_type_)                                                    \
@@ -147,8 +146,6 @@ namespace dart {
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
   F(TypeParameter, parameterized_function_)                                    \
-  F(MixinAppType, super_type_)                                                 \
-  F(MixinAppType, mixin_types_)                                                \
   F(Closure, instantiator_type_arguments_)                                     \
   F(Closure, function_type_arguments_)                                         \
   F(Closure, delayed_type_arguments_)                                          \

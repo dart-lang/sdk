@@ -343,7 +343,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   const Register kClassIdReg = R2;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
+  // See ClassFinalizer::CheckSuperTypeAndInterfaces for list of restricted
   // interfaces.
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolType()) {

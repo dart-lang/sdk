@@ -66,6 +66,8 @@ inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
+instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
+instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 invalid_type: TypeCheckError
 invocations: RuntimeError
 issue34899: TypeCheckError
@@ -139,6 +141,7 @@ regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
+reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

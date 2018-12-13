@@ -60,7 +60,6 @@ typedef RawObject* RawCompressed;
   V(Type)                                                                      \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
-  V(MixinAppType)                                                              \
   V(Closure)                                                                   \
   V(Number)                                                                    \
   V(Integer)                                                                   \
@@ -908,7 +907,6 @@ class RawClass : public RawObject {
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
-  RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
   RawFunction* signature_function_;  // Associated function for typedef class.
   RawArray* constants_;      // Canonicalized const instances of this class.
   RawType* canonical_type_;  // Canonical type for this class.
@@ -2004,7 +2002,6 @@ class RawAbstractType : public RawInstance {
  protected:
   enum TypeState {
     kAllocated,                // Initial state.
-    kResolved,                 // Type class and type arguments resolved.
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
@@ -2074,16 +2071,6 @@ class RawTypeParameter : public RawAbstractType {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
-};
-
-class RawMixinAppType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
-
-  VISIT_FROM(RawObject*, super_type_);
-  RawAbstractType* super_type_;
-  RawArray* mixin_types_;  // Array of AbstractType.
-  VISIT_TO(RawObject*, mixin_types_);
 };
 
 class RawClosure : public RawInstance {

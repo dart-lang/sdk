@@ -167,7 +167,6 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeParameter, "_TypeParameter")                                          \
-  V(_MixinAppType, "_MixinAppType")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(Patch, "patch")                                                            \
   V(Pragma, "pragma")                                                          \

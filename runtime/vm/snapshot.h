@@ -65,7 +65,6 @@ class RawLinkedHashMap;
 class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
-class RawMixinAppType;
 class RawNamespace;
 class RawObject;
 class RawObjectPool;
@@ -463,7 +462,6 @@ class SnapshotReader : public BaseReader {
   friend class LibraryPrefix;
   friend class LinkedHashMap;
   friend class MirrorReference;
-  friend class MixinAppType;
   friend class Namespace;
   friend class PatchClass;
   friend class RedirectionData;

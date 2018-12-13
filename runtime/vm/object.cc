@@ -1360,8 +1360,6 @@ RawError* Object::Init(Isolate* isolate,
     const Class& type_ref_cls = Class::Handle(zone, Class::New<TypeRef>());
     const Class& type_parameter_cls =
         Class::Handle(zone, Class::New<TypeParameter>());
-    const Class& mixin_app_type_cls =
-        Class::Handle(zone, Class::New<MixinAppType>());
     const Class& library_prefix_cls =
         Class::Handle(zone, Class::New<LibraryPrefix>());
 
@@ -1520,10 +1518,6 @@ RawError* Object::Init(Isolate* isolate,
     RegisterPrivateClass(type_parameter_cls, Symbols::_TypeParameter(),
                          core_lib);
     pending_classes.Add(type_parameter_cls);
-
-    RegisterPrivateClass(mixin_app_type_cls, Symbols::_MixinAppType(),
-                         core_lib);
-    pending_classes.Add(mixin_app_type_cls);
 
     cls = Class::New<Integer>();
     object_store->set_integer_implementation_class(cls);
@@ -1860,7 +1854,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Type>();
     cls = Class::New<TypeRef>();
     cls = Class::New<TypeParameter>();
-    cls = Class::New<MixinAppType>();
 
     cls = Class::New<Array>();
     object_store->set_array_class(cls);
@@ -2509,9 +2502,6 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 intptr_t Class::NumTypeParameters(Thread* thread) const {
-  if (IsMixinApplication() && !is_mixin_type_applied()) {
-    ClassFinalizer::ApplyMixinType(*this);
-  }
   if (type_parameters() == TypeArguments::null()) {
     const intptr_t cid = id();
     if ((cid == kArrayCid) || (cid == kImmutableArrayCid) ||
@@ -2540,7 +2530,6 @@ intptr_t Class::NumOwnTypeArguments() const {
     set_num_own_type_arguments(num_type_params);
     return num_type_params;
   }
-  ASSERT(!IsMixinApplication() || is_mixin_type_applied());
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
   const TypeArguments& sup_type_args =
       TypeArguments::Handle(zone, sup_type.arguments());
@@ -2599,7 +2588,6 @@ intptr_t Class::NumTypeArguments() const {
   }
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the type_class() call on the super type.
-  // Note that calling type_class() on a MixinAppType fails.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -2608,8 +2596,6 @@ intptr_t Class::NumTypeArguments() const {
   cls = raw();
   intptr_t num_type_args = 0;
   do {
-    // Calling NumOwnTypeArguments() on a mixin application class will setup the
-    // type parameters if not already done.
     num_type_args += cls.NumOwnTypeArguments();
     // Super type of Object class is null.
     if ((cls.super_type() == AbstractType::null()) ||
@@ -2620,7 +2606,6 @@ intptr_t Class::NumTypeArguments() const {
     // A TypeRef or function type can appear as type argument of
     // sup_type, but not as sup_type itself.
     ASSERT(sup_type.IsType());
-    ClassFinalizer::ResolveTypeClass(cls, Type::Cast(sup_type));
     cls = sup_type.type_class();
     ASSERT(!cls.IsTypedefClass());
   } while (true);
@@ -2649,8 +2634,7 @@ RawClass* Class::SuperClass(bool original_classes) const {
 }
 
 void Class::set_super_type(const AbstractType& value) const {
-  ASSERT(value.IsNull() || (value.IsType() && !value.IsDynamicType()) ||
-         value.IsMixinAppType());
+  ASSERT(value.IsNull() || (value.IsType() && !value.IsDynamicType()));
   StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
@@ -4011,7 +3995,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
   return TokenPosition::kNoSource;
 #else
   // Return the begin token for synthetic classes.
-  if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
+  if (is_synthesized_class() || IsTopLevel()) {
     return token_pos();
   }
 
@@ -4099,14 +4083,6 @@ void Class::set_is_const() const {
   set_state_bits(ConstBit::update(true, raw_ptr()->state_bits_));
 }
 
-void Class::set_is_mixin_app_alias() const {
-  set_state_bits(MixinAppAliasBit::update(true, raw_ptr()->state_bits_));
-}
-
-void Class::set_is_mixin_type_applied() const {
-  set_state_bits(MixinTypeAppliedBit::update(true, raw_ptr()->state_bits_));
-}
-
 void Class::set_is_transformed_mixin_application() const {
   set_state_bits(
       TransformedMixinApplicationBit::update(true, raw_ptr()->state_bits_));
@@ -4162,15 +4138,6 @@ void Class::reset_is_marked_for_parsing() const {
 void Class::set_interfaces(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->interfaces_, value.raw());
-}
-
-void Class::set_mixin(const Type& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->mixin_, value.raw());
-}
-
-bool Class::IsMixinApplication() const {
-  return mixin() != Type::null();
 }
 
 RawClass* Class::GetPatchClass() const {
@@ -5144,18 +5111,6 @@ bool TypeArguments::IsRecursive() const {
   return false;
 }
 
-void TypeArguments::SetScopeFunction(const Function& function) const {
-  if (IsNull()) return;
-  const intptr_t num_types = Length();
-  AbstractType& type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    if (!type.IsNull()) {
-      type.SetScopeFunction(function);
-    }
-  }
-}
-
 bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
                                    intptr_t from_index,
                                    intptr_t len) const {
@@ -5258,21 +5213,6 @@ void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
   StorePointer(TypeAddr(index), value.raw());
 }
 
-bool TypeArguments::IsResolved() const {
-  if (IsCanonical()) {
-    return true;
-  }
-  AbstractType& type = AbstractType::Handle();
-  const intptr_t num_types = Length();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    if (!type.IsResolved()) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
                                             intptr_t len,
                                             Genericity genericity,
@@ -5317,7 +5257,6 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     // substituted by the instantiator's type argument vector without checking
     // the upper bound.
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
-    ASSERT(bound.IsResolved());
     if (!bound.IsObjectType() && !bound.IsDynamicType()) {
       return false;
     }
@@ -5563,44 +5502,6 @@ void TypeArguments::SetLength(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->length_, Smi::New(value));
-}
-
-RawTypeArguments* TypeArguments::CloneUnfinalized() const {
-  if (IsNull() || IsFinalized()) {
-    return raw();
-  }
-  ASSERT(IsResolved());
-  AbstractType& type = AbstractType::Handle();
-  const intptr_t num_types = Length();
-  const TypeArguments& clone =
-      TypeArguments::Handle(TypeArguments::New(num_types));
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    type = type.CloneUnfinalized();
-    clone.SetTypeAt(i, type);
-  }
-  ASSERT(clone.IsResolved());
-  return clone.raw();
-}
-
-RawTypeArguments* TypeArguments::CloneUninstantiated(const Class& new_owner,
-                                                     TrailPtr trail) const {
-  ASSERT(!IsNull());
-  ASSERT(IsFinalized());
-  ASSERT(!IsInstantiated());
-  AbstractType& type = AbstractType::Handle();
-  const intptr_t num_types = Length();
-  const TypeArguments& clone =
-      TypeArguments::Handle(TypeArguments::New(num_types));
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    if (!type.IsInstantiated()) {
-      type = type.CloneUninstantiated(new_owner, trail);
-    }
-    clone.SetTypeAt(i, type);
-  }
-  ASSERT(clone.IsFinalized());
-  return clone.raw();
 }
 
 RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
@@ -7366,57 +7267,6 @@ RawFunction* Function::New(const String& name,
   return result.raw();
 }
 
-RawFunction* Function::Clone(const Class& new_owner) const {
-  ASSERT(!IsGenerativeConstructor());
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Function& clone = Function::Handle(zone);
-  clone ^= Object::Clone(*this, Heap::kOld);
-  const Class& origin = Class::Handle(zone, this->origin());
-  const PatchClass& clone_owner =
-      PatchClass::Handle(zone, PatchClass::New(new_owner, origin));
-  clone.set_owner(clone_owner);
-  clone.ClearICDataArray();
-  clone.ClearCode();
-  clone.set_data(Object::null_object());
-  clone.set_usage_counter(0);
-  clone.set_deoptimization_counter(0);
-  clone.set_optimized_instruction_count(0);
-  clone.set_inlining_depth(0);
-  clone.set_optimized_call_site_count(0);
-
-  if (new_owner.NumTypeParameters() > 0) {
-    // Adjust uninstantiated types to refer to type parameters of the new owner.
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, type_parameters());
-    if (!type_params.IsNull()) {
-      const intptr_t num_type_params = type_params.Length();
-      const TypeArguments& type_params_clone =
-          TypeArguments::Handle(zone, TypeArguments::New(num_type_params));
-      TypeParameter& type_param = TypeParameter::Handle(zone);
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param ^= type_params.TypeAt(i);
-        type_param ^= type_param.CloneUninstantiated(new_owner);
-        type_params_clone.SetTypeAt(i, type_param);
-      }
-      clone.set_type_parameters(type_params_clone);
-    }
-    AbstractType& type = AbstractType::Handle(zone, clone.result_type());
-    type ^= type.CloneUninstantiated(new_owner);
-    clone.set_result_type(type);
-    const intptr_t num_params = clone.NumParameters();
-    Array& array = Array::Handle(zone, clone.parameter_types());
-    array ^= Object::Clone(array, Heap::kOld);
-    clone.set_parameter_types(array);
-    for (intptr_t i = 0; i < num_params; i++) {
-      type = clone.ParameterTypeAt(i);
-      type ^= type.CloneUninstantiated(new_owner);
-      clone.SetParameterTypeAt(i, type);
-    }
-  }
-  return clone.raw();
-}
-
 RawFunction* Function::NewClosureFunctionWithKind(RawFunction::Kind kind,
                                                   const String& name,
                                                   const Function& parent,
@@ -8605,25 +8455,6 @@ RawField* Field::NewTopLevel(const String& name,
                 is_final, is_const, true, /* is_reflectable */
                 owner, token_pos, end_token_pos);
   return result.raw();
-}
-
-RawField* Field::Clone(const Class& new_owner) const {
-  Field& clone = Field::Handle();
-  clone ^= Object::Clone(*this, Heap::kOld);
-  const Class& owner = Class::Handle(this->Owner());
-  const PatchClass& clone_owner =
-      PatchClass::Handle(PatchClass::New(new_owner, owner));
-  clone.set_owner(clone_owner);
-  if (!clone.is_static()) {
-    clone.SetOffset(0);
-  }
-  if (new_owner.NumTypeParameters() > 0) {
-    // Adjust the field type to refer to type parameters of the new owner.
-    AbstractType& type = AbstractType::Handle(clone.type());
-    type ^= type.CloneUninstantiated(new_owner);
-    clone.SetFieldType(type);
-  }
-  return clone.raw();
 }
 
 RawField* Field::Clone(const Field& original) const {
@@ -16488,17 +16319,6 @@ const char* Instance::ToCString() const {
   }
 }
 
-bool AbstractType::IsResolved() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-void AbstractType::SetIsResolved() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-}
-
 classid_t AbstractType::type_class_id() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -16570,30 +16390,12 @@ bool AbstractType::IsRecursive() const {
   return false;
 }
 
-void AbstractType::SetScopeFunction(const Function& function) const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-}
-
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     TrailPtr instantiation_trail,
     Heap::Space space) const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return NULL;
-}
-
-RawAbstractType* AbstractType::CloneUnfinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return NULL;
-}
-
-RawAbstractType* AbstractType::CloneUninstantiated(const Class& new_owner,
-                                                   TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -16753,37 +16555,31 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     }
     // Print the name of a typedef as a regular, possibly parameterized, class.
   }
-    if (IsResolved() || !cls.IsMixinApplication()) {
-      // Do not print the full vector, but only the declared type parameters.
-      num_type_params = cls.NumTypeParameters();
+  // Do not print the full vector, but only the declared type parameters.
+  num_type_params = cls.NumTypeParameters();
+  if (name_visibility == kInternalName) {
+    class_name = cls.Name();
+  } else {
+    ASSERT(name_visibility == kUserVisibleName);
+    // Map internal types to their corresponding public interfaces.
+    class_name = cls.UserVisibleName();
+  }
+  if (num_type_params > num_args) {
+    first_type_param_index = 0;
+    if (!IsFinalized() || IsBeingFinalized()) {
+      // TODO(regis): Check if this is dead code.
+      num_type_params = num_args;
     } else {
-      // Do not print the type parameters of an unresolved mixin application,
-      // since it would prematurely trigger the application of the mixin type.
-      num_type_params = 0;
+      ASSERT(num_args == 0);  // Type is raw.
     }
-    if (name_visibility == kInternalName) {
-      class_name = cls.Name();
+  } else {
+    // The actual type argument vector can be longer than necessary, because
+    // of type optimizations.
+    if (IsFinalized() && cls.is_type_finalized()) {
+      first_type_param_index = cls.NumTypeArguments() - num_type_params;
     } else {
-      ASSERT(name_visibility == kUserVisibleName);
-      // Map internal types to their corresponding public interfaces.
-      class_name = cls.UserVisibleName();
+      first_type_param_index = num_args - num_type_params;
     }
-    if (num_type_params > num_args) {
-      first_type_param_index = 0;
-      if (!IsFinalized() || IsBeingFinalized()) {
-        // TODO(regis): Check if this is dead code.
-        num_type_params = num_args;
-      } else {
-        ASSERT(num_args == 0);  // Type is raw.
-      }
-    } else {
-      // The actual type argument vector can be longer than necessary, because
-      // of type optimizations.
-      if (IsFinalized() && cls.is_type_finalized()) {
-        first_type_param_index = cls.NumTypeArguments() - num_type_params;
-      } else {
-        first_type_param_index = num_args - num_type_params;
-      }
   }
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
@@ -17184,7 +16980,7 @@ void Type::ResetIsFinalized() const {
 }
 
 void Type::SetIsBeingFinalized() const {
-  ASSERT(IsResolved() && !IsFinalized() && !IsBeingFinalized());
+  ASSERT(!IsFinalized() && !IsBeingFinalized());
   set_type_state(RawType::kBeingFinalized);
 }
 
@@ -17199,11 +16995,6 @@ RawFunction* Type::signature() const {
 
 void Type::set_signature(const Function& value) const {
   StorePointer(&raw_ptr()->signature_, value.raw());
-}
-
-void Type::SetIsResolved() const {
-  ASSERT(!IsResolved());
-  set_type_state(RawType::kResolved);
 }
 
 classid_t Type::type_class_id() const {
@@ -17307,7 +17098,6 @@ RawAbstractType* Type::InstantiateFrom(
   if (IsFinalized()) {
     instantiated_type.SetIsFinalized();
   } else {
-    instantiated_type.SetIsResolved();
     if (IsBeingFinalized()) {
       instantiated_type.SetIsBeingFinalized();
     }
@@ -17335,7 +17125,6 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (IsFunctionType() != other_type.IsFunctionType()) {
     return false;
   }
-  ASSERT(IsResolved() && other_type.IsResolved());
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
@@ -17466,148 +17255,6 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
 
 bool Type::IsRecursive() const {
   return TypeArguments::Handle(arguments()).IsRecursive();
-}
-
-void Type::SetScopeFunction(const Function& function) const {
-  TypeArguments::Handle(arguments()).SetScopeFunction(function);
-  if (IsFunctionType()) {
-    const Function& sig_fun = Function::Handle(signature());
-    sig_fun.set_parent_function(function);
-    // No need to traverse result type and parameter types (and bounds, in case
-    // sig_fun is generic), since they have sig_fun as scope function.
-  }
-}
-
-RawAbstractType* Type::CloneUnfinalized() const {
-  ASSERT(IsResolved());
-  if (IsFinalized()) {
-    return raw();
-  }
-  ASSERT(!IsBeingFinalized());  // Cloning must occur prior to finalization.
-  Zone* zone = Thread::Current()->zone();
-  const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  const TypeArguments& type_args_clone =
-      TypeArguments::Handle(zone, type_args.CloneUnfinalized());
-  if (type_args_clone.raw() == type_args.raw()) {
-    return raw();
-  }
-  const Type& clone = Type::Handle(
-      zone,
-      Type::New(Class::Handle(zone, type_class()), type_args, token_pos()));
-  // Clone the signature if this type represents a function type.
-  Function& fun = Function::Handle(zone, signature());
-  if (!fun.IsNull()) {
-    const Class& owner = Class::Handle(zone, fun.Owner());
-    const Function& parent = Function::Handle(zone, fun.parent_function());
-    Function& fun_clone =
-        Function::Handle(zone, Function::NewSignatureFunction(
-                                   owner, parent, TokenPosition::kNoSource));
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, fun.type_parameters());
-    if (!type_params.IsNull()) {
-      const intptr_t num_type_params = type_params.Length();
-      const TypeArguments& type_params_clone =
-          TypeArguments::Handle(zone, TypeArguments::New(num_type_params));
-      TypeParameter& type_param = TypeParameter::Handle(zone);
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param ^= type_params.TypeAt(i);
-        type_param ^= type_param.CloneUnfinalized();
-        type_params_clone.SetTypeAt(i, type_param);
-      }
-      fun_clone.set_type_parameters(type_params_clone);
-    }
-    AbstractType& type = AbstractType::Handle(zone, fun.result_type());
-    type = type.CloneUnfinalized();
-    fun_clone.set_result_type(type);
-    const intptr_t num_params = fun.NumParameters();
-    fun_clone.set_num_fixed_parameters(fun.num_fixed_parameters());
-    fun_clone.SetNumOptionalParameters(fun.NumOptionalParameters(),
-                                       fun.HasOptionalPositionalParameters());
-    fun_clone.set_parameter_types(
-        Array::Handle(Array::New(num_params, Heap::kOld)));
-    for (intptr_t i = 0; i < num_params; i++) {
-      type = fun.ParameterTypeAt(i);
-      type = type.CloneUnfinalized();
-      fun_clone.SetParameterTypeAt(i, type);
-    }
-    fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
-    clone.set_signature(fun_clone);
-    fun_clone.SetSignatureType(clone);
-  }
-  clone.SetIsResolved();
-  return clone.raw();
-}
-
-RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
-                                           TrailPtr trail) const {
-  ASSERT(IsFinalized());
-  if (IsInstantiated()) {
-    return raw();
-  }
-  // We may recursively encounter a type already being cloned, because we clone
-  // the upper bounds of its uninstantiated type arguments in the same pass.
-  Zone* zone = Thread::Current()->zone();
-  Type& clone = Type::Handle(zone);
-  clone ^= OnlyBuddyInTrail(trail);
-  if (!clone.IsNull()) {
-    return clone.raw();
-  }
-  const Class& type_cls = Class::Handle(zone, type_class());
-  clone = Type::New(type_cls, TypeArguments::Handle(zone), token_pos());
-  // Clone the signature if this type represents a function type.
-  const Function& fun = Function::Handle(zone, signature());
-  if (!fun.IsNull()) {
-    ASSERT(type_cls.IsTypedefClass() || type_cls.IsClosureClass());
-    // If the scope class is not a typedef and if it is generic, it must be the
-    // mixin class, set it to the new owner.
-    const Function& parent = Function::Handle(zone, fun.parent_function());
-    // TODO(regis): Is it safe to reuse the parent function with the old owner?
-    Function& fun_clone = Function::Handle(
-        zone, Function::NewSignatureFunction(new_owner, parent,
-                                             TokenPosition::kNoSource));
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, fun.type_parameters());
-    if (!type_params.IsNull()) {
-      const intptr_t num_type_params = type_params.Length();
-      const TypeArguments& type_params_clone =
-          TypeArguments::Handle(zone, TypeArguments::New(num_type_params));
-      TypeParameter& type_param = TypeParameter::Handle(zone);
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param ^= type_params.TypeAt(i);
-        type_param ^= type_param.CloneUninstantiated(new_owner, trail);
-        type_params_clone.SetTypeAt(i, type_param);
-      }
-      fun_clone.set_type_parameters(type_params_clone);
-    }
-    AbstractType& type = AbstractType::Handle(zone, fun.result_type());
-    type = type.CloneUninstantiated(new_owner, trail);
-    fun_clone.set_result_type(type);
-    const intptr_t num_params = fun.NumParameters();
-    fun_clone.set_num_fixed_parameters(fun.num_fixed_parameters());
-    fun_clone.SetNumOptionalParameters(fun.NumOptionalParameters(),
-                                       fun.HasOptionalPositionalParameters());
-    fun_clone.set_parameter_types(
-        Array::Handle(Array::New(num_params, Heap::kOld)));
-    for (intptr_t i = 0; i < num_params; i++) {
-      type = fun.ParameterTypeAt(i);
-      type = type.CloneUninstantiated(new_owner, trail);
-      fun_clone.SetParameterTypeAt(i, type);
-    }
-    fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
-    clone.set_signature(fun_clone);
-  }
-  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  if (!type_args.IsNull()) {
-    // Upper bounds of uninstantiated type arguments may form a cycle.
-    if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
-      AddOnlyBuddyToTrail(&trail, clone);
-    }
-    type_args = type_args.CloneUninstantiated(new_owner, trail);
-    clone.set_arguments(type_args);
-  }
-  clone.SetIsFinalized();
-  clone ^= clone.Canonicalize();
-  return clone.raw();
 }
 
 RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
@@ -17935,12 +17582,6 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
   return !ref_type.IsNull() && ref_type.IsEquivalent(other, trail);
 }
 
-void TypeRef::SetScopeFunction(const Function& function) const {
-  // TypeRefs are created during finalization, when scope functions have
-  // already been adjusted.
-  UNREACHABLE();
-}
-
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
@@ -17967,26 +17608,6 @@ RawTypeRef* TypeRef::InstantiateFrom(
   instantiated_type_ref.SetTypeTestingStub(Instructions::Handle(
       TypeTestingStubGenerator::DefaultCodeForType(instantiated_type_ref)));
   return instantiated_type_ref.raw();
-}
-
-RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
-                                         TrailPtr trail) const {
-  TypeRef& cloned_type_ref = TypeRef::Handle();
-  cloned_type_ref ^= OnlyBuddyInTrail(trail);
-  if (!cloned_type_ref.IsNull()) {
-    return cloned_type_ref.raw();
-  }
-  cloned_type_ref = TypeRef::New();
-  AddOnlyBuddyToTrail(&trail, cloned_type_ref);
-  AbstractType& ref_type = AbstractType::Handle(type());
-  ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
-  AbstractType& cloned_ref_type = AbstractType::Handle();
-  cloned_ref_type = ref_type.CloneUninstantiated(new_owner, trail);
-  ASSERT(!cloned_ref_type.IsTypeRef());
-  cloned_type_ref.set_type(cloned_ref_type);
-  cloned_type_ref.SetTypeTestingStub(Instructions::Handle(
-      TypeTestingStubGenerator::DefaultCodeForType(cloned_type_ref)));
-  return cloned_type_ref.raw();
 }
 
 void TypeRef::set_type(const AbstractType& value) const {
@@ -18193,49 +17814,6 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   // not only happens at run time, but also during type finalization.
 }
 
-RawAbstractType* TypeParameter::CloneUnfinalized() const {
-  if (IsFinalized()) {
-    return raw();
-  }
-  // No need to clone bound, as it is not part of the finalization state.
-  return TypeParameter::New(Class::Handle(parameterized_class()),
-                            Function::Handle(parameterized_function()), index(),
-                            String::Handle(name()),
-                            AbstractType::Handle(bound()), token_pos());
-}
-
-RawAbstractType* TypeParameter::CloneUninstantiated(const Class& new_owner,
-                                                    TrailPtr trail) const {
-  ASSERT(IsFinalized());
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  TypeParameter& clone = TypeParameter::Handle(zone);
-  clone ^= OnlyBuddyInTrail(trail);
-  if (!clone.IsNull()) {
-    return clone.raw();
-  }
-  intptr_t new_index = index();
-  AbstractType& upper_bound = AbstractType::Handle(zone, bound());
-  const Function& fun = Function::Handle(zone, parameterized_function());
-  Class& cls = Class::Handle(zone, parameterized_class());
-  if (!cls.IsNull()) {
-    ASSERT(fun.IsNull());
-    new_index += new_owner.NumTypeArguments() - cls.NumTypeArguments();
-    cls = new_owner.raw();
-  } else {
-    ASSERT(IsFunctionTypeParameter());
-    // Only the bounds of function type parameters need cloning.
-  }
-  clone = TypeParameter::New(cls, fun, new_index, String::Handle(zone, name()),
-                             upper_bound,  // Not cloned yet.
-                             token_pos());
-  clone.SetIsFinalized();
-  AddOnlyBuddyToTrail(&trail, clone);
-  upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
-  clone.set_bound(upper_bound);
-  return clone.raw();
-}
-
 void TypeParameter::EnumerateURIs(URIs* uris) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -18350,64 +17928,6 @@ const char* TypeParameter::ToCString() const {
                    bound_cstr);
     return chars;
   }
-}
-
-TokenPosition MixinAppType::token_pos() const {
-  return AbstractType::Handle(MixinTypeAt(0)).token_pos();
-}
-
-intptr_t MixinAppType::Depth() const {
-  return Array::Handle(mixin_types()).Length();
-}
-
-RawString* MixinAppType::Name() const {
-  return String::New("MixinAppType");
-}
-
-const char* MixinAppType::ToCString() const {
-  const char* format = "MixinAppType: super type: %s; first mixin type: %s";
-  const char* super_type_cstr =
-      String::Handle(AbstractType::Handle(super_type()).Name()).ToCString();
-  const char* first_mixin_type_cstr =
-      String::Handle(AbstractType::Handle(MixinTypeAt(0)).Name()).ToCString();
-  intptr_t len =
-      Utils::SNPrint(NULL, 0, format, super_type_cstr, first_mixin_type_cstr) +
-      1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  Utils::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
-  return chars;
-}
-
-RawAbstractType* MixinAppType::MixinTypeAt(intptr_t depth) const {
-  return AbstractType::RawCast(Array::Handle(mixin_types()).At(depth));
-}
-
-void MixinAppType::set_super_type(const AbstractType& value) const {
-  StorePointer(&raw_ptr()->super_type_, value.raw());
-}
-
-void MixinAppType::set_mixin_types(const Array& value) const {
-  StorePointer(&raw_ptr()->mixin_types_, value.raw());
-}
-
-RawMixinAppType* MixinAppType::New() {
-  // MixinAppType objects do not survive finalization, so allocate
-  // on new heap.
-  RawObject* raw = Object::Allocate(MixinAppType::kClassId,
-                                    MixinAppType::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawMixinAppType*>(raw);
-}
-
-RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
-                                   const Array& mixin_types) {
-  Zone* Z = Thread::Current()->zone();
-  const MixinAppType& result = MixinAppType::Handle(Z, MixinAppType::New());
-  result.set_super_type(super_type);
-  result.set_mixin_types(mixin_types);
-
-  result.SetTypeTestingStub(Instructions::Handle(
-      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
-  return result.raw();
 }
 
 RawInstance* Number::CheckAndCanonicalize(Thread* thread,

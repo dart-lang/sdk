@@ -777,12 +777,6 @@ uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
     hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
   }
 
-  type ^= klass.mixin();
-  if (!type.IsNull()) {
-    name ^= type.Name();
-    hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
-  }
-
   Field& field = Field::Handle(zone);
   // Calculate fingerprint for the class fields.
   for (intptr_t i = 0; i < fields.Length(); ++i) {

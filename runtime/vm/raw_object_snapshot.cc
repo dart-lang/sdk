@@ -297,22 +297,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(param_class, kAsReference);
 }
 
-RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();  // MixinAppType objects do not survive finalization.
-  return MixinAppType::null();
-}
-
-void RawMixinAppType::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();  // MixinAppType objects do not survive finalization.
-}
-
 RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
