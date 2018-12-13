@@ -2404,6 +2404,19 @@ class ToSourceVisitor2Test extends EngineTestCase {
             ])));
   }
 
+  void test_visitGenericFunctionType_withQuestion() {
+    _assertSource(
+        "int Function<T>(T)?",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ]),
+            question: true));
+  }
+
   void test_visitGenericTypeAlias() {
     _assertSource(
         "typedef X<S> = S Function<T>(T)",
@@ -3260,9 +3273,18 @@ class ToSourceVisitor2Test extends EngineTestCase {
     _assertSource("C", AstTestFactory.typeName4("C"));
   }
 
+  void test_visitTypeName_noArgs_withQuestion() {
+    _assertSource("C?", AstTestFactory.typeName4("C", null, true));
+  }
+
   void test_visitTypeName_singleArg() {
     _assertSource(
         "C<D>", AstTestFactory.typeName4("C", [AstTestFactory.typeName4("D")]));
+  }
+
+  void test_visitTypeName_singleArg_withQuestion() {
+    _assertSource("C<D>?",
+        AstTestFactory.typeName4("C", [AstTestFactory.typeName4("D")], true));
   }
 
   void test_visitTypeParameter_withExtends() {
@@ -4788,6 +4810,19 @@ class ToSourceVisitorTest extends EngineTestCase {
               AstTestFactory.simpleFormalParameter4(
                   AstTestFactory.typeName4("T"), null)
             ])));
+  }
+
+  void test_visitGenericFunctionType_withQuestion() {
+    _assertSource(
+        "int Function<T>(T)?",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ]),
+            question: true));
   }
 
   void test_visitGenericTypeAlias() {

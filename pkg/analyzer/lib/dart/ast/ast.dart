@@ -3779,7 +3779,8 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
  * An anonymous function type.
  *
  *    functionType ::=
- *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
+ *        [TypeAnnotation]? 'Function' [TypeParameterList]?
+ *        [FormalParameterList] '?'?
  *
  * where the FormalParameterList is being used to represent the following
  * grammar, despite the fact that FormalParameterList can represent a much
@@ -3827,6 +3828,18 @@ abstract class GenericFunctionType extends TypeAnnotation {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters);
+
+  /**
+   * The question mark indicating that the type is nullable, or `null` if there
+   * is no question mark.
+   */
+  Token get question;
+
+  /**
+   * Set the question mark indicating that the type is nullable to the given
+   * [token].
+   */
+  void set question(Token token);
 
   /**
    * Return the return type of the function type being defined, or `null` if
@@ -5294,6 +5307,18 @@ abstract class NamedType extends TypeAnnotation {
    * Set the name of the type to the given [identifier].
    */
   void set name(Identifier identifier);
+
+  /**
+   * The question mark indicating that the type is nullable, or `null` if there
+   * is no question mark.
+   */
+  Token get question;
+
+  /**
+   * Set the question mark indicating that the type is nullable to the given
+   * [token].
+   */
+  void set question(Token token);
 
   /**
    * Set the type being named to the given [type].

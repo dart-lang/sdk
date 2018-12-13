@@ -624,7 +624,8 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       Token functionKeyword,
       TypeParameterList typeParameters,
-      FormalParameterList parameters);
+      FormalParameterList parameters,
+      {Token question});
 
   /**
    * Returns a newly created generic type alias. Either or both of the
@@ -1084,9 +1085,11 @@ abstract class AstFactory {
 
   /**
    * Returns a newly created type name. The [typeArguments] can be `null` if
-   * there are no type arguments.
+   * there are no type arguments. The [question] can be `null` if there is no
+   * question mark.
    */
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments);
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
+      {Token question});
 
   /**
    * Returns a newly created type parameter. Either or both of the [comment]

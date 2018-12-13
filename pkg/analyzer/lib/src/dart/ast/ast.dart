@@ -5721,34 +5721,35 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   FormalParameterListImpl _parameters;
 
   @override
+  Token question;
+
+  @override
   DartType type;
 
   /**
    * Initialize a newly created generic function type.
    */
-  GenericFunctionTypeImpl(
-      TypeAnnotationImpl returnType,
-      this.functionKeyword,
-      TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters) {
+  GenericFunctionTypeImpl(TypeAnnotationImpl returnType, this.functionKeyword,
+      TypeParameterListImpl typeParameters, FormalParameterListImpl parameters,
+      {this.question}) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
 
   @override
-  Token get beginToken =>
-      _returnType == null ? functionKeyword : _returnType.beginToken;
+  Token get beginToken => _returnType?.beginToken ?? functionKeyword;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_returnType)
     ..add(functionKeyword)
     ..add(_typeParameters)
-    ..add(_parameters);
+    ..add(_parameters)
+    ..add(question);
 
   @override
-  Token get endToken => _parameters.endToken;
+  Token get endToken => question ?? _parameters.endToken;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -11031,7 +11032,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
  * The name of a type, which can optionally include type arguments.
  *
  *    typeName ::=
- *        [Identifier] typeArguments?
+ *        [Identifier] typeArguments? '?'?
  */
 class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   /**
@@ -11045,6 +11046,9 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    */
   TypeArgumentListImpl _typeArguments;
 
+  @override
+  Token question;
+
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
@@ -11054,7 +11058,8 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments) {
+  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments,
+      {this.question}) {
     _name = _becomeParentOf(name);
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -11064,15 +11069,10 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
-      new ChildEntities()..add(_name)..add(_typeArguments);
+      new ChildEntities()..add(_name)..add(_typeArguments)..add(question);
 
   @override
-  Token get endToken {
-    if (_typeArguments != null) {
-      return _typeArguments.endToken;
-    }
-    return _name.endToken;
-  }
+  Token get endToken => question ?? _typeArguments?.endToken ?? _name.endToken;
 
   @override
   bool get isDeferred {

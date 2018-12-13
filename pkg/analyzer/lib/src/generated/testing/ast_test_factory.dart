@@ -611,9 +611,12 @@ class AstTestFactory {
           parameters: formalParameterList(parameters));
 
   static GenericFunctionType genericFunctionType(TypeAnnotation returnType,
-          TypeParameterList typeParameters, FormalParameterList parameters) =>
+          TypeParameterList typeParameters, FormalParameterList parameters,
+          {bool question: false}) =>
       astFactory.genericFunctionType(returnType,
-          TokenFactory.tokenFromString("Function"), typeParameters, parameters);
+          TokenFactory.tokenFromString("Function"), typeParameters, parameters,
+          question:
+              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
 
   static GenericTypeAlias genericTypeAlias(String name,
           TypeParameterList typeParameters, GenericFunctionType functionType) =>
@@ -1264,8 +1267,11 @@ class AstTestFactory {
           [List<TypeAnnotation> arguments]) =>
       astFactory.typeName(name, typeArgumentList(arguments));
 
-  static TypeName typeName4(String name, [List<TypeAnnotation> arguments]) =>
-      astFactory.typeName(identifier3(name), typeArgumentList(arguments));
+  static TypeName typeName4(String name,
+          [List<TypeAnnotation> arguments, bool question = false]) =>
+      astFactory.typeName(identifier3(name), typeArgumentList(arguments),
+          question:
+              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
 
   static TypeParameter typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);

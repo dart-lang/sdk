@@ -546,9 +546,11 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           Token functionKeyword,
           TypeParameterList typeParameters,
-          FormalParameterList parameters) =>
+          FormalParameterList parameters,
+          {Token question}) =>
       new GenericFunctionTypeImpl(
-          returnType, functionKeyword, typeParameters, parameters);
+          returnType, functionKeyword, typeParameters, parameters,
+          question: question);
 
   @override
   GenericTypeAlias genericTypeAlias(
@@ -952,8 +954,9 @@ class AstFactoryImpl extends AstFactory {
       new TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
   @override
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments) =>
-      new TypeNameImpl(name, typeArguments);
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
+          {Token question}) =>
+      new TypeNameImpl(name, typeArguments, question: question);
 
   @override
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,

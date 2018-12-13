@@ -574,7 +574,8 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.returnType),
           cloneToken(node.functionKeyword),
           cloneNode(node.typeParameters),
-          cloneNode(node.parameters));
+          cloneNode(node.parameters),
+          question: cloneToken(node.question));
 
   @override
   AstNode visitGenericTypeAlias(GenericTypeAlias node) =>
@@ -958,7 +959,8 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   TypeName visitTypeName(TypeName node) =>
-      astFactory.typeName(cloneNode(node.name), cloneNode(node.typeArguments));
+      astFactory.typeName(cloneNode(node.name), cloneNode(node.typeArguments),
+          question: cloneToken(node.question));
 
   @override
   TypeParameter visitTypeParameter(TypeParameter node) =>
@@ -1661,7 +1663,8 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(node.returnType, other.returnType) &&
         isEqualTokens(node.functionKeyword, other.functionKeyword) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
-        isEqualNodes(node.parameters, other.parameters);
+        isEqualNodes(node.parameters, other.parameters) &&
+        isEqualTokens(node.question, other.question);
   }
 
   @override
@@ -2140,7 +2143,8 @@ class AstComparator implements AstVisitor<bool> {
   bool visitTypeName(TypeName node) {
     TypeName other = _other as TypeName;
     return isEqualNodes(node.name, other.name) &&
-        isEqualNodes(node.typeArguments, other.typeArguments);
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualTokens(node.question, other.question);
   }
 
   @override
@@ -3384,7 +3388,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNode(node.returnType),
           _mapToken(node.functionKeyword),
           _cloneNode(node.typeParameters),
-          _cloneNode(node.parameters));
+          _cloneNode(node.parameters),
+          question: _mapToken(node.question));
 
   @override
   AstNode visitGenericTypeAlias(GenericTypeAlias node) =>
@@ -3887,7 +3892,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   TypeName visitTypeName(TypeName node) {
     TypeName copy = astFactory.typeName(
-        _cloneNode(node.name), _cloneNode(node.typeArguments));
+        _cloneNode(node.name), _cloneNode(node.typeArguments),
+        question: _mapToken(node.question));
     copy.type = node.type;
     return copy;
   }
@@ -6073,7 +6079,8 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.returnType, toNode.returnType),
         _isEqualTokens(node.functionKeyword, toNode.functionKeyword),
         _isEqualNodes(node.typeParameters, toNode.typeParameters),
-        _isEqualNodes(node.parameters, toNode.parameters))) {
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualTokens(node.question, toNode.question))) {
       toNode.type = node.type;
       return true;
     }
@@ -6718,8 +6725,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitTypeName(TypeName node) {
     TypeName toNode = this._toNode as TypeName;
-    if (_and(_isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments))) {
+    if (_and(
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.question, toNode.question))) {
       toNode.type = node.type;
       return true;
     }
@@ -7595,6 +7604,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     _writer.print(' Function');
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
+    if (node.question != null) {
+      _writer.print('?');
+    }
   }
 
   @override
@@ -8035,6 +8047,9 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitTypeName(TypeName node) {
     _visitNode(node.name);
     _visitNode(node.typeArguments);
+    if (node.question != null) {
+      _writer.print('?');
+    }
   }
 
   @override
@@ -8826,6 +8841,9 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     sink.write(' Function');
     safelyVisitNode(node.typeParameters);
     safelyVisitNode(node.parameters);
+    if (node.question != null) {
+      sink.write('?');
+    }
   }
 
   @override
@@ -9266,6 +9284,9 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   void visitTypeName(TypeName node) {
     safelyVisitNode(node.name);
     safelyVisitNode(node.typeArguments);
+    if (node.question != null) {
+      sink.write('?');
+    }
   }
 
   @override
