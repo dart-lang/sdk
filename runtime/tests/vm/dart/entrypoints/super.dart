@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=5 -Denable_inlining=true
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=5
-
 // Test that 'StaticCall's against "super" go through the unchecked entrypoint.
 
 import "common.dart";
 import "package:expect/expect.dart";
 
 class C<T> {
+  @AlwaysInline
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
   void target1(T x) {
@@ -50,7 +48,7 @@ C getC() {
 // counter threshold.
 void testOneC(C x, int i) => x.target1(i);
 
-main(List<String> args) {
+test(List<String> args) {
   expectedEntryPoint = -1;
   for (int i = 0; i < 100; ++i) {
     testOneC(getC(), i);

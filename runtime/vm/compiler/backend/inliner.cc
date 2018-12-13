@@ -2452,8 +2452,22 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
+
+  bool is_unchecked_call = false;
+  if (StaticCallInstr* static_call = call->AsStaticCall()) {
+    is_unchecked_call =
+        static_call->entry_kind() == Code::EntryKind::kUnchecked;
+  } else if (InstanceCallInstr* instance_call = call->AsInstanceCall()) {
+    is_unchecked_call =
+        instance_call->entry_kind() == Code::EntryKind::kUnchecked;
+  } else if (PolymorphicInstanceCallInstr* instance_call =
+                 call->AsPolymorphicInstanceCall()) {
+    is_unchecked_call =
+        instance_call->entry_kind() == Code::EntryKind::kUnchecked;
+  }
+
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->argument_type_checks() &&
+  if (flow_graph->isolate()->argument_type_checks() && !is_unchecked_call &&
       (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
        kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
     // Only type check for the value. A type check for the index is not

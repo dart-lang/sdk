@@ -1444,7 +1444,8 @@ void ScopeBuilder::AddVariableDeclarationParameter(
 
   const bool needs_covariant_check_in_method =
       helper.IsCovariant() ||
-      (helper.IsGenericCovariantImpl() && attrs.has_non_this_uses);
+      (helper.IsGenericCovariantImpl() &&
+       (attrs.has_non_this_uses || attrs.has_tearoff_uses));
 
   switch (type_check_mode) {
     case kTypeCheckAllParameters:

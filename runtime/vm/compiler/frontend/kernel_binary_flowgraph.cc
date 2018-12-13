@@ -464,7 +464,16 @@ Fragment StreamingFlowGraphBuilder::BuildDefaultTypeHandling(
 
 void StreamingFlowGraphBuilder::RecordUncheckedEntryPoint(
     FunctionEntryInstr* extra_entry) {
-  if (!B->IsInlining()) {
+  // Closures always check all arguments on their checked entry-point, most
+  // call-sites are unchecked, and they're inlined less often, so it's very
+  // beneficial to build multiple entry-points for them. Regular methods however
+  // have fewer checks to begin with since they have dynamic invocation
+  // forwarders, so in AOT we implement a more conservative time-space tradeoff
+  // by only building the unchecked entry-point when inlining. We should
+  // reconsider this heuristic if we identify non-inlined type-checks in
+  // hotspots of new benchmarks.
+  if (!B->IsInlining() && (parsed_function()->function().IsClosureFunction() ||
+                           !FLAG_precompiled_mode)) {
     B->graph_entry_->set_unchecked_entry(extra_entry);
   } else if (B->InliningUncheckedEntry()) {
     B->graph_entry_->set_normal_entry(extra_entry);
@@ -505,7 +514,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
-
 
   const Fragment prologue =
       flow_graph_builder_->CheckStackOverflowInPrologue(function.token_pos());
@@ -612,10 +620,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   // Setup multiple entrypoints if useful.
   FunctionEntryInstr* extra_entry = nullptr;
-  // TODO(#34162): We can still skip the non-generic-covariant parameter checks
-  // when the target has only 'this' uses.
-  if (function.MayHaveUncheckedEntryPoint(I) &&
-      parent_attrs.has_non_this_uses) {
+  if (function.MayHaveUncheckedEntryPoint(I)) {
     // The prologue for a closure will always have context handling (e.g.
     // setting up the 'this_variable'), but we don't need it on the unchecked
     // entry because the only time we reference this is for loading the

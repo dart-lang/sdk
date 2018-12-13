@@ -6,33 +6,38 @@
 // VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10
 
 // Test that 'PolymorphicInstanceCall's against "this" go through the unchecked
-// entrypoint.
+// entrypoint. The use of optional arguments here encourages prologue sharing
+// between the entrypoints.
 
-import "common.dart";
+import "../common.dart";
 import "package:expect/expect.dart";
 
 abstract class C<T> {
   @NeverInline
-  void target1(T x) {
-    target2(x);
+  void samir1(T x) {
+    samir2(x, y: "hi");
   }
 
-  void target2(T x);
+  void samir2(T x, {String y});
 }
 
 class D<T> extends C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
-  void target2(T x) {
+  @pragma("vm:entry-point")
+  void samir2(T x, {String y}) {
     Expect.notEquals(x, -1);
+    Expect.equals(y, "hi");
   }
 }
 
 class E<T> extends C<T> {
-  @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
   @NeverInline
-  void target2(T x) {
+  @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
+  @pragma("vm:entry-point")
+  void samir2(T x, {String y}) {
     Expect.notEquals(x, -1);
+    Expect.equals(y, "hi");
   }
 }
 
@@ -52,21 +57,14 @@ main(List<String> args) {
   // Warmup.
   expectedEntryPoint = -1;
   for (int i = 0; i < 100; ++i) {
-    getC().target1(0);
+    getC().samir1(i);
   }
 
-  expectedEntryPoint = 1;
-  const int iterations = benchmarkMode ? 200000000 : 100;
+  expectedEntryPoint = 2;
+  const int iterations = benchmarkMode ? 100000000 : 100;
   for (int i = 0; i < iterations; ++i) {
-    getC().target1(i);
+    getC().samir1(i);
   }
-
-  // Once for D and once for E.
-  expectedEntryPoint = 0;
-  dynamic x = getC();
-  x.target2(0);
-  x = getC();
-  x.target2(0);
 
   Expect.isTrue(validateRan);
 }
