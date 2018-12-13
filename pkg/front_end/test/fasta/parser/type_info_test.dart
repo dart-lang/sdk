@@ -1013,6 +1013,39 @@ class TypeInfoTest {
         required: true);
   }
 
+  void test_computeType_prefixedGFT_questionMark() {
+    expectComplexInfo('C.a? Function(', // Scanner inserts synthetic ')'.
+        required: true,
+        expectedCalls: [
+          'handleNoTypeVariables (',
+          'beginFunctionType C',
+          'handleIdentifier C prefixedTypeReference',
+          'handleIdentifier a typeReferenceContinuation',
+          'handleQualified .',
+          'handleNoTypeArguments ?',
+          'handleType C ?',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function null',
+        ]);
+    expectComplexInfo('C.a? Function<T>(int x) Function<T>(int x)',
+        required: false, expectedAfter: 'Function');
+    expectComplexInfo('C.a? Function<T>(int x) Function<T>(int x)',
+        required: true);
+  }
+
+  void test_computeType_prefixedQuestionMark() {
+    expectComplexInfo('C.a? Function',
+        expectedAfter: 'Function',
+        expectedCalls: [
+          'handleIdentifier C prefixedTypeReference',
+          'handleIdentifier a typeReferenceContinuation',
+          'handleQualified .',
+          'handleNoTypeArguments ?',
+          'handleType C ?',
+        ]);
+  }
+
   void test_computeType_prefixedTypeArg() {
     expectComplexInfo('C.a<T>', required: true, expectedCalls: [
       'handleIdentifier C prefixedTypeReference',

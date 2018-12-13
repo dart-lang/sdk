@@ -12,7 +12,7 @@ import 'parser.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show isOneOf, isOneOfOrEof, optional;
+import 'util.dart' show isOneOf, optional;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -231,14 +231,23 @@ TypeInfo computeType(final Token token, bool required,
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next;
-      if (typeParamOrArg == noTypeParamOrArg &&
-          !isGeneralizedFunctionType(next)) {
-        if (required || looksLikeName(next)) {
-          // identifier `.` identifier identifier
-          return prefixedType;
-        } else {
-          // identifier `.` identifier non-identifier
-          return noType;
+      if (typeParamOrArg == noTypeParamOrArg) {
+        if (optional('?', next)) {
+          next = next.next;
+          // identifier `.` identifier `?`
+          if (!required &&
+              !looksLikeVarName(next) &&
+              !isGeneralizedFunctionType(next)) {
+            return noType;
+          }
+        } else if (!isGeneralizedFunctionType(next)) {
+          if (required || looksLikeName(next)) {
+            // identifier `.` identifier identifier
+            return prefixedType;
+          } else {
+            // identifier `.` identifier non-identifier
+            return noType;
+          }
         }
       }
       // identifier `.` identifier
@@ -267,10 +276,7 @@ TypeInfo computeType(final Token token, bool required,
       // identifier `?` Function `(`
       return new ComplexTypeInfo(token, noTypeParamOrArg)
           .computeIdentifierQuestionGFT(required);
-    } else if (required ||
-        (looksLikeName(next) &&
-            isOneOfOrEof(
-                next.next, const [';', ',', '=', '>', '>=', '>>', '>>>']))) {
+    } else if (required || looksLikeVarName(next)) {
       // identifier `?`
       return simpleNullableType;
     }

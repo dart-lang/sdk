@@ -26,6 +26,7 @@ import 'type_info.dart';
 
 import 'util.dart'
     show
+        isOneOfOrEof,
         optional,
         skipMetadata,
         splitGtEq,
@@ -365,6 +366,16 @@ bool looksLikeTypeParamOrArg(bool inDeclaration, Token token) {
     }
   }
   return false;
+}
+
+bool looksLikeVarName(Token token) {
+  return (looksLikeName(token) &&
+      isOneOfOrEof(token.next, const [
+        ';', ',',
+        // TODO(danrubel): Consider refactoring this into TokenType.isAssignment
+        '=', '&&=', '&=', '||=', '|=', '^=', '>>=', '<<=', '-=', '%=', '+=',
+        '??=', '/=', '*=', '~/=',
+      ]));
 }
 
 /// Instances of [ComplexTypeInfo] are returned by [computeType] to represent

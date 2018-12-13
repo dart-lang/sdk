@@ -1987,6 +1987,35 @@ mixin ComplexParserTestMixin implements AbstractParserTestCase {
         BinaryExpression, expression.condition);
   }
 
+  void test_conditionalExpression_prefixedValue() {
+    ExpressionStatement statement = parseStatement('a.b ? y : z;');
+    ConditionalExpression expression = statement.expression;
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier, expression.condition);
+  }
+
+  void test_conditionalExpression_prefixedValue2() {
+    ExpressionStatement statement = parseStatement('a.b ? x.y : z;');
+    ConditionalExpression expression = statement.expression;
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier, expression.condition);
+    EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier, expression.thenExpression);
+  }
+
+  void test_conditionalExpression_precedence_prefixedNullableType_as() {
+    Expression expression = parseExpression('x as p.A ? (x + y) : z');
+    expect(expression, isNotNull);
+    expect(expression, new TypeMatcher<ConditionalExpression>());
+    ConditionalExpression conditional = expression;
+    Expression condition = conditional.condition;
+    expect(condition, new TypeMatcher<AsExpression>());
+    Expression thenExpression = conditional.thenExpression;
+    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
+    Expression elseExpression = conditional.elseExpression;
+    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
+  }
+
   void test_conditionalExpression_precedence_nullableType_as() {
     Expression expression = parseExpression('x as String ? (x + y) : z');
     expect(expression, isNotNull);
