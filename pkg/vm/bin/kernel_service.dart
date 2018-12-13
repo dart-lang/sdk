@@ -350,7 +350,16 @@ Future _processIsolateShutdownNotification(request) async {
 }
 
 Future _processLoadRequest(request) async {
-  if (verbose) print("DFE: request: $request");
+  if (verbose) {
+    for (int i = 0; i < request.length; i++) {
+      var part = request[i];
+      String partToString = part.toString();
+      if (partToString.length > 256) {
+        partToString = partToString.substring(0, 255) + "...";
+      }
+      print("DFE: request[$i]: $partToString");
+    }
+  }
 
   int tag = request[0];
 
