@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:package_config/packages.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -533,8 +534,14 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
 
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    expect(package.contains('/workspace/project/lib/file2.dart'), isTrue);
-    expect(package.contains('/workspace/project/bin/bin.dart'), isTrue);
-    expect(package.contains('/workspace/project/test/test.dart'), isTrue);
+    var file2Path =
+        path.separator + path.join('workspace', 'project', 'lib', 'file2.dart');
+    expect(package.contains(file2Path), isTrue);
+    var binPath =
+        path.separator + path.join('workspace', 'project', 'bin', 'bin.dart');
+    expect(package.contains(binPath), isTrue);
+    var testPath =
+        path.separator + path.join('workspace', 'project', 'test', 'test.dart');
+    expect(package.contains(testPath), isTrue);
   }
 }
