@@ -184,7 +184,7 @@ class _ConstantEvaluator extends ConstantEvaluator {
   final Constant unavailableConstant;
 
   _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
-      {bool enableAsserts})
+      {bool enableAsserts: false})
       : unavailableConstant = InstanceConstant(null, [], {}),
         super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
             enableAsserts,

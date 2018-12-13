@@ -232,7 +232,8 @@ class ExperimentalFeature {
   final String documentation;
 
   const ExperimentalFeature(this.index, this.enableString,
-      this.isEnabledByDefault, this.isExpired, this.documentation);
+      this.isEnabledByDefault, this.isExpired, this.documentation)
+      : assert(isExpired ? index == null : index != null);
 
   /// The string to disable the feature.
   String get disableString => 'no-$enableString';
