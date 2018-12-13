@@ -718,7 +718,9 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
         if (!live_frame_) {
           ASSERT(!ctx_.IsNull());
-          return ctx_.At(variable_index.value());
+          return GetRelativeContextVar(var_info.scope_id,
+                                       variable_index.value(),
+                                       /* frame_ctx_level = */ 0);
         }
         return GetContextVar(var_info.scope_id, variable_index.value());
       }
@@ -1227,11 +1229,17 @@ void ActivationFrame::VariableAt(intptr_t i,
 
 RawObject* ActivationFrame::GetContextVar(intptr_t var_ctx_level,
                                           intptr_t ctx_slot) {
-  const Context& ctx = GetSavedCurrentContext();
-  ASSERT(!ctx.IsNull());
-
   // The context level at the PC/token index of this activation frame.
   intptr_t frame_ctx_level = ContextLevel();
+
+  return GetRelativeContextVar(var_ctx_level, ctx_slot, frame_ctx_level);
+}
+
+RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
+                                                  intptr_t ctx_slot,
+                                                  intptr_t frame_ctx_level) {
+  const Context& ctx = GetSavedCurrentContext();
+  ASSERT(!ctx.IsNull());
 
   intptr_t level_diff = frame_ctx_level - var_ctx_level;
   if (level_diff == 0) {
