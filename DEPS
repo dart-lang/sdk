@@ -136,7 +136,6 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
   "test_tag": "1.3.4",
-  "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -355,8 +354,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_tag"),
-  Var("dart_root") + "/third_party/pkg/tuple":
-      Var("dart_git") + "tuple.git" + "@" + Var("tuple_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
   # Unittest is an early version, 0.11.x, of the package "test"
