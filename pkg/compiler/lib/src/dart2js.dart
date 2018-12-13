@@ -738,7 +738,7 @@ Supported options:
 
   --packages=<path>
     Path to the package resolution configuration file, which supplies a mapping
-    of package names to paths.  This option cannot be used with --package-root.
+    of package names to paths.
 
   --suppress-warnings
     Do not display any warnings.
