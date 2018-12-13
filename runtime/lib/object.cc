@@ -15,7 +15,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
+DEFINE_NATIVE_ENTRY(DartAsync_fatal, 0, 1) {
   // The dart:async library code entered an unrecoverable state.
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -25,13 +25,13 @@ DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Object_equals, 1) {
+DEFINE_NATIVE_ENTRY(Object_equals, 0, 1) {
   // Implemented in the flow graph builder.
   UNREACHABLE();
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
+DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
 // Please note that no handle is created for the argument.
 // This is safe since the argument is only used in a tail call.
 // The performance benefit is more than 5% when using hashCode.
@@ -44,7 +44,7 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
+DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
 #if defined(HASH_IN_OBJECT_HEADER)
   Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
@@ -57,7 +57,7 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Object_toString, 1) {
+DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (instance.IsString()) {
@@ -70,7 +70,7 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   return String::New(c_str);
 }
 
-DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
+DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (instance.IsString()) {
@@ -83,7 +83,7 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   return instance.GetType(Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
+DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   const Instance& left =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& right =
@@ -131,7 +131,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
       .raw();
 }
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
@@ -156,7 +156,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   return Bool::Get(is_instance_of).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
+DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
   // This native is only called when the right hand side passes
   // SimpleInstanceOfType and it is a non-negative test.
   const Instance& instance =
@@ -170,13 +170,13 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
   return Bool::Get(is_instance_of).raw();
 }
 
-DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
+DEFINE_NATIVE_ENTRY(AbstractType_toString, 0, 1) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
   return type.UserVisibleName();
 }
 
-DEFINE_NATIVE_ENTRY(Type_getHashCode, 1) {
+DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
   const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
   intptr_t hash_val = type.Hash();
   ASSERT(hash_val > 0);
@@ -184,21 +184,21 @@ DEFINE_NATIVE_ENTRY(Type_getHashCode, 1) {
   return Smi::New(hash_val);
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
+DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   prefix.InvalidateDependentCode();
   return Bool::Get(true).raw();
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
+DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   bool hasCompleted = prefix.LoadLibrary();
   return Bool::Get(hasCompleted).raw();
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
+DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   // Currently all errors are Dart instances, e.g. I/O errors
@@ -209,13 +209,13 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
   return error.raw();
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 1) {
+DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(prefix.is_loaded()).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
+DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 #if defined(ARCH_IS_64_BIT)
   return Bool::True().raw();
 #else
@@ -223,7 +223,7 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
-DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 1) {
+DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   UNREACHABLE();  // Should be erased at Kernel translation time.
   return arguments->NativeArgAt(0);
 }
@@ -270,7 +270,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
   }
 }
 
-DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
+// for documentation see pkg/dart_internal/lib/extract_type_arguments.dart
+DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& extract =
@@ -278,11 +279,9 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
 
   Class& interface_cls = Class::Handle(zone);
   intptr_t num_type_args = 0;
-  const TypeArguments& function_type_args =
-      TypeArguments::Handle(zone, arguments->NativeTypeArgs());
-  if (function_type_args.Length() == 1) {
+  if (arguments->NativeTypeArgCount() >= 1) {
     const AbstractType& function_type_arg =
-        AbstractType::Handle(zone, function_type_args.TypeAt(0));
+        AbstractType::Handle(zone, arguments->NativeTypeArgAt(0));
     if (function_type_arg.IsType() &&
         (function_type_arg.arguments() == TypeArguments::null())) {
       interface_cls = function_type_arg.type_class();
@@ -358,7 +357,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 4) {
+DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 0, 4) {
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& parent_type_arguments =
@@ -373,7 +372,7 @@ DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 4) {
 // closure.
 // Arg0: Closure object
 // Arg1: Type arguments to function
-DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 2) {
+DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   const Closure& closure =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& target = Function::Handle(zone, closure.function());
@@ -430,7 +429,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 2) {
+DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 0, 2) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& num_type_arguments =
@@ -453,7 +452,7 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 2) {
   return type_list.raw();
 }
 
-DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 3) {
+DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   const Instance& receiver =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, method_name, arguments->NativeArgAt(1));

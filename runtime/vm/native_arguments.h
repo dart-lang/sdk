@@ -131,9 +131,31 @@ class NativeArguments {
     return ArgAt(actual_index);
   }
 
-  RawTypeArguments* NativeTypeArgs() {
+  RawTypeArguments* NativeTypeArgs() const {
     ASSERT(ToGenericFunction());
     return TypeArguments::RawCast(ArgAt(0));
+  }
+
+  int NativeTypeArgCount() const {
+    if (ToGenericFunction()) {
+      TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
+      if (type_args.IsNull()) {
+        // null vector represents infinite list of dynamics
+        return INT_MAX;
+      }
+      return type_args.Length();
+    }
+    return 0;
+  }
+
+  RawAbstractType* NativeTypeArgAt(int index) const {
+    ASSERT((index >= 0) && (index < NativeTypeArgCount()));
+    TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
+    if (type_args.IsNull()) {
+      // null vector represents infinite list of dynamics
+      return Type::dynamic_type().raw();
+    }
+    return TypeArguments::Handle(NativeTypeArgs()).TypeAt(index);
   }
 
   void SetReturn(const Object& value) const { *retval_ = value.raw(); }

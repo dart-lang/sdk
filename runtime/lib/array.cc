@@ -10,19 +10,19 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(List_new, 2) {
+DEFINE_NATIVE_ENTRY(List_new, 0, 2) {
   // This function is handled by flow-graph builder.
   UNREACHABLE();
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(List_allocate, 2) {
+DEFINE_NATIVE_ENTRY(List_allocate, 0, 2) {
   // Implemented in FlowGraphBuilder::VisitNativeBody.
   UNREACHABLE();
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
+DEFINE_NATIVE_ENTRY(List_getIndexed, 0, 2) {
   const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
@@ -31,7 +31,7 @@ DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   return array.At(index.Value());
 }
 
-DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
+DEFINE_NATIVE_ENTRY(List_setIndexed, 0, 3) {
   const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   const Instance& value =
@@ -43,13 +43,13 @@ DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(List_getLength, 1) {
+DEFINE_NATIVE_ENTRY(List_getLength, 0, 1) {
   const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
 // ObjectArray src, int start, int count, bool needTypeArgument.
-DEFINE_NATIVE_ENTRY(List_slice, 4) {
+DEFINE_NATIVE_ENTRY(List_slice, 0, 4) {
   const Array& src = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(2));
@@ -70,7 +70,7 @@ DEFINE_NATIVE_ENTRY(List_slice, 4) {
 }
 
 // Private factory, expects correct arguments.
-DEFINE_NATIVE_ENTRY(ImmutableList_from, 4) {
+DEFINE_NATIVE_ENTRY(ImmutableList_from, 0, 4) {
   // Ignore first argument of a thsi factory (type argument).
   const Array& from_array =
       Array::CheckedHandle(zone, arguments->NativeArgAt(1));

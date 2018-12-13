@@ -68,7 +68,7 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
 // Arg1: index of the first token after the failed assertion.
 // Arg2: Message object or null.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
+DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const TokenPosition assertion_start = TokenPosition(
@@ -113,7 +113,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
 // Arg2: dst type.
 // Arg3: dst name.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(TypeError_throwNew, 4) {
+DEFINE_NATIVE_ENTRY(TypeError_throwNew, 0, 4) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const TokenPosition location = TokenPosition(
@@ -134,7 +134,7 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 4) {
 // Allocate and throw a new FallThroughError.
 // Arg0: index of the case clause token into which we fall through.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
+DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   TokenPosition fallthrough_pos = TokenPosition(smi_pos.Value());
 
@@ -159,7 +159,7 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
 // Arg0: Token position of allocation statement.
 // Arg1: class name of the abstract class that cannot be instantiated.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
+DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
   TokenPosition error_pos = TokenPosition(smi_pos.Value());
@@ -183,7 +183,7 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
 }
 
 // Rethrow an error with a stacktrace.
-DEFINE_NATIVE_ENTRY(Async_rethrow, 2) {
+DEFINE_NATIVE_ENTRY(Async_rethrow, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, stacktrace, arguments->NativeArgAt(1));
   Exceptions::ReThrow(thread, error, stacktrace);

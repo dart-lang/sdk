@@ -37,7 +37,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
+DEFINE_NATIVE_ENTRY(TypedData_length, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
   if (instance.IsTypedData()) {
     const TypedData& array = TypedData::Cast(instance);
@@ -105,7 +105,7 @@ static bool IsUint8(intptr_t cid) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
+DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
   const Instance& dst =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& dst_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
@@ -158,7 +158,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 //
 // Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                             \
+  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));      \
     intptr_t cid = kTypedData##name##Cid;                                      \
     intptr_t len = length.Value();                                             \
@@ -172,7 +172,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
 #define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                 \
+  DEFINE_NATIVE_ENTRY(TypedData_##getter, 0, 2) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
@@ -197,7 +197,7 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
 #define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
                           access_type)                                         \
-  DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                 \
+  DEFINE_NATIVE_ENTRY(TypedData_##setter, 0, 3) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \

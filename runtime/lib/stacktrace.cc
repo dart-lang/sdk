@@ -102,11 +102,11 @@ RawStackTrace* GetStackTraceForException() {
   return CurrentStackTrace(thread, false, 0);
 }
 
-DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {
+DEFINE_NATIVE_ENTRY(StackTrace_current, 0, 0) {
   return CurrentStackTrace(thread, false);
 }
 
-DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 1) {
+DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 0, 1) {
   if (!FLAG_causal_async_stacks) {
     return Object::null();
   }
@@ -120,12 +120,12 @@ DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 1) {
   return CurrentStackTrace(thread, true);
 }
 
-DEFINE_NATIVE_ENTRY(StackTrace_clearAsyncThreadStackTrace, 0) {
+DEFINE_NATIVE_ENTRY(StackTrace_clearAsyncThreadStackTrace, 0, 0) {
   thread->clear_async_stack_trace();
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 1) {
+DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 0, 1) {
   if (!FLAG_causal_async_stacks) {
     return Object::null();
   }
