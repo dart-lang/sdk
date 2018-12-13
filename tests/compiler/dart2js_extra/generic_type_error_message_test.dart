@@ -12,15 +12,13 @@ class Bar<T extends num> {}
 
 class Baz<T extends num> {}
 
+@pragma('dart2js:disableFinal')
 main() {
   test(new Foo(), Foo, expectTypeArguments: false);
   test(new Bar() as Bar<num>, Bar, expectTypeArguments: false);
   Baz<num> b = new Baz();
   dynamic c = b;
   test(c as Baz<num>, Baz, expectTypeArguments: true);
-  // Makes sure that [c] is not effectively final, so that we don't infer the
-  // static type from the initializer.
-  c = null;
 }
 
 void test(dynamic object, Type type, {bool expectTypeArguments}) {

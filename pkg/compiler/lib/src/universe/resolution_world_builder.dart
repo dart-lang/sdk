@@ -399,6 +399,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final KAllocatorAnalysis _allocatorAnalysis;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final NoSuchMethodRegistry _noSuchMethodRegistry;
+  final AnnotationsDataBuilder _annotationsDataBuilder;
 
   final SelectorConstraintsStrategy _selectorConstraintsStrategy;
   final ClassHierarchyBuilder _classHierarchyBuilder;
@@ -435,6 +436,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       this._allocatorAnalysis,
       this._nativeResolutionEnqueuer,
       this._noSuchMethodRegistry,
+      this._annotationsDataBuilder,
       this._selectorConstraintsStrategy,
       this._classHierarchyBuilder,
       this._classQueries);
@@ -1024,9 +1026,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
 
-    AnnotationsData annotationsData = processAnnotations(
-        reporter, _commonElements, _elementEnvironment, _processedMembers);
-
     KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
@@ -1047,7 +1046,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: annotationsData);
+        annotationsData: _annotationsDataBuilder);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

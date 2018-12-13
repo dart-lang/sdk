@@ -4,10 +4,8 @@
 
 // Regression test for DartPad issue 881.
 
+@pragma('dart2js:disableFinal')
 void main() {
   String v = null;
   print('${v.hashCode}');
-  // Makes sure that [v] is not effectively final, so that we don't infer the
-  // static type from the initializer.
-  v = '';
 }

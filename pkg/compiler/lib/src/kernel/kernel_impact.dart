@@ -17,6 +17,7 @@ import '../elements/types.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
@@ -35,9 +36,10 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   final CompilerOptions _options;
   final MemberEntity currentMember;
   final VariableScopeModel variableScopeModel;
+  final Set<PragmaAnnotation> _annotations;
 
   KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
-      this._options, this.variableScopeModel)
+      this._options, this.variableScopeModel, this._annotations)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
         super(elementMap.typeEnvironment);
@@ -47,6 +49,9 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
   bool get useAsserts => _options.enableUserAssertions;
+
+  bool get inferEffectivelyFinalVariableTypes =>
+      !_annotations.contains(PragmaAnnotation.disableFinal);
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
   DartType checkType(ir.DartType irType, TypeUseKind kind) {

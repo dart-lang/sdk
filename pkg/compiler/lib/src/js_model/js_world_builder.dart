@@ -198,6 +198,8 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(
             closedWorld.annotationsData.tryInlineFunctions),
         map.toBackendFunctionSet(
+            closedWorld.annotationsData.disableFinalFunctions),
+        map.toBackendFunctionSet(
             closedWorld.annotationsData.cannotThrowFunctions),
         map.toBackendFunctionSet(
             closedWorld.annotationsData.sideEffectFreeFunctions),

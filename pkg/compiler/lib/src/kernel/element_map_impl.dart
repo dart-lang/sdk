@@ -35,6 +35,7 @@ import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
+import '../js_backend/annotations.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/namer.dart';
@@ -1337,11 +1338,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           commonElements, nativeBasicData, reporter, options);
 
   ResolutionImpact computeWorldImpact(
-      KMember member, VariableScopeModel variableScopeModel) {
+      KMember member,
+      VariableScopeModel variableScopeModel,
+      Set<PragmaAnnotation> annotations) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
     KernelImpactBuilder builder = new KernelImpactBuilder(
-        this, member, reporter, options, variableScopeModel);
+        this, member, reporter, options, variableScopeModel, annotations);
     node.accept(builder);
     memberData.staticTypes = builder.cachedStaticTypes;
     return builder.impactBuilder;

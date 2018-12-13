@@ -40,7 +40,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   Map<ir.Expression, ir.DartType> get cachedStaticTypes => _cache;
 
+  /// If `true`, the effect of executing assert statements is taken into account
+  /// when computing the static type.
   bool get useAsserts;
+
+  /// If `true`, the static type of an effectively final variable is inferred
+  /// from the static type of its initializer.
+  bool get inferEffectivelyFinalVariableTypes;
 
   VariableScopeModel get variableScopeModel;
 
@@ -1155,7 +1161,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     _currentVariables.add(node);
     ir.DartType type = visitNode(node.initializer);
     if (node.initializer != null &&
-        variableScopeModel.isEffectivelyFinal(node)) {
+        variableScopeModel.isEffectivelyFinal(node) &&
+        inferEffectivelyFinalVariableTypes) {
       node.type = type;
     }
     handleVariableDeclaration(node);

@@ -12,6 +12,7 @@ import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
+import 'js_backend/annotations.dart';
 import 'js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
@@ -72,6 +73,7 @@ abstract class FrontendStrategy {
       KAllocatorAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
+      AnnotationsDataBuilder annotationsDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries);
@@ -81,6 +83,7 @@ abstract class FrontendStrategy {
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      AnnotationsDataBuilder annotationsDataBuilder,
       ImpactTransformer impactTransformer,
       Map<Entity, WorldImpact> impactCache);
 

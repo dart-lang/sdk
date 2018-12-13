@@ -574,6 +574,8 @@ class JavaScriptBackend {
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
             nativeBasicData, elementEnvironment, commonElements);
+    AnnotationsDataBuilder annotationsDataBuilder =
+        new AnnotationsDataBuilder();
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -600,12 +602,14 @@ class JavaScriptBackend {
             _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
+            annotationsDataBuilder,
             const StrongModeWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
             nativeBasicData,
             _nativeDataBuilder,
+            annotationsDataBuilder,
             impactTransformer,
             compiler.impactCache));
   }

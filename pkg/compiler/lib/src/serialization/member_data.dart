@@ -21,7 +21,9 @@ class ComponentLookup {
         _libraryMap[library.importUri] = new _LibraryData(library);
       }
     }
-    return _libraryMap[canonicalUri];
+    _LibraryData data = _libraryMap[canonicalUri];
+    assert(data != null, "No library found for $canonicalUri.");
+    return data;
   }
 }
 

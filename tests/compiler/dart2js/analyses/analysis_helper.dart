@@ -79,6 +79,9 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
   bool get useAsserts => false;
 
   @override
+  bool get inferEffectivelyFinalVariableTypes => true;
+
+  @override
   Null visitProcedure(ir.Procedure node) {
     if (node.kind == ir.ProcedureKind.Factory) {
       if (node.function.body is ir.RedirectingFactoryBody) {
