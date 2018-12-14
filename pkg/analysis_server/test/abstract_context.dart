@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,7 +15,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -44,6 +46,8 @@ typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
   FileContentOverlay fileContentOverlay = new FileContentOverlay();
+
+  AnalysisContextCollection _analysisContextCollection;
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
@@ -56,7 +60,7 @@ class AbstractContextTest with ResourceProviderMixin {
   void addFlutterPackage() {
     addMetaPackage();
     Folder libFolder = configureFlutterPackage(resourceProvider);
-    _addTestPackageDependency('flutter', libFolder.parent.path);
+    addTestPackageDependency('flutter', libFolder.parent.path);
   }
 
   void addMetaPackage() {
@@ -89,7 +93,7 @@ class _IsTestGroup {
   /// [packageName].
   File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
-    _addTestPackageDependency(packageName, packagePath);
+    addTestPackageDependency(packageName, packagePath);
     return newFile('$packagePath/lib/$pathInLib', content: content);
   }
 
@@ -99,6 +103,53 @@ class _IsTestGroup {
     driver.addFile(file.path);
     driver.changeFile(file.path);
     return source;
+  }
+
+  void addTestPackageDependency(String name, String rootPath) {
+    var packagesFile = getFile('/home/test/.packages');
+    var packagesContent = packagesFile.readAsStringSync();
+
+    // Ignore if there is already the same package dependency.
+    if (packagesContent.contains('$name:file://')) {
+      return;
+    }
+
+    rootPath = convertPath(rootPath);
+    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
+
+    packagesFile.writeAsStringSync(packagesContent);
+
+    createAnalysisContexts();
+  }
+
+  /// Create all analysis contexts in `/home`.
+  void createAnalysisContexts() {
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      includedPaths: [convertPath('/home')],
+      enableIndex: true,
+      fileContentOverlay: fileContentOverlay,
+      resourceProvider: resourceProvider,
+      sdkPath: convertPath('/sdk'),
+    );
+
+    var testPath = convertPath('/home/test');
+    _driver = getDriver(testPath);
+  }
+
+  /// Return the existing analysis context that should be used to analyze the
+  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisContext getContext(String path) {
+    path = convertPath(path);
+    return _analysisContextCollection.contextFor(path);
+  }
+
+  /// Return the existing analysis driver that should be used to analyze the
+  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisDriver getDriver(String path) {
+    DriverBasedAnalysisContext context = getContext(path);
+    return context.driver;
   }
 
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
@@ -116,7 +167,7 @@ class _IsTestGroup {
 test:file:///home/test/lib
 ''');
 
-    _createDriver();
+    createAnalysisContexts();
   }
 
   void setupResourceProvider() {}
@@ -129,38 +180,7 @@ test:file:///home/test/lib
   /// Update `/home/test/pubspec.yaml` and create the driver.
   void updateTestPubspecFile(String content) {
     newFile(testPubspecPath, content: content);
-    _createDriver();
-  }
-
-  void _addTestPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('/home/test/.packages');
-    var packagesContent = packagesFile.readAsStringSync();
-
-    // Ignore if there is already the same package dependency.
-    if (packagesContent.contains('$name:file://')) {
-      return;
-    }
-
-    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
-
-    packagesFile.writeAsStringSync(packagesContent);
-
-    _createDriver();
-  }
-
-  void _createDriver() {
-    var collection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath('/home')],
-      enableIndex: true,
-      fileContentOverlay: fileContentOverlay,
-      resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
-    );
-
-    var testPath = convertPath('/home/test');
-    DriverBasedAnalysisContext context = collection.contextFor(testPath);
-
-    _driver = context.driver;
+    createAnalysisContexts();
   }
 }
 

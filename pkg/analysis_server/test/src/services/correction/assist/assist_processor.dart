@@ -7,10 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
@@ -25,6 +27,11 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   /// Return the kind of assist expected by this class.
   AssistKind get kind;
+
+  /// The workspace in which fixes contributor operates.
+  ChangeWorkspace get workspace {
+    return DartChangeWorkspace([session]);
+  }
 
   void assertExitPosition({String before, String after}) {
     Position exitPosition = _change.selection;
@@ -142,6 +149,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   Future<List<Assist>> _computeAssists() async {
     var context = new DartAssistContextImpl(
+      workspace,
       testAnalysisResult,
       _offset,
       _length,

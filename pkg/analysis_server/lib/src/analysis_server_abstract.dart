@@ -9,6 +9,7 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -71,6 +72,11 @@ abstract class AbstractAnalysisServer {
       }
     }
     return _analyzedFilesGlobs;
+  }
+
+  /// The list of current analysis sessions in all contexts.
+  List<AnalysisSession> get currentSessions {
+    return driverMap.values.map((driver) => driver.currentSession).toList();
   }
 
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.

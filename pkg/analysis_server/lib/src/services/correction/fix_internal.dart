@@ -43,6 +43,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
@@ -101,8 +102,8 @@ class DartFixContributor implements FixContributor {
     // one.
     // For each fix, put the fix into the HashMap.
     for (int i = 0; i < allAnalysisErrors.length; i++) {
-      final FixContext fixContextI =
-          new DartFixContextImpl(context.resolveResult, allAnalysisErrors[i]);
+      final FixContext fixContextI = new DartFixContextImpl(
+          context.workspace, context.resolveResult, allAnalysisErrors[i]);
       final FixProcessor processorI = new FixProcessor(fixContextI);
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
@@ -3964,8 +3965,7 @@ class FixProcessor {
   }
 
   DartChangeBuilder _newDartChangeBuilder() {
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    return changeBuilder;
+    return new DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
   /**

@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -212,7 +213,8 @@ class EditDartFix {
       return false;
     }
 
-    final dartContext = new DartFixContextImpl(result, error);
+    final workspace = DartChangeWorkspace(server.currentSessions);
+    final dartContext = new DartFixContextImpl(workspace, result, error);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
     final location = locationFor(result, error.offset, error.length);

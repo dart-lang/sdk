@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -3353,8 +3354,7 @@ class AssistProcessor {
   }
 
   DartChangeBuilder _newDartChangeBuilder() {
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    return changeBuilder;
+    return new DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
   bool _setupCompute() {

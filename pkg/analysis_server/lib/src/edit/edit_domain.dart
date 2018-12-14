@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/completion/postfix/postfix_completi
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
@@ -183,7 +184,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
-      var context = new DartAssistContextImpl(result, offset, length);
+      var context = new DartAssistContextImpl(
+        DartChangeWorkspace(server.currentSessions),
+        result,
+        offset,
+        length,
+      );
       try {
         AssistProcessor processor = new AssistProcessor(context);
         List<Assist> assists = await processor.compute();
@@ -528,7 +534,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       for (engine.AnalysisError error in result.errors) {
         int errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
-          var context = new DartFixContextImpl(result, error);
+          var workspace = DartChangeWorkspace(server.currentSessions);
+          var context = new DartFixContextImpl(workspace, result, error);
           List<Fix> fixes =
               await new DartFixContributor().computeFixes(context);
           if (fixes.isNotEmpty) {

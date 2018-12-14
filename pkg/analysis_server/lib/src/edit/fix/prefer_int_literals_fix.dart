@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
@@ -20,7 +21,12 @@ class PreferIntLiteralsFix extends LinterFix {
     while (literalsToConvert.isNotEmpty) {
       DoubleLiteral literal = literalsToConvert.removeLast();
       AssistProcessor processor = new AssistProcessor(
-        new DartAssistContextImpl(result, literal.offset, 0),
+        new DartAssistContextImpl(
+          DartChangeWorkspace(dartFix.server.currentSessions),
+          result,
+          literal.offset,
+          0,
+        ),
       );
       List<Assist> assists =
           await processor.computeAssist(DartAssistKind.CONVERT_TO_INT_LITERAL);

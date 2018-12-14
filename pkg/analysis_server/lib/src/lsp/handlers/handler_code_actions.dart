@@ -17,6 +17,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceChange;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -128,7 +129,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     try {
-      var context = new DartAssistContextImpl(unit, offset, length);
+      var context = new DartAssistContextImpl(
+        DartChangeWorkspace(server.currentSessions),
+        unit,
+        offset,
+        length,
+      );
       final processor = new AssistProcessor(context);
       final assists = await processor.compute();
       assists.sort(Assist.SORT_BY_RELEVANCE);
@@ -184,7 +190,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         // Server lineNumber is one-based so subtract one.
         int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine >= range.start.line && errorLine <= range.end.line) {
-          var context = new DartFixContextImpl(unit, error);
+          var workspace = DartChangeWorkspace(server.currentSessions);
+          var context = new DartFixContextImpl(workspace, unit, error);
           final fixes = await fixContributor.computeFixes(context);
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);

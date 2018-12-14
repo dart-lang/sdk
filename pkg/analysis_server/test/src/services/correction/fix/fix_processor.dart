@@ -5,12 +5,14 @@
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 
@@ -53,6 +55,11 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
+
+  /// The workspace in which fixes contributor operates.
+  ChangeWorkspace get workspace {
+    return DartChangeWorkspace([session]);
+  }
 
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError) errorFilter,
@@ -213,7 +220,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var context = new DartFixContextImpl(testAnalysisResult, error);
+    var context = new DartFixContextImpl(workspace, testAnalysisResult, error);
     return await new DartFixContributor().computeFixes(context);
   }
 

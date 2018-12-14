@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +13,7 @@ import 'fix_processor.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingParameterRequiredTest);
+    defineReflectiveTests(AddMissingParameterRequiredTest_Workspace);
   });
 }
 
@@ -138,5 +141,61 @@ class A {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class AddMissingParameterRequiredTest_Workspace
+    extends AddMissingParameterRequiredTest {
+  ChangeWorkspace _workspace;
+
+  @override
+  ChangeWorkspace get workspace {
+    return _workspace ?? super.workspace;
+  }
+
+  test_function_inPackage_inWorkspace() async {
+    newFile('/home/aaa/lib/a.dart', content: 'void test() {}');
+    addTestPackageDependency('aaa', '/home/aaa');
+
+    _workspace = DartChangeWorkspace([
+      session,
+      getContext('/home/aaa').currentSession,
+    ]);
+
+    await resolveTestUnit('''
+import 'package:aaa/a.dart';
+
+main() {
+  test(42);
+}
+''');
+
+    await assertHasFix(
+      'void test(int i) {}',
+      target: '/home/aaa/lib/a.dart',
+    );
+  }
+
+  test_function_inPackage_outsideWorkspace() async {
+    addPackageFile('bbb', 'b.dart', 'void test() {}');
+
+    await resolveTestUnit('''
+import 'package:bbb/b.dart';
+
+main() {
+  test(42);
+}
+''');
+    await assertNoFix();
+  }
+
+  test_method_inSdk() async {
+    await resolveTestUnit('''
+main() {
+  42.abs(true);
+}
+''');
+    await assertNoFix();
   }
 }

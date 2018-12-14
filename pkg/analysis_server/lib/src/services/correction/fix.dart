@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /**
@@ -88,16 +89,15 @@ bool hasFix(ErrorCode errorCode) =>
  */
 class DartFixContextImpl implements DartFixContext {
   @override
+  final ChangeWorkspace workspace;
+
+  @override
   final ResolvedUnitResult resolveResult;
 
   @override
   final AnalysisError error;
 
-  DartFixContextImpl(this.resolveResult, this.error);
-
-  DartFixContextImpl.from(DartFixContext other)
-      : resolveResult = other.resolveResult,
-        error = other.error;
+  DartFixContextImpl(this.workspace, this.resolveResult, this.error);
 }
 
 /**

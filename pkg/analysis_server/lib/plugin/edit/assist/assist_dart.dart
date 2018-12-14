@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /**
  * An object used to provide context information for Dart assist contributors.
@@ -24,4 +25,9 @@ abstract class DartAssistContext {
    * The start of the selection.
    */
   int get selectionOffset;
+
+  /**
+   * The workspace in which the fix contributor operates.
+   */
+  ChangeWorkspace get workspace;
 }

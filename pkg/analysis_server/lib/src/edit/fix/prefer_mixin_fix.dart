@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -37,7 +38,11 @@ class PreferMixinFix extends LinterFix {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {
         AssistProcessor processor = new AssistProcessor(
-          new DartAssistContextImpl(result, declaration.name.offset, 0),
+          new DartAssistContextImpl(
+              DartChangeWorkspace(dartFix.server.currentSessions),
+              result,
+              declaration.name.offset,
+              0),
         );
         List<Assist> assists = await processor
             .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
