@@ -61,23 +61,39 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Object& data,
                                         const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  call.SetData(data);
-  call.SetTarget(target);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  }
 }
 
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  return call.target();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  }
 }
 
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  return call.data();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    return call.data();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.data();
+  }
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,

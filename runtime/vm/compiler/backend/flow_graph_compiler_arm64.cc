@@ -1096,11 +1096,18 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
       op.AddObject(initial_stub, ObjectPool::Patchability::kPatchable);
   ASSERT((ic_data_index + 1) == initial_stub_index);
 
-  __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
-                                  ObjectPool::element_offset(ic_data_index));
-  __ ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(
-                                         Code::EntryKind::kMonomorphic)));
-  __ blr(TMP);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // The AOT runtime will replace the slot in the object pool with the
+    // entrypoint address - see clustered_snapshot.cc.
+    __ LoadDoubleWordFromPoolOffset(R5, LR,
+                                    ObjectPool::element_offset(ic_data_index));
+  } else {
+    __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
+                                    ObjectPool::element_offset(ic_data_index));
+    __ ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(
+                                          Code::EntryKind::kMonomorphic)));
+  }
+  __ blr(LR);
 
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, RawPcDescriptors::kOther,
                        locs);

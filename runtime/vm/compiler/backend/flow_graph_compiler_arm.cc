@@ -1097,12 +1097,18 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ Comment("SwitchableCall");
   __ LoadFromOffset(kWord, R0, SP,
                     (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
-  __ LoadUniqueObject(CODE_REG, initial_stub);
-  intptr_t entry_point_offset =
-      entry_kind == Code::EntryKind::kNormal
-          ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
-          : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
-  __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // The AOT runtime will replace the slot in the object pool with the
+    // entrypoint address - see clustered_snapshot.cc.
+    __ LoadUniqueObject(LR, initial_stub);
+  } else {
+    __ LoadUniqueObject(CODE_REG, initial_stub);
+    const intptr_t entry_point_offset =
+        entry_kind == Code::EntryKind::kNormal
+            ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
+            : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
+    __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
+  }
   __ LoadUniqueObject(R9, ic_data);
   __ blx(LR);
 

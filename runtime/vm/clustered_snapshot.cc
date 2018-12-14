@@ -5618,7 +5618,38 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     }
   }
 
-  deserializer.ReadIsolateSnapshot(thread_->isolate()->object_store());
+  auto object_store = thread_->isolate()->object_store();
+  deserializer.ReadIsolateSnapshot(object_store);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_bare_instructions) {
+    // By default, every switchable call site will put (ic_data, code) into the
+    // object pool.  The [code] is initialized (at AOT compile-time) to be a
+    // [StubCode::UnlinkedCall].
+    //
+    // In --use-bare-instruction we reduce the extra indirection via the [code]
+    // object and store instead (ic_data, entrypoint) in the object pool.
+    //
+    // Since the actual [entrypoint] is only known at AOT runtime we switch all
+    // existing UnlinkedCall entries in the object pool to be it's entrypoint.
+    auto zone = thread_->zone();
+    const auto& pool = ObjectPool::Handle(
+        zone, ObjectPool::RawCast(object_store->global_object_pool()));
+    auto& entry = Object::Handle(zone);
+    auto& smi = Smi::Handle(zone);
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
+        entry = pool.ObjectAt(i);
+        if (entry.raw() == StubCode::UnlinkedCall().raw()) {
+          smi = Smi::FromAlignedAddress(
+              StubCode::UnlinkedCall().MonomorphicEntryPoint());
+          pool.SetTypeAt(i, ObjectPool::kImmediate, ObjectPool::kPatchable);
+          pool.SetObjectAt(i, smi);
+        }
+      }
+    }
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   return ApiError::null();
 }

@@ -1668,11 +1668,18 @@ void Assembler::MonomorphicCheckedEntry() {
   movq(TMP, Immediate(kSmiCid));
   jmp(&have_cid, kNearJump);
 
+  // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
+  // store them in ICData / MegamorphicCache arrays)
+  nop(1);
+
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
+  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+
   SmiUntag(RBX);
   testq(RDI, Immediate(kSmiTagMask));
   j(ZERO, &immediate, kNearJump);
+  nop(1);
 
   LoadClassId(TMP, RDI);
 

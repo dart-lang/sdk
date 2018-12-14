@@ -4288,12 +4288,14 @@ class Instructions : public Object {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
 
+  // Note: We keep the checked entrypoint offsets even (emitting NOPs if
+  // necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
   static const intptr_t kPolymorphicEntryOffset = 0;
   static const intptr_t kMonomorphicEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kPolymorphicEntryOffset = 15;
-  static const intptr_t kMonomorphicEntryOffset = 34;
+  static const intptr_t kPolymorphicEntryOffset = 16;
+  static const intptr_t kMonomorphicEntryOffset = 36;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kPolymorphicEntryOffset = 0;
   static const intptr_t kMonomorphicEntryOffset = 20;
