@@ -5,6 +5,7 @@
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow # Does many calls
 LibTest/core/List/List_class_A01_t02: Pass, Slow # Does many calls
+LibTest/io/File/openRead_A02_t01: Skip # https://github.com/dart-lang/co19/issues/206
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/186
 LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flacky. Skip them all until rewritten
 LibTest/io/Stdout/add_A02_t03: Skip # https://github.com/dart-lang/co19/pull/204
