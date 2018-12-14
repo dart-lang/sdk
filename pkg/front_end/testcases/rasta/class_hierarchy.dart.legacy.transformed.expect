@@ -1,33 +1,3 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
-// class C = Object with Missing;
-//       ^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:5:17: Error: Type 'Missing' not found.
-// class A extends Missing {}
-//                 ^^^^^^^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:7:20: Error: Type 'Missing' not found.
-// class B implements Missing {}
-//                    ^^^^^^^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:23: Error: Type 'Missing' not found.
-// class C = Object with Missing;
-//                       ^^^^^^^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Warning: Couldn't find constructor 'Missing'.
-//   factory D() = Missing;
-//                 ^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Warning: Redirection constructor target not found: 'Missing'
-//   factory D() = Missing;
-//           ^
-//
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Warning: Method not found: 'Missing'.
-//   factory D() = Missing;
-//           ^^^^^^^
-
 // Unhandled errors:
 //
 // pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.

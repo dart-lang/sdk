@@ -533,7 +533,8 @@ class KernelTarget extends TargetImplementation {
     return new Constructor(function,
         name: constructor.name,
         initializers: <Initializer>[initializer],
-        isSynthetic: true);
+        isSynthetic: true,
+        isConst: constructor.isConst && mixin.fields.isEmpty);
   }
 
   void finishClonedParameters() {

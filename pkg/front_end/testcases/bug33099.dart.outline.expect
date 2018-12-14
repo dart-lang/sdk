@@ -14,7 +14,7 @@ class MyTest extends core::Object {
     ;
 }
 abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest {
-  synthetic constructor •() → self::_MyTest2&Object&MyTest
+  const synthetic constructor •() → self::_MyTest2&Object&MyTest
     : super core::Object::•()
     ;
 }

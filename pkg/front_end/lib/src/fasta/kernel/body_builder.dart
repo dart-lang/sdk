@@ -599,11 +599,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     ProcedureBuilder<TypeBuilder> member = this.member;
     scope = member.computeFormalParameterInitializerScope(scope);
     if (member is KernelConstructorBuilder) {
-      if (member.isConst &&
-          (classBuilder.cls.superclass?.isMixinApplication ?? false)) {
-        addProblem(fasta.messageConstConstructorInSubclassOfMixinApplication,
-            member.charOffset, member.name.length);
-      }
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
           if (formal.isInitializingFormal) {

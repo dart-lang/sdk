@@ -923,18 +923,6 @@ const MessageCode messageConstClass = const MessageCode("ConstClass",
         r"""Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstConstructorInSubclassOfMixinApplication =
-    messageConstConstructorInSubclassOfMixinApplication;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorInSubclassOfMixinApplication =
-    const MessageCode("ConstConstructorInSubclassOfMixinApplication",
-        analyzerCodes: <String>[
-      "CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION"
-    ],
-        message: r"""Can't extend a mixin application and be 'const'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =
     messageConstConstructorNonFinalField;
 

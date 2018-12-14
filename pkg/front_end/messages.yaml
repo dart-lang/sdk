@@ -2665,10 +2665,6 @@ ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
   severity: CONTEXT
 
-ConstConstructorInSubclassOfMixinApplication:
-  template: "Can't extend a mixin application and be 'const'."
-  analyzerCode: CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
-
 ConstConstructorRedirectionToNonConst:
   template: "A constant constructor can't call a non-constant constructor."
   script:
