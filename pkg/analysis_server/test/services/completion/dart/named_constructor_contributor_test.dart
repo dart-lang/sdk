@@ -45,13 +45,13 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
 
@@ -69,13 +69,13 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedClass_unresolved() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
     // Assume that imported libraries are NOT resolved
@@ -94,13 +94,13 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
 

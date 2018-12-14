@@ -98,7 +98,7 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
   }
 
   test_implicitCreation() async {
-    addSource('/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {
   A.foo();
   A.bar();
@@ -261,7 +261,7 @@ void main() {async.Future.^.w()}''');
 
   test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class I {
           static const scI = 'boo';
@@ -275,7 +275,7 @@ void main() {async.Future.^.w()}''');
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "b.dart";
         class A extends B {
           static const String scA = 'foo';
           w() { }}

@@ -93,16 +93,16 @@ class C extends B {
   }
 
   test_fromPart() async {
-    addSource('/myLib.dart', '''
+    addSource('/home/test/lib/myLib.dart', '''
 library myLib;
-part '${convertAbsolutePathToUri(testFile)}'
-part '${convertAbsolutePathToUri('/otherPart.dart')}'
+part 'test.dart';
+part 'otherPart.dart';
 class A {
   A suggested1(int x) => null;
   B suggested2(String y) => null;
 }
 ''');
-    addSource('/otherPart.dart', '''
+    addSource('/home/test/lib/otherPart.dart', '''
 part of myLib;
 class B extends A {
   B suggested2(String y) => null;
@@ -176,14 +176,14 @@ method() {
   }
 
   test_private_otherLibrary() async {
-    addSource('/lib.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {
   void foo() {}
   void _bar() {}
 }
 ''');
     addTestSource(r'''
-import 'lib.dart';
+import 'a.dart';
 
 class B extends A {
   f^

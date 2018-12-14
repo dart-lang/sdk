@@ -30,7 +30,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   test_resolveDirectives() async {
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 library libA;
 /// My class.
 /// Short description.
@@ -38,10 +38,10 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    addSource('/libB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library libB;
-import "/libA.dart" as foo;
-part '${convertAbsolutePathToUri(testFile)}';
+import "a.dart" as foo;
+part 'test.dart';
 ''');
     addTestSource('part of libB; main() {^}');
 
@@ -83,6 +83,6 @@ part '${convertAbsolutePathToUri(testFile)}';
 
     // Assert that the new imports each have an export namespace
     assertImportedLib('dart:core');
-    assertImportedLib('libA.dart');
+    assertImportedLib('a.dart');
   }
 }
