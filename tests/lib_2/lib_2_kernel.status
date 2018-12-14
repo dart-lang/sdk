@@ -251,6 +251,9 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
+[ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+isolate/issue_6610_test: RuntimeError, Crash # Sources are looked up on every reload request.
+
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
@@ -260,6 +263,7 @@ isolate/pause_test: Skip # Timeout
 # batch mode.
 [ $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mandel_isolate_test: Pass, Timeout
+isolate/nested_spawn2_test: Pass, RuntimeError # RuntimeError caused by timeout
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
 [ $strong && ($compiler == dartk || $compiler == dartkb) ]

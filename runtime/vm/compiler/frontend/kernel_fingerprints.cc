@@ -261,7 +261,14 @@ void KernelFingerprintHelper::CalculateOptionalDartTypeFingerprint() {
 }
 
 void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
-  BuildHash(ReadUInt());  // read klass_name.
+  NameIndex kernel_class = ReadCanonicalNameReference();
+  ASSERT(H.IsClass(kernel_class));
+  const String& class_name = H.DartClassName(kernel_class);
+  NameIndex kernel_library = H.CanonicalNameParent(kernel_class);
+  const String& library_name =
+      H.DartSymbolPlain(H.CanonicalNameString(kernel_library));
+  BuildHash(class_name.Hash());
+  BuildHash(library_name.Hash());
   if (!simple) {
     CalculateListOfDartTypesFingerprint();  // read list of types.
   }
