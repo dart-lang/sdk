@@ -716,15 +716,15 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Only the mutator thread can run Dart code.
   if (IsMutatorThread()) {
     // The MarkTask, which calls this method, can run on a different thread.  We
-    // therefore assume the mutator is at a safepoint and we can iterate it's
+    // therefore assume the mutator is at a safepoint and we can iterate its
     // stack.
     // TODO(vm-team): It would be beneficial to be able to ask the mutator
     // thread whether it is in fact blocked at the moment (at a "safepoint") so
-    // we can safely iterate it's stack.
+    // we can safely iterate its stack.
     //
     // Unfortunately we cannot use `this->IsAtSafepoint()` here because that
     // will return `false` even though the mutator thread is waiting for mark
-    // tasks (which iterate it's stack) to finish.
+    // tasks (which iterate its stack) to finish.
     const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
         StackFrameIterator::kAllowCrossThreadIteration;
 

@@ -78,17 +78,17 @@ Try #0 handler:
   MoveSpecial          stackTrace, r1
   Push                 r0
   PushConstant         CP#3
-  InstanceCall         2, CP#5
+  InterfaceCall        2, CP#5
   JumpIfFalse          L2
-  PushConstant         CP#6
   PushConstant         CP#7
+  PushConstant         CP#8
   IndirectStaticCall   1, CP#1
   Drop1
   Jump                 L1
 L2:
   Push                 r0
-  PushConstant         CP#8
-  InstanceCall         2, CP#9
+  PushConstant         CP#9
+  InterfaceCall        2, CP#5
   JumpIfFalse          L3
   Push                 r0
   PopLocal             r2
@@ -113,7 +113,7 @@ L2:
 L3:
   Push                 r0
   PushConstant         CP#13
-  InstanceCall         2, CP#14
+  InterfaceCall        2, CP#5
   JumpIfFalse          L4
   Push                 r0
   PopLocal             r2
@@ -125,7 +125,7 @@ L3:
   StoreLocal           r4
   Push                 r4
   PushInt              0
-  PushConstant         CP#15
+  PushConstant         CP#14
   StoreIndexedTOS
   Push                 r4
   PushInt              1
@@ -133,15 +133,15 @@ L3:
   StoreIndexedTOS
   Push                 r4
   PushInt              2
-  PushConstant         CP#16
+  PushConstant         CP#15
   StoreIndexedTOS
   Push                 r4
   PushInt              3
   Push                 r3
   StoreIndexedTOS
-  PushConstant         CP#17
+  PushConstant         CP#16
   IndirectStaticCall   1, CP#1
-  PushConstant         CP#18
+  PushConstant         CP#17
   IndirectStaticCall   1, CP#1
   Drop1
   Jump                 L1
@@ -156,7 +156,7 @@ L4:
   StoreLocal           r4
   Push                 r4
   PushInt              0
-  PushConstant         CP#20
+  PushConstant         CP#19
   StoreIndexedTOS
   Push                 r4
   PushInt              1
@@ -164,15 +164,15 @@ L4:
   StoreIndexedTOS
   Push                 r4
   PushInt              2
-  PushConstant         CP#16
+  PushConstant         CP#15
   StoreIndexedTOS
   Push                 r4
   PushInt              3
   Push                 r3
   StoreIndexedTOS
-  PushConstant         CP#21
+  PushConstant         CP#20
   IndirectStaticCall   1, CP#1
-  PushConstant         CP#22
+  PushConstant         CP#21
   IndirectStaticCall   1, CP#1
   Drop1
   Jump                 L1
@@ -181,7 +181,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 2, end 7, handler 7, needs-stack-trace, types [CP#3, CP#8, CP#13, CP#19]
+  try-index 0, outer -1, start 2, end 7, handler 7, needs-stack-trace, types [CP#3, CP#9, CP#13, CP#18]
 }
 ConstantPool {
   [0] = String 'danger!'
@@ -189,24 +189,23 @@ ConstantPool {
   [2] = StaticICData target 'dart:core::print', arg-desc CP#1
   [3] = Type dart:core::TypeError
   [4] = ArgDesc num-args 2, num-type-args 0, names []
-  [5] = ICData target-name '_simpleInstanceOf', arg-desc CP#4
-  [6] = String 'caught type error'
-  [7] = StaticICData target 'dart:core::print', arg-desc CP#1
-  [8] = Type dart:core::AssertionError
-  [9] = ICData target-name '_simpleInstanceOf', arg-desc CP#4
+  [5] = InterfaceCall target-name '_simpleInstanceOf', arg-desc CP#4
+  [6] = Reserved
+  [7] = String 'caught type error'
+  [8] = StaticICData target 'dart:core::print', arg-desc CP#1
+  [9] = Type dart:core::AssertionError
   [10] = String 'caught assertion error '
   [11] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#1
   [12] = StaticICData target 'dart:core::print', arg-desc CP#1
   [13] = Type dart:core::Error
-  [14] = ICData target-name '_simpleInstanceOf', arg-desc CP#4
-  [15] = String 'caught error '
-  [16] = String ' '
-  [17] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#1
-  [18] = StaticICData target 'dart:core::print', arg-desc CP#1
-  [19] = Type dynamic
-  [20] = String 'caught something '
-  [21] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#1
-  [22] = StaticICData target 'dart:core::print', arg-desc CP#1
+  [14] = String 'caught error '
+  [15] = String ' '
+  [16] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#1
+  [17] = StaticICData target 'dart:core::print', arg-desc CP#1
+  [18] = Type dynamic
+  [19] = String 'caught something '
+  [20] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#1
+  [21] = StaticICData target 'dart:core::print', arg-desc CP#1
 }
 ]static method testTryCatch2() → dynamic {
   try {
@@ -259,7 +258,7 @@ Try #0 start:
   StoreFieldTOS        CP#1
   PopLocal             r4
   Push                 r4
-  InstanceCall         1, CP#19
+  DynamicCall          1, CP#19
   Drop1
   Push                 r0
   LoadContextVar       0, 1
@@ -366,12 +365,13 @@ ConstantPool {
   [27] = StaticICData target 'dart:core::print', arg-desc CP#4
   [28] = Type dart:core::Error
   [29] = ArgDesc num-args 2, num-type-args 0, names []
-  [30] = ICData target-name '_simpleInstanceOf', arg-desc CP#29
-  [31] = String 'error '
-  [32] = String ', captured stack trace: '
-  [33] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#4
-  [34] = StaticICData target 'dart:core::print', arg-desc CP#4
-  [35] = EndClosureFunctionScope
+  [30] = InterfaceCall target-name '_simpleInstanceOf', arg-desc CP#29
+  [31] = Reserved
+  [32] = String 'error '
+  [33] = String ', captured stack trace: '
+  [34] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#4
+  [35] = StaticICData target 'dart:core::print', arg-desc CP#4
+  [36] = EndClosureFunctionScope
 }
 Closure #lib::testTryCatch3::foo () -> void
 ClosureBytecode {
@@ -436,7 +436,7 @@ Try #0 handler:
   MoveSpecial          stackTrace, r3
   Push                 r2
   PushConstant         CP#28
-  InstanceCall         2, CP#30
+  InterfaceCall        2, CP#30
   JumpIfFalse          L2
   Push                 r2
   PopLocal             r4
@@ -446,7 +446,7 @@ Try #0 handler:
   StoreLocal           r5
   Push                 r5
   PushInt              0
-  PushConstant         CP#31
+  PushConstant         CP#32
   StoreIndexedTOS
   Push                 r5
   PushInt              1
@@ -454,16 +454,16 @@ Try #0 handler:
   StoreIndexedTOS
   Push                 r5
   PushInt              2
-  PushConstant         CP#32
+  PushConstant         CP#33
   StoreIndexedTOS
   Push                 r5
   PushInt              3
   Push                 r0
   LoadContextVar       0, 2
   StoreIndexedTOS
-  PushConstant         CP#33
-  IndirectStaticCall   1, CP#4
   PushConstant         CP#34
+  IndirectStaticCall   1, CP#4
+  PushConstant         CP#35
   IndirectStaticCall   1, CP#4
   Drop1
   Jump                 L1
@@ -704,11 +704,11 @@ Bytecode {
   PopLocal             r2
   Push                 r2
   PushInt              1
-  InstanceCall         2, CP#1
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r2
   PushInt              2
-  InstanceCall         2, CP#2
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Jump                 L3
 L1:
@@ -748,7 +748,7 @@ Try #1 start:
   StoreFieldTOS        CP#9
   PopLocal             r7
   Push                 r7
-  InstanceCall         1, CP#24
+  DynamicCall          1, CP#24
   Drop1
   Jump                 L4
 Try #1 end:
@@ -811,8 +811,8 @@ ExceptionsTable {
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '==', arg-desc CP#0
-  [2] = ICData target-name '==', arg-desc CP#0
+  [1] = InterfaceCall target-name '==', arg-desc CP#0
+  [2] = Reserved
   [3] = String 'before try 1'
   [4] = ArgDesc num-args 1, num-type-args 0, names []
   [5] = StaticICData target 'dart:core::print', arg-desc CP#4
@@ -950,7 +950,7 @@ Try #0 handler:
   IndirectStaticCall   1, CP#3
   Drop1
   Push                 r2
-  InstanceCall         1, CP#27
+  DynamicCall          1, CP#27
   Drop1
   Push                 r3
   Push                 r4
@@ -964,7 +964,7 @@ L1:
   IndirectStaticCall   1, CP#3
   Drop1
   Push                 r2
-  InstanceCall         1, CP#29
+  DynamicCall          1, CP#29
   Drop1
   Push                 r0
   LoadContextParent

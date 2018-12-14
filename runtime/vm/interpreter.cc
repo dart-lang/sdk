@@ -499,6 +499,66 @@ DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
   return function;
 }
 
+void LookupCache::Clear() {
+  for (intptr_t i = 0; i < kNumEntries; i++) {
+    entries_[i].receiver_cid = kIllegalCid;
+  }
+}
+
+bool LookupCache::Lookup(intptr_t receiver_cid,
+                         RawString* function_name,
+                         RawFunction** target) const {
+  ASSERT(receiver_cid != kIllegalCid);  // Sentinel value.
+
+  const intptr_t hash =
+      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t probe1 = hash & kTableMask;
+  if (entries_[probe1].receiver_cid == receiver_cid &&
+      entries_[probe1].function_name == function_name) {
+    *target = entries_[probe1].target;
+    return true;
+  }
+
+  intptr_t probe2 = (hash >> 3) & kTableMask;
+  if (entries_[probe2].receiver_cid == receiver_cid &&
+      entries_[probe2].function_name == function_name) {
+    *target = entries_[probe2].target;
+    return true;
+  }
+
+  return false;
+}
+
+void LookupCache::Insert(intptr_t receiver_cid,
+                         RawString* function_name,
+                         RawFunction* target) {
+  // Otherwise we have to clear the cache or rehash on scavenges too.
+  ASSERT(function_name->IsOldObject());
+  ASSERT(target->IsOldObject());
+
+  const intptr_t hash =
+      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t probe1 = hash & kTableMask;
+  if (entries_[probe1].receiver_cid == kIllegalCid) {
+    entries_[probe1].receiver_cid = receiver_cid;
+    entries_[probe1].function_name = function_name;
+    entries_[probe1].target = target;
+    return;
+  }
+
+  const intptr_t probe2 = (hash >> 3) & kTableMask;
+  if (entries_[probe2].receiver_cid == kIllegalCid) {
+    entries_[probe2].receiver_cid = receiver_cid;
+    entries_[probe2].function_name = function_name;
+    entries_[probe2].target = target;
+    return;
+  }
+
+  entries_[probe1].receiver_cid = receiver_cid;
+  entries_[probe1].function_name = function_name;
+  entries_[probe1].target = target;
+}
+
 IntrinsicHandler Interpreter::intrinsics_[Interpreter::kIntrinsicCount];
 
 // Synchronization primitives support.
@@ -545,7 +605,7 @@ void Interpreter::InitOnce() {
 }
 
 Interpreter::Interpreter()
-    : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
+    : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -584,6 +644,8 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
+  pp_ = NULL;
+  argdesc_ = NULL;
 #if defined(DEBUG)
   if (trace_file_ != NULL) {
     FlushTraceBuffer();
@@ -601,8 +663,10 @@ Interpreter::~Interpreter() {
 
 // Get the active Interpreter for the current isolate.
 Interpreter* Interpreter::Current() {
-  Interpreter* interpreter = Thread::Current()->interpreter();
+  Thread* thread = Thread::Current();
+  Interpreter* interpreter = thread->interpreter();
   if (interpreter == NULL) {
+    TransitionGeneratedToVM transition(thread);
     interpreter = new Interpreter();
     Thread::Current()->set_interpreter(interpreter);
   }
@@ -695,19 +759,6 @@ void Interpreter::Exit(Thread* thread,
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
   }
 #endif
-}
-
-void Interpreter::CallRuntime(Thread* thread,
-                              RawObject** base,
-                              RawObject** exit_frame,
-                              uint32_t* pc,
-                              intptr_t argc_tag,
-                              RawObject** args,
-                              RawObject** result,
-                              uword target) {
-  Exit(thread, base, exit_frame, pc);
-  NativeArguments native_args(thread, argc_tag, args, result);
-  reinterpret_cast<RuntimeFunction>(target)(native_args);
 }
 
 // Calling into runtime may trigger garbage collection and relocate objects,
@@ -1171,8 +1222,48 @@ void Interpreter::InlineCacheMiss(int checked_args,
   // Handler arguments: arguments to check and an ICData object.
   const intptr_t miss_handler_argc = checked_args + 1;
   RawObject** exit_frame = miss_handler_args + miss_handler_argc;
-  CallRuntime(thread, FP, exit_frame, pc, miss_handler_argc, miss_handler_args,
-              result, reinterpret_cast<uword>(handler));
+  Exit(thread, FP, exit_frame, pc);
+  NativeArguments native_args(thread, miss_handler_argc, miss_handler_args,
+                              result);
+  handler(native_args);
+}
+
+DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
+                                                  RawString* target_name,
+                                                  RawObject** call_base,
+                                                  RawObject** top,
+                                                  uint32_t** pc,
+                                                  RawObject*** FP,
+                                                  RawObject*** SP) {
+  const intptr_t type_args_len =
+      InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+
+  intptr_t receiver_cid =
+      InterpreterHelpers::GetClassId(call_base[receiver_idx]);
+
+  RawFunction* target;
+  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
+    // Table lookup miss.
+    top[1] = call_base[receiver_idx];
+    top[2] = target_name;
+    top[3] = argdesc_;
+    top[4] = 0;  // Result slot.
+
+    Exit(thread, *FP, top + 5, *pc);
+    NativeArguments native_args(thread, 3, /* argv */ top + 1,
+                                /* result */ top + 4);
+    DRT_InterpretedInterfaceCallMissHandler(native_args);
+
+    target = static_cast<RawFunction*>(top[4]);
+    target_name = static_cast<RawString*>(top[2]);
+    argdesc_ = static_cast<RawArray*>(top[3]);
+    ASSERT(target->IsFunction());
+    lookup_cache_.Insert(receiver_cid, target_name, target);
+  }
+
+  top[0] = target;
+  return Invoke(thread, call_base, top, pc, FP, SP);
 }
 
 DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
@@ -2111,7 +2202,36 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InstanceCall, A_D);
+    BYTECODE(InterfaceCall, A_D);
+
+    // Check if single stepping.
+    if (thread->isolate()->single_step()) {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
+    }
+
+    {
+      const uint16_t argc = rA;
+      const uint16_t kidx = rD;
+
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      RawString* target_name = static_cast<RawString*>(LOAD_CONSTANT(kidx));
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                         &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DynamicCall, A_D);
 
     // Check if single stepping.
     if (thread->isolate()->single_step()) {

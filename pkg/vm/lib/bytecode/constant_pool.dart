@@ -169,6 +169,15 @@ type ConstantSymbol extends ConstantPoolEntry {
   PackedObject name;
 }
 
+// Occupies 2 entries in the constant pool.
+type ConstantInterfaceCall extends ConstantPoolEntry {
+  Byte tag = 26;
+  Byte flags(invocationKindBit0, invocationKindBit1);
+             // Where invocationKind is index into InvocationKind.
+  PackedObject targetName;
+  ConstantIndex argDesc;
+}
+
 */
 
 enum ConstantTag {
@@ -198,6 +207,7 @@ enum ConstantTag {
   kPartialTearOffInstantiation,
   kEmptyTypeArguments,
   kSymbol,
+  kInterfaceCall,
 }
 
 abstract class ConstantPoolEntry {
@@ -271,6 +281,8 @@ abstract class ConstantPoolEntry {
         return new ConstantEmptyTypeArguments.read(reader);
       case ConstantTag.kSymbol:
         return new ConstantSymbol.read(reader);
+      case ConstantTag.kInterfaceCall:
+        return new ConstantInterfaceCall.read(reader);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -1071,6 +1083,50 @@ class ConstantSymbol extends ConstantPoolEntry {
   bool operator ==(other) => other is ConstantSymbol && this.name == other.name;
 }
 
+class ConstantInterfaceCall extends ConstantPoolEntry {
+  final InvocationKind invocationKind;
+  final ObjectHandle targetName;
+  final int argDescConstantIndex;
+
+  ConstantInterfaceCall(
+      this.invocationKind, this.targetName, this.argDescConstantIndex);
+
+  // Reserve 1 extra slot for arguments descriptor, following target name slot.
+  int get numReservedEntries => 1;
+
+  @override
+  ConstantTag get tag => ConstantTag.kInterfaceCall;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writeByte(invocationKind.index);
+    writer.writePackedObject(targetName);
+    writer.writePackedUInt30(argDescConstantIndex);
+  }
+
+  ConstantInterfaceCall.read(BufferedReader reader)
+      : invocationKind = InvocationKind.values[reader.readByte()],
+        targetName = reader.readPackedObject(),
+        argDescConstantIndex = reader.readPackedUInt30();
+
+  @override
+  String toString() => 'InterfaceCall '
+      '${_invocationKindToString(invocationKind)}'
+      'target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
+
+  @override
+  int get hashCode => _combineHashes(
+      _combineHashes(invocationKind.index, targetName.hashCode),
+      argDescConstantIndex);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantInterfaceCall &&
+      this.invocationKind == other.invocationKind &&
+      this.targetName == other.targetName &&
+      this.argDescConstantIndex == other.argDescConstantIndex;
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -1130,6 +1186,23 @@ class ConstantPool {
               isGetter: invocationKind == InvocationKind.getter,
               isSetter: invocationKind == InvocationKind.setter),
           argDescCpIndex));
+
+  int addInterfaceCall(
+          InvocationKind invocationKind, Name targetName, int argDescCpIndex) =>
+      _add(new ConstantInterfaceCall(
+          invocationKind,
+          objectTable.getSelectorNameHandle(targetName,
+              isGetter: invocationKind == InvocationKind.getter,
+              isSetter: invocationKind == InvocationKind.setter),
+          argDescCpIndex));
+
+  int addInstanceCall(
+          InvocationKind invocationKind, Name targetName, int argDescCpIndex,
+          {bool isDynamic: false}) =>
+      isDynamic
+          ? addICData(invocationKind, targetName, argDescCpIndex,
+              isDynamic: true)
+          : addInterfaceCall(invocationKind, targetName, argDescCpIndex);
 
   int addStaticField(Field field) =>
       _add(new ConstantStaticField(objectTable.getHandle(field)));

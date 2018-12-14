@@ -479,6 +479,15 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue() {
   isolate_->ReleaseStoreBuffers();
+
+#ifndef DART_PRECOMPILED_RUNTIME
+  if (isolate_->IsMutatorThreadScheduled()) {
+    Interpreter* interpreter = isolate_->mutator_thread()->interpreter();
+    if (interpreter != NULL) {
+      interpreter->MajorGC();
+    }
+  }
+#endif
 }
 
 void GCMarker::Epilogue() {

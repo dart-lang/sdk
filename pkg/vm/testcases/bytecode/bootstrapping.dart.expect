@@ -308,7 +308,7 @@ L2:
   JumpIfFalse          L3
   PushConstant         CP#1
   PushStatic           CP#1
-  InstanceCall         1, CP#3
+  DynamicCall          1, CP#3
   StoreStaticTOS       CP#0
 L3:
   PushConstant         CP#0
@@ -402,8 +402,8 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  InstanceCall         1, CP#1
-  PushConstant         CP#2
+  InterfaceCall        1, CP#1
+  PushConstant         CP#3
   IndirectStaticCall   1, CP#0
   Drop1
   PushNull
@@ -411,8 +411,9 @@ Bytecode {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = ICData target-name 'toString', arg-desc CP#0
-  [2] = StaticICData target '#lib::_printString', arg-desc CP#0
+  [1] = InterfaceCall target-name 'toString', arg-desc CP#0
+  [2] = Reserved
+  [3] = StaticICData target '#lib::_printString', arg-desc CP#0
 }
 ]static method _print(dynamic arg) → void {
   self::_printString(arg.{core::Object::toString}());
@@ -474,13 +475,13 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InstanceCall         2, CP#3
+  InterfaceCall        2, CP#3
   AssertBoolean        0
   JumpIfTrue           L1
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#4
-  InstanceCall         2, CP#5
+  PushConstant         CP#5
+  InterfaceCall        2, CP#3
   AssertBoolean        0
   PopLocal             r1
   Jump                 L2
@@ -493,7 +494,7 @@ L2:
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#6
-  InstanceCall         2, CP#7
+  InterfaceCall        2, CP#3
   AssertBoolean        0
   PopLocal             r0
   Jump                 L4
@@ -505,35 +506,35 @@ L4:
   JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#9
-  IndirectStaticCall   1, CP#8
+  PushConstant         CP#8
+  IndirectStaticCall   1, CP#7
   ReturnTOS
 L5:
-  PushConstant         CP#11
-  IndirectStaticCall   0, CP#10
+  PushConstant         CP#10
+  IndirectStaticCall   0, CP#9
   PushNull
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#12
+  PushConstant         CP#11
   IndirectStaticCall   2, CP#2
-  InstanceCall         2, CP#13
+  InterfaceCall        2, CP#12
   ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::_rawScript (field)
   [1] = String 'http:'
   [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = ICData target-name 'startsWith', arg-desc CP#2
-  [4] = String 'https:'
-  [5] = ICData target-name 'startsWith', arg-desc CP#2
+  [3] = InterfaceCall target-name 'startsWith', arg-desc CP#2
+  [4] = Reserved
+  [5] = String 'https:'
   [6] = String 'file:'
-  [7] = ICData target-name 'startsWith', arg-desc CP#2
-  [8] = ArgDesc num-args 1, num-type-args 0, names []
-  [9] = StaticICData target 'dart:core::Uri::parse', arg-desc CP#8
-  [10] = ArgDesc num-args 0, num-type-args 0, names []
-  [11] = StaticICData target 'dart:core::Uri::get:base', arg-desc CP#10
-  [12] = StaticICData target 'dart:core::_Uri::file (constructor)', arg-desc CP#2
-  [13] = ICData target-name 'resolveUri', arg-desc CP#2
+  [7] = ArgDesc num-args 1, num-type-args 0, names []
+  [8] = StaticICData target 'dart:core::Uri::parse', arg-desc CP#7
+  [9] = ArgDesc num-args 0, num-type-args 0, names []
+  [10] = StaticICData target 'dart:core::Uri::get:base', arg-desc CP#9
+  [11] = StaticICData target 'dart:core::_Uri::file (constructor)', arg-desc CP#2
+  [12] = InterfaceCall target-name 'resolveUri', arg-desc CP#2
+  [13] = Reserved
 }
 ]static method _scriptUri() → core::Uri {
   if(self::_rawScript.{core::String::startsWith}("http:") || self::_rawScript.{core::String::startsWith}("https:") || self::_rawScript.{core::String::startsWith}("file:")) {

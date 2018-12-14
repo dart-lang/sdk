@@ -701,7 +701,47 @@ void BytecodeFlowGraphBuilder::BuildIndirectStaticCall() {
   B->Push(call);
 }
 
-void BytecodeFlowGraphBuilder::BuildInstanceCall() {
+void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
+  ASSERT(name.IsSymbol());
+
+  const Array& arg_desc_array =
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
+  const ArgumentsDescriptor arg_desc(arg_desc_array);
+
+  const intptr_t argc = DecodeOperandA().value();
+  const Token::Kind token_kind =
+      MethodTokenRecognizer::RecognizeTokenKind(name);
+
+  intptr_t checked_argument_count = 1;
+  if ((token_kind != Token::kILLEGAL) ||
+      (name.raw() ==
+       Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw())) {
+    intptr_t argument_count = arg_desc.Count();
+    ASSERT(argument_count <= 2);
+    checked_argument_count = argument_count;
+  }
+
+  const ArgumentArray arguments = GetArguments(argc);
+
+  // TODO(alexmarkov): store interface_target in bytecode and pass it here.
+
+  InstanceCallInstr* call = new (Z) InstanceCallInstr(
+      position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), checked_argument_count,
+      *ic_data_array_, B->GetNextDeoptId());
+
+  // TODO(alexmarkov): add type info - call->SetResultType()
+
+  code_ <<= call;
+  B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildDynamicCall() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }

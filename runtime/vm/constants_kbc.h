@@ -271,7 +271,16 @@ namespace dart {
 //    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
 //    indicates whether the first argument is a type argument vector.
 //
-//  - InstanceCall ArgC, D
+//  - InterfaceCall ArgC, D
+//
+//    Lookup and invoke method using ICData in PP[D]
+//    with arguments SP[-(1+ArgC)], ..., SP[-1].
+//    Method has to be declared (explicitly or implicitly) in an interface
+//    implemented by a receiver, and passed arguments are valid for the
+//    interface method declaration.
+//    The ICData indicates whether the first argument is a type argument vector.
+//
+//  - DynamicCall ArgC, D
 //
 //    Lookup and invoke method using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
@@ -439,7 +448,8 @@ namespace dart {
   V(JumpIfNull,                            T, tgt, ___, ___)                   \
   V(JumpIfNotNull,                         T, tgt, ___, ___)                   \
   V(IndirectStaticCall,                  A_D, num, num, ___)                   \
-  V(InstanceCall,                        A_D, num, num, ___)                   \
+  V(InterfaceCall,                       A_D, num, num, ___)                   \
+  V(DynamicCall,                         A_D, num, num, ___)                   \
   V(NativeCall,                            D, lit, ___, ___)                   \
   V(ReturnTOS,                             0, ___, ___, ___)                   \
   V(AssertAssignable,                    A_D, num, lit, ___)                   \
@@ -595,7 +605,8 @@ class KernelBytecode {
   DART_FORCE_INLINE static bool IsCallOpcode(KBCInstr instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kIndirectStaticCall:
-      case KernelBytecode::kInstanceCall:
+      case KernelBytecode::kInterfaceCall:
+      case KernelBytecode::kDynamicCall:
         return true;
 
       default:

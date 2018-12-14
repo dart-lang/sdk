@@ -271,9 +271,14 @@ class BytecodeAssembler {
     emitWord(_encodeAD(Opcode.kIndirectStaticCall, ra, rd));
   }
 
-  void emitInstanceCall(int ra, int rd) {
+  void emitInterfaceCall(int ra, int rd) {
     emitSourcePosition();
-    emitWord(_encodeAD(Opcode.kInstanceCall, ra, rd));
+    emitWord(_encodeAD(Opcode.kInterfaceCall, ra, rd));
+  }
+
+  void emitDynamicCall(int ra, int rd) {
+    emitSourcePosition();
+    emitWord(_encodeAD(Opcode.kDynamicCall, ra, rd));
   }
 
   void emitNativeCall(int rd) {

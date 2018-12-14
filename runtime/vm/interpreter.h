@@ -27,6 +27,36 @@ class RawFunction;
 class RawSubtypeTestCache;
 class ObjectPointerVisitor;
 
+class LookupCache : public ValueObject {
+ public:
+  LookupCache() {
+    ASSERT(Utils::IsPowerOfTwo(sizeof(Entry)));
+    ASSERT(Utils::IsPowerOfTwo(sizeof(kNumEntries)));
+    Clear();
+  }
+
+  void Clear();
+  bool Lookup(intptr_t receiver_cid,
+              RawString* function_name,
+              RawFunction** target) const;
+  void Insert(intptr_t receiver_cid,
+              RawString* function_name,
+              RawFunction* target);
+
+ private:
+  struct Entry {
+    intptr_t receiver_cid;
+    RawString* function_name;
+    RawFunction* target;
+    intptr_t padding;
+  };
+
+  static const intptr_t kNumEntries = 1024;
+  static const intptr_t kTableMask = kNumEntries - 1;
+
+  Entry entries_[kNumEntries];
+};
+
 // Interpreter intrinsic handler. It is invoked on entry to the intrinsified
 // function via Intrinsic bytecode before the frame is setup.
 // If the handler returns true then Intrinsic bytecode works as a return
@@ -97,6 +127,7 @@ class Interpreter {
   }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+  void MajorGC() { lookup_cache_.Clear(); }
 
  private:
   uintptr_t* stack_;
@@ -115,21 +146,14 @@ class Interpreter {
                        // call instruction and the function entry.
   RawObject* special_[KernelBytecode::kSpecialIndexCount];
 
+  LookupCache lookup_cache_;
+
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
 
   void Exit(Thread* thread,
             RawObject** base,
             RawObject** exit_frame,
             uint32_t* pc);
-
-  void CallRuntime(Thread* thread,
-                   RawObject** base,
-                   RawObject** exit_frame,
-                   uint32_t* pc,
-                   intptr_t argc_tag,
-                   RawObject** args,
-                   RawObject** result,
-                   uword target);
 
   bool Invoke(Thread* thread,
               RawObject** call_base,
@@ -163,6 +187,14 @@ class Interpreter {
                        uint32_t* pc,
                        RawObject** FP,
                        RawObject** SP);
+
+  bool InterfaceCall(Thread* thread,
+                     RawString* target_name,
+                     RawObject** call_base,
+                     RawObject** call_top,
+                     uint32_t** pc,
+                     RawObject*** FP,
+                     RawObject*** SP);
 
   bool InstanceCall1(Thread* thread,
                      RawICData* icdata,

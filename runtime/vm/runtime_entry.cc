@@ -1618,6 +1618,37 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
+// Handles interpreted interface call cache miss.
+//   Arg0: receiver
+//   Arg1: target name
+//   Arg2: arguments descriptor
+//   Returns: target function
+// Modifies the instance call table in current interpreter.
+DEFINE_RUNTIME_ENTRY(InterpretedInterfaceCallMissHandler, 3) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  ASSERT(FLAG_enable_interpreter);
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const String& target_name = String::CheckedHandle(zone, arguments.ArgAt(1));
+  const Array& arg_desc = Array::CheckedHandle(zone, arguments.ArgAt(2));
+
+  ArgumentsDescriptor arguments_descriptor(arg_desc);
+  Function& target_function = Function::Handle(
+      zone,
+      Resolver::ResolveDynamic(receiver, target_name, arguments_descriptor));
+
+  // TODO(regis): In order to substitute 'simple_instance_of_function', the 2nd
+  // arg to the call, the type, is needed.
+
+  if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, arg_desc, target_name);
+  }
+  ASSERT(!target_function.IsNull());
+  arguments.SetReturn(target_function);
+#endif
+}
+
 // Invoke appropriate noSuchMethod or closure from getter.
 // Arg0: receiver
 // Arg1: ICData or MegamorphicCache

@@ -772,9 +772,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       assert(type.classNode.typeParameters.isEmpty);
       asm.emitPushConstant(cp.addType(type));
       final argDescIndex = cp.addArgDesc(2);
-      final icdataIndex = cp.addICData(
+      final icdataIndex = cp.addInterfaceCall(
           InvocationKind.method, objectSimpleInstanceOf.name, argDescIndex);
-      asm.emitInstanceCall(2, icdataIndex);
+      asm.emitInterfaceCall(2, icdataIndex);
       return;
     }
 
@@ -786,9 +786,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     asm.emitPushConstant(cp.addType(type));
     final argDescIndex = cp.addArgDesc(4);
-    final icdataIndex = cp.addICData(
+    final icdataIndex = cp.addInterfaceCall(
         InvocationKind.method, objectInstanceOf.name, argDescIndex);
-    asm.emitInstanceCall(4, icdataIndex);
+    asm.emitInterfaceCall(4, icdataIndex);
   }
 
   void start(Member node) {
@@ -1945,6 +1945,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitBytecode0(opcode);
   }
 
+  void _genInstanceCall(int totalArgCount, int icdataCpIndex, bool isDynamic) {
+    if (isDynamic) {
+      asm.emitDynamicCall(totalArgCount, icdataCpIndex);
+    } else {
+      asm.emitInterfaceCall(totalArgCount, icdataCpIndex);
+    }
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     final Opcode opcode = recognizedMethods.specializedBytecodeFor(node);
@@ -1953,26 +1961,28 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     final args = node.arguments;
+    final isDynamic = node.interfaceTarget == null;
     _genArguments(node.receiver, args);
     final argDescIndex = cp.addArgDescByArguments(args, hasReceiver: true);
-    final icdataIndex = cp.addICData(
+    final icdataIndex = cp.addInstanceCall(
         InvocationKind.method, node.name, argDescIndex,
-        isDynamic: node.interfaceTarget == null);
+        isDynamic: isDynamic);
     final totalArgCount = args.positional.length +
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
-    asm.emitInstanceCall(totalArgCount, icdataIndex);
+    _genInstanceCall(totalArgCount, icdataIndex, isDynamic);
   }
 
   @override
   visitPropertyGet(PropertyGet node) {
     _generateNode(node.receiver);
+    final isDynamic = node.interfaceTarget == null;
     final argDescIndex = cp.addArgDesc(1);
-    final icdataIndex = cp.addICData(
+    final icdataIndex = cp.addInstanceCall(
         InvocationKind.getter, node.name, argDescIndex,
-        isDynamic: node.interfaceTarget == null);
-    asm.emitInstanceCall(1, icdataIndex);
+        isDynamic: isDynamic);
+    _genInstanceCall(1, icdataIndex, isDynamic);
   }
 
   @override
@@ -1987,11 +1997,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitStoreLocal(temp);
     }
 
+    final isDynamic = node.interfaceTarget == null;
     final argDescIndex = cp.addArgDesc(2);
-    final icdataIndex = cp.addICData(
+    final icdataIndex = cp.addInstanceCall(
         InvocationKind.setter, node.name, argDescIndex,
-        isDynamic: node.interfaceTarget == null);
-    asm.emitInstanceCall(2, icdataIndex);
+        isDynamic: isDynamic);
+    _genInstanceCall(2, icdataIndex, isDynamic);
     asm.emitDrop1();
 
     if (hasResult) {
@@ -2402,9 +2413,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     const kMoveNext = 'moveNext'; // Iterator.moveNext
     const kCurrent = 'current'; // Iterator.current
 
-    asm.emitInstanceCall(
+    // Front-end inserts implicit cast (type check) which ensures that
+    // result of iterable expression is Iterable<dynamic>.
+    asm.emitInterfaceCall(
         1,
-        cp.addICData(
+        cp.addInterfaceCall(
             InvocationKind.getter, new Name(kIterator), cp.addArgDesc(1)));
 
     final iteratorTemp = locals.tempIndexInFrame(node);
@@ -2436,9 +2449,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitPush(iteratorTemp);
     }
 
-    asm.emitInstanceCall(
+    asm.emitInterfaceCall(
         1,
-        cp.addICData(
+        cp.addInterfaceCall(
             InvocationKind.method, new Name(kMoveNext), cp.addArgDesc(1)));
     _genJumpIfFalse(/* negated = */ false, done);
 
@@ -2447,9 +2460,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushContextIfCaptured(node.variable);
 
     asm.emitPush(iteratorTemp);
-    asm.emitInstanceCall(
+    asm.emitInterfaceCall(
         1,
-        cp.addICData(
+        cp.addInterfaceCall(
             InvocationKind.getter, new Name(kCurrent), cp.addArgDesc(1)));
 
     _genStoreVar(node.variable);
@@ -2606,9 +2619,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         for (var expr in switchCase.expressions) {
           asm.emitPush(temp);
           _genPushConstExpr(expr);
-          asm.emitInstanceCall(
+          asm.emitInterfaceCall(
               2,
-              cp.addICData(
+              cp.addInterfaceCall(
                   InvocationKind.method, new Name('=='), equalsArgDesc));
           _genJumpIfTrue(/* negated = */ false, caseLabel);
         }
