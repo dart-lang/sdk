@@ -1576,9 +1576,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Class cls = classBuilder.cls;
     if (isSuper) {
       cls = cls.superclass;
-      while (cls.isMixinApplication) {
-        cls = cls.superclass;
-      }
     }
     if (cls != null) {
       for (Constructor constructor in cls.constructors) {
@@ -1605,9 +1602,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
       if (isSuper) {
         builder = getSuperclass(builder)?.origin;
-        while (builder?.isMixinApplication ?? false) {
-          builder = getSuperclass(builder)?.origin;
-        }
       }
       if (builder != null) {
         Class target = builder.target;

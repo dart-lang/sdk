@@ -53,7 +53,7 @@ abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<core::int> {
 }
 class A extends self::_A&Object&M0&M1 {
   synthetic constructor •() → self::A
-    : super core::Object::•()
+    : super self::_A&Object&M0&M1::•()
     ;
 }
 static method main() → dynamic {}

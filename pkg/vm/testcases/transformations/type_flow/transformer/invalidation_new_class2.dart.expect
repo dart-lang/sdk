@@ -39,7 +39,7 @@ abstract class _E&D&C extends self::D implements self::C {
 }
 class E extends self::_E&D&C {
   synthetic constructor •() → self::E
-    : super self::D::•()
+    : super self::_E&D&C::•()
     ;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → dynamic
     return new self::T2::•();

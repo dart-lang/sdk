@@ -20,6 +20,6 @@ abstract class _A&Object&Mixin&Mixin = self::_A&Object&Mixin with self::Mixin {
 }
 class A extends self::_A&Object&Mixin&Mixin {
   synthetic constructor •() → self::A
-    : super core::Object::•()
+    : super self::_A&Object&Mixin&Mixin::•()
     ;
 }
