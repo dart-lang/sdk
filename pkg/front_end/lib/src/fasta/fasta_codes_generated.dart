@@ -5931,7 +5931,7 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     "MapLiteralTypeArgumentMismatch",
     analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
     severity: Severity.errorLegacyWarning,
-    message: r"""Map literal requires exactly two type arguments.""");
+    message: r"""A map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =
@@ -7861,7 +7861,18 @@ const Code<Null> codeSetLiteralTooManyTypeArguments =
 const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
     "SetLiteralTooManyTypeArguments",
     severity: Severity.errorLegacyWarning,
-    message: r"""Set literal requires exactly one type argument.""");
+    message: r"""A set literal requires exactly one type argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetOrMapLiteralTooManyTypeArguments =
+    messageSetOrMapLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetOrMapLiteralTooManyTypeArguments = const MessageCode(
+    "SetOrMapLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
+    message:
+        r"""A set or map literal requires exactly one or two type arguments, respectively.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =

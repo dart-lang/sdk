@@ -2345,7 +2345,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("EmptyLiteralSetOrMap");
     // Treat as map literal - type inference will find the right type.
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
-    assert(typeArguments == null);
+    assert(typeArguments == null || typeArguments.length > 2);
+    if (typeArguments != null && typeArguments.length > 2) {
+      addProblem(
+          fasta.messageSetOrMapLiteralTooManyTypeArguments,
+          offsetForToken(leftBrace),
+          lengthOfSpan(leftBrace, leftBrace.endGroup));
+    }
     push(forest.literalMap(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,

@@ -313,6 +313,8 @@ SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
 SetLiteralTooManyTypeArguments/analyzerCode: Fail
 SetLiteralTooManyTypeArguments/example: Fail
+SetOrMapLiteralTooManyTypeArguments/analyzerCode: Fail
+SetOrMapLiteralTooManyTypeArguments/example: Fail
 SetterNotFound/example: Fail
 SetterNotSync/example: Fail
 SetterWithWrongNumberOfFormals/example: Fail

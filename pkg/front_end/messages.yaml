@@ -1440,13 +1440,17 @@ ListLiteralTooManyTypeArguments:
   analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
 
 SetLiteralTooManyTypeArguments:
-  template: "Set literal requires exactly one type argument."
+  template: "A set literal requires exactly one type argument."
   severity: ERROR_LEGACY_WARNING
 
 MapLiteralTypeArgumentMismatch:
-  template: "Map literal requires exactly two type arguments."
+  template: "A map literal requires exactly two type arguments."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXPECTED_TWO_MAP_TYPE_ARGUMENTS
+
+SetOrMapLiteralTooManyTypeArguments:
+  template: "A set or map literal requires exactly one or two type arguments, respectively."
+  severity: ERROR_LEGACY_WARNING
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."

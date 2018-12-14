@@ -4451,8 +4451,6 @@ class Parser {
         case 2:
           return parseLiteralMapSuffix(token, constKeyword);
         default:
-          // TODO(danrubel): Add a compile time warning that set literals
-          // require one type argument and map literals require two.
           return parseLiteralSetOrMapSuffix(token, constKeyword);
       }
     }
