@@ -141,7 +141,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo = 0;'),
-      findElement.setter('foo', className: 'A'),
+      findElement.setter('foo', of: 'A'),
     );
   }
 

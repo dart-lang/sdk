@@ -247,7 +247,7 @@ main() {
     assertType(creation, 'B');
 
     var fRef = left.propertyName;
-    assertElement(fRef, findElement.setter('f', className: 'A'));
+    assertElement(fRef, findElement.setter('f', of: 'A'));
     assertType(fRef, 'int');
 
     var right = assignment.rightHandSide;

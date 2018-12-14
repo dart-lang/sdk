@@ -73,7 +73,7 @@ class B extends Object with A {
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(
       access,
-      findElement.setter('foo', className: 'A'),
+      findElement.setter('foo', of: 'A'),
       'int',
     );
     assertSuperExpression(access.target);
@@ -97,7 +97,7 @@ class B extends A {
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(
       access,
-      findElement.setter('foo', className: 'A'),
+      findElement.setter('foo', of: 'A'),
       'int',
     );
     assertSuperExpression(access.target);

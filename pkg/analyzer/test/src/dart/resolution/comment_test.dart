@@ -61,7 +61,7 @@ main() {}
     );
     assertElement(
       findNode.simple('named]'),
-      findElement.constructor('named', className: 'A'),
+      findElement.constructor('named', of: 'A'),
     );
   }
 
@@ -250,7 +250,7 @@ class B extends A {
     await resolveTestFile();
     assertNoTestErrors();
 
-    var x = findElement.setter('x', className: 'A');
+    var x = findElement.setter('x', of: 'A');
     assertElement(findNode.simple('x] in A'), x);
     assertElement(findNode.simple('x] in B'), x);
   }
