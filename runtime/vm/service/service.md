@@ -31,7 +31,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getFlagList](#getflaglist)
   - [getIsolate](#getisolate)
-  - [getScripts](#getisolatescripts)
+  - [getScripts](#getscripts)
   - [getObject](#getobject)
   - [getSourceReport](#getsourcereport)
   - [getStack](#getstack)
