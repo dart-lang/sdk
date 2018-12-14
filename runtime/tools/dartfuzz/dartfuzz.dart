@@ -7,6 +7,8 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 
+import 'dartfuzz_values.dart';
+
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
@@ -15,82 +17,6 @@ const String version = '1.2';
 // Restriction on statement and expression depths.
 const int stmtDepth = 5;
 const int exprDepth = 2;
-
-// Interesting integer values.
-const List<int> interestingIntegers = [
-  0x0000000000000000,
-  0x0000000000000001,
-  0x000000007fffffff,
-  0x0000000080000000,
-  0x0000000080000001,
-  0x00000000ffffffff,
-  0x0000000100000000,
-  0x0000000100000001,
-  0x000000017fffffff,
-  0x0000000180000000,
-  0x0000000180000001,
-  0x00000001ffffffff,
-  0x7fffffff00000000,
-  0x7fffffff00000001,
-  0x7fffffff7fffffff,
-  0x7fffffff80000000,
-  0x7fffffff80000001,
-  0x7fffffffffffffff,
-  0x8000000000000000,
-  0x8000000000000001,
-  0x800000007fffffff,
-  0x8000000080000000,
-  0x8000000080000001,
-  0x80000000ffffffff,
-  0x8000000100000000,
-  0x8000000100000001,
-  0x800000017fffffff,
-  0x8000000180000000,
-  0x8000000180000001,
-  0x80000001ffffffff,
-  0xffffffff00000000,
-  0xffffffff00000001,
-  0xffffffff7fffffff,
-  0xffffffff80000000,
-  0xffffffff80000001,
-  0xffffffffffffffff
-];
-
-// Interesting characters.
-const interestingChars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#&()+- ';
-
-// Class that represents Dart types.
-class DartType {
-  final String name;
-
-  const DartType._withName(this.name);
-
-  static const VOID = const DartType._withName('void');
-  static const BOOL = const DartType._withName('bool');
-  static const INT = const DartType._withName('int');
-  static const DOUBLE = const DartType._withName('double');
-  static const STRING = const DartType._withName('String');
-  static const INT_LIST = const DartType._withName('List<int>');
-  static const INT_STRING_MAP = const DartType._withName('Map<int, String>');
-}
-
-// All value types.
-const allTypes = [
-  DartType.BOOL,
-  DartType.INT,
-  DartType.DOUBLE,
-  DartType.STRING,
-  DartType.INT_LIST,
-  DartType.INT_STRING_MAP
-];
-
-// Class that represents Dart library methods.
-class DartLib {
-  final String name;
-  final List<DartType> proto;
-  const DartLib(this.name, this.proto);
-}
 
 // Naming conventions.
 const varName = 'var';
@@ -112,7 +38,7 @@ class DartFuzz {
     // Setup the types.
     localVars = new List<DartType>();
     globalVars = fillTypes1();
-    globalVars.addAll(allTypes); // always one each
+    globalVars.addAll(DartType.allTypes); // always one each
     globalMethods = fillTypes2();
     classFields = fillTypes2();
     classMethods = fillTypes3(classFields.length);
@@ -387,7 +313,7 @@ class DartFuzz {
       // favors small positive int
       case 0:
         emit(
-            '${interestingIntegers[rand.nextInt(interestingIntegers.length)]}');
+            '${DartFuzzValues.interestingIntegers[rand.nextInt(DartFuzzValues.interestingIntegers.length)]}');
         break;
       case 1:
         emitSmallNegativeInt();
@@ -432,7 +358,8 @@ class DartFuzz {
         emit('\\u{1f600}'); // rune
         break;
       default:
-        emit(interestingChars[rand.nextInt(interestingChars.length)]);
+        emit(DartFuzzValues.interestingChars[
+            rand.nextInt(DartFuzzValues.interestingChars.length)]);
         break;
     }
   }
@@ -607,7 +534,7 @@ class DartFuzz {
       emitTerminal(tp); // resort to terminal
       return;
     }
-    DartLib lib = oneOf(getLibrary(tp));
+    DartLib lib = getLibraryMethod(tp);
     List<DartType> proto = lib.proto;
     // Receiver.
     if (proto[0] != null) {
@@ -786,93 +713,18 @@ class DartFuzz {
   // Library methods.
   //
 
-  // Get list of library methods, organized by return type.
-  // Proto list:
-  //   [ receiver-type (null denotes none),
-  //     param1 type (null denotes getter),
-  //     param2 type,
-  //     ...
-  //   ]
-  List<DartLib> getLibrary(DartType tp) {
+  // Get a library method that returns given type.
+  DartLib getLibraryMethod(DartType tp) {
     if (tp == DartType.BOOL) {
-      return const [
-        DartLib('isEven', [DartType.INT, null]),
-        DartLib('isOdd', [DartType.INT, null]),
-        DartLib('isEmpty', [DartType.STRING, null]),
-        DartLib('isEmpty', [DartType.INT_STRING_MAP, null]),
-        DartLib('isNotEmpty', [DartType.STRING, null]),
-        DartLib('isNotEmpty', [DartType.INT_STRING_MAP, null]),
-        DartLib('endsWith', [DartType.STRING, DartType.STRING]),
-        DartLib('remove', [DartType.INT_LIST, DartType.INT]),
-        DartLib('containsValue', [DartType.INT_STRING_MAP, DartType.STRING]),
-        DartLib('containsKey', [DartType.INT_STRING_MAP, DartType.INT]),
-      ];
+      return oneOf(DartLib.boolLibs);
     } else if (tp == DartType.INT) {
-      return const [
-        DartLib('bitLength', [DartType.INT, null]),
-        DartLib('sign', [DartType.INT, null]),
-        DartLib('abs', [DartType.INT]),
-        DartLib('round', [DartType.INT]),
-        DartLib('round', [DartType.DOUBLE]),
-        DartLib('floor', [DartType.INT]),
-        DartLib('floor', [DartType.DOUBLE]),
-        DartLib('ceil', [DartType.INT]),
-        DartLib('ceil', [DartType.DOUBLE]),
-        DartLib('truncate', [DartType.INT]),
-        DartLib('truncate', [DartType.DOUBLE]),
-        DartLib('toInt', [DartType.DOUBLE]),
-        DartLib('toUnsigned', [DartType.INT, DartType.INT]),
-        DartLib('toSigned', [DartType.INT, DartType.INT]),
-        DartLib('modInverse', [DartType.INT, DartType.INT]),
-        DartLib('modPow', [DartType.INT, DartType.INT, DartType.INT]),
-        DartLib('length', [DartType.STRING, null]),
-        DartLib('length', [DartType.INT_LIST, null]),
-        DartLib('length', [DartType.INT_STRING_MAP, null]),
-        DartLib('codeUnitAt', [DartType.STRING, DartType.INT]),
-        DartLib('compareTo', [DartType.STRING, DartType.STRING]),
-        DartLib('removeLast', [DartType.INT_LIST]),
-        DartLib('removeAt', [DartType.INT_LIST, DartType.INT]),
-        DartLib('indexOf', [DartType.INT_LIST, DartType.INT]),
-        DartLib('lastIndexOf', [DartType.INT_LIST, DartType.INT]),
-      ];
+      return oneOf(DartLib.intLibs);
     } else if (tp == DartType.DOUBLE) {
-      return const [
-        DartLib('sign', [DartType.DOUBLE, null]),
-        DartLib('abs', [DartType.DOUBLE]),
-        DartLib('toDouble', [DartType.INT]),
-        DartLib('roundToDouble', [DartType.INT]),
-        DartLib('roundToDouble', [DartType.DOUBLE]),
-        DartLib('floorToDouble', [DartType.INT]),
-        DartLib('floorToDouble', [DartType.DOUBLE]),
-        DartLib('ceilToDouble', [DartType.INT]),
-        DartLib('ceilToDouble', [DartType.DOUBLE]),
-        DartLib('truncateToDouble', [DartType.INT]),
-        DartLib('truncateToDouble', [DartType.DOUBLE]),
-        DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE]),
-      ];
+      return oneOf(DartLib.doubleLibs);
     } else if (tp == DartType.STRING) {
-      return const [
-        DartLib('toString', [DartType.BOOL]),
-        DartLib('toString', [DartType.INT]),
-        DartLib('toString', [DartType.DOUBLE]),
-        DartLib('toRadixString', [DartType.INT, DartType.INT]),
-        DartLib('trim', [DartType.STRING]),
-        DartLib('trimLeft', [DartType.STRING]),
-        DartLib('trimRight', [DartType.STRING]),
-        DartLib('toLowerCase', [DartType.STRING]),
-        DartLib('toUpperCase', [DartType.STRING]),
-        DartLib('substring', [DartType.STRING, DartType.INT]),
-        DartLib('replaceRange',
-            [DartType.STRING, DartType.INT, DartType.INT, DartType.STRING]),
-        DartLib('remove', [DartType.INT_STRING_MAP, DartType.INT]),
-        // Avoid (OOM divergences, unless we restrict parameters):
-        // DartLib('padLeft', [DartType.STRING, DartType.INT]),
-        // DartLib('padRight', [DartType.STRING, DartType.INT]),
-      ];
+      return oneOf(DartLib.stringLibs);
     } else if (tp == DartType.INT_LIST) {
-      return const [
-        DartLib('sublist', [DartType.INT_LIST, DartType.INT])
-      ];
+      return oneOf(DartLib.intListLibs);
     } else {
       assert(false);
     }
