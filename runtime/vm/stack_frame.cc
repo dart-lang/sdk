@@ -91,16 +91,9 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
     auto rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc());
 
-    // All stub codes have a `null` owner except for the megamorphic miss
-    // stub. So if it's neither of those, we are know it must be a
-    // precompiled dart frame.
-    RawObject* owner = code.owner();
-    if (owner != Object::null()) {
-      if (code.raw() ==
-          Isolate::Current()->object_store()->megamorphic_miss_code()) {
-        return true;
-      }
-    }
+    const intptr_t cid = code.owner()->GetClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kFunctionCid;
   }
   return false;
 }
@@ -113,35 +106,11 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
     auto rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc());
 
-    // All stub codes have a `null` owner except for the megamorphic miss stub.
-    // So if it's either of those, we are know it must be a precompiled stub
-    // frame.
-    RawObject* owner = code.owner();
-    if (owner == Object::null()) {
-      return true;
-    }
-
-    if (code.raw() ==
-        Isolate::Current()->object_store()->megamorphic_miss_code()) {
-      return true;
-    }
+    const intptr_t cid = code.owner()->GetClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kNullCid || cid == kClassCid;
   }
   return false;
-}
-
-bool StackFrame::IsDartFrame(bool validate) const {
-  ASSERT(!validate || IsValid());
-
-  if (IsEntryFrame() || IsExitFrame()) return false;
-
-  // Even though the megamorphic miss stub is a stub, we consider it as a
-  // dart frame for all practical purposes.
-  const bool is_megamorphic_miss_stub = Code::ContainsInstructionAt(
-      thread_->isolate()->object_store()->megamorphic_miss_code(), pc_);
-
-  if (is_megamorphic_miss_stub) return true;
-
-  return !IsStubFrame();
 }
 
 bool StackFrame::IsStubFrame() const {

@@ -165,7 +165,10 @@ class StackFrame : public ValueObject {
   bool IsBareInstructionsStubFrame() const;
 
   // Frame type.
-  virtual bool IsDartFrame(bool validate = true) const;
+  virtual bool IsDartFrame(bool validate = true) const {
+    ASSERT(!validate || IsValid());
+    return !(IsEntryFrame() || IsExitFrame() || IsStubFrame());
+  }
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
