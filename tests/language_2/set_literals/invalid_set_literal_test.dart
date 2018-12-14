@@ -20,8 +20,8 @@ void main() {
       = const <int, int, int>{1} //# 06: compile-time error
       = const <int, int>{1} //# 07: compile-time error
       = const {Duration(seconds: 0)} // Overrides ==. //# 08: compile-time error
-      = {4.2} // Overrides ==. //# 09: compile-time error
-      = {d} // Overrides ==. //# 10: compile-time error
+      = const {4.2} // Overrides ==. //# 09: compile-time error
+      = const {d} // Overrides ==. //# 10: compile-time error
       = {,} //# 11: compile-time error
       = {1,,} //# 12: compile-time error
       = {1,,1} //# 13: compile-time error
@@ -33,7 +33,6 @@ void main() {
       = {4.2} //# 15: compile-time error
       = {1: 1} //# 16: compile-time error
       = {{}} //# 17: compile-time error
-      = <Object>{} // Exact type. //# 18: compile-time error
       ;
   Expect.isNull(s);
 
@@ -49,16 +48,6 @@ void main() {
       = {} // Exact type is LinkedHashSet //# 23: compile-time error
       ;
   Expect.isNull(hs);
-
-  LinkedHashSet<int> lhs //
-      = const {} // exact type is Set //# 24: compile-time error
-      ;
-  Expect.isNull(lhs);
-
-  LinkedHashSet<LinkedHashSet<int>> lhs2 //
-      = {const {}} // exact type LHS<Set>. //# 25: compile-time error
-      ;
-  Expect.isNull(lhs2);
 
   <T>(x) {
     // Type constants are allowed, type variables are not.
@@ -77,4 +66,25 @@ void main() {
     = {}; //# 28: compile-time error
     ;
   }();
+
+  // Constant sets must not contain equal elements.
+  const s = {
+    1,
+    "s",
+    #foo,
+    int,
+    C(1),
+    {1},
+    1, //# 29: compile-time error
+    "s", //# 30: compile-time error
+    #foo, //# 31: compile-time error
+    int, //# 32: compile-time error
+    C(1), //# 33: compile-time error
+    {1}, //# 34: compile-time error
+  };
+}
+
+class C {
+  final Object id;
+  const C(this.id);
 }

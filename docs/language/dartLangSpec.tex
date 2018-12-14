@@ -27,6 +27,7 @@
 % 2.2
 %  - Specify whether the values of literal expressions override Object.==.
 %  - Allow Type objects as case expressions and const map keys.
+%  - Introduce set literals.
 %
 % 2.1
 % - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
@@ -5628,6 +5629,12 @@ not a constant expression (\ref{const}).
 that occurs in a constant context, is a potentially constant expression if $T$ is a constant type expression, and $e_1$, \ldots{} , $e_n$ are constant expressions.
 It is further a constant expression if the list literal evaluates to a value.
 
+\item A constant set literal (\ref{set}),
+\code{\CONST{} <$T$>\{$e_1$, \ldots{}, $e_n$\}}, or
+\code{<$T$>\{$e_1$, \ldots{}, $e_n$\}}
+that occurs in a constant context, is a potentially constant expression if $T$ is a constant type expression, and $e_1$, \ldots{} , $e_n$ are constant expressions.
+It is further a constant expression if the list literal evaluates to a value.
+
 \item A constant map literal (\ref{maps}),
 \code{\CONST{} <$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}}, or
 \code{<$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}} that occurs in a constant context,
@@ -5820,6 +5827,8 @@ As an example, consider:
   \alt <stringLiteral>
   \alt <symbolLiteral>
   \alt <mapLiteral>
+  \alt <setLiteral>
+  \alt <setOrMapLiteral>
   \alt <listLiteral>
 \end{grammar}
 
@@ -6412,15 +6421,36 @@ A \IndexCustom{map literal}{literal!map} denotes a map object.
 
 \begin{grammar}
 <mapLiteral> ::= \CONST{}? <typeArguments>?
-  \gnewline{} `{' (<mapLiteralEntry> (`,' <mapLiteralEntry>)* `,'?)? `\}'
+  \gnewline{} `{' <mapLiteralEntry> (`,' <mapLiteralEntry>)* `,'? `}'
 
 <mapLiteralEntry> ::= <expression> `:' <expression>
+
+<setOrMapLiteral> ::= \CONST{}? <typeArguments>? `{' `}'
 \end{grammar}
+
+\LMHash{}%
+A \synt{setOrMapLiteral} is either set literal (\ref {sets}) or a map literal,
+determined by the type parameters or static context type.
+If the literal expression has exactly one type argument,
+then it is a set literal.
+If it has two type arguments, then it is a map literal.
+If it has three or more type arguments, it is a compile-time error.
+If it has \emph{no} type arguments,
+then if \code{LinkedHashSet<Null>} is assignable to the
+static context type of the literal,
+and \code{LinkedHashMap<Null, Null>} is not,
+it is set literal,
+and otherwise it is a map literal.
+A map literal derived from \synt{setOrMapLiteral}
+is treated the same way as one derived from \synt{mapLiteral},
+as described below.
 
 \LMHash{}%
 A map literal consists of zero or more entries.
 Each entry has a \Index{key} and a \Index{value}.
 Each key and each value is denoted by an expression.
+It is a compile-time error if a map literal has one type argument,
+or more than two type arguments.
 
 \LMHash{}%
 If a map literal begins with the reserved word \CONST{}, it is a
@@ -6474,6 +6504,10 @@ In other words, constant map literals are canonicalized.
 }
 
 \LMHash{}%
+It is a compile-time error if two keys of a constant map literal are equal
+according to their \code{==} operator (\ref{equality}).
+
+\LMHash{}%
 A run-time map literal
 \code{<$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
 is evaluated as follows:
@@ -6483,8 +6517,8 @@ For each $i \in 1 .. n$ in numeric order,
 first the expression $k_i$ is evaluated producing object $u_i$,
 and then $e_i$ is evaluated producing object $o_i$.
 This produces all the objects $u_1, o_1, \ldots, u_n, o_n$.
-\item A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class
-\code{Map<$K, V$>} is allocated.
+\item A fresh instance (\ref{generativeConstructors}) $m$
+whose class implements the built-in class \code{Map<$K, V$>}, is allocated.
 \item
 The operator \syntax{`[]='} is invoked on $m$ with first argument $u_i$ and second argument $o_i$ for each $i \in 1 .. n$.
 \item
@@ -6501,9 +6535,6 @@ A run-time map literal
 is evaluated as
 
 \code{<\DYNAMIC{}, \DYNAMIC{}>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
-
-\LMHash{}%
-It is a compile-time error if two keys of a constant map literal are equal.
 
 \LMHash{}%
 A map literal is ordered: iterating over the keys and/or values of the maps always happens in the
@@ -6526,6 +6557,121 @@ or the form
 \code{\{$k_1:e_1, \ldots, k_n:e_n$\}} is
 \code{Map<\DYNAMIC{}, \DYNAMIC{}>}.
 
+
+\subsection{Sets}
+\LMLabel{sets}
+
+\LMHash{}%
+A \IndexCustom{set literal}{literal!set} denotes a set object.
+
+\begin{grammar}
+<setLiteral> ::= \CONST{}? <typeArguments>?
+  \gnewline{} `{' <expression> (`,' <expression>)* `,'? `\}'
+\end{grammar}
+
+\LMHash{}%
+A \synt{setOrMapLiteral} is either set literal or a map literal (\ref {maps}).
+A set literal derived from \synt{setOrMapLiteral}
+is treated the same way as one derived from \synt{setLiteral},
+as described below.
+
+\LMHash{}%
+A set literal consists of zero or more element expressions.
+It is a compile-time error if a set literal has more than one type argument.
+
+\LMHash{}%
+\rationale{
+A set literal with no type argument is always converted to a literal
+with a type argument by type inference (\ref{overview}), so the following
+section only address the behavior of literals with type arguments.}
+
+\LMHash{}%
+If a set literal begins with the reserved word \CONST{},
+or if it occurs in a constant context, then it is a
+\IndexCustom{constant set literal}{literal!set!constant}
+which is a constant expression (\ref{constants}) and therefore evaluated at compile time.
+Otherwise, it is a
+\IndexCustom{run-time set literal}{literal!set!run-time}
+and it is evaluated at run time.
+Only run-time set literals can be mutated after they are created.
+Attempting to mutate a constant set literal will result in a dynamic error.
+
+\LMHash{}%
+It is a compile-time error if an element expression in a constant set literal is not a constant expression.
+It is a compile-time error if the element object in a constant set literal is an instance of
+a class that has a concrete operator \syntax{`=='} declaration different from the one in \code{Object},
+unless the element is a string or an integer,
+the element expression evaluates to an instance of the built-in
+class \code{Symbol} which was originally obtained by evaluation of a
+literal symbol or
+a constant invocation of a constructor of the \code{Symbol} class,
+or to an object implementing the built-in class \code{Type}
+which was originally obtained by evaluating a constant type literal
+(\ref{dynamicTypeSystem}).
+It is a compile-time error if the type argument of a constant set literal
+is not a constant type expression \ref{constants}.
+It is a compile-time error if two elements of a constant set literal are equal
+according to their \code{==} operator (\ref{equality}).
+
+\LMHash{}%
+The value of a constant set literal with element expressions
+$e_1, \dots, e_n$ and type argument $E$
+is an object $s$ whose class implements the built-in class
+\code{Set<$E$>}.
+The elements of $m$ are $v_i, i \in 1 .. n$, where $v_i$ is the value of the constant expression $e_i$.
+
+\LMHash{}%
+Let $set_1$ be a constant set literal with type argument $E$
+and element expressions, in source order, $e_{11}, \ldots, e_{1n}$ evaluating
+to values $v_{11}, \ldots, v_{1n}$.
+Let $set_2$ be a constant set literal with type argument $F$
+and element expressions, in source order, $e_{21}, \ldots, e_{2n}$ evaluating
+to values $v_{21}, \ldots, v_{2n}$.
+If{}f \code{identical($v_{1i}$, $v_{2i}$)}
+for $i \in 1 .. n$, and $E$ and $F$ is the same type,
+then \code{identical($set_1$, $set_2$)}.
+\commentary{
+In other words, constant set literals are canonicalized if they have
+the same type and the same values in the same order.
+}
+Two constant set literals are never identical if they have different numbers
+of elements.
+
+\LMHash{}%
+A run-time set literal with element expressions $e_1, \ldots, e_n$
+(in source order) and with type argument $E$
+is evaluated as follows:
+\begin{itemize}
+\item
+For each $i \in 1 .. n$ in numeric order,
+the expression $e_i$ is evaluated producing object $v_i$.
+\item A fresh instance (\ref{generativeConstructors}) $s$
+of the built-in class \code{LinkedHashSet<$E$>}, is allocated.
+\item
+The operator \code{add} is invoked on $s$ with argument $v_i$ for each $i \in 1 .. n$ in numerical order.
+\item
+The result of the evaluation is $s$.
+\end{itemize}
+
+\LMHash{}%
+The objects created by set literals do not override
+the \code{==} operator inherited from the \code{Object} class.
+
+\LMHash{}%
+A set literal is ordered: iterating over the elements of the sets
+always happens in the order the elements first appeared in the source code.
+
+\commentary{
+If a value repeats, the order is defined by first occurrence, but the value is defined by the last.
+}
+
+\LMHash{}%
+The static type of a set literal of the form
+\code{\CONST{} <$E$>\{$e_1, \ldots, e_n$\}}
+or the form
+\code{<$E$>\{$e_1, \ldots, e_n$\}}
+is
+\code{Set<$E$>}.
 
 \subsection{Throw}
 \LMLabel{throw}
