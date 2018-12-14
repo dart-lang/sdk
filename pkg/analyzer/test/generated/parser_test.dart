@@ -2013,46 +2013,6 @@ mixin ComplexParserTestMixin implements AbstractParserTestCase {
     expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
   }
 
-  void test_conditionalExpression_precedence_nullableTypeWithTypeArg1_is() {
-    Expression expression = parseExpression('x is String<S> ? (x + y) : z');
-    expect(expression, isNotNull);
-    expect(expression, new TypeMatcher<ConditionalExpression>());
-    ConditionalExpression conditional = expression;
-    Expression condition = conditional.condition;
-    expect(condition, new TypeMatcher<IsExpression>());
-    Expression thenExpression = conditional.thenExpression;
-    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = conditional.elseExpression;
-    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
-  }
-
-  void test_conditionalExpression_precedence_nullableTypeWithTypeArg1GFT_is() {
-    Expression expression =
-        parseExpression('x is String<S> Function() ? (x + y) : z');
-    expect(expression, isNotNull);
-    expect(expression, new TypeMatcher<ConditionalExpression>());
-    ConditionalExpression conditional = expression;
-    Expression condition = conditional.condition;
-    expect(condition, new TypeMatcher<IsExpression>());
-    Expression thenExpression = conditional.thenExpression;
-    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = conditional.elseExpression;
-    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
-  }
-
-  void test_conditionalExpression_precedence_nullableTypeWithTypeArg2_is() {
-    Expression expression = parseExpression('x is String<S,T> ? (x + y) : z');
-    expect(expression, isNotNull);
-    expect(expression, new TypeMatcher<ConditionalExpression>());
-    ConditionalExpression conditional = expression;
-    Expression condition = conditional.condition;
-    expect(condition, new TypeMatcher<IsExpression>());
-    Expression thenExpression = conditional.thenExpression;
-    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = conditional.elseExpression;
-    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
-  }
-
   void test_constructor_initializer_withParenthesizedExpression() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {

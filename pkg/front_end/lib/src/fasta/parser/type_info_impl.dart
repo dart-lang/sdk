@@ -376,9 +376,6 @@ class ComplexTypeInfo implements TypeInfo {
   /// Type arguments were seen during analysis.
   final TypeParamOrArgInfo typeArguments;
 
-  /// The token before the trailing question mark or `null` if none.
-  Token beforeQuestionMark;
-
   /// The last token in the type reference.
   Token end;
 
@@ -393,18 +390,12 @@ class ComplexTypeInfo implements TypeInfo {
   ComplexTypeInfo(Token beforeStart, this.typeArguments)
       : this.start = beforeStart.next;
 
-  ComplexTypeInfo._nonNullable(this.start, this.typeArguments, this.end,
-      this.typeVariableStarters, this.gftHasReturnType);
-
   @override
   bool get couldBeExpression => false;
 
   @override
   TypeInfo asNonNullableType() {
-    return beforeQuestionMark == null
-        ? this
-        : new ComplexTypeInfo._nonNullable(start, typeArguments,
-            beforeQuestionMark, typeVariableStarters, gftHasReturnType);
+    return this;
   }
 
   @override
@@ -461,15 +452,7 @@ class ComplexTypeInfo implements TypeInfo {
           }
         }
         token = typeArguments.parseArguments(token, parser);
-        Token questionMark = token.next;
-        if (optional('?', questionMark) &&
-            (typeVariableEndGroups.isNotEmpty || beforeQuestionMark != null)) {
-          // Only consume the `?` if it is part of the complex type
-          token = questionMark;
-        } else {
-          questionMark = null;
-        }
-        parser.listener.handleType(typeRefOrPrefix, questionMark);
+        parser.listener.handleType(typeRefOrPrefix, null);
       }
     }
 
@@ -509,11 +492,10 @@ class ComplexTypeInfo implements TypeInfo {
 
   /// Given `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computeNoTypeGFT(Token beforeStart, bool required) {
+  TypeInfo computeNoTypeGFT(bool required) {
     assert(optional('Function', start));
-    assert(beforeStart.next == start);
 
-    computeRest(beforeStart, required);
+    computeRest(start, required);
     if (gftHasReturnType == null) {
       return required ? simpleType : noType;
     }
@@ -527,7 +509,7 @@ class ComplexTypeInfo implements TypeInfo {
     assert(optional('void', start));
     assert(optional('Function', start.next));
 
-    computeRest(start, required);
+    computeRest(start.next, required);
     if (gftHasReturnType == null) {
       return voidType;
     }
@@ -541,24 +523,9 @@ class ComplexTypeInfo implements TypeInfo {
     assert(isValidTypeReference(start));
     assert(optional('Function', start.next));
 
-    computeRest(start, required);
+    computeRest(start.next, required);
     if (gftHasReturnType == null) {
       return simpleType;
-    }
-    assert(end != null);
-    return this;
-  }
-
-  /// Given identifier `?` `Function` non-identifier, compute the type
-  /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computeIdentifierQuestionGFT(bool required) {
-    assert(isValidTypeReference(start));
-    assert(optional('?', start.next));
-    assert(optional('Function', start.next.next));
-
-    computeRest(start, required);
-    if (gftHasReturnType == null) {
-      return simpleNullableType;
     }
     assert(end != null);
     return this;
@@ -570,7 +537,7 @@ class ComplexTypeInfo implements TypeInfo {
     assert(start.type.isBuiltIn || optional('var', start));
 
     end = typeArguments.skip(start);
-    computeRest(end, required);
+    computeRest(end.next, required);
     assert(end != null);
     return this;
   }
@@ -583,7 +550,7 @@ class ComplexTypeInfo implements TypeInfo {
     assert(typeArguments != noTypeParamOrArg);
 
     end = typeArguments.skip(start);
-    computeRest(end, required);
+    computeRest(end.next, required);
 
     if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
       return noType;
@@ -607,7 +574,7 @@ class ComplexTypeInfo implements TypeInfo {
     }
 
     end = typeArguments.skip(token);
-    computeRest(end, required);
+    computeRest(end.next, required);
     if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
       return noType;
     }
@@ -616,11 +583,6 @@ class ComplexTypeInfo implements TypeInfo {
   }
 
   void computeRest(Token token, bool required) {
-    if (optional('?', token.next)) {
-      beforeQuestionMark = token;
-      end = token = token.next;
-    }
-    token = token.next;
     while (optional('Function', token)) {
       Token typeVariableStart = token;
       // TODO(danrubel): Consider caching TypeParamOrArgInfo
@@ -641,13 +603,8 @@ class ComplexTypeInfo implements TypeInfo {
       assert(optional(')', token));
       gftHasReturnType ??= typeVariableStart != start;
       typeVariableStarters = typeVariableStarters.prepend(typeVariableStart);
-      beforeQuestionMark = null;
       end = token;
       token = token.next;
-    }
-    if (optional('?', token)) {
-      beforeQuestionMark = end;
-      end = token;
     }
   }
 }

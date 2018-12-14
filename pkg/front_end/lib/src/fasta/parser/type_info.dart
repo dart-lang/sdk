@@ -187,7 +187,7 @@ TypeInfo computeType(final Token token, bool required,
   if (isGeneralizedFunctionType(next)) {
     // `Function` ...
     return new ComplexTypeInfo(token, noTypeParamOrArg)
-        .computeNoTypeGFT(token, required);
+        .computeNoTypeGFT(required);
   }
 
   // We've seen an identifier.
@@ -262,17 +262,20 @@ TypeInfo computeType(final Token token, bool required,
   }
 
   if (optional('?', next)) {
-    next = next.next;
-    if (isGeneralizedFunctionType(next)) {
-      // identifier `?` Function `(`
-      return new ComplexTypeInfo(token, noTypeParamOrArg)
-          .computeIdentifierQuestionGFT(required);
-    } else if (required ||
-        (looksLikeName(next) &&
-            isOneOfOrEof(
-                next.next, const [';', ',', '=', '>', '>=', '>>', '>>>']))) {
+    if (required) {
       // identifier `?`
       return simpleNullableType;
+    } else {
+      next = next.next;
+      if (isGeneralizedFunctionType(next)) {
+        // identifier `?` Function `(`
+        return simpleNullableType;
+      } else if (looksLikeName(next) &&
+          isOneOfOrEof(
+              next.next, const [';', ',', '=', '>', '>=', '>>', '>>>'])) {
+        // identifier `?` identifier `=`
+        return simpleNullableType;
+      }
     }
   } else if (required || looksLikeName(next)) {
     // identifier identifier
