@@ -2273,7 +2273,11 @@ class Function : public Object {
 
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
-  RawCode* CurrentCode() const { return raw_ptr()->code_; }
+  RawCode* CurrentCode() const { return CurrentCodeOf(raw()); }
+
+  static RawCode* CurrentCodeOf(const RawFunction* function) {
+    return function->ptr()->code_;
+  }
 
   RawCode* unoptimized_code() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5541,7 +5545,9 @@ class MegamorphicCache : public Object {
 
   void EnsureCapacity() const;
 
-  void Insert(const Smi& class_id, const Function& target) const;
+  void Insert(const Smi& class_id, const Object& target) const;
+
+  void SwitchToBareInstructions();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMegamorphicCache));
@@ -5566,7 +5572,7 @@ class MegamorphicCache : public Object {
   static inline void SetEntry(const Array& array,
                               intptr_t index,
                               const Smi& class_id,
-                              const Function& target);
+                              const Object& target);
 
   static inline RawObject* GetClassId(const Array& array, intptr_t index);
   static inline RawObject* GetTargetFunction(const Array& array,
@@ -9257,8 +9263,20 @@ intptr_t Library::UrlHash() const {
 void MegamorphicCache::SetEntry(const Array& array,
                                 intptr_t index,
                                 const Smi& class_id,
-                                const Function& target) {
+                                const Object& target) {
+  ASSERT(target.IsFunction() || target.IsSmi());
   array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (target.IsFunction()) {
+      const auto& function = Function::Cast(target);
+      const auto& entry_point = Smi::Handle(
+          Smi::FromAlignedAddress(Code::EntryPoint(function.CurrentCode())));
+      array.SetAt((index * kEntryLength) + kTargetFunctionIndex, entry_point);
+      return;
+    }
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 

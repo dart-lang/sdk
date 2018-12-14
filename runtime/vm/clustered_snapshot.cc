@@ -2340,6 +2340,32 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
       cache->ptr()->filled_entry_count_ = d->Read<int32_t>();
     }
   }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      // By default, every megamorphic call site will load the target
+      // [Function] from the hash table and call indirectly via loading the
+      // entrypoint from the function.
+      //
+      // In --use-bare-instruction we reduce the extra indirection via the
+      // [Function] object by storing the entry point directly into the hashmap.
+      //
+      // Currently our AOT compiler will emit megamorphic calls in certain
+      // situations (namely in slow-path code of CheckedSmi* instructions).
+      //
+      // TODO(compiler-team): Change the CheckedSmi* slow path code to use
+      // normal switchable calls instead of megamorphic calls. (This is also a
+      // memory balance beause [MegamorphicCache]s are per-selector while
+      // [ICData] are per-callsite.)
+      auto& cache = MegamorphicCache::Handle(zone);
+      for (intptr_t i = start_index_; i < stop_index_; ++i) {
+        cache ^= refs.At(i);
+        cache.SwitchToBareInstructions();
+      }
+    }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  }
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

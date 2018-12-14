@@ -2952,12 +2952,19 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(R10,
-          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
-  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
-  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-  __ jmp(RCX);
+  const auto target_address = FieldAddress(RDI, RCX, TIMES_8, base + kWordSize);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(R10,
+            FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+    __ jmp(target_address);
+  } else {
+    __ movq(RAX, target_address);
+    __ movq(R10,
+            FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+    __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+    __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+    __ jmp(RCX);
+  }
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -3044,9 +3051,10 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ Bind(&found);
   const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
-  __ movq(RCX, Address(R13, entry_offset));
-  __ movq(CODE_REG, Address(R13, code_offset));
-  __ jmp(RCX);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    __ movq(CODE_REG, Address(R13, code_offset));
+  }
+  __ jmp(Address(R13, entry_offset));
 
   __ Bind(&miss);
   __ LoadIsolate(RAX);

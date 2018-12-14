@@ -15259,8 +15259,8 @@ void MegamorphicCache::EnsureCapacity() const {
     const Array& new_buckets =
         Array::Handle(Array::New(kEntryLength * new_capacity));
 
-    Function& target = Function::Handle(
-        MegamorphicCacheTable::miss_handler(Isolate::Current()));
+    auto& target =
+        Object::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
@@ -15273,15 +15273,14 @@ void MegamorphicCache::EnsureCapacity() const {
     for (intptr_t i = 0; i < old_capacity; ++i) {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
-        target ^= GetTargetFunction(old_buckets, i);
+        target = GetTargetFunction(old_buckets, i);
         Insert(class_id, target);
       }
     }
   }
 }
 
-void MegamorphicCache::Insert(const Smi& class_id,
-                              const Function& target) const {
+void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));
   const Array& backing_array = Array::Handle(buckets());
@@ -15303,6 +15302,23 @@ const char* MegamorphicCache::ToCString() const {
   const String& name = String::Handle(target_name());
   return OS::SCreate(Thread::Current()->zone(), "MegamorphicCache(%s)",
                      name.ToCString());
+}
+
+void MegamorphicCache::SwitchToBareInstructions() {
+  NoSafepointScope no_safepoint_scope;
+
+  intptr_t capacity = mask() + 1;
+  for (intptr_t i = 0; i < capacity; ++i) {
+    const intptr_t target_index = i * kEntryLength + kTargetFunctionIndex;
+    RawObject** slot = &Array::DataOf(buckets())[target_index];
+    const intptr_t cid = (*slot)->GetClassIdMayBeSmi();
+    if (cid == kFunctionCid) {
+      RawCode* code = Function::CurrentCodeOf(Function::RawCast(*slot));
+      *slot = Smi::FromAlignedAddress(Code::EntryPoint(code));
+    } else {
+      ASSERT(cid == kSmiCid);
+    }
+  }
 }
 
 RawSubtypeTestCache* SubtypeTestCache::New() {

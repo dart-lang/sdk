@@ -2945,10 +2945,18 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ ldr(R0, FieldAddress(TMP, base + kWordSize));
-  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  const auto target_address = FieldAddress(TMP, base + kWordSize);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(R1, target_address);
+    __ ldr(ARGS_DESC_REG,
+           FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+  } else {
+    __ ldr(R0, target_address);
+    __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+    __ ldr(ARGS_DESC_REG,
+           FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+    __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  }
   __ br(R1);
 
   // Probe failed, check if it is a miss.
@@ -2975,7 +2983,8 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 //  R4: arguments descriptor
 void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
+  __ ldr(ARGS_DESC_REG,
+         FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
   __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
@@ -3010,8 +3019,8 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
 
 void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
+  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
@@ -3033,7 +3042,9 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
   __ ldr(R1, Address(R8, entry_offset));
-  __ ldr(CODE_REG, Address(R8, code_offset));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    __ ldr(CODE_REG, Address(R8, code_offset));
+  }
   __ br(R1);
 
   __ Bind(&miss);
