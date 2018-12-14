@@ -196,11 +196,15 @@ class Isolate : public BaseIsolate {
 
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
-  void EnableIncrementalBarrier(MarkingStack* marking_stack);
+  void EnableIncrementalBarrier(MarkingStack* marking_stack,
+                                MarkingStack* deferred_marking_stack);
   void DisableIncrementalBarrier();
 
   StoreBuffer* store_buffer() const { return store_buffer_; }
   MarkingStack* marking_stack() const { return marking_stack_; }
+  MarkingStack* deferred_marking_stack() const {
+    return deferred_marking_stack_;
+  }
 
   ThreadRegistry* thread_registry() const { return thread_registry_; }
   SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
@@ -860,6 +864,7 @@ class Isolate : public BaseIsolate {
 
   StoreBuffer* store_buffer_;
   MarkingStack* marking_stack_;
+  MarkingStack* deferred_marking_stack_;
   Heap* heap_;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \

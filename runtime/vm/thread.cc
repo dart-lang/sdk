@@ -334,6 +334,7 @@ bool Thread::EnterIsolate(Isolate* isolate) {
     if (isolate->marking_stack() != NULL) {
       // Concurrent mark in progress. Enable barrier for this thread.
       thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     return true;
   }
@@ -352,6 +353,7 @@ void Thread::ExitIsolate() {
   thread->ClearReusableHandles();
   if (thread->is_marking()) {
     thread->MarkingStackRelease();
+    thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
@@ -379,6 +381,7 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
     if (isolate->marking_stack() != NULL) {
       // Concurrent mark in progress. Enable barrier for this thread.
       thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     // This thread should not be the main mutator.
     thread->task_kind_ = kind;
@@ -398,6 +401,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->ClearReusableHandles();
   if (thread->is_marking()) {
     thread->MarkingStackRelease();
+    thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
@@ -601,10 +605,22 @@ void Thread::MarkingStackBlockProcess() {
   MarkingStackAcquire();
 }
 
+void Thread::DeferredMarkingStackBlockProcess() {
+  DeferredMarkingStackRelease();
+  DeferredMarkingStackAcquire();
+}
+
 void Thread::MarkingStackAddObject(RawObject* obj) {
   marking_stack_block_->Push(obj);
   if (marking_stack_block_->IsFull()) {
     MarkingStackBlockProcess();
+  }
+}
+
+void Thread::DeferredMarkingStackAddObject(RawObject* obj) {
+  deferred_marking_stack_block_->Push(obj);
+  if (deferred_marking_stack_block_->IsFull()) {
+    DeferredMarkingStackBlockProcess();
   }
 }
 
@@ -619,6 +635,17 @@ void Thread::MarkingStackAcquire() {
   marking_stack_block_ = isolate()->marking_stack()->PopEmptyBlock();
   write_barrier_mask_ =
       RawObject::kGenerationalBarrierMask | RawObject::kIncrementalBarrierMask;
+}
+
+void Thread::DeferredMarkingStackRelease() {
+  MarkingStackBlock* block = deferred_marking_stack_block_;
+  deferred_marking_stack_block_ = NULL;
+  isolate()->deferred_marking_stack()->PushBlock(block);
+}
+
+void Thread::DeferredMarkingStackAcquire() {
+  deferred_marking_stack_block_ =
+      isolate()->deferred_marking_stack()->PopEmptyBlock();
 }
 
 bool Thread::IsMutatorThread() const {

@@ -747,6 +747,13 @@ class RawObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
+#if !defined(TARGET_ARCH_IA32)
+        if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
+          // Instruction pages may be non-writable. Defer marking.
+          thread->DeferredMarkingStackAddObject(value);
+          return;
+        }
+#endif
         if (value->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
@@ -786,12 +793,19 @@ class RawObject {
           RememberCard(reinterpret_cast<RawObject* const*>(addr));
         } else {
           this->SetRememberedBit();
-          Thread::Current()->StoreBufferAddObject(this);
+          thread->StoreBufferAddObject(this);
         }
       } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
+#if !defined(TARGET_ARCH_IA32)
+        if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
+          // Instruction pages may be non-writable. Defer marking.
+          thread->DeferredMarkingStackAddObject(value);
+          return;
+        }
+#endif
         if (value->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }

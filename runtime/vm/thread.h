@@ -437,7 +437,9 @@ class Thread : public BaseThread {
 
   bool is_marking() const { return marking_stack_block_ != NULL; }
   void MarkingStackAddObject(RawObject* obj);
+  void DeferredMarkingStackAddObject(RawObject* obj);
   void MarkingStackBlockProcess();
+  void DeferredMarkingStackBlockProcess();
   static intptr_t marking_stack_block_offset() {
     return OFFSET_OF(Thread, marking_stack_block_);
   }
@@ -818,6 +820,7 @@ class Thread : public BaseThread {
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
+  MarkingStackBlock* deferred_marking_stack_block_;
   uword vm_tag_;
   RawStackTrace* async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
@@ -926,6 +929,8 @@ class Thread : public BaseThread {
 
   void MarkingStackRelease();
   void MarkingStackAcquire();
+  void DeferredMarkingStackRelease();
+  void DeferredMarkingStackAcquire();
 
   void set_zone(Zone* zone) { zone_ = zone; }
 

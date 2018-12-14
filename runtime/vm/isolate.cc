@@ -2046,9 +2046,11 @@ void Isolate::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
 }
 
-void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack) {
+void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
+                                       MarkingStack* deferred_marking_stack) {
   ASSERT(marking_stack_ == NULL);
   marking_stack_ = marking_stack;
+  deferred_marking_stack_ = deferred_marking_stack;
   thread_registry()->AcquireMarkingStacks();
   ASSERT(Thread::Current()->is_marking());
 }
@@ -2057,6 +2059,7 @@ void Isolate::DisableIncrementalBarrier() {
   thread_registry()->ReleaseMarkingStacks();
   ASSERT(marking_stack_ != NULL);
   marking_stack_ = NULL;
+  deferred_marking_stack_ = NULL;
   ASSERT(!Thread::Current()->is_marking());
 }
 

@@ -1007,7 +1007,6 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
 #else
     if (!FLAG_concurrent_mark) return;    // Disabled.
     if (FLAG_marker_tasks == 0) return;   // Disabled.
-    if (FLAG_write_protect_code) return;  // Not implemented.
 #endif
   }
 
@@ -1081,7 +1080,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages writable.
-  WriteProtectCode(false);
+  if (finalize) WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
   SpaceUsage usage_before = GetCurrentUsage();
@@ -1186,7 +1185,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   }
 
   // Make code pages read-only.
-  WriteProtectCode(true);
+  if (finalize) WriteProtectCode(true);
 
   int64_t end = OS::GetCurrentMonotonicMicros();
 

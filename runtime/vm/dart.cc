@@ -101,7 +101,7 @@ static void CheckOffsets() {
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
-  CHECK_OFFSET(Thread::object_null_offset(), 112);
+  CHECK_OFFSET(Thread::object_null_offset(), 120);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 40);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
