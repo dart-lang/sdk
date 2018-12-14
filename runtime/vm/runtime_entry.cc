@@ -183,7 +183,7 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const intptr_t name_index = reader.GetNullCheckNameIndexAt(pc_offset);
   RELEASE_ASSERT(name_index >= 0);
 
-  const ObjectPool& pool = ObjectPool::Handle(zone, code.object_pool());
+  const ObjectPool& pool = ObjectPool::Handle(zone, code.GetObjectPool());
   const String& member_name =
       String::CheckedHandle(zone, pool.ObjectAt(name_index));
 
@@ -787,7 +787,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
       const ObjectPool& pool =
-          ObjectPool::Handle(zone, caller_code.object_pool());
+          ObjectPool::Handle(zone, caller_code.GetObjectPool());
       TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
       const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
       const intptr_t dst_name_idx = stc_pool_idx + 1;
@@ -824,7 +824,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
       const ObjectPool& pool =
-          ObjectPool::Handle(zone, caller_code.object_pool());
+          ObjectPool::Handle(zone, caller_code.GetObjectPool());
       TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
       const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
 

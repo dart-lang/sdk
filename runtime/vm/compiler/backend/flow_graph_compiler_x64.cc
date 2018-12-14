@@ -777,6 +777,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
 
   const Code& build_method_extractor = Code::ZoneHandle(
       isolate()->object_store()->build_method_extractor_code());
+  ASSERT(!build_method_extractor.IsNull());
 
   const intptr_t stub_index = __ object_pool_wrapper().AddObject(
       build_method_extractor, ObjectPool::Patchability::kNotPatchable);
@@ -784,11 +785,15 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
       extracted_method, ObjectPool::Patchability::kNotPatchable);
 
   // We use a custom pool register to preserve caller PP.
-  const Register kPoolReg = RAX;
+  Register kPoolReg = RAX;
 
   // RBX = extracted function
   // RDX = offset of type argument vector (or 0 if class is not generic)
-  __ movq(kPoolReg, FieldAddress(CODE_REG, Code::object_pool_offset()));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    kPoolReg = PP;
+  } else {
+    __ movq(kPoolReg, FieldAddress(CODE_REG, Code::object_pool_offset()));
+  }
   __ movq(RDX, Immediate(type_arguments_field_offset));
   __ movq(RBX,
           FieldAddress(kPoolReg, ObjectPool::element_offset(function_index)));
@@ -830,7 +835,9 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
     const Register new_pp = R13;
-    __ LoadPoolPointer(new_pp);
+    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+      __ LoadPoolPointer(new_pp);
+    }
 
     const Function& function = parsed_function().function();
     if (CanOptimizeFunction() && function.IsOptimizable() &&
@@ -909,9 +916,16 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const Code& stub,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ Call(stub);
-  EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
-  AddStubCallTarget(stub);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions && !stub.InVMHeap()) {
+    AddPcRelativeCallStubTarget(stub);
+    __ GenerateUnRelocatedPcRelativeCall();
+    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+  } else {
+    ASSERT(!stub.IsNull());
+    __ Call(stub);
+    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+    AddStubCallTarget(stub);
+  }
 }
 
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
@@ -938,14 +952,21 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                LocationSummary* locs,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
-  // Call sites to the same target can share object pool entries. These
-  // call sites are never patched for breakpoints: the function is deoptimized
-  // and the unoptimized code with IC calls for static calls is patched instead.
   ASSERT(is_optimizing());
-  const auto& stub_entry = StubCode::CallStaticFunction();
-  __ CallWithEquivalence(stub_entry, target, entry_kind);
-  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
-  AddStaticCallTarget(target);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    AddPcRelativeCallTarget(target, entry_kind);
+    __ GenerateUnRelocatedPcRelativeCall();
+    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
+  } else {
+    // Call sites to the same target can share object pool entries. These
+    // call sites are never patched for breakpoints: the function is deoptimized
+    // and the unoptimized code with IC calls for static calls is patched
+    // instead.
+    const auto& stub_entry = StubCode::CallStaticFunction();
+    __ CallWithEquivalence(stub_entry, target, entry_kind);
+    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
+    AddStaticCallTarget(target, entry_kind);
+  }
 }
 
 void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,

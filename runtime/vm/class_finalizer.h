@@ -43,7 +43,7 @@ class ClassFinalizer : public AllStatic {
   static void SortClasses();
   static void RemapClassIds(intptr_t* old_to_new_cid);
   static void RehashTypes();
-  static void ClearAllCode();
+  static void ClearAllCode(bool including_nonchanging_cids = false);
 
   // Return whether processing pending classes (ObjectStore::pending_classes_)
   // failed. The function returns true if the processing was successful.

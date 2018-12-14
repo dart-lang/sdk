@@ -4279,7 +4279,11 @@ class Instructions : public Object {
 
   uword PayloadStart() const { return PayloadStart(raw()); }
   uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(raw()); }
+  uword MonomorphicUncheckedEntryPoint() const {
+    return MonomorphicUncheckedEntryPoint(raw());
+  }
   uword EntryPoint() const { return EntryPoint(raw()); }
+  uword UncheckedEntryPoint() const { return UncheckedEntryPoint(raw()); }
   static uword PayloadStart(const RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
@@ -4855,8 +4859,7 @@ class Code : public Object {
     return Instructions::MonomorphicUncheckedEntryPoint(instructions());
   }
   intptr_t Size() const { return Instructions::Size(instructions()); }
-  RawObjectPool* GetObjectPool() const { return object_pool(); }
-
+  RawObjectPool* GetObjectPool() const;
   bool ContainsInstructionAt(uword addr) const {
     return ContainsInstructionAt(raw(), addr);
   }
@@ -4918,11 +4921,15 @@ class Code : public Object {
   RawStackMap* GetStackMap(uint32_t pc_offset,
                            Array* stackmaps,
                            StackMap* map) const;
-
   enum CallKind {
     kPcRelativeCall = 1,
     kPcRelativeTailCall = 2,
     kCallViaCode = 3,
+  };
+
+  enum CallEntryPoint {
+    kDefaultEntry,
+    kUncheckedEntry,
   };
 
   enum SCallTableEntry {
@@ -4938,7 +4945,10 @@ class Code : public Object {
   };
 
   class KindField : public BitField<intptr_t, CallKind, 0, 2> {};
-  class OffsetField : public BitField<intptr_t, intptr_t, 2, 28> {};
+  class EntryPointField
+      : public BitField<intptr_t, CallEntryPoint, KindField::kNextBit, 1> {};
+  class OffsetField
+      : public BitField<intptr_t, intptr_t, EntryPointField::kNextBit, 27> {};
 
   void set_static_calls_target_table(const Array& value) const;
   RawArray* static_calls_target_table() const {
@@ -5248,6 +5258,8 @@ class Code : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
   friend class SnapshotWriter;
+  friend class StubCode;     // for set_object_pool
+  friend class Precompiler;  // for set_object_pool
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
   friend class StubCode;               // for set_object_pool
@@ -7807,6 +7819,7 @@ class Array : public Instance {
   static intptr_t LengthOf(const RawArray* array) {
     return Smi::Value(array->ptr()->length_);
   }
+
   static intptr_t length_offset() { return OFFSET_OF(RawArray, length_); }
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(RawArray, data);

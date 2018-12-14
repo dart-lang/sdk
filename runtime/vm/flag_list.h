@@ -157,6 +157,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(sync_async, bool, true, "Start `async` functions synchronously.")          \
+  P(use_bare_instructions, bool, false, "Enable bare instructions mode.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \

@@ -24,6 +24,7 @@
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -58,6 +59,7 @@ namespace dart {
 #define Z (zone())
 
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
+DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(
     int,
@@ -83,6 +85,8 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(bool, print_instruction_stats);
+
+Precompiler* Precompiler::singleton_ = nullptr;
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
@@ -173,7 +177,15 @@ Precompiler::Precompiler(Thread* thread)
       types_to_retain_(),
       consts_to_retain_(),
       error_(Error::Handle()),
-      get_runtime_type_is_unique_(false) {}
+      get_runtime_type_is_unique_(false) {
+  ASSERT(Precompiler::singleton_ == NULL);
+  Precompiler::singleton_ = this;
+}
+
+Precompiler::~Precompiler() {
+  ASSERT(Precompiler::singleton_ == this);
+  Precompiler::singleton_ = NULL;
+}
 
 void Precompiler::DoCompileAll() {
   ASSERT(I->compilation_allowed());
@@ -182,8 +194,16 @@ void Precompiler::DoCompileAll() {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
 
+    if (FLAG_use_bare_instructions) {
+      // Since we keep the object pool until the end of AOT compilation, it
+      // will hang on to its entries until the very end. Therefore we have
+      // to use handles which survive that long, so we use [zone_] here.
+      global_object_pool_wrapper_.InitializeWithZone(zone_);
+    }
+
     {
       HANDLESCOPE(T);
+
       // Make sure class hierarchy is stable before compilation so that CHA
       // can be used. Also ensures lookup of entry points won't miss functions
       // because their class hasn't been finalized yet.
@@ -202,10 +222,35 @@ void Precompiler::DoCompileAll() {
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
-      ClassFinalizer::ClearAllCode();
+      ClassFinalizer::ClearAllCode(
+          /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
       PrecompileConstructors();
 
-      ClassFinalizer::ClearAllCode();
+      ClassFinalizer::ClearAllCode(
+          /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+
+      // All stubs have already been generated, all of them share the same pool.
+      // We use that pool to initialize our global object pool, to guarantee
+      // stubs as well as code compiled from here on will have the same pool.
+      if (FLAG_use_bare_instructions) {
+        // We use any stub here to get it's object pool (all stubs share the
+        // same object pool in bare instructions mode).
+        const Code& code = StubCode::InterpretCall();
+        const ObjectPool& stub_pool = ObjectPool::Handle(code.object_pool());
+
+        global_object_pool_wrapper()->Reset();
+        global_object_pool_wrapper()->InitializeFrom(stub_pool);
+
+        // We have two global code objects we need to re-generate with the new
+        // global object pool, namely the
+        //   - megamorphic miss handler code and the
+        //   - build method extractor code
+        MegamorphicCacheTable::ReInitMissHandlerCode(
+            isolate_, global_object_pool_wrapper());
+        I->object_store()->set_build_method_extractor_code(
+            Code::Handle(StubCode::GetBuildMethodExtractorStub(
+                global_object_pool_wrapper())));
+      }
 
       CollectDynamicFunctionNames();
 
@@ -220,6 +265,21 @@ void Precompiler::DoCompileAll() {
       // Replace the default type testing stubs installed on [Type]s with new
       // [Type]-specialized stubs.
       AttachOptimizedTypeTestingStub();
+
+      if (FLAG_use_bare_instructions) {
+        // Now we generate the actual object pool instance and attach it to the
+        // object store. The AOT runtime will use it from there in the enter
+        // dart code stub.
+        const auto& pool =
+            ObjectPool::Handle(global_object_pool_wrapper()->MakeObjectPool());
+        I->object_store()->set_global_object_pool(pool);
+        global_object_pool_wrapper()->Reset();
+
+        if (FLAG_print_gop) {
+          THR_Print("Global object pool:\n");
+          pool.DebugPrint();
+        }
+      }
 
       I->set_compilation_allowed(false);
 
@@ -433,6 +493,10 @@ void Precompiler::CollectCallbackFields() {
 }
 
 void Precompiler::ProcessFunction(const Function& function) {
+  const intptr_t gop_offset =
+      FLAG_use_bare_instructions ? global_object_pool_wrapper()->CurrentLength()
+                                 : 0;
+
   if (!function.HasCode()) {
     function_count_++;
 
@@ -464,10 +528,10 @@ void Precompiler::ProcessFunction(const Function& function) {
   }
 
   ASSERT(function.HasCode());
-  AddCalleesOf(function);
+  AddCalleesOf(function, gop_offset);
 }
 
-void Precompiler::AddCalleesOf(const Function& function) {
+void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   ASSERT(function.HasCode());
 
   const Code& code = Code::Handle(Z, function.CurrentCode());
@@ -494,12 +558,24 @@ void Precompiler::AddCalleesOf(const Function& function) {
   FATAL("Callee scanning unimplemented for IA32");
 #endif
 
-  const ObjectPool& pool = ObjectPool::Handle(Z, code.GetObjectPool());
   String& selector = String::Handle(Z);
-  for (intptr_t i = 0; i < pool.Length(); i++) {
-    if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
-      entry = pool.ObjectAt(i);
-      AddCalleesOfHelper(entry, &selector, &cls);
+  if (FLAG_use_bare_instructions) {
+    for (intptr_t i = gop_offset;
+         i < global_object_pool_wrapper()->CurrentLength(); i++) {
+      const auto& wrapper_entry = global_object_pool_wrapper()->EntryAt(i);
+      if (wrapper_entry.type() == ObjectPool::kTaggedObject) {
+        const auto& entry = *wrapper_entry.obj_;
+        AddCalleesOfHelper(entry, &selector, &cls);
+      }
+    }
+  } else {
+    const auto& pool = ObjectPool::Handle(Z, code.object_pool());
+    auto& entry = Object::Handle(Z);
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
+        entry = pool.ObjectAt(i);
+        AddCalleesOfHelper(entry, &selector, &cls);
+      }
     }
   }
 
@@ -672,7 +748,7 @@ void Precompiler::AddTypeArguments(const TypeArguments& args) {
   }
 }
 
-void Precompiler::AddConstObject(const Instance& instance) {
+void Precompiler::AddConstObject(const class Instance& instance) {
   // Types and type arguments require special handling.
   if (instance.IsAbstractType()) {
     AddType(AbstractType::Cast(instance));
@@ -770,12 +846,16 @@ void Precompiler::AddField(const Field& field) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
+        const intptr_t gop_offset =
+            FLAG_use_bare_instructions
+                ? global_object_pool_wrapper()->CurrentLength()
+                : 0;
         ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
         const Function& initializer =
             Function::Handle(Z, CompileStaticInitializer(field));
         ASSERT(!initializer.IsNull());
         field.SetPrecompiledInitializer(initializer);
-        AddCalleesOf(initializer);
+        AddCalleesOf(initializer, gop_offset);
       }
     }
   }
@@ -792,7 +872,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
       kernel::ParseStaticFieldInitializer(zone, field);
 
   DartCompilationPipeline pipeline;
-  PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
+  PrecompileParsedFunctionHelper helper(Precompiler::Instance(),
                                         parsed_function,
                                         /* optimized = */ true);
   if (!helper.Compile(&pipeline)) {
@@ -1527,12 +1607,12 @@ void Precompiler::DropScriptData() {
 }
 
 void Precompiler::TraceTypesFromRetainedClasses() {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Array& members = Array::Handle(Z);
-  Array& constants = Array::Handle(Z);
-  GrowableObjectArray& retained_constants = GrowableObjectArray::Handle(Z);
-  Instance& constant = Instance::Handle(Z);
+  auto& lib = Library::Handle(Z);
+  auto& cls = Class::Handle(Z);
+  auto& members = Array::Handle(Z);
+  auto& constants = Array::Handle(Z);
+  auto& retained_constants = GrowableObjectArray::Handle(Z);
+  auto& constant = Instance::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1837,33 +1917,41 @@ void Precompiler::BindStaticCalls() {
       code_ = function.CurrentCode();
       table_ = code_.static_calls_target_table();
       StaticCallsTable static_calls(table_);
+      bool only_call_via_code = true;
       for (auto& view : static_calls) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto kind = Code::KindField::decode(kind_and_offset_.Value());
-        ASSERT(kind == Code::kCallViaCode);
         auto pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
-        target_ = view.Get<Code::kSCallTableFunctionTarget>();
-        if (target_.IsNull()) {
-          target_ = view.Get<Code::kSCallTableCodeTarget>();
-          ASSERT(!Code::Cast(target_).IsFunctionCode());
-          // Allocation stub or AllocateContext or AllocateArray or ...
+        if (kind == Code::kCallViaCode) {
+          target_ = view.Get<Code::kSCallTableFunctionTarget>();
+          if (target_.IsNull()) {
+            target_ = view.Get<Code::kSCallTableCodeTarget>();
+            ASSERT(!Code::Cast(target_).IsFunctionCode());
+            // Allocation stub or AllocateContext or AllocateArray or ...
+          } else {
+            // Static calls initially call the CallStaticFunction stub because
+            // their target might not be compiled yet. After tree shaking, all
+            // static call targets are compiled.
+            // Cf. runtime entry PatchStaticCall called from CallStaticFunction
+            // stub.
+            auto& fun = Function::Cast(target_);
+            ASSERT(fun.HasCode());
+            target_code_ ^= fun.CurrentCode();
+            uword pc = pc_offset + code_.PayloadStart();
+            CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
+          }
         } else {
-          // Static calls initially call the CallStaticFunction stub because
-          // their target might not be compiled yet. After tree shaking, all
-          // static call targets are compiled.
-          // Cf. runtime entry PatchStaticCall called from CallStaticFunction
-          // stub.
-          const auto& fun = Function::Cast(target_);
-          ASSERT(fun.HasCode());
-          target_code_ ^= fun.CurrentCode();
-          uword pc = pc_offset + code_.PayloadStart();
-          CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
+          ASSERT(kind == Code::kPcRelativeCall ||
+                 kind == Code::kPcRelativeTailCall);
+          only_call_via_code = false;
         }
       }
 
       // We won't patch static calls anymore, so drop the static call table to
       // save space.
-      code_.set_static_calls_target_table(Object::empty_array());
+      if (only_call_via_code) {
+        code_.set_static_calls_target_table(Object::empty_array());
+      }
     }
 
    private:
@@ -1889,6 +1977,7 @@ void Precompiler::BindStaticCalls() {
 }
 
 void Precompiler::SwitchICCalls() {
+  ASSERT(!I->compilation_allowed());
 #if !defined(TARGET_ARCH_DBC)
   // Now that all functions have been compiled, we can switch to an instance
   // call sequence that loads the Code object and entry point directly from
@@ -1978,17 +2067,23 @@ void Precompiler::SwitchICCalls() {
   };
 
   ICCallSwitcher switcher(Z);
-  SwitchICCallsVisitor visitor(&switcher, Z);
+  auto& gop = ObjectPool::Handle(I->object_store()->global_object_pool());
+  ASSERT(gop.IsNull() != FLAG_use_bare_instructions);
+  if (FLAG_use_bare_instructions) {
+    switcher.SwitchPool(gop);
+  } else {
+    SwitchICCallsVisitor visitor(&switcher, Z);
 
-  // We need both iterations to ensure we visit all the functions that might end
-  // up in the snapshot. The ProgramVisitor will miss closures from duplicated
-  // finally clauses, and not all functions are compiled through the
-  // tree-shaker's queue
-  ProgramVisitor::VisitFunctions(&visitor);
-  FunctionSet::Iterator it(enqueued_functions_.GetIterator());
-  for (const Function** current = it.Next(); current != NULL;
-       current = it.Next()) {
-    visitor.Visit(**current);
+    // We need both iterations to ensure we visit all the functions that might
+    // end up in the snapshot. The ProgramVisitor will miss closures from
+    // duplicated finally clauses, and not all functions are compiled through
+    // the tree-shaker's queue
+    ProgramVisitor::VisitFunctions(&visitor);
+    FunctionSet::Iterator it(enqueued_functions_.GetIterator());
+    for (const Function** current = it.Next(); current != NULL;
+         current = it.Next()) {
+      visitor.Visit(**current);
+    }
   }
 #endif
 }
@@ -2115,9 +2210,12 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
       Array::Handle(zone, graph_compiler->CreateDeoptInfo(assembler));
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
-  const Code& code = Code::Handle(Code::FinalizeCode(
-      function, graph_compiler, assembler, Code::PoolAttachment::kAttachPool,
-      optimized(), stats));
+  const auto pool_attachment = FLAG_use_bare_instructions
+                                   ? Code::PoolAttachment::kNotAttachPool
+                                   : Code::PoolAttachment::kAttachPool;
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, graph_compiler, assembler,
+                                      pool_attachment, optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {
@@ -2244,8 +2342,14 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
 
+      ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
+
       ObjectPoolWrapper object_pool;
-      Assembler assembler(&object_pool, use_far_branches);
+      ObjectPoolWrapper* active_object_pool_wrapper =
+          FLAG_use_bare_instructions
+              ? precompiler_->global_object_pool_wrapper()
+              : &object_pool;
+      Assembler assembler(active_object_pool_wrapper, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {

@@ -860,7 +860,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   const auto& stub = StubCode::CallStaticFunction();
   __ Call(stub, true /* movable_target */);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
-  AddStaticCallTarget(target);
+  AddStaticCallTarget(target, entry_kind);
 }
 
 void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,

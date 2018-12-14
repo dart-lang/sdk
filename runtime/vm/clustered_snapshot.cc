@@ -1446,13 +1446,41 @@ class CodeDeserializationCluster : public DeserializationCluster {
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
+    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
     start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
 
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(AllocateUninitialized(old_space, Code::InstanceSize(0)));
+    // Build an array of code objects representing the order in which the
+    // [Code]'s instructions will be located in memory.
+    const bool build_code_order =
+        FLAG_precompiled_mode && FLAG_use_bare_instructions;
+    RawArray* code_order = nullptr;
+    const intptr_t code_order_length = d->code_order_length();
+    if (build_code_order) {
+      code_order = static_cast<RawArray*>(
+          AllocateUninitialized(old_space, Array::InstanceSize(count)));
+      Deserializer::InitializeHeader(code_order, kArrayCid,
+                                     Array::InstanceSize(count), is_vm_object,
+                                     /*is_canonical=*/false);
+      code_order->ptr()->type_arguments_ = TypeArguments::null();
+      code_order->ptr()->length_ = Smi::New(code_order_length);
     }
+
+    for (intptr_t i = 0; i < count; i++) {
+      auto code = AllocateUninitialized(old_space, Code::InstanceSize(0));
+      d->AssignRef(code);
+      if (code_order != nullptr && i < code_order_length) {
+        code_order->ptr()->data()[i] = code;
+      }
+    }
+
+    if (code_order != nullptr) {
+      const auto& code_order_table = Array::Handle(code_order);
+      d->isolate()->object_store()->set_code_order_table(code_order_table);
+    }
+
     stop_index_ = d->next_index();
   }
 

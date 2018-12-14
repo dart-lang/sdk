@@ -562,6 +562,7 @@ typedef struct {
   bool use_osr;
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
+  bool use_bare_instructions;
   bool load_vmservice_library;
   bool unsafe_trust_strong_mode_types;
 } Dart_IsolateFlags;

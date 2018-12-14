@@ -18,6 +18,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
@@ -1250,15 +1251,18 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   // Setup the frame.
   EnterFrame(0);
-  TagAndPushPPAndPcMarker();  // Save PP and PC marker.
 
-  // Load the pool pointer.
-  if (new_pp == kNoRegister) {
-    LoadPoolPointer();
-  } else {
-    mov(PP, new_pp);
-    set_constant_pool_allowed(true);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    TagAndPushPPAndPcMarker();  // Save PP and PC marker.
+
+    // Load the pool pointer.
+    if (new_pp == kNoRegister) {
+      LoadPoolPointer();
+    } else {
+      mov(PP, new_pp);
+    }
   }
+  set_constant_pool_allowed(true);
 
   // Reserve space.
   if (frame_size > 0) {
@@ -1283,13 +1287,15 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 }
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
-  if (restore_pp == kRestoreCallerPP) {
-    set_constant_pool_allowed(false);
-    // Restore and untag PP.
-    LoadFromOffset(PP, FP,
-                   compiler_frame_layout.saved_caller_pp_from_fp * kWordSize);
-    sub(PP, PP, Operand(kHeapObjectTag));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (restore_pp == kRestoreCallerPP) {
+      // Restore and untag PP.
+      LoadFromOffset(PP, FP,
+                     compiler_frame_layout.saved_caller_pp_from_fp * kWordSize);
+      sub(PP, PP, Operand(kHeapObjectTag));
+    }
   }
+  set_constant_pool_allowed(false);
   LeaveFrame();
 }
 
@@ -1325,7 +1331,8 @@ void Assembler::LeaveCallRuntimeFrame() {
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
       kDartVolatileFpuRegCount * kWordSize +
-      2 * kWordSize;  // PP and pc marker from EnterStubFrame.
+      (compiler_frame_layout.dart_fixed_frame_size - 2) *
+          kWordSize;  // From EnterStubFrame (excluding PC / FP)
   AddImmediate(SP, FP, -kPushedRegistersSize);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);

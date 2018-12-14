@@ -79,7 +79,6 @@ io/test_extension_test: RuntimeError # Platform.script points to dill file.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-io/compile_all_test: Crash # Issue 32373
 io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash
@@ -97,7 +96,7 @@ io/namespace_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 dwarf_stack_trace_test: RuntimeError
-io/compile_all_test: RuntimeError # Issue 32338
+io/compile_all_test: Skip # We do not support --compile-all for precompilation
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
 io/http_close_test: Crash

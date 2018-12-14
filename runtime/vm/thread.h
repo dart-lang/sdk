@@ -48,6 +48,7 @@ class RawObject;
 class RawCode;
 class RawError;
 class RawGrowableObjectArray;
+class RawObjectPool;
 class RawStackTrace;
 class RawString;
 class RuntimeEntry;
@@ -121,7 +122,8 @@ class Zone;
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  V(RawObjectPool*, global_object_pool_, ObjectPool::null(), NULL)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
@@ -551,6 +553,11 @@ class Thread : public BaseThread {
   }
   LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
+
+  RawObjectPool* global_object_pool() const { return global_object_pool_; }
+  void set_global_object_pool(RawObjectPool* raw_value) {
+    global_object_pool_ = raw_value;
+  }
 
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);

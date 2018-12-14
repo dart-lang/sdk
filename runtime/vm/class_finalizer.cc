@@ -2046,7 +2046,7 @@ void ClassFinalizer::RehashTypes() {
   object_store->set_canonical_type_arguments(typeargs_table.Release());
 }
 
-void ClassFinalizer::ClearAllCode() {
+void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   class ClearCodeFunctionVisitor : public FunctionVisitor {
     void Visit(const Function& function) {
       function.ClearCode();
@@ -2057,14 +2057,34 @@ void ClassFinalizer::ClearAllCode() {
   ProgramVisitor::VisitFunctions(&function_visitor);
 
   class ClearCodeClassVisitor : public ClassVisitor {
+   public:
+    explicit ClearCodeClassVisitor(bool force) : force_(force) {}
+
     void Visit(const Class& cls) {
-      if (cls.id() >= kNumPredefinedCids) {
+      if (force_ || cls.id() >= kNumPredefinedCids) {
         cls.DisableAllocationStub();
       }
     }
+
+   private:
+    bool force_;
   };
-  ClearCodeClassVisitor class_visitor;
+  ClearCodeClassVisitor class_visitor(including_nonchanging_cids);
   ProgramVisitor::VisitClasses(&class_visitor);
+
+  // Apart from normal function code and allocation stubs we have two global
+  // code objects to clear.
+  if (including_nonchanging_cids) {
+    auto thread = Thread::Current();
+    auto object_store = thread->isolate()->object_store();
+    auto& null_code = Code::Handle(thread->zone());
+    object_store->set_build_method_extractor_code(null_code);
+
+    auto& miss_function = Function::Handle(
+        thread->zone(), object_store->megamorphic_miss_function());
+    miss_function.ClearCode();
+    object_store->SetMegamorphicMissHandler(null_code, miss_function);
+  }
 }
 
 }  // namespace dart

@@ -52,13 +52,15 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   GrowableArray<RawCode*> callers;
   // The offset from the instruction at which the call happens.
   GrowableArray<intptr_t> call_offsets;
+  // Type entry-point type we call in the destination.
+  GrowableArray<Code::CallEntryPoint> call_entry_points;
   // The offset in the .text segment where the call happens.
   GrowableArray<intptr_t> text_offsets;
   // The target of the forward call.
   GrowableArray<RawCode*> callees;
 
   auto& targets = Array::Handle(zone);
-  auto& kind_and_offset = Smi::Handle(zone);
+  auto& kind_type_and_offset = Smi::Handle(zone);
   auto& target = Object::Handle(zone);
   auto& destination = Code::Handle(zone);
   auto& instructions = Instructions::Handle(zone);
@@ -86,9 +88,11 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
     if (!targets.IsNull()) {
       StaticCallsTable calls(targets);
       for (auto call : calls) {
-        kind_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
-        auto kind = Code::KindField::decode(kind_and_offset.Value());
-        auto offset = Code::OffsetField::decode(kind_and_offset.Value());
+        kind_type_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
+        auto kind = Code::KindField::decode(kind_type_and_offset.Value());
+        auto offset = Code::OffsetField::decode(kind_type_and_offset.Value());
+        auto entry_point =
+            Code::EntryPointField::decode(kind_type_and_offset.Value());
 
         if (kind == Code::kCallViaCode) {
           continue;
@@ -113,6 +117,7 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
         callees.Add(destination.raw());
         text_offsets.Add(start_of_call);
         call_offsets.Add(offset);
+        call_entry_points.Add(entry_point);
       }
     }
   }
@@ -125,12 +130,16 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
     callee = callees[i];
     const intptr_t text_offset = text_offsets[i];
     const intptr_t call_offset = call_offsets[i];
+    const bool use_unchecked_entry =
+        call_entry_points[i] == Code::kUncheckedEntry;
     caller_instruction = caller.instructions();
     destination_instruction = callee.instructions();
 
-    const intptr_t unchecked_offset = destination_instruction.HeaderSize() +
-                                      (destination_instruction.EntryPoint() -
-                                       destination_instruction.PayloadStart());
+    const uword entry_point = use_unchecked_entry ? callee.UncheckedEntryPoint()
+                                                  : callee.EntryPoint();
+    const intptr_t unchecked_offset =
+        destination_instruction.HeaderSize() +
+        (entry_point - destination_instruction.PayloadStart());
 
     auto map_entry = instructions_map.Lookup(destination_instruction.raw());
     auto& dst = (*commands_)[map_entry->inst_nr];

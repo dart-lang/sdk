@@ -24,6 +24,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
@@ -3162,10 +3163,16 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   COMPILE_ASSERT(PP < CODE_REG);
   COMPILE_ASSERT(CODE_REG < FP);
   COMPILE_ASSERT(FP < LR);
-  EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
-  // Setup pool pointer for this dart function.
-  LoadPoolPointer();
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
+
+    // Setup pool pointer for this dart function.
+    LoadPoolPointer();
+  } else {
+    EnterFrame((1 << FP) | (1 << LR), 0);
+  }
+  set_constant_pool_allowed(true);
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -3186,8 +3193,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 }
 
 void Assembler::LeaveDartFrame() {
-  ldr(PP,
-      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  }
   set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
@@ -3196,8 +3205,10 @@ void Assembler::LeaveDartFrame() {
 }
 
 void Assembler::LeaveDartFrameAndReturn() {
-  ldr(PP,
-      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  }
   set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP

@@ -693,29 +693,40 @@ void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
                                           null_check_name_idx);
 }
 
-void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function) {
+void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
+                                                Code::EntryKind entry_kind) {
   ASSERT(function.IsZoneHandle());
-  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kPcRelativeCall, assembler()->CodeSize(), &function, NULL));
+  const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
+                               ? Code::kUncheckedEntry
+                               : Code::kDefaultEntry;
+  static_calls_target_table_.Add(
+      new (zone()) StaticCallsStruct(Code::kPcRelativeCall, entry_point,
+                                     assembler()->CodeSize(), &function, NULL));
 }
 
 void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
   ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kPcRelativeCall, assembler()->CodeSize(), NULL, &stub_code));
+      Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(), NULL,
+      &stub_code));
 }
 
-void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
+void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
+                                            Code::EntryKind entry_kind) {
   ASSERT(func.IsZoneHandle());
+  const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
+                               ? Code::kUncheckedEntry
+                               : Code::kDefaultEntry;
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kCallViaCode, assembler()->CodeSize(), &func, NULL));
+      Code::kCallViaCode, entry_point, assembler()->CodeSize(), &func, NULL));
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
   ASSERT(code.IsZoneHandle() || code.IsReadOnlyHandle());
-  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kCallViaCode, assembler()->CodeSize(), NULL, &code));
+  static_calls_target_table_.Add(
+      new (zone()) StaticCallsStruct(Code::kCallViaCode, Code::kDefaultEntry,
+                                     assembler()->CodeSize(), NULL, &code));
 }
 
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
@@ -1075,13 +1086,15 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
       Array::Handle(zone(), Array::New(array_length, Heap::kOld));
 
   StaticCallsTable entries(targets);
-  auto& kind_and_offset = Smi::Handle(zone());
+  auto& kind_type_and_offset = Smi::Handle(zone());
   for (intptr_t i = 0; i < calls.length(); i++) {
     auto entry = calls[i];
-    kind_and_offset = Smi::New(Code::KindField::encode(entry->call_kind) |
-                               Code::OffsetField::encode(entry->offset));
+    kind_type_and_offset =
+        Smi::New(Code::KindField::encode(entry->call_kind) |
+                 Code::EntryPointField::encode(entry->entry_point) |
+                 Code::OffsetField::encode(entry->offset));
     auto view = entries[i];
-    view.Set<Code::kSCallTableKindAndOffset>(kind_and_offset);
+    view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
     const Object* target = nullptr;
     if (entry->function != nullptr) {
       view.Set<Code::kSCallTableFunctionTarget>(*calls[i]->function);

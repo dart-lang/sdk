@@ -43,6 +43,18 @@ const FrameLayout default_frame_layout = {
     /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
 };
+const FrameLayout bare_instructions_frame_layout = {
+    /*.first_object_from_pc =*/kFirstObjectSlotFromFp,  // No saved PP slot.
+    /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
+        2,  // No saved CODE, PP slots
+    /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.first_local_from_fp =*/kFirstLocalSlotFromFp +
+        2,  // No saved CODE, PP slots.
+    /*.dart_fixed_frame_size =*/kDartFrameFixedSize -
+        2,                              // No saved CODE, PP slots.
+    /*.saved_caller_pp_from_fp = */ 0,  // No saved PP slot.
+    /*.code_from_fp = */ 0,             // No saved CODE
+};
 
 FrameLayout compiler_frame_layout = invalid_frame_layout;
 FrameLayout runtime_frame_layout = invalid_frame_layout;
@@ -62,8 +74,19 @@ int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
 }
 
 void FrameLayout::Init() {
+  // By default we use frames with CODE_REG/PP in the frame.
   compiler_frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
+
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    compiler_frame_layout = bare_instructions_frame_layout;
+  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    compiler_frame_layout = invalid_frame_layout;
+    runtime_frame_layout = bare_instructions_frame_layout;
+  }
+#endif
 }
 
 Isolate* StackFrame::IsolateOfBareInstructionsFrame() const {
@@ -118,8 +141,8 @@ bool StackFrame::IsStubFrame() const {
     return false;
   }
 
-  if (IsBareInstructionsStubFrame()) {
-    return true;
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    return IsBareInstructionsStubFrame();
   }
 
   ASSERT(!(IsEntryFrame() || IsExitFrame()));

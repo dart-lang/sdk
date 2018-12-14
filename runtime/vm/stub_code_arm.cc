@@ -29,6 +29,7 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
+DECLARE_FLAG(bool, precompiled_mode);
 
 // Input parameters:
 //   LR : return address.
@@ -1018,7 +1019,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   // Call the Dart code entrypoint.
-  __ LoadImmediate(PP, 0);  // GC safe value into PP.
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+  } else {
+    __ LoadImmediate(PP, 0);  // GC safe value into PP.
+  }
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ ldr(R0, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ blx(R0);  // R4 is the arguments descriptor array.
@@ -2466,7 +2471,12 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
   // Restore the pool pointer.
   __ RestoreCodePointer();
-  __ LoadPoolPointer();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ set_constant_pool_allowed(true);
+  } else {
+    __ LoadPoolPointer();
+  }
   __ bx(LR);  // Jump to continuation point.
 }
 

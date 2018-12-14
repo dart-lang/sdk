@@ -83,6 +83,7 @@ DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, write_protect_code);
+DECLARE_FLAG(bool, precompiled_mode);
 
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -14192,6 +14193,15 @@ void Code::set_static_calls_target_table(const Array& value) const {
     ASSERT(OffsetField::decode(left) < OffsetField::decode(right));
   }
 #endif  // DEBUG
+}
+
+RawObjectPool* Code::GetObjectPool() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_bare_instructions) {
+    return Isolate::Current()->object_store()->global_object_pool();
+  }
+#endif
+  return object_pool();
 }
 
 bool Code::HasBreakpoint() const {

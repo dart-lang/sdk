@@ -43,7 +43,6 @@ static const int kSavedCallerPcSlotFromFp = 1;
 
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
-static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
 #if defined(_WIN64)

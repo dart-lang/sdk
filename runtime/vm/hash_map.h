@@ -27,6 +27,8 @@ class BaseDirectChainedHashMap : public B {
 
   BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
 
+  intptr_t Length() const { return count_; }
+
   virtual ~BaseDirectChainedHashMap() {
     allocator_->template Free<HashMapListElement>(array_, array_size_);
     allocator_->template Free<HashMapListElement>(lists_, lists_size_);

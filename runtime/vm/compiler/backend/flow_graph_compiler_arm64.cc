@@ -766,17 +766,23 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
       extracted_method, ObjectPool::Patchability::kNotPatchable);
 
   // We use a custom pool register to preserve caller PP.
-  const Register kPoolReg = R0;
+  Register kPoolReg = R0;
 
   // R1 = extracted function
   // R4 = offset of type argument vector (or 0 if class is not generic)
-  __ ldr(kPoolReg, FieldAddress(CODE_REG, Code::object_pool_offset()));
-  __ LoadFieldFromOffset(kPoolReg, CODE_REG, Code::object_pool_offset());
+  intptr_t pp_offset = 0;
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // PP is not tagged on arm64.
+    kPoolReg = PP;
+    pp_offset = kHeapObjectTag;
+  } else {
+    __ LoadFieldFromOffset(kPoolReg, CODE_REG, Code::object_pool_offset());
+  }
   __ LoadImmediate(R4, type_arguments_field_offset);
-  __ LoadFieldFromOffset(R1, kPoolReg,
-                         ObjectPool::element_offset(function_index));
+  __ LoadFieldFromOffset(
+      R1, kPoolReg, ObjectPool::element_offset(function_index) + pp_offset);
   __ LoadFieldFromOffset(CODE_REG, kPoolReg,
-                         ObjectPool::element_offset(stub_index));
+                         ObjectPool::element_offset(stub_index) + pp_offset);
   __ LoadFieldFromOffset(R0, CODE_REG,
                          Code::entry_point_offset(Code::EntryKind::kUnchecked));
   __ br(R0);
@@ -813,9 +819,11 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ Comment("Invocation Count Check");
     const Register function_reg = R6;
     new_pp = R13;
-    // The pool pointer is not setup before entering the Dart frame.
-    // Temporarily setup pool pointer for this dart function.
-    __ LoadPoolPointer(new_pp);
+    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+      // The pool pointer is not setup before entering the Dart frame.
+      // Temporarily setup pool pointer for this dart function.
+      __ LoadPoolPointer(new_pp);
+    }
 
     // Load function object using the callee's pool pointer.
     __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
@@ -912,9 +920,16 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const Code& stub,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ BranchLink(stub);
-  EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
-  AddStubCallTarget(stub);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions && !stub.InVMHeap()) {
+    AddPcRelativeCallStubTarget(stub);
+    __ GenerateUnRelocatedPcRelativeCall();
+    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+  } else {
+    ASSERT(!stub.IsNull());
+    __ BranchLink(stub);
+    EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
+    AddStubCallTarget(stub);
+  }
 }
 
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
@@ -943,14 +958,21 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
   // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
-  // Call sites to the same target can share object pool entries. These
-  // call sites are never patched for breakpoints: the function is deoptimized
-  // and the unoptimized code with IC calls for static calls is patched instead.
-  ASSERT(is_optimizing());
-  const Code& stub = StubCode::CallStaticFunction();
-  __ BranchLinkWithEquivalence(stub, target);
-  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
-  AddStaticCallTarget(target);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    AddPcRelativeCallTarget(target, entry_kind);
+    __ GenerateUnRelocatedPcRelativeCall();
+    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
+  } else {
+    // Call sites to the same target can share object pool entries. These
+    // call sites are never patched for breakpoints: the function is deoptimized
+    // and the unoptimized code with IC calls for static calls is patched
+    // instead.
+    ASSERT(is_optimizing());
+    const auto& stub = StubCode::CallStaticFunction();
+    __ BranchLinkWithEquivalence(stub, target);
+    EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
+    AddStaticCallTarget(target, entry_kind);
+  }
 }
 
 void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,

@@ -111,7 +111,8 @@ void TranslationHelper::SetMetadataMappings(
 }
 
 void TranslationHelper::SetConstants(const Array& constants) {
-  ASSERT(constants_.IsNull());
+  ASSERT(constants_.IsNull() ||
+         (constants.IsNull() || constants.Length() == 0));
   constants_ = constants.raw();
 }
 

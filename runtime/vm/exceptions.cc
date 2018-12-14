@@ -248,7 +248,7 @@ class ExceptionHandlerFinder : public StackResource {
       switch (move.source_kind()) {
         case CatchEntryMove::SourceKind::kConstant:
           if (pool == nullptr) {
-            pool = &ObjectPool::Handle(code_->object_pool());
+            pool = &ObjectPool::Handle(code_->GetObjectPool());
           }
           value = pool->ObjectAt(move.src_slot());
           break;

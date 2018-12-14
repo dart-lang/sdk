@@ -27,6 +27,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
@@ -248,6 +249,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return strdup(error.ToErrorCString());
       }
+
+      ReversePcLookupCache::BuildAndAttachToIsolate(vm_isolate_);
+
       Object::FinishInit(vm_isolate_);
 #if !defined(PRODUCT)
       if (tds.enabled()) {
@@ -604,6 +608,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     if (!error.IsNull()) {
       return error.raw();
     }
+
+    ReversePcLookupCache::BuildAndAttachToIsolate(I);
+
 #if !defined(PRODUCT)
     if (tds.enabled()) {
       tds.SetNumArguments(2);
@@ -630,17 +637,17 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: The megamorphic miss function and code come from the snapshot.
   ASSERT(I->object_store()->megamorphic_miss_code() != Code::null());
+  ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
 #else
   // JIT: The megamorphic miss function and code come from the snapshot in JIT
   // app snapshot, otherwise create them.
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
-
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
   if (I != Dart::vm_isolate()) {
     I->object_store()->set_build_method_extractor_code(
-        Code::Handle(StubCode::GetBuildMethodExtractorStub()));
+        Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
   }
 #endif
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -716,6 +723,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     // sync-async affects deopt_ids.
     buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
+    if (kind == Snapshot::kFullAOT) {
+      ADD_FLAG(use_bare_instructions, use_bare_instructions,
+               FLAG_use_bare_instructions);
+    }
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);

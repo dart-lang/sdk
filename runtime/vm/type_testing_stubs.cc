@@ -345,9 +345,11 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
 
   const char* name = namer_.StubNameForType(type);
+  const auto pool_attachment = FLAG_use_bare_instructions
+                                   ? Code::PoolAttachment::kNotAttachPool
+                                   : Code::PoolAttachment::kAttachPool;
   const Code& code = Code::Handle(Code::FinalizeCode(
-      name, nullptr, &assembler, Code::PoolAttachment::kAttachPool,
-      false /* optimized */));
+      name, nullptr, &assembler, pool_attachment, false /* optimized */));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;

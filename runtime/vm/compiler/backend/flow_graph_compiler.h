@@ -773,9 +773,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
-  void AddPcRelativeCallTarget(const Function& function);
+  void AddPcRelativeCallTarget(const Function& function,
+                               Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
-  void AddStaticCallTarget(const Function& function);
+  void AddStaticCallTarget(const Function& function,
+                           Code::EntryKind entry_kind);
 
   void GenerateDeferredCode();
 
@@ -927,14 +929,17 @@ class FlowGraphCompiler : public ValueObject {
   class StaticCallsStruct : public ZoneAllocated {
    public:
     Code::CallKind call_kind;
+    Code::CallEntryPoint entry_point;
     const intptr_t offset;
     const Function* function;  // Can be NULL.
     const Code* code;          // Can be NULL.
     StaticCallsStruct(Code::CallKind call_kind,
+                      Code::CallEntryPoint entry_point,
                       intptr_t offset_arg,
                       const Function* function_arg,
                       const Code* code_arg)
         : call_kind(call_kind),
+          entry_point(entry_point),
           offset(offset_arg),
           function(function_arg),
           code(code_arg) {

@@ -28,6 +28,7 @@ DEFINE_FLAG(bool,
             false,
             "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, precompiled_mode);
 
 // Input parameters:
 //   LR : return address.
@@ -1094,10 +1095,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ b(&push_arguments, LT);
   __ Bind(&done_push_arguments);
 
-  // We now load the pool pointer(PP) with a GC safe value as we are about to
-  // invoke dart code. We don't need a real object pool here.
-  // Smi zero does not work because ARM64 assumes PP to be untagged.
-  __ LoadObject(PP, Object::null_object());
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  } else {
+    // We now load the pool pointer(PP) with a GC safe value as we are about to
+    // invoke dart code. We don't need a real object pool here.
+    // Smi zero does not work because ARM64 assumes PP to be untagged.
+    __ LoadObject(PP, Object::null_object());
+  }
 
   // Call the Dart code entrypoint.
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
@@ -2734,7 +2740,12 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   // Restore the pool pointer.
   __ RestoreCodePointer();
-  __ LoadPoolPointer();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  } else {
+    __ LoadPoolPointer();
+  }
   __ ret();  // Jump to continuation point.
 }
 
