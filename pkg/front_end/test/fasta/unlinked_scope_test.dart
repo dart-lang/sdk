@@ -49,11 +49,8 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
             new KernelTarget(
                     null,
                     false,
-                    new DillTarget(
-                        null,
-                        null,
-                        new NoneTarget(new TargetFlags(
-                            legacyMode: true, syncAsync: false))),
+                    new DillTarget(null, null,
+                        new NoneTarget(new TargetFlags(legacyMode: true))),
                     null)
                 .loader,
             null,

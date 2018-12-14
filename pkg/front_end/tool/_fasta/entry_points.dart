@@ -346,7 +346,7 @@ Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
   // mode), this is only an approximation, albeit accurate.  Once Fasta is
   // self-hosting, this isn't an approximation. Regardless, strong mode
   // shouldn't affect which files are read.
-  Target hostTarget = getTarget("vm", new TargetFlags(syncAsync: false));
+  Target hostTarget = getTarget("vm", new TargetFlags());
   return getDependencies(Platform.script,
       platform: hostPlatform, target: hostTarget);
 }

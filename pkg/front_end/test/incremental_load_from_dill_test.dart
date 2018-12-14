@@ -356,8 +356,7 @@ CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..target =
-        new VmTarget(new TargetFlags(legacyMode: !strong, syncAsync: false))
+    ..target = new VmTarget(new TargetFlags(legacyMode: !strong))
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..onDiagnostic = (DiagnosticMessage message) {
       if (message.severity == Severity.error ||

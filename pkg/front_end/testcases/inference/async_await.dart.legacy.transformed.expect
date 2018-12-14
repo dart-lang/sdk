@@ -9,7 +9,7 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int> {
     ;
 }
 static method test() → void /* originally async */ {
-  final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic> :return_value;
   dynamic :async_stack_trace;
   dynamic :async_op_then;
@@ -32,7 +32,7 @@ static method test() → void /* originally async */ {
         asy::FutureOr<self::MyFuture> x8;
         self::MyFuture x9;
         function test0() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -55,11 +55,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test1() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -82,11 +82,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test2() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -109,11 +109,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test3() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -136,11 +136,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test4() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -163,11 +163,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test5() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -190,11 +190,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test6() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -217,11 +217,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test7() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -244,11 +244,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test8() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -271,11 +271,11 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         function test9() → dynamic /* originally async */ {
-          final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
           asy::FutureOr<dynamic> :return_value;
           dynamic :async_stack_trace;
           dynamic :async_op_then;
@@ -298,7 +298,7 @@ static method test() → void /* originally async */ {
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          asy::Future::microtask<dynamic>(:async_op);
+          :async_completer.start(:async_op);
           return :async_completer.{asy::Completer::future};
         }
         [yield] let dynamic #t1 = asy::_awaitHelper(x0, :async_op_then, :async_op_error, :async_op) in null;
@@ -331,7 +331,7 @@ static method test() → void /* originally async */ {
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  asy::Future::microtask<dynamic>(:async_op);
+  :async_completer.start(:async_op);
   return :async_completer.{asy::Completer::future};
 }
 static method main() → dynamic {}
