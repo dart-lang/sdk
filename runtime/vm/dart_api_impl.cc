@@ -4401,38 +4401,6 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
 
 // --- Native fields and functions ---
 
-DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
-                                                      Dart_Handle name,
-                                                      int field_count) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  const String& cls_name = Api::UnwrapStringHandle(Z, name);
-  if (cls_name.IsNull()) {
-    RETURN_TYPE_ERROR(Z, name, String);
-  }
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  if (!Utils::IsUint(16, field_count)) {
-    return Api::NewError(
-        "Invalid field_count passed to Dart_CreateNativeWrapperClass");
-  }
-  CHECK_CALLBACK_STATE(T);
-
-  String& cls_symbol = String::Handle(Z, Symbols::New(T, cls_name));
-  const Class& cls =
-      Class::Handle(Z, Class::NewNativeWrapper(lib, cls_symbol, field_count));
-  if (cls.IsNull()) {
-    return Api::NewError(
-        "Unable to create native wrapper class : already exists");
-  }
-  return Api::NewHandle(T, cls.RareType());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
                                                          int* count) {
   Thread* thread = Thread::Current();
@@ -4659,6 +4627,7 @@ Dart_GetNativeFieldsOfArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
                                                intptr_t* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if (value == NULL) {
     RETURN_NULL_ERROR(value);

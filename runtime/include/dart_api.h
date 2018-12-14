@@ -2459,15 +2459,6 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
  */
 
 /**
- * Creates a native wrapper class.
- *
- * TODO(turnidge): Document.
- */
-DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
-                                                      Dart_Handle class_name,
-                                                      int field_count);
-
-/**
  * Gets the number of native instance fields in an object.
  */
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
