@@ -19,9 +19,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoTypeInfoTest);
     defineReflectiveTests(PrefixedTypeInfoTest);
-    defineReflectiveTests(SimpleNullableTypeTest);
-    defineReflectiveTests(SimpleNullableTypeWith1ArgumentTest);
-    defineReflectiveTests(SimpleTypeTest);
+    defineReflectiveTests(SimpleTypeInfoTest);
     defineReflectiveTests(SimpleTypeWith1ArgumentTest);
     defineReflectiveTests(TypeInfoTest);
     defineReflectiveTests(VoidTypeInfoTest);
@@ -311,124 +309,7 @@ class PrefixedTypeInfoTest {
 }
 
 @reflectiveTest
-class SimpleNullableTypeTest {
-  void test_compute() {
-    expectInfo(simpleNullableType, 'C?', required: true);
-    expectInfo(simpleNullableType, 'C?;', required: true);
-    expectInfo(simpleNullableType, 'C?(', required: true);
-    expectInfo(simpleNullableType, 'C?<', required: true);
-    expectInfo(simpleNullableType, 'C?=', required: true);
-    expectInfo(simpleNullableType, 'C?*', required: true);
-    expectInfo(simpleNullableType, 'C? do', required: true);
-
-    expectInfo(simpleNullableType, 'C? foo');
-    expectInfo(simpleNullableType, 'C? get');
-    expectInfo(simpleNullableType, 'C? set');
-    expectInfo(simpleNullableType, 'C? operator');
-    expectInfo(simpleNullableType, 'C? this');
-    expectInfo(simpleNullableType, 'C? Function');
-
-    expectInfo(simpleNullableType, 'C? Function()', required: false);
-    expectInfo(simpleNullableType, 'C? Function<T>()', required: false);
-    expectInfo(simpleNullableType, 'C? Function(int)', required: false);
-    expectInfo(simpleNullableType, 'C? Function<T>(int)', required: false);
-    expectInfo(simpleNullableType, 'C? Function(int x)', required: false);
-    expectInfo(simpleNullableType, 'C? Function<T>(int x)', required: false);
-  }
-
-  void test_simpleNullableType() {
-    final Token start = scanString('before C? ;').tokens;
-    final Token expectedEnd = start.next.next;
-
-    expect(simpleNullableType.skipType(start), expectedEnd);
-    expect(simpleNullableType.couldBeExpression, isTrue);
-
-    TypeInfoListener listener;
-    assertResult(Token actualEnd) {
-      expect(actualEnd, expectedEnd);
-      expect(listener.calls, [
-        'handleIdentifier C typeReference',
-        'handleNoTypeArguments ?',
-        'handleType C ?',
-      ]);
-      expect(listener.errors, isNull);
-    }
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleNullableType.ensureTypeNotVoid(start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleNullableType.ensureTypeOrVoid(start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleNullableType.parseTypeNotVoid(start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(simpleNullableType.parseType(start, new Parser(listener)));
-  }
-}
-
-@reflectiveTest
-class SimpleNullableTypeWith1ArgumentTest {
-  void test_compute() {
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>?', required: true);
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>?;', required: true);
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>?(', required: true);
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>? do', required: true);
-
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>? foo');
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>? get');
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>? set');
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>? operator');
-    expectInfo(simpleNullableTypeWith1Argument, 'C<T>? Function');
-  }
-
-  void test_gt_questionMark() {
-    final Token start = scanString('before C<T>? ;').tokens;
-    final Token expectedEnd = start.next.next.next.next.next;
-    expect(expectedEnd.lexeme, '?');
-
-    expect(simpleNullableTypeWith1Argument.skipType(start), expectedEnd);
-    expect(simpleNullableTypeWith1Argument.couldBeExpression, isFalse);
-
-    TypeInfoListener listener;
-    assertResult(Token actualEnd) {
-      expect(actualEnd, expectedEnd);
-      expect(listener.calls, [
-        'handleIdentifier C typeReference',
-        'beginTypeArguments <',
-        'handleIdentifier T typeReference',
-        'handleNoTypeArguments >',
-        'handleType T null',
-        'endTypeArguments 1 < >',
-        'handleType C ?',
-      ]);
-      expect(listener.errors, isNull);
-    }
-
-    listener = new TypeInfoListener();
-    assertResult(simpleNullableTypeWith1Argument.ensureTypeNotVoid(
-        start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(simpleNullableTypeWith1Argument.ensureTypeOrVoid(
-        start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(simpleNullableTypeWith1Argument.parseTypeNotVoid(
-        start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleNullableTypeWith1Argument.parseType(start, new Parser(listener)));
-  }
-}
-
-@reflectiveTest
-class SimpleTypeTest {
+class SimpleTypeInfoTest {
   void test_compute() {
     expectInfo(simpleType, 'C', required: true);
     expectInfo(simpleType, 'C;', required: true);
@@ -455,7 +336,7 @@ class SimpleTypeTest {
     expectInfo(simpleType, 'C Function<T>(int x)', required: false);
   }
 
-  void test_simpleType() {
+  void test_simpleTypeInfo() {
     final Token start = scanString('before C ;').tokens;
     final Token expectedEnd = start.next;
 
@@ -937,15 +818,10 @@ class TypeInfoTest {
         expectedErrors: [
           error(codeExpectedType, 2, 1)
         ]);
-  }
 
-  void test_computeType_statements() {
     // Statements that should not have a type
     expectInfo(noType, 'C<T ; T>U;', required: false);
     expectInfo(noType, 'C<T && T>U;', required: false);
-
-    expectInfo(noType, 'C? D : E;', required: false);
-    expectInfo(noType, 'C? D.foo : E;', required: false);
   }
 
   void test_computeType_nested() {

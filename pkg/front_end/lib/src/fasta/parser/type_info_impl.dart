@@ -38,10 +38,6 @@ import 'util.dart'
 /// when there is a single identifier as the type reference.
 const TypeInfo simpleType = const SimpleType();
 
-/// [SimpleNullableType] is a specialized [TypeInfo] returned by [computeType]
-/// when there is a single identifier followed by `?` as the type reference.
-const TypeInfo simpleNullableType = const SimpleNullableType();
-
 /// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
 /// when the type reference is of the form: identifier `.` identifier.
 const TypeInfo prefixedType = const PrefixedType();
@@ -63,12 +59,6 @@ const TypeInfo simpleTypeWith1ArgumentGtEq =
 /// identifier `<` identifier `>>`.
 const TypeInfo simpleTypeWith1ArgumentGtGt =
     const SimpleTypeWith1Argument(simpleTypeArgument1GtGt);
-
-/// [SimpleNullableTypeWith1Argument] is a specialized [TypeInfo] returned by
-/// [computeType] when the type reference is of the form:
-/// identifier `<` identifier `>` `?`.
-const TypeInfo simpleNullableTypeWith1Argument =
-    const SimpleNullableTypeWith1Argument();
 
 /// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
 /// [computeTypeParamOrArg] when the type reference is of the form:
@@ -174,29 +164,6 @@ class PrefixedType implements TypeInfo {
   }
 }
 
-/// See documentation on the [simpleNullableTypeWith1Argument] const.
-class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
-  const SimpleNullableTypeWith1Argument() : super(simpleTypeArgument1);
-
-  @override
-  TypeInfo asNonNullableType() => simpleTypeWith1Argument;
-
-  @override
-  Token parseTypeRest(Token start, Token token, Parser parser) {
-    token = token.next;
-    assert(optional('?', token));
-    parser.listener.handleType(start, token);
-    return token;
-  }
-
-  @override
-  Token skipType(Token token) {
-    token = super.skipType(token).next;
-    assert(optional('?', token));
-    return token;
-  }
-}
-
 /// See documentation on the [simpleTypeWith1Argument] const.
 class SimpleTypeWith1Argument implements TypeInfo {
   final TypeParamOrArgInfo typeArg;
@@ -240,27 +207,6 @@ class SimpleTypeWith1Argument implements TypeInfo {
     token = token.next;
     assert(token.isKeywordOrIdentifier);
     return typeArg.skip(token);
-  }
-}
-
-/// See documentation on the [simpleNullableType] const.
-class SimpleNullableType extends SimpleType {
-  const SimpleNullableType();
-
-  @override
-  TypeInfo asNonNullableType() => simpleType;
-
-  @override
-  Token parseTypeRest(Token start, Parser parser) {
-    Token token = start.next;
-    assert(optional('?', token));
-    parser.listener.handleType(start, token);
-    return token;
-  }
-
-  @override
-  Token skipType(Token token) {
-    return token.next.next;
   }
 }
 
