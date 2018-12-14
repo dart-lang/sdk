@@ -98,7 +98,6 @@ class _IsTestGroup {
     Source source = file.createSource(uri);
     driver.addFile(file.path);
     driver.changeFile(file.path);
-    fileContentOverlay[file.path] = content;
     return source;
   }
 

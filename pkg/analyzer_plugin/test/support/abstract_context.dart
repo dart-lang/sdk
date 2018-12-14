@@ -10,17 +10,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
@@ -47,20 +42,14 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
-  DartSdk sdk;
-  Map<String, List<Folder>> packageMap;
-  UriResolver resourceResolver;
-
-  StringBuffer _logBuffer = new StringBuffer();
-  FileContentOverlay _fileContentOverlay = new FileContentOverlay();
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
 
-  /**
-   * Return the analysis session associated with the driver.
-   */
   AnalysisSession get session => driver.currentSession;
+
+  /// The file system specific `/home/test/pubspec.yaml` path.
+  String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
 
   void addMetaPackage() {
     addPackageFile('meta', 'meta.dart', r'''
@@ -75,18 +64,21 @@ class Required {
 ''');
   }
 
+  /// Add a new file with the given [pathInLib] to the package with the
+  /// given [packageName].  Then ensure that the test package depends on the
+  /// [packageName].
   File addPackageFile(String packageName, String pathInLib, String content) {
-    var packageLibPath = '/.pub-cache/$packageName/lib';
-    packageMap[packageName] = [newFolder(packageLibPath)];
-    return newFile('$packageLibPath/$pathInLib', content: content);
+    var packagePath = '/.pub-cache/$packageName';
+    _addTestPackageDependency(packageName, packagePath);
+    return newFile('$packagePath/lib/$pathInLib', content: content);
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    path = convertPath(path);
-    driver.addFile(path);
-    driver.changeFile(path);
-    _fileContentOverlay[path] = content;
-    return getFile(path).createSource();
+    File file = newFile(path, content: content);
+    Source source = file.createSource(uri);
+    driver.addFile(file.path);
+    driver.changeFile(file.path);
+    return source;
   }
 
   Element findElementInUnit(CompilationUnit unit, String name,
@@ -101,32 +93,49 @@ class Required {
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    resourceResolver = new ResourceUriResolver(resourceProvider);
-    packageMap = new Map<String, List<Folder>>();
-    PackageMapUriResolver packageResolver =
-        new PackageMapUriResolver(resourceProvider, packageMap);
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), packageResolver, resourceResolver]);
-    PerformanceLog log = new PerformanceLog(_logBuffer);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    _driver = new AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        new MemoryByteStore(),
-        _fileContentOverlay,
-        null,
-        sourceFactory,
-        options);
-    scheduler.start();
-    AnalysisEngine.instance.logger = PrintLogger.instance;
+    new MockSdk(resourceProvider: resourceProvider);
+
+    newFolder('/home/test');
+    newFile('/home/test/.packages', content: r'''
+test:file:///home/test/lib
+''');
+
+    _createDriver();
   }
 
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
+  }
+
+  void _addTestPackageDependency(String name, String rootPath) {
+    var packagesFile = getFile('/home/test/.packages');
+    var packagesContent = packagesFile.readAsStringSync();
+
+    // Ignore if there is already the same package dependency.
+    if (packagesContent.contains('$name:file://')) {
+      return;
+    }
+
+    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
+
+    packagesFile.writeAsStringSync(packagesContent);
+
+    _createDriver();
+  }
+
+  void _createDriver() {
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [convertPath('/home')],
+      enableIndex: true,
+      resourceProvider: resourceProvider,
+      sdkPath: convertPath('/sdk'),
+    );
+
+    var testPath = convertPath('/home/test');
+    var context = collection.contextFor(testPath) as DriverBasedAnalysisContext;
+
+    _driver = context.driver;
   }
 }
 
