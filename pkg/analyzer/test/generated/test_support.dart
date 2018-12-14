@@ -107,23 +107,6 @@ class EngineTestCase {
   void tearDown() {}
 
   /**
-   * Assert that the given object is an instance of the expected class.
-   *
-   * @param expectedClass the class that the object is expected to be an instance of
-   * @param object the object being tested
-   * @return the object that was being tested
-   * @throws Exception if the object is not an instance of the expected class
-   */
-  static Object assertInstanceOf(
-      Predicate<Object> predicate, Type expectedClass, Object object) {
-    if (!predicate(object)) {
-      fail(
-          "Expected instance of $expectedClass, found ${object == null ? "null" : object.runtimeType}");
-    }
-    return object;
-  }
-
-  /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
   static AstNode findNode(

@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test.dart' show ParserTestCase;
-import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -44,19 +44,11 @@ A f(var p) {
         new _BreadthFirstVisitorTestHelper(nodes);
     visitor.visitAllNodes(unit);
     expect(nodes, hasLength(59));
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is CompilationUnit, CompilationUnit, nodes[0]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassDeclaration, ClassDeclaration, nodes[2]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionDeclaration, FunctionDeclaration, nodes[3]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionDeclarationStatement,
-        FunctionDeclarationStatement,
-        nodes[27]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is IntegerLiteral, IntegerLiteral, nodes[58]);
-    //3
+    expect(nodes[0], isCompilationUnit);
+    expect(nodes[2], isClassDeclaration);
+    expect(nodes[3], isFunctionDeclaration);
+    expect(nodes[27], isFunctionDeclarationStatement);
+    expect(nodes[58], isIntegerLiteral); // 3
   }
 }
 

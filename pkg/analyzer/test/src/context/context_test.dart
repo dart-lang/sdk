@@ -26,6 +26,7 @@ import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/test_utilities/element_type_matchers.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
@@ -1671,8 +1672,7 @@ main() {}''');
     expect(library, isNotNull);
     Namespace namespace = context.getPublicNamespace(library);
     expect(namespace, isNotNull);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
+    expect(namespace.get("A"), isClassElement);
   }
 
   void test_getResolvedCompilationUnit_library() {

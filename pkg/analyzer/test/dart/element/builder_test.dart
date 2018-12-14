@@ -1948,9 +1948,7 @@ class C {
     expect(accessor.isSetter, isFalse);
     expect(accessor.isSynthetic, isFalse);
     expect(accessor.typeParameters, hasLength(0));
-    PropertyInducingElement variable = accessor.variable;
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, variable);
+    TopLevelVariableElement variable = accessor.variable;
     expect(variable.isSynthetic, isTrue);
   }
 
@@ -2012,9 +2010,7 @@ class C {
     expect(accessor.isSetter, isTrue);
     expect(accessor.isSynthetic, isFalse);
     expect(accessor.typeParameters, hasLength(0));
-    PropertyInducingElement variable = accessor.variable;
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, variable);
+    TopLevelVariableElement variable = accessor.variable;
     expect(variable.isSynthetic, isTrue);
   }
 

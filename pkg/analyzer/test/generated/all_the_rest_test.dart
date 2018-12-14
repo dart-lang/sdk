@@ -31,6 +31,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/test_utilities/element_type_matchers.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
@@ -187,22 +188,19 @@ void main() {
   x += 1;
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_BinaryExpression() async {
     AstNode id = await _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_ClassDeclaration() async {
     AstNode id = await _findNodeIn("class", "class A { }");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_CompilationUnit() async {
@@ -220,15 +218,13 @@ class A {
     ConstructorDeclaration declaration =
         id.thisOrAncestorOfType<ConstructorDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_ExportDirective() async {
     AstNode id = await _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ExportElement, ExportElement, element);
+    expect(element, isExportElement);
   }
 
   test_locate_FunctionDeclaration() async {
@@ -236,8 +232,7 @@ class A {
     FunctionDeclaration declaration =
         id.thisOrAncestorOfType<FunctionDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionElement, FunctionElement, element);
+    expect(element, isFunctionElement);
   }
 
   test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() async {
@@ -248,8 +243,7 @@ class Class {
 void main(@Class.name() parameter) {
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() async {
@@ -260,15 +254,13 @@ class Class {
 void main(@Class() parameter) {
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_Identifier_className() async {
     AstNode id = await _findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_Identifier_constructor_named() async {
@@ -277,8 +269,7 @@ class A {
   A.bar() {}
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_Identifier_constructor_unnamed() async {
@@ -287,22 +278,19 @@ class A {
   A() {}
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_Identifier_fieldName() async {
     AstNode id = await _findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FieldElement, FieldElement, element);
+    expect(element, isFieldElement);
   }
 
   test_locate_Identifier_libraryDirective() async {
     AstNode id = await _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_Identifier_propertyAccess() async {
@@ -311,15 +299,13 @@ void main() {
  int x = 'foo'.length;
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-        PropertyAccessorElement, element);
+    expect(element, isPropertyAccessorElement);
   }
 
   test_locate_ImportDirective() async {
     AstNode id = await _findNodeIn("import", "import 'dart:core';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ImportElement, ImportElement, element);
+    expect(element, isImportElement);
   }
 
   test_locate_IndexExpression() async {
@@ -329,8 +315,7 @@ void main() {
   var y = x[0];
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_InstanceCreationExpression() async {
@@ -340,8 +325,7 @@ void main() {
  new A();
 }''');
     Element element = ElementLocator.locate(node);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
@@ -385,8 +369,7 @@ void main() {
   test_locate_LibraryDirective() async {
     AstNode id = await _findNodeIn("library", "library foo;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_MethodDeclaration() async {
@@ -397,8 +380,7 @@ class A {
     MethodDeclaration declaration =
         id.thisOrAncestorOfType<MethodDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_MethodInvocation_method() async {
@@ -410,8 +392,7 @@ void main() {
  var f = new A().bar();
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_MethodInvocation_topLevel() async {
@@ -425,8 +406,7 @@ void main() {
     AstNode node = new NodeLocator(offset).searchWithin(cu);
     MethodInvocation invocation = node.thisOrAncestorOfType<MethodInvocation>();
     Element element = ElementLocator.locate(invocation);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionElement, FunctionElement, element);
+    expect(element, isFunctionElement);
   }
 
   test_locate_PartOfDirective() async {
@@ -441,15 +421,13 @@ part of my.lib;
         analysisContext.resolveCompilationUnit2(unitSource, librarySource);
     PartOfDirective partOf = unit.directives.first;
     Element element = ElementLocator.locate(partOf);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_PostfixExpression() async {
     AstNode id = await _findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_PrefixedIdentifier() async {
@@ -459,23 +437,20 @@ core.int value;''');
     PrefixedIdentifier identifier =
         id.thisOrAncestorOfType<PrefixedIdentifier>();
     Element element = ElementLocator.locate(identifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_PrefixExpression() async {
     AstNode id = await _findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_StringLiteral_exportUri() async {
     addNamedSource("/foo.dart", "library foo;");
     AstNode id = await _findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_StringLiteral_expression() async {
@@ -489,8 +464,7 @@ core.int value;''');
     AstNode id = await _findNodeIn(
         "'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_StringLiteral_partUri() async {
@@ -498,8 +472,7 @@ core.int value;''');
     AstNode id =
         await _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnitElement,
-        CompilationUnitElement, element);
+    expect(element, isCompilationUnitElement);
   }
 
   test_locate_VariableDeclaration() async {
@@ -507,8 +480,7 @@ core.int value;''');
     VariableDeclaration declaration =
         id.thisOrAncestorOfType<VariableDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, element);
+    expect(element, isTopLevelVariableElement);
   }
 
   /**

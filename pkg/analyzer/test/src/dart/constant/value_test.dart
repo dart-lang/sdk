@@ -400,18 +400,14 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_getValue_map_empty() {
-    Object result = _mapValue().toMapValue();
-    EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
-    Map map = result as Map;
-    expect(map, hasLength(0));
+    Map result = _mapValue().toMapValue();
+    expect(result, hasLength(0));
   }
 
   void test_getValue_map_valid() {
-    Object result =
+    Map result =
         _mapValue([_stringValue("key"), _stringValue("value")]).toMapValue();
-    EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
-    Map map = result as Map;
-    expect(map, hasLength(1));
+    expect(result, hasLength(1));
   }
 
   void test_getValue_null() {

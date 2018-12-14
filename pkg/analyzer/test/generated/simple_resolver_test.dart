@@ -1129,20 +1129,19 @@ const A = null;
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
-        .variables
-        .variables[0]
-        .name
-        .staticElement;
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
-        PropertyInducingElement, expectedElement);
-    expectedElement = (expectedElement as PropertyInducingElement).getter;
-    Element actualElement =
-        (declarations[1] as ClassDeclaration).metadata[0].name.staticElement;
-    expect(actualElement, same(expectedElement));
+
+    TopLevelVariableDeclaration variableDeclaration = declarations[0];
+    ClassDeclaration classDeclaration = declarations[1];
+
+    PropertyInducingElement expectedElement =
+        variableDeclaration.variables.variables[0].name.staticElement;
+
+    Element actualElement = classDeclaration.metadata[0].name.staticElement;
+    expect(actualElement, same(expectedElement.getter));
   }
 
   test_metadata_field() async {
@@ -1335,17 +1334,15 @@ const A = null;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
-        .variables
-        .variables[0]
-        .name
-        .staticElement;
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
-        PropertyInducingElement, expectedElement);
-    expectedElement = (expectedElement as PropertyInducingElement).getter;
-    Element actualElement =
-        (declarations[1] as FunctionTypeAlias).metadata[0].name.staticElement;
-    expect(actualElement, same(expectedElement));
+
+    TopLevelVariableDeclaration variableDeclaration = declarations[0];
+    FunctionTypeAlias functionTypeAlias = declarations[1];
+
+    PropertyInducingElement expectedElement =
+        variableDeclaration.variables.variables[0].name.staticElement;
+
+    Element actualElement = functionTypeAlias.metadata[0].name.staticElement;
+    expect(actualElement, same(expectedElement.getter));
   }
 
   test_method_fromMixin() async {

@@ -1049,10 +1049,8 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     AstTestFactory.assignmentExpression(
         node, TokenType.EQ, AstTestFactory.integer(0));
     _resolveInClass(node, classA);
-    Element element = node.staticElement;
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-        PropertyAccessorElement, element);
-    expect((element as PropertyAccessorElement).isSetter, isTrue);
+    PropertyAccessorElement element = node.staticElement;
+    expect(element.isSetter, isTrue);
     _listener.assertNoErrors();
   }
 

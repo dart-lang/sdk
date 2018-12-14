@@ -1458,9 +1458,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
       List<DartType> expectedOptionalTypes,
       Map<String, DartType> expectedNamedTypes,
       DartType actualType) {
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionType, FunctionType, actualType);
-    FunctionType functionType = actualType as FunctionType;
+    FunctionType functionType = actualType;
     List<DartType> normalTypes = functionType.normalParameterTypes;
     if (expectedNormalTypes == null) {
       expect(normalTypes, hasLength(0));
@@ -1508,8 +1506,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void _assertType2(DartType expectedType, DartType actualType) {
     if (expectedType is InterfaceTypeImpl) {
-      EngineTestCase.assertInstanceOf(
-          (obj) => obj is InterfaceTypeImpl, InterfaceTypeImpl, actualType);
       _assertType(expectedType, actualType as InterfaceTypeImpl);
     }
     // TODO(brianwilkerson) Compare other kinds of types then make this a shared
