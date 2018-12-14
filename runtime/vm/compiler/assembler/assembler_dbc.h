@@ -45,7 +45,7 @@ class Assembler : public AssemblerBase {
 
   static const char* RegisterName(Register reg);
 
-  static const char* FpuRegisterName(FpuRegister reg) { return "?"; }
+  static const char* FpuRegisterName(FpuRegister reg);
 
   static uword GetBreakInstructionFiller() { return SimulatorBytecode::kTrap; }
 
