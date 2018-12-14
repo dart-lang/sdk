@@ -1850,26 +1850,6 @@ EMIT_NATIVE_CODE(MathMinMax, 2, Location::RequiresRegister()) {
   }
 }
 
-static Token::Kind FlipCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return Token::kNE;
-    case Token::kNE:
-      return Token::kEQ;
-    case Token::kLT:
-      return Token::kGTE;
-    case Token::kGT:
-      return Token::kLTE;
-    case Token::kLTE:
-      return Token::kGT;
-    case Token::kGTE:
-      return Token::kLT;
-    default:
-      UNREACHABLE();
-      return Token::kNE;
-  }
-}
-
 static SimulatorBytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -1919,11 +1899,11 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   if (labels.fall_through != labels.false_label) {
     // If we aren't falling through to the false label, we can save a Jump
     // instruction in the case that the true case is the fall through by
-    // flipping the sense of the test such that the instruction following the
+    // negating the sense of the test such that the instruction following the
     // test is the Jump to the false label.  In the case where both labels are
-    // null we don't flip the sense of the test.
+    // null we don't negate the sense of the test.
     condition = NEXT_IS_FALSE;
-    comparison = FlipCondition(kind);
+    comparison = Token::NegateComparison(kind);
   }
   if (compiler->is_optimizing()) {
     const Register left = locs->in(0).reg();

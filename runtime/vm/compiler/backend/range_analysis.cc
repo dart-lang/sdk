@@ -114,28 +114,6 @@ void RangeAnalysis::CollectValues() {
   }
 }
 
-// For a comparison operation return an operation for the equivalent flipped
-// comparison: a (op) b === b (op') a.
-static Token::Kind FlipComparison(Token::Kind op) {
-  switch (op) {
-    case Token::kEQ:
-      return Token::kEQ;
-    case Token::kNE:
-      return Token::kNE;
-    case Token::kLT:
-      return Token::kGT;
-    case Token::kGT:
-      return Token::kLT;
-    case Token::kLTE:
-      return Token::kGTE;
-    case Token::kGTE:
-      return Token::kLTE;
-    default:
-      UNREACHABLE();
-      return Token::kILLEGAL;
-  }
-}
-
 // Given a boundary (right operand) and a comparison operation return
 // a symbolic range constraint for the left operand of the comparison assuming
 // that it evaluated to true.
@@ -208,7 +186,7 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
       boundary = rel_op->InputAt(0)->definition();
       // InsertConstraintFor assumes that defn is left operand of a
       // comparison if it is right operand flip the comparison.
-      op_kind = FlipComparison(rel_op->kind());
+      op_kind = Token::FlipComparison(rel_op->kind());
     }
 
     // Constrain definition at the true successor.
