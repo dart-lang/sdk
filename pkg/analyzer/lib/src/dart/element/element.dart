@@ -12,6 +12,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -2336,11 +2337,12 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
       computeConstants(
-        context.typeProvider,
-        context.typeSystem,
-        context.declaredVariables,
-        [this],
-      );
+          context.typeProvider,
+          context.typeSystem,
+          context.declaredVariables,
+          [this],
+          ExperimentStatus.fromStrings(
+              context.analysisOptions.enabledExperiments));
     }
     return evaluationResult?.value;
   }
@@ -2639,11 +2641,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
       computeConstants(
-        context.typeProvider,
-        context.typeSystem,
-        context.declaredVariables,
-        [this],
-      );
+          context.typeProvider,
+          context.typeSystem,
+          context.declaredVariables,
+          [this],
+          ExperimentStatus.fromStrings(
+              context.analysisOptions.enabledExperiments));
     }
     return constantValue;
   }

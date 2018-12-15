@@ -56,6 +56,12 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
   }
 
   @override
+  @failingTest // Does not work with old task model
+  test_isCheckInConstAssert() {
+    return super.test_isCheckInConstAssert();
+  }
+
+  @override
   @failingTest // Fails with the old task model
   test_issue_32394() {
     return super.test_issue_32394();
@@ -3223,6 +3229,21 @@ class A<E> {
     return <String, E>{};
   }
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_isCheckInConstAssert() async {
+    Source source = addSource(r'''
+class C {
+  const C() : assert(1 is int);
+}
+
+void main() {
+  const C();
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -67,7 +68,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._stringType = _typeProvider.stringType;
     this._evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, declaredVariables,
-        forAnalysisDriver: forAnalysisDriver, typeSystem: _typeSystem);
+        forAnalysisDriver: forAnalysisDriver,
+        typeSystem: _typeSystem,
+        experimentStatus: ExperimentStatus.fromStrings(
+            currentLibrary.context.analysisOptions.enabledExperiments));
   }
 
   @override

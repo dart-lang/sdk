@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart'
@@ -16,10 +17,13 @@ void computeConstants(
     TypeProvider typeProvider,
     TypeSystem typeSystem,
     DeclaredVariables declaredVariables,
-    List<ConstantEvaluationTarget> constants) {
+    List<ConstantEvaluationTarget> constants,
+    ExperimentStatus experimentStatus) {
   var evaluationEngine = ConstantEvaluationEngine(
       typeProvider, declaredVariables,
-      forAnalysisDriver: true, typeSystem: typeSystem);
+      forAnalysisDriver: true,
+      typeSystem: typeSystem,
+      experimentStatus: experimentStatus);
 
   var nodes = <_ConstantNode>[];
   var nodeMap = <ConstantEvaluationTarget, _ConstantNode>{};
