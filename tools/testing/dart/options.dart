@@ -514,12 +514,6 @@ compiler.''',
     return _createConfigurations(configuration);
   }
 
-  /// Prints [message] and exits with a non-zero exit code.
-  void _fail(String message) {
-    print(message);
-    exit(1);
-  }
-
   /// Given a set of parsed option values, returns the list of command line
   /// arguments that would reproduce that configuration.
   List<String> _reproducingCommand(
@@ -904,7 +898,24 @@ Options:''');
 
 Configuration getNamedConfiguration(String template) {
   if (template == null) return null;
-  TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
-  return testMatrix.configurations
+  final testMatrixFile = "tools/bots/test_matrix.json";
+  TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
+  final configuration = testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);
+  if (configuration == null) {
+    final names = testMatrix.configurations
+        .map((configuration) => configuration.name)
+        .toList();
+    names.sort();
+    _fail('The named configuration "$template" does not exist. The following '
+        'configurations are available:\n  * ${names.join('\n  * ')}');
+  }
+
+  return configuration;
+}
+
+/// Prints [message] and exits with a non-zero exit code.
+void _fail(String message) {
+  print(message);
+  exit(1);
 }
