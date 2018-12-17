@@ -66,14 +66,15 @@ class CommandOutput extends UniqueObject {
     // dart2js exits with code 253 in case of unhandled exceptions.
     // The dart binary exits with code 253 in case of an API error such
     // as an invalid snapshot file.
+    // The batch mode can also exit 253 (unhandledCompilerExceptionExitCode).
     // In either case an exit code of 253 is considered a crash.
-    if (exitCode == 253) return true;
+    if (exitCode == unhandledCompilerExceptionExitCode) return true;
     if (exitCode == parseFailExitCode) return false;
     if (hasTimedOut) return false;
     if (io.Platform.isWindows) {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
-      if (exitCode == 3 || exitCode == browserCrashExitCode) return true;
+      if (exitCode == 3) return true;
 
       // When VM is built with Crashpad support we get STATUS_FATAL_APP_EXIT
       // for all crashes that Crashpad has intercepted.
@@ -92,7 +93,7 @@ class CommandOutput extends UniqueObject {
   }
 
   bool get hasCoreDump {
-    // dart2js crashes don't produce crashdumps.
+    // Unhandled dart exceptions don't produce crashdumps.
     return hasCrashed && exitCode != 253;
   }
 

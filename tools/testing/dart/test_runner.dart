@@ -31,7 +31,7 @@ import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
-const int browserCrashExitCode = -10;
+const int unhandledCompilerExceptionExitCode = 253;
 const int parseFailExitCode = 245;
 const int slowTimeoutMultiplier = 4;
 const int extraSlowTimeoutMultiplier = 8;
@@ -712,7 +712,7 @@ class BatchRunnerProcess {
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
-    if (outcome == "CRASH") exitCode = browserCrashExitCode;
+    if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     var output = createCommandOutput(
