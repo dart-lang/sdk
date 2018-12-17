@@ -46,9 +46,6 @@ abstract class TargetImplementation extends Target {
   LibraryBuilder createLibraryBuilder(
       Uri uri, Uri fileUri, covariant LibraryBuilder origin);
 
-  /// Add the classes extended or implemented directly by [cls] to [set].
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set);
-
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and
   /// implemented interfaces.

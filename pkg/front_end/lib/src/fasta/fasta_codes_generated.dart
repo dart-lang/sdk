@@ -1754,27 +1754,24 @@ Message _withArgumentsCycleInTypeVariables(String name, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateCyclicClassHierarchy =
-    const Template<Message Function(String name, String string)>(
-        messageTemplate: r"""'#name' is a supertype of itself via '#string'.""",
+const Template<Message Function(String name)> templateCyclicClassHierarchy =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is a supertype of itself.""",
         withArguments: _withArgumentsCyclicClassHierarchy);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeCyclicClassHierarchy =
-    const Code<Message Function(String name, String string)>(
+const Code<Message Function(String name)> codeCyclicClassHierarchy =
+    const Code<Message Function(String name)>(
         "CyclicClassHierarchy", templateCyclicClassHierarchy,
         analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicClassHierarchy(String name, String string) {
+Message _withArgumentsCyclicClassHierarchy(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCyclicClassHierarchy,
-      message: """'${name}' is a supertype of itself via '${string}'.""",
-      arguments: {'name': name, 'string': string});
+      message: """'${name}' is a supertype of itself.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2040,28 +2037,6 @@ Message _withArgumentsDirectCycleInTypeVariables(String name) {
       message: """Type '${name}' can't use itself as a bound.""",
       tip:
           """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDirectCyclicClassHierarchy =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' can't use itself as a supertype.""",
-        withArguments: _withArgumentsDirectCyclicClassHierarchy);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDirectCyclicClassHierarchy =
-    const Code<Message Function(String name)>(
-        "DirectCyclicClassHierarchy", templateDirectCyclicClassHierarchy,
-        analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCyclicClassHierarchy(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDirectCyclicClassHierarchy,
-      message: """'${name}' can't use itself as a supertype.""",
       arguments: {'name': name});
 }
 

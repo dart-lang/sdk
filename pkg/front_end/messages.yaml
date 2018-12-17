@@ -1792,7 +1792,7 @@ DuplicatedImportInType:
     main.dart: "import 'lib1.dart'; import 'lib2.dart'; A a;"
 
 CyclicClassHierarchy:
-  template: "'#name' is a supertype of itself via '#string'."
+  template: "'#name' is a supertype of itself."
   analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
   script:
     - |
@@ -1801,11 +1801,6 @@ CyclicClassHierarchy:
     - |
       class A implements B {}
       class B implements A {}
-
-DirectCyclicClassHierarchy:
-  template: "'#name' can't use itself as a supertype."
-  analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
-  script:
     - "class C = Object with C;"
     - "class C extends C {}"
     - "class C implements C {}"

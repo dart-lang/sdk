@@ -197,37 +197,6 @@ class KernelTarget extends TargetImplementation {
     return new KernelLibraryBuilder(uri, fileUri, loader, origin);
   }
 
-  void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
-    TypeBuilder supertype = cls.supertype;
-    if (supertype is NamedTypeBuilder) {
-      f(supertype);
-    } else if (supertype != null) {
-      unhandled("${supertype.runtimeType}", "forEachDirectSupertype",
-          cls.charOffset, cls.fileUri);
-    }
-    if (cls.interfaces != null) {
-      for (NamedTypeBuilder t in cls.interfaces) {
-        f(t);
-      }
-    }
-    if (cls.library.loader == loader &&
-        // TODO(ahe): Implement DillClassBuilder.mixedInType and remove the
-        // above check.
-        cls.mixedInType != null) {
-      f(cls.mixedInType);
-    }
-  }
-
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
-    if (cls == null) return;
-    forEachDirectSupertype(cls, (NamedTypeBuilder type) {
-      Declaration declaration = type.declaration;
-      if (declaration is ClassBuilder) {
-        set.add(declaration);
-      }
-    });
-  }
-
   /// Returns classes defined in libraries in [loader].
   List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
@@ -270,8 +239,8 @@ class KernelTarget extends TargetImplementation {
       bottomType.bind(loader.coreLibrary["Null"]);
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
-      List<SourceClassBuilder> myClasses = collectMyClasses();
-      loader.checkSemantics(myClasses, objectClassBuilder);
+      List<SourceClassBuilder> myClasses =
+          loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
       installDefaultSupertypes();
@@ -412,7 +381,7 @@ class KernelTarget extends TargetImplementation {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.target != objectClass) {
+      if (builder.target != objectClass && !builder.isPatch) {
         if (builder.isPatch || builder.isMixinDeclaration) continue;
         if (builder.isMixinApplication) {
           installForwardingConstructors(builder);
