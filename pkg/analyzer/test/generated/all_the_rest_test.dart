@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -51,6 +51,7 @@ main() {
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(EnumMemberBuilderTest);
     defineReflectiveTests(ErrorReporterTest);
+    defineReflectiveTests(ErrorReporterTest2);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(ExitDetectorTest);
     defineReflectiveTests(ExitDetectorTest2);
@@ -638,11 +639,8 @@ class EnumMemberBuilderTest extends EngineTestCase {
 @reflectiveTest
 class ErrorReporterTest extends EngineTestCase {
   /**
-   * Create a type with the given name in a compilation unit with the given name.
-   *
-   * @param fileName the name of the compilation unit containing the class
-   * @param typeName the name of the type to be created
-   * @return the type that was created
+   * Return a newly created interface type with the given [typeName] in a
+   * compilation unit with the given [fileName].
    */
   InterfaceType createType(String fileName, String typeName) {
     CompilationUnitElementImpl unit = ElementFactory.compilationUnit(fileName);
@@ -717,7 +715,7 @@ zap: baz
         AstTestFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
-    expect(error.message.indexOf("(") < 0, isTrue);
+    expect(error.message.contains("("), isFalse);
   }
 
   test_reportTypeErrorForNode_sameName() async {
@@ -732,7 +730,69 @@ zap: baz
         AstTestFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
-    expect(error.message.indexOf("(") >= 0, isTrue);
+    expect(error.message.contains("("), isTrue);
+  }
+}
+
+@reflectiveTest
+class ErrorReporterTest2 extends ResolverTestCase {
+  test_reportTypeErrorForNode_sameName_functionType() async {
+    addNamedSource('/a.dart', '''
+class A {}
+''');
+    addNamedSource('/b.dart', '''
+class A {}
+''');
+    CompilationUnit unit = await resolveSource('''
+import 'a.dart' as a;
+import 'b.dart' as b;
+
+a.A Function() fa;
+b.A Function() fb;
+''');
+
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter =
+        new ErrorReporter(listener, unit.declaredElement.source);
+    TopLevelVariableDeclaration fa = unit.declarations[0];
+    TopLevelVariableDeclaration fb = unit.declarations[1];
+    reporter.reportTypeErrorForNode(
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        AstTestFactory.identifier3('x'),
+        [fa.variables.type.type, fb.variables.type.type]);
+    AnalysisError error = listener.errors[0];
+    expect(error.message.contains('a.dart'), isTrue);
+    expect(error.message.contains('b.dart'), isTrue);
+  }
+
+  test_reportTypeErrorForNode_sameName_nested() async {
+    addNamedSource('/a.dart', '''
+class A {}
+''');
+    addNamedSource('/b.dart', '''
+class A {}
+''');
+    CompilationUnit unit = await resolveSource('''
+import 'a.dart' as a;
+import 'b.dart' as b;
+
+B<a.A> ba;
+B<b.A> bb;
+class B<T> {}
+''');
+
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter =
+        new ErrorReporter(listener, unit.declaredElement.source);
+    TopLevelVariableDeclaration fa = unit.declarations[0];
+    TopLevelVariableDeclaration fb = unit.declarations[1];
+    reporter.reportTypeErrorForNode(
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        AstTestFactory.identifier3('x'),
+        [fa.variables.type.type, fb.variables.type.type]);
+    AnalysisError error = listener.errors[0];
+    expect(error.message.contains('a.dart'), isTrue);
+    expect(error.message.contains('b.dart'), isTrue);
   }
 }
 
