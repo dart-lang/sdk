@@ -295,6 +295,7 @@ void KernelIsolate::FinishedInitializing() {
 }
 
 Dart_Port KernelIsolate::WaitForKernelPort() {
+  VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
   MonitorLocker ml(monitor_);
   while (initializing_ && (kernel_port_ == ILLEGAL_PORT)) {
     ml.Wait();

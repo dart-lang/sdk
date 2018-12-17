@@ -1922,36 +1922,26 @@ class ProfileBuilder : public ValueObject {
                                   uword user_tag,
                                   ProfileCodeTrieNode* current,
                                   ProcessedSample* sample) {
-    if (FLAG_profile_vm) {
-      // None.
-      if (tag_order() == Profile::kNoTags) {
-        return current;
-      }
-      // User first.
-      if ((tag_order() == Profile::kUserVM) ||
-          (tag_order() == Profile::kUser)) {
-        current = AppendUserTag(user_tag, current, sample);
-        // Only user.
-        if (tag_order() == Profile::kUser) {
-          return current;
-        }
-        return AppendVMTags(vm_tag, current, sample);
-      }
-      // VM first.
-      ASSERT((tag_order() == Profile::kVMUser) ||
-             (tag_order() == Profile::kVM));
-      current = AppendVMTags(vm_tag, current, sample);
-      // Only VM.
-      if (tag_order() == Profile::kVM) {
-        return current;
-      }
-      return AppendUserTag(user_tag, current, sample);
-    }
-
+    // None.
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
-
+    // User first.
+    if ((tag_order() == Profile::kUserVM) || (tag_order() == Profile::kUser)) {
+      current = AppendUserTag(user_tag, current, sample);
+      // Only user.
+      if (tag_order() == Profile::kUser) {
+        return current;
+      }
+      return AppendVMTags(vm_tag, current, sample);
+    }
+    // VM first.
+    ASSERT((tag_order() == Profile::kVMUser) || (tag_order() == Profile::kVM));
+    current = AppendVMTags(vm_tag, current, sample);
+    // Only VM.
+    if (tag_order() == Profile::kVM) {
+      return current;
+    }
     return AppendUserTag(user_tag, current, sample);
   }
 
@@ -2081,36 +2071,26 @@ class ProfileBuilder : public ValueObject {
                                       uword user_tag,
                                       ProfileFunctionTrieNode* current,
                                       ProcessedSample* sample) {
-    if (FLAG_profile_vm) {
-      // None.
-      if (tag_order() == Profile::kNoTags) {
-        return current;
-      }
-      // User first.
-      if ((tag_order() == Profile::kUserVM) ||
-          (tag_order() == Profile::kUser)) {
-        current = AppendUserTag(user_tag, current, sample);
-        // Only user.
-        if (tag_order() == Profile::kUser) {
-          return current;
-        }
-        return AppendVMTags(vm_tag, current, sample);
-      }
-      // VM first.
-      ASSERT((tag_order() == Profile::kVMUser) ||
-             (tag_order() == Profile::kVM));
-      current = AppendVMTags(vm_tag, current, sample);
-      // Only VM.
-      if (tag_order() == Profile::kVM) {
-        return current;
-      }
-      return AppendUserTag(user_tag, current, sample);
-    }
-
+    // None.
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
-
+    // User first.
+    if ((tag_order() == Profile::kUserVM) || (tag_order() == Profile::kUser)) {
+      current = AppendUserTag(user_tag, current, sample);
+      // Only user.
+      if (tag_order() == Profile::kUser) {
+        return current;
+      }
+      return AppendVMTags(vm_tag, current, sample);
+    }
+    // VM first.
+    ASSERT((tag_order() == Profile::kVMUser) || (tag_order() == Profile::kVM));
+    current = AppendVMTags(vm_tag, current, sample);
+    // Only VM.
+    if (tag_order() == Profile::kVM) {
+      return current;
+    }
     return AppendUserTag(user_tag, current, sample);
   }
 

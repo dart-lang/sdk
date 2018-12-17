@@ -411,7 +411,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
 
   Future _request({bool clear: false, bool forceFetch: false}) async {
     _progress = null;
-    _progressStream = _profiles.get(isolate, M.SampleProfileTag.none,
+    _progressStream = _profiles.get(isolate, M.SampleProfileTag.vmOnly,
         clear: clear, forceFetch: forceFetch);
     _r.dirty();
     _progress = (await _progressStream.first).progress;
