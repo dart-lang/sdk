@@ -29,17 +29,19 @@ class Driver {
   bool force;
   bool overwrite;
   List<String> targets;
+  EditDartfixResult result;
 
   Ansi get ansi => logger.ansi;
 
-  Future start(List<String> args) async {
+  Future start(List<String> args,
+      {Context testContext, Logger testLogger}) async {
     final Options options = Options.parse(args);
 
     force = options.force;
     overwrite = options.overwrite;
     targets = options.targets;
-    context = options.context;
-    logger = options.logger;
+    context = testContext ?? options.context;
+    logger = testLogger ?? options.logger;
     server = new Server(listener: new _Listener(logger));
     handler = new _Handler(this);
 
@@ -47,7 +49,6 @@ class Driver {
       context.exit(15);
     }
 
-    EditDartfixResult result;
     try {
       final progress = await setupAnalysis(options);
       result = await requestFixes(options, progress);
@@ -55,7 +56,7 @@ class Driver {
       await server.stop();
     }
     if (result != null) {
-      applyFixes(result);
+      applyFixes();
     }
   }
 
@@ -112,7 +113,7 @@ class Driver {
     return EditDartfixResult.fromJson(decoder, 'result', json);
   }
 
-  Future applyFixes(EditDartfixResult result) async {
+  Future applyFixes() async {
     showDescriptions('Recommended changes', result.suggestions);
     showDescriptions('Recommended changes that cannot be automatically applied',
         result.otherSuggestions);
