@@ -274,6 +274,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   bool get legacyMode => library.loader.target.legacyMode;
 
+  bool get disableTypeInference => library.disableTypeInference;
+
   bool get inConstructor {
     return functionNestingLevel == 0 && member is KernelConstructorBuilder;
   }
@@ -3685,6 +3687,25 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     FunctionNode function = formals.buildFunctionNode(
         library, null, typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
+
+    if (disableTypeInference && asyncModifier != AsyncMarker.Sync) {
+      DartType returnType;
+      switch (asyncModifier) {
+        case AsyncMarker.Async:
+          returnType = coreTypes.futureClass.rawType;
+          break;
+        case AsyncMarker.AsyncStar:
+          returnType = coreTypes.streamClass.rawType;
+          break;
+        case AsyncMarker.SyncStar:
+          returnType = coreTypes.iterableClass.rawType;
+          break;
+        default:
+          returnType = const DynamicType();
+          break;
+      }
+      function.returnType = returnType;
+    }
     if (constantContext != ConstantContext.none) {
       push(buildProblem(fasta.messageNotAConstantExpression, formals.charOffset,
           formals.length));
