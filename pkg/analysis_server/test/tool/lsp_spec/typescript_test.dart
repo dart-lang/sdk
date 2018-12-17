@@ -201,12 +201,12 @@ export interface A {
  * Blank lines should remain in-tact, as should:
  *   - Indented
  *   - Things
- * 
+ *
  * Some docs have:
  * - List items that are not indented
- * 
+ *
  * Sometimes after a blank line we'll have a note.
- * 
+ *
  * *Note* that something.
  */
 export interface A {
@@ -282,6 +282,27 @@ export namespace ResourceOperationKind {
       expect(delete.type, isSimpleType('ResourceOperationKind'));
       expect(delete.commentText,
           equals('Supports deleting existing files and folders.'));
+    });
+
+    test('parses a tuple in an array', () {
+      final String input = '''
+interface SomeInformation {
+	label: string | [number, number];
+}
+    ''';
+      final List<AstNode> output = parseFile(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('label'));
+      expect(field.type, const TypeMatcher<UnionType>());
+      UnionType union = field.type;
+      expect(union.types, hasLength(2));
+      expect(union.types[0], isSimpleType('string'));
+      expect(union.types[1], isArrayOf(isSimpleType('number')));
     });
   });
 }

@@ -379,12 +379,15 @@ class Parser {
     _consume(TokenType.LEFT_BRACE, 'Expected {');
     final members = <Member>[];
     while (!_check(TokenType.RIGHT_BRACE)) {
-      members.add(_member(name.lexeme));
+      final member = _member(name.lexeme);
+      // TODO(dantup): Remove this temp workaround once spec is fixed/clarified.
+      // https://github.com/Microsoft/language-server-protocol/issues/643
+      if (members.any((m) => m.name == member.name)) {
+        print('Skipping duplicate member ${member.name} in ${name.lexeme}');
+        continue;
+      }
+      members.add(member);
     }
-
-    // TODO(dantup): Temporary hack until we handle indexers. Remove nulls, which
-    // are (currently) returned by _field() for indexers.
-    members.removeWhere((m) => m == null);
 
     _consume(TokenType.RIGHT_BRACE, 'Expected }');
 
@@ -478,10 +481,6 @@ class Parser {
           members.add(_member(containerName));
         }
 
-        // TODO(dantup): Temporary hack until we handle indexers. Remove nulls, which
-        // are (currently) returned by _field() for indexers.
-        members.removeWhere((m) => m == null);
-
         _consume(TokenType.RIGHT_BRACE, 'Expected }');
         // Some of the inline interfaces have trailing commas (and some do not!)
         _match([TokenType.COMMA]);
@@ -512,6 +511,21 @@ class Parser {
         // export const Invoked: 1 = 1;
         // the best we can do is use their base type (number).
         type = Type.identifier('number');
+      } else if (_match([TokenType.LEFT_BRACKET])) {
+        // Tuples will just be converted to List/Array.
+        final tupleElementTypes = <TypeBase>[];
+        while (!_check(TokenType.RIGHT_BRACKET)) {
+          tupleElementTypes.add(_type(containerName, fieldName));
+          // Remove commas in between.
+          _match([TokenType.COMMA]);
+        }
+        _consume(TokenType.RIGHT_BRACKET, 'Expected ]');
+
+        final uniqueTypes = _getUniqueTypes(tupleElementTypes);
+        var tupleType = uniqueTypes.length == 1
+            ? uniqueTypes.single
+            : new UnionType(uniqueTypes);
+        type = new ArrayType(tupleType);
       } else {
         var typeName = _consume(TokenType.IDENTIFIER, 'Expected identifier');
         final typeArgs = <Type>[];
@@ -553,12 +567,7 @@ class Parser {
       }
     }
 
-    // Remove any duplicate types (for ex. if we map multiple types into dynamic)
-    // we don't want to end up with `dynamic | dynamic`. Key on dartType to
-    // ensure we different types that will map down to the same type.
-    final uniqueTypes = new Map.fromEntries(
-      types.map((t) => new MapEntry(t.dartTypeWithTypeArgs, t)),
-    ).values.toList();
+    final uniqueTypes = _getUniqueTypes(types);
 
     var type = uniqueTypes.length == 1
         ? uniqueTypes.single
@@ -572,6 +581,16 @@ class Parser {
       }
     }
     return type;
+  }
+
+  /// Remove any duplicate types (for ex. if we map multiple types into dynamic)
+  /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
+  /// ensure we different types that will map down to the same type.
+  List<TypeBase> _getUniqueTypes(List<TypeBase> types) {
+    final uniqueTypes = new Map.fromEntries(
+      types.map((t) => new MapEntry(t.dartTypeWithTypeArgs, t)),
+    ).values.toList();
+    return uniqueTypes;
   }
 
   TypeAlias _typeAlias(Comment leadingComment) {

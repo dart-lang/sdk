@@ -70,6 +70,9 @@ String getImprovedType(String interfaceName, String fieldName) {
     "SymbolInformation": {
       "kind": "SymbolKind",
     },
+    "ParameterInformation": {
+      "label": "String",
+    }
   };
 
   final interface = _improvedTypeMappings[interfaceName];

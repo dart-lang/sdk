@@ -4935,6 +4935,95 @@ class Location implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class LocationLink implements ToJsonable {
+  LocationLink(this.originSelectionRange, this.targetUri, this.targetRange,
+      this.targetSelectionRange) {
+    if (targetUri == null) {
+      throw 'targetUri is required but was not provided';
+    }
+    if (targetRange == null) {
+      throw 'targetRange is required but was not provided';
+    }
+  }
+  static LocationLink fromJson(Map<String, dynamic> json) {
+    final originSelectionRange = json['originSelectionRange'] != null
+        ? Range.fromJson(json['originSelectionRange'])
+        : null;
+    final targetUri = json['targetUri'];
+    final targetRange = json['targetRange'] != null
+        ? Range.fromJson(json['targetRange'])
+        : null;
+    final targetSelectionRange = json['targetSelectionRange'] != null
+        ? Range.fromJson(json['targetSelectionRange'])
+        : null;
+    return new LocationLink(
+        originSelectionRange, targetUri, targetRange, targetSelectionRange);
+  }
+
+  /// Span of the origin of this link.
+  ///
+  /// Used as the underlined span for mouse interaction. Defaults to the word
+  /// range at the mouse position.
+  final Range originSelectionRange;
+
+  /// The full target range of this link.
+  final Range targetRange;
+
+  /// The span of this link.
+  final Range targetSelectionRange;
+
+  /// The target resource identifier of this link.
+  final String targetUri;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (originSelectionRange != null) {
+      __result['originSelectionRange'] = originSelectionRange;
+    }
+    __result['targetUri'] =
+        targetUri ?? (throw 'targetUri is required but was not set');
+    __result['targetRange'] =
+        targetRange ?? (throw 'targetRange is required but was not set');
+    if (targetSelectionRange != null) {
+      __result['targetSelectionRange'] = targetSelectionRange;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('targetUri') &&
+        obj['targetUri'] is String &&
+        obj.containsKey('targetRange') &&
+        Range.canParse(obj['targetRange']);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is LocationLink) {
+      return originSelectionRange == other.originSelectionRange &&
+          targetUri == other.targetUri &&
+          targetRange == other.targetRange &&
+          targetSelectionRange == other.targetSelectionRange &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, originSelectionRange.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targetUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targetRange.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targetSelectionRange.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class LogMessageParams implements ToJsonable {
   LogMessageParams(this.type, this.message) {
     if (type == null) {
@@ -5276,6 +5365,7 @@ class Method {
       case r'completionItem/resolve':
       case r'textDocument/hover':
       case r'textDocument/signatureHelp':
+      case r'textDocument/declaration':
       case r'textDocument/definition':
       case r'textDocument/typeDefinition':
       case r'textDocument/implementation':
@@ -5396,6 +5486,10 @@ class Method {
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
       const Method._(r'textDocument/signatureHelp');
+
+  /// Constant for the 'textDocument/declaration' method.
+  static const textDocument_declaration =
+      const Method._(r'textDocument/declaration');
 
   /// Constant for the 'textDocument/definition' method.
   static const textDocument_definition =
@@ -5571,7 +5665,12 @@ class ParameterInformation implements ToJsonable {
   /// but can be omitted.
   final Either2<String, MarkupContent> documentation;
 
-  /// The label of this parameter. Will be shown in the UI.
+  /// The label of this parameter information.
+  ///
+  /// Either a string or an inclusive start and exclusive end offsets within its
+  /// containing signature label. (see SignatureInformation.label). *Note*: A
+  /// label of type string must be a substring of its containing signature
+  /// label.
   final String label;
 
   Map<String, dynamic> toJson() {
@@ -7866,6 +7965,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       this.formatting,
       this.rangeFormatting,
       this.onTypeFormatting,
+      this.declaration,
       this.definition,
       this.typeDefinition,
       this.implementation,
@@ -7912,6 +8012,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
     final onTypeFormatting = json['onTypeFormatting'] != null
         ? TextDocumentClientCapabilitiesOnTypeFormatting.fromJson(
             json['onTypeFormatting'])
+        : null;
+    final declaration = json['declaration'] != null
+        ? TextDocumentClientCapabilitiesDeclaration.fromJson(
+            json['declaration'])
         : null;
     final definition = json['definition'] != null
         ? TextDocumentClientCapabilitiesDefinition.fromJson(json['definition'])
@@ -7960,6 +8064,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
         formatting,
         rangeFormatting,
         onTypeFormatting,
+        declaration,
         definition,
         typeDefinition,
         implementation,
@@ -7986,6 +8091,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   /// Capabilities specific to the `textDocument/completion`
   final TextDocumentClientCapabilitiesCompletion completion;
+
+  /// Capabilities specific to the `textDocument/declaration`
+  final TextDocumentClientCapabilitiesDeclaration declaration;
 
   /// Capabilities specific to the `textDocument/definition`
   final TextDocumentClientCapabilitiesDefinition definition;
@@ -8071,6 +8179,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
     if (onTypeFormatting != null) {
       __result['onTypeFormatting'] = onTypeFormatting;
     }
+    if (declaration != null) {
+      __result['declaration'] = declaration;
+    }
     if (definition != null) {
       __result['definition'] = definition;
     }
@@ -8121,6 +8232,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
           formatting == other.formatting &&
           rangeFormatting == other.rangeFormatting &&
           onTypeFormatting == other.onTypeFormatting &&
+          declaration == other.declaration &&
           definition == other.definition &&
           typeDefinition == other.typeDefinition &&
           implementation == other.implementation &&
@@ -8149,6 +8261,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, formatting.hashCode);
     hash = JenkinsSmiHash.combine(hash, rangeFormatting.hashCode);
     hash = JenkinsSmiHash.combine(hash, onTypeFormatting.hashCode);
+    hash = JenkinsSmiHash.combine(hash, declaration.hashCode);
     hash = JenkinsSmiHash.combine(hash, definition.hashCode);
     hash = JenkinsSmiHash.combine(hash, typeDefinition.hashCode);
     hash = JenkinsSmiHash.combine(hash, implementation.hashCode);
@@ -8652,21 +8765,87 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
-  TextDocumentClientCapabilitiesDefinition(this.dynamicRegistration);
-  static TextDocumentClientCapabilitiesDefinition fromJson(
+class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
+  TextDocumentClientCapabilitiesDeclaration(
+      this.dynamicRegistration, this.linkSupport);
+  static TextDocumentClientCapabilitiesDeclaration fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesDefinition(dynamicRegistration);
+    final linkSupport = json['linkSupport'];
+    return new TextDocumentClientCapabilitiesDeclaration(
+        dynamicRegistration, linkSupport);
   }
 
-  /// Whether definition supports dynamic registration.
+  /// Whether declaration supports dynamic registration. If this is set to
+  /// `true` the client supports the new `(TextDocumentRegistrationOptions &
+  /// StaticRegistrationOptions)` return value for the corresponding server
+  /// capability as well.
   final bool dynamicRegistration;
+
+  /// The client supports additional metadata in the form of declaration links.
+  final bool linkSupport;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (linkSupport != null) {
+      __result['linkSupport'] = linkSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesDeclaration) {
+      return dynamicRegistration == other.dynamicRegistration &&
+          linkSupport == other.linkSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
+  TextDocumentClientCapabilitiesDefinition(
+      this.dynamicRegistration, this.linkSupport);
+  static TextDocumentClientCapabilitiesDefinition fromJson(
+      Map<String, dynamic> json) {
+    final dynamicRegistration = json['dynamicRegistration'];
+    final linkSupport = json['linkSupport'];
+    return new TextDocumentClientCapabilitiesDefinition(
+        dynamicRegistration, linkSupport);
+  }
+
+  /// Whether definition supports dynamic registration.
+  final bool dynamicRegistration;
+
+  /// The client supports additional metadata in the form of definition links.
+  final bool linkSupport;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (linkSupport != null) {
+      __result['linkSupport'] = linkSupport;
     }
     return __result;
   }
@@ -8678,7 +8857,9 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   @override
   bool operator ==(other) {
     if (other is TextDocumentClientCapabilitiesDefinition) {
-      return dynamicRegistration == other.dynamicRegistration && true;
+      return dynamicRegistration == other.dynamicRegistration &&
+          linkSupport == other.linkSupport &&
+          true;
     }
     return false;
   }
@@ -8687,6 +8868,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9021,12 +9203,14 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
-  TextDocumentClientCapabilitiesImplementation(this.dynamicRegistration);
+  TextDocumentClientCapabilitiesImplementation(
+      this.dynamicRegistration, this.linkSupport);
   static TextDocumentClientCapabilitiesImplementation fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
+    final linkSupport = json['linkSupport'];
     return new TextDocumentClientCapabilitiesImplementation(
-        dynamicRegistration);
+        dynamicRegistration, linkSupport);
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -9035,10 +9219,16 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   /// capability as well.
   final bool dynamicRegistration;
 
+  /// The client supports additional metadata in the form of definition links.
+  final bool linkSupport;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (linkSupport != null) {
+      __result['linkSupport'] = linkSupport;
     }
     return __result;
   }
@@ -9050,7 +9240,9 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   @override
   bool operator ==(other) {
     if (other is TextDocumentClientCapabilitiesImplementation) {
-      return dynamicRegistration == other.dynamicRegistration && true;
+      return dynamicRegistration == other.dynamicRegistration &&
+          linkSupport == other.linkSupport &&
+          true;
     }
     return false;
   }
@@ -9059,6 +9251,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9102,6 +9295,50 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
+  TextDocumentClientCapabilitiesParameterInformation(this.labelOffsetSupport);
+  static TextDocumentClientCapabilitiesParameterInformation fromJson(
+      Map<String, dynamic> json) {
+    final labelOffsetSupport = json['labelOffsetSupport'];
+    return new TextDocumentClientCapabilitiesParameterInformation(
+        labelOffsetSupport);
+  }
+
+  /// The client supports processing label offsets instead of a simple label
+  /// string.
+  final bool labelOffsetSupport;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    if (labelOffsetSupport != null) {
+      __result['labelOffsetSupport'] = labelOffsetSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic>;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is TextDocumentClientCapabilitiesParameterInformation) {
+      return labelOffsetSupport == other.labelOffsetSupport && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, labelOffsetSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9351,25 +9588,36 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
-  TextDocumentClientCapabilitiesSignatureInformation(this.documentationFormat);
+  TextDocumentClientCapabilitiesSignatureInformation(
+      this.documentationFormat, this.parameterInformation);
   static TextDocumentClientCapabilitiesSignatureInformation fromJson(
       Map<String, dynamic> json) {
     final documentationFormat = json['documentationFormat']
         ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
         ?.cast<MarkupKind>()
         ?.toList();
+    final parameterInformation = json['parameterInformation'] != null
+        ? TextDocumentClientCapabilitiesParameterInformation.fromJson(
+            json['parameterInformation'])
+        : null;
     return new TextDocumentClientCapabilitiesSignatureInformation(
-        documentationFormat);
+        documentationFormat, parameterInformation);
   }
 
   /// The client supports the follow content formats for the documentation
   /// property. The order describes the preferred format of the client.
   final List<MarkupKind> documentationFormat;
 
+  /// Client capabilities specific to parameter information.
+  final TextDocumentClientCapabilitiesParameterInformation parameterInformation;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (documentationFormat != null) {
       __result['documentationFormat'] = documentationFormat;
+    }
+    if (parameterInformation != null) {
+      __result['parameterInformation'] = parameterInformation;
     }
     return __result;
   }
@@ -9383,6 +9631,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
     if (other is TextDocumentClientCapabilitiesSignatureInformation) {
       return listEqual(documentationFormat, other.documentationFormat,
               (MarkupKind a, MarkupKind b) => a == b) &&
+          parameterInformation == other.parameterInformation &&
           true;
     }
     return false;
@@ -9392,6 +9641,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9526,12 +9776,14 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
-  TextDocumentClientCapabilitiesTypeDefinition(this.dynamicRegistration);
+  TextDocumentClientCapabilitiesTypeDefinition(
+      this.dynamicRegistration, this.linkSupport);
   static TextDocumentClientCapabilitiesTypeDefinition fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
+    final linkSupport = json['linkSupport'];
     return new TextDocumentClientCapabilitiesTypeDefinition(
-        dynamicRegistration);
+        dynamicRegistration, linkSupport);
   }
 
   /// Whether typeDefinition supports dynamic registration. If this is set to
@@ -9540,10 +9792,16 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   /// capability as well.
   final bool dynamicRegistration;
 
+  /// The client supports additional metadata in the form of definition links.
+  final bool linkSupport;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (linkSupport != null) {
+      __result['linkSupport'] = linkSupport;
     }
     return __result;
   }
@@ -9555,7 +9813,9 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   @override
   bool operator ==(other) {
     if (other is TextDocumentClientCapabilitiesTypeDefinition) {
-      return dynamicRegistration == other.dynamicRegistration && true;
+      return dynamicRegistration == other.dynamicRegistration &&
+          linkSupport == other.linkSupport &&
+          true;
     }
     return false;
   }
@@ -9564,6 +9824,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
+    hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

@@ -520,6 +520,7 @@ mixin ClientCapabilitiesHelperMixin {
           null,
           null,
           null,
+          null,
           null);
 
   final emptyWorkspaceClientCapabilities = new WorkspaceClientCapabilities(
