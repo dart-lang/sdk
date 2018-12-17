@@ -83,7 +83,7 @@
 
 #### Linter
 
-The linter was bumped to `0.1.75` which introduces the following new lints to the SDK:
+The linter was bumped to `0.1.76` which introduces the following new lints to the SDK:
 
 * `unnecessary_await_in_return`
 * `use_function_type_syntax_for_parameters`
@@ -92,7 +92,12 @@ The linter was bumped to `0.1.75` which introduces the following new lints to th
 
 and:
 
-* `unnecessary_parenthesis` lint has been improved to handle function expressions.
+* `unnecessary_parenthesis` has been updated to allow wrapping a `!` argument and improved to handle function expressions
+* miscellaneous documentation grammar and spelling fixes have been made
+* error messages for `always_declare_return_types` have been improved
+* `prefer_final_fields ` has been fixed to work with classes that have generic type arguments
+* (internal): deprecated code has been cleaned up
+* false positives in `unrelated_type_equality_checks` have been fixed
 
 In addition, `prefer_bool_in_asserts` has been deprecated as its semantics are
 redundant with Dart 2 checks and experimental lints `avoid_positional_boolean_parameters`,
