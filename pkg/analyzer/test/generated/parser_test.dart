@@ -1930,30 +1930,103 @@ mixin ComplexParserTestMixin implements AbstractParserTestCase {
     expect(expression.condition, isBinaryExpression);
   }
 
+  void test_conditionalExpression_precedence_withAssignment() {
+    ExpressionStatement statement = parseStatement('b ? c = true : g();');
+    ConditionalExpression expression = statement.expression;
+    expect(expression.condition, new TypeMatcher<SimpleIdentifier>());
+    expect(expression.thenExpression, new TypeMatcher<AssignmentExpression>());
+  }
+
+  void test_conditionalExpression_precedence_withAssignment2() {
+    ExpressionStatement statement = parseStatement('b.x ? c = true : g();');
+    ConditionalExpression expression = statement.expression;
+    expect(expression.condition, new TypeMatcher<PrefixedIdentifier>());
+    expect(expression.thenExpression, new TypeMatcher<AssignmentExpression>());
+  }
+
+  void test_conditionalExpression_prefixedValue() {
+    ExpressionStatement statement = parseStatement('a.b ? y : z;');
+    ConditionalExpression expression = statement.expression;
+    expect(expression.condition, new TypeMatcher<PrefixedIdentifier>());
+    expect(expression.thenExpression, new TypeMatcher<SimpleIdentifier>());
+  }
+
+  void test_conditionalExpression_prefixedValue2() {
+    ExpressionStatement statement = parseStatement('a.b ? x.y : z;');
+    ConditionalExpression expression = statement.expression;
+    expect(expression.condition, new TypeMatcher<PrefixedIdentifier>());
+    expect(expression.thenExpression, new TypeMatcher<PrefixedIdentifier>());
+  }
+
+  void test_conditionalExpression_precedence_prefixedNullableType_is() {
+    ExpressionStatement statement = parseStatement('x is p.A ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+
+    Expression condition = expression.condition;
+    expect(condition, new TypeMatcher<IsExpression>());
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
+  }
+
   void test_conditionalExpression_precedence_nullableType_as() {
-    Expression expression = parseExpression('x as String ? (x + y) : z');
-    expect(expression, isNotNull);
-    expect(expression, isConditionalExpression);
-    ConditionalExpression conditional = expression;
-    Expression condition = conditional.condition;
+    ExpressionStatement statement = parseStatement('x as bool ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
     expect(condition, isAsExpression);
-    Expression thenExpression = conditional.thenExpression;
+    Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = conditional.elseExpression;
+    Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
   }
 
   void test_conditionalExpression_precedence_nullableType_is() {
-    Expression expression = parseExpression('x is String ? (x + y) : z');
-    expect(expression, isNotNull);
-    expect(expression, isConditionalExpression);
-    ConditionalExpression conditional = expression;
-    Expression condition = conditional.condition;
+    ExpressionStatement statement =
+        parseStatement('x is String ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
     expect(condition, isIsExpression);
-    Expression thenExpression = conditional.thenExpression;
+    Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = conditional.elseExpression;
+    Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_conditionalExpression_precedence_nullableTypeWithTypeArg1_is() {
+    ExpressionStatement statement =
+        parseStatement('x is String<S> ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, new TypeMatcher<IsExpression>());
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
+  }
+
+  void test_conditionalExpression_precedence_nullableTypeWithTypeArg1GFT_is() {
+    ExpressionStatement statement =
+        parseStatement('x is String<S> Function() ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, new TypeMatcher<IsExpression>());
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
+  }
+
+  void test_conditionalExpression_precedence_nullableTypeWithTypeArg2_is() {
+    ExpressionStatement statement =
+        parseStatement('x is String<S,T> ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, new TypeMatcher<IsExpression>());
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, new TypeMatcher<ParenthesizedExpression>());
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, new TypeMatcher<SimpleIdentifier>());
   }
 
   void test_constructor_initializer_withParenthesizedExpression() {
