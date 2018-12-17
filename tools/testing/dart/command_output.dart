@@ -323,11 +323,6 @@ class BrowserCommandOutput extends CommandOutput
   Expectation result(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
-      if (testCase.configuration.runtime == Runtime.ie11) {
-        // TODO(28955): See http://dartbug.com/28955
-        DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
-        return Expectation.ignore;
-      }
       return Expectation.timeout;
     }
 
@@ -347,11 +342,6 @@ class BrowserCommandOutput extends CommandOutput
   Expectation realResult(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
-      if (testCase.configuration.runtime == Runtime.ie11) {
-        // TODO(28955): See http://dartbug.com/28955
-        DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
-        return Expectation.ignore;
-      }
       return Expectation.timeout;
     }
 
@@ -858,7 +848,6 @@ class DevCompilerCommandOutput extends CommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -930,7 +919,6 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
   Expectation realResult(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
@@ -996,7 +984,6 @@ class JSCommandLineOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
