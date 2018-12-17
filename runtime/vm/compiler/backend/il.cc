@@ -3650,6 +3650,13 @@ LocationSummary* FunctionEntryInstr::MakeLocationSummary(
 }
 
 void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if defined(TARGET_ARCH_X64)
+  // Ensure the start of the monomorphic checked entry is 2-byte aligned (see
+  // also Assembler::MonomorphicCheckedEntry()).
+  if (__ CodeSize() % 2 == 1) {
+    __ nop();
+  }
+#endif
   __ Bind(compiler->GetJumpLabel(this));
 
   // In the AOT compiler we want to reduce code size, so generate no
