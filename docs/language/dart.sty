@@ -90,7 +90,7 @@
 \definecolor{rationaleColor}{rgb}{0.5,0.5,0.5}
 
 % Environments for different kinds of text.
-\newenvironment{Q}[1]{{\bf #1}}{}
+\newenvironment{Q}[1]{{\bf{}Upcoming: {#1}}}{}
 \newenvironment{rationale}[1]{{\color{rationaleColor}\it{#1}}}{}
 \newenvironment{commentary}[1]{{\color{commentaryColor}\sf{#1}}}{}
 
@@ -104,6 +104,7 @@
 % specific topic in a list of similar topics (like many forms of
 % expressions of a similar nature).
 \newcommand{\Case}[1]{\textbf{Case }$\langle\hspace{0.1em}${#1}$\hspace{0.1em}\rangle$\textbf{.}}
+\newcommand{\EndCase}{\mbox{}\hfill$\scriptscriptstyle\Box$\xspace}
 
 \newenvironment{dartCode}[1][!ht] {
   \def\@programcr{\@addfield\strut}%

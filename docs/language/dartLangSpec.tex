@@ -3,6 +3,7 @@
 \usepackage{epsfig}
 \usepackage{xcolor}
 \usepackage{syntax}
+\usepackage{amssymb}
 \usepackage[fleqn]{amsmath}
 \usepackage{amssymb}
 \usepackage{semantic}
@@ -160,6 +161,8 @@
 %   types, the raw-depends relation, and simple bounds; and it specifies
 %   the algorithm which is used to expand a raw type (e.g., `C`) to a
 %   parameterized type (e.g., `C<int>`).
+% - Integrate invalid_returns.md. This replaces the rules about when it is
+%   an error to have `return;` or `return e;` in a function.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -728,7 +731,7 @@ and the object which is thrown implements \code{TypeError}.
 \LMHash{}%
 Whenever we say that an exception $ex$ is
 \IndexCustom{thrown}{throwing an exception},
-it acts like an expression had thrown (\ref{completion})
+it acts like an expression had thrown (\ref{statementCompletion})
 with $ex$ as exception object and with a stack trace
 corresponding to the current system state.
 When we say that a $C$ \IndexCustom{is thrown}{throwing a class},
@@ -1077,54 +1080,115 @@ and constructor declarations (\ref{constructors});
 and they can be introduced by function literals (\ref{functionExpressions}).
 
 \LMHash{}%
-Each declaration that introduces a function has a signature that specifies its return type, name, and formal parameter part,
-except that the return type may be omitted, and getters never have a formal parameter part.
-Function literals have a formal parameter part, but no return type and no name.
-The formal parameter part optionally specifies the formal type parameter list of the function,
-and it always specifies its formal parameter list.
-A function body is either:
-\begin{itemize}
-\item A block statement (\ref{blocks}) containing the statements (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \code{\ASYNC*} or \code{\SYNC*}.
-
-  \commentary{
-  Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression.
-  Therefore, every function must return a value.
-  A function body that ends without doing a throw or return will cause the function to return the null object (\ref{null}),
-  as will a \RETURN{} without an expression.
-  For generator functions, the situation is more subtle.
-  See further discussion in section \ref{return}.
-  }
-
-OR
-\item of the form \code{=> $e$} or the form \code{\ASYNC{} => $e$}, which both return the value of the expression $e$ as if by a \code{return $e$}.
-  \commentary{
-  The other modifiers do not apply here, because they apply only to generators, discussed below,
-  and generators are not allowed to return a value, values are added to the generated stream or iterable using \YIELD{} instead.
-  }
-  Let $R$ be the static type of $e$
-  and let $T$ be the declared return type of the function that has this body.
-  It is a compile-time error unless one of the following conditions hold:
-  \begin{itemize}
-  \item $T$ is \VOID{}.
-  \item The function is synchronous and $R$ is assignable to $T$.
-  \item The function is asynchronous and \code{Future<\flatten{R}>} is assignable to $T$.
-  \end{itemize}
-\end{itemize}
-
-\LMHash{}%
 A function is \IndexCustom{asynchronous}{function!asynchronous}
 if its body is marked with the \ASYNC{} or \code{\ASYNC*} modifier.
 Otherwise the function is \IndexCustom{synchronous}{function!synchronous}.
 A function is a \IndexCustom{generator}{function!generator}
 if its body is marked with the \code{\SYNC*} or \code{\ASYNC*} modifier.
+Further details about these concepts are given below.
 
-\commentary{
-Whether a function is synchronous or asynchronous is orthogonal to whether it is a generator or not.
-Generator functions are a sugar for functions that produce collections in a systematic way,
-by lazily applying a function that \emph{generates} individual elements of a collection.
-Dart provides such a sugar in both the synchronous case, where one returns an iterable, and in the asynchronous case, where one returns a stream.
-Dart also allows both synchronous and asynchronous functions that produce a single value.
+\commentary{%
+Whether a function is synchronous or asynchronous is orthogonal to
+whether it is a generator or not.
+Generator functions are a sugar for functions
+that produce collections in a systematic way,
+by lazily applying a function that \emph{generates}
+individual elements of a collection.
+Dart provides such a sugar in both the synchronous case,
+where one returns an iterable,
+and in the asynchronous case, where one returns a stream.
+Dart also allows both synchronous and asynchronous functions
+that produce a single value.%
 }
+
+\LMHash{}%
+Each declaration that introduces a function has a signature that specifies
+its return type, name, and formal parameter part,
+except that the return type may be omitted,
+and getters never have a formal parameter part.
+Function literals have a formal parameter part, but no return type and no name.
+The formal parameter part optionally specifies
+the formal type parameter list of the function,
+and it always specifies its formal parameter list.
+A function body is either:
+\begin{itemize}
+\item
+  a block statement (\ref{blocks}) containing
+  the statements (\ref{statements}) executed by the function,
+  optionally marked with one of the modifiers:
+  \ASYNC, \code{\ASYNC*} or \code{\SYNC*}.
+  %
+  Unless it is statically known that the body of the function
+  cannot complete normally
+  (\commentary{that is, it cannot reach the end and ``fall through''},
+  cf.~\ref{statementCompletion}),
+  it is a compile-time error if
+  the addition of \code{\RETURN;} at the end of the body
+  would be a compile-time error.
+  \commentary{%
+  For instance, it is an error if
+  the return type of a synchronous function is \code{int},
+  and the body may complete normally.
+  The precise rules are given in section~\ref{return}.%
+  }
+
+  \commentary{%
+  Because Dart supports dynamic function invocations,
+  we cannot guarantee that a function that does not return a value
+  will not be used in the context of an expression.
+  Therefore, every function must return a value.
+  A function body that ends without doing a throw or return
+  will cause the function to return the null object (\ref{null}),
+  as will a \RETURN{} without an expression.
+  For generator functions, the situation is more subtle.
+  See further discussion in section~\ref{return}.%
+  }
+
+OR
+\item
+  of the form \code{=> $e$} or the form \code{\ASYNC{} => $e$},
+  which both return the value of the expression $e$ as if by a
+  \code{return $e$}.
+  \commentary{%
+  The other modifiers do not apply here,
+  because they apply only to generators, discussed below.
+  Generators are not allowed to return a value,
+  values are added to the generated stream or iterable using
+  \YIELD{} or \YIELD*.%
+  }
+  Let $T$ be the declared return type of the function that has this body.
+  It is a compile-time error if one of the following conditions hold:
+  \begin{itemize}
+  \item The function is synchronous, $T$ is not \VOID{},
+    and it would have been a compile-time error to declare the function with the body
+    \code{\{ \RETURN{} $e$; \}}
+    rather than \code{=> $e$}.
+    \commentary{%
+    In particular, $e$ can have \emph{any} type when the return type is \VOID.%
+    }
+    \rationale{%
+    This enables concise declarations of \VOID{} functions.
+    It is reasonably easy to understand such a function,
+    because the return type is textually near to the returned expression $e$.
+    In contrast, \code{\RETURN{} $e$;} in a block body is only allowed
+    for an $e$ with one of a few specific static types,
+    because it is less likely that the developer understands
+    that the returned value will not be used
+    (\ref{return}).%
+    }
+  \item The function is asynchronous, \flatten{T} is not \VOID{},
+    and it would have been a compile-time error to declare the function with the body
+    \code{\ASYNC{} \{ \RETURN{} $e$; \}}
+    rather than \code{\ASYNC{} => $e$}.
+    \commentary{%
+    In particular, $e$ can have \emph{any} type
+    when the flattened return type is \VOID,%
+    }
+    \rationale{%
+    and the rationale is similar to the synchronous case.%
+    }
+  \end{itemize}
+\end{itemize}
 
 \LMHash{}%
 It is a compile-time error if an \ASYNC, \code{\ASYNC*} or \code{\SYNC*} modifier is attached to the body of a setter or constructor.
@@ -3904,6 +3968,7 @@ Otherwise, $M_0$ contains more than one member signature \List{m}{1}{q}.
 If $M_0$ contains at least one getter signature
 and at least one non-getter signature,
 the computation of the combined member signature failed.
+\EndCase
 
 \LMHash{}%
 \Case{Getters}
@@ -3912,7 +3977,7 @@ the computation of the combined member signature proceeds as described below
 for methods and setters,
 except that it uses the return type of the getter signature
 where methods and setters use the function type of the member signature.
-
+\EndCase
 
 \LMHash{}%
 \Case{Methods and setters}
@@ -3986,8 +4051,9 @@ each parameter in the combined member signature is marked covariant
 if any of the corresponding parameters are marked covariant,
 not just among the most specific signatures,
 but among \emph{all} signatures named \id{} (which are accessible to $L$)
-in the given list of interfaces.
+in the given list of interfaces.%
 }
+\EndCase
 
 
 \subsection{Superinterfaces}
@@ -4975,11 +5041,19 @@ that are omitted from a type,
 or from an invocation of a generic function.
 
 \commentary{%
+%% TODO(eernst): When we add a specification of type inference, we will adjust
+%% the specification of i2b such that it allows for taking initial values for
+%% the actual type arguments (that is, $U_{j,0}$ is given "from the caller" for
+%% some $j$; probably "the caller" will always be type inference), and all other
+%% parts of the algorithm remain unchanged.
+%% I think it will be more confusing than helpful to start writing this now,
+%% and it will be a small adjustment when we add a spec of type inference. So
+%% at this point we just specify i2b as a stand-alone algorithm.
 Note that type inference is assumed to have taken place already
 (\ref{overview}),
 so type arguments are not considered to be omitted if they are inferred.
 This means that instantiation to bound is a backup mechanism,
-which will be used when no information is available for inference.
+which will be used when no information is available for inference.%
 }
 
 \LMHash{}%
@@ -4994,8 +5068,8 @@ We use the phrase
 \Index{raw type} respectively \Index{raw type expression}
 to identify such terms.
 In the following we only mention raw types,
-because everything said about raw types
-is applicable to raw type expressions in the obvious manner.
+but everything said about raw types
+applies to raw type expressions in the obvious manner.
 
 \commentary{%
 For instance, with the declaration \code{Type listType() => List;},
@@ -5010,12 +5084,14 @@ because it can be the value of a type variable.%
 }
 
 \rationale{%
-A raw type cannot denote a higher-kinded type
-(Dart does not support such types),
-so we can unambiguously define them to denote
+We can unambiguously define raw types to denote
 the result of applying the generic type
-to a list of implicitly provided actual type arguments.
-Instantiation to bound is a mechanism that does just that.%
+to a list of implicitly provided actual type arguments,
+and instantiation to bound is a mechanism which does just that.
+This is because Dart does not, and will not, support higher-kinded types;
+for example, the value of a type variable $X$ will be a type,
+it cannot be the generic class \code{List} as such,
+and it cannot be applied to type arguments, e.g., \code{$X$<int>}.%
 }
 
 \rationale{%
@@ -5266,7 +5342,7 @@ be determined by the following iterative process, where $V_m$ denotes
   with respect to \Depends{}.
   \commentary{
   That is, the maximal subsets of \List{X}{1}{k}
-  where every pair of variables in each subset 
+  where every pair of variables in each subset
   are related in both directions by \TransitivelyDepends;
   note that the SCCs are pairwise disjoint;
   also, they are uniquely defined up to reordering,
@@ -5346,7 +5422,7 @@ yields a type which is not well-bounded
 
 \commentary{%
 This kind of error can occur, as demonstrated by the following example:%
-}  
+}
 
 \begin{dartCode}
 \CLASS{} C<X \EXTENDS{} C<X>{}> \{\}
@@ -6790,6 +6866,7 @@ is
 \noindent
 %% TODO[inference]: The static type of the function literal may come from context.
 where $T_0$ is the static type of $e$.
+\EndCase
 
 \LMHash{}%
 \Case{Positional, arrow, future}
@@ -6807,6 +6884,7 @@ is
 
 \noindent
 where $T_0$ is the static type of $e$.
+\EndCase
 
 \LMHash{}%
 \Case{Named, arrow}
@@ -6824,6 +6902,7 @@ is
 
 \noindent
 where $T_0$ is the static type of $e$.
+\EndCase
 
 \LMHash{}%
 \Case{Named, arrow, future}
@@ -6841,6 +6920,7 @@ is
 
 \noindent
 where $T_0$ is the static type of $e$.
+\EndCase
 
 \LMHash{}%
 \Case{Positional, block}
@@ -6855,6 +6935,7 @@ The static type of a function literal of the form
 \noindent
 is
 \FunctionTypePositionalStdCr{\DYNAMIC}
+\EndCase
 
 \LMHash{}%
 \Case{Positional, block, future}
@@ -6870,6 +6951,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypePositionalStdCr{\code{Future}}.
+\EndCase
 
 \LMHash{}%
 \Case{Positional, block, stream}
@@ -6885,6 +6967,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypePositionalStdCr{\code{Stream}}.
+\EndCase
 
 \LMHash{}%
 \Case{Positional, block, iterable}
@@ -6900,6 +6983,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypePositionalStdCr{\code{Iterable}}.
+\EndCase
 
 \LMHash{}%
 \Case{Named, block}
@@ -6915,6 +6999,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypePositionalStdCr{\DYNAMIC}.
+\EndCase
 
 \LMHash{}%
 \Case{Named, block, future}
@@ -6930,6 +7015,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypeNamedStdCr{\code{Future}}.
+\EndCase
 
 \LMHash{}%
 \Case{Named, block, stream}
@@ -6945,6 +7031,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypeNamedStdCr{\code{Stream}}.
+\EndCase
 
 \LMHash{}%
 \Case{Named, block, iterable}
@@ -6960,6 +7047,7 @@ The static type of a function literal of the form
 is
 %% TODO(eernst): Adjust to take type inference into account.
 \FunctionTypeNamedStdCr{\code{Iterable}}.
+\EndCase
 
 \LMHash{}%
 In all of the above cases,
@@ -7157,6 +7245,7 @@ a dynamic type error occurs.
 \LMHash{}%
 \Case{Non-loaded deferred constructors}
 If $T$ is a deferred type with prefix $p$, then if $p$ has not been successfully loaded, a dynamic error occurs.
+\EndCase
 
 \LMHash{}%
 \Case{Generative constructors}
@@ -7175,10 +7264,11 @@ if $R$ is a generic class,
 with its type parameters bound to $u_1, \ldots, u_m$.
 
 \LMHash{}%
-If execution of $q$ completes normally (\ref{completion}), $e$ evaluates to $i$.
+If execution of $q$ completes normally (\ref{statementCompletion}), $e$ evaluates to $i$.
 Otherwise execution of $q$ throws an exception object $x$ and stack trace $t$,
 and then evaluation of $e$ also throws exception object $x$ and stack trace $t$
 (\ref{evaluation}).
+\EndCase
 
 \LMHash{}%
 \Case{Redirecting factory constructors}
@@ -7193,9 +7283,10 @@ evaluating
 in an environment where
 $v_j$ is a fresh variable bound to $o_j$ for $j \in 1 .. n + k$, and
 $X_j$ is bound to $u_j$ for $j \in 1 .. m$.
-\commentary{
-We need access to the type variables because $c$ may contain them.
+\commentary{%
+We need access to the type variables because $c$ may contain them.%
 }
+\EndCase
 
 \LMHash{}%
 \Case{Non-redirecting factory constructors}
@@ -7204,7 +7295,7 @@ the body of $q$ is executed with respect to
 the bindings that resulted from the evaluation of the argument list,
 and with the type parameters, if any, of $q$ bound to
 the actual type arguments $u_1, \ldots, u_m$.
-If this execution returns a value (\ref{completion}),
+If this execution returns a value (\ref{statementCompletion}),
 then $e$ evaluates to the returned value.
 Otherwise, if the execution completes normally or returns with no value,
 then $e$ evaluates to the null object (\ref{null}).
@@ -7215,6 +7306,7 @@ and then evaluation of $e$ also throws $x$ and $t$ (\ref{evaluation}).
 A factory constructor can be declared in an abstract class and used safely,
 as it will either produce a valid instance or throw.
 }
+\EndCase
 
 
 \subsubsection{Const}
@@ -7447,12 +7539,12 @@ Execution a body of the form \code{\ASYNC{} => $e$} is equivalent to executing a
 
 \LMHash{}%
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
-If the execution of the body of $f$ returns a value, $v$, (\ref{completion}), the invocation evaluates to $v$.
+If the execution of the body of $f$ returns a value, $v$, (\ref{statementCompletion}), the invocation evaluates to $v$.
 If the execution completes normally or it returns without a value, the invocation evaluates to the null object (\ref{null}).
 If the execution throws an exception object and stack trace, the invocation throws the same exception object and stack trace (\ref{evaluation}).
 
 \commentary{
-A complete function body can never break or contine (\ref{completion})
+A complete function body can never break or continue (\ref{statementCompletion})
 because a \BREAK{} or \CONTINUE{} statement must always occur inside the statement that is the target of the \BREAK{} or \CONTINUE{}.
 This means that a function body can only either complete normally, throw, or return.
 Completing normally or returning without a value is treated the same as returning the null object (\ref{null}), so the result of executing a function body can always be used as the result of evaluating an expression, either by evaluating to a value or by the evaluation throwing.
@@ -7486,9 +7578,9 @@ It would not be acceptable to pre-compute the results of the generator and cache
 
 \LMHash{}%
 When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()}, execution of the body of $f$ will begin.
-When execution of the body of $f$ completes (\ref{completion}),
+When execution of the body of $f$ completes (\ref{statementCompletion}),
 \begin{itemize}
-\item If it returns without a value or it completes normally (\ref{completion}), $j$ is positioned after its last element, so that its current value is the null object (\ref{null}) and the current call to \code{moveNext()} on $j$ returns false, as must all further calls.
+\item If it returns without a value or it completes normally (\ref{statementCompletion}), $j$ is positioned after its last element, so that its current value is the null object (\ref{null}) and the current call to \code{moveNext()} on $j$ returns false, as must all further calls.
 \item If it throws an exception object $e$ and stack trace $t$ then the current value of $j$ is the null object (\ref{null}) and the current call to \code{moveNext()} throws $e$ and $t$ as well.
 Further calls to \code{moveNext()} must return false.
 \end{itemize}
@@ -7523,7 +7615,7 @@ Then the body of $f$ is executed until it either suspends or completes, at which
 \commentary{
 The body of $f$ may suspend during the evaluation of an \AWAIT{} expression or execution of an asynchronous \FOR{} loop.
 }
-The future $o$ is completed when execution of the body of $f$ completes (\ref{completion}).
+The future $o$ is completed when execution of the body of $f$ completes (\ref{statementCompletion}).
 If execution of the body returns a value, $o$ is completed with that value,
 if it completes normally or returns without a value,
 $o$ is completed with the null object (\ref{null}),
@@ -7547,7 +7639,7 @@ otherwise $U$ is \code{Object}.
 When $s$ is listened to, execution of the body of $f$ will begin.
 When execution of the body of $f$ completes:
 \begin{itemize}
-\item If it completes normally or returns with no value (\ref{completion}), then if $s$ has been canceled then its cancellation future is completed with the null object (\ref{null}).
+\item If it completes normally or returns with no value (\ref{statementCompletion}), then if $s$ has been canceled then its cancellation future is completed with the null object (\ref{null}).
 \item If it throws an exception object $e$ and stack trace $t$:
   \begin{itemize}
   \item If $s$ has been canceled then its cancellation future is completed with error $e$ and stack trace $t$.
@@ -7556,7 +7648,7 @@ When execution of the body of $f$ completes:
 \item $s$ is closed.
 \end{itemize}
 \commentary{
-The body of an asynchronous generator function cannot break, continue or return a value (\ref{completion}).
+The body of an asynchronous generator function cannot break, continue or return a value (\ref{statementCompletion}).
 The first two are only allowed in contexts that will handle the break or continue, and return statements with an expression are not allowed in generator functions.
 }
 
@@ -8159,7 +8251,7 @@ in the same way as an invocation of $f$
 and then execute the body of $f$
 in the captured scope amended with the bound parameter scope,
 yielding the same completion
-(\ref{completion})
+(\ref{statementCompletion})
 as the invocation of $f$ would have yielded.
 
 
@@ -8315,6 +8407,7 @@ Otherwise let $v$ be a fresh variable bound to $o$ and evaluate
 \code{$v$.$m$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 to a value $r$.
 Then $e$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e$.$m$<$\cdots$>($\cdots$)}}
@@ -8437,6 +8530,7 @@ The situation where \code{noSuchMethod} is invoked can only arise
 when the static type of $e$ is \DYNAMIC{}.
 Notice that the wording avoids re-evaluating the receiver $o$ and the arguments $a_i$.
 }
+\EndCase
 
 
 \subsubsection{Cascaded Invocations}
@@ -8636,6 +8730,7 @@ If $o$ is the null object, $i$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
 and evaluate \code{$x$.\id} to a value $r$.
 Then $i$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{Unconditional}
@@ -8646,6 +8741,7 @@ may be of the form \code{$e$.\id} where $e$ is an expression
 (\ref{getterAccessAndMethodExtraction}),
 or of the form \code{\SUPER.\id}
 (\ref{superGetterAccessAndMethodClosurization}).
+\EndCase
 
 
 \subsubsection{Getter Access and Method Extraction}
@@ -9151,6 +9247,7 @@ It is a dynamic type error if $o$ is not the null object (\ref{null})
 and the dynamic type of $o$ is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration})
 of $v$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$?.$v$ = $e_2$}}
@@ -9168,6 +9265,7 @@ If $o$ is the null object, $a$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
 and evaluate \code{$x$.$v$ = $e_2$} to an object $r$.
 Then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$.$v$ = $e_2$}}
@@ -9217,6 +9315,7 @@ when the static type of $e_1$ is \DYNAMIC{}.
 
 \LMHash{}%
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
+\EndCase
 
 \LMHash{}%
 \Case{\code{\SUPER.$v$ = $e$}}
@@ -9250,6 +9349,7 @@ It is a dynamic type error if $o$ is not the null object (\ref{null})
 and the dynamic type of $o$ is
 not a subtype of the actual type of the formal parameter of \code{$v$=}
 (\ref{actualTypeOfADeclaration}) in $S_{static}$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$[$e_2$] = $e_3$}}
@@ -9273,6 +9373,7 @@ Evaluate $e_1$ to an object $a$, then evaluate $e_2$ to an object $i$, and final
 Call the method \code{[]=} on $a$ with $i$ as first argument and $v$ as second argument.
 Then $a$ evaluates to $v$.
 % Should we add: It is a dynamic error if $e_1$ evaluates to a constant list or map?
+\EndCase
 
 \LMHash{}%
 \Case{\code{\SUPER[$e_1$] = $e_2$}}
@@ -9289,6 +9390,7 @@ The static type of $a$ is the static type of $e_2$.
 \LMHash{}%
 For evaluation, an assignment of the form \code{\SUPER[$e_1$] = $e_2$}
 is equivalent to the expression \code{\SUPER.[$e_1$] = $e_2$}.
+\EndCase
 
 
 \subsubsection{Compound Assignment}
@@ -9310,6 +9412,7 @@ Evaluate $v$ to an object $o$.
 If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate \code{$v$ = $e$} to a value $r$,
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$C$.$v$ ??= $e$}}
@@ -9328,6 +9431,7 @@ Evaluate \code{$C$.$v$} to an object $o$.
 If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate \code{$C$.$v$ = $e$} to a value $r$,
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$.$v$ ??= $e_2$}}
@@ -9347,6 +9451,7 @@ Evaluate \code{$x$.$v$} to an object $o$.
 If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate \code{$x$.$v$ = $e_2$} to an object $r$,
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$[$e_2$] ??= $e_3$}}
@@ -9364,6 +9469,7 @@ If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate $e_3$ to an object $v$
 and then call the \code{[]=} method on $u$ with $i$ as first argument and $v$ as second argument.
 Then $a$ evaluates to $v$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{\SUPER.$v$ ??= $e$}}
@@ -9379,6 +9485,7 @@ Evaluate \code{\SUPER.$v$} to an object $o$.
 If $o$ is not the null object (\ref{null}) then $a$ evaluates to $o$.
 Otherwise evaluate \code{\SUPER.$v$ = $e$} to an object $r$,
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$?.$v$ ??= $e_2$}}
@@ -9399,6 +9506,7 @@ Evaluate \code{$x$.$v$} to an object $o$.
 If $o$ is not the null object (\ref{null}) then $a$ evaluates to $o$.
 Otherwise evaluate \code{$x$.$v$ = $e_2$} to an object $r$,
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$C$?.$v$ ??= $e_2$}}
@@ -9406,12 +9514,14 @@ A compound assignment of the form \code{$C$?.$v$ ??= $e_2$}
 where $C$ is a type literal
 that may or may not be be qualified by an import prefix
 is equivalent to the expression \code{$C$.$v$ ??= $e$}.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$v$ $op$= $e$}}
 For any other valid operator $op$, a compound assignment of the form \code{$v$ $op$= $e$}
 is equivalent to \code{$v$ = $v$ $op$ $e$},
 where $v$ is an identifier or an identifier qualified by an import prefix.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$C$.$v$ $op$= $e$}}
@@ -9419,6 +9529,7 @@ A compound assignment of the form \code{$C$.$v$ $op$= $e$}
 where $C$ is a type literal
 that may or may not be qualified by an import prefix
 is equivalent to \code{$C$.$v$ = $C$.$v$ $op$ $e$}.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$.$v$ $op$= $e_2$}}
@@ -9434,6 +9545,7 @@ proceeds as follows:
 Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$ = $x$.$v$ $op$ $e_2$} to an object $r$
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$[$e_2$] $op$= $e_3$}}
@@ -9452,6 +9564,7 @@ Evaluate $e_1$ to an object $u$ and evaluate $e_2$ to an object $v$.
 Let $x$ and $i$ be fresh variables bound to $u$ and $v$ respectively.
 Evaluate \code{$x$[$i$] = $x$[$i$] $op$ $e_3$} to an object $r$,
 and then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$e_1$?.$v$ $op$= $e_2$}}
@@ -9467,6 +9580,7 @@ If $u$ is the null object, then $a$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$ $op$= $e_2$} to an object $r$.
 Then $a$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
 \Case{\code{$C$?.$v$ $op$ = $e_2$}}
@@ -9489,6 +9603,7 @@ is equivalent to the expression \code{$C$.$v$ $op$ = $e_2$}.
   \alt `|='
   \alt `??='
 \end{grammar}
+\EndCase
 
 
 \subsection{Conditional}
@@ -10403,42 +10518,6 @@ The static type of a cast expression \code{$e$ \AS{} $T$} is $T$.
 A \Index{statement} is a fragment of Dart code that can be executed at run time.
 Statements, unlike expressions, do not evaluate to a value, but are instead executed for their effect on the program state and control flow.
 
-\label{completion}
-Execution of a statement \IndexCustom{completes}{completion}
-in one of five ways:
-either it
-\IndexCustom{completes normally}{completion!normally},
-it \IndexCustom{breaks}{completion!breaks}
-or it \IndexCustom{continues}{completion!continues}
-(either to a label or without a label),
-it \IndexCustom{returns}{completion!returns} (with or without a value),
-or it \IndexCustom{throws}{completion!throws}
-an exception object and an associated stack trace.
-
-In the description of statement execution, the default is that the execution
-completes normally unless otherwise stated.
-
-If the execution of a statement, $s$, is defined in terms of executing
-another statement,
-and the execution of that other statement does not complete normally,
-then, unless otherwise stated, the execution of $s$ stops
-at that point and completes in the same way.
-\commentary{
-For example, if execution of the body of a \DO{} loop returns a value, so does execution of the \DO{} loop statement itself.
-}
-
-If the execution of a statement is defined in terms of evaluating an expression
-and the evaluation of that expression throws,
-then, unless otherwise stated, the execution of the statement stops
-at that point and throws the same exception object and stack trace.
-\commentary{
-For example, if evaluation of the condition expression of an \IF{} statement throws,
-then so does execution of the \IF{} statement.
-Likewise, if evaluation of the expression of a \RETURN{} statement throws, so does execution of the \RETURN{} statement.
-}
-
-\LMHash{}%
-
 \begin{grammar}
 <statements> ::= <statement>*
 
@@ -10462,6 +10541,59 @@ Likewise, if evaluation of the expression of a \RETURN{} statement throws, so do
   \alt <assertStatement>
   \alt <localFunctionDeclaration>
 \end{grammar}
+
+
+\subsubsection{Statement Completion}
+\LMLabel{statementCompletion}
+
+\LMHash{}%
+Execution of a statement \IndexCustom{completes}{completion}
+in one of five ways:
+either it
+\IndexCustom{completes normally}{completion!normally},
+it \IndexCustom{breaks}{completion!breaks}
+or it \IndexCustom{continues}{completion!continues}
+(either to a label or without a label),
+it \IndexCustom{returns}{completion!returns} (with or without a value),
+or it \IndexCustom{throws}{completion!throws}
+an exception object and an associated stack trace.
+
+\LMHash{}%
+In descriptions of statement execution the default is that
+the execution completes normally unless otherwise stated.
+
+\LMHash{}%
+If the execution of a statement, $s$,
+is defined in terms of executing another statement,
+and the execution of that other statement does not complete normally,
+then, unless otherwise stated, the execution of $s$ stops
+at that point and completes in the same way.
+\commentary{%
+For example, if execution of the body of a \DO{} loop returns a value,
+so does execution of the \DO{} loop statement itself.%
+}
+
+\LMHash{}%
+If the execution of a statement is defined in terms of evaluating an expression
+and the evaluation of that expression throws,
+then, unless otherwise stated, the execution of the statement stops
+at that point and throws the same exception object and stack trace.
+\commentary{
+For example,
+if evaluation of the condition expression of an \IF{} statement throws,
+then so does execution of the \IF{} statement.
+Likewise, if evaluation of the expression of a \RETURN{} statement throws,
+so does execution of the \RETURN{} statement.
+}
+
+%% TODO(eernst): Use proposal from Lasse to define the concept of a statement
+%% for which it is 'statically known that it will not complete normally': Cf.
+%% https://github.com/dart-lang/language/issues/139.
+\Q{%
+Definition of
+`it is statically known that this statement will not complete normally'
+will be inserted here.%
+}
 
 
 \subsection{Blocks}
@@ -10858,7 +10990,7 @@ Otherwise, execution continues at step \ref{beginIteration}.
 The statement $[v'/v]\{s\}$ is executed.
 
 If this execution completes normally, continues without a label,
-or continues to a label (\ref{labels}) that prefixes this \FOR{} statement (\ref{completion}),
+or continues to a label (\ref{labels}) that prefixes this \FOR{} statement (\ref{statementCompletion}),
 then execution of the statement is treated as if it had completed normally.
 
 \label{allocateFreshVar}
@@ -10971,7 +11103,7 @@ If $o$ doesn't act as a valid stream, for example by not respecting pause reques
 }
 
 \LMHash{}%
-If execution of $s$ continues without a label, or to a label (\ref{labels}) that prefixes the asynchronous for statement (\ref{completion}), then the execution of $s$ is treated as if it had completed normally.
+If execution of $s$ continues without a label, or to a label (\ref{labels}) that prefixes the asynchronous for statement (\ref{statementCompletion}), then the execution of $s$ is treated as if it had completed normally.
 
 If execution of $s$ otherwise does not complete normally, the subscription $u$ is canceled by evaluating \code{\AWAIT{} $v$.cancel()} where $v$ is a fresh variable referencing the stream subscription $u$.
 If that evaluation throws,
@@ -11026,11 +11158,11 @@ The expression $e$ is evaluated to an object $o$.
 It is a run-time error if the run-time type of $o$ is not \code{bool}.
 
 \LMHash{}%
-If $o$ is \FALSE{}, then execution of the while statement completes normally (\ref{completion}).
+If $o$ is \FALSE{}, then execution of the while statement completes normally (\ref{statementCompletion}).
 
 \LMHash{}%
 Otherwise $o$ is \TRUE{} and then the statement $\{s\}$ is executed.
-If that execution completes normally or it continues with no label or to a label (\ref{labels}) that prefixes the \WHILE{} statement (\ref{completion}), then the while statement is re-executed.
+If that execution completes normally or it continues with no label or to a label (\ref{labels}) that prefixes the \WHILE{} statement (\ref{statementCompletion}), then the while statement is re-executed.
 If the execution breaks without a label, execution of the while statement completes normally.
 \commentary{
 If the execution breaks with a label that prefixes the \WHILE{} statement,
@@ -11056,12 +11188,12 @@ Execution of a do statement of the form \code{\DO{} $s$ \WHILE{} ($e$);} proceed
 
 \LMHash{}%
 The statement $\{s\}$ is executed.
-If that execution continues with no label, or to a label (\ref{labels}) that prefixes the do statement (\ref{completion}), then the execution of $s$ is treated as if it had completed normally.
+If that execution continues with no label, or to a label (\ref{labels}) that prefixes the do statement (\ref{statementCompletion}), then the execution of $s$ is treated as if it had completed normally.
 
 \LMHash{}%
 Then, the expression $e$ is evaluated to an object $o$.
 It is a run-time error if the run-time type of $o$ is not \code{bool}.
-If $o$ is \FALSE{}, execution of the do statement completes normally (\ref{completion}).
+If $o$ is \FALSE{}, execution of the do statement completes normally (\ref{statementCompletion}).
 If $o$ is \TRUE{}, then the do statement is re-executed.
 
 \LMHash{}%
@@ -11222,7 +11354,7 @@ It is a run-time error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \FALSE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
 If $o$ is \TRUE{}, let $h$ be the smallest integer such that $h \ge k$ and $s_h$ is non-empty.
 If such a $h$ exists, the case statements $s_h$ are executed (\ref{case-execute}).
-Otherwise the switch statement completes normally (\ref{completion}).
+Otherwise the switch statement completes normally (\ref{statementCompletion}).
 
 \LMHash{}%
 It is a compile-time error if the type of $e$ may not be assigned to the type of $e_k$.
@@ -11312,9 +11444,9 @@ In other words, there is no implicit fall-through between non-empty cases.
 The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
 }
 
-If execution of $\{s_h\}$ breaks with no label (\ref{completion}), then the execution of the switch statement completes normally.
+If execution of $\{s_h\}$ breaks with no label (\ref{statementCompletion}), then the execution of the switch statement completes normally.
 
-If execution of $\{s_h\}$ continues to a label (\ref{completion}), and the label is $label_{ij}$, where $1 \le i \le n+1$ if the \SWITCH{} statement has a \DEFAULT{}, or $1 \le i \le n$ if there is no \DEFAULT{}, and where $1 \le j \le j_{i}$, then
+If execution of $\{s_h\}$ continues to a label (\ref{statementCompletion}), and the label is $label_{ij}$, where $1 \le i \le n+1$ if the \SWITCH{} statement has a \DEFAULT{}, or $1 \le i \le n$ if there is no \DEFAULT{}, and where $1 \le j \le j_{i}$, then
 let $h$ be the smallest number such that $h \ge i$ and $s_h$ is non-empty.
 If no such $h$ exists, let $h = n + 1$ if the \SWITCH{} statement has a \DEFAULT{}, otherwise let $h = n$.
 The case statements $s_h$ are then executed (\ref{case-execute}).
@@ -11344,7 +11476,7 @@ So we can assume that the \RETHROW{} is enclosed in a \CATCH{} clause of that fo
 }
 
 \LMHash{}%
-The \RETHROW{} statement throws (\ref{completion}) with $p_1$ as the exception object and $p_2$ as the stack trace.
+The \RETHROW{} statement throws (\ref{statementCompletion}) with $p_1$ as the exception object and $p_2$ as the stack trace.
 
 \LMHash{}%
 It is a compile-time error if a \code{\RETHROW{}} statement is not enclosed within an \ON-\CATCH{} clause.
@@ -11414,13 +11546,13 @@ proceeds as follows:
 
 \LMHash{}%
 First $b$ is executed.
-If execution of $b$ throws (\ref{completion}) with exception object $e$ and stack trace $t$, then $e$ and $t$ are matched against the \ON{}-\CATCH{} clauses to yield a new completion (\ref{on-catch}).
+If execution of $b$ throws (\ref{statementCompletion}) with exception object $e$ and stack trace $t$, then $e$ and $t$ are matched against the \ON{}-\CATCH{} clauses to yield a new completion (\ref{on-catch}).
 
 Then, even if execution of $b$ did not complete normally or matching against the \ON{}-\CATCH{} clauses did not complete normally, the $f$ block is executed.
 
 If execution of $f$ does not complete normally,
 execution of the \TRY{} statement completes in the same way.
-Otherwise if execution of $b$ threw (\ref{completion}), the \TRY{} statement completes in the same way as the matching against the \ON{}-\CATCH{} clauses.
+Otherwise if execution of $b$ threw (\ref{statementCompletion}), the \TRY{} statement completes in the same way as the matching against the \ON{}-\CATCH{} clauses.
 Otherwise the \TRY{} statement completes in the same way as the execution of $b$.
 
 \LMHash{}%
@@ -11442,7 +11574,7 @@ Matching an exception object $e$ and stack trace $t$ against a (potentially empt
 proceeds as follows:
 
 \LMHash{}%
-If there are no \ON{}-\CATCH{} clauses ($n = 0$), matching throws the exception object $e$ and stack trace $t$ (\ref{completion}).
+If there are no \ON{}-\CATCH{} clauses ($n = 0$), matching throws the exception object $e$ and stack trace $t$ (\ref{statementCompletion}).
 
 \LMHash{}%
 Otherwise the exception is matched against the first clause.
@@ -11465,69 +11597,149 @@ Otherwise, if the first clause did not match $e$, $e$ and $t$ are recursively ma
 \LMLabel{return}
 
 \LMHash{}%
-The \Index{return statement} returns a result to the caller of a synchronous function,
+The \Index{return statement}
+returns a result to the caller of a synchronous function,
 completes the future associated with an asynchronous function,
-or terminates the stream or iterable associated with a generator (\ref{functions}).
+or terminates the stream or iterable associated with a generator
+(\ref{functions}).
 
 \begin{grammar}
 <returnStatement> ::= \RETURN{} <expression>? `;'
 \end{grammar}
 
 \LMHash{}%
-Consider a return statement of the form \code{\RETURN{} $e$;}.
-Let $T$ be the static type of $e$, let $f$ be the immediately enclosing function,
-and let $S$ be the declared return type of $f$.
+Consider a return statement $s$ of the form \code{\RETURN{} $e$?;}.
+Let $S$ be the static type of $e$, if $e$ is present,
+let $f$ be the immediately enclosing function,
+and let $T$ be the declared return type of $f$.
 
 \LMHash{}%
-It is a compile-time error if the body of $f$ is marked \ASYNC{}
-and the type \code{Future<\flatten{T}>} (\ref{functionExpressions}) may not be assigned to $S$.
-Otherwise, it is a compile-time error if $T$ may not be assigned to $S$.
+\Case{Synchronous non-generator functions}
+Consider the case where $f$ is a synchronous non-generator function
+(\ref{functions}).
+%
+% Returning without a value is only ok for "voidy" return types.
+It is a compile-time error if $s$ is \code{\RETURN{};},
+unless $T$ is \VOID, \DYNAMIC, or \code{Null}.
+%
+% Returning with a value in a void function only ok when that value is "voidy".
+It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
+$T$ is \VOID,
+and $S$ is neither \VOID, \DYNAMIC, nor \code{Null}.
+%
+% Returning void in a "non-voidy" function is an error.
+It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
+$T$ is neither \VOID, \DYNAMIC, nor \code{Null},
+and $S$ is \VOID.
+%
+% Otherwise, returning an unassignable value is an error.
+It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
+$S$ is not \VOID,
+and $S$ is not assignable to $T$.
+
+\commentary{%
+Note that $T$ cannot be \VOID, \DYNAMIC, or \code{Null} in the last case,
+because all types are assignable to those types.
+An error will not be raised if $f$ has no declared return type,
+since the return type would be \DYNAMIC, to which every type is assignable.
+However, a synchronous non-generator function
+that declares a return type which is not ``voidy''
+must return an expression explicitly.%
+}
+\rationale{%
+This helps catch situations where users forget
+to return a value in a return statement.%
+}
+\EndCase
 
 \LMHash{}%
-It is a compile-time error if a return statement of the form \code{\RETURN{} $e$;} appears in a generative constructor (\ref{generativeConstructors}).
+\Case{Asynchronous non-generator functions}
+Consider the case where $f$ is an asynchronous non-generator function
+(\ref{functions}).
+%
+% Returning without a value is only ok for async-"voidy" return types.
+It is a compile-time error if $s$ is \code{\RETURN{};},
+unless \flatten{T}
+(\ref{functionExpressions})
+is \VOID{}, \DYNAMIC{}, or \code{Null}.
+%
+% Returning with a value in an void async function only ok
+% when that value is async-"voidy".
+It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
+\flatten{T} is \VOID{},
+and \flatten{S} is neither \VOID{}, \DYNAMIC{}, nor \code{Null}.
+%
+% Returning async-void in a "non-async-voidy" function is an error.
+It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
+\flatten{T} is neither \VOID{}, \DYNAMIC{}, nor \code{Null},
+and \flatten{S} is \VOID{}.
+%
+% Otherwise, returning an un-deasync-assignable value is an error.
+It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
+\flatten{S} is not \VOID,
+and \code{Future<\flatten{S}>} is not assignable to $T$.
+
+\commentary{%
+Note that \flatten{T} cannot be \VOID, \DYNAMIC, or \code{Null}
+in the last case,
+because then \code{Future<$U$>} is assignable to $T$ for \emph{all} $U$.
+In particular, when $T$ is \code{FutureOr<Null>}
+(which is equivalent to \code{Future<Null>}),
+\code{Future<\flatten{S}>} is assignable to $T$ for all $S$.
+This means that no compile-time error is raised,
+but \emph{only} the null object (\ref{null})
+or an instance of \code{Future<Null>} can successfully be returned at run time.
+This is not an anomaly,
+it corresponds to the treatment of a synchronous function
+with return type \code{Null};
+but tools may choose to give a hint that a downcast is unlikely to succeed.
+
+An error will not be raised if $f$ has no declared return type,
+since the return type would be \DYNAMIC,
+and \code{Future<\flatten{S}>} is assignable to \DYNAMIC{} for all $S$.
+However, an asynchronous non-generator function
+that declares a return type which is not ``voidy''
+must return an expression explicitly.%
+}
+\rationale{%
+This helps catch situations where users forget
+to return a value in a return statement of an asynchronous function.%
+}
+\EndCase
+
+\LMHash{}%
+\Case{Generator functions}
+It is a compile-time error if a return statement of
+the form \code{\RETURN{} $e$;} appears in a generator function.
 
 \rationale{
-It is quite easy to forget to add the factory prefix for a constructor, accidentally converting a factory into a generative constructor.
-The static checker may detect a type mismatch in some, but not all, of these cases.
-The rule above helps catch such errors, which can otherwise be very hard to recognize.
-There is no real downside to it, as returning a value from a generative constructor is meaningless.
+In the case of a generator function, the value returned by the function is
+the iterable or stream associated with it,
+and individual elements are added to that iterable using yield statements,
+and so returning a value makes no sense.
 }
+\EndCase
 
 \LMHash{}%
-It is a compile-time error if a return statement of the form \code{\RETURN{} $e$;} appears in a generator function.
+\Case{Generative constructors}
+It is a compile-time error if a return statement of
+the form \code{\RETURN{} $e$;} appears in a generative constructor
+(\ref{generativeConstructors}).
 
 \rationale{
-In the case of a generator function, the value returned by the function is the iterable or stream associated with it, and individual elements are added to that iterable using yield statements, and so returning a value makes no sense.
-}
-
-\LMHash{}%
-Let $f$ be the function immediately enclosing a return statement of the form \code{\RETURN{};}.
-It is a static warning if $f$ is neither a generator nor a generative constructor and either:
-\begin{itemize}
-%% TODO(eernst): Integrating generalized-void.md, "may not be assigned
-%% to void" is useless. Update, also considering invalid_returns.md.
-\item $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or,
-%% TODO(eernst): Revisit when integrating invalid_returns.md.
-\item $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future<Null>}.
-\end{itemize}
-
-\commentary{
-Hence, a static warning will not be raised if $f$ has no declared return type,
-%% TODO(eernst): Update when integrating generalized-void.md!
-since the return type would be \DYNAMIC{} and \DYNAMIC{} may be assigned to \VOID{} and to \code{Future<Null>}.
-However, any synchronous non-generator function that declares a return type must return an expression explicitly.
-}
-\rationale{
-This helps catch situations where users forget to return a value in a return statement.
+It is quite easy to forget to add the \FACTORY{} modifier for a constructor,
+accidentally converting a factory into a generative constructor.
+The static checker may detect a type mismatch
+in some, but not all, of these cases.
+The rule above helps catch such errors,
+which can otherwise be very hard to recognize.
+There is no real downside to it,
+as returning a value from a generative constructor is meaningless.
 }
 
 \rationale{
 An asynchronous non-generator always returns a future of some sort.
 If no expression is given, the future will be completed with the null object (\ref{null}) and this motivates the requirement above.
-}
-
-\commentary{
-Leaving the return type of a function marked \ASYNC{} blank will be interpreted as \DYNAMIC{} as always, and cause no type error.
 }
 
 \LMHash{}%
@@ -11543,7 +11755,7 @@ and $T$ is a subtype of \code{Future<\flatten{S}>}
 then let $r$ be the result of evaluating \code{await $v$}
 where $v$ is a fresh variable bound to $o$.
 Otherwise let $r$ be $o$.
-Then the return statement returns the value $r$ (\ref{completion}).
+Then the return statement returns the value $r$ (\ref{statementCompletion}).
 
 %% TODO(eernst): We have some special cases with the dynamic semantics
 %% specified above that we may wish to consider:
@@ -11589,7 +11801,7 @@ and $U$ is not a subtype of $S$.
 \end{itemize}
 
 \LMHash{}%
-Executing a return statement with no expression, \code{\RETURN;} returns with no value (\ref{completion}).
+Executing a return statement with no expression, \code{\RETURN;} returns with no value (\ref{statementCompletion}).
 
 
 \subsection{Labels}
@@ -11610,7 +11822,7 @@ The sole role of labels is to provide targets for the break (\ref{break}) and co
 
 \LMHash{}%
 Execution a labeled statement $s$, $label: s_l$, consists of executing $s_l$.
-If execution of $s_l$ breaks to the label $label$ (\ref{completion}),
+If execution of $s_l$ breaks to the label $label$ (\ref{statementCompletion}),
 then execution of $s$ completes normally,
 otherwise execution of $s$ completes in the same ways as the execution of $s_l$.
 
@@ -11649,8 +11861,8 @@ then it is a compile-time error if $s_b$ is not enclosed in an
 or \WHILE{} (\ref{while}) statement within the innermost function in which $s_b$ occurs.
 
 \LMHash{}%
-Execution of a \BREAK{} statement \code{\BREAK{} $L$;} breaks to the label $L$ (\ref{completion}).
-Execution of a \BREAK{} statement \code{\BREAK{};} breaks without a label (\ref{completion}).
+Execution of a \BREAK{} statement \code{\BREAK{} $L$;} breaks to the label $L$ (\ref{statementCompletion}).
+Execution of a \BREAK{} statement \code{\BREAK{};} breaks without a label (\ref{statementCompletion}).
 
 
 \subsection{Continue}
@@ -11678,8 +11890,8 @@ then it is a compile-time error if $s_c$ is not enclosed in an
 within the innermost function in which $s_c$ occurs.
 
 \LMHash{}%
-Execution of a \CONTINUE{} statement \code{\CONTINUE{} $L$;} continues to the label $L$ (\ref{completion}).
-Execution of a \CONTINUE{} statement \code{\CONTINUE{};} continues without a label (\ref{completion}).
+Execution of a \CONTINUE{} statement \code{\CONTINUE{} $L$;} continues to the label $L$ (\ref{statementCompletion}).
+Execution of a \CONTINUE{} statement \code{\CONTINUE{};} continues without a label (\ref{statementCompletion}).
 
 
 \subsection{Yield and Yield-Each}
@@ -11707,7 +11919,7 @@ If the enclosing function $m$ is marked \code{\ASYNC*} (\ref{functions}) and the
 Next, $o$ is added to the iterable or stream associated with the immediately enclosing function.
 
 \LMHash{}%
-If the enclosing function $m$ is marked \code{\ASYNC*} and the stream $u$ associated with $m$ has been canceled, then the \YIELD{} statement returns without a value (\ref{completion}), otherwise it completes normally.
+If the enclosing function $m$ is marked \code{\ASYNC*} and the stream $u$ associated with $m$ has been canceled, then the \YIELD{} statement returns without a value (\ref{statementCompletion}), otherwise it completes normally.
 
 \rationale{
 The stream associated with an asynchronous generator could be canceled by any code with a reference to that stream at any point where the generator was passivated.
@@ -11777,7 +11989,7 @@ Otherwise
 If \code{moveNext} returns \FALSE{} execution of $s$ is complete.
 Otherwise
 \item The getter \code{current} is invoked on $i$.
-If the invocation throws (\ref{evaluation}), execution of $s$ throws the same exception object and stack trace (\ref{completion}).
+If the invocation throws (\ref{evaluation}), execution of $s$ throws the same exception object and stack trace (\ref{statementCompletion}).
 Otherwise, the result $x$ of the getter invocation is added to the iterable associated with $m$.
 Execution of the function $m$ immediately enclosing $s$ is suspended until the nullary method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$, at which point execution of $s$ continues at \ref{moveNext}.
 \item
@@ -11797,7 +12009,7 @@ If the stream $u$ associated with $m$ has been paused, then execution of $m$ is 
 \item
 If the stream $u$ associated with $m$ has been canceled,
 then $s$ is canceled by evaluating \code{\AWAIT{} v.cancel()} where $v$ is a fresh variable referencing the stream subscription $s$.
-Then, if the cancel completed normally, the stream execution of $s$ returns without a value (\ref{completion}).
+Then, if the cancel completed normally, the stream execution of $s$ returns without a value (\ref{statementCompletion}).
 \item
 Otherwise, $x$, or $e$ with $t$, are added to the stream associated with $m$ in the order they appear in $o$.
 The function $m$ may suspend.
@@ -11843,7 +12055,7 @@ and completes in the same way as the assertion.
 \LMHash{}%
 When assertions are not enabled,
 execution of an assertion immediately completes normally
-(\ref{completion}).
+(\ref{statementCompletion}).
 \commentary{That is, no subexpressions of the assertion are evaluated.}
 When assertions are enabled,
 execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
@@ -11854,9 +12066,9 @@ It is a dynamic type error if $r$ is not of type \code{bool}.
 \commentary{
 Hence it is a compile-time error if that situation arises during evaluation of an assertion in a \CONST{} constructor invocation.
 }
-If $r$ is \TRUE{} then execution of the assert statement completes normally (\ref{completion}).
+If $r$ is \TRUE{} then execution of the assert statement completes normally (\ref{statementCompletion}).
 Otherwise, $e$ is evaluated to an object $m$
-and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
+and then the execution of the assert statement throws (\ref{statementCompletion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
 
 \LMHash{}%
 It is a compile-time error if the type of $c$ may not be assigned to \code{bool}.
