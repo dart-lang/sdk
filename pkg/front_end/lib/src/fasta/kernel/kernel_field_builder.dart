@@ -22,8 +22,8 @@ import 'kernel_builder.dart'
     show
         Declaration,
         FieldBuilder,
+        KernelLibraryBuilder,
         KernelTypeBuilder,
-        LibraryBuilder,
         MetadataBuilder;
 
 import 'kernel_shadow_ast.dart' show ShadowField;
@@ -61,7 +61,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         (hasInitializer || isInstanceMember);
   }
 
-  Field build(LibraryBuilder library) {
+  Field build(KernelLibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -85,6 +85,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
+    KernelLibraryBuilder library = this.library;
     var typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
             field.enclosingClass?.thisType, field, null);

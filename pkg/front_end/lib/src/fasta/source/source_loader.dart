@@ -102,8 +102,6 @@ import '../severity.dart' show Severity;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
-import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
-
 import '../type_inference/type_inferrer.dart'
     show LegacyModeMixinInferrer, StrongModeMixinInferrer;
 
@@ -134,8 +132,7 @@ class SourceLoader<L> extends Loader<L> {
   DartType iterableOfBottom;
   DartType streamOfBottom;
 
-  @override
-  TypeInferenceEngine typeInferenceEngine;
+  ShadowTypeInferenceEngine typeInferenceEngine;
 
   InterfaceResolver interfaceResolver;
 
