@@ -43,6 +43,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
     }
 
     final content = new StringBuffer();
+    const divider = '---';
 
     // Description.
     if (hover.elementDescription != null) {
@@ -50,7 +51,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       if (hover.isDeprecated) {
         content.write('(deprecated) ');
       }
-      content..writeln(hover.elementDescription)..writeln('```')..writeln();
+      content..writeln(hover.elementDescription)..writeln('```');
     }
 
     // Source library.
@@ -66,6 +67,9 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
 
     // Doc comments.
     if (hover.dartdoc != null) {
+      if (content.length != 0) {
+        content.writeln(divider);
+      }
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 

@@ -46,7 +46,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 ```dart
 String abc
 ```
-
+---
 This is a string.
 
 With some [refs] and some
