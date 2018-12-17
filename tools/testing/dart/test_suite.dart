@@ -564,6 +564,7 @@ class StandardTestSuite extends TestSuite {
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
   Set<String> _testListPossibleFilenames;
+  RegExp _selectorFilenameRegExp;
 
   static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
 
@@ -575,6 +576,7 @@ class StandardTestSuite extends TestSuite {
         suiteDir = Repository.dir.join(suiteDirectory),
         extraVmOptions = configuration.vmOptions,
         super(configuration, suiteName, statusFilePaths) {
+    // Initialize _dart2JsBootstrapDependencies
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
@@ -584,6 +586,8 @@ class StandardTestSuite extends TestSuite {
             .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
     }
+
+    // Initialize _testListPossibleFilenames
     if (configuration.testList != null) {
       _testListPossibleFilenames = Set<String>();
       for (String s in configuration.testList) {
@@ -600,6 +604,18 @@ class StandardTestSuite extends TestSuite {
         }
       }
     }
+
+    // Initialize _selectorFilenameRegExp
+    String pattern = configuration.selectors[suiteName].pattern;
+    if (pattern.contains("/")) {
+      String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
+      // If the selector is a multitest name ending in a number or 'none'
+      // we also accept test file names that don't contain that last part.
+      if (int.tryParse(lastPart) != null || lastPart == "none") {
+        pattern = pattern.substring(0, pattern.lastIndexOf("/"));
+      }
+    }
+    _selectorFilenameRegExp = new RegExp(pattern);
   }
 
   /**
@@ -722,28 +738,12 @@ class StandardTestSuite extends TestSuite {
     // The definitive check against configuration.testList is performed in
     // TestSuite.enqueueNewTestCase().
     if (_testListPossibleFilenames?.contains(filename) == false) return;
-    bool match = false;
     // Note: have to use Path instead of a filename for matching because
     // on Windows we need to convert backward slashes to forward slashes.
     // Our display test names (and filters) are given using forward slashes
     // while filenames on Windows use backwards slashes.
-    final Path filePath = new Path(filename);
-    for (var regex in configuration.selectors.values) {
-      String pattern = regex.pattern;
-      if (pattern.contains("/")) {
-        String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
-        if (int.tryParse(lastPart) != null ||
-            lastPart.toLowerCase() == "none") {
-          pattern = pattern.substring(0, pattern.lastIndexOf("/"));
-        }
-      }
-      if (pattern != regex.pattern) {
-        regex = new RegExp(pattern);
-      }
-      if (regex.hasMatch(filePath.toString())) match = true;
-      if (match) break;
-    }
-    if (!match) return;
+    final Path filePath = Path(filename);
+    if (!_selectorFilenameRegExp.hasMatch(filePath.toString())) return;
 
     if (!isTestFile(filename)) return;
 
