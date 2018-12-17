@@ -284,7 +284,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   Expression _finish(
       Expression body, ComplexAssignmentJudgment complexAssignment) {
-    if (complexAssignment != null) {
+    if (!helper.disableTypeInference && complexAssignment != null) {
       complexAssignment.desugared = body;
       return complexAssignment;
     } else {
@@ -578,6 +578,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
       ..fileOffset = offset;
     if (complexAssignment != null) {
       body = makeLet(receiver, nullAwareGuard);
+      if (helper.disableTypeInference) return body;
       shadow.PropertyAssignmentJudgment kernelPropertyAssign =
           complexAssignment;
       kernelPropertyAssign.nullAwareGuard = nullAwareGuard;

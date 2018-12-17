@@ -274,6 +274,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   bool get legacyMode => library.loader.target.legacyMode;
 
+  @override
   bool get disableTypeInference => library.disableTypeInference;
 
   bool get inConstructor {
@@ -4859,12 +4860,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression wrapSyntheticExpression(Expression desugared, int charOffset) {
+    if (disableTypeInference) return desugared;
     return shadow.SyntheticWrapper.wrapSyntheticExpression(desugared)
       ..fileOffset = charOffset;
   }
 
   @override
   Expression desugarSyntheticExpression(Expression node) {
+    if (disableTypeInference) return node;
     shadow.SyntheticExpressionJudgment shadowNode = node;
     return shadowNode.desugared;
   }
@@ -4872,6 +4875,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidConstructorInvocation(Expression desugared,
       Member constructor, Arguments arguments, int charOffset) {
+    if (disableTypeInference) return desugared;
     return shadow.SyntheticWrapper.wrapInvalidConstructorInvocation(
         desugared, constructor, arguments)
       ..fileOffset = charOffset;
@@ -4880,6 +4884,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidWrite(
       Expression desugared, Expression expression, int charOffset) {
+    if (disableTypeInference) return desugared;
     return shadow.SyntheticWrapper.wrapInvalidWrite(desugared, expression)
       ..fileOffset = charOffset;
   }
@@ -4887,6 +4892,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapUnresolvedTargetInvocation(
       Expression desugared, Arguments arguments, int charOffset) {
+    if (disableTypeInference) return desugared;
     return shadow.SyntheticWrapper.wrapUnresolvedTargetInvocation(
         desugared, arguments)
       ..fileOffset = charOffset;
@@ -4895,6 +4901,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs, int charOffset) {
+    if (disableTypeInference) return desugared;
     return shadow.SyntheticWrapper.wrapUnresolvedVariableAssignment(
         desugared, isCompound, rhs)
       ..fileOffset = charOffset;
