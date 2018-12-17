@@ -21065,6 +21065,14 @@ static void PrintStackTraceFrame(Zone* zone,
       String::Handle(zone, function.QualifiedUserVisibleName());
   const String& url = String::Handle(
       zone, script.IsNull() ? String::New("Kernel") : script.url());
+
+  // If the URI starts with "data:application/dart;" this is a URI encoded
+  // script so we shouldn't print the entire URI because it could be very long.
+  const char* url_string = url.ToCString();
+  if (strstr(url_string, "data:application/dart;") == url_string) {
+    url_string = "<data:application/dart>";
+  }
+
   intptr_t line = -1;
   intptr_t column = -1;
   if (FLAG_precompiled_mode) {
@@ -21079,7 +21087,6 @@ static void PrintStackTraceFrame(Zone* zone,
     }
   }
 
-  const char* url_string = url.ToCString();
   if (column >= 0) {
     buffer->Printf("#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n", frame_index,
                    function_name.ToCString(), url_string, line, column);
