@@ -2716,6 +2716,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         variable.initializer = initializer..parent = variable;
       }
+    } else if (kind != FormalParameterKind.mandatory) {
+      variable.initializer ??= forest.literalNull(null)..parent = variable;
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {

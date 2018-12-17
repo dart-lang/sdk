@@ -1381,19 +1381,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var i = 0; i < positionalParameters.length; i++) {
         var parameter = positionalParameters[i];
         inferMetadataKeepingHelper(parameter.annotations);
-        if (i >= function.requiredParameterCount &&
-            parameter.initializer == null) {
-          parameter.initializer = new NullLiteral()..parent = parameter;
-        }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, !isTopLevel);
         }
       }
       for (var parameter in function.namedParameters) {
         inferMetadataKeepingHelper(parameter.annotations);
-        if (parameter.initializer == null) {
-          parameter.initializer = new NullLiteral()..parent = parameter;
-        }
         inferExpression(parameter.initializer, parameter.type, !isTopLevel);
       }
     }
