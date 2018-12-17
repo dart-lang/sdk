@@ -21,6 +21,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         DiagnosticMessageHandler,
         FileSystem,
         FileSystemEntity,
+        FileSystemException,
         ProcessedOptions,
         Severity,
         StandardFileSystem,
@@ -77,7 +78,7 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: true);
   args.addMultiOption('filesystem-root',
       help: 'A base path for the multi-root virtual file system.'
-          ' If multi-root file system is used, the input script should be specified using URI.');
+          ' If multi-root file system is used, the input script and .packages file should be specified using URI.');
   args.addOption('filesystem-scheme',
       help: 'The URI scheme for the multi-root virtual filesystem.');
   args.addOption('target',
@@ -163,8 +164,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
-  final Uri packagesUri =
-      packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null;
+  final Uri packagesUri = packages != null
+      ? convertFileOrUriArgumentToUri(fileSystem, packages)
+      : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
   final List<Uri> linkedDependencies = <Uri>[];
@@ -534,7 +536,9 @@ Future<Uri> convertToPackageUri(
   String uriString = (await asFileUri(fileSystem, uri)).toString();
   List<String> packages;
   try {
-    packages = await new File(packagesUri.toFilePath()).readAsLines();
+    packages =
+        await new File((await asFileUri(fileSystem, packagesUri)).toFilePath())
+            .readAsLines();
   } on IOException {
     // Can't read packages file - silently give up.
     return uri;
@@ -546,7 +550,15 @@ Future<Uri> convertToPackageUri(
       continue;
     }
     final packageName = line.substring(0, colon);
-    final packagePath = line.substring(colon + 1);
+    String packagePath;
+    try {
+      packagePath = (await asFileUri(
+              fileSystem, packagesUri.resolve(line.substring(colon + 1))))
+          .toString();
+    } on FileSystemException {
+      // Can't resolve package path.
+      continue;
+    }
     if (uriString.startsWith(packagePath)) {
       return Uri.parse(
           'package:$packageName/${uriString.substring(packagePath.length)}');
