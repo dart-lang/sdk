@@ -10,7 +10,6 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:package_config/packages.dart';
-import 'package:path/path.dart';
 
 /**
  * Information about a default Dart workspace.
