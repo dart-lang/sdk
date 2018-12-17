@@ -55,8 +55,11 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     field.initializer = value..parent = field;
   }
 
-  bool get isEligibleForInference =>
-      type == null && (hasInitializer || isInstanceMember);
+  bool get isEligibleForInference {
+    return !library.disableTypeInference &&
+        type == null &&
+        (hasInitializer || isInstanceMember);
+  }
 
   Field build(LibraryBuilder library) {
     field.name ??= new Name(name, library.target);
@@ -71,9 +74,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (!library.disableTypeInference &&
-        isEligibleForInference &&
-        !isInstanceMember) {
+    if (isEligibleForInference && !isInstanceMember) {
       library.loader.typeInferenceEngine
           .recordStaticFieldInferenceCandidate(field, library);
     }
