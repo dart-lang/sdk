@@ -109,6 +109,9 @@ class InvariantBooleans extends LintRule implements NodeLintRule {
             name: 'invariant_booleans',
             description: _desc,
             details: _details,
+            // This rule is experimental until there are fewer "false positive"
+            // bugs, and performance has been improved.
+            maturity: Maturity.experimental,
             group: Group.errors);
 
   @override
