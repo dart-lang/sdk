@@ -5409,6 +5409,11 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
       type = type.InstantiateFrom(
           instantiator_type_arguments, function_type_arguments,
           num_free_fun_type_params, instantiation_trail, space);
+      // A returned null type indicates a failed instantiation in dead code that
+      // must be propagated up to the caller, the optimizing compiler.
+      if (type.IsNull()) {
+        return Object::empty_type_arguments().raw();
+      }
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -17100,6 +17105,11 @@ RawAbstractType* Type::InstantiateFrom(
     type_arguments = type_arguments.InstantiateFrom(
         instantiator_type_arguments, function_type_arguments,
         num_free_fun_type_params, instantiation_trail, space);
+    // A returned empty_type_arguments indicates a failed instantiation in dead
+    // code that must be propagated up to the caller, the optimizing compiler.
+    if (type_arguments.raw() == Object::empty_type_arguments().raw()) {
+      return Type::null();
+    }
   }
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
@@ -17631,6 +17641,11 @@ RawTypeRef* TypeRef::InstantiateFrom(
   instantiated_ref_type = ref_type.InstantiateFrom(
       instantiator_type_arguments, function_type_arguments,
       num_free_fun_type_params, instantiation_trail, space);
+  // A returned null type indicates a failed instantiation in dead code that
+  // must be propagated up to the caller, the optimizing compiler.
+  if (instantiated_ref_type.IsNull()) {
+    return TypeRef::null();
+  }
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
 
