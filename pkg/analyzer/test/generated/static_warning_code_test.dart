@@ -3268,14 +3268,6 @@ Null f() {return;}
     assertNoErrors(source);
   }
 
-  @failingTest
-  test_setElementTypeNotAssignable() async {
-    Source source = addSource("var v = <String>{42};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
   test_staticAccessToInstanceMember_method_invocation() async {
     Source source = addSource(r'''
 class A {

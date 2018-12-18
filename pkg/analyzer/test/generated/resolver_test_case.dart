@@ -14,7 +14,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -343,6 +342,12 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    */
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
+  /**
+   * Return the list of experiments that are to be enabled for tests in this
+   * class.
+   */
+  List<String> get enabledExperiments => null;
+
   bool get enableNewAnalysisDriver => false;
 
   /**
@@ -664,10 +669,10 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
       fail('Only packages or options can be specified.');
     }
     options ??= defaultAnalysisOptions;
-    (options as AnalysisOptionsImpl).enabledExperiments = [
-      EnableString.constant_update_2018,
-      EnableString.set_literals
-    ];
+    List<String> experiments = enabledExperiments;
+    if (experiments != null) {
+      (options as AnalysisOptionsImpl).enabledExperiments = experiments;
+    }
     if (enableNewAnalysisDriver) {
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;

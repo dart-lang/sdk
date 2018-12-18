@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -34,6 +35,7 @@ main() {
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
     defineReflectiveTests(StaticTypeAnalyzer3Test);
+    defineReflectiveTests(StaticTypeAnalyzerWithSetLiteralsTest);
   });
 }
 
@@ -187,6 +189,16 @@ main() {
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
   bool get enableNewAnalysisDriver => true;
 
+  test_emptyMapLiteral_initializer_var() async {
+    String code = r'''
+main() {
+  var v = {};
+}
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Map<dynamic, dynamic>');
+  }
+
   test_emptyMapLiteral_parameter_typed() async {
     String code = r'''
 main() {
@@ -199,16 +211,6 @@ void useMap(Map<int, int> m) {
     expectExpressionType('{}', 'Map<int, int>');
   }
 
-  test_emptyMapLiteral_initializer_var() async {
-    String code = r'''
-main() {
-  var v = {};
-}
-''';
-    await resolveTestUnit(code);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
   test_emptySetLiteral_parameter_typed() async {
     String code = r'''
 main() {
@@ -219,15 +221,6 @@ void useSet(Set<int> s) {
 ''';
     await resolveTestUnit(code);
     expectExpressionType('{}', 'Set<int>');
-  }
-
-  test_emptySetLiteral_initializer_typed_nested() async {
-    String code = r'''
-Set<Set<int>> ints = {{}};
-''';
-    await resolveTestUnit(code);
-    expectExpressionType('{}', 'Set<int>');
-    expectExpressionType('{{}}', 'Set<Set<int>>');
   }
 }
 
@@ -1652,5 +1645,27 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
       identifier.staticElement = element;
     }
     (element as ParameterElementImpl).type = type;
+  }
+}
+
+/**
+ * End-to-end tests of the static type analyzer that use the new driver and
+ * enable the set-literals experiment.
+ */
+@reflectiveTest
+class StaticTypeAnalyzerWithSetLiteralsTest
+    extends StaticTypeAnalyzer2TestShared {
+  @override
+  List<String> get enabledExperiments => [EnableString.set_literals];
+
+  bool get enableNewAnalysisDriver => true;
+
+  test_emptySetLiteral_initializer_typed_nested() async {
+    String code = r'''
+Set<Set<int>> ints = {{}};
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Set<int>');
+    expectExpressionType('{{}}', 'Set<Set<int>>');
   }
 }

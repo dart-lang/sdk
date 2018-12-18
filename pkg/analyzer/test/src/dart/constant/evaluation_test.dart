@@ -28,11 +28,12 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantVisitorTest);
     defineReflectiveTests(ConstantVisitorTest_Driver);
+    defineReflectiveTests(ConstantVisitorWithConstantUpdate2018Test);
   });
 }
 
 @reflectiveTest
-class ConstantVisitorTest extends ResolverTestCase {
+class ConstantVisitorTest extends ConstantVisitorTestSupport {
   test_visitAsExpression_instanceOfSameClass() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const a = const A();
@@ -687,7 +688,14 @@ const b = 3;''');
             typeSystem: new Dart2TypeSystem(typeProvider)),
         errorReporter));
   }
+}
 
+@reflectiveTest
+class ConstantVisitorTest_Driver extends ConstantVisitorTest {
+  bool get enableNewAnalysisDriver => true;
+}
+
+class ConstantVisitorTestSupport extends ResolverTestCase {
   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name,
       {List<ErrorCode> errorCodes,
       List<String> experiments,
@@ -722,7 +730,11 @@ const b = 3;''');
 }
 
 @reflectiveTest
-class ConstantVisitorTest_Driver extends ConstantVisitorTest {
+class ConstantVisitorWithConstantUpdate2018Test
+    extends ConstantVisitorTestSupport {
+  @override
+  List<String> get enabledExperiments => [EnableString.constant_update_2018];
+
   bool get enableNewAnalysisDriver => true;
 
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
