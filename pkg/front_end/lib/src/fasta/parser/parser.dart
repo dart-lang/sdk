@@ -15,6 +15,7 @@ import '../../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
+        CommentToken,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
@@ -343,6 +344,11 @@ class Parser {
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext();
     token = syntheticPreviousToken(token);
+    if (identical(token.next.type, TokenType.SCRIPT_TAG)) {
+      directiveState?.checkScriptTag(this, token.next);
+      token = parseScript(token);
+    }
+    parseNNBD(token);
     while (!token.next.isEof) {
       final Token start = token.next;
       token = parseTopLevelDeclarationImpl(token, directiveState);
@@ -367,6 +373,24 @@ class Parser {
     // Clear fields that could lead to memory leak.
     cachedRewriter = null;
     return token;
+  }
+
+  /// Look for a comment of the form `//@NNBD` or `//@NNBD*`
+  /// indicating that this file is in process of being converted
+  /// to be non-nullable by default.
+  void parseNNBD(Token token) {
+    Token comment = token.next.precedingComments;
+    if (comment is CommentToken) {
+      String text = comment.lexeme;
+      if (text.startsWith('//')) {
+        text = text.substring(2).trim();
+        if (text == '@NNBD') {
+          listener.handleNNBD(false);
+        } else if (text == '@NNBD*') {
+          listener.handleNNBD(true);
+        }
+      }
+    }
   }
 
   /// This method exists for analyzer compatibility only
@@ -459,10 +483,6 @@ class Parser {
   /// ```
   Token parseTopLevelDeclarationImpl(
       Token token, DirectiveContext directiveState) {
-    if (identical(token.next.type, TokenType.SCRIPT_TAG)) {
-      directiveState?.checkScriptTag(this, token.next);
-      return parseScript(token);
-    }
     token = parseMetadataStar(token);
     Token next = token.next;
     if (next.isTopLevelKeyword) {

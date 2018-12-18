@@ -96,6 +96,8 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
+  bool showNullableTypeErrors = true;
+
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
@@ -261,6 +263,11 @@ class AstBuilder extends StackListener {
     debugEvent("Script");
 
     scriptTag = ast.scriptTag(token);
+  }
+
+  @override
+  void handleNNBD(bool isStar) {
+    showNullableTypeErrors = !isStar;
   }
 
   void handleStringJuxtaposition(int literalCount) {
@@ -962,11 +969,13 @@ class AstBuilder extends StackListener {
   @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
-    reportErrorIfNullableType(questionMark);
+    if (showNullableTypeErrors) {
+      reportErrorIfNullableType(questionMark);
+    }
 
     TypeArgumentList arguments = pop();
     Identifier name = pop();
-    push(ast.typeName(name, arguments));
+    push(ast.typeName(name, arguments, question: questionMark));
   }
 
   @override
@@ -1121,13 +1130,16 @@ class AstBuilder extends StackListener {
   void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
-    reportErrorIfNullableType(questionMark);
+    if (showNullableTypeErrors) {
+      reportErrorIfNullableType(questionMark);
+    }
 
     FormalParameterList parameters = pop();
     TypeAnnotation returnType = pop();
     TypeParameterList typeParameters = pop();
     push(ast.genericFunctionType(
-        returnType, functionToken, typeParameters, parameters));
+        returnType, functionToken, typeParameters, parameters,
+        question: questionMark));
   }
 
   void handleFormalParameterWithoutValue(Token token) {

@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
@@ -1418,5 +1419,42 @@ mixin A {
     createParser('/// Doc\nmixin M {}');
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
+  }
+
+  void test_parseNNDB() {
+    void testNNBD(String comments, {bool nnbd, bool star}) {
+      final listener = new NNBDTestListener();
+      String code = '''
+$comments
+main() {}''';
+      ScannerResult result = scanString(code, includeComments: true);
+      new fasta.Parser(listener).parseUnit(result.tokens);
+
+      expect(listener.isNNBD, nnbd ?? isNull);
+      expect(listener.isStar, star ?? isNull);
+    }
+
+    testNNBD('', nnbd: false);
+    testNNBD('#!/bin/dart', nnbd: false);
+    testNNBD('//@NNBDx', nnbd: false);
+    testNNBD('//@NNBD', nnbd: true, star: false);
+    testNNBD('// @NNBD', nnbd: true, star: false);
+    testNNBD('//@NNBD*', nnbd: true, star: true);
+    testNNBD('// @NNBD*', nnbd: true, star: true);
+    testNNBD('''#!/bin/dart
+// @NNBD*
+/* more comments */
+/// and dartdoc''', nnbd: true, star: true);
+  }
+}
+
+class NNBDTestListener extends fasta.ForwardingListener {
+  bool isNNBD = false;
+  bool isStar;
+
+  @override
+  void handleNNBD(bool isStar) {
+    this.isNNBD = true;
+    this.isStar = isStar;
   }
 }
