@@ -38,6 +38,10 @@ import 'util.dart'
 /// when there is a single identifier as the type reference.
 const TypeInfo simpleType = const SimpleType();
 
+/// [SimpleNullableType] is a specialized [TypeInfo] returned by [computeType]
+/// when there is a single identifier followed by `?` as the type reference.
+const TypeInfo simpleNullableType = const SimpleNullableType();
+
 /// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
 /// when the type reference is of the form: identifier `.` identifier.
 const TypeInfo prefixedType = const PrefixedType();
@@ -59,6 +63,12 @@ const TypeInfo simpleTypeWith1ArgumentGtEq =
 /// identifier `<` identifier `>>`.
 const TypeInfo simpleTypeWith1ArgumentGtGt =
     const SimpleTypeWith1Argument(simpleTypeArgument1GtGt);
+
+/// [SimpleNullableTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>` `?`.
+const TypeInfo simpleNullableTypeWith1Argument =
+    const SimpleNullableTypeWith1Argument();
 
 /// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
 /// [computeTypeParamOrArg] when the type reference is of the form:
@@ -82,10 +92,10 @@ class NoType implements TypeInfo {
   const NoType();
 
   @override
-  bool get couldBeExpression => false;
+  TypeInfo get asNonNullable => this;
 
   @override
-  TypeInfo asNonNullableType() => this;
+  bool get couldBeExpression => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -98,6 +108,9 @@ class NoType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       ensureTypeNotVoid(token, parser);
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -120,10 +133,10 @@ class PrefixedType implements TypeInfo {
   const PrefixedType();
 
   @override
-  bool get couldBeExpression => true;
+  TypeInfo get asNonNullable => this;
 
   @override
-  TypeInfo asNonNullableType() => this;
+  bool get couldBeExpression => true;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -132,6 +145,9 @@ class PrefixedType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -164,6 +180,33 @@ class PrefixedType implements TypeInfo {
   }
 }
 
+/// See documentation on the [simpleNullableTypeWith1Argument] const.
+class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
+  const SimpleNullableTypeWith1Argument() : super(simpleTypeArgument1);
+
+  @override
+  TypeInfo get asNonNullable => simpleTypeWith1Argument;
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) =>
+      isConditionalThenExpression(skipType(token), parser);
+
+  @override
+  Token parseTypeRest(Token start, Token token, Parser parser) {
+    token = token.next;
+    assert(optional('?', token));
+    parser.listener.handleType(start, token);
+    return token;
+  }
+
+  @override
+  Token skipType(Token token) {
+    token = super.skipType(token).next;
+    assert(optional('?', token));
+    return token;
+  }
+}
+
 /// See documentation on the [simpleTypeWith1Argument] const.
 class SimpleTypeWith1Argument implements TypeInfo {
   final TypeParamOrArgInfo typeArg;
@@ -171,10 +214,10 @@ class SimpleTypeWith1Argument implements TypeInfo {
   const SimpleTypeWith1Argument(this.typeArg);
 
   @override
-  bool get couldBeExpression => false;
+  TypeInfo get asNonNullable => this;
 
   @override
-  TypeInfo asNonNullableType() => this;
+  bool get couldBeExpression => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -183,6 +226,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -210,15 +256,40 @@ class SimpleTypeWith1Argument implements TypeInfo {
   }
 }
 
+/// See documentation on the [simpleNullableType] const.
+class SimpleNullableType extends SimpleType {
+  const SimpleNullableType();
+
+  @override
+  TypeInfo get asNonNullable => simpleType;
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) =>
+      isConditionalThenExpression(skipType(token), parser);
+
+  @override
+  Token parseTypeRest(Token start, Parser parser) {
+    Token token = start.next;
+    assert(optional('?', token));
+    parser.listener.handleType(start, token);
+    return token;
+  }
+
+  @override
+  Token skipType(Token token) {
+    return token.next.next;
+  }
+}
+
 /// See documentation on the [simpleType] const.
 class SimpleType implements TypeInfo {
   const SimpleType();
 
   @override
-  bool get couldBeExpression => true;
+  TypeInfo get asNonNullable => this;
 
   @override
-  TypeInfo asNonNullableType() => this;
+  bool get couldBeExpression => true;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -227,6 +298,9 @@ class SimpleType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -257,10 +331,10 @@ class VoidType implements TypeInfo {
   const VoidType();
 
   @override
-  bool get couldBeExpression => false;
+  TypeInfo get asNonNullable => this;
 
   @override
-  TypeInfo asNonNullableType() => this;
+  bool get couldBeExpression => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -272,6 +346,9 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -337,12 +414,12 @@ class ComplexTypeInfo implements TypeInfo {
       : this.start = beforeStart.next;
 
   @override
-  bool get couldBeExpression => false;
-
-  @override
-  TypeInfo asNonNullableType() {
+  TypeInfo get asNonNullable {
     return this;
   }
+
+  @override
+  bool get couldBeExpression => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -351,6 +428,12 @@ class ComplexTypeInfo implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
+
+  @override
+  bool isConditionalExpressionStart(Token token, Parser parser) {
+    //return isConditionalThenExpression(token.next.next, parser);
+    return false;
+  }
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -1060,4 +1143,17 @@ Token splitCloser(Token closer) {
     return splitGtFromGtGtEq(closer);
   }
   return null;
+}
+
+/// Return `true` if the tokens after [token]
+/// represent a valid expression followed by a `:`.
+bool isConditionalThenExpression(Token token, Parser parser) {
+  // TODO(danrubel): Consider adding checks for simple situations
+  // before resorting to heavy weight lookahead.
+
+  final originalListener = parser.listener;
+  parser.listener = new ForwardingListener();
+  token = parser.parseExpression(token);
+  parser.listener = originalListener;
+  return optional(':', token.next);
 }

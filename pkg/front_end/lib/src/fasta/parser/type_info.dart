@@ -19,12 +19,12 @@ import 'util.dart' show isOneOf, optional;
 abstract class TypeInfo {
   /// Return type info representing the receiver without the trailing `?`
   /// or the receiver if the receiver does not represent a nullable type.
-  TypeInfo asNonNullableType();
+  TypeInfo get asNonNullable;
 
   /// Return `true` if the tokens comprising the type represented by the
   /// receiver could be interpreted as a valid standalone expression.
-  /// For example, `A` or `A.b` could be interpreted as a type references
-  /// or as expressions, while `A<T>` only looks like a type reference.
+  /// For example, `A` or `A.b` could be interpreted as type references
+  /// or expressions, while `A<T>` only looks like a type reference.
   bool get couldBeExpression;
 
   /// Call this function when the token after [token] must be a type (not void).
@@ -40,6 +40,13 @@ abstract class TypeInfo {
   /// necessary. This may modify the token stream when parsing `>>` or `>>>`
   /// in valid code or during recovery.
   Token ensureTypeOrVoid(Token token, Parser parser);
+
+  /// Return `true` if the tokens comprising the type represented by the
+  /// receiver are the start of a conditional expression.
+  /// For example, `A?` or `A.b?` could be the start of a conditional expression
+  /// and require arbitrary look ahead to determine if it is,
+  /// while `A<T>?` cannot be the start of a conditional expression.
+  bool isConditionalExpressionStart(Token token, Parser parser);
 
   /// Call this function to parse an optional type (not void) after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
@@ -199,13 +206,19 @@ TypeInfo computeType(final Token token, bool required,
       // We've seen identifier `<` identifier `>`
       next = typeParamOrArg.skip(next).next;
       if (!isGeneralizedFunctionType(next)) {
-        if (required || looksLikeName(next)) {
-          // identifier `<` identifier `>` identifier
-          return typeParamOrArg.typeInfo;
+        if (optional('?', next) && typeParamOrArg == simpleTypeArgument1) {
+          if (required || looksLikeName(next.next)) {
+            // identifier `<` identifier `>` `?` identifier
+            return simpleNullableTypeWith1Argument;
+          }
         } else {
-          // identifier `<` identifier `>` non-identifier
-          return noType;
+          if (required || looksLikeName(next)) {
+            // identifier `<` identifier `>` identifier
+            return typeParamOrArg.typeInfo;
+          }
         }
+        // identifier `<` identifier `>` non-identifier
+        return noType;
       }
     }
     // TODO(danrubel): Consider adding a const for
@@ -255,7 +268,21 @@ TypeInfo computeType(final Token token, bool required,
         .computeIdentifierGFT(required);
   }
 
-  if (required || looksLikeName(next)) {
+  if (optional('?', next)) {
+    if (required) {
+      // identifier `?`
+      return simpleNullableType;
+    } else {
+      next = next.next;
+      if (isGeneralizedFunctionType(next)) {
+        // identifier `?` Function `(`
+        return simpleNullableType;
+      } else if (looksLikeName(next)) {
+        // identifier `?` identifier `=`
+        return simpleNullableType;
+      }
+    }
+  } else if (required || looksLikeName(next)) {
     // identifier identifier
     return simpleType;
   }
