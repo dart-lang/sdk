@@ -472,7 +472,7 @@ Target createFrontEndTarget(String targetName) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags = new TargetFlags(syncAsync: true);
+  final TargetFlags targetFlags = new TargetFlags();
   return getTarget(targetName, targetFlags);
 }
 
