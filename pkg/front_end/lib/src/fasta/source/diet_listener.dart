@@ -590,9 +590,8 @@ class DietListener extends StackListener {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     InterfaceType thisType = currentClass?.target?.thisType;
-    var typeInferrer = library.disableTypeInference
-        ? null
-        : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
+    var typeInferrer =
+        typeInferenceEngine?.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
