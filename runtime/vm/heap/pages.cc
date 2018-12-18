@@ -289,6 +289,13 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 }
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
+  {
+    MutexLocker ml(pages_lock_);
+    if (!CanIncreaseCapacityInWordsLocked(kPageSizeInWords)) {
+      return NULL;
+    }
+    IncreaseCapacityInWordsLocked(kPageSizeInWords);
+  }
   const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
@@ -297,6 +304,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
   if (page == NULL) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
+    IncreaseCapacityInWords(-kPageSizeInWords);
     return NULL;
   }
 
@@ -329,25 +337,31 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
     }
   }
 
-  IncreaseCapacityInWordsLocked(kPageSizeInWords);
   page->set_object_end(page->memory_->end());
   return page;
 }
 
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
-  const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  {
+    MutexLocker ml(pages_lock_);
+    if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {
+      return NULL;
+    }
+    IncreaseCapacityInWordsLocked(page_size_in_words);
+  }
+  const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
   Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
                    kVmNameSize);
   HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
   if (page == NULL) {
+    IncreaseCapacityInWords(-page_size_in_words);
     return NULL;
   }
   page->set_next(large_pages_);
   large_pages_ = page;
-  IncreaseCapacityInWords(page_size_in_words);
   // Only one object in this page (at least until String::MakeExternal or
   // Array::MakeFixedLength is called).
   page->set_object_end(page->object_start() + size);
@@ -441,9 +455,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   after_allocation.used_in_words += size >> kWordSizeLog2;
   // Can we grow by one page?
   after_allocation.capacity_in_words += kPageSizeInWords;
-  if ((growth_policy == kForceGrowth ||
-       !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
-      CanIncreaseCapacityInWords(kPageSizeInWords)) {
+  if (growth_policy == kForceGrowth ||
+      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
     HeapPage* page = AllocatePage(type);
     if (page == NULL) {
       return 0;
@@ -498,9 +511,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     SpaceUsage after_allocation = GetCurrentUsage();
     after_allocation.used_in_words += size >> kWordSizeLog2;
     after_allocation.capacity_in_words += page_size_in_words;
-    if ((growth_policy == kForceGrowth ||
-         !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
-        CanIncreaseCapacityInWords(page_size_in_words)) {
+    if (growth_policy == kForceGrowth ||
+        !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
