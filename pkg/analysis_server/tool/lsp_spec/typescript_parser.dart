@@ -379,14 +379,7 @@ class Parser {
     _consume(TokenType.LEFT_BRACE, 'Expected {');
     final members = <Member>[];
     while (!_check(TokenType.RIGHT_BRACE)) {
-      final member = _member(name.lexeme);
-      // TODO(dantup): Remove this temp workaround once spec is fixed/clarified.
-      // https://github.com/Microsoft/language-server-protocol/issues/643
-      if (members.any((m) => m.name == member.name)) {
-        print('Skipping duplicate member ${member.name} in ${name.lexeme}');
-        continue;
-      }
-      members.add(member);
+      members.add(_member(name.lexeme));
     }
 
     _consume(TokenType.RIGHT_BRACE, 'Expected }');

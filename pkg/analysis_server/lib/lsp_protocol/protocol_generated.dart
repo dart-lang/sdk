@@ -2988,6 +2988,18 @@ class DocumentFilter implements ToJsonable {
   final String language;
 
   /// A glob pattern, like `*.{ts,js}`.
+  ///
+  /// Glob patterns can have the following syntax:
+  /// - `*` to match one or more characters in a path segment
+  /// - `?` to match on one character in a path segment
+  /// - `**` to match any number of path segments, including none
+  /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
+  /// and JavaScript files)
+  /// - `[]` to declare a range of characters to match in a path segment (e.g.,
+  /// `example.[0-9]` to match on `example.0`, `example.1`, …)
+  /// - `[!...]` to negate a range of characters to match in a path segment
+  /// (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
+  /// `example.0`)
   final String pattern;
 
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
@@ -3770,7 +3782,9 @@ class DocumentSymbol implements ToJsonable {
   /// The kind of this symbol.
   final SymbolKind kind;
 
-  /// The name of this symbol.
+  /// The name of this symbol. Will be displayed in the user interface and
+  /// therefore must not be an empty string or a string only consisting of white
+  /// spaces.
   final String name;
 
   /// The range enclosing this symbol not including leading/trailing whitespace
@@ -4243,7 +4257,19 @@ class FileSystemWatcher implements ToJsonable {
     return new FileSystemWatcher(globPattern, kind);
   }
 
-  /// The  glob pattern to watch
+  /// The  glob pattern to watch.
+  ///
+  /// Glob patterns can have the following syntax:
+  /// - `*` to match one or more characters in a path segment
+  /// - `?` to match on one character in a path segment
+  /// - `**` to match any number of path segments, including none
+  /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
+  /// and JavaScript files)
+  /// - `[]` to declare a range of characters to match in a path segment (e.g.,
+  /// `example.[0-9]` to match on `example.0`, `example.1`, …)
+  /// - `[!...]` to negate a range of characters to match in a path segment
+  /// (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
+  /// `example.0`)
   final String globPattern;
 
   /// The kind of events of interest. If omitted it defaults to WatchKind.Create
@@ -4656,7 +4682,12 @@ class InitializeParams implements ToJsonable {
   /// The capabilities provided by the client (editor or tool)
   final ClientCapabilities capabilities;
 
-  /// User provided initialization options.
+  /// Client provided initialization options. Usually these are options that
+  /// could equally be command line options passed when starting the server.
+  /// This property shouldn't be used to pass any user configuration to the
+  /// server. If a user configuration is needed the server should use
+  /// `workspace/configuration` requests together with dynamic registration to
+  /// obtain them.
   final dynamic initializationOptions;
 
   /// The process Id of the parent process that started the server. Is null if
