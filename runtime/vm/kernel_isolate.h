@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
-#include "bin/kernel_isolate.h"
 #include "vm/allocation.h"
 #include "vm/dart.h"
 #include "vm/os_thread.h"
