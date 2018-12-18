@@ -2830,6 +2830,7 @@ class HInterceptor extends HInstruction {
 class HOneShotInterceptor extends HInvokeDynamic {
   List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
+
   HOneShotInterceptor(
       AbstractValueDomain domain,
       Selector selector,
@@ -2840,7 +2841,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
       this.interceptedClasses)
       : super(selector, mask, null, inputs, true, type) {
     assert(inputs[0] is HConstant);
-    assert(inputs[0].isNull(domain).isDefinitelyTrue);
+    assert(inputs[0].instructionType == domain.nullType);
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   bool isCallOnInterceptor(JClosedWorld closedWorld) => true;
@@ -3128,6 +3129,7 @@ class HTypeConversion extends HCheck {
         super(<HInstruction>[input], type) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null || !typeExpression.isTypedef);
+    assert(!isControlFlow() || typeExpression != null);
     sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
   }

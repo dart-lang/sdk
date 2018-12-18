@@ -378,7 +378,8 @@ class ParameterStubGenerator {
     for (Selector selector in liveSelectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (!liveSelectors[selector].applies(member, selector, _closedWorld)) {
+      if (!liveSelectors[selector]
+          .canHit(member, selector.memberName, _closedWorld)) {
         continue;
       }
 

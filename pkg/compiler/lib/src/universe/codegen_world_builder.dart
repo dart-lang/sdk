@@ -71,9 +71,9 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   ConstantValue getConstantFieldInitializer(covariant FieldEntity field);
 
   /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(MemberEntity member, JClosedWorld world);
+  bool hasInvokedSetter(MemberEntity member);
 
-  bool hasInvokedGetter(MemberEntity member, JClosedWorld world);
+  bool hasInvokedGetter(MemberEntity member);
 
   Map<Selector, SelectorConstraints> invocationsByName(String name);
 
@@ -260,7 +260,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
-        if (masks.applies(member, selector, world)) {
+        if (masks.canHit(member, selector.memberName, world)) {
           return true;
         }
       }
@@ -268,17 +268,17 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     return false;
   }
 
-  bool hasInvocation(MemberEntity member, JClosedWorld world) {
-    return _hasMatchingSelector(_invokedNames[member.name], member, world);
+  bool hasInvocation(MemberEntity member) {
+    return _hasMatchingSelector(_invokedNames[member.name], member, _world);
   }
 
-  bool hasInvokedGetter(MemberEntity member, JClosedWorld world) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
+  bool hasInvokedGetter(MemberEntity member) {
+    return _hasMatchingSelector(_invokedGetters[member.name], member, _world) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(MemberEntity member, JClosedWorld world) {
-    return _hasMatchingSelector(_invokedSetters[member.name], member, world);
+  bool hasInvokedSetter(MemberEntity member) {
+    return _hasMatchingSelector(_invokedSetters[member.name], member, _world);
   }
 
   bool registerDynamicUse(
@@ -289,8 +289,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     void _process(Map<String, Set<MemberUsage>> memberMap,
         EnumSet<MemberUse> action(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
-        if (selectorConstraintsStrategy.appliedUnnamed(
-            dynamicUse, usage.entity, _world)) {
+        if (selector.appliesUnnamed(usage.entity) &&
+            selectorConstraintsStrategy.appliedUnnamed(
+                dynamicUse, usage.entity, _world)) {
           memberUsed(usage.entity, action(usage));
           return true;
         }
@@ -331,8 +332,12 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     Object constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors =
         selectorMap[name] ??= new Maplet<Selector, SelectorConstraints>();
-    UniverseSelectorConstraints constraints = selectors[selector] ??=
-        selectorConstraintsStrategy.createSelectorConstraints(selector);
+    UniverseSelectorConstraints constraints = selectors[selector];
+    if (constraints == null) {
+      selectors[selector] = selectorConstraintsStrategy
+          .createSelectorConstraints(selector, constraint);
+      return true;
+    }
     return constraints.addReceiverConstraint(constraint);
   }
 
@@ -504,13 +509,13 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       MemberUsage usage = new MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
-      if (!usage.hasRead && hasInvokedGetter(member, _world)) {
+      if (!usage.hasRead && hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
       }
-      if (!usage.hasWrite && hasInvokedSetter(member, _world)) {
+      if (!usage.hasWrite && hasInvokedSetter(member)) {
         useSet.addAll(usage.write());
       }
-      if (!usage.hasInvoke && hasInvocation(member, _world)) {
+      if (!usage.hasInvoke && hasInvocation(member)) {
         useSet.addAll(usage.invoke());
       }
 

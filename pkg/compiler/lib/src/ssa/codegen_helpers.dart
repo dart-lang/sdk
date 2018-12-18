@@ -142,7 +142,12 @@ class SsaInstructionSelection extends HBaseVisitor {
     return node;
   }
 
-  void tryReplaceInterceptorWithDummy(
+  HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
+    // The receiver parameter should never be replaced with a dummy constant.
+    return node;
+  }
+
+  bool tryReplaceInterceptorWithDummy(
       HInvoke node, Selector selector, AbstractValue mask) {
     // Calls of the form
     //
@@ -166,7 +171,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
     // TODO(15933): Make automatically generated property extraction closures
     // work with the dummy receiver optimization.
-    if (selector.isGetter) return;
+    if (selector.isGetter) return false;
 
     // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
     HInstruction interceptor = node.inputs[0];
@@ -183,8 +188,10 @@ class SsaInstructionSelection extends HBaseVisitor {
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
         dummy.usedBy.add(node);
+        return true;
       }
     }
+    return false;
   }
 
   HInstruction visitFieldSet(HFieldSet setter) {

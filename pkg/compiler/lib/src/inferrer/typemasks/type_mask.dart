@@ -12,11 +12,11 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   Set<TypeMask> _masks;
 
   @override
-  bool applies(MemberEntity element, Selector selector, JClosedWorld world) {
+  bool canHit(MemberEntity element, Name name, JClosedWorld world) {
     if (isAll) return true;
     if (_masks == null) return false;
     for (TypeMask mask in _masks) {
-      if (mask.canHit(element, selector, world)) return true;
+      if (mask.canHit(element, name, world)) return true;
     }
     return false;
   }
@@ -77,8 +77,10 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
   const TypeMaskSelectorStrategy();
 
   @override
-  UniverseSelectorConstraints createSelectorConstraints(Selector selector) {
-    return new IncreasingTypeMaskSet();
+  UniverseSelectorConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint) {
+    return new IncreasingTypeMaskSet()
+      ..addReceiverConstraint(initialConstraint);
   }
 
   @override
@@ -87,7 +89,7 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
     Selector selector = dynamicUse.selector;
     TypeMask mask = dynamicUse.receiverConstraint;
     return selector.appliesUnnamed(member) &&
-        (mask == null || mask.canHit(member, selector, world));
+        (mask == null || mask.canHit(member, selector.memberName, world));
   }
 }
 
@@ -413,13 +415,9 @@ abstract class TypeMask implements AbstractValue {
    */
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld);
 
-  /**
-   * Returns whether [element] is a potential target when being
-   * invoked on this type mask. [selector] is used to ensure library
-   * privacy is taken into account.
-   */
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld);
+  /// Returns whether [element] is a potential target when being invoked on this
+  /// type mask. [name] is used to ensure library privacy is taken into account.
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].

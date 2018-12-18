@@ -1238,7 +1238,7 @@ class CommonElementsImpl
     return selector.applies(_jsStringSplit) &&
         (receiver == null ||
             abstractValueDomain
-                .isTargetingMember(receiver, jsStringSplit, selector)
+                .isTargetingMember(receiver, jsStringSplit, selector.memberName)
                 .isPotentiallyTrue);
   }
 

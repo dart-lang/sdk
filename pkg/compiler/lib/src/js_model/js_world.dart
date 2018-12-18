@@ -14,6 +14,7 @@ import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -498,15 +499,13 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
+  bool hasElementIn(ClassEntity cls, Name name, Entity element) {
     while (cls != null) {
-      MemberEntity member = elementEnvironment.lookupLocalClassMember(
-          cls, selector.name,
-          setter: selector.isSetter);
+      MemberEntity member = elementEnvironment
+          .lookupLocalClassMember(cls, name.text, setter: name.isSetter);
       if (member != null &&
           !member.isAbstract &&
-          (!selector.memberName.isPrivate ||
-              member.library == selector.library)) {
+          (!name.isPrivate || member.library == name.library)) {
         return member == element;
       }
       cls = elementEnvironment.getSuperClass(cls);
@@ -529,7 +528,7 @@ class JsClosedWorld implements JClosedWorld {
       return _hasConcreteMatch(
           elementEnvironment.getSuperClass(enclosingClass), selector);
     }
-    return selector.appliesUntyped(element);
+    return selector.appliesUnnamed(element);
   }
 
   bool _isNamedMixinApplication(ClassEntity cls) {

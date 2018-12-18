@@ -589,7 +589,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
-        if (masks.applies(member, selector, this)) {
+        if (masks.canHit(member, selector.memberName, this)) {
           return true;
         }
       }
@@ -623,8 +623,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     void _process(Map<String, Set<MemberUsage>> memberMap,
         EnumSet<MemberUse> action(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
-        if (_selectorConstraintsStrategy.appliedUnnamed(
-            dynamicUse, usage.entity, this)) {
+        if (selector.appliesUnnamed(usage.entity) &&
+            _selectorConstraintsStrategy.appliedUnnamed(
+                dynamicUse, usage.entity, this)) {
           memberUsed(usage.entity, action(usage));
           return true;
         }
@@ -661,10 +662,12 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     Object constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
-    UniverseSelectorConstraints constraints =
-        selectors.putIfAbsent(selector, () {
-      return _selectorConstraintsStrategy.createSelectorConstraints(selector);
-    });
+    UniverseSelectorConstraints constraints = selectors[selector];
+    if (constraints == null) {
+      selectors[selector] = _selectorConstraintsStrategy
+          .createSelectorConstraints(selector, constraint);
+      return true;
+    }
     return constraints.addReceiverConstraint(constraint);
   }
 

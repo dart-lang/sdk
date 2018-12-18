@@ -16,6 +16,7 @@ import 'constants/constant_system.dart';
 import 'deferred_load.dart';
 import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
+import 'elements/names.dart';
 import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'ir/static_type.dart';
@@ -166,10 +167,9 @@ abstract class JClosedWorld implements World {
   bool needsNoSuchMethod(ClassEntity cls, Selector selector, ClassQuery query);
 
   /// Returns whether [element] will be the one used at runtime when being
-  /// invoked on an instance of [cls]. [selector] is used to ensure library
+  /// invoked on an instance of [cls]. [name] is used to ensure library
   /// privacy is taken into account.
-  bool hasElementIn(
-      covariant ClassEntity cls, Selector selector, covariant Entity element);
+  bool hasElementIn(ClassEntity cls, Name name, MemberEntity element);
 
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);

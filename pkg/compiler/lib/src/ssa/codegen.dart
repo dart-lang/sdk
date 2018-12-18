@@ -3029,49 +3029,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
+    DartType type = node.typeExpression;
     HInstruction input = node.checkedInput;
-    AbstractValue inputType = node.inputType ?? input.instructionType;
     AbstractValue checkedType = node.checkedType;
     // This path is no longer used for indexable primitive types.
     assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
     // Figure out if it is beneficial to use a null check.  V8 generally prefers
     // 'typeof' checks, but for integers we cannot compile this test into a
     // single typeof check so the null check is cheaper.
-    bool isIntCheck =
-        _abstractValueDomain.isIntegerOrNull(checkedType).isDefinitelyTrue;
-    bool turnIntoNumCheck = isIntCheck &&
-        _abstractValueDomain.isIntegerOrNull(inputType).isDefinitelyTrue;
-    bool turnIntoNullCheck = !turnIntoNumCheck &&
-        (_abstractValueDomain.includeNull(checkedType) == inputType) &&
-        isIntCheck;
-
-    if (turnIntoNullCheck) {
-      use(input);
-      return new js.Binary("==", pop(), new js.LiteralNull())
-          .withSourceInformation(input.sourceInformation);
-    } else if (isIntCheck && !turnIntoNumCheck) {
-      // input is !int
-      checkBigInt(input, '!==', input.sourceInformation);
-      return pop();
-    } else if (turnIntoNumCheck ||
-        _abstractValueDomain.isNumberOrNull(checkedType).isDefinitelyTrue) {
+    if (type == _commonElements.numType) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain
-        .isBooleanOrNull(checkedType)
-        .isDefinitelyTrue) {
+    } else if (type == _commonElements.boolType) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain
-        .isStringOrNull(checkedType)
-        .isDefinitelyTrue) {
-      // input is !string
-      checkString(input, '!==', input.sourceInformation);
-      return pop();
     }
-    throw failedAt(input, 'Unexpected check: $checkedType.');
+    throw failedAt(input, 'Unexpected check: $type.');
   }
 
   void visitTypeConversion(HTypeConversion node) {

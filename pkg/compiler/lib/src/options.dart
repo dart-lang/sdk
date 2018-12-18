@@ -143,6 +143,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to disable global type inference.
   bool disableTypeInference = false;
 
+  /// Whether to use the trivial abstract value domain.
+  bool useTrivialAbstractValueDomain = false;
+
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
 
@@ -313,6 +316,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
+      ..useTrivialAbstractValueDomain =
+          _hasOption(options, Flags.useTrivialAbstractValueDomain)
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)

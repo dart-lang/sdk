@@ -4,6 +4,7 @@
 
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../options.dart';
@@ -270,12 +271,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   void convertInput(HInvokeDynamic instruction, HInstruction input,
-      AbstractValue type, int kind) {
+      AbstractValue type, int kind, DartType typeExpression) {
     Selector selector = (kind == HTypeConversion.RECEIVER_TYPE_CHECK)
         ? instruction.selector
         : null;
     HTypeConversion converted = new HTypeConversion(
-        null, kind, type, input, instruction.sourceInformation,
+        typeExpression, kind, type, input, instruction.sourceInformation,
         receiverTypeCheckSelector: selector);
     instruction.block.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
@@ -308,7 +309,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           instruction,
           receiver,
           abstractValueDomain.excludeNull(receiver.instructionType),
-          HTypeConversion.RECEIVER_TYPE_CHECK);
+          HTypeConversion.RECEIVER_TYPE_CHECK,
+          commonElements.numType);
       return true;
     } else if (instruction.element == null) {
       if (closedWorld.includesClosureCall(
@@ -322,14 +324,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         ClassEntity cls = target.enclosingClass;
         AbstractValue type = abstractValueDomain.createNonNullSubclass(cls);
         // We currently only optimize on some primitive types.
-        if (abstractValueDomain.isNumberOrNull(type).isPotentiallyFalse &&
-            abstractValueDomain.isBooleanOrNull(type).isPotentiallyFalse) {
+        DartType typeExpression;
+        if (abstractValueDomain.isNumberOrNull(type).isDefinitelyTrue) {
+          typeExpression = commonElements.numType;
+        } else if (abstractValueDomain.isBooleanOrNull(type).isDefinitelyTrue) {
+          typeExpression = commonElements.boolType;
+        } else {
           return false;
         }
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
         instruction.element = target;
-        convertInput(
-            instruction, receiver, type, HTypeConversion.RECEIVER_TYPE_CHECK);
+        convertInput(instruction, receiver, type,
+            HTypeConversion.RECEIVER_TYPE_CHECK, typeExpression);
         return true;
       }
     }
@@ -357,8 +363,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
       // but we should find a better way.
-      convertInput(
-          instruction, right, type, HTypeConversion.ARGUMENT_TYPE_CHECK);
+      convertInput(instruction, right, type,
+          HTypeConversion.ARGUMENT_TYPE_CHECK, commonElements.numType);
       return true;
     }
     return false;

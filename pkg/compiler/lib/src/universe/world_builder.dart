@@ -6,6 +6,7 @@ library world_builder;
 
 import '../common_elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/static_type.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
@@ -33,7 +34,7 @@ import 'use.dart' show DynamicUse, StaticUse;
 /// the selector constraints for dynamic calls to 'foo' with two positional
 /// arguments could be 'receiver of exact instance `A` or `B`'.
 abstract class SelectorConstraints {
-  /// Returns `true` if [selector] applies to [element] under these constraints
+  /// Returns `true` if [name] applies to [element] under these constraints
   /// given the closed [world].
   ///
   /// Consider for instance in this world:
@@ -48,7 +49,7 @@ abstract class SelectorConstraints {
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
-  bool applies(MemberEntity element, Selector selector, covariant World world);
+  bool canHit(MemberEntity element, Name name, covariant World world);
 
   /// Returns `true` if at least one of the receivers matching these constraints
   /// in the closed [world] have no implementation matching [selector].
@@ -76,7 +77,8 @@ abstract class UniverseSelectorConstraints extends SelectorConstraints {
 abstract class SelectorConstraintsStrategy {
   /// Create a [UniverseSelectorConstraints] to represent the global receiver
   /// constraints for dynamic call sites with [selector].
-  UniverseSelectorConstraints createSelectorConstraints(Selector selector);
+  UniverseSelectorConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint);
 
   /// Returns `true`  if [member] is a potential target of [dynamicUse].
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world);
@@ -89,8 +91,10 @@ abstract class SelectorConstraintsStrategy {
 class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
   const StrongModeWorldStrategy();
 
-  StrongModeWorldConstraints createSelectorConstraints(Selector selector) {
-    return new StrongModeWorldConstraints();
+  StrongModeWorldConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint) {
+    return new StrongModeWorldConstraints()
+      ..addReceiverConstraint(initialConstraint);
   }
 
   @override
@@ -99,7 +103,8 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
     Selector selector = dynamicUse.selector;
     StrongModeConstraint constraint = dynamicUse.receiverConstraint;
     return selector.appliesUnnamed(member) &&
-        (constraint == null || constraint.canHit(member, selector, world));
+        (constraint == null ||
+            constraint.canHit(member, selector.memberName, world));
   }
 }
 
@@ -108,11 +113,11 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   Set<StrongModeConstraint> _constraints;
 
   @override
-  bool applies(MemberEntity element, Selector selector, World world) {
+  bool canHit(MemberEntity element, Name name, World world) {
     if (isAll) return true;
     if (_constraints == null) return false;
     for (StrongModeConstraint constraint in _constraints) {
-      if (constraint.canHit(element, selector, world)) {
+      if (constraint.canHit(element, name, world)) {
         return true;
       }
     }
@@ -177,7 +182,7 @@ class StrongModeConstraint {
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 
-  bool canHit(MemberEntity element, Selector selector, OpenWorld world) {
+  bool canHit(MemberEntity element, Name name, OpenWorld world) {
     return world.isInheritedIn(element, cls, relation);
   }
 

@@ -10,6 +10,7 @@ import '../../common.dart';
 import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
+import '../../elements/names.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -628,9 +629,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isTargetingMember(
-      covariant TypeMask receiver, MemberEntity member, Selector selector) {
+      covariant TypeMask receiver, MemberEntity member, Name name) {
     return AbstractBool.maybeOrFalse(
-        receiver.canHit(member, selector, _closedWorld));
+        receiver.canHit(member, name, _closedWorld));
   }
 
   @override

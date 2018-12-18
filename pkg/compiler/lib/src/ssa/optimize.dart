@@ -550,7 +550,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return selector.applies(element) &&
           (mask == null ||
               _abstractValueDomain
-                  .isTargetingMember(mask, element, selector)
+                  .isTargetingMember(mask, element, selector.memberName)
                   .isPotentiallyTrue);
     }
 

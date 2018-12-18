@@ -27,6 +27,7 @@ import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
+import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
@@ -105,7 +106,7 @@ abstract class Compiler {
   JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
 
-  AbstractValueStrategy abstractValueStrategy = const TypeMaskStrategy();
+  AbstractValueStrategy abstractValueStrategy;
 
   GenericTask selfTask;
 
@@ -144,6 +145,10 @@ abstract class Compiler {
       : this.options = options {
     options.deriveOptions();
     options.validate();
+
+    abstractValueStrategy = options.useTrivialAbstractValueDomain
+        ? const TrivialAbstractValueStrategy()
+        : const TypeMaskStrategy();
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);

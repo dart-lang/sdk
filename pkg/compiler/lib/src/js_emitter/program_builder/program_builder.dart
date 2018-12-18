@@ -884,7 +884,7 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld);
+        canTearOff = _worldBuilder.hasInvokedGetter(element);
         assert(canTearOff ||
             !_worldBuilder.methodsNeedingSuperGetter.contains(element));
         tearOffName = _namer.getterForElement(element);

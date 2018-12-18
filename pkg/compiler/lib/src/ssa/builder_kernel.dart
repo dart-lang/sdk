@@ -3415,7 +3415,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction lengthInput = arguments.first;
       if (lengthInput.isNumber(abstractValueDomain).isPotentiallyFalse) {
         HTypeConversion conversion = new HTypeConversion(
-            null,
+            commonElements.numType,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
             abstractValueDomain.numType,
             lengthInput,
@@ -4971,7 +4971,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         if (!selector.applies(function)) return false;
         if (mask != null &&
             abstractValueDomain
-                .isTargetingMember(mask, function, selector)
+                .isTargetingMember(mask, function, selector.memberName)
                 .isDefinitelyFalse) {
           return false;
         }

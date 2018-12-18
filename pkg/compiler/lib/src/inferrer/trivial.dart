@@ -4,12 +4,18 @@
 
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
+import '../universe/world_builder.dart';
+import '../universe/use.dart';
+import '../world.dart';
 import 'abstract_value_domain.dart';
 
 class TrivialAbstractValue implements AbstractValue {
   const TrivialAbstractValue();
+
+  String toString() => '?';
 }
 
 class TrivialAbstractValueDomain implements AbstractValueDomain {
@@ -58,7 +64,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractBool isTargetingMember(
-          AbstractValue receiver, MemberEntity member, Selector selector) =>
+          AbstractValue receiver, MemberEntity member, Name name) =>
       AbstractBool.Maybe;
 
   @override
@@ -394,4 +400,50 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue get typeType => const TrivialAbstractValue();
+}
+
+class TrivialAbstractValueStrategy implements AbstractValueStrategy {
+  const TrivialAbstractValueStrategy();
+
+  @override
+  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
+    return const TrivialAbstractValueDomain();
+  }
+
+  @override
+  SelectorConstraintsStrategy createSelectorStrategy() {
+    return const TrivialSelectorStrategy();
+  }
+}
+
+class TrivialSelectorStrategy implements SelectorConstraintsStrategy {
+  const TrivialSelectorStrategy();
+
+  @override
+  UniverseSelectorConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint) {
+    return const TrivialUniverseSelectorConstraints();
+  }
+
+  @override
+  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
+      covariant JClosedWorld world) {
+    return dynamicUse.selector.appliesUnnamed(member);
+  }
+}
+
+class TrivialUniverseSelectorConstraints
+    implements UniverseSelectorConstraints {
+  const TrivialUniverseSelectorConstraints();
+
+  @override
+  bool addReceiverConstraint(Object constraint) => false;
+
+  @override
+  bool needsNoSuchMethodHandling(Selector selector, World world) => true;
+
+  @override
+  bool canHit(MemberEntity element, Name name, World world) => true;
+
+  String toString() => 'TrivialUniverseSelectorConstraints:$hashCode';
 }

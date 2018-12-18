@@ -6,6 +6,7 @@ library dart2js.abstract_value_domain;
 
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -466,10 +467,10 @@ abstract class AbstractValueDomain {
   AbstractValue computeReceiver(Iterable<MemberEntity> members);
 
   /// Returns an [AbstractBool] that describes whether [member] is a potential
-  /// target when being invoked on a [receiver]. [selector] is used to ensure
+  /// target when being invoked on a [receiver]. [name] is used to ensure
   /// library privacy is taken into account.
   AbstractBool isTargetingMember(
-      AbstractValue receiver, MemberEntity member, Selector selector);
+      AbstractValue receiver, MemberEntity member, Name name);
 
   /// Returns an [AbstractBool] that describes whether [selector] invoked on a
   /// [receiver] can hit a [noSuchMethod].
