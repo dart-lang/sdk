@@ -16032,6 +16032,7 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
 }
 
 RawTypeArguments* Instance::GetTypeArguments() const {
+  ASSERT(!IsType());
   const Class& cls = Class::Handle(clazz());
   intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
@@ -16041,6 +16042,7 @@ RawTypeArguments* Instance::GetTypeArguments() const {
 }
 
 void Instance::SetTypeArguments(const TypeArguments& value) const {
+  ASSERT(!IsType());
   ASSERT(value.IsNull() || value.IsCanonical());
   const Class& cls = Class::Handle(clazz());
   intptr_t field_offset = cls.type_arguments_field_offset();

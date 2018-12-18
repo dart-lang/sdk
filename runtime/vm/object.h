@@ -5834,6 +5834,9 @@ class Instance : public Object {
 
   RawAbstractType* GetType(Heap::Space space) const;
 
+  // Access the arguments of the [Type] of this [Instance].
+  // Note: for [Type]s instead of [Instance]s with a [Type] attached, use
+  // [arguments()] and [set_arguments()]
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
 
