@@ -1301,8 +1301,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitIntegerLiteral(IntegerLiteral node) =>
-      new DartObjectImpl(_typeProvider.intType, new IntState(node.value));
+  DartObjectImpl visitIntegerLiteral(IntegerLiteral node) {
+    if (node.staticType == _typeProvider.doubleType) {
+      return new DartObjectImpl(
+          _typeProvider.doubleType, new DoubleState(node.value?.toDouble()));
+    }
+    return new DartObjectImpl(_typeProvider.intType, new IntState(node.value));
+  }
 
   @override
   DartObjectImpl visitInterpolationExpression(InterpolationExpression node) {

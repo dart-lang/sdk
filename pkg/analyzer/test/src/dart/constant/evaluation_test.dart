@@ -426,6 +426,15 @@ class C {}
         experiments: [EnableString.constant_update_2018]);
   }
 
+  test_visitIntegerLiteral() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const double d = 3;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'd');
+    expect(result.type, typeProvider.doubleType);
+    expect(result.toDoubleValue(), 3.0);
+  }
+
   test_visitIsExpression_is_instanceOfSameClass() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const a = const A();
