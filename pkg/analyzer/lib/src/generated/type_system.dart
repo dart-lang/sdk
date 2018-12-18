@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
@@ -1674,7 +1675,8 @@ class StrongTypeSystemImpl extends Dart2TypeSystem {
  * way for a possible future where we may wish to make the type system
  * pluggable.
  */
-abstract class TypeSystem {
+// TODO(brianwilkerson) Rename this class to TypeSystemImpl.
+abstract class TypeSystem implements public.TypeSystem {
   /**
    * Whether the type system is strong or not.
    */
@@ -1685,6 +1687,40 @@ abstract class TypeSystem {
    * The provider of types for the system
    */
   TypeProvider get typeProvider;
+
+  @override
+  DartType flatten(DartType type) {
+    if (type is InterfaceType) {
+      // Implement the cases:
+      //  - "If T = FutureOr<S> then flatten(T) = S."
+      //  - "If T = Future<S> then flatten(T) = S."
+      if (type.isDartAsyncFutureOr || type.isDartAsyncFuture) {
+        return type.typeArguments.isNotEmpty
+            ? type.typeArguments[0]
+            : DynamicTypeImpl.instance;
+      }
+      // Implement the case: "Otherwise if T <: Future then let S be a type
+      // such that T << Future<S> and for all R, if T << Future<R> then S << R.
+      // Then flatten(T) = S."
+      //
+      // In other words, given the set of all types R such that T << Future<R>,
+      // let S be the most specific of those types, if any such S exists.
+      //
+      // Since we only care about the most specific type, it is sufficient to
+      // look at the types appearing as a parameter to Future in the type
+      // hierarchy of T.  We don't need to consider the supertypes of those
+      // types, since they are by definition less specific.
+      List<DartType> candidateTypes =
+          _searchTypeHierarchyForFutureTypeParameters(type);
+      DartType flattenResult =
+          InterfaceTypeImpl.findMostSpecificType(candidateTypes, this);
+      if (flattenResult != null) {
+        return flattenResult;
+      }
+    }
+    // Implement the case: "In any other circumstance, flatten(T) = T."
+    return type;
+  }
 
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
       ClassElement mixinElement) {
@@ -1823,6 +1859,11 @@ abstract class TypeSystem {
    */
   bool isSubtypeOf(DartType leftType, DartType rightType);
 
+  @override
+  DartType leastUpperBound(DartType leftType, DartType rightType) {
+    return getLeastUpperBound(leftType, rightType);
+  }
+
   /// Attempts to find the appropriate substitution for [typeParameters] that can
   /// be applied to [src] to make it equal to [dest].  If no such substitution can
   /// be found, `null` is returned.
@@ -1935,6 +1976,11 @@ abstract class TypeSystem {
     }
     // default
     return currentType;
+  }
+
+  @override
+  DartType resolveToBound(DartType type) {
+    return instantiateToBounds(type);
   }
 
   /**
@@ -2062,6 +2108,32 @@ abstract class TypeSystem {
    * bound in a type system specific manner.
    */
   DartType _interfaceLeastUpperBound(InterfaceType type1, InterfaceType type2);
+
+  /**
+   * Starting from the given [type], search its class hierarchy for types of the
+   * form Future<R>, and return a list of the resulting R's.
+   */
+  List<DartType> _searchTypeHierarchyForFutureTypeParameters(DartType type) {
+    List<DartType> result = <DartType>[];
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    void recurse(InterfaceTypeImpl type) {
+      if (type.isDartAsyncFuture && type.typeArguments.isNotEmpty) {
+        result.add(type.typeArguments[0]);
+      }
+      if (visitedClasses.add(type.element)) {
+        if (type.superclass != null) {
+          recurse(type.superclass);
+        }
+        for (InterfaceType interface in type.interfaces) {
+          recurse(interface);
+        }
+        visitedClasses.remove(type.element);
+      }
+    }
+
+    recurse(type);
+    return result;
+  }
 
   /**
    * Given two [DartType]s [type1] and [type2] at least one of which is a
