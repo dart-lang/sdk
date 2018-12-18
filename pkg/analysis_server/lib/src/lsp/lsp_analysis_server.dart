@@ -421,7 +421,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
         final params = new PublishDiagnosticsParams(
             Uri.file(result.path).toString(), serverErrors);
-        // TODO(dantup): Move all these method names to constants.
         final message = new NotificationMessage(
           Method.textDocument_publishDiagnostics,
           params,

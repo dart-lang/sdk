@@ -81,6 +81,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         : Either2<Command, CodeAction>.t1(command);
   }
 
+  /// Creates a CodeAction to apply this assist. Note: This code will fetch the
+  /// version of each document being modified so it's important to call this
+  /// immediately after computing edits to ensure the document is not modified
+  /// before the version number is read.
   Either2<Command, CodeAction> _createAssistAction(Assist assist) {
     return new Either2<Command, CodeAction>.t2(new CodeAction(
       assist.change.message,
@@ -91,6 +95,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ));
   }
 
+  /// Creates a CodeAction to apply this fix. Note: This code will fetch the
+  /// version of each document being modified so it's important to call this
+  /// immediately after computing edits to ensure the document is not modified
+  /// before the version number is read.
   Either2<Command, CodeAction> _createFixAction(
       Fix fix, Diagnostic diagnostic) {
     return new Either2<Command, CodeAction>.t2(new CodeAction(
@@ -102,6 +110,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ));
   }
 
+  /// Note: This code will fetch the version of each document being modified so
+  /// it's important to call this immediately after computing edits to ensure
+  /// the document is not modified before the version number is read.
   WorkspaceEdit _createWorkspaceEdit(SourceChange change) {
     return toWorkspaceEdit(
         server.clientCapabilities?.workspace,

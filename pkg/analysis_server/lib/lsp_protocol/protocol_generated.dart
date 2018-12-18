@@ -373,8 +373,7 @@ class CodeActionContext implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('diagnostics') &&
         (obj['diagnostics'] is List &&
-            (obj['diagnostics'].length == 0 ||
-                obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
+            (obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
   }
 
   @override
@@ -636,9 +635,8 @@ class CodeActionRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -859,9 +857,8 @@ class CodeLensRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -1712,8 +1709,7 @@ class CompletionList implements ToJsonable {
         obj['isIncomplete'] is bool &&
         obj.containsKey('items') &&
         (obj['items'] is List &&
-            (obj['items'].length == 0 ||
-                obj['items'].every((item) => CompletionItem.canParse(item))));
+            (obj['items'].every((item) => CompletionItem.canParse(item))));
   }
 
   @override
@@ -1926,9 +1922,8 @@ class CompletionRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -2071,9 +2066,7 @@ class ConfigurationParams implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('items') &&
         (obj['items'] is List &&
-            (obj['items'].length == 0 ||
-                obj['items']
-                    .every((item) => ConfigurationItem.canParse(item))));
+            (obj['items'].every((item) => ConfigurationItem.canParse(item))));
   }
 
   @override
@@ -2643,9 +2636,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
         VersionedTextDocumentIdentifier.canParse(obj['textDocument']) &&
         obj.containsKey('contentChanges') &&
         (obj['contentChanges'] is List &&
-            (obj['contentChanges'].length == 0 ||
-                obj['contentChanges'].every(
-                    (item) => TextDocumentContentChangeEvent.canParse(item))));
+            (obj['contentChanges'].every(
+                (item) => TextDocumentContentChangeEvent.canParse(item))));
   }
 
   @override
@@ -2703,8 +2695,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('changes') &&
         (obj['changes'] is List &&
-            (obj['changes'].length == 0 ||
-                obj['changes'].every((item) => FileEvent.canParse(item))));
+            (obj['changes'].every((item) => FileEvent.canParse(item))));
   }
 
   @override
@@ -2759,9 +2750,8 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('watchers') &&
         (obj['watchers'] is List &&
-            (obj['watchers'].length == 0 ||
-                obj['watchers']
-                    .every((item) => FileSystemWatcher.canParse(item))));
+            (obj['watchers']
+                .every((item) => FileSystemWatcher.canParse(item))));
   }
 
   @override
@@ -3394,9 +3384,8 @@ class DocumentLinkRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -3626,9 +3615,8 @@ class DocumentOnTypeFormattingRegistrationOptions
         obj['firstTriggerCharacter'] is String &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -3969,8 +3957,7 @@ class ExecuteCommandOptions implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('commands') &&
         (obj['commands'] is List &&
-            (obj['commands'].length == 0 ||
-                obj['commands'].every((item) => item is String)));
+            (obj['commands'].every((item) => item is String)));
   }
 
   @override
@@ -4079,8 +4066,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('commands') &&
         (obj['commands'] is List &&
-            (obj['commands'].length == 0 ||
-                obj['commands'].every((item) => item is String)));
+            (obj['commands'].every((item) => item is String)));
   }
 
   @override
@@ -5810,8 +5796,7 @@ class PublishDiagnosticsParams implements ToJsonable {
         obj['uri'] is String &&
         obj.containsKey('diagnostics') &&
         (obj['diagnostics'] is List &&
-            (obj['diagnostics'].length == 0 ||
-                obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
+            (obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
   }
 
   @override
@@ -6113,9 +6098,8 @@ class RegistrationParams implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('registrations') &&
         (obj['registrations'] is List &&
-            (obj['registrations'].length == 0 ||
-                obj['registrations']
-                    .every((item) => Registration.canParse(item))));
+            (obj['registrations']
+                .every((item) => Registration.canParse(item))));
   }
 
   @override
@@ -6424,9 +6408,8 @@ class RenameRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -7433,9 +7416,8 @@ class SignatureHelp implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('signatures') &&
         (obj['signatures'] is List &&
-            (obj['signatures'].length == 0 ||
-                obj['signatures']
-                    .every((item) => SignatureInformation.canParse(item))));
+            (obj['signatures']
+                .every((item) => SignatureInformation.canParse(item))));
   }
 
   @override
@@ -7547,9 +7529,8 @@ class SignatureHelpRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -7925,9 +7906,8 @@ class TextDocumentChangeRegistrationOptions
         obj['syncKind'] is num &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -8371,8 +8351,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('valueSet') &&
         (obj['valueSet'] is List &&
-            (obj['valueSet'].length == 0 ||
-                obj['valueSet'].every((item) => item is String)));
+            (obj['valueSet'].every((item) => item is String)));
   }
 
   @override
@@ -9939,8 +9918,7 @@ class TextDocumentEdit implements ToJsonable {
         VersionedTextDocumentIdentifier.canParse(obj['textDocument']) &&
         obj.containsKey('edits') &&
         (obj['edits'] is List &&
-            (obj['edits'].length == 0 ||
-                obj['edits'].every((item) => TextEdit.canParse(item))));
+            (obj['edits'].every((item) => TextEdit.canParse(item))));
   }
 
   @override
@@ -10182,9 +10160,8 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -10278,9 +10255,8 @@ class TextDocumentSaveRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] is List &&
-            (obj['documentSelector'].length == 0 ||
-                obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))));
+            (obj['documentSelector']
+                .every((item) => DocumentFilter.canParse(item))));
   }
 
   @override
@@ -10573,9 +10549,8 @@ class UnregistrationParams implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('unregisterations') &&
         (obj['unregisterations'] is List &&
-            (obj['unregisterations'].length == 0 ||
-                obj['unregisterations']
-                    .every((item) => Unregistration.canParse(item))));
+            (obj['unregisterations']
+                .every((item) => Unregistration.canParse(item))));
   }
 
   @override
@@ -11220,20 +11195,20 @@ class WorkspaceEdit implements ToJsonable {
                 ?.cast<TextEdit>()
                 ?.toList()))
         ?.cast<String, List<TextEdit>>();
-    final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].length == 0 || json['documentChanges'].every((item) => TextDocumentEdit.canParse(item))))
-        ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(json['documentChanges']
-            ?.map(
-                (item) => item != null ? TextDocumentEdit.fromJson(item) : null)
-            ?.cast<TextDocumentEdit>()
-            ?.toList())
-        : ((json['documentChanges'] is List && (json['documentChanges'].length == 0 || json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item) || CreateFile.canParse(item) || RenameFile.canParse(item) || DeleteFile.canParse(item)))))
+    final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].every((item) => TextDocumentEdit.canParse(item))))
+        ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
+            json['documentChanges']
+                ?.map((item) =>
+                    item != null ? TextDocumentEdit.fromJson(item) : null)
+                ?.cast<TextDocumentEdit>()
+                ?.toList())
+        : ((json['documentChanges'] is List && (json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item) || CreateFile.canParse(item) || RenameFile.canParse(item) || DeleteFile.canParse(item)))))
             ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
                 ?.map((item) => TextDocumentEdit.canParse(item)
                     ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
                         item != null ? TextDocumentEdit.fromJson(item) : null)
                     : (CreateFile.canParse(item)
-                        ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(
-                            item != null ? CreateFile.fromJson(item) : null)
+                        ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
                         : (RenameFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
@@ -11395,14 +11370,10 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('added') &&
         (obj['added'] is List &&
-            (obj['added'].length == 0 ||
-                obj['added']
-                    .every((item) => WorkspaceFolder.canParse(item)))) &&
+            (obj['added'].every((item) => WorkspaceFolder.canParse(item)))) &&
         obj.containsKey('removed') &&
         (obj['removed'] is List &&
-            (obj['removed'].length == 0 ||
-                obj['removed']
-                    .every((item) => WorkspaceFolder.canParse(item))));
+            (obj['removed'].every((item) => WorkspaceFolder.canParse(item))));
   }
 
   @override

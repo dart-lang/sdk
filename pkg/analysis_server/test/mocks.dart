@@ -18,6 +18,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
+const _jsonEncoder = const JsonEncoder.withIndent('    ');
+
 /**
  * Answer the absolute path the SDK relative to the currently running
  * script or throw an exception if it cannot be found.
@@ -174,17 +176,26 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
    * given [request] has been received. The value of the future will be the
    * received response. The returned future will throw an exception if a server
    * error is reported before the response has been received.
-   * 
+   *
    * Unlike [sendLspRequest], this method assumes that the [request] has already
    * been sent to the server.
    */
   Future<lsp.ResponseMessage> waitForResponse(
-      lsp.RequestMessage request) async {
-    // TODO(dantup): Make this throw if an error notifications comes in (as
-    // described above).
-    final response = await _serverToClient.stream.firstWhere((response) =>
-        response is lsp.ResponseMessage && response.id == request.id);
-    return response;
+    lsp.RequestMessage request, {
+    bool throwOnError = true,
+  }) async {
+    final response = await _serverToClient.stream.firstWhere((message) =>
+        (message is lsp.ResponseMessage && message.id == request.id) ||
+        (throwOnError &&
+            message is lsp.NotificationMessage &&
+            message.method == Method.window_showMessage));
+
+    if (response is lsp.ResponseMessage) {
+      return response;
+    } else {
+      throw 'An error occurred while waiting for a response to ${request.method}: '
+          '${_jsonEncoder.convert(response.toJson())}';
+    }
   }
 
   /// Round trips the object to JSON and back to ensure it behaves the same as
@@ -299,7 +310,7 @@ class MockServerChannel implements ServerCommunicationChannel {
    * received response. If [throwOnError] is `true` (the default) then the
    * returned future will throw an exception if a server error is reported
    * before the response has been received.
-   * 
+   *
    * Unlike [sendRequest], this method assumes that the [request] has already
    * been sent to the server.
    */

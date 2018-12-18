@@ -152,8 +152,7 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.UNIT_TEST_TEST:
         return const [lsp.SymbolKind.Method];
       default:
-        // TODO(dantup): Do we want an assert here to crash in test runs? It's
-        // valid to return null but we should aim to have everything above.
+        assert(false, 'Unexpected element kind $kind');
         return null;
     }
   }

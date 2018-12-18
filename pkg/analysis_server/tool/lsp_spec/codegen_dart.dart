@@ -557,8 +557,7 @@ void _writeTypeCheckCondition(
     if (resolvedDartType != 'dynamic') {
       // TODO(dantup): If we're happy to assume we never have two lists in a union
       // we could skip this bit.
-      buffer
-          .write(' && ($valueCode.length == 0 || $valueCode.every((item) => ');
+      buffer.write(' && ($valueCode.every((item) => ');
       _writeTypeCheckCondition(buffer, 'item', type.elementType);
       buffer.write('))');
     }
@@ -566,9 +565,7 @@ void _writeTypeCheckCondition(
   } else if (type is MapType) {
     buffer.write('($valueCode is Map');
     if (resolvedDartType != 'dynamic') {
-      buffer
-        ..write(' && ($valueCode.length == 0 || (')
-        ..write('$valueCode.keys.every((item) => ');
+      buffer..write(' && ((')..write('$valueCode.keys.every((item) => ');
       _writeTypeCheckCondition(buffer, 'item', type.indexType);
       buffer..write('&& $valueCode.values.every((item) => ');
       _writeTypeCheckCondition(buffer, 'item', type.valueType);
