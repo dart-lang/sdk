@@ -294,6 +294,10 @@
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
+    "dartkp-bare-linux-release-x64": {
+      "options": {
+        "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions"]
+    }},
     "dartk-(linux|mac)-(debug|release)-(ia32|x64)": { },
     "dartk-checked-linux-release-x64": {
       "options": {
@@ -509,6 +513,32 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-bare-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders using bare instructions."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-bare-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
