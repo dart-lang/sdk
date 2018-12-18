@@ -243,6 +243,7 @@ class KernelTarget extends TargetImplementation {
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
+      loader.finalizeInitializingFormals();
       installDefaultSupertypes();
       installSyntheticConstructors(myClasses);
       loader.resolveConstructors();

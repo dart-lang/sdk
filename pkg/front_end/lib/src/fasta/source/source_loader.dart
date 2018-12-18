@@ -426,6 +426,17 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $typeCount types");
   }
 
+  void finalizeInitializingFormals() {
+    int formalCount = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        formalCount += sourceLibrary.finalizeInitializingFormals();
+      }
+    });
+    ticker.logMs("Finalized $formalCount initializing formals");
+  }
+
   void finishDeferredLoadTearoffs() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {

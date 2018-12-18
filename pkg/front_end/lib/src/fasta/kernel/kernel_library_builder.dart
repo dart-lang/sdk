@@ -192,6 +192,8 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
+  List<KernelFormalParameterBuilder> untypedInitializingFormals;
+
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
       : library = target ??
@@ -633,6 +635,11 @@ class KernelLibraryBuilder
         charOpenParenOffset,
         charEndOffset,
         nativeMethodName);
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        formals[i].parent = procedure;
+      }
+    }
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
@@ -826,6 +833,10 @@ class KernelLibraryBuilder
     }
     KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
         metadata, modifiers, type, name, this, charOffset);
+    if (disableTypeInference && hasThis && type == null) {
+      (untypedInitializingFormals ??= <KernelFormalParameterBuilder>[])
+          .add(formal);
+    }
     return formal;
   }
 
@@ -1699,6 +1710,17 @@ class KernelLibraryBuilder
       }
     }
     inferredTypes.clear();
+  }
+
+  @override
+  int finalizeInitializingFormals() {
+    if (!disableTypeInference || untypedInitializingFormals == null) return 0;
+    for (int i = 0; i < untypedInitializingFormals.length; i++) {
+      untypedInitializingFormals[i].finalizeInitializingFormal();
+    }
+    int count = untypedInitializingFormals.length;
+    untypedInitializingFormals = null;
+    return count;
   }
 }
 

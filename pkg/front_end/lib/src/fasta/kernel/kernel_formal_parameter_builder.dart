@@ -10,7 +10,10 @@ import '../modifier.dart' show finalMask, initializingFormalMask;
 
 import 'kernel_builder.dart'
     show
+        ClassBuilder,
+        Declaration,
         FormalParameterBuilder,
+        KernelFieldBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
         MetadataBuilder,
@@ -67,6 +70,17 @@ class KernelFormalParameterBuilder
             name,
             null,
             charOffset)
+          ..parent = parent
           ..declaration = declaration);
+  }
+
+  void finalizeInitializingFormal() {
+    Object cls = parent.parent;
+    if (cls is ClassBuilder) {
+      Declaration field = cls.scope.lookup(name, charOffset, fileUri);
+      if (field is KernelFieldBuilder) {
+        target.type = field.target.type;
+      }
+    }
   }
 }

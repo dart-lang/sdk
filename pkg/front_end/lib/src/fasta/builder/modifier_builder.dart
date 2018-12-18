@@ -19,7 +19,7 @@ import '../modifier.dart'
 import 'builder.dart' show Declaration;
 
 abstract class ModifierBuilder extends Declaration {
-  final Declaration parent;
+  Declaration parent;
 
   final int charOffset;
 

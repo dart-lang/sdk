@@ -899,6 +899,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void checkBoundsInOutline(covariant typeEnvironment);
+
+  int finalizeInitializingFormals();
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to
