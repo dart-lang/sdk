@@ -21,7 +21,6 @@ import 'file_state_test.dart' as file_state;
 import 'fletcher16_test.dart' as fletcher16_test;
 import 'index_test.dart' as index;
 import 'mutex_test.dart' as mutex;
-import 'protected_file_byte_store_test.dart' as protected_file_byte_store_test;
 import 'referenced_names_test.dart' as referenced_names;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
@@ -47,7 +46,6 @@ main() {
     fletcher16_test.main();
     index.main();
     mutex.main();
-    protected_file_byte_store_test.main();
     referenced_names.main();
     search.main();
     session.main();
