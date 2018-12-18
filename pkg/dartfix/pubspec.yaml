@@ -8,9 +8,7 @@ homepage: https://github.com/dart-lang/sdk/tree/master/pkg/dartfix
 executables:
   dartfix: fix
 environment:
-  # pin to a narrow SDK range because there will be future versions of dartfix
-  # which are more appropriate for those future versions of the SDK
-  sdk: '>=2.1.0 <2.3.0'
+  sdk: '>=2.1.0 <3.0.0'
 dependencies:
   # pin to an exact version of analysis_server_client because the edit.dartfix protocol
   # is experimental and will continue to evolve
