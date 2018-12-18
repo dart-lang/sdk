@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
@@ -290,13 +291,13 @@ class DartObjectImpl implements DartObject {
   /**
    * Return the result of casting this object to the given [castType].
    */
-  DartObjectImpl castToType(
-      TypeProvider typeProvider, DartObjectImpl castType) {
+  DartObjectImpl castToType(TypeProvider typeProvider, TypeSystem typeSystem,
+      DartObjectImpl castType) {
     _assertType(castType);
     if (isNull) {
       return this;
     }
-    if (!type.isSubtypeOf((castType._state as TypeState)._type)) {
+    if (!typeSystem.isSubtypeOf(type, (castType._state as TypeState)._type)) {
       throw new EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
@@ -489,7 +490,8 @@ class DartObjectImpl implements DartObject {
   /**
    * Return the result of testing whether this object has the given [testedType].
    */
-  DartObjectImpl hasType(TypeProvider typeProvider, DartObjectImpl testedType) {
+  DartObjectImpl hasType(TypeProvider typeProvider, TypeSystem typeSystem,
+      DartObjectImpl testedType) {
     _assertType(testedType);
     DartType typeType = (testedType._state as TypeState)._type;
     BoolState state;
@@ -502,7 +504,7 @@ class DartObjectImpl implements DartObject {
         state = BoolState.FALSE_STATE;
       }
     } else {
-      state = BoolState.from(type.isSubtypeOf(typeType));
+      state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));
     }
     return new DartObjectImpl(typeProvider.boolType, state);
   }

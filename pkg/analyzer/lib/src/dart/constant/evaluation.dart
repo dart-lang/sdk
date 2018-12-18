@@ -1068,7 +1068,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       {Map<String, DartObjectImpl> lexicalEnvironment})
       : _lexicalEnvironment = lexicalEnvironment {
     this._dartObjectComputer =
-        new DartObjectComputer(_errorReporter, evaluationEngine.typeProvider);
+        new DartObjectComputer(_errorReporter, evaluationEngine);
   }
 
   /**
@@ -1681,12 +1681,22 @@ class DartObjectComputer {
   final ErrorReporter _errorReporter;
 
   /**
-   * The type provider used to create objects of the appropriate types, and to
-   * identify when an object is of a built-in type.
+   * The type provider used to access the known types.
    */
-  final TypeProvider _typeProvider;
+  final ConstantEvaluationEngine _evaluationEngine;
 
-  DartObjectComputer(this._errorReporter, this._typeProvider);
+  DartObjectComputer(this._errorReporter, this._evaluationEngine);
+
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type
+   * provider.
+   */
+  TypeProvider get _typeProvider => _evaluationEngine.typeProvider;
+
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type system.
+   */
+  TypeSystem get _typeSystem => _evaluationEngine.typeSystem;
 
   DartObjectImpl add(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
@@ -1732,7 +1742,7 @@ class DartObjectComputer {
       AsExpression node, DartObjectImpl expression, DartObjectImpl type) {
     if (expression != null && type != null) {
       try {
-        return expression.castToType(_typeProvider, type);
+        return expression.castToType(_typeProvider, _typeSystem, type);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -2070,7 +2080,8 @@ class DartObjectComputer {
       IsExpression node, DartObjectImpl expression, DartObjectImpl type) {
     if (expression != null && type != null) {
       try {
-        DartObjectImpl result = expression.hasType(_typeProvider, type);
+        DartObjectImpl result =
+            expression.hasType(_typeProvider, _typeSystem, type);
         if (node.notOperator != null) {
           return result.logicalNot(_typeProvider);
         }
