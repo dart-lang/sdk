@@ -45,6 +45,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -3445,9 +3446,8 @@ class FixProcessor {
     if (newText == null) {
       return;
     }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(pubspecFile.path,
-        (DartFileEditBuilder builder) {
+    var changeBuilder = new ChangeBuilder();
+    await changeBuilder.addFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(new SourceRange(offset, length), newText);
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.UPDATE_SDK_CONSTRAINTS);
@@ -3526,7 +3526,7 @@ class FixProcessor {
     }
   }
 
-  void _addFixFromBuilder(DartChangeBuilder builder, FixKind kind,
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
       {List args: null, bool importsOnly: false}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
