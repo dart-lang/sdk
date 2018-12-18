@@ -90,6 +90,10 @@ abstract class AbstractAnalysisServer {
 
     const int memoryCacheSize = 128 * M;
 
+    if (resourceProvider is OverlayResourceProvider) {
+      OverlayResourceProvider overlay = resourceProvider;
+      resourceProvider = overlay.baseProvider;
+    }
     if (resourceProvider is PhysicalResourceProvider) {
       Folder stateLocation =
           resourceProvider.getStateLocation('.analysis-driver');
