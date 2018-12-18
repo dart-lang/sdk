@@ -7964,11 +7964,12 @@ void Function::RestoreICDataMap(
 }
 
 void Function::set_ic_data_array(const Array& value) const {
-  StorePointer(&raw_ptr()->ic_data_array_, value.raw());
+  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->ic_data_array_,
+                                                 value.raw());
 }
 
 RawArray* Function::ic_data_array() const {
-  return raw_ptr()->ic_data_array_;
+  return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_array_);
 }
 
 void Function::ClearICDataArray() const {

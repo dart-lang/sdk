@@ -7853,6 +7853,16 @@ class Array : public Instance {
     StoreArrayPointer(ObjectAddr(index), value.raw());
   }
 
+  // Access to the array with acquire release semantics.
+  RawObject* AtAcquire(intptr_t index) const {
+    return AtomicOperations::LoadAcquire(ObjectAddr(index));
+  }
+  void SetAtRelease(intptr_t index, const Object& value) const {
+    // TODO(iposva): Add storing NoSafepointScope.
+    StoreArrayPointer<RawObject*, MemoryOrder::kRelease>(ObjectAddr(index),
+                                                         value.raw());
+  }
+
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
 
   virtual RawTypeArguments* GetTypeArguments() const {
@@ -7953,9 +7963,9 @@ class Array : public Instance {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
-  template <typename type>
+  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
   void StoreArrayPointer(type const* addr, type value) const {
-    raw()->StoreArrayPointer(addr, value);
+    raw()->StoreArrayPointer<type, order>(addr, value);
   }
 
   // Store a range of pointers [from, from + count) into [to, to + count).

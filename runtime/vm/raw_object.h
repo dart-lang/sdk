@@ -716,6 +716,7 @@ class RawObject {
     if (order == MemoryOrder::kRelease) {
       AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
     } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
       *const_cast<type*>(addr) = value;
     }
     if (value->IsHeapObject()) {
@@ -761,9 +762,14 @@ class RawObject {
     }
   }
 
-  template <typename type>
+  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
   void StoreArrayPointer(type const* addr, type value) {
-    *const_cast<type*>(addr) = value;
+    if (order == MemoryOrder::kRelease) {
+      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
+    } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
+      *const_cast<type*>(addr) = value;
+    }
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }

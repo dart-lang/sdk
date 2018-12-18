@@ -419,7 +419,7 @@ class ICDataTestTask : public ThreadPool::Task {
       while (true) {
         for (intptr_t cnt = 0; cnt < 0x1000; cnt++) {
           for (intptr_t i = 0; i < len_; i++) {
-            ic_data ^= ic_datas_.At(i);
+            ic_data ^= ic_datas_.AtAcquire(i);
             arr = ic_data.ic_data();
             intptr_t num_checks = arr.Length() / 3;
             if (num_checks < 0 || num_checks > 5) {
@@ -492,7 +492,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
     ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
                           /*num_args_tested=*/1, ICData::kInstance,
                           Object::null_abstract_type());
-    ic_datas.SetAt(i, ic_data);
+    ic_datas.SetAtRelease(i, ic_data);
   }
 
   for (int i = 0; i < ICDataTestTask::kTaskCount; i++) {
@@ -510,7 +510,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
         ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
                               /*num_args_tested=*/1, ICData::kInstance,
                               Object::null_abstract_type());
-        ic_datas.SetAt(i, ic_data);
+        ic_datas.SetAtRelease(i, ic_data);
       }
     }
   }
