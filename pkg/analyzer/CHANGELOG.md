@@ -1,5 +1,19 @@
-##
-* Deprecated TypeSystem.isStrong
+## 0.34.1
+* Added logic to report a hint if a deprecated lint is specified in the user's
+  analysis_options.yaml file, or if a lint is specified twice.
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+* Improved parser recovery.
+* Speculative work on fine-grained dependency tracking (not yet enabled).
+* Initial support for new language features set_literals and
+  constant_update_2018.
+* Early speculative work on non-nullable types.
+* Added AnalysisDriver.resetUriResolution().
+* Deprecated TypeSystem.isStrong.
+* Added WorkspacePackage classes, for determining whether two files are in the
+  "same package."
+* Added a public API for the TypeSystem class.
+* Bug fixes: #33946, #35151, #35223, #35241, #35438.
 
 ## 0.34.0
 * Support for `declarations-casts` has been removed and the `implicit-casts`
@@ -15,7 +29,7 @@
 * Bug fixes: #35162, #35230, #34733, #34741, #33553, #35090, #32815, #34387,
   #34495, #35043, #33553, #34906, #34489.
 
-## 0.33.6+1-dev
+## 0.33.6+1
 * Added a note to the `UriResolver` documentation alerting clients of an
   upcoming breaking change.
 
