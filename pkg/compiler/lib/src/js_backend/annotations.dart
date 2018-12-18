@@ -12,14 +12,6 @@ import '../elements/entities.dart';
 import '../kernel/dart2js_target.dart';
 import '../serialization/serialization.dart';
 
-/// Returns `true` if parameter and returns types should be trusted for
-/// [element].
-bool _trustTypeAnnotations(KElementEnvironment elementEnvironment,
-    KCommonElements commonElements, MemberEntity element) {
-  return _hasAnnotation(elementEnvironment, element,
-      commonElements.expectTrustTypeAnnotationsClass);
-}
-
 /// Returns `true` if inference of parameter types is disabled for [element].
 bool _assumeDynamic(KElementEnvironment elementEnvironment,
     KCommonElements commonElements, MemberEntity element) {
@@ -62,11 +54,6 @@ Set<PragmaAnnotation> processMemberAnnotations(
   bool hasNoInline = false;
   bool hasTryInline = false;
   bool disableFinal = false;
-
-  if (_trustTypeAnnotations(elementEnvironment, commonElements, element)) {
-    values.add(PragmaAnnotation.trustTypeAnnotations);
-    annotationsDataBuilder.registerTrustTypeAnnotations(element);
-  }
 
   if (_assumeDynamic(elementEnvironment, commonElements, element)) {
     values.add(PragmaAnnotation.assumeDynamic);
@@ -222,9 +209,6 @@ abstract class AnnotationsData {
   /// Functions with a `@NoSideEffects()` annotation.
   Iterable<FunctionEntity> get sideEffectFreeFunctions;
 
-  /// Members with a `@TrustTypeAnnotations()` annotation.
-  Iterable<MemberEntity> get trustTypeAnnotationsMembers;
-
   /// Members with a `@AssumeDynamic()` annotation.
   Iterable<MemberEntity> get assumeDynamicMembers;
 }
@@ -239,7 +223,6 @@ class AnnotationsDataImpl implements AnnotationsData {
   final Iterable<FunctionEntity> disableFinalFunctions;
   final Iterable<FunctionEntity> cannotThrowFunctions;
   final Iterable<FunctionEntity> sideEffectFreeFunctions;
-  final Iterable<MemberEntity> trustTypeAnnotationsMembers;
   final Iterable<MemberEntity> assumeDynamicMembers;
 
   AnnotationsDataImpl(
@@ -248,7 +231,6 @@ class AnnotationsDataImpl implements AnnotationsData {
       this.disableFinalFunctions,
       this.cannotThrowFunctions,
       this.sideEffectFreeFunctions,
-      this.trustTypeAnnotationsMembers,
       this.assumeDynamicMembers);
 
   factory AnnotationsDataImpl.readFromDataSource(DataSource source) {
@@ -268,9 +250,6 @@ class AnnotationsDataImpl implements AnnotationsData {
     Iterable<FunctionEntity> sideEffectFreeFunctions =
         source.readMembers<FunctionEntity>(emptyAsNull: true) ??
             const <FunctionEntity>[];
-    Iterable<MemberEntity> trustTypeAnnotationsMembers =
-        source.readMembers<MemberEntity>(emptyAsNull: true) ??
-            const <MemberEntity>[];
     Iterable<MemberEntity> assumeDynamicMembers =
         source.readMembers<MemberEntity>(emptyAsNull: true) ??
             const <MemberEntity>[];
@@ -281,7 +260,6 @@ class AnnotationsDataImpl implements AnnotationsData {
         disableFinalFunctions,
         cannotThrowFunctions,
         sideEffectFreeFunctions,
-        trustTypeAnnotationsMembers,
         assumeDynamicMembers);
   }
 
@@ -292,7 +270,6 @@ class AnnotationsDataImpl implements AnnotationsData {
     sink.writeMembers(disableFinalFunctions);
     sink.writeMembers(cannotThrowFunctions);
     sink.writeMembers(sideEffectFreeFunctions);
-    sink.writeMembers(trustTypeAnnotationsMembers);
     sink.writeMembers(assumeDynamicMembers);
     sink.end(tag);
   }
@@ -330,11 +307,6 @@ class AnnotationsDataBuilder implements AnnotationsData {
   void registerSideEffectsFree(FunctionEntity function) {
     _sideEffectFreeFunctions ??= <FunctionEntity>[];
     _sideEffectFreeFunctions.add(function);
-  }
-
-  void registerTrustTypeAnnotations(MemberEntity member) {
-    _trustTypeAnnotationsMembers ??= <MemberEntity>[];
-    _trustTypeAnnotationsMembers.add(member);
   }
 
   void registerAssumeDynamic(MemberEntity member) {

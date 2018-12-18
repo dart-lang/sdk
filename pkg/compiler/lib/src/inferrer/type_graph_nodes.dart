@@ -478,8 +478,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     if (inferrer.options.assignmentCheckPolicy.isTrusted ||
-        inferrer.options.assignmentCheckPolicy.isEmitted ||
-        inferrer.trustTypeAnnotations(_member)) {
+        inferrer.options.assignmentCheckPolicy.isEmitted) {
       return _potentiallyNarrowType(mask, inferrer);
     }
     return mask;
@@ -792,8 +791,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    if (inferrer.options.parameterCheckPolicy.isTrusted ||
-        inferrer.trustTypeAnnotations(_method)) {
+    if (inferrer.options.parameterCheckPolicy.isTrusted) {
       // In checked or strong mode we don't trust the types of the arguments
       // passed to a parameter. The means that the checking of a parameter is
       // based on the actual arguments.

@@ -473,8 +473,6 @@ abstract class CommonElements {
 
   ClassEntity get expectNoInlineClass;
 
-  ClassEntity get expectTrustTypeAnnotationsClass;
-
   ClassEntity get expectAssumeDynamicClass;
 
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
@@ -1666,7 +1664,6 @@ class CommonElementsImpl
 
   bool _expectAnnotationChecked = false;
   ClassEntity _expectNoInlineClass;
-  ClassEntity _expectTrustTypeAnnotationsClass;
   ClassEntity _expectAssumeDynamicClass;
 
   void _ensureExpectAnnotations() {
@@ -1675,15 +1672,10 @@ class CommonElementsImpl
       LibraryEntity library = _env.lookupLibrary(PACKAGE_EXPECT);
       if (library != null) {
         _expectNoInlineClass = _env.lookupClass(library, 'NoInline');
-        _expectTrustTypeAnnotationsClass =
-            _env.lookupClass(library, 'TrustTypeAnnotations');
         _expectAssumeDynamicClass = _env.lookupClass(library, 'AssumeDynamic');
-        if (_expectNoInlineClass == null ||
-            _expectTrustTypeAnnotationsClass == null ||
-            _expectAssumeDynamicClass == null) {
+        if (_expectNoInlineClass == null || _expectAssumeDynamicClass == null) {
           // This is not the package you're looking for.
           _expectNoInlineClass = null;
-          _expectTrustTypeAnnotationsClass = null;
           _expectAssumeDynamicClass = null;
         }
       }
@@ -1693,11 +1685,6 @@ class CommonElementsImpl
   ClassEntity get expectNoInlineClass {
     _ensureExpectAnnotations();
     return _expectNoInlineClass;
-  }
-
-  ClassEntity get expectTrustTypeAnnotationsClass {
-    _ensureExpectAnnotations();
-    return _expectTrustTypeAnnotationsClass;
   }
 
   ClassEntity get expectAssumeDynamicClass {

@@ -204,8 +204,6 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(
             closedWorld.annotationsData.sideEffectFreeFunctions),
         map.toBackendMemberSet(
-            closedWorld.annotationsData.trustTypeAnnotationsMembers),
-        map.toBackendMemberSet(
             closedWorld.annotationsData.assumeDynamicMembers));
 
     OutputUnitData outputUnitData =

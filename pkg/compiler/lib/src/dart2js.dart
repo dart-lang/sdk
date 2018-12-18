@@ -218,7 +218,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setTrustTypeAnnotations(String argument) {
     trustTypeAnnotations = true;
-    passThrough(argument);
   }
 
   void setCheckedMode(String argument) {

@@ -242,10 +242,6 @@ abstract class InferrerEngine {
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function);
 
-  /// Returns `true` if parameter and returns types should be trusted for
-  /// [member].
-  bool trustTypeAnnotations(MemberEntity member);
-
   /// Returns `true` if inference of parameter types is disabled for [member].
   bool assumeDynamic(MemberEntity member);
 }
@@ -1244,12 +1240,6 @@ class InferrerEngineImpl extends InferrerEngine {
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
     return !closedWorld.backendUsage.isFunctionUsedByBackend(function);
-  }
-
-  @override
-  bool trustTypeAnnotations(MemberEntity member) {
-    return closedWorld.annotationsData.trustTypeAnnotationsMembers
-        .contains(member);
   }
 
   @override
