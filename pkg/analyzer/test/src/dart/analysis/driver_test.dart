@@ -2289,6 +2289,18 @@ main() {
         unorderedEquals(['foo', 'main']));
   }
 
+  test_getUnitElement_doesNotExist_afterResynthesized() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: r'''
+import 'package:test/b.dart';
+''');
+
+    await driver.getResolvedLibrary(a);
+    await driver.getUnitElement(b);
+  }
+
   test_getUnitElement_notAbsolutePath() async {
     try {
       await driver.getUnitElement('not_absolute.dart');

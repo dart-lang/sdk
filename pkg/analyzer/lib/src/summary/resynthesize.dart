@@ -339,6 +339,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         libraryElement.createLoadLibraryFunction(typeProvider);
         libraryElement.publicNamespace = new Namespace({});
         libraryElement.exportNamespace = new Namespace({});
+        _resynthesizedUnits[uri] = {uri: unitElement};
         return libraryElement;
       }
       UnlinkedUnit unlinkedSummary = getUnlinkedSummary(uri);
