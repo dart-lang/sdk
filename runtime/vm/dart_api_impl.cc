@@ -5414,6 +5414,12 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
   return NULL;
 }
 
+DART_EXPORT void Dart_SetNativeServiceStreamCallback(
+    Dart_NativeStreamConsumer consumer,
+    const char* stream_id) {
+  return;
+}
+
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
@@ -5516,6 +5522,12 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
   }
   Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
   return NULL;
+}
+
+DART_EXPORT void Dart_SetNativeServiceStreamCallback(
+    Dart_NativeStreamConsumer consumer,
+    const char* stream_id) {
+  Service::SetNativeServiceStreamCallback(consumer, stream_id);
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
