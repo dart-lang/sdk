@@ -36,6 +36,9 @@ io/zlib_test: RuntimeError
 oom_error_stacktrace_test: RuntimeError
 out_of_memory_test: RuntimeError
 
+[ $compiler == dartkp ]
+io/test_runner_test: SkipByDesign # Is not relevant for AOT.
+
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
 package/package1_test: CompileTimeError
