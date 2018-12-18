@@ -401,8 +401,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name = info.name;
       int charOffset = info.charOffset;
       bool hasInitializer = info.initializerTokenForInference != null;
-      Token initializerTokenForInference =
-          type == null ? info.initializerTokenForInference : null;
+      Token initializerTokenForInference = type != null || disableTypeInference
+          ? null
+          : info.initializerTokenForInference;
       if (initializerTokenForInference != null) {
         Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
