@@ -225,7 +225,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   Library& library = Library::Handle(zone);
   // Create "fake programs" for each sub-program.
   intptr_t subprogram_count = subprogram_file_starts.length() - 1;
-  for (intptr_t i = 0; i < subprogram_count; ++i) {
+  for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
     intptr_t subprogram_start = subprogram_file_starts.At(i);
     intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
     reader.set_raw_buffer(program->kernel_data() + subprogram_start);
@@ -237,7 +237,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     Object& load_result = Object::Handle(loader.LoadProgram(false));
     if (load_result.IsError()) return load_result;
 
-    if (library.IsNull() && load_result.IsLibrary()) {
+    if (load_result.IsLibrary()) {
       library ^= load_result.raw();
     }
 
