@@ -1737,9 +1737,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_inGenerator) {
       return;
     }
-    var returnType = _inAsync
-        ? expectedReturnType.flattenFutures(_typeSystem)
-        : expectedReturnType;
+    var returnType =
+        _inAsync ? _typeSystem.flatten(expectedReturnType) : expectedReturnType;
     if (returnType.isDynamic ||
         returnType.isDartCoreNull ||
         returnType.isVoid) {
@@ -5025,8 +5024,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     var toType = expectedType;
     var fromType = expressionType;
     if (_inAsync) {
-      toType = toType.flattenFutures(_typeSystem);
-      fromType = fromType.flattenFutures(_typeSystem);
+      toType = _typeSystem.flatten(toType);
+      fromType = _typeSystem.flatten(fromType);
     }
 
     // Anything can be returned to `void` in an arrow bodied function

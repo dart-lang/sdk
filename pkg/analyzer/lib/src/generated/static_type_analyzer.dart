@@ -362,7 +362,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       if (awaitedType.isDartAsyncFutureOr) {
         return awaitType((awaitedType as InterfaceType).typeArguments[0]);
       }
-      return awaitedType.flattenFutures(_typeSystem);
+      return _typeSystem.flatten(awaitedType);
     }
 
     _recordStaticType(node, awaitType(_getStaticType(node.expression)));
@@ -1238,7 +1238,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         type = (type as InterfaceType).typeArguments[0];
       }
       return _typeProvider.futureType
-          .instantiate(<DartType>[type.flattenFutures(_typeSystem)]);
+          .instantiate(<DartType>[_typeSystem.flatten(type)]);
     } else {
       return type;
     }

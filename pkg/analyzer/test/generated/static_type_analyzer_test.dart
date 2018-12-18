@@ -1535,7 +1535,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     return _visitor.typeAnalyzer;
   }
 
-  DartType _flatten(DartType type) => type.flattenFutures(_typeSystem);
+  DartType _flatten(DartType type) => _typeSystem.flatten(type);
 
   /**
    * Return a boolean literal with the given [value] that has been resolved to

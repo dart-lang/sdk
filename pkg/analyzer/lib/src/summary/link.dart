@@ -5299,7 +5299,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             bodyType = (bodyType as InterfaceType).typeArguments[0];
           }
           bodyType = typeProvider.futureType
-              .instantiate([bodyType.flattenFutures(typeSystem)]);
+              .instantiate([typeSystem.flatten(bodyType)]);
         }
         functionElement._setInferredType(bodyType);
       }

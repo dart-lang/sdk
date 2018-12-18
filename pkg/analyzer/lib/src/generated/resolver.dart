@@ -958,9 +958,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         return;
       }
 
-      var flattenedType = body.isAsynchronous
-          ? returnType.flattenFutures(_typeSystem)
-          : returnType;
+      var flattenedType =
+          body.isAsynchronous ? _typeSystem.flatten(returnType) : returnType;
 
       // dynamic/Null/void are allowed to omit a return.
       if (flattenedType.isDynamic ||
@@ -4799,7 +4798,7 @@ class ResolverVisitor extends ScopedVisitor {
 
       DartType type = node.expression.staticType;
       if (_enclosingFunction.isAsynchronous) {
-        type = type.flattenFutures(typeSystem);
+        type = typeSystem.flatten(type);
       }
       if (type != null) {
         inferenceContext.addReturnOrYieldType(type);
@@ -5299,7 +5298,7 @@ class ResolverVisitor extends ScopedVisitor {
     // we're processing erroneous code.
     if (type != null && _enclosingFunction?.isGenerator == false) {
       if (_enclosingFunction.isAsynchronous) {
-        type = type.flattenFutures(typeSystem);
+        type = typeSystem.flatten(type);
       }
       inferenceContext.addReturnOrYieldType(type);
     }
@@ -5551,7 +5550,7 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
       // async functions expect `Future<T> | T`
-      var futureTypeParam = declaredType.flattenFutures(typeSystem);
+      var futureTypeParam = typeSystem.flatten(declaredType);
       return _createFutureOr(futureTypeParam);
     }
     return declaredType;
