@@ -94,9 +94,6 @@ class Interpreter {
   // Identify an entry frame by looking at its pc marker value.
   static bool IsEntryFrameMarker(uword pc) { return (pc & 2) != 0; }
 
-  // Call on program start.
-  static void InitOnce();
-
   RawObject* Call(const Function& function,
                   const Array& arguments_descriptor,
                   const Array& arguments,
@@ -113,18 +110,6 @@ class Interpreter {
   uword get_sp() const { return reinterpret_cast<uword>(fp_); }  // Yes, fp_.
   uword get_fp() const { return reinterpret_cast<uword>(fp_); }
   uword get_pc() const { return pc_; }
-
-  enum IntrinsicId {
-#define V(test_class_name, test_function_name, enum_name, fp)                  \
-  k##enum_name##Intrinsic,
-    ALL_INTRINSICS_LIST(V) GRAPH_INTRINSICS_LIST(V)
-#undef V
-        kIntrinsicCount,
-  };
-
-  static bool IsSupportedIntrinsic(IntrinsicId id) {
-    return intrinsics_[id] != NULL;
-  }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
   void MajorGC() { lookup_cache_.Clear(); }
@@ -147,8 +132,6 @@ class Interpreter {
   RawObject* special_[KernelBytecode::kSpecialIndexCount];
 
   LookupCache lookup_cache_;
-
-  static IntrinsicHandler intrinsics_[kIntrinsicCount];
 
   void Exit(Thread* thread,
             RawObject** base,
