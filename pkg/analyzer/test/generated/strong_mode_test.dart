@@ -17,6 +17,7 @@ import 'package:front_end/src/base/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/find_node.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
@@ -443,6 +444,27 @@ class E extends C<int> {
 
     var covariantE = getClassCovariantParameters(AstFinder.getClass(unit, "E"));
     expect(covariantE.toList(), []);
+  }
+
+  test_covarianceChecks2() async {
+    var content = r'''
+class View<T1> {
+  View<T1> create() => this;
+}
+
+class Bar<T2> extends View<Bar<T2>> {}
+
+main() {
+  var b = new Bar<int>();
+  b.create();
+}
+''';
+    var source = addSource(content);
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+
+    var findNode = FindNode(content, unit);
+    expect(getImplicitCast(findNode.methodInvocation('b.create')), isNull);
   }
 
   test_covarianceChecks_genericMethods() async {

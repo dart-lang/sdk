@@ -7766,6 +7766,17 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   SimpleIdentifierImpl _methodName;
 
   /**
+   * The type invoke of the [methodName].
+   * 
+   * If the target element is a [MethodElement], this is the same as the
+   * [staticInvokeType]. If the target element is a [PropertyAccessorElement],
+   * presumably returning an [ExecutableElement] so that it can be invoked
+   * in this [MethodInvocation], then this type is the type of the accessor,
+   * and the [staticInvokeType] is the invoked type of the returned element.
+   */
+  DartType methodNameType;
+
+  /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
    */

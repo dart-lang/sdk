@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -521,7 +522,9 @@ class CodeChecker extends RecursiveAstVisitor {
       // we call [checkFunctionApplication].
       setIsDynamicInvoke(node.methodName, true);
     } else {
-      _checkImplicitCovarianceCast(node, target, element);
+      var invokeType = (node as MethodInvocationImpl).methodNameType;
+      _checkImplicitCovarianceCast(node, target, element,
+          invokeType is FunctionType ? invokeType : null);
       _checkFunctionApplication(node);
     }
     // Don't visit methodName, we already checked things related to the call.
@@ -681,7 +684,8 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkFieldAccess(
       AstNode node, Expression target, SimpleIdentifier field) {
     var element = field.staticElement;
-    _checkImplicitCovarianceCast(node, target, element);
+    var invokeType = element is ExecutableElement ? element.type : null;
+    _checkImplicitCovarianceCast(node, target, element, invokeType);
     if (element == null && !typeProvider.isObjectMember(field.name)) {
       _recordDynamicInvoke(node, target);
     }
@@ -747,11 +751,11 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  /// If we're calling into [member] through the [target], we may need to
+  /// If we're calling into [element] through the [target], we may need to
   /// insert a caller side check for soundness on the result of the expression
-  /// [node].
+  /// [node].  The [invokeType] is the type of the [element] in the [target].
   ///
-  /// This happens when [target] is an unsafe covariant interface, and [member]
+  /// This happens when [target] is an unsafe covariant interface, and [element]
   /// could return a type that is not a subtype of the expected static type
   /// given target's type. For example:
   ///
@@ -775,16 +779,16 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Note that it is possible for the cast to succeed, for example:
   /// `new C<int>((Object x) => '$x'))`. It is safe to pass any object to that
   /// function, including an `int`.
-  void _checkImplicitCovarianceCast(
-      Expression node, Expression target, Element member) {
+  void _checkImplicitCovarianceCast(Expression node, Expression target,
+      Element element, FunctionType invokeType) {
     // If we're calling an instance method or getter, then we
     // want to check the result type.
     //
     // We intentionally ignore method tear-offs, because those methods have
     // covariance checks for their parameters inside the method.
     var targetType = target?.staticType;
-    if (member is ExecutableElement &&
-        _isInstanceMember(member) &&
+    if (element is ExecutableElement &&
+        _isInstanceMember(element) &&
         targetType is InterfaceType &&
         targetType.typeArguments.isNotEmpty &&
         !_targetHasKnownGenericTypeArguments(target)) {
@@ -792,9 +796,9 @@ class CodeChecker extends RecursiveAstVisitor {
       // parameter check in code generation, if it was never needed.
       // This member will need a check, however, because we are calling through
       // an unsafe target.
-      if (member.isPrivate && member.parameters.isNotEmpty) {
+      if (element.isPrivate && element.parameters.isNotEmpty) {
         _covariantPrivateMembers
-            .add(member is ExecutableMember ? member.baseElement : member);
+            .add(element is ExecutableMember ? element.baseElement : element);
       }
 
       // Get the lower bound of the declared return type (e.g. `F<Null>`) and
@@ -804,16 +808,16 @@ class CodeChecker extends RecursiveAstVisitor {
       var classType = targetType.element.type;
       var classLowerBound = classType.instantiate(new List.filled(
           classType.typeParameters.length, typeProvider.nullType));
-      var memberLowerBound = _lookUpMember(classLowerBound, member).type;
-      var expectedType = member.returnType;
+      var memberLowerBound = _lookUpMember(classLowerBound, element).type;
+      var expectedType = invokeType.returnType;
 
       if (!rules.isSubtypeOf(memberLowerBound.returnType, expectedType)) {
-        var isMethod = member is MethodElement;
+        var isMethod = element is MethodElement;
         var isCall = node is MethodInvocation;
 
         if (isMethod && !isCall) {
           // If `o.m` is a method tearoff, cast to the method type.
-          setImplicitCast(node, member.type);
+          setImplicitCast(node, invokeType);
         } else if (!isMethod && isCall) {
           // If `o.g()` is calling a field/getter `g`, we need to cast `o.g`
           // before the call: `(o.g as expectedType)(args)`.

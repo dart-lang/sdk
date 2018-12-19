@@ -328,6 +328,8 @@ class MethodInvocationResolver {
 
     var targetType = _inheritance.getMember(receiverType, _currentName);
     if (targetType != null) {
+      (node as MethodInvocationImpl).methodNameType = targetType;
+
       var calleeType = _getCalleeType(targetType);
 
       // TODO(scheglov) This is bad, we have to create members here.
