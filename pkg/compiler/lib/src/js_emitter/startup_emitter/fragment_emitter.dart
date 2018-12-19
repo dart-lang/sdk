@@ -451,6 +451,7 @@ var #staticStateDeclaration = {};
 
 // Ensure holders are in fast mode, now we have finished adding things.
 convertAllToFastObject(holders);
+convertToFastObject(#staticState);
 
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
