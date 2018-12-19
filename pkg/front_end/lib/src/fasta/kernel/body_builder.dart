@@ -164,6 +164,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final TypePromoter typePromoter;
 
+  @override
+  final bool legacyMode;
+
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
   ///
@@ -249,6 +252,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         needsImplicitSuperInitializer =
             coreTypes?.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer?.typePromoter,
+        legacyMode = library.legacyMode,
         super(enclosingScope);
 
   BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
@@ -273,11 +277,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 : field.parent,
             field.parent is KernelClassBuilder ? field.parent : null,
             typeInferrer);
-
-  bool get legacyMode => library.loader.target.legacyMode;
-
-  @override
-  bool get disableTypeInference => library.disableTypeInference;
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is KernelConstructorBuilder;
@@ -3710,7 +3709,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         library, null, typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
-    if (disableTypeInference && asyncModifier != AsyncMarker.Sync) {
+    if (library.legacyMode && asyncModifier != AsyncMarker.Sync) {
       DartType returnType;
       switch (asyncModifier) {
         case AsyncMarker.Async:
@@ -4879,14 +4878,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression wrapSyntheticExpression(Expression desugared, int charOffset) {
-    if (disableTypeInference) return desugared;
+    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapSyntheticExpression(desugared)
       ..fileOffset = charOffset;
   }
 
   @override
   Expression desugarSyntheticExpression(Expression node) {
-    if (disableTypeInference) return node;
+    if (legacyMode) return node;
     shadow.SyntheticExpressionJudgment shadowNode = node;
     return shadowNode.desugared;
   }
@@ -4894,7 +4893,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidConstructorInvocation(Expression desugared,
       Member constructor, Arguments arguments, int charOffset) {
-    if (disableTypeInference) return desugared;
+    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapInvalidConstructorInvocation(
         desugared, constructor, arguments)
       ..fileOffset = charOffset;
@@ -4903,7 +4902,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidWrite(
       Expression desugared, Expression expression, int charOffset) {
-    if (disableTypeInference) return desugared;
+    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapInvalidWrite(desugared, expression)
       ..fileOffset = charOffset;
   }
@@ -4911,7 +4910,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapUnresolvedTargetInvocation(
       Expression desugared, Arguments arguments, int charOffset) {
-    if (disableTypeInference) return desugared;
+    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapUnresolvedTargetInvocation(
         desugared, arguments)
       ..fileOffset = charOffset;
@@ -4920,7 +4919,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs, int charOffset) {
-    if (disableTypeInference) return desugared;
+    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapUnresolvedVariableAssignment(
         desugared, isCompound, rhs)
       ..fileOffset = charOffset;

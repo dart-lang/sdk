@@ -61,13 +61,6 @@ abstract class Target {
 
   bool get legacyMode;
 
-  /// A derived class may change this to `true` to disable type inference and
-  /// type promotion phases of analysis.
-  ///
-  /// This is intended for profiling, to ensure that type inference and type
-  /// promotion do not slow down compilation too much.
-  bool get disableTypeInference => legacyMode;
-
   /// A derived class may change this to `true` to enable forwarders to
   /// user-defined `noSuchMethod` that are generated for each abstract member
   /// if such `noSuchMethod` is present.

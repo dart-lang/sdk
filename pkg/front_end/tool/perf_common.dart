@@ -121,10 +121,16 @@ class TimingsCollector {
   void printTimings() {
     timings.forEach((String key, List<double> durations) {
       double total = 0.0;
-      for (double duration in durations.skip(3)) {
-        total += duration;
+      int length = durations.length;
+      if (length == 1) {
+        total += durations.single;
+      } else {
+        length -= 3;
+        for (double duration in durations.skip(3)) {
+          total += duration;
+        }
       }
-      print("$key took: ${total / (durations.length - 3)}ms");
+      print("$key took: ${total / length}ms");
     });
   }
 }

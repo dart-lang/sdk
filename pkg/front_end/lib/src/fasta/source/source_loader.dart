@@ -921,14 +921,14 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void createTypeInferenceEngine() {
-    if (!target.disableTypeInference) {
+    if (!target.legacyMode) {
       typeInferenceEngine =
           new ShadowTypeInferenceEngine(instrumentation, target.legacyMode);
     }
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    if (target.disableTypeInference) {
+    if (target.legacyMode) {
       InterfaceResolver interfaceResolver = new InterfaceResolver(
           null,
           new TypeEnvironment(coreTypes, hierarchy,

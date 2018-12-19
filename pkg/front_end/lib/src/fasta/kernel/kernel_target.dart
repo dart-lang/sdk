@@ -125,8 +125,6 @@ class KernelTarget extends TargetImplementation {
 
   bool get legacyMode => backendTarget.legacyMode;
 
-  bool get disableTypeInference => backendTarget.disableTypeInference;
-
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
   final List<Object> clonedFormals = <Object>[];

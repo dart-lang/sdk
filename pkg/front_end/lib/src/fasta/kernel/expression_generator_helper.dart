@@ -57,7 +57,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  bool get disableTypeInference;
+  bool get legacyMode;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 

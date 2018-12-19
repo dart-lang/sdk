@@ -308,7 +308,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
-    if (library.disableTypeInference) return false;
+    if (library.legacyMode) return false;
     if (isInstanceMember) {
       if (returnType == null) return true;
       if (formals != null) {
@@ -452,7 +452,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
-    if (library.disableTypeInference) return false;
+    if (library.legacyMode) return false;
     if (formals != null) {
       for (var formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) return true;

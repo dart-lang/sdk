@@ -838,7 +838,7 @@ class KernelLibraryBuilder
     }
     KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
         metadata, modifiers, type, name, this, charOffset);
-    if (disableTypeInference && hasThis && type == null) {
+    if (legacyMode && hasThis && type == null) {
       (untypedInitializingFormals ??= <KernelFormalParameterBuilder>[])
           .add(formal);
     }
@@ -1719,7 +1719,7 @@ class KernelLibraryBuilder
 
   @override
   int finalizeInitializingFormals() {
-    if (!disableTypeInference || untypedInitializingFormals == null) return 0;
+    if (!legacyMode || untypedInitializingFormals == null) return 0;
     for (int i = 0; i < untypedInitializingFormals.length; i++) {
       untypedInitializingFormals[i].finalizeInitializingFormal();
     }

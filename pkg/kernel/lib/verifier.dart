@@ -86,7 +86,8 @@ class VerifyingVisitor extends RecursiveVisitor {
           node,
           "Incorrect parent pointer on ${node.runtimeType}:"
           " expected '${currentParent.runtimeType}',"
-          " but found: '${node.parent.runtimeType}'.");
+          " but found: '${node.parent.runtimeType}'.",
+          context: currentParent);
     }
     var oldParent = currentParent;
     currentParent = node;

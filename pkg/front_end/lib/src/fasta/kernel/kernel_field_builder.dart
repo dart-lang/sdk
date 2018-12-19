@@ -48,7 +48,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   }
 
   bool get isEligibleForInference {
-    return !library.disableTypeInference &&
+    return !library.legacyMode &&
         type == null &&
         (hasInitializer || isInstanceMember);
   }
