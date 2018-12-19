@@ -5,7 +5,6 @@
 #ifndef RUNTIME_BIN_DFE_H_
 #define RUNTIME_BIN_DFE_H_
 
-#include "bin/kernel_isolate.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
