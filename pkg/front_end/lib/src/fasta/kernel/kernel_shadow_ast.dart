@@ -460,9 +460,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
             ? rhsType
             : inferrer.typeSchemaEnvironment
                 .getStandardUpperBound(readType, rhsType);
-        if (!inferrer.legacyMode) {
-          nullAwareCombiner.staticType = combinedType;
-        }
+        nullAwareCombiner.staticType = combinedType;
       } else {
         combinedType = rhsType;
       }
@@ -1374,7 +1372,6 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   /// fact that [expression] has the given [type].
   void _storeLetType(
       TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    if (inferrer.legacyMode) return;
     Expression desugared = this.desugared;
     while (true) {
       if (desugared is Let) {
@@ -1439,8 +1436,8 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class ShadowTypeInferenceEngine extends TypeInferenceEngine {
-  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool legacyMode)
-      : super(instrumentation, legacyMode);
+  ShadowTypeInferenceEngine(Instrumentation instrumentation)
+      : super(instrumentation);
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(

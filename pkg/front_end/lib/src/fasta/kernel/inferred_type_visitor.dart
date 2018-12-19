@@ -73,7 +73,7 @@ class InferredTypeVisitor
   @override
   DartType visitConditionalExpression(
       ConditionalExpression node, TypeInferrerImpl inferrer) {
-    return inferrer.legacyMode ? const DynamicType() : node.staticType;
+    return node.staticType;
   }
 
   @override

@@ -198,7 +198,7 @@ class ProgramCompiler extends Object
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
       SharedCompilerOptions options, Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
-    var types = TypeSchemaEnvironment(coreTypes, hierarchy, false);
+    var types = TypeSchemaEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types);

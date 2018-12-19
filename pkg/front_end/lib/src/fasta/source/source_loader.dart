@@ -921,10 +921,8 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void createTypeInferenceEngine() {
-    if (!target.legacyMode) {
-      typeInferenceEngine =
-          new ShadowTypeInferenceEngine(instrumentation, target.legacyMode);
-    }
+    if (target.legacyMode) return;
+    typeInferenceEngine = new ShadowTypeInferenceEngine(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {

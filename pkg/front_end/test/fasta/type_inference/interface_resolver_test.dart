@@ -47,7 +47,7 @@ class InterfaceResolverTest {
 
   TypeSchemaEnvironment get typeEnvironment {
     return cachedTypeEnvironment ??=
-        new TypeSchemaEnvironment(coreTypes, classHierarchy, false);
+        new TypeSchemaEnvironment(coreTypes, classHierarchy);
   }
 
   InterfaceResolver get interfaceResolver {

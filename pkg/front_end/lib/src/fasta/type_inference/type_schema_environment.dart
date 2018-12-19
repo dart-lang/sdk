@@ -90,9 +90,8 @@ class TypeConstraint {
 }
 
 class TypeSchemaEnvironment extends TypeEnvironment {
-  TypeSchemaEnvironment(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, bool legacyMode)
-      : super(coreTypes, hierarchy, strongMode: !legacyMode);
+  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
+      : super(coreTypes, hierarchy, strongMode: true);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
   void addLowerBound(TypeConstraint constraint, DartType lower) {
