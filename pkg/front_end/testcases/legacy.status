@@ -127,7 +127,6 @@ runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises st
 runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
-statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void_methods: Fail # Bad return from setters.
