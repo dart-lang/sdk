@@ -6617,6 +6617,10 @@ class TypeRef : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
+  virtual bool IsFunctionType() const {
+    const AbstractType& ref_type = AbstractType::Handle(type());
+    return !ref_type.IsNull() && ref_type.IsFunctionType();
+  }
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,

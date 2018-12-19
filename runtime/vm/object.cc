@@ -6976,6 +6976,11 @@ RawFunction* Function::InstantiateSignatureFrom(
           type = type.InstantiateFrom(instantiator_type_arguments,
                                       function_type_arguments,
                                       num_free_fun_type_params, NULL, space);
+          // A returned null type indicates a failed instantiation in dead code
+          // that must be propagated up to the caller, the optimizing compiler.
+          if (type.IsNull()) {
+            return Function::null();
+          }
           cls = type_param.parameterized_class();
           param_name = type_param.name();
           ASSERT(type_param.IsFinalized());
@@ -7006,6 +7011,11 @@ RawFunction* Function::InstantiateSignatureFrom(
     type = type.InstantiateFrom(instantiator_type_arguments,
                                 function_type_arguments,
                                 num_free_fun_type_params, NULL, space);
+    // A returned null type indicates a failed instantiation in dead code that
+    // must be propagated up to the caller, the optimizing compiler.
+    if (type.IsNull()) {
+      return Function::null();
+    }
   }
   sig.set_result_type(type);
   const intptr_t num_params = NumParameters();
@@ -7019,6 +7029,11 @@ RawFunction* Function::InstantiateSignatureFrom(
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
                                   num_free_fun_type_params, NULL, space);
+      // A returned null type indicates a failed instantiation in dead code that
+      // must be propagated up to the caller, the optimizing compiler.
+      if (type.IsNull()) {
+        return Function::null();
+      }
     }
     sig.SetParameterTypeAt(i, type);
   }
@@ -17122,6 +17137,12 @@ RawAbstractType* Type::InstantiateFrom(
         sig_fun = sig_fun.InstantiateSignatureFrom(
             instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space);
+        // A returned null signature indicates a failed instantiation in dead
+        // code that must be propagated up to the caller, the optimizing
+        // compiler.
+        if (sig_fun.IsNull()) {
+          return Type::null();
+        }
       }
     } else {
       // The Kernel frontend does not keep the information that a function type
