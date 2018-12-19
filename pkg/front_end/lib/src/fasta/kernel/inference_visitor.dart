@@ -735,21 +735,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitMapEntryJudgment(MapEntryJudgment node, DartType keyTypeContext,
-      DartType valueTypeContext) {
-    Expression keyJudgment = node.keyJudgment;
-    inferrer.inferExpression(keyJudgment, keyTypeContext, true,
-        isVoidAllowed: true);
-    node.inferredKeyType = getInferredType(keyJudgment, inferrer);
-
-    Expression valueJudgment = node.valueJudgment;
-    inferrer.inferExpression(valueJudgment, valueTypeContext, true,
-        isVoidAllowed: true);
-    node.inferredValueType = getInferredType(valueJudgment, inferrer);
-
-    return null;
-  }
-
   void visitMapLiteralJudgment(MapLiteralJudgment node, DartType typeContext) {
     var mapClass = inferrer.coreTypes.mapClass;
     var mapType = mapClass.thisType;
@@ -778,19 +763,25 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferredKeyType = node._declaredKeyType ?? const DynamicType();
       inferredValueType = node._declaredValueType ?? const DynamicType();
     }
-    List<Expression> cachedKeyJudgments =
-        node.judgments.map((j) => (j as MapEntryJudgment).keyJudgment).toList();
-    List<Expression> cachedValueJudgments = node.judgments
-        .map((j) => (j as MapEntryJudgment).valueJudgment)
-        .toList();
+    List<Expression> cachedKeys = new List(node.entries.length);
+    List<Expression> cachedValues = new List(node.entries.length);
+    for (int i = 0; i < node.entries.length; i++) {
+      cachedKeys[i] = node.entries[i].key;
+      cachedValues[i] = node.entries[i].value;
+    }
     if (inferenceNeeded || typeChecksNeeded) {
-      for (MapEntryJudgment judgment in node.judgments) {
-        visitMapEntryJudgment(judgment, inferredKeyType, inferredValueType);
+      for (MapEntry entry in node.entries) {
+        Expression key = entry.key;
+        inferrer.inferExpression(key, inferredKeyType, true,
+            isVoidAllowed: true);
+        actualTypes.add(getInferredType(key, inferrer));
+        Expression value = entry.value;
+        inferrer.inferExpression(value, inferredValueType, true,
+            isVoidAllowed: true);
+        actualTypes.add(getInferredType(value, inferrer));
         if (inferenceNeeded) {
           formalTypes.addAll(mapType.typeArguments);
         }
-        actualTypes.add(judgment.inferredKeyType);
-        actualTypes.add(judgment.inferredValueType);
       }
     }
     if (inferenceNeeded) {
@@ -813,13 +804,13 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       node.valueType = inferredValueType;
     }
     if (typeChecksNeeded) {
-      for (int i = 0; i < node.judgments.length; ++i) {
-        Expression keyJudgment = cachedKeyJudgments[i];
+      for (int i = 0; i < node.entries.length; ++i) {
+        Expression keyJudgment = cachedKeys[i];
         inferrer.ensureAssignable(node.keyType, actualTypes[2 * i], keyJudgment,
             keyJudgment.fileOffset,
             isVoidAllowed: node.keyType is VoidType);
 
-        Expression valueJudgment = cachedValueJudgments[i];
+        Expression valueJudgment = cachedValues[i];
         inferrer.ensureAssignable(node.valueType, actualTypes[2 * i + 1],
             valueJudgment, valueJudgment.fileOffset,
             isVoidAllowed: node.valueType is VoidType);

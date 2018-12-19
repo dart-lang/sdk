@@ -982,20 +982,6 @@ class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
   }
 }
 
-/// Type inference derivation for [MapEntry].
-///
-/// This derivation is needed for uniformity.
-class MapEntryJudgment extends MapEntry {
-  DartType inferredKeyType;
-  DartType inferredValueType;
-
-  Expression get keyJudgment => key;
-
-  Expression get valueJudgment => value;
-
-  MapEntryJudgment(Expression key, Expression value) : super(key, value);
-}
-
 /// Type inference derivation for [MapLiteral].
 class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   DartType inferredType;

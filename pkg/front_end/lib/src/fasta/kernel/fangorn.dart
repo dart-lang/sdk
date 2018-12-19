@@ -92,7 +92,6 @@ import 'kernel_shadow_ast.dart'
         IntJudgment,
         ListLiteralJudgment,
         LoadLibraryJudgment,
-        MapEntryJudgment,
         MapLiteralJudgment,
         ReturnJudgment,
         SetLiteralJudgment,
@@ -253,7 +252,7 @@ class Fangorn extends Forest {
 
   @override
   MapEntry mapEntry(Expression key, Token colon, Expression value) {
-    return new MapEntryJudgment(key, value)..fileOffset = offsetForToken(colon);
+    return new MapEntry(key, value)..fileOffset = offsetForToken(colon);
   }
 
   @override
