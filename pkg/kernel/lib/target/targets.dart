@@ -66,7 +66,7 @@ abstract class Target {
   ///
   /// This is intended for profiling, to ensure that type inference and type
   /// promotion do not slow down compilation too much.
-  bool get disableTypeInference => false;
+  bool get disableTypeInference => legacyMode;
 
   /// A derived class may change this to `true` to enable forwarders to
   /// user-defined `noSuchMethod` that are generated for each abstract member

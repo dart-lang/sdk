@@ -25,10 +25,10 @@ static method test(() → void f) → void {
     dynamic x1 = x;
     dynamic y1 = y;
     if(x is self::D) {
-      dynamic x2 = x{self::D};
+      dynamic x2 = x;
     }
     if(y is self::E) {
-      dynamic y2 = y{self::E};
+      dynamic y2 = y;
     }
   }
 }

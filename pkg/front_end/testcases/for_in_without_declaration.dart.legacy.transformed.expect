@@ -115,7 +115,7 @@ class C extends self::Super {
       invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
          ^^^";
-      for (final core::int #t17 in <core::int>[]) {
+      for (final dynamic #t17 in <core::int>[]) {
         invalid-expression "pkg/front_end/testcases/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
          ^^^";

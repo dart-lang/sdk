@@ -13,7 +13,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int a;
-  constructor •(core::int a) → self::A
+  constructor •(dynamic a) → self::A
     ;
 }
 static method main() → void

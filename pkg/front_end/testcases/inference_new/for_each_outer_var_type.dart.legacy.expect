@@ -21,22 +21,22 @@ static method test() → dynamic async {
   self::A a;
   self::B b;
   core::int i;
-  for (final self::A #t1 in iterable) {
+  for (final dynamic #t1 in iterable) {
     a = #t1;
   }
-  await for (final self::A #t2 in stream) {
+  await for (final dynamic #t2 in stream) {
     a = #t2;
   }
-  for (final self::A #t3 in iterable) {
+  for (final dynamic #t3 in iterable) {
     b = #t3;
   }
-  await for (final self::A #t4 in stream) {
+  await for (final dynamic #t4 in stream) {
     b = #t4;
   }
-  for (final self::A #t5 in iterable) {
+  for (final dynamic #t5 in iterable) {
     i = #t5;
   }
-  await for (final self::A #t6 in stream) {
+  await for (final dynamic #t6 in stream) {
     i = #t6;
   }
   for (final dynamic #t7 in self::f<dynamic>()) {

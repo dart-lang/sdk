@@ -20,7 +20,7 @@ class C extends core::Object {
   method f(core::Object o) → void {
     if(o is self::A || o is self::B) {
       if(o is self::A) {
-        this.{self::C::a} = o{self::A};
+        this.{self::C::a} = o;
       }
     }
   }

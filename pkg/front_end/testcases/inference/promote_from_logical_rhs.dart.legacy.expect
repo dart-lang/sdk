@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method test(core::Object a, core::bool b) → void {
   if(b && a is core::int) {
-    core::print(a{core::int});
+    core::print(a);
   }
 }
 static method main() → dynamic {}

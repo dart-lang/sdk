@@ -73,26 +73,10 @@ DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
 Target createTarget({bool isFlutter: false, bool legacyMode: false}) {
   var flags = new TargetFlags(legacyMode: legacyMode);
   if (isFlutter) {
-    return legacyMode
-        ? new LegacyFlutterTarget(flags)
-        : new FlutterTarget(flags);
+    return new FlutterTarget(flags);
   } else {
-    return legacyMode ? new LegacyVmTarget(flags) : new VmTarget(flags);
+    return new VmTarget(flags);
   }
-}
-
-class LegacyVmTarget extends VmTarget {
-  LegacyVmTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
-}
-
-class LegacyFlutterTarget extends FlutterTarget {
-  LegacyFlutterTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
 }
 
 class TimingsCollector {
