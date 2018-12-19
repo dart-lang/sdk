@@ -18893,16 +18893,22 @@ RawString* String::FromUTF8(const uint8_t* utf8_array,
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoSafepointScope no_safepoint;
-      Utf8::DecodeToLatin1(utf8_array, array_len,
-                           OneByteString::DataStart(strobj), len);
+      if (!Utf8::DecodeToLatin1(utf8_array, array_len,
+                                OneByteString::DataStart(strobj), len)) {
+        Utf8::ReportInvalidByte(utf8_array, array_len, len);
+        return String::null();
+      }
     }
     return strobj.raw();
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   const String& strobj = String::Handle(TwoByteString::New(len, space));
   NoSafepointScope no_safepoint;
-  Utf8::DecodeToUTF16(utf8_array, array_len, TwoByteString::DataStart(strobj),
-                      len);
+  if (!Utf8::DecodeToUTF16(utf8_array, array_len,
+                           TwoByteString::DataStart(strobj), len)) {
+    Utf8::ReportInvalidByte(utf8_array, array_len, len);
+    return String::null();
+  }
   return strobj.raw();
 }
 
