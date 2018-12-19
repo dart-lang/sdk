@@ -22,7 +22,7 @@ namespace dart {
   F(Class, super_type_)                                                        \
   F(Class, signature_function_)                                                \
   F(Class, constants_)                                                         \
-  F(Class, canonical_type_)                                                    \
+  F(Class, declaration_type_)                                                  \
   F(Class, invocation_dispatcher_cache_)                                       \
   F(Class, allocation_stub_)                                                   \
   F(Class, direct_implementors_)                                               \

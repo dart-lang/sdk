@@ -1344,7 +1344,7 @@ RawError* Object::Init(Isolate* isolate,
         GrowableObjectArray::type_arguments_offset());
     cls.set_num_type_arguments(1);
 
-    // Initialize hash set for canonical_type_.
+    // Initialize hash set for canonical types.
     const intptr_t kInitialCanonicalTypeSize = 16;
     array = HashTables::New<CanonicalTypeSet>(kInitialCanonicalTypeSize,
                                               Heap::kOld);
@@ -2158,13 +2158,6 @@ bool Class::IsInFullSnapshot() const {
 RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this, Object::null_type_arguments(), TokenPosition::kNoSource));
-  return ClassFinalizer::FinalizeType(*this, type);
-}
-
-RawAbstractType* Class::DeclarationType() const {
-  const TypeArguments& args = TypeArguments::Handle(type_parameters());
-  const Type& type =
-      Type::Handle(Type::New(*this, args, TokenPosition::kNoSource));
   return ClassFinalizer::FinalizeType(*this, type);
 }
 
@@ -4201,23 +4194,22 @@ void Class::set_constants(const Array& value) const {
   StorePointer(&raw_ptr()->constants_, value.raw());
 }
 
-RawType* Class::canonical_type() const {
-  return raw_ptr()->canonical_type_;
-}
-
-void Class::set_canonical_type(const Type& value) const {
+void Class::set_declaration_type(const Type& value) const {
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
-  StorePointer(&raw_ptr()->canonical_type_, value.raw());
+  ASSERT((declaration_type() == Object::null()) ||
+         (declaration_type() == value.raw()));  // Set during own finalization.
+  StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
 
-RawType* Class::CanonicalType() const {
-  return raw_ptr()->canonical_type_;
-}
-
-void Class::SetCanonicalType(const Type& type) const {
-  ASSERT((canonical_type() == Object::null()) ||
-         (canonical_type() == type.raw()));  // Set during own finalization.
-  set_canonical_type(type);
+RawType* Class::DeclarationType() const {
+  if (declaration_type() != Type::null()) {
+    return declaration_type();
+  }
+  Type& type = Type::Handle(
+      Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos()));
+  type ^= ClassFinalizer::FinalizeType(*this, type);
+  set_declaration_type(type);
+  return type.raw();
 }
 
 void Class::set_allocation_stub(const Code& value) const {
@@ -16022,7 +16014,7 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
   }
   Type& type = Type::Handle();
   if (!cls.IsGeneric()) {
-    type = cls.CanonicalType();
+    type = cls.DeclarationType();
   }
   if (type.IsNull()) {
     TypeArguments& type_arguments = TypeArguments::Handle();
@@ -16987,12 +16979,15 @@ RawType* Type::DartTypeType() {
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
-  Type& type = Type::Handle(type_class.CanonicalType());
+  // It is too early to use the class finalizer, as type_class may not be named
+  // yet, so do not call DeclarationType().
+  Type& type = Type::Handle(type_class.declaration_type());
   if (type.IsNull()) {
     type ^= Type::New(Class::Handle(type_class.raw()),
                       Object::null_type_arguments(), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
+    type_class.set_declaration_type(type);
   }
   ASSERT(type.IsFinalized());
   return type.raw();
@@ -17321,7 +17316,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   // Fast canonical lookup/registry for simple types.
   if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
     ASSERT(!IsFunctionType());
-    Type& type = Type::Handle(zone, cls.CanonicalType());
+    Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
@@ -17333,11 +17328,12 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         return this->raw();
       }
       set_arguments(type_args);
-      type = cls.CanonicalType();  // May be set while canonicalizing type args.
+      type = cls.declaration_type();
+      // May be set while canonicalizing type args.
       if (type.IsNull()) {
         SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
         // Recheck if type exists.
-        type = cls.CanonicalType();
+        type = cls.declaration_type();
         if (type.IsNull()) {
           if (this->IsNew()) {
             type ^= Object::Clone(*this, Heap::kOld);
@@ -17347,7 +17343,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
           ASSERT(type.IsOld());
           type.ComputeHash();
           type.SetCanonical();
-          cls.set_canonical_type(type);
+          cls.set_declaration_type(type);
           return type.raw();
         }
       }
@@ -17445,7 +17441,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   // Fast canonical lookup/registry for simple types.
   if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
     ASSERT(!IsFunctionType());
-    type = cls.CanonicalType();
+    type = cls.declaration_type();
     return (raw() == type.raw());
   }
 

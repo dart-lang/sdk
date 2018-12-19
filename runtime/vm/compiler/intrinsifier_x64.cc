@@ -1552,7 +1552,7 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_integer, not_double;
+  Label use_declaration_type, not_integer, not_double;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
@@ -1561,7 +1561,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
 
   __ cmpl(RCX, Immediate(kNumPredefinedCids));
-  __ j(ABOVE, &use_canonical_type);
+  __ j(ABOVE, &use_declaration_type);
 
   // If object is a instance of _Double return double type.
   __ cmpl(RCX, Immediate(kDoubleCid));
@@ -1586,7 +1586,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movq(RAX, RCX);
-  JumpIfNotString(assembler, RAX, &use_canonical_type);
+  JumpIfNotString(assembler, RAX, &use_declaration_type);
 
   __ LoadIsolate(RAX);
   __ movq(RAX, Address(RAX, Isolate::object_store_offset()));
@@ -1594,12 +1594,12 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   // Object is neither double, nor integer, nor string.
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(RDI, RCX);
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RDI, Class::canonical_type_offset()));
+  __ movq(RAX, FieldAddress(RDI, Class::declaration_type_offset()));
   __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);  // Not yet set.
   __ ret();

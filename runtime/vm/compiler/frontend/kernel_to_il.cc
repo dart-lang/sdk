@@ -915,28 +915,13 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   return body + Return(TokenPosition::kNoSource, omit_result_type_check);
 }
 
-static Type& GetCanonicalType(Zone* Z, const Class& klass) {
-  ASSERT(!klass.IsNull());
-  // Note that if cls is _Closure, the returned type will be _Closure,
-  // and not the signature type.
-  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
-  if (!type.IsNull()) {
-    return type;
-  }
-  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                   klass.token_pos());
-  if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(klass, type);
-    // Note that the receiver type may now be a malbounded type.
-    klass.SetCanonicalType(type);
-  }
-  return type;
-}
-
 static const LocalScope* MakeImplicitClosureScope(Zone* Z,
                                                   const Function& function) {
   Class& klass = Class::Handle(Z, function.Owner());
-  Type& klass_type = GetCanonicalType(Z, klass);
+  ASSERT(!klass.IsNull());
+  // Note that if klass is _Closure, DeclarationType will be _Closure,
+  // and not the signature type.
+  Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
 
   LocalVariable* this_variable = new (Z)
       LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,

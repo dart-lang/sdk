@@ -1102,7 +1102,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
   const Class& type_cls = Class::Handle(type_class());
-  if (type_cls.CanonicalType() == raw()) {
+  if (type_cls.DeclarationType() == raw()) {
     intptr_t cid = type_cls.id();
     jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
   } else {

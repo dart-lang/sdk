@@ -866,7 +866,11 @@ class Class : public Object {
   // class B<T, S>
   // class C<R> extends B<R, int>
   // C.DeclarationType() --> C [R, int, R]
-  RawAbstractType* DeclarationType() const;
+  RawType* DeclarationType() const;
+
+  static intptr_t declaration_type_offset() {
+    return OFFSET_OF(RawClass, declaration_type_);
+  }
 
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
@@ -924,20 +928,6 @@ class Class : public Object {
   }
   static intptr_t type_arguments_field_offset_in_words_offset() {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
-  }
-
-  // Returns the cached canonical type of this class, i.e. the canonical type
-  // whose type class is this class and whose type arguments are the
-  // uninstantiated type parameters declared by this class if it is generic,
-  // e.g. Map<K, V>.
-  // Returns Type::null() if the canonical type is not cached yet.
-  RawType* CanonicalType() const;
-
-  // Caches the canonical type of this class.
-  void SetCanonicalType(const Type& type) const;
-
-  static intptr_t canonical_type_offset() {
-    return OFFSET_OF(RawClass, canonical_type_);
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -1301,7 +1291,7 @@ class Class : public Object {
   void MigrateImplicitStaticClosures(IsolateReloadContext* context,
                                      const Class& new_cls) const;
   void CopyCanonicalConstants(const Class& old_cls) const;
-  void CopyCanonicalType(const Class& old_cls) const;
+  void CopyDeclarationType(const Class& old_cls) const;
   void CheckReload(const Class& replacement,
                    IsolateReloadContext* context) const;
 
@@ -1310,6 +1300,11 @@ class Class : public Object {
                                const Function& dispatcher) const;
 
  private:
+  RawType* declaration_type() const { return raw_ptr()->declaration_type_; }
+
+  // Caches the declaration type of this class.
+  void set_declaration_type(const Type& type) const;
+
   bool CanReloadFinalized(const Class& replacement,
                           IsolateReloadContext* context) const;
   bool CanReloadPreFinalized(const Class& replacement,
@@ -1373,9 +1368,6 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   RawString* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
-
-  void set_canonical_type(const Type& value) const;
-  RawType* canonical_type() const;
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;

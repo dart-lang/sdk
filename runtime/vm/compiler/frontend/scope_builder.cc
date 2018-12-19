@@ -95,7 +95,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     // captured receiver value. This ensure that AssertAssignable will correctly
     // load instantiator type arguments if they are needed.
     Class& klass = Class::Handle(Z, function.Owner());
-    Type& klass_type = H.GetCanonicalType(klass);
+    Type& klass_type = H.GetDeclarationType(klass);
     result_->this_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
@@ -165,7 +165,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         // We use [is_static] instead of [IsStaticFunction] because the latter
         // returns `false` for constructors.
         Class& klass = Class::Handle(Z, function.Owner());
-        Type& klass_type = H.GetCanonicalType(klass);
+        Type& klass_type = H.GetDeclarationType(klass);
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          Symbols::This(), klass_type);
@@ -279,7 +279,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       intptr_t pos = 0;
       if (is_method) {
         Class& klass = Class::Handle(Z, function.Owner());
-        Type& klass_type = H.GetCanonicalType(klass);
+        Type& klass_type = H.GetDeclarationType(klass);
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          Symbols::This(), klass_type);
@@ -321,7 +321,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         const Class& klass = Class::Handle(Z, function.Owner());
         result_->this_variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetCanonicalType(klass));
+                         Symbols::This(), H.GetDeclarationType(klass));
         scope_->InsertParameterAt(0, result_->this_variable);
 
         // Create setter value variable.
@@ -340,7 +340,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         Class& klass = Class::Handle(Z, function.Owner());
         result_->this_variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetCanonicalType(klass));
+                         Symbols::This(), H.GetDeclarationType(klass));
         scope_->InsertParameterAt(pos++, result_->this_variable);
 
         // Create all positional and named parameters.
@@ -356,7 +356,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // instead of using the generic code for regular functions.
       // Therefore, it isn't necessary to mark it as captured here.
       Class& klass = Class::Handle(Z, function.Owner());
-      Type& klass_type = H.GetCanonicalType(klass);
+      Type& klass_type = H.GetDeclarationType(klass);
       LocalVariable* variable =
           MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                        Symbols::This(), klass_type);

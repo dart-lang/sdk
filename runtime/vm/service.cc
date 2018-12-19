@@ -1097,7 +1097,8 @@ void Service::HandleEvent(ServiceEvent* event) {
   PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
 
   // Post event to the native Service Stream handlers if set.
-  if (event->stream_info() != nullptr && event->stream_info()->consumer() != nullptr) {
+  if (event->stream_info() != nullptr &&
+      event->stream_info()->consumer() != nullptr) {
     auto length = js.buffer()->length();
     event->stream_info()->consumer()(
         reinterpret_cast<uint8_t*>(js.buffer()->buf()), length);
@@ -1814,7 +1815,7 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
     if (id != 0) {
       return Object::sentinel().raw();
     }
-    const Type& type = Type::Handle(zone, cls.CanonicalType());
+    const Type& type = Type::Handle(zone, cls.DeclarationType());
     if (!type.IsNull()) {
       return type.raw();
     }

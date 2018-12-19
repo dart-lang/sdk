@@ -154,7 +154,7 @@ class TranslationHelper {
                                     const String& method_name);
   RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
 
-  Type& GetCanonicalType(const Class& klass);
+  Type& GetDeclarationType(const Class& klass);
 
   void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,

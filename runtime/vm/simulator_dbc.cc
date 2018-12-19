@@ -304,7 +304,7 @@ class SimulatorHelpers {
     if (cls->ptr()->num_type_arguments_ != 0) {
       return false;
     }
-    RawType* typ = cls->ptr()->canonical_type_;
+    RawType* typ = cls->ptr()->declaration_type_;
     if (typ == Object::null()) {
       return false;
     }

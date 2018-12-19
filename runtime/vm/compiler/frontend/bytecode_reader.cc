@@ -1014,8 +1014,7 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
         ASSERT(cls.IsNull());
         return AbstractType::void_type().raw();
       }
-      // TODO(alexmarkov): inline/move here to avoid handle allocations.
-      return H.GetCanonicalType(cls).raw();
+      return cls.DeclarationType();
     }
     case kTypeParameter: {
       Object& parent = Object::Handle(Z, ReadObject());

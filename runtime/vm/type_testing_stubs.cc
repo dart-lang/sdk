@@ -637,8 +637,8 @@ void RegisterTypeArgumentsUse(const Function& function,
         //
         // We use the declaration type arguments for the instance creation,
         // which is a non-instantiated, expanded, type arguments vector.
-        const AbstractType& declaration_type =
-            AbstractType::Handle(instance_klass.DeclarationType());
+        const Type& declaration_type =
+            Type::Handle(instance_klass.DeclarationType());
         TypeArguments& declaration_type_args =
             TypeArguments::Handle(declaration_type.arguments());
         type_usage_info->UseTypeArgumentsInInstanceCreation(
@@ -651,12 +651,12 @@ void RegisterTypeArgumentsUse(const Function& function,
     // where we forward the type argument vector to object allocation.
     //
     // Theoretically this could be a false-positive, which is still ok, but
-    // practically it's guranteed that this is a forward of a type argument
+    // practically it's guaranteed that this is a forward of a type argument
     // vector passed in by the caller.
     if (function.IsFactory()) {
       const Class& enclosing_class = Class::Handle(function.Owner());
-      const AbstractType& declaration_type =
-          AbstractType::Handle(enclosing_class.DeclarationType());
+      const Type& declaration_type =
+          Type::Handle(enclosing_class.DeclarationType());
       TypeArguments& declaration_type_args =
           TypeArguments::Handle(declaration_type.arguments());
       type_usage_info->UseTypeArgumentsInInstanceCreation(

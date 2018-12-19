@@ -642,20 +642,17 @@ RawFunction* TranslationHelper::LookupDynamicFunction(const Class& klass,
   return Function::null();
 }
 
-Type& TranslationHelper::GetCanonicalType(const Class& klass) {
+Type& TranslationHelper::GetDeclarationType(const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if cls is _Closure, the returned type will be _Closure,
   // and not the signature type.
-  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
-  if (!type.IsNull()) {
-    return type;
-  }
-  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                   klass.token_pos());
+  Type& type = Type::ZoneHandle(Z);
   if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(klass, type);
-    // Note that the receiver type may now be a malbounded type.
-    klass.SetCanonicalType(type);
+    type = klass.DeclarationType();
+  } else {
+    // Note that the type argument vector is not yet extended.
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                     klass.token_pos());
   }
   return type;
 }
@@ -2726,7 +2723,7 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kBottomType:
       result_ =
-          Class::Handle(Z, I->object_store()->null_class()).CanonicalType();
+          Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -2758,10 +2755,18 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
   const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
+  ASSERT(!klass.IsNull());
   if (simple) {
-    // Fast path for non-generic types: retrieve or populate the class's only
-    // canonical type.
-    result_ = H.GetCanonicalType(klass).raw();
+    if (finalize_ || klass.is_type_finalized()) {
+      // Fast path for non-generic types: retrieve or populate the class's only
+      // canonical type, which is its declaration type.
+      result_ = klass.DeclarationType();
+    } else {
+      // Note that the type argument vector is not yet extended.
+      result_ =
+          Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                    klass.token_pos());
+    }
     return;
   }
 
@@ -3082,15 +3087,12 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsTypedefClass());
   // Note that if klass is _Closure, the returned type will be _Closure,
   // and not the signature type.
-  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
-  if (!type.IsNull()) {
-    return type;
-  }
-  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                   klass.token_pos());
-  if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(klass, type);
-    klass.SetCanonicalType(type);
+  Type& type = Type::ZoneHandle(Z);
+  if (finalize_ || klass.is_type_finalized()) {
+    type = klass.DeclarationType();
+  } else {
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                     klass.token_pos());
   }
   return type;
 }
@@ -3144,7 +3146,7 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
-    function.SetParameterTypeAt(pos, H.GetCanonicalType(klass));
+    function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
   } else if (is_closure) {

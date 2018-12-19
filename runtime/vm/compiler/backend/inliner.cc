@@ -4032,7 +4032,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         const Class& cls = Class::Handle(
             Z, flow_graph->isolate()->class_table()->At(receiver_cid));
         if (!cls.IsGeneric()) {
-          type = cls.CanonicalType();
+          type = cls.DeclarationType();
         }
       }
 

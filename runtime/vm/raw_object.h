@@ -929,7 +929,7 @@ class RawClass : public RawObject {
   RawAbstractType* super_type_;
   RawFunction* signature_function_;  // Associated function for typedef class.
   RawArray* constants_;      // Canonicalized const instances of this class.
-  RawType* canonical_type_;  // Canonical type for this class.
+  RawType* declaration_type_;              // Declaration type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_implementors_;  // Array of Class.

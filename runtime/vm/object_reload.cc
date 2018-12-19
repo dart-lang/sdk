@@ -174,12 +174,12 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
   set_constants(old_constants);
 }
 
-void Class::CopyCanonicalType(const Class& old_cls) const {
-  const Type& old_canonical_type = Type::Handle(old_cls.canonical_type());
-  if (old_canonical_type.IsNull()) {
+void Class::CopyDeclarationType(const Class& old_cls) const {
+  const Type& old_declaration_type = Type::Handle(old_cls.declaration_type());
+  if (old_declaration_type.IsNull()) {
     return;
   }
-  set_canonical_type(old_canonical_type);
+  set_declaration_type(old_declaration_type);
 }
 
 class EnumMapTraits {
