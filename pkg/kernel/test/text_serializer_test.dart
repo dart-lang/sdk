@@ -4,6 +4,7 @@
 library kernel.text_serializer_test;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/text/text_reader.dart';
 import 'package:kernel/text/text_serializer.dart';
 
 void main() {
