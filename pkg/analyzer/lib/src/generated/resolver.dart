@@ -298,8 +298,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     ElementAnnotation element =
         resolutionMap.elementAnnotationForAnnotation(node);
+    AstNode parent = node.parent;
     if (element?.isFactory == true) {
-      AstNode parent = node.parent;
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
       } else {
@@ -312,6 +312,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
+    }
+    if (node.elementAnnotation?.isSealed == true &&
+        !(parent is ClassDeclaration ||
+            parent is ClassTypeAlias ||
+            parent is MixinDeclaration)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
     }
     super.visitAnnotation(node);
   }
