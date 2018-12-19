@@ -96,6 +96,8 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart' show Forest;
 
+import 'implicit_type_argument.dart' show ImplicitTypeArgument;
+
 import 'kernel_shadow_ast.dart' as shadow
     show SyntheticExpressionJudgment, SyntheticWrapper;
 
@@ -286,6 +288,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   TypeEnvironment get typeEnvironment => _typeInferrer?.typeSchemaEnvironment;
+
+  DartType get implicitTypeArgument =>
+      legacyMode ? const DynamicType() : const ImplicitTypeArgument();
 
   @override
   void push(Object node) {
@@ -2284,6 +2289,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(leftBracket),
             lengthOfSpan(leftBracket, leftBracket.endGroup));
+        typeArgument = const InvalidType();
       } else {
         typeArgument = buildDartType(typeArguments.single);
         if (!legacyMode) {
@@ -2291,6 +2297,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               instantiateToBounds(typeArgument, coreTypes.objectClass);
         }
       }
+    } else {
+      typeArgument = implicitTypeArgument;
     }
     Expression node = forest.literalList(
         constKeyword,
@@ -2317,6 +2325,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             fasta.messageSetLiteralTooManyTypeArguments,
             offsetForToken(leftBrace),
             lengthOfSpan(leftBrace, leftBrace.endGroup));
+        typeArgument = const InvalidType();
       } else {
         typeArgument = buildDartType(typeArguments.single);
         if (!library.loader.target.legacyMode) {
@@ -2324,6 +2333,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               instantiateToBounds(typeArgument, coreTypes.objectClass);
         }
       }
+    } else {
+      typeArgument = implicitTypeArgument;
     }
     Expression node = forest.literalSet(
         constKeyword,
@@ -2350,11 +2361,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           offsetForToken(leftBrace),
           lengthOfSpan(leftBrace, leftBrace.endGroup));
     }
+    assert(typeArguments == null);
+    DartType implicitTypeArgument = this.implicitTypeArgument;
     push(forest.literalMap(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
-        null,
-        null,
+        implicitTypeArgument,
+        implicitTypeArgument,
         null,
         leftBrace,
         <MapEntry>[],
@@ -2396,6 +2409,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             fasta.messageMapLiteralTypeArgumentMismatch,
             offsetForToken(leftBrace),
             lengthOfSpan(leftBrace, leftBrace.endGroup));
+        keyType = const InvalidType();
+        valueType = const InvalidType();
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
@@ -2404,6 +2419,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           valueType = instantiateToBounds(valueType, coreTypes.objectClass);
         }
       }
+    } else {
+      DartType implicitTypeArgument = this.implicitTypeArgument;
+      keyType = implicitTypeArgument;
+      valueType = implicitTypeArgument;
     }
     Expression node = forest.literalMap(
         constKeyword,

@@ -75,6 +75,8 @@ import '../type_inference/type_schema_environment.dart'
 
 import 'body_builder.dart' show combineStatements;
 
+import 'implicit_type_argument.dart' show ImplicitTypeArgument;
+
 import 'kernel_builder.dart' show KernelLibraryBuilder;
 
 import 'kernel_expression_generator.dart' show makeLet;
@@ -944,16 +946,10 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  List<Expression> get judgments => expressions;
-
-  final DartType _declaredTypeArgument;
-
   ListLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
-      : _declaredTypeArgument = typeArgument,
-        super(expressions,
-            typeArgument: typeArgument ?? const DynamicType(),
-            isConst: isConst);
+      : assert(typeArgument != null),
+        super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -965,16 +961,10 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
 class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  List<Expression> get judgments => expressions;
-
-  final DartType _declaredTypeArgument;
-
   SetLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
-      : _declaredTypeArgument = typeArgument,
-        super(expressions,
-            typeArgument: typeArgument ?? const DynamicType(),
-            isConst: isConst);
+      : assert(typeArgument != null),
+        super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -986,19 +976,12 @@ class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
 class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  List<MapEntry> get judgments => entries;
-
-  final DartType _declaredKeyType;
-  final DartType _declaredValueType;
-
   MapLiteralJudgment(List<MapEntry> judgments,
       {DartType keyType, DartType valueType, bool isConst: false})
-      : _declaredKeyType = keyType,
-        _declaredValueType = valueType,
+      : assert(keyType != null),
+        assert(valueType != null),
         super(judgments,
-            keyType: keyType ?? const DynamicType(),
-            valueType: valueType ?? const DynamicType(),
-            isConst: isConst);
+            keyType: keyType, valueType: valueType, isConst: isConst);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {

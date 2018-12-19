@@ -659,8 +659,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     DartType inferredTypeArgument;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
-    bool inferenceNeeded =
-        node._declaredTypeArgument == null && !inferrer.legacyMode;
+    bool inferenceNeeded = node.typeArgument is ImplicitTypeArgument;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     if (inferenceNeeded || typeChecksNeeded) {
       formalTypes = [];
@@ -673,11 +672,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           isConst: node.isConst);
       inferredTypeArgument = inferredTypes[0];
     } else {
-      inferredTypeArgument = node._declaredTypeArgument ?? const DynamicType();
+      inferredTypeArgument = node.typeArgument;
     }
     if (inferenceNeeded || typeChecksNeeded) {
-      for (int i = 0; i < node.judgments.length; ++i) {
-        Expression judgment = node.judgments[i];
+      for (int i = 0; i < node.expressions.length; ++i) {
+        Expression judgment = node.expressions[i];
         inferrer.inferExpression(
             judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
             isVoidAllowed: true);
@@ -704,16 +703,15 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       node.typeArgument = inferredTypeArgument;
     }
     if (typeChecksNeeded) {
-      for (int i = 0; i < node.judgments.length; i++) {
+      for (int i = 0; i < node.expressions.length; i++) {
         inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
-            node.judgments[i], node.judgments[i].fileOffset,
+            node.expressions[i], node.expressions[i].fileOffset,
             isVoidAllowed: node.typeArgument is VoidType);
       }
     }
     node.inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (node._declaredTypeArgument == null &&
-        inferrerLibrary is KernelLibraryBuilder) {
+    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInListLiteral(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
@@ -743,10 +741,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     DartType inferredValueType;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
-    assert(
-        (node._declaredKeyType == null) == (node._declaredValueType == null));
-    bool inferenceNeeded =
-        node._declaredKeyType == null && !inferrer.legacyMode;
+    assert((node.keyType is ImplicitTypeArgument) ==
+        (node.valueType is ImplicitTypeArgument));
+    bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     if (inferenceNeeded || typeChecksNeeded) {
       formalTypes = [];
@@ -760,8 +757,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
     } else {
-      inferredKeyType = node._declaredKeyType ?? const DynamicType();
-      inferredValueType = node._declaredValueType ?? const DynamicType();
+      inferredKeyType = node.keyType;
+      inferredValueType = node.valueType;
     }
     List<Expression> cachedKeys = new List(node.entries.length);
     List<Expression> cachedValues = new List(node.entries.length);
@@ -821,8 +818,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
     // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
     // none of them, so we may just check one.
-    if (node._declaredKeyType == null &&
-        inferrerLibrary is KernelLibraryBuilder) {
+    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInMapLiteral(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
