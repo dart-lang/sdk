@@ -246,9 +246,12 @@ class SourceClassBuilder extends KernelClassBuilder
 
   void prepareTopLevelInference() {
     scope.forEach((String name, Declaration declaration) {
-      if (declaration is KernelFieldBuilder) {
-        declaration.prepareTopLevelInference();
-      }
+      do {
+        if (declaration is KernelFieldBuilder) {
+          declaration.prepareTopLevelInference();
+        }
+        declaration = declaration.next;
+      } while (declaration != null);
     });
     if (!isPatch) {
       cls.setupApiMembers(library.loader.interfaceResolver);

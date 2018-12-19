@@ -16,6 +16,8 @@ import '../combinator.dart' as fasta;
 
 export '../builder/builder.dart';
 
+export 'implicit_type.dart' show ImplicitType;
+
 export 'kernel_class_builder.dart' show KernelClassBuilder;
 
 export 'kernel_enum_builder.dart' show KernelEnumBuilder;

@@ -5,22 +5,21 @@
 library fasta.kernel_field_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, Expression, Field, Name, NullLiteral;
+    show DartType, DynamicType, Expression, Field, Name, NullLiteral;
 
 import '../../base/instrumentation.dart'
     show Instrumentation, InstrumentationValueForType;
 
-import '../../scanner/token.dart' show Token;
-
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unsupported;
 
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
     show
         Declaration,
+        ImplicitType,
         FieldBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
@@ -32,16 +31,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
-  Token initializerTokenForInference;
 
-  KernelFieldBuilder(
-      this.metadata,
-      this.type,
-      String name,
-      int modifiers,
-      Declaration compilationUnit,
-      int charOffset,
-      this.initializerTokenForInference)
+  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
+      Declaration compilationUnit, int charOffset)
       : field = new ShadowField(null, type == null,
             fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset,
@@ -90,10 +82,16 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         .createTopLevelTypeInferrer(
             field.enclosingClass?.thisType, field, null);
     if (hasInitializer) {
+      if (field.type is! ImplicitType) {
+        unsupported(
+            "$name has unexpected type ${field.type}", charOffset, fileUri);
+        return;
+      }
+      ImplicitType type = field.type;
+      field.type = const DynamicType();
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
-          .parseFieldInitializer(initializerTokenForInference);
+          .parseFieldInitializer(type.initializerToken);
     }
-    initializerTokenForInference = null;
   }
 
   @override

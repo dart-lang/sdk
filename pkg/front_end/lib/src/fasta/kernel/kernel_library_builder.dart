@@ -117,6 +117,7 @@ import 'kernel_builder.dart'
         DynamicTypeBuilder,
         EnumConstantInfo,
         FormalParameterBuilder,
+        ImplicitType,
         InvalidTypeBuilder,
         KernelClassBuilder,
         KernelConstructorBuilder,
@@ -600,9 +601,13 @@ class KernelLibraryBuilder
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    KernelFieldBuilder field = new KernelFieldBuilder(metadata, type, name,
-        modifiers, this, charOffset, initializerTokenForInference);
+    KernelFieldBuilder field = new KernelFieldBuilder(
+        metadata, type, name, modifiers, this, charOffset);
     addBuilder(name, field, charOffset);
+    if (initializerTokenForInference != null) {
+      assert(type == null);
+      field.target.type = new ImplicitType(field, initializerTokenForInference);
+    }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
   }

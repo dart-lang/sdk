@@ -1508,6 +1508,8 @@ class OutlineBuilder extends StackListener {
       // the tokens for the expression.
       // TODO(ahe): Might be clearer if this search was moved to
       // `library.addFields`.
+      // TODO(ahe): I don't even think this is necessary. [token] points to ;
+      // or , and we don't otherwise store tokens.
       beforeLast = next;
       next = next.next;
     }

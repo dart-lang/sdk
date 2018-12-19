@@ -46,13 +46,17 @@ class Print extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(Component component, _) async {
     StringBuffer sb = new StringBuffer();
-    for (Library library in component.libraries) {
-      Printer printer = new Printer(sb);
-      if (library.importUri.scheme != "dart" &&
-          library.importUri.scheme != "package") {
-        printer.writeLibraryFile(library);
+    await CompilerContext.runWithDefaultOptions((compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+
+      for (Library library in component.libraries) {
+        Printer printer = new Printer(sb);
+        if (library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package") {
+          printer.writeLibraryFile(library);
+        }
       }
-    }
+    });
     print("$sb");
     return pass(component);
   }
