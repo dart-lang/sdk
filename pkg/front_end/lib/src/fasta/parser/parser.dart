@@ -1154,14 +1154,43 @@ class Parser {
     return token;
   }
 
+  /// Parse the formal parameters of a getter (which shouldn't have parameters)
+  /// or function or method.
+  Token parseGetterOrFormalParameters(
+      Token token, Token name, bool isGetter, MemberKind kind) {
+    Token next = token.next;
+    if (optional("(", next)) {
+      if (isGetter) {
+        reportRecoverableError(next, fasta.messageGetterWithFormals);
+      }
+      token = parseFormalParameters(token, kind);
+    } else if (isGetter) {
+      listener.handleNoFormalParameters(next, kind);
+    } else {
+      // Recovery
+      if (optional('operator', name)) {
+        Token next = name.next;
+        if (next.isOperator) {
+          name = next;
+        } else if (isUnaryMinus(next)) {
+          name = next.next;
+        }
+      }
+      reportRecoverableError(name, missingParameterMessage(kind));
+      token = rewriter.insertParens(token, false);
+      token = parseFormalParametersRest(token, kind);
+    }
+    return token;
+  }
+
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
     Token next = token.next;
     if (optional('(', next)) {
-      return parseFormalParameters(token, kind);
+      token = parseFormalParameters(token, kind);
     } else {
       listener.handleNoFormalParameters(next, kind);
-      return token;
     }
+    return token;
   }
 
   Token skipFormalParameters(Token token, MemberKind kind) {
@@ -1194,7 +1223,11 @@ class Parser {
   /// If `kind == MemberKind.GeneralizedFunctionType`, then names may be
   /// omitted (except for named arguments). Otherwise, types may be omitted.
   Token parseFormalParameters(Token token, MemberKind kind) {
-    Token begin = token = token.next;
+    return parseFormalParametersRest(token.next, kind);
+  }
+
+  Token parseFormalParametersRest(Token token, MemberKind kind) {
+    Token begin = token;
     assert(optional('(', token));
     listener.beginFormalParameters(begin, kind);
     int parameterCount = 0;
@@ -2305,8 +2338,8 @@ class Parser {
       token = name;
       listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(token, name, isGetter, MemberKind.TopLevelMethod);
-    token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
+    token = parseGetterOrFormalParameters(
+        token, name, isGetter, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
     token = parseAsyncModifierOpt(token);
@@ -2336,27 +2369,6 @@ class Parser {
       reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
     }
     return token;
-  }
-
-  void checkFormals(Token token, Token name, bool isGetter, MemberKind kind) {
-    Token next = token.next;
-    if (optional("(", next)) {
-      if (isGetter) {
-        reportRecoverableError(next, fasta.messageGetterWithFormals);
-      }
-    } else if (!isGetter) {
-      if (optional('operator', name)) {
-        Token next = name.next;
-        if (next.isOperator) {
-          name = next;
-        } else if (isUnaryMinus(next)) {
-          name = next.next;
-        }
-      }
-      // Recovery
-      reportRecoverableError(name, missingParameterMessage(kind));
-      rewriter.insertParens(token, false);
-    }
   }
 
   Token parseFieldInitializerOpt(
@@ -3043,11 +3055,8 @@ class Parser {
     MemberKind kind = staticToken != null
         ? MemberKind.StaticMethod
         : MemberKind.NonStaticMethod;
-    checkFormals(token, name, isGetter, kind);
     Token beforeParam = token;
-    token = isGetter
-        ? parseFormalParametersOpt(token, kind)
-        : parseFormalParametersRequiredOpt(token, kind);
+    token = parseGetterOrFormalParameters(token, name, isGetter, kind);
     token = parseInitializersOpt(token);
 
     AsyncModifier savedAsyncModifier = asyncState;
