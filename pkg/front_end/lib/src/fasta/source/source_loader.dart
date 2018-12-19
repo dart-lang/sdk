@@ -30,6 +30,8 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
 import '../../api_prototype/file_system.dart';
 
 import '../../base/instrumentation.dart'
@@ -926,7 +928,18 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    if (target.disableTypeInference) return;
+    if (target.disableTypeInference) {
+      InterfaceResolver interfaceResolver = new InterfaceResolver(
+          null,
+          new TypeEnvironment(coreTypes, hierarchy,
+              strongMode: !target.legacyMode),
+          null,
+          target.legacyMode);
+      for (int i = 0; i < sourceClasses.length; i++) {
+        sourceClasses[i].cls.setupApiMembers(interfaceResolver);
+      }
+      return;
+    }
 
     /// The first phase of top level initializer inference, which consists of
     /// creating kernel objects for all fields and top level variables that
