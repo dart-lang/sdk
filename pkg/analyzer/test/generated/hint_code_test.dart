@@ -2580,6 +2580,21 @@ class B extends A {
     verify([source]);
   }
 
+  test_mustBeImmutable_mixinApplication() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B {
+  int x;
+}
+class C = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
   test_mustBeImmutable_fromMixin() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';

@@ -375,6 +375,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    _checkForImmutable(node);
+    super.visitClassTypeAlias(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (resolutionMap.elementDeclaredByConstructorDeclaration(node).isFactory) {
       if (node.body is BlockFunctionBody) {
@@ -759,7 +765,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  void _checkForImmutable(ClassDeclaration node) {
+  void _checkForImmutable(NamedCompilationUnitMember node) {
     /// Return `true` if the given class [element] is annotated with the
     /// `@immutable` annotation.
     bool isImmutable(ClassElement element) {
