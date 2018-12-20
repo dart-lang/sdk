@@ -685,6 +685,7 @@ class FileState {
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
     parser.enableSetLiterals = experimentStatus.set_literals;
+    parser.enableNonNullable = experimentStatus.non_nullable;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

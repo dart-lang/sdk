@@ -225,6 +225,14 @@ class Parser {
   @deprecated
   void set enableAssertInitializer(bool enable) {}
 
+  /// Enables or disables non-nullable by default.
+  void set enableNonNullable(bool value) {
+    if (value) {
+      throw new UnimplementedError(
+          'non-nullable experiment not supported by analyzer parser');
+    }
+  }
+
   /// Return `true` if the parser should parse instance creation expressions
   /// that lack either the `new` or `const` keyword.
   bool get enableOptionalNewAndConst => _enableOptionalNewAndConst;

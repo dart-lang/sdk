@@ -580,7 +580,7 @@ class FastaParserTestCase
       int expectedEndOffset,
       bool parseSetLiterals = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
-    _parserProxy.fastaParser.parseSetLiterals = parseSetLiterals;
+    _parserProxy.fastaParser.enableSetLiterals = parseSetLiterals;
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;

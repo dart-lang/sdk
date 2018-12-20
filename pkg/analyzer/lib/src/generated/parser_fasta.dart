@@ -37,6 +37,15 @@ abstract class ParserAdapter implements Parser {
     astBuilder.allowNativeClause = value;
   }
 
+  /// Enables or disables non-nullable by default.
+  void set enableNonNullable(bool value) {
+    if (IsExpired.non_nullable && value != IsEnabledByDefault.non_nullable) {
+      throw new StateError(
+          'non_nullable may only be set to ${IsEnabledByDefault.non_nullable}');
+    }
+    astBuilder.enableNonNullable = value;
+  }
+
   @override
   bool get enableOptionalNewAndConst => false;
 
@@ -49,7 +58,7 @@ abstract class ParserAdapter implements Parser {
       throw new StateError(
           'set_literals may only be set to ${IsEnabledByDefault.set_literals}');
     }
-    fastaParser.parseSetLiterals = value;
+    fastaParser.enableSetLiterals = value;
   }
 
   @override

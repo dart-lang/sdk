@@ -40,6 +40,9 @@ class EnableString {
   /// String to enable the experiment "constant-update"
   static const String constant_update_2018 = 'constant-update-2018';
 
+  /// String to enable the experiment "non-nullable"
+  static const String non_nullable = 'non-nullable';
+
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
 
@@ -67,6 +70,12 @@ class ExperimentStatus {
         IsEnabledByDefault.set_literals,
         IsExpired.set_literals,
         'Set Literals'),
+    EnableString.non_nullable: const ExperimentalFeature(
+        2,
+        EnableString.non_nullable,
+        IsEnabledByDefault.non_nullable,
+        IsExpired.non_nullable,
+        'Non Nullable'),
     EnableString.bogus_disabled: const ExperimentalFeature(
         null,
         EnableString.bogus_disabled,
@@ -85,10 +94,11 @@ class ExperimentStatus {
 
   /// Initializes a newly created set of experiments based on optional
   /// arguments.
-  ExperimentStatus({bool constant_update_2018, bool set_literals})
+  ExperimentStatus({bool constant_update_2018, bool set_literals, non_nullable})
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
-          set_literals ?? IsEnabledByDefault.set_literals
+          set_literals ?? IsEnabledByDefault.set_literals,
+          non_nullable ?? IsEnabledByDefault.non_nullable,
         ];
 
   /// Decodes the strings given in [flags] into a representation of the set of
@@ -110,6 +120,9 @@ class ExperimentStatus {
   /// Current state for the flag "constant-update-2018"
   bool get constant_update_2018 => _enableFlags[0];
 
+  /// Current state for the flag "non-nullable"
+  bool get non_nullable => _enableFlags[2];
+
   /// Current state for the flag "set-literals"
   bool get set_literals => _enableFlags[1];
 
@@ -129,6 +142,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "constant-update"
   static const bool constant_update_2018 = false;
 
+  /// Default state of the experiment "non-nullable"
+  static const bool non_nullable = false;
+
   /// Default state of the experiment "set-literals"
   static const bool set_literals = false;
 
@@ -145,6 +161,9 @@ class IsEnabledByDefault {
 class IsExpired {
   /// Expiration status of the experiment "constant-update"
   static const bool constant_update_2018 = false;
+
+  /// Expiration status of the experiment "non-nullable"
+  static const bool non_nullable = false;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = false;

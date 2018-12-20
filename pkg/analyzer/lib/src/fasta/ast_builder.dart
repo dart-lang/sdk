@@ -96,6 +96,9 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
+  /// `true` if non-nullable behavior is enabled
+  bool enableNonNullable = false;
+
   bool showNullableTypeErrors = true;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
@@ -969,7 +972,7 @@ class AstBuilder extends StackListener {
   @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
-    if (showNullableTypeErrors) {
+    if (!enableNonNullable || showNullableTypeErrors) {
       reportErrorIfNullableType(questionMark);
     }
 
@@ -1130,7 +1133,7 @@ class AstBuilder extends StackListener {
   void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
-    if (showNullableTypeErrors) {
+    if (!enableNonNullable || showNullableTypeErrors) {
       reportErrorIfNullableType(questionMark);
     }
 
