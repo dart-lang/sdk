@@ -10457,13 +10457,19 @@ Users should test for the null object (\ref{null}) directly rather than via type
 \LMHash{}%
 The is-expression \code{$e$ \IS{}! $T$} is equivalent to \code{!($e$ \IS{} $T$)}.
 
-% Add flow dependent types
-
 \LMHash{}%
 Let $v$ be a local variable (\commentary{which can be a formal parameter}).
-%% TODO(eernst): Cf. issue https://github.com/dart-lang/sdk/issues/35314.
-An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$ has type $T$
-if{}f $T$ is a subtype of the type $S$ of the expression $v$.
+An is-expression of the form \code{$v$ \IS{} $T$}
+shows that $v$ has type $T$
+if $T$ is a subtype of the type of the expression $v$.
+%
+Otherwise,
+if the declared type of $v$ is the type variable $X$,
+and $T$ is a subtype of the bound of $X$,
+and $X \& T$ is a subtype of the type of the expression $v$,
+then $e$ shows that $v$ has type $X \& T$.
+%
+Otherwise $e$ does not show that $v$ has type $T$ for any $T$.
 
 \rationale{
 The motivation for the ``shows that v has type T" relation is to reduce spurious errors thereby enabling a more natural coding style.
@@ -10474,10 +10480,12 @@ The rule only applies to locals and parameters, as instance and static variables
 
 It is pointless to deduce a weaker type than what is already known.
 Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification.
-Hence the requirement that \SubtypeNE{T}{S}.
+Hence the requirement that the promoted type is a subtype of the current type.
 
-We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more errors rather than fewer.
-The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
+In any case, it is not an error when a type test does not show
+that a given variable does not have a ``better'' type than previously known,
+but tools may choose to give a hint in such cases,
+if suitable heuristics indicate that a promotion is likely to be intended.
 }
 
 \LMHash{}%
