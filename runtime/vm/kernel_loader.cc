@@ -390,6 +390,9 @@ KernelLoader::KernelLoader(const Script& script,
 }
 
 const Array& KernelLoader::ReadConstantTable() {
+  if (program_->library_count() == 0) {
+    return Array::null_array();
+  }
   // We use the very first library's toplevel class as an owner for an
   // [ActiveClassScope]
   //
