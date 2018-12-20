@@ -63,8 +63,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
     return failure(
         ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before the server is initialized '
-        'and the client has sent the initialized notification',
-        null);
+        'and the client has sent the initialized notification');
   }
 }
 
@@ -79,9 +78,7 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(
-        ErrorCodes.ServerNotInitialized,
-        'Unable to handle ${message.method} before client has sent initialize request',
-        null);
+    return failure(ErrorCodes.ServerNotInitialized,
+        'Unable to handle ${message.method} before client has sent initialize request');
   }
 }

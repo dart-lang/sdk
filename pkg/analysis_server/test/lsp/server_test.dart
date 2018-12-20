@@ -33,7 +33,23 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  test_unknownNotifications_silentlyDropped() async {
+  test_unknownNotifications_logError() async {
+    await initialize();
+
+    final notification =
+        makeNotification(new Method.fromJson(r'some/randomNotification'), null);
+
+    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+      () => channel.sendNotificationToServer(notification),
+    );
+    expect(notificationParams, isNotNull);
+    expect(
+      notificationParams.message,
+      contains('Unknown method some/randomNotification'),
+    );
+  }
+
+  test_unknownOptionalNotifications_silentlyDropped() async {
     await initialize();
     final notification =
         makeNotification(new Method.fromJson(r'$/randomNotification'), null);
@@ -63,11 +79,13 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  @failingTest
-  test_unknownRequest_silentlyDropped /*??*/ () async {
-    // TODO(dantup): Fix this test up when we know how we're supposed to handle
-    // unknown $/ requests.
-    // https://github.com/Microsoft/language-server-protocol/issues/607
-    fail('TODO(dantup)');
+  test_unknownOptionalRequest_rejected() async {
+    await initialize();
+    final request = makeRequest(new Method.fromJson(r'$/randomRequest'), null);
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.error, isNotNull);
+    expect(response.error.code, equals(ErrorCodes.MethodNotFound));
+    expect(response.result, isNull);
   }
 }

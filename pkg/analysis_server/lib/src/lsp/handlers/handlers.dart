@@ -84,8 +84,8 @@ abstract class ServerStateMessageHandler {
     registerHandler(new ExitMessageHandler(server));
   }
 
-  ErrorOr<Object> failure<Object>(
-          ErrorCodes code, String message, Object data) =>
+  ErrorOr<Object> failure<Object>(ErrorCodes code, String message,
+          [Object data]) =>
       new ErrorOr<Object>.error(new ResponseError(code, message, data));
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
@@ -99,14 +99,13 @@ abstract class ServerStateMessageHandler {
   }
 
   FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
-    // TODO(dantup): How should we handle unknown notifications that do
-    // *not* start with $/?
-    // https://github.com/Microsoft/language-server-protocol/issues/608
-    if (!_isOptionalRequest(message)) {
-      return failure(
-          ErrorCodes.MethodNotFound, 'Unknown method ${message.method}', null);
-    }
-    return success();
+    // If it's an optional *Notification* we can ignore it (return success).
+    // Otherwise respond with failure. Optional Requests must still be responded
+    // to so they don't leave open requests on the client.
+    return _isOptionalNotification(message)
+        ? success()
+        : failure(
+            ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
   registerHandler(MessageHandler handler) {
@@ -124,9 +123,13 @@ abstract class ServerStateMessageHandler {
 
   ErrorOr<Object> success<Object>([Object t]) => new ErrorOr<Object>.success(t);
 
-  bool _isOptionalRequest(IncomingMessage message) {
-    // Messages that start with $/ are optional and can be silently ignored
-    // if we don't know how to handle them.
+  bool _isOptionalNotification(IncomingMessage message) {
+    // Not a notification.
+    if (message is! NotificationMessage) {
+      return false;
+    }
+
+    // Messages that start with $/ are optional.
     final stringValue = message.method.toJson();
     return stringValue is String && stringValue.startsWith(r'$/');
   }

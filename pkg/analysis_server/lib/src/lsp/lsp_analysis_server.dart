@@ -288,7 +288,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       // also ensure the error is logged to the client.
       logError(error.message);
     } else if (message is ResponseMessage) {
-      // For notifications where we couldn't respond with an error, send it as
+      // For bad response messages where we can't respond with an error, send it as
       // show instead of log.
       showError(error.message);
     } else {
