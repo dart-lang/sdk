@@ -268,11 +268,6 @@ class AstBuilder extends StackListener {
     scriptTag = ast.scriptTag(token);
   }
 
-  @override
-  void handleNNBD(bool isStar) {
-    showNullableTypeErrors = !isStar;
-  }
-
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
 
@@ -2098,6 +2093,23 @@ class AstBuilder extends StackListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
+    if (metadata != null) {
+      for (Annotation annotation in metadata) {
+        Identifier pragma = annotation.name;
+        if (pragma is SimpleIdentifier && pragma.name == 'pragma') {
+          NodeList<Expression> arguments = annotation.arguments.arguments;
+          if (arguments.length == 1) {
+            Expression tag = arguments[0];
+            if (tag is StringLiteral) {
+              if (tag.stringValue == 'analyzer:non-nullable*') {
+                showNullableTypeErrors = false;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
     Comment comment = _findComment(metadata, libraryKeyword);
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));

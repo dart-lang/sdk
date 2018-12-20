@@ -1421,40 +1421,21 @@ mixin A {
     expectCommentText(declaration.documentationComment, '/// Doc');
   }
 
-  void test_parseNNDB() {
-    void testNNBD(String comments, {bool nnbd, bool star}) {
-      final listener = new NNBDTestListener();
-      String code = '''
-$comments
-main() {}''';
-      ScannerResult result = scanString(code, includeComments: true);
-      new fasta.Parser(listener).parseUnit(result.tokens);
-
-      expect(listener.isNNBD, nnbd ?? isNull);
-      expect(listener.isStar, star ?? isNull);
-    }
-
-    testNNBD('', nnbd: false);
-    testNNBD('#!/bin/dart', nnbd: false);
-    testNNBD('//@NNBDx', nnbd: false);
-    testNNBD('//@NNBD', nnbd: true, star: false);
-    testNNBD('// @NNBD', nnbd: true, star: false);
-    testNNBD('//@NNBD*', nnbd: true, star: true);
-    testNNBD('// @NNBD*', nnbd: true, star: true);
-    testNNBD('''#!/bin/dart
-// @NNBD*
-/* more comments */
-/// and dartdoc''', nnbd: true, star: true);
+  void test_pragma_missing() {
+    createParser("library foo;");
+    _parserProxy.parseCompilationUnit2();
+    expect(_parserProxy.astBuilder.showNullableTypeErrors, true);
   }
-}
 
-class NNBDTestListener extends fasta.ForwardingListener {
-  bool isNNBD = false;
-  bool isStar;
+  void test_pragma_non_nullable() {
+    createParser("@pragma('analyzer:non-nullable*') library foo;");
+    _parserProxy.parseCompilationUnit2();
+    expect(_parserProxy.astBuilder.showNullableTypeErrors, false);
+  }
 
-  @override
-  void handleNNBD(bool isStar) {
-    this.isNNBD = true;
-    this.isStar = isStar;
+  void test_pragma_other() {
+    createParser("@pragma('analyzer:foo') library foo;");
+    _parserProxy.parseCompilationUnit2();
+    expect(_parserProxy.astBuilder.showNullableTypeErrors, true);
   }
 }

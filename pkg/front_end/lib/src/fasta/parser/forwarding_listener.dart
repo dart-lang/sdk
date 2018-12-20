@@ -1205,11 +1205,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNNBD(bool isStar) {
-    listener?.handleNNBD(isStar);
-  }
-
-  @override
   void handleNoFieldInitializer(Token token) {
     listener?.handleNoFieldInitializer(token);
   }
