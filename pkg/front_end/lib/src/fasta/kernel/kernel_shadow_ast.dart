@@ -54,11 +54,7 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
 import '../type_inference/type_inference_engine.dart'
-    show
-        FieldInitializerInferenceNode,
-        IncludesTypeParametersCovariantly,
-        InferenceNode,
-        TypeInferenceEngine;
+    show IncludesTypeParametersCovariantly, InferenceNode, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
@@ -636,9 +632,6 @@ class ShadowField extends Field implements ShadowMember {
       TypeInferenceEngine engine, Uri uri, DartType inferredType) {
     type = inferredType;
   }
-
-  static bool hasTypeInferredFromInitializer(ShadowField field) =>
-      field.inferenceNode is FieldInitializerInferenceNode;
 
   static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
 

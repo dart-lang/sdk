@@ -520,7 +520,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void finishFields() {
     debugEvent("finishFields");
     int count = pop();
-    List<FieldBuilder<Object>> fields = <FieldBuilder<Object>>[];
+    List<KernelFieldBuilder> fields = <KernelFieldBuilder>[];
     for (int i = 0; i < count; i++) {
       Expression initializer = pop();
       Identifier identifier = pop();
@@ -531,7 +531,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         declaration = library[name];
       }
-      FieldBuilder<Object> field;
+      KernelFieldBuilder field;
       if (declaration.isField && declaration.next == null) {
         field = declaration;
       } else {
@@ -546,9 +546,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         } else {
           field.initializer = initializer;
           _typeInferrer?.inferFieldInitializer(
-              this,
-              field.hasTypeInferredFromInitializer ? null : field.builtType,
-              initializer);
+              this, field.builtType, initializer);
         }
       }
     }

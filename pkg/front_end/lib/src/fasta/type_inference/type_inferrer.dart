@@ -1146,20 +1146,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       {bool isVoidAllowed});
 
   @override
-  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
-      kernel.Expression initializer) {
+  void inferFieldInitializer(
+    InferenceHelper helper,
+    DartType context,
+    kernel.Expression initializer,
+  ) {
     assert(closureContext == null);
+    assert(!isTopLevel);
     this.helper = helper;
-    var actualType = inferExpression(
-        initializer,
-        declaredType ?? const UnknownType(),
-        !isTopLevel || declaredType != null,
-        isVoidAllowed: true);
-    if (declaredType != null) {
-      ensureAssignable(
-          declaredType, actualType, initializer, initializer.fileOffset,
-          isVoidAllowed: declaredType is VoidType);
-    }
+    var actualType =
+        inferExpression(initializer, context, true, isVoidAllowed: true);
+    ensureAssignable(context, actualType, initializer, initializer.fileOffset,
+        isVoidAllowed: context is VoidType);
     this.helper = null;
   }
 
