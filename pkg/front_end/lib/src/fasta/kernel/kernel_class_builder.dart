@@ -701,11 +701,11 @@ abstract class KernelClassBuilder
     findMissingImplementations(setters: true);
 
     if (context?.isNotEmpty ?? false) {
-      String memberString =
-          context.map((message) => "'${message.arguments["name"]}'").join(", ");
+      List<String> memberNames = new List<String>.from(
+          context.map((message) => "'${message.arguments["name"]}'"));
       library.addProblem(
           templateMissingImplementationNotAbstract.withArguments(
-              cls.name, memberString),
+              cls.name, memberNames),
           cls.fileOffset,
           cls.name.length,
           cls.fileUri,

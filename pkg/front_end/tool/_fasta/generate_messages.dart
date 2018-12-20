@@ -134,7 +134,8 @@ String compileTemplate(String name, int index, String template, String tip,
     hasLabeler = true;
   }
 
-  for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
+  for (Match match
+      in placeholderPattern.allMatches("$template\n${tip ?? ''}")) {
     String name = match[1];
     String padding = match[2];
     String fractionDigits = match[3];
@@ -200,6 +201,13 @@ String compileTemplate(String name, int index, String template, String tip,
         conversions.add("if (name4.isEmpty) throw 'No name provided';");
         arguments.add("'name4': name4");
         conversions.add("name4 = demangleMixinApplicationName(name4);");
+        break;
+
+      case "names":
+        parameters.add("List<String> _names");
+        conversions.add("if (_names.isEmpty) throw 'No names provided';");
+        arguments.add("'names': _names");
+        conversions.add("String names = itemizeNames(_names);");
         break;
 
       case "lexeme":

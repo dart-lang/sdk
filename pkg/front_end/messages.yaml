@@ -57,6 +57,8 @@
 #
 # `#name`, `#name2`, `#name3`, `#name4`: names (as strings).
 #
+# `#names`: A list of names (strings).
+#
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string`, `#string2`, `#string3`: strings (that aren't names).
@@ -1406,7 +1408,7 @@ AbstractRedirectedClassInstantiation:
 MissingImplementationNotAbstract:
   template: |
     The non-abstract class '#name' is missing implementations for these members:
-      #string.
+    #names
   tip: |
     Try to either
      - provide an implementation,

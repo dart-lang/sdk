@@ -6023,12 +6023,12 @@ Message _withArgumentsMissingImplementationCause(String name) {
 const Template<
     Message Function(
         String name,
-        String
-            string)> templateMissingImplementationNotAbstract = const Template<
-        Message Function(String name, String string)>(
+        List<String>
+            _names)> templateMissingImplementationNotAbstract = const Template<
+        Message Function(String name, List<String> _names)>(
     messageTemplate:
         r"""The non-abstract class '#name' is missing implementations for these members:
-  #string.""",
+#names""",
     tipTemplate: r"""Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
@@ -6038,9 +6038,9 @@ const Template<
     withArguments: _withArgumentsMissingImplementationNotAbstract);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
+const Code<Message Function(String name, List<String> _names)>
     codeMissingImplementationNotAbstract =
-    const Code<Message Function(String name, String string)>(
+    const Code<Message Function(String name, List<String> _names)>(
         "MissingImplementationNotAbstract",
         templateMissingImplementationNotAbstract,
         analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
@@ -6048,21 +6048,22 @@ const Code<Message Function(String name, String string)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract(
-    String name, String string) {
+    String name, List<String> _names) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
   return new Message(codeMissingImplementationNotAbstract,
       message:
           """The non-abstract class '${name}' is missing implementations for these members:
-  ${string}.""",
+${names}""",
       tip: """Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
  - provide a 'noSuchMethod' implementation.
 """,
-      arguments: {'name': name, 'string': string});
+      arguments: {'name': name, 'names': _names});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
