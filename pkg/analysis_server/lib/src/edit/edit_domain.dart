@@ -782,8 +782,8 @@ class _RefactoringManager {
       }
       // create change
       result.change = await refactoring.createChange();
-      result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
       _checkForReset_afterCreateChange();
+      result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
       _sendResultResponse();
     }, onError: (exception, stackTrace) {
       if (exception is _ResetError) {
