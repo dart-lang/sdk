@@ -130,9 +130,10 @@ class Case<T extends Expression> extends TextSerializer<T> {
       if (tags[i] == tag) {
         nested.moveNext();
         T result = serializers[i].readFrom(nested);
-        if (stream.moveNext()) {
+        if (nested.moveNext()) {
           throw StateError("extra cruft in tagged '${tag}'");
         }
+        stream.moveNext();
         return result;
       }
     }
@@ -174,4 +175,29 @@ class Wrapped<S, K> extends TextSerializer<K> {
   }
 
   bool get isEmpty => contents.isEmpty;
+}
+
+// A serializer/deserializer for a pairs.
+class Tuple2Serializer<T1, T2> extends TextSerializer<Tuple2<T1, T2>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+
+  Tuple2Serializer(this.first, this.second);
+
+  Tuple2<T1, T2> readFrom(Iterator<Object> stream) {
+    return new Tuple2(first.readFrom(stream), second.readFrom(stream));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple2<T1, T2> object) {
+    first.writeTo(buffer, object.first);
+    buffer.write(' ');
+    second.writeTo(buffer, object.second);
+  }
+}
+
+class Tuple2<T1, T2> {
+  final T1 first;
+  final T2 second;
+
+  Tuple2(this.first, this.second);
 }

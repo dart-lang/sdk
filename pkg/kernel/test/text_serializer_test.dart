@@ -44,7 +44,9 @@ void test() {
     "(bool false)",
     "(null)",
     "(invalid \"You can't touch this\")",
-    "(not (bool true))"
+    "(not (bool true))",
+    "(&& (bool true) (bool false))",
+    "(|| (&& (bool true) (not (bool true))) (bool true))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

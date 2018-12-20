@@ -20,6 +20,9 @@ class ExpressionTagger extends ExpressionVisitor<String> {
   String visitNullLiteral(NullLiteral _) => "null";
   String visitInvalidExpression(InvalidExpression _) => "invalid";
   String visitNot(Not _) => "not";
+  String visitLogicalExpression(LogicalExpression expression) {
+    return expression.operator;
+  }
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -39,6 +42,29 @@ TextSerializer<Not> notSerializer =
 Expression unwrapNot(Not expression) => expression.operand;
 
 Not wrapNot(Expression operand) => new Not(operand);
+
+TextSerializer<LogicalExpression> logicalAndSerializer = new Wrapped(
+    unwrapLogicalExpression,
+    wrapLogicalAnd,
+    new Tuple2Serializer(expressionSerializer, expressionSerializer));
+
+Tuple2<Expression, Expression> unwrapLogicalExpression(
+    LogicalExpression expression) {
+  return new Tuple2(expression.left, expression.right);
+}
+
+LogicalExpression wrapLogicalAnd(Tuple2<Expression, Expression> pair) {
+  return new LogicalExpression(pair.first, '&&', pair.second);
+}
+
+TextSerializer<LogicalExpression> logicalOrSerializer = new Wrapped(
+    unwrapLogicalExpression,
+    wrapLogicalOr,
+    new Tuple2Serializer(expressionSerializer, expressionSerializer));
+
+LogicalExpression wrapLogicalOr(Tuple2<Expression, Expression> pair) {
+  return new LogicalExpression(pair.first, '||', pair.second);
+}
 
 TextSerializer<StringLiteral> stringLiteralSerializer =
     new Wrapped(unwrapStringLiteral, wrapStringLiteral, const DartString());
@@ -86,6 +112,8 @@ void initializeSerializers() {
     "null",
     "invalid",
     "not",
+    "&&",
+    "||",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -95,5 +123,7 @@ void initializeSerializers() {
     nullLiteralSerializer,
     invalidExpressionSerializer,
     notSerializer,
+    logicalAndSerializer,
+    logicalOrSerializer,
   ]);
 }
