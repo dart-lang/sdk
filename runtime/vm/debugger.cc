@@ -737,25 +737,14 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
 
   Object& future = Object::Handle();
-  if (FLAG_sync_async) {
-    const Class& completer_cls = Class::Handle(completer.clazz());
-    ASSERT(!completer_cls.IsNull());
-    const Function& future_getter = Function::Handle(
-        completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
-    ASSERT(!future_getter.IsNull());
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, Instance::Cast(completer));
-    future = DartEntry::InvokeFunction(future_getter, args);
-  } else {
-    const Class& sync_completer_cls = Class::Handle(completer.clazz());
-    ASSERT(!sync_completer_cls.IsNull());
-    const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
-    const Field& future_field =
-        Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
-            Symbols::CompleterFuture()));
-    ASSERT(!future_field.IsNull());
-    future = Instance::Cast(completer).GetField(future_field);
-  }
+  const Class& completer_cls = Class::Handle(completer.clazz());
+  ASSERT(!completer_cls.IsNull());
+  const Function& future_getter = Function::Handle(
+      completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
+  ASSERT(!future_getter.IsNull());
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, Instance::Cast(completer));
+  future = DartEntry::InvokeFunction(future_getter, args);
   if (future.IsError()) {
     Exceptions::PropagateError(Error::Cast(future));
   }
@@ -2115,20 +2104,16 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
-            if (FLAG_sync_async) {
-              // async function might have been called synchronously, in which
-              // case we need to keep going down the stack.
-              // To determine how we are called we peek few more frames further
-              // expecting to see Closure_call followed by
-              // AsyncAwaitCompleter_start.
-              // If we are able to see those functions we continue going down
-              // thestack, if we are not, we break out of the loop as we are
-              // not interested in exploring rest of the stack - there is only
-              // dart-internal code left.
-              skip_sync_async_frames_count = 2;
-            } else {
-              break;
-            }
+            // async function might have been called synchronously, in which
+            // case we need to keep going down the stack.
+            // To determine how we are called we peek few more frames further
+            // expecting to see Closure_call followed by
+            // AsyncAwaitCompleter_start.
+            // If we are able to see those functions we continue going down
+            // thestack, if we are not, we break out of the loop as we are
+            // not interested in exploring rest of the stack - there is only
+            // dart-internal code left.
+            skip_sync_async_frames_count = 2;
           } else {
             stack_trace->AddActivation(
                 CollectDartFrame(isolate, it.pc(), frame, inlined_code,
@@ -2148,7 +2133,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
             skip_sync_async_frames_count--;
           } else {
-            // Unexpected function in sync async call.
+            // Unexpected function in synchronous call of async function.
             break;
           }
         }
@@ -2163,12 +2148,9 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
-          if (FLAG_sync_async) {
-            // see comment regarding skipping sync-async frames above.
-            skip_sync_async_frames_count = 2;
-          } else {
-            break;
-          }
+          // see comment regarding skipping frames of async functions called
+          // synchronously above.
+          skip_sync_async_frames_count = 2;
         } else {
           stack_trace->AddActivation(CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0));

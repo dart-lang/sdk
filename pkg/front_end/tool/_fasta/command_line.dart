@@ -252,7 +252,6 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--single-root-base": Uri,
   "--single-root-scheme": String,
   "--supermixin": true,
-  "--sync-async": true,
   "--target": String,
   "--verbose": false,
   "--verify": false,
@@ -289,12 +288,9 @@ ProcessedOptions analyzeCommandLine(
 
   final bool legacyMode = options["--legacy-mode"];
 
-  final bool syncAsync = options["--sync-async"];
-
   final String targetName = options["--target"] ?? "vm";
 
-  final TargetFlags flags =
-      new TargetFlags(legacyMode: legacyMode, syncAsync: syncAsync);
+  final TargetFlags flags = new TargetFlags(legacyMode: legacyMode);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {

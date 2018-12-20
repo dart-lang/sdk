@@ -721,8 +721,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
   if (Snapshot::IncludesCode(kind)) {
     // enabling assertions affects deopt ids.
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    // sync-async affects deopt_ids.
-    buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
     if (kind == Snapshot::kFullAOT) {
       ADD_FLAG(use_bare_instructions, use_bare_instructions,
                FLAG_use_bare_instructions);

@@ -287,7 +287,7 @@ class CompilerOptions implements DiagnosticOptions {
   // TODO(sigmund): delete these as we delete the underlying features
 
   /// Whether to start `async` functions synchronously.
-  bool startAsyncSynchronously = false;
+  bool startAsyncSynchronously = true;
 
   /// If specified, a bundle of optimizations to enable (or disable).
   int optimizationLevel = null;
@@ -359,7 +359,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
-      ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
+      ..startAsyncSynchronously = true
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')

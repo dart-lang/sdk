@@ -71,8 +71,6 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addFlag('link-platform',
       help: 'Include platform into resulting kernel file.', defaultsTo: true);
-  args.addFlag('sync-async',
-      help: 'Start `async` functions synchronously', defaultsTo: true);
   args.addFlag('embed-sources',
       help: 'Embed source files in the generated kernel component',
       defaultsTo: true);
