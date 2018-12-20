@@ -15,6 +15,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../ir/static_type_provider.dart';
+import '../ir/util.dart';
 import '../js_backend/backend.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
@@ -27,10 +28,6 @@ import 'inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
-
-/// Whether the static type of property gets and method invocations is used
-/// to narrow the inferred type in strong mode.
-bool useStaticResultTypes = false;
 
 /// [KernelTypeGraphBuilder] constructs a type-inference graph for a particular
 /// element.
@@ -799,7 +796,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, info.callMethod, arguments);
-      if (useStaticResultTypes) {
+      FunctionType functionType =
+          _elementMap.elementEnvironment.getFunctionType(info.callMethod);
+      if (functionType.returnType.containsFreeTypeVariables) {
+        // The return type varies with the call site so we narrow the static
+        // return type.
         type = _types.narrowType(type, _getStaticType(node));
       }
       return type;
@@ -824,7 +825,28 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
     TypeInformation type = handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
-    if (useStaticResultTypes) {
+    ir.Member interfaceTarget = node.interfaceTarget;
+    if (interfaceTarget != null) {
+      if (interfaceTarget is ir.Procedure &&
+          (interfaceTarget.kind == ir.ProcedureKind.Method ||
+              interfaceTarget.kind == ir.ProcedureKind.Operator)) {
+        // Pull the type from kernel (instead of from the J-model) because the
+        // interface target might be abstract and therefore not part of the
+        // J-model.
+        ir.DartType returnType = interfaceTarget.function.returnType;
+        // The return type varies with the call site so we narrow the static
+        // return type.
+        if (containsFreeVariables(returnType)) {
+          type = _types.narrowType(type, _getStaticType(node));
+        }
+      } else {
+        // The return type is thrown away when using [TypeMask]s; narrow to the
+        // static return type.
+        type = _types.narrowType(type, _getStaticType(node));
+      }
+    } else {
+      // We don't have a known target but the static type hold some information
+      // if it is a function type.
       type = _types.narrowType(type, _getStaticType(node));
     }
     return type;
@@ -1225,17 +1247,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else if (member.isConstructor) {
       return handleConstructorInvoke(
           node, node.arguments, selector, mask, member, arguments);
-    } else if (member.isFunction) {
+    } else {
+      assert(member.isFunction, "Unexpected static invocation target: $member");
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, member, arguments);
-      if (useStaticResultTypes) {
-        type = _types.narrowType(type, _getStaticType(node));
-      }
-      return type;
-    } else {
-      TypeInformation type =
-          handleClosureCall(node, selector, mask, member, arguments);
-      if (useStaticResultTypes) {
+      FunctionType functionType =
+          _elementMap.elementEnvironment.getFunctionType(member);
+      if (functionType.returnType.containsFreeTypeVariables) {
+        // The return type varies with the call site so we narrow the static
+        // return type.
         type = _types.narrowType(type, _getStaticType(node));
       }
       return type;
@@ -1252,12 +1272,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitStaticGet(ir.StaticGet node) {
     MemberEntity member = _elementMap.getMember(node.target);
     AbstractValue mask = _memberData.typeOfSend(node);
-    TypeInformation type = handleStaticInvoke(
+    return handleStaticInvoke(
         node, new Selector.getter(member.memberName), mask, member, null);
-    if (useStaticResultTypes) {
-      type = _types.narrowType(type, _getStaticType(node));
-    }
-    return type;
   }
 
   @override
@@ -1273,37 +1289,41 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return rhsType;
   }
 
-  @override
-  TypeInformation visitPropertyGet(ir.PropertyGet node) {
-    TypeInformation receiverType = visit(node.receiver);
+  TypeInformation handlePropertyGet(
+      ir.TreeNode node, TypeInformation receiverType, ir.Member interfaceTarget,
+      {bool isThis}) {
     Selector selector = _elementMap.getSelector(node);
     AbstractValue mask = _memberData.typeOfSend(node);
-    // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
-    // type for --trust-type-annotations/strong-mode.
-    if (node.receiver is ir.ThisExpression) {
+    if (isThis) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
     TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
-    if (useStaticResultTypes) {
-      type = _types.narrowType(type, _getStaticType(node));
+    if (interfaceTarget != null) {
+      // Pull the type from kernel (instead of from the J-model) because the
+      // interface target might be abstract and therefore not part of the
+      // J-model.
+      ir.DartType resultType = interfaceTarget.getterType;
+      // The result type varies with the call site so we narrow the static
+      // result type.
+      if (containsFreeVariables(resultType)) {
+        type = _types.narrowType(type, _getStaticType(node));
+      }
     }
     return type;
   }
 
   @override
+  TypeInformation visitPropertyGet(ir.PropertyGet node) {
+    TypeInformation receiverType = visit(node.receiver);
+    return handlePropertyGet(node, receiverType, node.interfaceTarget,
+        isThis: node.receiver is ir.ThisExpression);
+  }
+
+  @override
   TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
     TypeInformation receiverType = thisType;
-    MemberEntity member = _elementMap.getMember(node.target);
-    AbstractValue mask = _memberData.typeOfSend(node);
-    // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
-    Selector selector = new Selector.getter(member.memberName);
-    _checkIfExposesThis(selector, _types.newTypedSelector(receiverType, mask));
-    TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
-    if (useStaticResultTypes) {
-      type = _types.narrowType(type, _getStaticType(node));
-    }
-    return type;
+    return handlePropertyGet(node, receiverType, node.target, isThis: true);
   }
 
   @override
@@ -1676,18 +1696,28 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     MemberEntity member =
         _elementMap.getSuperMember(_analyzedMember, node.name);
+    assert(member != null, "No member found for super property get: $node");
     AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
-    if (member == null) {
-      return handleSuperNoSuchMethod(node, selector, mask, null);
-    } else {
-      TypeInformation type =
-          handleStaticInvoke(node, selector, mask, member, null);
-      if (useStaticResultTypes) {
+    TypeInformation type =
+        handleStaticInvoke(node, selector, mask, member, null);
+    if (member.isGetter) {
+      FunctionType functionType =
+          _elementMap.elementEnvironment.getFunctionType(member);
+      if (functionType.returnType.containsFreeTypeVariables) {
+        // The result type varies with the call site so we narrow the static
+        // result type.
         type = _types.narrowType(type, _getStaticType(node));
       }
-      return type;
+    } else if (member.isField) {
+      DartType fieldType = _elementMap.elementEnvironment.getFieldType(member);
+      if (fieldType.containsFreeTypeVariables) {
+        // The result type varies with the call site so we narrow the static
+        // result type.
+        type = _types.narrowType(type, _getStaticType(node));
+      }
     }
+    return type;
   }
 
   @override
@@ -1699,15 +1729,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeInformation rhsType = visit(node.value);
     MemberEntity member =
         _elementMap.getSuperMember(_analyzedMember, node.name, setter: true);
+    assert(member != null, "No member found for super property set: $node");
     AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
-    if (member == null) {
-      return handleSuperNoSuchMethod(node, selector, mask, arguments);
-    } else {
-      handleStaticInvoke(node, selector, mask, member, arguments);
-      return rhsType;
-    }
+    handleStaticInvoke(node, selector, mask, member, arguments);
+    return rhsType;
   }
 
   @override
@@ -1722,25 +1749,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = _elementMap.getSelector(node);
     AbstractValue mask = _memberData.typeOfSend(node);
     if (member == null) {
+      // TODO(johnniwinther): This shouldn't be necessary.
       return handleSuperNoSuchMethod(node, selector, mask, arguments);
-    } else if (member.isFunction) {
+    } else {
+      assert(member.isFunction, "Unexpected super invocation target: $member");
       if (isIncompatibleInvoke(member, arguments)) {
         return handleSuperNoSuchMethod(node, selector, mask, arguments);
       } else {
         TypeInformation type =
             handleStaticInvoke(node, selector, mask, member, arguments);
-        if (useStaticResultTypes) {
+        FunctionType functionType =
+            _elementMap.elementEnvironment.getFunctionType(member);
+        if (functionType.returnType.containsFreeTypeVariables) {
+          // The return type varies with the call site so we narrow the static
+          // return type.
           type = _types.narrowType(type, _getStaticType(node));
         }
         return type;
       }
-    } else {
-      TypeInformation type =
-          handleClosureCall(node, selector, mask, member, arguments);
-      if (useStaticResultTypes) {
-        type = _types.narrowType(type, _getStaticType(node));
-      }
-      return type;
     }
   }
 

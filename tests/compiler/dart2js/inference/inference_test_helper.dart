@@ -14,7 +14,6 @@ import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/inferrer/builder_kernel.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -38,9 +37,7 @@ runTests(List<String> args, [int shardIndex]) {
         options: [stopAfterTypeInference],
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
-        shards: shardIndex != null ? 2 : 1, onTest: (Uri uri) {
-      useStaticResultTypes = uri.path.endsWith('/use_static_types.dart');
-    });
+        shards: shardIndex != null ? 2 : 1);
   });
 }
 

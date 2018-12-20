@@ -142,3 +142,68 @@ ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
   }
   return null;
 }
+
+class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
+  const _FreeVariableVisitor();
+
+  bool visit(ir.DartType type) {
+    if (type != null) return type.accept(this);
+    return false;
+  }
+
+  bool visitList(List<ir.DartType> types) {
+    for (ir.DartType type in types) {
+      if (visit(type)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypedefType(ir.TypedefType node) {
+    return visitList(node.typeArguments);
+  }
+
+  @override
+  bool visitTypeParameterType(ir.TypeParameterType node) {
+    return true;
+  }
+
+  @override
+  bool visitFunctionType(ir.FunctionType node) {
+    if (visit(node.returnType)) return true;
+    if (visitList(node.positionalParameters)) return true;
+    for (ir.NamedType namedType in node.namedParameters) {
+      if (visit(namedType.type)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitInterfaceType(ir.InterfaceType node) {
+    return visitList(node.typeArguments);
+  }
+
+  @override
+  bool visitBottomType(ir.BottomType node) => false;
+
+  @override
+  bool visitVoidType(ir.VoidType node) => false;
+
+  @override
+  bool visitDynamicType(ir.DynamicType node) => false;
+
+  @override
+  bool visitInvalidType(ir.InvalidType node) => false;
+
+  @override
+  bool defaultDartType(ir.DartType node) {
+    throw new UnsupportedError("FreeVariableVisitor.defaultTypeNode");
+  }
+}
+
+/// Returns `true` if [type] contains a type variable.
+///
+/// All type variables (class type variables, generic method type variables,
+/// and function type variables) are considered.
+bool containsFreeVariables(ir.DartType type) =>
+    type.accept(const _FreeVariableVisitor());
