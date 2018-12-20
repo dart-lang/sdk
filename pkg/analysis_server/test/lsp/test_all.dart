@@ -18,6 +18,8 @@ import 'signature_help_test.dart' as signature_help_test;
 import 'code_actions_source_test.dart' as source_code_action_tests;
 import 'code_actions_fixes_test.dart' as fixes_code_action_tests;
 import 'code_actions_assists_test.dart' as assists_code_action_tests;
+import '../src/lsp/lsp_packet_transformer_test.dart'
+    as packet_transformer_tests;
 
 main() {
   defineReflectiveSuite(() {
@@ -35,5 +37,6 @@ main() {
     source_code_action_tests.main();
     fixes_code_action_tests.main();
     assists_code_action_tests.main();
+    packet_transformer_tests.main();
   }, name: 'lsp');
 }

@@ -21,20 +21,27 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     StreamController<String> _output;
     final buffer = <int>[];
     bool isParsingHeaders = true;
-    int contentLength;
+    LspHeaders headers;
     _output = StreamController<String>(
       onListen: () {
         input = stream.expand((b) => b).listen(
           (codeUnit) {
             buffer.add(codeUnit);
             if (isParsingHeaders && _endsWithCrLfCrLf(buffer)) {
-              contentLength = _parseContentLength(buffer);
+              headers = _parseHeaders(buffer);
               buffer.clear();
               isParsingHeaders = false;
-            } else if (!isParsingHeaders && buffer.length >= contentLength) {
-              // LSP Spec: "It defaults to utf-8, which is the only encoding
-              // supported right now".
-              _output.add(utf8.decode(buffer));
+            } else if (!isParsingHeaders &&
+                buffer.length >= headers.contentLength) {
+              // UTF-8 is the default - and only supported - encoding for LSP.
+              // The string 'utf8' is valid since it was published in the original spec.
+              // Any other encodings should be rejected with an error.
+              if ([null, 'utf-8', 'utf8']
+                  .contains(headers.encoding?.toLowerCase())) {
+                _output.add(utf8.decode(buffer));
+              } else {
+                _output.addError(new InvalidEncodingError(headers.rawHeaders));
+              }
               buffer.clear();
               isParsingHeaders = true;
             }
@@ -61,13 +68,41 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
   }
 
   /// Decodes [buffer] into a String and returns the 'Content-Length' header value.
-  static int _parseContentLength(List<int> buffer) {
+  static LspHeaders _parseHeaders(List<int> buffer) {
     // Headers are specified as always ASCII in LSP.
-    var asString = ascii.decode(buffer);
-    var headers = asString.split('\r\n');
-    var lengthHeader =
+    final asString = ascii.decode(buffer);
+    final headers = asString.split('\r\n');
+    final lengthHeader =
         headers.firstWhere((h) => h.startsWith('Content-Length'));
-    var length = lengthHeader.split(':').last.trim();
-    return int.parse(length);
+    final length = lengthHeader.split(':').last.trim();
+    final contentTypeHeader = headers
+        .firstWhere((h) => h.startsWith('Content-Type'), orElse: () => null);
+    final encoding = _extractEncoding(contentTypeHeader);
+    return new LspHeaders(asString, int.parse(length), encoding);
   }
+
+  static String _extractEncoding(String header) {
+    final charset = header
+        ?.split(';')
+        ?.map((s) => s.trim().toLowerCase())
+        ?.firstWhere((s) => s.startsWith('charset='), orElse: () => null);
+
+    return charset == null ? null : charset.split('=')[1];
+  }
+}
+
+class LspHeaders {
+  final String rawHeaders;
+  final int contentLength;
+  final String encoding;
+  LspHeaders(this.rawHeaders, this.contentLength, this.encoding);
+}
+
+class InvalidEncodingError {
+  final String headers;
+  InvalidEncodingError(this.headers);
+
+  @override
+  String toString() =>
+      'Encoding in supplied headers is not supported.\n\nHeaders:\n$headers';
 }

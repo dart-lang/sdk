@@ -40,13 +40,54 @@ main() {
           .toList();
       expect(output, equals([payload]));
     });
+
+    test('accepts "utf-8" as an encoding', () async {
+      final payload = '{ json payload 🎉 }';
+      final lspPacket =
+          makeLspPacket(payload, 'application/vscode-jsonrpc; charset=utf-8');
+      final output = await new Stream.fromIterable([lspPacket])
+          .transform(new LspPacketTransformer())
+          .toList();
+      expect(output, equals([payload]));
+    });
+
+    test('accepts "utf8" as an encoding', () async {
+      final payload = '{ json payload 🎉 }';
+      final lspPacket =
+          makeLspPacket(payload, 'application/vscode-jsonrpc; charset=utf8');
+      final output = await new Stream.fromIterable([lspPacket])
+          .transform(new LspPacketTransformer())
+          .toList();
+      expect(output, equals([payload]));
+    });
+
+    test('accepts no encoding', () async {
+      final payload = '{ json payload 🎉 }';
+      final lspPacket = makeLspPacket(payload, 'application/vscode-jsonrpc;');
+      final output = await new Stream.fromIterable([lspPacket])
+          .transform(new LspPacketTransformer())
+          .toList();
+      expect(output, equals([payload]));
+    });
+
+    test('rejects invalid encoding', () async {
+      final payload = '{ json payload }';
+      final lspPacket =
+          makeLspPacket(payload, 'application/vscode-jsonrpc; charset=ascii');
+      final outputStream = await new Stream.fromIterable([lspPacket])
+          .transform(new LspPacketTransformer());
+
+      expectLater(outputStream.toList(),
+          throwsA(const TypeMatcher<InvalidEncodingError>()));
+    });
   });
 }
 
 List<int> makeLspPacket(String json, [String contentType]) {
   final utf8EncodedBody = utf8.encode(json);
-  final header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
-      'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
+  final header = 'Content-Length: ${utf8EncodedBody.length}' +
+      (contentType != null ? '\r\nContent-Type: $contentType' : '') +
+      '\r\n\r\n';
   final asciiEncodedHeader = ascii.encode(header);
 
   return asciiEncodedHeader.followedBy(utf8EncodedBody).toList();

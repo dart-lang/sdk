@@ -332,15 +332,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void sendServerErrorNotification(String message, exception, stackTrace) {
     final fullError = new StringBuffer();
-    fullError.writeln(message);
-    if (exception != null) {
-      fullError.writeln(exception.toString());
-    }
+
+    fullError.writeln(exception == null ? message : '$message: $exception');
+
+    // Show message (without stack) to the user.
+    showError(fullError.toString());
+
     if (stackTrace != null) {
       fullError.writeln(stackTrace.toString());
     }
-    showError(message); // Show message to the user.
-    logError(fullError.toString()); // Log the full message.
+    // Log the full message since showMessage above may be truncated or formatted
+    // badly (eg. VS Code takes the newlines out).
+    logError(fullError.toString());
   }
 
   void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,
