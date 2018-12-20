@@ -403,6 +403,11 @@ class PageSpace {
   // Have threads release marking stack blocks, etc.
   void AbandonMarkingForShutdown();
 
+  bool enable_concurrent_mark() const { return enable_concurrent_mark_; }
+  void set_enable_concurrent_mark(bool enable_concurrent_mark) {
+    enable_concurrent_mark_ = enable_concurrent_mark;
+  }
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -505,6 +510,8 @@ class PageSpace {
   int64_t gc_time_micros_;
   intptr_t collections_;
   intptr_t mark_words_per_micro_;
+
+  bool enable_concurrent_mark_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;

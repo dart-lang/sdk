@@ -697,6 +697,18 @@ void IsolateReloadContext::Reload(bool force_reload,
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable(I);
 
+  // Wait for any concurrent marking tasks to finish and turn off the
+  // concurrent marker during reload as we might be allocating new instances
+  // (constants) when loading the new kernel file and this could cause
+  // inconsistency between the saved class table and the new class table.
+  Heap* heap = thread->heap();
+  const bool old_concurrent_mark_flag =
+      heap->old_space()->enable_concurrent_mark();
+  if (old_concurrent_mark_flag) {
+    heap->WaitForMarkerTasks(thread);
+    heap->old_space()->set_enable_concurrent_mark(false);
+  }
+
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
   // Deoptimize all code that had optimizing decisions that are dependent on
@@ -757,6 +769,9 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   // Re-enable the background compiler. Do this before propagating any errors.
   BackgroundCompiler::Enable(I);
+
+  // Reenable concurrent marking if it was initially on.
+  heap->old_space()->set_enable_concurrent_mark(old_concurrent_mark_flag);
 
   if (result.IsUnwindError()) {
     if (thread->top_exit_frame_info() == 0) {

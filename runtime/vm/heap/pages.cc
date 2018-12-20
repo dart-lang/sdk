@@ -1017,7 +1017,7 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
 #else
-    if (!FLAG_concurrent_mark) return;    // Disabled.
+    if (!enable_concurrent_mark()) return;  // Disabled.
     if (FLAG_marker_tasks == 0) return;   // Disabled.
 #endif
   }
