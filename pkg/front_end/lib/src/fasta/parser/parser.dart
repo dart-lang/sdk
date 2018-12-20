@@ -1194,7 +1194,10 @@ class Parser {
   }
 
   Token skipFormalParameters(Token token, MemberKind kind) {
-    token = token.next;
+    return skipFormalParametersRest(token.next, kind);
+  }
+
+  Token skipFormalParametersRest(Token token, MemberKind kind) {
     assert(optional('(', token));
     // TODO(ahe): Shouldn't this be `beginFormalParameters`?
     listener.beginOptionalFormalParameters(token);
@@ -1212,9 +1215,9 @@ class Parser {
     Token next = token.next;
     if (!optional('(', next)) {
       reportRecoverableError(next, missingParameterMessage(kind));
-      rewriter.insertParens(token, false);
+      next = rewriter.insertParens(token, false);
     }
-    return parseFormalParameters(token, kind);
+    return parseFormalParametersRest(next, kind);
   }
 
   /// Parses the formal parameter list of a function given that the left
@@ -1226,6 +1229,11 @@ class Parser {
     return parseFormalParametersRest(token.next, kind);
   }
 
+  /// Parses the formal parameter list of a function given that the left
+  /// parenthesis passed in as [token].
+  ///
+  /// If `kind == MemberKind.GeneralizedFunctionType`, then names may be
+  /// omitted (except for named arguments). Otherwise, types may be omitted.
   Token parseFormalParametersRest(Token token, MemberKind kind) {
     Token begin = token;
     assert(optional('(', token));
@@ -4113,17 +4121,16 @@ class Parser {
     return token;
   }
 
-  Token parseParenthesizedCondition(Token token) {
-    if (!optional('(', token.next)) {
+  Token ensureParenthesizedCondition(Token token) {
+    Token openParen = token.next;
+    if (!optional('(', openParen)) {
       // Recover
-      Token next = token.next;
       reportRecoverableError(
-          next, fasta.templateExpectedToken.withArguments('('));
-      rewriter.insertParens(token, false);
+          openParen, fasta.templateExpectedToken.withArguments('('));
+      openParen = rewriter.insertParens(token, false);
     }
-    Token begin = token.next;
-    token = parseExpressionInParenthesis(token);
-    listener.handleParenthesizedCondition(begin);
+    token = parseExpressionInParenthesisRest(openParen);
+    listener.handleParenthesizedCondition(openParen);
     return token;
   }
 
@@ -4135,7 +4142,10 @@ class Parser {
   }
 
   Token parseExpressionInParenthesis(Token token) {
-    token = token.next;
+    return parseExpressionInParenthesisRest(token.next);
+  }
+
+  Token parseExpressionInParenthesisRest(Token token) {
     assert(optional('(', token));
     BeginToken begin = token;
     token = parseExpression(token);
@@ -4533,15 +4543,14 @@ class Parser {
     return parseSend(token, context);
   }
 
-  Token parseRequiredArguments(Token token) {
+  Token ensureArguments(Token token) {
     Token next = token.next;
     if (!optional('(', next)) {
       reportRecoverableError(
-          token, fasta.templateExpectedButGot.withArguments('('));
-      rewriter.insertParens(token, false);
+          token, fasta.templateExpectedAfterButGot.withArguments('('));
+      next = rewriter.insertParens(token, false);
     }
-    token = parseArguments(token);
-    return token;
+    return parseArgumentsRest(next);
   }
 
   Token parseConstructorInvocationArguments(Token token) {
@@ -4551,7 +4560,7 @@ class Parser {
       TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
       if (typeArg == noTypeParamOrArg) {
         reportRecoverableError(
-            token, fasta.templateExpectedButGot.withArguments('('));
+            token, fasta.templateExpectedAfterButGot.withArguments('('));
       } else {
         reportRecoverableError(
             token, fasta.messageConstructorWithTypeArguments);
@@ -4560,11 +4569,10 @@ class Parser {
         next = token.next;
       }
       if (!optional('(', next)) {
-        rewriter.insertParens(token, false);
+        next = rewriter.insertParens(token, false);
       }
     }
-    token = parseArguments(token);
-    return token;
+    return parseArgumentsRest(next);
   }
 
   /// ```
@@ -4836,7 +4844,11 @@ class Parser {
   /// ;
   /// ```
   Token parseArguments(Token token) {
-    Token begin = token = token.next;
+    return parseArgumentsRest(token.next);
+  }
+
+  Token parseArgumentsRest(Token token) {
+    Token begin = token;
     assert(optional('(', begin));
     listener.beginArguments(begin);
     int argumentCount = 0;
@@ -5174,7 +5186,7 @@ class Parser {
     Token ifToken = token.next;
     assert(optional('if', ifToken));
     listener.beginIfStatement(ifToken);
-    token = parseParenthesizedCondition(ifToken);
+    token = ensureParenthesizedCondition(ifToken);
     listener.beginThenStatement(token.next);
     token = parseStatement(token);
     listener.endThenStatement(token);
@@ -5392,7 +5404,7 @@ class Parser {
     Token whileToken = token.next;
     assert(optional('while', whileToken));
     listener.beginWhileStatement(whileToken);
-    token = parseParenthesizedCondition(whileToken);
+    token = ensureParenthesizedCondition(whileToken);
     listener.beginWhileStatementBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -5425,7 +5437,7 @@ class Parser {
       whileToken = rewriter.insertToken(token,
           new SyntheticKeywordToken(Keyword.WHILE, whileToken.charOffset));
     }
-    token = parseParenthesizedCondition(whileToken);
+    token = ensureParenthesizedCondition(whileToken);
     token = ensureSemicolon(token);
     listener.endDoWhileStatement(doToken, whileToken, token);
     return token;
@@ -5682,7 +5694,7 @@ class Parser {
     Token switchKeyword = token.next;
     assert(optional('switch', switchKeyword));
     listener.beginSwitchStatement(switchKeyword);
-    token = parseParenthesizedCondition(switchKeyword);
+    token = ensureParenthesizedCondition(switchKeyword);
     LoopState savedLoopState = loopState;
     if (loopState == LoopState.OutsideLoop) {
       loopState = LoopState.InsideSwitch;
