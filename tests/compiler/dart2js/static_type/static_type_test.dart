@@ -41,8 +41,7 @@ class StaticTypeDataComputer extends DataComputer {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
       _typeEnvironment = new ir.TypeEnvironment(
-          new ir.CoreTypes(component), new ir.ClassHierarchy(component),
-          strongMode: true);
+          new ir.CoreTypes(component), new ir.ClassHierarchy(component));
     }
     return _typeEnvironment;
   }

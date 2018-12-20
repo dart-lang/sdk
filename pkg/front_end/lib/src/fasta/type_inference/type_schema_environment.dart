@@ -91,7 +91,7 @@ class TypeConstraint {
 
 class TypeSchemaEnvironment extends TypeEnvironment {
   TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : super(coreTypes, hierarchy, strongMode: true);
+      : super(coreTypes, hierarchy);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
   void addLowerBound(TypeConstraint constraint, DartType lower) {
@@ -744,7 +744,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       }
       return new InterfaceType(type1.classNode, tArgs);
     }
-    return hierarchy.getClassicLeastUpperBound(type1, type2);
+    return hierarchy.getLegacyLeastUpperBound(type1, type2);
   }
 
   DartType _typeParameterStandardUpperBound(DartType type1, DartType type2) {

@@ -382,8 +382,7 @@ Future _performConstantEvaluation(
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
     final hierarchy = new ClassHierarchy(component);
-    final typeEnvironment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
+    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).

@@ -13,7 +13,10 @@ typedef void ErrorHandler(TreeNode node, String message);
 class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
-  final bool strongMode;
+
+  @override
+  final bool legacyMode;
+
   InterfaceType thisType;
 
   DartType returnType;
@@ -24,7 +27,7 @@ class TypeEnvironment extends SubtypeTester {
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
 
-  TypeEnvironment(this.coreTypes, this.hierarchy, {this.strongMode: false});
+  TypeEnvironment(this.coreTypes, this.hierarchy, {this.legacyMode: false});
 
   InterfaceType get objectType => coreTypes.objectClass.rawType;
   InterfaceType get nullType => coreTypes.nullClass.rawType;
@@ -167,12 +170,12 @@ abstract class SubtypeTester {
   ClassHierarchy get hierarchy;
   Class get futureOrClass;
   InterfaceType futureType(DartType type);
-  bool get strongMode;
+  bool get legacyMode;
 
   /// Determines if the given type is at the bottom of the type hierarchy.  May
   /// be overridden in subclasses.
   bool isBottom(DartType type) =>
-      type is BottomType || (strongMode && type == nullType);
+      type is BottomType || (!legacyMode && type == nullType);
 
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.
@@ -188,7 +191,7 @@ abstract class SubtypeTester {
     if (isTop(supertype)) return true;
 
     // Handle FutureOr<T> union type.
-    if (strongMode &&
+    if (!legacyMode &&
         subtype is InterfaceType &&
         identical(subtype.classNode, futureOrClass)) {
       var subtypeArg = subtype.typeArguments[0];
@@ -206,7 +209,7 @@ abstract class SubtypeTester {
           isSubtypeOf(subtypeArg, supertype);
     }
 
-    if (strongMode &&
+    if (!legacyMode &&
         supertype is InterfaceType &&
         identical(supertype.classNode, futureOrClass)) {
       // given t2 is Future<A> | A, then:

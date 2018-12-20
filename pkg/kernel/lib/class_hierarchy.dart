@@ -58,11 +58,11 @@ abstract class ClassHierarchy {
   /// q be the largest number such that S_q has cardinality one.  The least
   /// upper bound of I and J is the sole element of S_q.
   ///
-  /// This is called the "classic" least upper bound to distinguish it from the
-  /// strong mode least upper bound, which has special behaviors in the case
-  /// where one type is a subtype of the other, or where both types are based on
-  /// the same class.
-  InterfaceType getClassicLeastUpperBound(
+  /// This is called the "legacy" least upper bound to distinguish it from the
+  /// Dart 2 least upper bound, which has special behaviors in the case where
+  /// one type is a subtype of the other, or where both types are based on the
+  /// same class.
+  InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
@@ -506,7 +506,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getClassicLeastUpperBound(
+  InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort

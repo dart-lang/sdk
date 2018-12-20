@@ -1058,8 +1058,7 @@ class JsKernelToElementMap
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
           new ir.CoreTypes(programEnv.mainComponent),
-          new ir.ClassHierarchy(programEnv.mainComponent),
-          strongMode: true);
+          new ir.ClassHierarchy(programEnv.mainComponent));
     }
     return _typeEnvironment;
   }
@@ -1100,8 +1099,7 @@ class JsKernelToElementMap
         // We need a copy of the type environment since the `thisType` field
         // is holds state, making the environment contextually bound.
         new ir.TypeEnvironment(
-            typeEnvironment.coreTypes, typeEnvironment.hierarchy,
-            strongMode: true)
+            typeEnvironment.coreTypes, typeEnvironment.hierarchy)
           ..thisType = thisType,
         cachedStaticTypes);
   }

@@ -40,7 +40,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
   hierarchy ??= new ClassHierarchy(component);
 
   final typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy, strongMode: !legacyMode);
+      new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
   transformLibraries(component.libraries, backend, coreTypes, typeEnvironment,
       keepFields: keepFields,
@@ -463,8 +463,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitIntLiteral(IntLiteral node) {
-    // The frontend will ensure the integer literals are in signed 64-bit range
-    // in strong mode.
+    // The frontend will ensure the integer literals are in signed 64-bit
+    // range.
     return canonicalize(new IntConstant(node.value));
   }
 

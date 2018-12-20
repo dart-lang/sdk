@@ -53,8 +53,7 @@ void generateBytecode(
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  final typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
+  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   final constantsBackend =
       new VmConstantsBackend(environmentDefines, coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);

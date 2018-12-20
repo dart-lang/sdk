@@ -716,8 +716,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
           new ir.CoreTypes(env.mainComponent),
-          new ir.ClassHierarchy(env.mainComponent),
-          strongMode: true);
+          new ir.ClassHierarchy(env.mainComponent));
     }
     return _typeEnvironment;
   }

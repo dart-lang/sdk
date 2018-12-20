@@ -10,8 +10,7 @@ import 'package:kernel/naive_type_checker.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
 
 void usage() {
-  print("Type checker that can be used to find strong mode");
-  print("violations in the Kernel files.");
+  print("Type checker that can be used to find type errors in Kernel files.");
   print("");
   print("Usage: dart <script> dillFile.dill");
   print("The given argument should be an existing file");
@@ -24,7 +23,7 @@ void main(List<String> args) {
       requireFileExists: true);
   final binary = CommandLineHelper.tryLoadDill(args[0]);
   ErrorFormatter errorFormatter = new ErrorFormatter();
-  new StrongModeTypeChecker(errorFormatter, binary)..checkComponent(binary);
+  new NaiveTypeChecker(errorFormatter, binary)..checkComponent(binary);
   if (errorFormatter.numberOfFailures > 0) {
     errorFormatter.failures.forEach(print);
     print('------- Found ${errorFormatter.numberOfFailures} errors -------');

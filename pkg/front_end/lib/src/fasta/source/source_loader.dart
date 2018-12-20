@@ -930,7 +930,7 @@ class SourceLoader<L> extends Loader<L> {
       InterfaceResolver interfaceResolver = new InterfaceResolver(
           null,
           new TypeEnvironment(coreTypes, hierarchy,
-              strongMode: !target.legacyMode),
+              legacyMode: target.legacyMode),
           null,
           target.legacyMode);
       for (int i = 0; i < sourceClasses.length; i++) {

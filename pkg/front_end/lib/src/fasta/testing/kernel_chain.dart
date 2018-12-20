@@ -21,7 +21,7 @@ import 'package:kernel/error_formatter.dart' show ErrorFormatter;
 
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 
-import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
+import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
@@ -105,7 +105,7 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
       Component component, ChainContext context) async {
     var errorFormatter = new ErrorFormatter();
     var checker =
-        new StrongModeTypeChecker(errorFormatter, component, ignoreSdk: true);
+        new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
       return pass(component);

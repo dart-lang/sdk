@@ -2161,15 +2161,15 @@ enum AsyncMarker {
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   DartType getStaticType(TypeEnvironment types);
 
   /// Returns the static type of the expression as an instantiation of
   /// [superclass].
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   ///
   /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].

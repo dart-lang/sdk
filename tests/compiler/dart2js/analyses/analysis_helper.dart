@@ -72,8 +72,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
 
   StaticTypeVisitorBase(ir.Component component)
       : super(new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component),
-            strongMode: true));
+            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
 
   @override
   bool get useAsserts => false;

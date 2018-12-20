@@ -9,7 +9,7 @@ import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 
-/// Performs strong-mode type checking on the kernel IR.
+/// Performs type checking on the kernel IR.
 ///
 /// A concrete subclass of [TypeChecker] must implement [checkAssignable] and
 /// [fail] in order to deal with subtyping requirements and error handling.
@@ -22,7 +22,7 @@ abstract class TypeChecker {
   TypeChecker(this.coreTypes, this.hierarchy,
       {bool legacyMode: false, this.ignoreSdk: true})
       : environment =
-            new TypeEnvironment(coreTypes, hierarchy, strongMode: !legacyMode);
+            new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
   void checkComponent(Component component) {
     for (var library in component.libraries) {
