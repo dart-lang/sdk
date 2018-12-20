@@ -807,6 +807,21 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     return result;
   }
 
+  void rotate(int val){
+    if (this.isNotEmpty){
+      if (val > 0){
+        for (var i = 0; i < val; i++) {
+          this.addFirst(this.removeLast());
+        }
+      }
+      if (val < 0){
+        for (var i = 0; i < val.abs(); i++) {
+          this.addLast(this.removeFirst());
+        }
+      }
+    }
+  }
+
   // Internal helper functions.
 
   /**

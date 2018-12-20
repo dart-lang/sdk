@@ -348,6 +348,25 @@ class ListQueueTest extends QueueTest {
     trickyTest();
   }
 
+  void rotateTest(){
+  List<int> initialVals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  List<int> afterRotateRightOnce = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  List<int> afterRotateRightThrice = [7, 8, 9, 10, 1, 2, 3, 4, 5, 6];
+  List<int> afterRotateLeftOnce = [8, 9, 10, 1, 2, 3, 4, 5, 6, 7];
+
+  ListQueue<int> queue = new ListQueue.from(new List.generate(10, (i) => i + 1));
+  Expect.equals(initialVals, new List.from(queue.map((v) => v)));
+  queue.rotate(1);
+  Expect.equals(afterRotateRightOnce, new List.from(queue.map((v) => v)));
+  queue.rotate(3);
+  Expect.equals(afterRotateRightThrice, new List.from(queue.map((v) => v)));
+  queue.rotate(-1);
+  Expect.equals(afterRotateLeftOnce, new List.from(queue.map((v) => v)));
+  queue.rotate(-3);
+  Expect.equals(initialVals, new List.from(queue.map((v) => v)));
+
+  }
+
   void trickyTest() {
     // Test behavior around the know growing capacities of a ListQueue.
     Queue q = new ListQueue();
