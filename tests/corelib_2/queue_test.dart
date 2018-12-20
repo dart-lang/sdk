@@ -346,6 +346,7 @@ class ListQueueTest extends QueueTest {
   void testMain() {
     super.testMain();
     trickyTest();
+    rotateTest();
   }
 
   void rotateTest(){

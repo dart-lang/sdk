@@ -728,6 +728,21 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     return false;
   }
 
+  void rotate(int val){
+    if (this.isNotEmpty){
+      if (val > 0){
+        for (var i = 0; i < val; i++) {
+          this.addFirst(this.removeLast());
+        }
+      }
+      if (val < 0){
+        for (var i = 0; i < val.abs(); i++) {
+          this.addLast(this.removeFirst());
+        }
+      }
+    }
+  }
+
   void _filterWhere(bool test(E element), bool removeMatching) {
     int modificationCount = _modificationCount;
     int i = _head;
@@ -806,22 +821,6 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     _table[_tail] = null;
     return result;
   }
-
-  void rotate(int val){
-    if (this.isNotEmpty){
-      if (val > 0){
-        for (var i = 0; i < val; i++) {
-          this.addFirst(this.removeLast());
-        }
-      }
-      if (val < 0){
-        for (var i = 0; i < val.abs(); i++) {
-          this.addLast(this.removeFirst());
-        }
-      }
-    }
-  }
-
   // Internal helper functions.
 
   /**
