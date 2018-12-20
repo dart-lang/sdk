@@ -711,7 +711,9 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          Isolate* isolate,
                                          BitVector* modified_libs,
                                          bool force_reload,
-                                         bool* is_empty_program) {
+                                         bool* is_empty_program,
+                                         intptr_t* p_num_classes,
+                                         intptr_t* p_num_procedures) {
   LongJumpScope jump;
   Zone* zone = Thread::Current()->zone();
   if (setjmp(*jump.Set()) == 0) {
@@ -731,40 +733,53 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       return;
     }
 
+    if (p_num_classes != nullptr) {
+      *p_num_classes = 0;
+    }
+    if (p_num_procedures != nullptr) {
+      *p_num_procedures = 0;
+    }
+
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
     *is_empty_program = true;
     if (program->is_single_program()) {
       KernelLoader loader(program);
-      return loader.walk_incremental_kernel(modified_libs, is_empty_program);
-    } else {
-      kernel::Reader reader(program->kernel_data(),
-                            program->kernel_data_size());
-      GrowableArray<intptr_t> subprogram_file_starts;
-      index_programs(&reader, &subprogram_file_starts);
+      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+                                     p_num_classes, p_num_procedures);
+    }
+    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+    GrowableArray<intptr_t> subprogram_file_starts;
+    index_programs(&reader, &subprogram_file_starts);
 
-      // Create "fake programs" for each sub-program.
-      intptr_t subprogram_count = subprogram_file_starts.length() - 1;
-      for (intptr_t i = 0; i < subprogram_count; ++i) {
-        intptr_t subprogram_start = subprogram_file_starts.At(i);
-        intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-        reader.set_raw_buffer(program->kernel_data() + subprogram_start);
-        reader.set_size(subprogram_end - subprogram_start);
-        reader.set_offset(0);
-        Program* subprogram = Program::ReadFrom(&reader);
-        ASSERT(subprogram->is_single_program());
-        KernelLoader loader(subprogram);
-        loader.walk_incremental_kernel(modified_libs, is_empty_program);
-        delete subprogram;
-      }
+    // Create "fake programs" for each sub-program.
+    intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+    for (intptr_t i = 0; i < subprogram_count; ++i) {
+      intptr_t subprogram_start = subprogram_file_starts.At(i);
+      intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+      reader.set_size(subprogram_end - subprogram_start);
+      reader.set_offset(0);
+      Program* subprogram = Program::ReadFrom(&reader);
+      ASSERT(subprogram->is_single_program());
+      KernelLoader loader(subprogram);
+      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+                                     p_num_classes, p_num_procedures);
+      delete subprogram;
     }
   }
 }
 
 void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
-                                           bool* is_empty_program) {
+                                           bool* is_empty_program,
+                                           intptr_t* p_num_classes,
+                                           intptr_t* p_num_procedures) {
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);
+  bool collect_library_stats =
+      p_num_classes != nullptr || p_num_procedures != nullptr;
+  intptr_t num_classes = 0;
+  intptr_t num_procedures = 0;
   Library& lib = Library::Handle(Z);
   for (intptr_t i = 0; i < length; i++) {
     intptr_t kernel_offset = library_offset(i);
@@ -776,6 +791,21 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       // This is a library that already exists so mark it as being modified.
       modified_libs->Add(lib.index());
     }
+    if (collect_library_stats) {
+      intptr_t library_end = library_offset(i + 1);
+      library_kernel_data_ =
+          helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
+
+      LibraryIndex library_index(library_kernel_data_);
+      num_classes += library_index.class_count();
+      num_procedures += library_index.procedure_count();
+    }
+  }
+  if (p_num_classes != nullptr) {
+    *p_num_classes += num_classes;
+  }
+  if (p_num_procedures != nullptr) {
+    *p_num_procedures += num_procedures;
   }
 }
 
