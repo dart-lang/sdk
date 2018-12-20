@@ -2635,13 +2635,6 @@ class Function : public Object {
                               intptr_t num_named_arguments,
                               String* error_message) const;
 
-  // Returns a TypeError if the provided arguments don't match the function
-  // parameter types, NULL otherwise. Assumes AreValidArguments is called first.
-  RawObject* DoArgumentTypesMatch(
-      const Array& args,
-      const ArgumentsDescriptor& arg_names,
-      const TypeArguments& instantiator_type_args) const;
-
   // Returns true if the type argument count, total argument count and the names
   // of optional arguments are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).

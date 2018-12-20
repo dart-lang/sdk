@@ -4233,16 +4233,6 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
   EXPECT_STREQ("myerror", Dart_GetError(result));
 }
 
-TEST_CASE(DartAPI_SetField_BadType) {
-  const char* kScriptChars = "int foo;\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle name = NewString("foo");
-  Dart_Handle result = Dart_SetField(lib, name, Dart_True());
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("type 'bool' is not a subtype of type 'int' of 'foo'",
-                   Dart_GetError(result));
-}
-
 void NativeFieldLookup(Dart_NativeArguments args) {
   UNREACHABLE();
 }
@@ -5225,88 +5215,6 @@ TEST_CASE(DartAPI_Invoke_FunnyArgs) {
   result = Dart_Invoke(lib, func_name, 1, args);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("myerror", Dart_GetError(result));
-}
-
-TEST_CASE(DartAPI_Invoke_BadArgs) {
-  const char* kScriptChars =
-      "class BaseMethods {\n"
-      "  inheritedMethod(int arg) => 'inherited $arg';\n"
-      "  static nonInheritedMethod(int arg) => 'noninherited $arg';\n"
-      "}\n"
-      "\n"
-      "class Methods extends BaseMethods {\n"
-      "  instanceMethod(int arg) => 'instance $arg';\n"
-      "  _instanceMethod(int arg) => 'hidden instance $arg';\n"
-      "  static staticMethod(int arg) => 'static $arg';\n"
-      "  static _staticMethod(int arg) => 'hidden static $arg';\n"
-      "}\n"
-      "\n"
-      "topMethod(int arg) => 'top $arg';\n"
-      "_topMethod(int arg) => 'hidden top $arg';\n"
-      "\n"
-      "Methods test() {\n"
-      "  return new Methods();\n"
-      "}\n";
-
-#if defined(PRODUCT)
-  const char* error_msg =
-      "type '_OneByteString' is not a subtype of type 'int' of 'arg'";
-#else
-  const char* error_msg =
-      "type 'String' is not a subtype of type 'int' of 'arg'";
-#endif  // defined(PRODUCT)
-
-  // Shared setup.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
-  EXPECT_VALID(type);
-  Dart_Handle instance = Dart_Invoke(lib, NewString("test"), 0, NULL);
-  EXPECT_VALID(instance);
-  Dart_Handle args[1];
-  args[0] = NewString("!!!");
-  Dart_Handle result;
-  Dart_Handle name;
-
-  // Instance method.
-  name = NewString("instanceMethod");
-  result = Dart_Invoke(instance, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
-
-  name = PrivateLibName(lib, "_instanceMethod");
-  result = Dart_Invoke(instance, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
-
-  // Inherited method.
-  name = NewString("inheritedMethod");
-  result = Dart_Invoke(instance, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
-
-  // Static method.
-  name = NewString("staticMethod");
-  result = Dart_Invoke(type, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
-
-  // Hidden static method.
-  name = NewString("_staticMethod");
-  result = Dart_Invoke(type, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
-
-  // Top-Level method.
-  name = NewString("topMethod");
-  result = Dart_Invoke(lib, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
-
-  // Hidden top-level method.
-  name = NewString("_topMethod");
-  result = Dart_Invoke(lib, name, 1, args);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING(error_msg, Dart_GetError(result));
 }
 
 TEST_CASE(DartAPI_Invoke_Null) {
