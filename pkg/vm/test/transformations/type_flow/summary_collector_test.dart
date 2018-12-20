@@ -54,9 +54,8 @@ runTestCase(Uri source) async {
   final Library library = component.mainMethod.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
-  final typeEnvironment = new TypeEnvironment(
-      coreTypes, new ClassHierarchy(component),
-      legacyMode: true);
+  final typeEnvironment =
+      new TypeEnvironment(coreTypes, new ClassHierarchy(component));
 
   final actual =
       new PrintSummaries(target, typeEnvironment, coreTypes).print(library);
