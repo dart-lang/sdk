@@ -32,8 +32,7 @@ import 'package:kernel/ast.dart'
         Arguments,
         VariableDeclaration;
 
-import 'package:kernel/ast.dart'
-    show FunctionType, NamedType, TypeParameterType;
+import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -65,14 +64,13 @@ import '../fasta_codes.dart'
         messagePatchDeclarationOrigin,
         noLength,
         templateDuplicatedDeclarationUse,
-        templateFactoryRedirecteeHasTooFewPositionalParameters,
-        templateFactoryRedirecteeInvalidReturnType,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
+        templateIncompatibleRedirecteeFunctionType,
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
@@ -90,10 +88,6 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
         templateRedirectingFactoryIncompatibleTypeArgument,
-        templateRedirectingFactoryInvalidNamedParameterType,
-        templateRedirectingFactoryInvalidPositionalParameterType,
-        templateRedirectingFactoryMissingNamedParameter,
-        templateRedirectingFactoryProvidesTooFewRequiredParameters,
         templateRedirectionTargetNotFound,
         templateTypeArgumentMismatch;
 
@@ -1604,144 +1598,14 @@ abstract class KernelClassBuilder
     // happened during [_computeRedirecteeType].
     if (redirecteeType == null) return;
 
-    // Check whether [redirecteeType] <: [factoryType]. In the following let
-    //     [factoryType    = (S_1, ..., S_i, {S_(i+1), ..., S_n}) -> S']
-    //     [redirecteeType = (T_1, ..., T_j, {T_(j+1), ..., T_m}) -> T'].
-
-    // Ensure that any extra parameters that [redirecteeType] might have are
-    // optional.
-    if (redirecteeType.requiredParameterCount >
-        factoryType.requiredParameterCount) {
+    // Check whether [redirecteeType] <: [factoryType].
+    if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType)) {
       addProblem(
-          templateRedirectingFactoryProvidesTooFewRequiredParameters
-              .withArguments(
-                  factory.fullNameForErrors,
-                  factoryType.requiredParameterCount,
-                  computeRedirecteeName(factory.redirectionTarget),
-                  redirecteeType.requiredParameterCount),
-          factory.charOffset,
-          noLength);
-      return;
-    }
-    if (redirecteeType.positionalParameters.length <
-        factoryType.positionalParameters.length) {
-      String targetName = computeRedirecteeName(factory.redirectionTarget);
-      addProblem(
-          templateFactoryRedirecteeHasTooFewPositionalParameters.withArguments(
-              targetName, redirecteeType.positionalParameters.length),
+          templateIncompatibleRedirecteeFunctionType.withArguments(
+              redirecteeType, factoryType),
           factory.redirectionTarget.charOffset,
           noLength);
-      return;
     }
-
-    // For each 0 < k < i check S_k <: T_k.
-    for (int i = 0; i < factoryType.positionalParameters.length; ++i) {
-      var factoryParameterType = factoryType.positionalParameters[i];
-      var redirecteeParameterType = redirecteeType.positionalParameters[i];
-      if (!typeEnvironment.isSubtypeOf(
-          factoryParameterType, redirecteeParameterType)) {
-        final factoryParameter =
-            factory.target.function.positionalParameters[i];
-        addProblem(
-            templateRedirectingFactoryInvalidPositionalParameterType
-                .withArguments(factoryParameter.name, factoryParameterType,
-                    redirecteeParameterType),
-            factoryParameter.fileOffset,
-            factoryParameter.name.length);
-        return;
-      }
-    }
-
-    // For each i < k < n check that the named parameter S_k has a corresponding
-    // named parameter T_l in [redirecteeType] for some j < l < m.
-    int factoryTypeNameIndex = 0; // k.
-    int redirecteeTypeNameIndex = 0; // l.
-
-    // The following code makes use of the invariant that [namedParameters] are
-    // already sorted (i.e. it's a monotonic sequence) to determine in a linear
-    // pass whether [factory.namedParameters] is a subset of
-    // [redirectee.namedParameters]. In the comments below the symbol <= stands
-    // for the usual lexicographic relation on strings.
-    while (factoryTypeNameIndex < factoryType.namedParameters.length) {
-      // If we have gone beyond the bound of redirectee's named parameters, then
-      // signal a missing named parameter error.
-      if (redirecteeTypeNameIndex == redirecteeType.namedParameters.length) {
-        reportRedirectingFactoryMissingNamedParameter(
-            factory, factoryType.namedParameters[factoryTypeNameIndex]);
-        break;
-      }
-
-      int result = redirecteeType.namedParameters[redirecteeTypeNameIndex].name
-          .compareTo(factoryType.namedParameters[factoryTypeNameIndex].name);
-      if (result < 0) {
-        // T_l.name <= S_k.name.
-        redirecteeTypeNameIndex++;
-      } else if (result == 0) {
-        // S_k.name <= T_l.name.
-        NamedType factoryParameterType =
-            factoryType.namedParameters[factoryTypeNameIndex];
-        NamedType redirecteeParameterType =
-            redirecteeType.namedParameters[redirecteeTypeNameIndex];
-        // Check S_k <: T_l.
-        if (!typeEnvironment.isSubtypeOf(
-            factoryParameterType.type, redirecteeParameterType.type)) {
-          var factoryFormal =
-              factory.target.function.namedParameters[redirecteeTypeNameIndex];
-          addProblem(
-              templateRedirectingFactoryInvalidNamedParameterType.withArguments(
-                  factoryParameterType.name,
-                  factoryParameterType.type,
-                  redirecteeParameterType.type),
-              factoryFormal.fileOffset,
-              factoryFormal.name.length);
-          return;
-        }
-        redirecteeTypeNameIndex++;
-        factoryTypeNameIndex++;
-      } else {
-        // S_k.name <= T_l.name. By appealing to the monotinicity of
-        // [namedParameters] and the transivity of <= it follows that for any
-        // l', such that l < l', it must be the case that S_k <= T_l'. Thus the
-        // named parameter is missing from the redirectee's parameter list.
-        reportRedirectingFactoryMissingNamedParameter(
-            factory, factoryType.namedParameters[factoryTypeNameIndex]);
-
-        // Continue with the next factory named parameter.
-        factoryTypeNameIndex++;
-      }
-    }
-
-    // Report any unprocessed factory named parameters as missing.
-    if (factoryTypeNameIndex < factoryType.namedParameters.length) {
-      for (int i = factoryTypeNameIndex;
-          i < factoryType.namedParameters.length;
-          i++) {
-        reportRedirectingFactoryMissingNamedParameter(
-            factory, factoryType.namedParameters[factoryTypeNameIndex]);
-      }
-    }
-
-    // Check that T' <: S'.
-    if (!typeEnvironment.isSubtypeOf(
-        redirecteeType.returnType, factoryType.returnType)) {
-      String targetName = computeRedirecteeName(factory.redirectionTarget);
-      addProblem(
-          templateFactoryRedirecteeInvalidReturnType.withArguments(
-              redirecteeType.returnType, targetName, factoryType.returnType),
-          factory.redirectionTarget.charOffset,
-          noLength);
-      return;
-    }
-  }
-
-  void reportRedirectingFactoryMissingNamedParameter(
-      KernelRedirectingFactoryBuilder factory, NamedType missingParameter) {
-    addProblem(
-        templateRedirectingFactoryMissingNamedParameter.withArguments(
-            computeRedirecteeName(factory.redirectionTarget),
-            missingParameter.name),
-        factory.redirectionTarget.charOffset,
-        noLength);
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {

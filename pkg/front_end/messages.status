@@ -200,6 +200,7 @@ ImplementsBeforeWith/script: Fail
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
+IncompatibleRedirecteeFunctionType/script6: Fail # Triggers multiple errors.
 InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail

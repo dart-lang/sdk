@@ -3210,76 +3210,6 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int count)>
-    templateFactoryRedirecteeHasTooFewPositionalParameters =
-    const Template<Message Function(String name, int count)>(
-        messageTemplate:
-            r"""Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide.""",
-        tipTemplate: r"""Try redirecting to a different constructor.""",
-        withArguments:
-            _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count)>
-    codeFactoryRedirecteeHasTooFewPositionalParameters =
-    const Code<Message Function(String name, int count)>(
-        "FactoryRedirecteeHasTooFewPositionalParameters",
-        templateFactoryRedirecteeHasTooFewPositionalParameters,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters(
-    String name, int count) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (count == null) throw 'No count provided';
-  return new Message(codeFactoryRedirecteeHasTooFewPositionalParameters,
-      message:
-          """Redirection target '${name}' accepts fewer arguments ('${count}') than the redirecting factory can provide.""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'name': name, 'count': count});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        DartType _type,
-        String name,
-        DartType
-            _type2)> templateFactoryRedirecteeInvalidReturnType = const Template<
-        Message Function(DartType _type, String name, DartType _type2)>(
-    messageTemplate:
-        r"""The return type '#type' of the constructor '#name' isn't a subtype of '#type2'.""",
-    tipTemplate: r"""Try redirecting to a different constructor.""",
-    withArguments: _withArgumentsFactoryRedirecteeInvalidReturnType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name, DartType _type2)>
-    codeFactoryRedirecteeInvalidReturnType =
-    const Code<Message Function(DartType _type, String name, DartType _type2)>(
-        "FactoryRedirecteeInvalidReturnType",
-        templateFactoryRedirecteeInvalidReturnType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_RETURN_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryRedirecteeInvalidReturnType(
-    DartType _type, String name, DartType _type2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeFactoryRedirecteeInvalidReturnType,
-      message:
-          """The return type '${type}' of the constructor '${name}' isn't a subtype of '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'type': _type, 'name': name, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =
     messageFactoryTopLevelDeclaration;
 
@@ -4118,6 +4048,40 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
       message:
           """Import of '${name}' (from '${uri}') hides import from '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateIncompatibleRedirecteeFunctionType = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
+    withArguments: _withArgumentsIncompatibleRedirecteeFunctionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeIncompatibleRedirecteeFunctionType =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "IncompatibleRedirecteeFunctionType",
+        templateIncompatibleRedirecteeFunctionType,
+        analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncompatibleRedirecteeFunctionType(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeIncompatibleRedirecteeFunctionType,
+      message:
+          """The constructor function type '${type}' isn't a subtype of '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7515,152 +7479,6 @@ Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
           labeler.originMessages,
       tip: """Try using a different type as argument.""",
       arguments: {'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
-    templateRedirectingFactoryInvalidNamedParameterType = const Template<
-            Message Function(String name, DartType _type, DartType _type2)>(
-        messageTemplate:
-            r"""The type of the named parameter '#name', '#type' is not a subtype of the redirection target's corresponding named parameter type, '#type2'.""",
-        tipTemplate:
-            r"""Try changing either the type of the parameter or the redirection target.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryInvalidNamedParameterType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryInvalidNamedParameterType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryInvalidNamedParameterType",
-        templateRedirectingFactoryInvalidNamedParameterType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeRedirectingFactoryInvalidNamedParameterType,
-      message:
-          """The type of the named parameter '${name}', '${type}' is not a subtype of the redirection target's corresponding named parameter type, '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try changing either the type of the parameter or the redirection target.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
-    templateRedirectingFactoryInvalidPositionalParameterType = const Template<
-            Message Function(String name, DartType _type, DartType _type2)>(
-        messageTemplate:
-            r"""The type of parameter '#name', '#type' is not a subtype of the redirection target's corresponding parameter type, '#type2'.""",
-        tipTemplate:
-            r"""Try changing either the type of the parameter or the redirection target.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryInvalidPositionalParameterType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryInvalidPositionalParameterType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryInvalidPositionalParameterType",
-        templateRedirectingFactoryInvalidPositionalParameterType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeRedirectingFactoryInvalidPositionalParameterType,
-      message:
-          """The type of parameter '${name}', '${type}' is not a subtype of the redirection target's corresponding parameter type, '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try changing either the type of the parameter or the redirection target.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateRedirectingFactoryMissingNamedParameter =
-    const Template<Message Function(String name, String name2)>(
-        messageTemplate:
-            r"""The constructor '#name' does not have a named parameter '#name2'.""",
-        tipTemplate:
-            r"""Try adding '#name2' as a named parameter to '#name'.""",
-        withArguments: _withArgumentsRedirectingFactoryMissingNamedParameter);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeRedirectingFactoryMissingNamedParameter =
-    const Code<Message Function(String name, String name2)>(
-        "RedirectingFactoryMissingNamedParameter",
-        templateRedirectingFactoryMissingNamedParameter,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryMissingNamedParameter(
-    String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeRedirectingFactoryMissingNamedParameter,
-      message:
-          """The constructor '${name}' does not have a named parameter '${name2}'.""",
-      tip: """Try adding '${name2}' as a named parameter to '${name}'.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name, int count, String name2, int count2)>
-    templateRedirectingFactoryProvidesTooFewRequiredParameters = const Template<
-            Message Function(String name, int count, String name2, int count2)>(
-        messageTemplate:
-            r"""Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2').""",
-        tipTemplate: r"""Try redirecting to a different constructor.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count, String name2, int count2)>
-    codeRedirectingFactoryProvidesTooFewRequiredParameters = const Code<
-            Message Function(String name, int count, String name2, int count2)>(
-        "RedirectingFactoryProvidesTooFewRequiredParameters",
-        templateRedirectingFactoryProvidesTooFewRequiredParameters,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters(
-    String name, int count, String name2, int count2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (count == null) throw 'No count provided';
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (count2 == null) throw 'No count provided';
-  return new Message(codeRedirectingFactoryProvidesTooFewRequiredParameters,
-      message:
-          """Redirecting factory '${name}' can provide less arguments ('${count}') than required by the redirection target '${name2}' ('${count2}').""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {
-        'name': name,
-        'count': count,
-        'name2': name2,
-        'count2': count2
-      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

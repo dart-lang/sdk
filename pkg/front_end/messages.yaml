@@ -3162,10 +3162,9 @@ PackagesFileFormat:
   template: "Problem in packages configuration file: #string"
   external: test/packages_format_error_test.dart
 
-FactoryRedirecteeInvalidReturnType:
-  template: "The return type '#type' of the constructor '#name' isn't a subtype of '#type2'."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_RETURN_TYPE
+IncompatibleRedirecteeFunctionType:
+  template: "The constructor function type '#type' isn't a subtype of '#type2'."
+  analyzerCode: REDIRECT_TO_INVALID_TYPE
   script:
     - >-
       class A {
@@ -3174,61 +3173,31 @@ FactoryRedirecteeInvalidReturnType:
       class B {
         B();
       }
-
-FactoryRedirecteeHasTooFewPositionalParameters:
-  template: "Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.one(int x) = A.zero;
         A.zero() {}
       }
-
-RedirectingFactoryInvalidPositionalParameterType:
-  template: "The type of parameter '#name', '#type' is not a subtype of the redirection target's corresponding parameter type, '#type2'."
-  tip: "Try changing either the type of the parameter or the redirection target."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.i(int x) = A.s;
         A.s(String x) { }
       }
-
-RedirectingFactoryMissingNamedParameter:
-  template: "The constructor '#name' does not have a named parameter '#name2'."
-  tip: "Try adding '#name2' as a named parameter to '#name'."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.f({int x}) = A.g;
         A.g({int y}) { }
       }
-
-RedirectingFactoryInvalidNamedParameterType:
-  template: "The type of the named parameter '#name', '#type' is not a subtype of the redirection target's corresponding named parameter type, '#type2'."
-  tip: "Try changing either the type of the parameter or the redirection target."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
-    - >-
-      class A {
-        factory A.f({int x}) = A.g;
-        A.g({String x}) { }
-      }
-
-RedirectingFactoryProvidesTooFewRequiredParameters:
-  template: "Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2')."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.f(int x) = A.g;
         A.g(int x, int y) {}
       }
+    - >-
+      class A<T extends int> {
+         factory A() = B<T, int>;
+      }
+      class B<T extends int, S extends String> implements A<T> {}
 
 RedirectingFactoryIncompatibleTypeArgument:
   template: "The type '#type' doesn't extend '#type2'."
