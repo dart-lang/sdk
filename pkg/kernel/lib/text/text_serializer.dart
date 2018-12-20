@@ -13,6 +13,7 @@ import '../visitor.dart' show ExpressionVisitor;
 class ExpressionTagger extends ExpressionVisitor<String> {
   const ExpressionTagger();
 
+  String visitStringLiteral(StringLiteral _) => "string";
   String visitIntLiteral(IntLiteral _) => "int";
   String visitDoubleLiteral(DoubleLiteral _) => "double";
   String visitBoolLiteral(BoolLiteral _) => "bool";
@@ -21,16 +22,25 @@ class ExpressionTagger extends ExpressionVisitor<String> {
 
 // ==== Serializers for BasicLiterals
 const TextSerializer<BasicLiteral> basicLiteralSerializer = Case([
+  "string",
   "int",
   "double",
   "bool",
   "null"
 ], [
+  stringLiteralSerializer,
   intLiteralSerializer,
   doubleLiteralSerializer,
   boolLiteralSerializer,
   nullLiteralSerializer
 ]);
+
+const TextSerializer<StringLiteral> stringLiteralSerializer =
+    Wrapped(unwrapStringLiteral, wrapStringLiteral, DartString());
+
+String unwrapStringLiteral(StringLiteral literal) => literal.value;
+
+StringLiteral wrapStringLiteral(String value) => new StringLiteral(value);
 
 const TextSerializer<IntLiteral> intLiteralSerializer =
     Wrapped(unwrapIntLiteral, wrapIntLiteral, DartInt());

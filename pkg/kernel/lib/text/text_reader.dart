@@ -21,6 +21,8 @@ class TextIterator implements Iterator<Object /* String | TextIterator */ > {
   static int space = ' '.codeUnitAt(0);
   static int lparen = '('.codeUnitAt(0);
   static int rparen = ')'.codeUnitAt(0);
+  static int dquote = '"'.codeUnitAt(0);
+  static int bslash = '\\'.codeUnitAt(0);
 
   final String input;
   int index;
@@ -44,11 +46,33 @@ class TextIterator implements Iterator<Object /* String | TextIterator */ > {
   }
 
   void skipToEndOfAtom() {
+    bool isQuoted = false;
+    if (index < input.length && input.codeUnitAt(index) == dquote) {
+      ++index;
+      isQuoted = true;
+    }
     do {
       if (index >= input.length) return;
       int codeUnit = input.codeUnitAt(index);
-      if (codeUnit == space || codeUnit == rparen) return;
-      ++index;
+      if (isQuoted) {
+        // Terminator.
+        if (codeUnit == dquote) {
+          ++index;
+          return;
+        }
+        // Escaped double quote.
+        if (codeUnit == bslash &&
+            index < input.length + 1 &&
+            input.codeUnitAt(index + 1) == dquote) {
+          index += 2;
+        } else {
+          ++index;
+        }
+      } else {
+        // Terminator.
+        if (codeUnit == space || codeUnit == rparen) return;
+        ++index;
+      }
     } while (true);
   }
 

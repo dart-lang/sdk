@@ -31,13 +31,17 @@ String writeBasicLiteral(BasicLiteral literal) {
 void test() {
   List<String> failures = [];
   List<String> tests = [
+    "(string \"Hello, 'string'!\")",
+    "(string \"Hello, \\\"string\\\"!\")",
+    "(string \"Yeah nah yeah, here is\\nthis really long string haiku\\n"
+        "blowing in the wind\\n\")",
     "(int 42)",
     "(int 0)",
     "(int -1001)",
     "(double 3.14159)",
     "(bool true)",
     "(bool false)",
-    "(null)"
+    "(null)",
   ];
   for (var test in tests) {
     var literal = readBasicLiteral(test);

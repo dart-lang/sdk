@@ -4,6 +4,8 @@
 
 library kernel.serializer_combinators;
 
+import 'dart:convert' show json;
+
 import '../ast.dart' show Expression;
 import 'text_serializer.dart' show ExpressionTagger;
 
@@ -28,7 +30,23 @@ class Nothing extends TextSerializer<void> {
   bool get isEmpty => true;
 }
 
-// == Serializer/deserializers for basic Dart types
+class DartString extends TextSerializer<String> {
+  const DartString();
+
+  String readFrom(Iterator<Object> stream) {
+    if (stream.current is! String) {
+      throw StateError("expected an atom, found a list");
+    }
+    String result = json.decode(stream.current);
+    stream.moveNext();
+    return result;
+  }
+
+  void writeTo(StringBuffer buffer, String object) {
+    buffer.write(json.encode(object));
+  }
+}
+
 class DartInt extends TextSerializer<int> {
   const DartInt();
 
