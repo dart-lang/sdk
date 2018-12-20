@@ -111,10 +111,10 @@ class DartBool extends TextSerializer<bool> {
 // implemented by Tagger visitors.
 // A tagged union of serializer/deserializers.
 class Case<T extends Expression> extends TextSerializer<T> {
-  final List<String> tags;
-  final List<TextSerializer<T>> serializers;
+  final List<String> tags = [];
+  final List<TextSerializer<T>> serializers = [];
 
-  const Case(this.tags, this.serializers);
+  Case();
 
   T readFrom(Iterator<Object> stream) {
     if (stream.current is! Iterator) {
@@ -163,7 +163,7 @@ class Wrapped<S, K> extends TextSerializer<K> {
   final K Function(S) wrap;
   final TextSerializer<S> contents;
 
-  const Wrapped(this.unwrap, this.wrap, this.contents);
+  Wrapped(this.unwrap, this.wrap, this.contents);
 
   K readFrom(Iterator<Object> stream) {
     return wrap(contents.readFrom(stream));

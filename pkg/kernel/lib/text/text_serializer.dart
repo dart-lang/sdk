@@ -18,54 +18,82 @@ class ExpressionTagger extends ExpressionVisitor<String> {
   String visitDoubleLiteral(DoubleLiteral _) => "double";
   String visitBoolLiteral(BoolLiteral _) => "bool";
   String visitNullLiteral(NullLiteral _) => "null";
+  String visitInvalidExpression(InvalidExpression _) => "invalid";
+  String visitNot(Not _) => "not";
 }
 
-// ==== Serializers for BasicLiterals
-const TextSerializer<BasicLiteral> basicLiteralSerializer = Case([
-  "string",
-  "int",
-  "double",
-  "bool",
-  "null"
-], [
-  stringLiteralSerializer,
-  intLiteralSerializer,
-  doubleLiteralSerializer,
-  boolLiteralSerializer,
-  nullLiteralSerializer
-]);
+TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
+    unwrapInvalidExpression, wrapInvalidExpression, const DartString());
 
-const TextSerializer<StringLiteral> stringLiteralSerializer =
-    Wrapped(unwrapStringLiteral, wrapStringLiteral, DartString());
+String unwrapInvalidExpression(InvalidExpression expression) {
+  return expression.message;
+}
+
+InvalidExpression wrapInvalidExpression(String message) {
+  return new InvalidExpression(message);
+}
+
+TextSerializer<Not> notSerializer =
+    new Wrapped(unwrapNot, wrapNot, expressionSerializer);
+
+Expression unwrapNot(Not expression) => expression.operand;
+
+Not wrapNot(Expression operand) => new Not(operand);
+
+TextSerializer<StringLiteral> stringLiteralSerializer =
+    new Wrapped(unwrapStringLiteral, wrapStringLiteral, const DartString());
 
 String unwrapStringLiteral(StringLiteral literal) => literal.value;
 
 StringLiteral wrapStringLiteral(String value) => new StringLiteral(value);
 
-const TextSerializer<IntLiteral> intLiteralSerializer =
-    Wrapped(unwrapIntLiteral, wrapIntLiteral, DartInt());
+TextSerializer<IntLiteral> intLiteralSerializer =
+    new Wrapped(unwrapIntLiteral, wrapIntLiteral, const DartInt());
 
 int unwrapIntLiteral(IntLiteral literal) => literal.value;
 
 IntLiteral wrapIntLiteral(int value) => new IntLiteral(value);
 
-const TextSerializer<DoubleLiteral> doubleLiteralSerializer =
-    Wrapped(unwrapDoubleLiteral, wrapDoubleLiteral, DartDouble());
+TextSerializer<DoubleLiteral> doubleLiteralSerializer =
+    new Wrapped(unwrapDoubleLiteral, wrapDoubleLiteral, const DartDouble());
 
 double unwrapDoubleLiteral(DoubleLiteral literal) => literal.value;
 
 DoubleLiteral wrapDoubleLiteral(double value) => new DoubleLiteral(value);
 
-const TextSerializer<BoolLiteral> boolLiteralSerializer =
-    Wrapped(unwrapBoolLiteral, wrapBoolLiteral, DartBool());
+TextSerializer<BoolLiteral> boolLiteralSerializer =
+    new Wrapped(unwrapBoolLiteral, wrapBoolLiteral, const DartBool());
 
 bool unwrapBoolLiteral(BoolLiteral literal) => literal.value;
 
 BoolLiteral wrapBoolLiteral(bool value) => new BoolLiteral(value);
 
-const TextSerializer<NullLiteral> nullLiteralSerializer =
-    Wrapped(unwrapNullLiteral, wrapNullLiteral, Nothing());
+TextSerializer<NullLiteral> nullLiteralSerializer =
+    new Wrapped(unwrapNullLiteral, wrapNullLiteral, const Nothing());
 
 void unwrapNullLiteral(NullLiteral literal) {}
 
 NullLiteral wrapNullLiteral(void ignored) => new NullLiteral();
+
+Case<Expression> expressionSerializer = new Case();
+
+void initializeSerializers() {
+  expressionSerializer.tags.addAll([
+    "string",
+    "int",
+    "double",
+    "bool",
+    "null",
+    "invalid",
+    "not",
+  ]);
+  expressionSerializer.serializers.addAll([
+    stringLiteralSerializer,
+    intLiteralSerializer,
+    doubleLiteralSerializer,
+    boolLiteralSerializer,
+    nullLiteralSerializer,
+    invalidExpressionSerializer,
+    notSerializer,
+  ]);
+}

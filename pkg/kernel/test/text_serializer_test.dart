@@ -8,23 +8,24 @@ import 'package:kernel/text/text_reader.dart';
 import 'package:kernel/text/text_serializer.dart';
 
 void main() {
+  initializeSerializers();
   test();
 }
 
 // Wrappers for testing.
-BasicLiteral readBasicLiteral(String input) {
+Expression readExpression(String input) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
-  BasicLiteral result = basicLiteralSerializer.readFrom(stream);
+  Expression result = expressionSerializer.readFrom(stream);
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
   return result;
 }
 
-String writeBasicLiteral(BasicLiteral literal) {
+String writeExpression(Expression expression) {
   StringBuffer buffer = new StringBuffer();
-  basicLiteralSerializer.writeTo(buffer, literal);
+  expressionSerializer.writeTo(buffer, expression);
   return buffer.toString();
 }
 
@@ -42,10 +43,12 @@ void test() {
     "(bool true)",
     "(bool false)",
     "(null)",
+    "(invalid \"You can't touch this\")",
+    "(not (bool true))"
   ];
   for (var test in tests) {
-    var literal = readBasicLiteral(test);
-    var output = writeBasicLiteral(literal);
+    var literal = readExpression(test);
+    var output = writeExpression(literal);
     if (output != test) {
       failures.add('* input "${test}" gave output "${output}"');
     }
