@@ -62,8 +62,6 @@ rasta/issue_000001: Fail
 rasta/issue_000031: Fail
 rasta/issue_000032: Fail
 rasta/issue_000034: RuntimeError
-rasta/issue_000035: Fail
-rasta/issue_000035a: Fail
 rasta/issue_000036: Fail
 rasta/issue_000039: Fail
 rasta/issue_000041: RuntimeError

@@ -27,3 +27,4 @@ class C extends core::Object {
     : super core::Object::•()
     ;
 }
+static method main() → dynamic {}

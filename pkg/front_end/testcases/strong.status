@@ -101,8 +101,6 @@ rasta/issue_000001: RuntimeError
 rasta/issue_000031: RuntimeError
 rasta/issue_000032: RuntimeError
 rasta/issue_000034: RuntimeError
-rasta/issue_000035: RuntimeError
-rasta/issue_000035a: RuntimeError
 rasta/issue_000036: RuntimeError
 rasta/issue_000039: VerificationError
 rasta/issue_000041: RuntimeError

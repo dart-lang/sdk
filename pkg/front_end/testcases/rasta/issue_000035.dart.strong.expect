@@ -57,3 +57,4 @@ class C extends core::Object {
     ;
   abstract method æøC() → dynamic;
 }
+static method main() → dynamic {}
