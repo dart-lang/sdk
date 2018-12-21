@@ -4500,11 +4500,7 @@ class Parser {
     Token name = beforeName.next;
     if (name.isIdentifier) {
       TypeParamOrArgInfo typeParam = computeTypeParamOrArg(name);
-      Token next = name;
-      if (typeParam != noTypeParamOrArg) {
-        next = typeParam.skip(next);
-      }
-      next = next.next;
+      Token next = typeParam.skip(name).next;
       if (optional('(', next)) {
         if (looksLikeFunctionBody(next.endGroup.next)) {
           return parseFunctionLiteral(
@@ -4886,8 +4882,10 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    // Ignore trailing `?` if there is one as it may be part of an expression
-    TypeInfo typeInfo = computeType(token, true).asNonNullableType();
+    TypeInfo typeInfo = computeType(token, true);
+    if (typeInfo.isConditionalExpressionStart(token, this)) {
+      typeInfo = typeInfo.asNonNullable;
+    }
     token = typeInfo.ensureTypeNotVoid(token, this);
     listener.handleIsOperator(operator, not);
     return skipChainedAsIsOperators(token);
@@ -4901,8 +4899,10 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
-    // Ignore trailing `?` if there is one as it may be part of an expression
-    TypeInfo typeInfo = computeType(token, true).asNonNullableType();
+    TypeInfo typeInfo = computeType(token, true);
+    if (typeInfo.isConditionalExpressionStart(token, this)) {
+      typeInfo = typeInfo.asNonNullable;
+    }
     token = typeInfo.ensureTypeNotVoid(token, this);
     listener.handleAsOperator(operator);
     return skipChainedAsIsOperators(token);
@@ -4921,7 +4921,11 @@ class Parser {
       if (optional('!', next.next)) {
         next = next.next;
       }
-      token = computeType(next, true).skipType(next);
+      TypeInfo typeInfo = computeType(next, true);
+      if (typeInfo.isConditionalExpressionStart(next, this)) {
+        typeInfo = typeInfo.asNonNullable;
+      }
+      token = typeInfo.skipType(next);
       next = token.next;
       value = next.stringValue;
     }
@@ -5042,6 +5046,10 @@ class Parser {
       TypeInfo typeInfo,
       bool onlyParseVariableDeclarationStart = false]) {
     typeInfo ??= computeType(beforeType, false);
+    if (typeInfo.isConditionalExpressionStart(beforeType, this)) {
+      typeInfo = noType;
+    }
+
     Token token = typeInfo.skipType(beforeType);
     Token next = token.next;
 

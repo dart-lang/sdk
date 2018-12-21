@@ -967,7 +967,7 @@ class AstBuilder extends StackListener {
   @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
-    if (!enableNonNullable || showNullableTypeErrors) {
+    if (showNullableTypeErrors) {
       reportErrorIfNullableType(questionMark);
     }
 
@@ -1128,7 +1128,7 @@ class AstBuilder extends StackListener {
   void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
-    if (!enableNonNullable || showNullableTypeErrors) {
+    if (showNullableTypeErrors) {
       reportErrorIfNullableType(questionMark);
     }
 
@@ -2093,7 +2093,7 @@ class AstBuilder extends StackListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
-    if (metadata != null) {
+    if (enableNonNullable && metadata != null) {
       for (Annotation annotation in metadata) {
         Identifier pragma = annotation.name;
         if (pragma is SimpleIdentifier && pragma.name == 'pragma') {
@@ -2101,6 +2101,8 @@ class AstBuilder extends StackListener {
           if (arguments.length == 1) {
             Expression tag = arguments[0];
             if (tag is StringLiteral) {
+              // TODO(danrubel): handle other flags such as
+              // 'analyzer:non-nullable' without the trailing star.
               if (tag.stringValue == 'analyzer:non-nullable*') {
                 showNullableTypeErrors = false;
                 break;

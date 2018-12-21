@@ -94,7 +94,8 @@ class ExperimentStatus {
 
   /// Initializes a newly created set of experiments based on optional
   /// arguments.
-  ExperimentStatus({bool constant_update_2018, bool set_literals, non_nullable})
+  ExperimentStatus(
+      {bool constant_update_2018, bool set_literals, bool non_nullable})
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
           set_literals ?? IsEnabledByDefault.set_literals,

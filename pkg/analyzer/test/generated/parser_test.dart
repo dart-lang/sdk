@@ -1981,7 +1981,7 @@ mixin ComplexParserTestMixin implements AbstractParserTestCase {
     expect(elseExpression, isSimpleIdentifier);
   }
 
-  void test_conditionalExpression_precedence_nullableType_is() {
+  void test_conditionalExpression_precedence_is() {
     ExpressionStatement statement =
         parseStatement('x is String ? (x + y) : z;');
     ConditionalExpression expression = statement.expression;

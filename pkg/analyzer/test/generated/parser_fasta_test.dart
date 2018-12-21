@@ -14,6 +14,7 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
@@ -35,6 +36,7 @@ main() {
     defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
     defineReflectiveTests(FormalParameterParserTest_Fasta);
+    defineReflectiveTests(NNBDParserTest_Fasta);
     defineReflectiveTests(RecoveryParserTest_Fasta);
     defineReflectiveTests(SimpleParserTest_Fasta);
     defineReflectiveTests(StatementParserTest_Fasta);
@@ -1420,22 +1422,90 @@ mixin A {
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
   }
+}
+
+/**
+ * Tests of the fasta parser based on [ComplexParserTestMixin].
+ */
+@reflectiveTest
+class NNBDParserTest_Fasta extends FastaParserTestCase {
+  parseNNBDCompilationUnit(String code, {List<ExpectedError> errors}) {
+    createParser('''
+@pragma('analyzer:non-nullable*') library nnbd.parser.test;
+$code
+''');
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
+    assertNoErrors();
+    return unit;
+  }
+
+  void test_is_nullable() {
+    CompilationUnit unit =
+        parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    ConditionalExpression expression = statement.expression;
+
+    IsExpression condition = expression.condition;
+    expect((condition.type as NamedType).question, isNotNull);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_is_nullable_parenthesis() {
+    CompilationUnit unit =
+        parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    ConditionalExpression expression = statement.expression;
+
+    ParenthesizedExpression condition = expression.condition;
+    IsExpression isExpression = condition.expression;
+    expect((isExpression.type as NamedType).question, isNotNull);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_simple_assignment() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+  }
 
   void test_pragma_missing() {
     createParser("library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
     _parserProxy.parseCompilationUnit2();
     expect(_parserProxy.astBuilder.showNullableTypeErrors, true);
   }
 
   void test_pragma_non_nullable() {
     createParser("@pragma('analyzer:non-nullable*') library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
     _parserProxy.parseCompilationUnit2();
     expect(_parserProxy.astBuilder.showNullableTypeErrors, false);
   }
 
-  void test_pragma_other() {
-    createParser("@pragma('analyzer:foo') library foo;");
+  void test_pragma_non_nullable_not_enabled() {
+    createParser("@pragma('analyzer:non-nullable*') library foo;");
     _parserProxy.parseCompilationUnit2();
     expect(_parserProxy.astBuilder.showNullableTypeErrors, true);
+  }
+
+  void test_pragma_other() {
+    createParser("@pragma('analyzer:foo') library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    _parserProxy.parseCompilationUnit2();
+    expect(_parserProxy.astBuilder.showNullableTypeErrors, true);
+  }
+
+  void test_without_pragma() {
+    parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 20, 1)]);
   }
 }
