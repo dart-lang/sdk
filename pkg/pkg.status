@@ -122,6 +122,7 @@ analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Pass, Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Pass, Slow
+dartfix/test/src/driver_test: RuntimeError # dartbug.com/35478
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
 [ $runtime != vm ]
