@@ -177,7 +177,7 @@ class Wrapped<S, K> extends TextSerializer<K> {
   bool get isEmpty => contents.isEmpty;
 }
 
-// A serializer/deserializer for a pairs.
+// A serializer/deserializer for pairs.
 class Tuple2Serializer<T1, T2> extends TextSerializer<Tuple2<T1, T2>> {
   final TextSerializer<T1> first;
   final TextSerializer<T2> second;
@@ -200,4 +200,32 @@ class Tuple2<T1, T2> {
   final T2 second;
 
   Tuple2(this.first, this.second);
+}
+
+// A serializer/deserializer for lists.
+class ListSerializer<T> extends TextSerializer<List<T>> {
+  final TextSerializer<T> elements;
+
+  ListSerializer(this.elements);
+
+  List<T> readFrom(Iterator<Object> stream) {
+    if (stream.current is! String) {
+      throw StateError("expected an atom, found a list");
+    }
+    int count = int.parse(stream.current);
+    stream.moveNext();
+    List<T> result = new List<T>(count);
+    for (int i = 0; i < count; ++i) {
+      result[i] = elements.readFrom(stream);
+    }
+    return result;
+  }
+
+  void writeTo(StringBuffer buffer, List<T> object) {
+    buffer.write(object.length);
+    for (int i = 0; i < object.length; ++i) {
+      buffer.write(' ');
+      elements.writeTo(buffer, object[i]);
+    }
+  }
 }

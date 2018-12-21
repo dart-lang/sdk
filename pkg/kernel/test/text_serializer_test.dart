@@ -47,6 +47,8 @@ void test() {
     "(not (bool true))",
     "(&& (bool true) (bool false))",
     "(|| (&& (bool true) (not (bool true))) (bool true))",
+    "(concat 4 (string \"The opposite of \") (int 3) "
+        "(string \" is \") (int 7))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

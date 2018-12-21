@@ -23,6 +23,8 @@ class ExpressionTagger extends ExpressionVisitor<String> {
   String visitLogicalExpression(LogicalExpression expression) {
     return expression.operator;
   }
+
+  String visitStringConcatenation(StringConcatenation _) => "concat";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -53,8 +55,8 @@ Tuple2<Expression, Expression> unwrapLogicalExpression(
   return new Tuple2(expression.left, expression.right);
 }
 
-LogicalExpression wrapLogicalAnd(Tuple2<Expression, Expression> pair) {
-  return new LogicalExpression(pair.first, '&&', pair.second);
+LogicalExpression wrapLogicalAnd(Tuple2<Expression, Expression> tuple) {
+  return new LogicalExpression(tuple.first, '&&', tuple.second);
 }
 
 TextSerializer<LogicalExpression> logicalOrSerializer = new Wrapped(
@@ -62,8 +64,21 @@ TextSerializer<LogicalExpression> logicalOrSerializer = new Wrapped(
     wrapLogicalOr,
     new Tuple2Serializer(expressionSerializer, expressionSerializer));
 
-LogicalExpression wrapLogicalOr(Tuple2<Expression, Expression> pair) {
-  return new LogicalExpression(pair.first, '||', pair.second);
+LogicalExpression wrapLogicalOr(Tuple2<Expression, Expression> tuple) {
+  return new LogicalExpression(tuple.first, '||', tuple.second);
+}
+
+TextSerializer<StringConcatenation> stringConcatenationSerializer = new Wrapped(
+    unwrapStringConcatenation,
+    wrapStringConcatenation,
+    new ListSerializer(expressionSerializer));
+
+List<Expression> unwrapStringConcatenation(StringConcatenation expression) {
+  return expression.expressions;
+}
+
+StringConcatenation wrapStringConcatenation(List<Expression> expressions) {
+  return new StringConcatenation(expressions);
 }
 
 TextSerializer<StringLiteral> stringLiteralSerializer =
@@ -114,6 +129,7 @@ void initializeSerializers() {
     "not",
     "&&",
     "||",
+    "concat",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -125,5 +141,6 @@ void initializeSerializers() {
     notSerializer,
     logicalAndSerializer,
     logicalOrSerializer,
+    stringConcatenationSerializer,
   ]);
 }
