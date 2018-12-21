@@ -25,6 +25,11 @@ class ExpressionTagger extends ExpressionVisitor<String> {
   }
 
   String visitStringConcatenation(StringConcatenation _) => "concat";
+  String visitSymbolLiteral(SymbolLiteral _) => "symbol";
+  String visitThisExpression(ThisExpression _) => "this";
+  String visitRethrow(Rethrow _) => "rethrow";
+  String visitThrow(Throw _) => "throw";
+  String visitAwaitExpression(AwaitExpression _) => "await";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -116,6 +121,43 @@ void unwrapNullLiteral(NullLiteral literal) {}
 
 NullLiteral wrapNullLiteral(void ignored) => new NullLiteral();
 
+TextSerializer<SymbolLiteral> symbolLiteralSerializer =
+    new Wrapped(unwrapSymbolLiteral, wrapSymbolLiteral, const DartString());
+
+String unwrapSymbolLiteral(SymbolLiteral expression) => expression.value;
+
+SymbolLiteral wrapSymbolLiteral(String value) => new SymbolLiteral(value);
+
+TextSerializer<ThisExpression> thisExpressionSerializer =
+    new Wrapped(unwrapThisExpression, wrapThisExpression, const Nothing());
+
+void unwrapThisExpression(ThisExpression expression) {}
+
+ThisExpression wrapThisExpression(void ignored) => new ThisExpression();
+
+TextSerializer<Rethrow> rethrowSerializer =
+    new Wrapped(unwrapRethrow, wrapRethrow, const Nothing());
+
+void unwrapRethrow(Rethrow expression) {}
+
+Rethrow wrapRethrow(void ignored) => new Rethrow();
+
+TextSerializer<Throw> throwSerializer =
+    new Wrapped(unwrapThrow, wrapThrow, expressionSerializer);
+
+Expression unwrapThrow(Throw expression) => expression.expression;
+
+Throw wrapThrow(Expression expression) => new Throw(expression);
+
+TextSerializer<AwaitExpression> awaitExpressionSerializer = new Wrapped(
+    unwrapAwaitExpression, wrapAwaitExpression, expressionSerializer);
+
+Expression unwrapAwaitExpression(AwaitExpression expression) =>
+    expression.operand;
+
+AwaitExpression wrapAwaitExpression(Expression operand) =>
+    new AwaitExpression(operand);
+
 Case<Expression> expressionSerializer = new Case();
 
 void initializeSerializers() {
@@ -130,6 +172,11 @@ void initializeSerializers() {
     "&&",
     "||",
     "concat",
+    "symbol",
+    "this",
+    "rethrow",
+    "throw",
+    "await",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -142,5 +189,10 @@ void initializeSerializers() {
     logicalAndSerializer,
     logicalOrSerializer,
     stringConcatenationSerializer,
+    symbolLiteralSerializer,
+    thisExpressionSerializer,
+    rethrowSerializer,
+    throwSerializer,
+    awaitExpressionSerializer,
   ]);
 }
