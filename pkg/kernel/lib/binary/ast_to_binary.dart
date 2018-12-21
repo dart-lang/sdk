@@ -504,6 +504,25 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeComponentIndex(Component component, List<Library> libraries) {
+    // It is allowed to concatenate several kernel binaries to create a
+    // multi-component kernel file. In order to maintain alignment of
+    // metadata sections within kernel binaries after concatenation,
+    // size of each kernel binary should be aligned.
+    // Component index is located at the end of a kernel binary, so padding
+    // is added before component index.
+    const int kernelFileAlignment = 8;
+
+    // Keep this in sync with number of writeUInt32 below.
+    int numComponentIndexEntries = 7 + libraryOffsets.length + 3;
+
+    int unalignedSize = getBufferOffset() + numComponentIndexEntries * 4;
+    int padding =
+        ((unalignedSize + kernelFileAlignment - 1) & -kernelFileAlignment) -
+            unalignedSize;
+    for (int i = 0; i < padding; ++i) {
+      writeByte(0);
+    }
+
     // Fixed-size ints at the end used as an index.
     assert(_binaryOffsetForSourceTable >= 0);
     writeUInt32(_binaryOffsetForSourceTable);
