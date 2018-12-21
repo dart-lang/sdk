@@ -587,6 +587,12 @@ void IsolateReloadContext::Reload(bool force_reload,
     packages_url = String::New(packages_url_);
   }
 
+  // Reset stats.
+  num_received_libs_ = 0;
+  bytes_received_libs_ = 0;
+  num_received_classes_ = 0;
+  num_received_procedures_ = 0;
+
   bool did_kernel_compilation = false;
   bool skip_reload = false;
   {
