@@ -14,15 +14,12 @@ class TargetFlags {
   final bool legacyMode;
   final bool treeShake;
 
-  /// Whether `async` functions start synchronously.
-  final bool syncAsync;
   final List<ProgramRoot> programRoots;
   final Uri kernelRuntime;
 
   TargetFlags(
       {this.legacyMode: false,
       this.treeShake: false,
-      this.syncAsync: true,
       this.programRoots: const <ProgramRoot>[],
       this.kernelRuntime});
 }
