@@ -1,5 +1,5 @@
 diff --git a/DEPS b/DEPS
-index cd4acaf5e..28f8d1b72 100644
+index 2f5a8532b..c4cb5da32 100644
 --- a/DEPS
 +++ b/DEPS
 @@ -47,7 +47,7 @@ vars = {
@@ -21,15 +21,15 @@ index cd4acaf5e..28f8d1b72 100644
    'dart_markdown_tag': '2.0.2',
    'dart_matcher_tag': '0.12.3',
 diff --git a/lib/snapshot/BUILD.gn b/lib/snapshot/BUILD.gn
-index ef06063a2..fa18ebfbf 100644
+index ef06063a2..4db8600ea 100644
 --- a/lib/snapshot/BUILD.gn
 +++ b/lib/snapshot/BUILD.gn
-@@ -53,9 +53,7 @@ compiled_action("generate_snapshot_bin") {
+@@ -53,9 +53,6 @@ compiled_action("generate_snapshot_bin") {
    ]
  
    args = [
 -    "--strong",
-     "--sync-async",
+-    "--sync-async",
 -    "--reify-generic-functions",
      "--snapshot_kind=core",
      "--enable_mirrors=false",
