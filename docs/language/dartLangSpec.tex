@@ -163,6 +163,9 @@
 %   parameterized type (e.g., `C<int>`).
 % - Integrate invalid_returns.md. This replaces the rules about when it is
 %   an error to have `return;` or `return e;` in a function.
+% - Integrate generalized-void.md. Introduces syntactic support for using
+%   `void` in many new locations, including variable type annotations and
+%   actual type arguments; also adds errors for using values of type `void`.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1058,12 +1061,9 @@ Functions abstract over executable actions.
 
 \begin{grammar}
 <functionSignature> ::= \gnewline{}
-  <metadata> <returnType>? <identifier> <formalParameterPart>
+  <metadata> <type>? <identifier> <formalParameterPart>
 
 <formalParameterPart> ::= <typeParameters>? <formalParameterList>
-
-<returnType> ::= \VOID{}
-  \alt <type>
 
 <functionBody> ::= \ASYNC{}? `=>' <expression> `;'
   \alt (\ASYNC{} | \ASYNC `*' | \SYNC `*')? <block>
@@ -1364,7 +1364,7 @@ It is a compile-time error if any default values are specified in the signature 
   \alt <simpleFormalParameter>
 
 <functionFormalParameter> ::= \gnewline{}
-  <metadata> \COVARIANT{}? <returnType>? <identifier> <formalParameterPart>
+  <metadata> \COVARIANT{}? <type>? <identifier> <formalParameterPart>
 
 <simpleFormalParameter> ::= <declaredIdentifier>
   \alt <metadata> \COVARIANT{}? <identifier>
@@ -1681,7 +1681,7 @@ and $u$ is not a subtype of any function type which is a proper subtype of $t$.
 If we had omitted the last requirement then
 \code{f \IS{} int\,\FUNCTION([int])}
 could evaluate to \TRUE{} with the declaration
-\code{void f()\,\{\}},
+\code{\VOID{} f()\,\{\}},
 e.g., by letting $u$ be \code{Null}.
 }
 
@@ -1743,7 +1743,9 @@ Classes may be defined by class declarations as described below, or via mixin ap
   \gnewline{} `{' (<metadata> <classMemberDefinition>)* `}'
   \alt <metadata> \ABSTRACT{}? \CLASS{} <mixinApplicationClass>
 
-<mixins> ::= \WITH{} <typeList>
+<mixins> ::= \WITH{} <typeNotVoidList>
+
+<typeNotVoidList> ::= <typeNotVoid> (`,' <typeNotVoid>)*
 
 <classMemberDefinition> ::= <declaration> `;'
   \alt <methodSignature> <functionBody>
@@ -2001,7 +2003,7 @@ in a trade-off where some static type safety is lost.
 
 \begin{grammar}
 <operatorSignature> ::= \gnewline{}
-  <returnType>? \OPERATOR{} <operator> <formalParameterList>
+  <type>? \OPERATOR{} <operator> <formalParameterList>
 
 <operator> ::= `~'
   \alt <binaryOperator>
@@ -2418,7 +2420,7 @@ because this is an invocation of a function object
 Getters are functions (\ref{functions}) that are used to retrieve the values of object properties.
 
 \begin{grammar}
-<getterSignature> ::= <returnType>? \GET{} <identifier>
+<getterSignature> ::= <type>? \GET{} <identifier>
 \end{grammar}
 
 \LMHash{}%
@@ -2455,7 +2457,7 @@ are given elsewhere
 Setters are functions (\ref{functions}) that are used to set the values of object properties.
 
 \begin{grammar}
-<setterSignature> ::= <returnType>? \SET{} <identifier> <formalParameterList>
+<setterSignature> ::= <type>? \SET{} <identifier> <formalParameterList>
 \end{grammar}
 
 \commentary{
@@ -3099,7 +3101,7 @@ whenever the redirecting constructor is called.
 \begin{grammar}
 <redirectingFactoryConstructorSignature> ::= \gnewline{}
   \CONST{}? \FACTORY{} <identifier> (`.' <identifier>)? <formalParameterList> `='
-  \gnewline{} <type> (`.' <identifier>)?
+  \gnewline{} <typeNotVoid> (`.' <identifier>)?
 \end{grammar}
 
 Assume that
@@ -3422,7 +3424,7 @@ It is a compile-time error to specify an \EXTENDS{} clause
 for class \code{Object}.
 
 \begin{grammar}
-<superclass> ::= \EXTENDS{} <type>
+<superclass> ::= \EXTENDS{} <typeNotVoid>
 \end{grammar}
 
 %The superclass clause of a class C is processed within the enclosing scope of the static scope of C.
@@ -3609,7 +3611,7 @@ and the interfaces of the classes specified in
 the \IMPLEMENTS{} clause of the class.
 
 \begin{grammar}
-<interfaces> ::= \IMPLEMENTS{} <typeList>
+<interfaces> ::= \IMPLEMENTS{} <typeNotVoidList>
 \end{grammar}
 
 \LMHash{}%
@@ -4216,7 +4218,7 @@ or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 <mixinApplicationClass> ::= \gnewline{}
   <identifier> <typeParameters>? `=' <mixinApplication> `;'
 
-<mixinApplication> ::= <type> <mixins> <interfaces>?
+<mixinApplication> ::= <typeNotVoid> <mixins> <interfaces>?
 \end{grammar}
 
 \LMHash{}%
@@ -4551,7 +4553,7 @@ where each formal type parameter has been replaced by the corresponding actual t
 }
 
 \begin{grammar}
-<typeParameter> ::= <metadata> <identifier> (\EXTENDS{} <type>)?
+<typeParameter> ::= <metadata> <identifier> (\EXTENDS{} <typeNotVoid>)?
 
 <typeParameters> ::= `<' <typeParameter> (`,' <typeParameter>)* `>'
 \end{grammar}
@@ -7133,7 +7135,7 @@ or is an enumerated type (\ref{enums}).
 The \Index{new expression} invokes a constructor (\ref{constructors}).
 
 \begin{grammar}
-<newExpression> ::= \NEW{} <type> (`.' <identifier>)? <arguments>
+<newExpression> ::= \NEW{} <typeNotVoid> (`.' <identifier>)? <arguments>
 \end{grammar}
 
 \LMHash{}%
@@ -7317,7 +7319,7 @@ A \Index{constant object expression} invokes a constant constructor
 (\ref{constantConstructors}).
 
 \begin{grammar}
-<constObjectExpression> ::= \CONST{} <type> (`.' <identifier>)? <arguments>
+<constObjectExpression> ::= \CONST{} <typeNotVoid> (`.' <identifier>)? <arguments>
 \end{grammar}
 
 \LMHash{}%
@@ -10430,7 +10432,7 @@ and there is no declaration $d$ with name \id{} in the lexical scope enclosing t
 The \Index{is-expression} tests if an object is a member of a type.
 
 \begin{grammar}
-<typeTest> ::= <isOperator> <type>
+<typeTest> ::= <isOperator> <typeNotVoid>
 
 <isOperator> ::= \IS{} `!'?
 \end{grammar}
@@ -10499,7 +10501,7 @@ The static type of an is-expression is \code{bool}.
 The \Index{cast expression} ensures that an object is a member of a type.
 
 \begin{grammar}
-<typeCast> ::= <asOperator> <type>
+<typeCast> ::= <asOperator> <typeNotVoid>
 
 <asOperator> ::= \AS{}
 \end{grammar}
@@ -11500,7 +11502,7 @@ The try statement supports the definition of exception handling code in a struct
 <tryStatement> ::= \TRY{} <block> (<onPart>+ <finallyPart>? | <finallyPart>)
 
 <onPart> ::= <catchPart> <block>
-  \alt \ON{} <type> <catchPart>? <block>
+  \alt \ON{} <typeNotVoid> <catchPart>? <block>
 
 <catchPart> ::= \CATCH{} `(' <identifier> (`,' <identifier>)? `)'
 
@@ -11671,6 +11673,12 @@ unless \flatten{T}
 (\ref{functionExpressions})
 is \VOID{}, \DYNAMIC{}, or \code{Null}.
 %
+\rationale{%
+An asynchronous non-generator always returns a future of some sort.
+If no expression is given, the future will be completed with the null object
+(\ref{null})
+which motivates this rule.%
+}
 % Returning with a value in an void async function only ok
 % when that value is async-"voidy".
 It is a compile-time error if $s$ is \code{\RETURN{} $e$;},
@@ -11744,22 +11752,18 @@ which can otherwise be very hard to recognize.
 There is no real downside to it,
 as returning a value from a generative constructor is meaningless.
 }
-
-\rationale{
-An asynchronous non-generator always returns a future of some sort.
-If no expression is given, the future will be completed with the null object (\ref{null}) and this motivates the requirement above.
-}
+\EndCase
 
 \LMHash{}%
 Executing a return statement \code{\RETURN{} $e$;} proceeds as follows:
 
 \LMHash{}%
 First the expression $e$ is evaluated, producing an object $o$.
-Let $T$ be the run-time type of $o$ and
-let $S$ be the actual return type of $f$
+Let $S$ be the run-time type of $o$ and
+let $T$ be the actual return type of $f$
 (\ref{actualTypeOfADeclaration}).
 If the body of $f$ is marked \ASYNC{} (\ref{functions})
-and $T$ is a subtype of \code{Future<\flatten{S}>}
+and $S$ is a subtype of \code{Future<\flatten{T}>}
 then let $r$ be the result of evaluating \code{await $v$}
 where $v$ is a fresh variable bound to $o$.
 Otherwise let $r$ be $o$.
@@ -11783,12 +11787,12 @@ Then the return statement returns the value $r$ (\ref{statementCompletion}).
 %%
 %% Object /* or dynamic, etc. */ foo() async {
 %%   Object o;
-%%   if (someCondition) o = 42; else o = new Future<T>.value(42);
+%%   if (someCondition) o = 42; else o = new Future<S>.value(42);
 %%   return o;
 %% }
 %%
 %% Here we will interject an `await` on the returned value whenever
-%% we return a future (for all `T`). This means that we will `await o`
+%% we return a future (for all `S`). This means that we will `await o`
 %% in some situations and not in others. It may surprise developers
 %% that we can have this dynamic variation at a location in the code
 %% where there is no static justification for expecting a future.
@@ -11796,16 +11800,11 @@ Then the return statement returns the value $r$ (\ref{statementCompletion}).
 \LMHash{}%
 Let $U$ be the run-time type of $r$.
 \begin{itemize}
-\item If the body of $f$ is marked \ASYNC{} (\ref{functions})
-it is a dynamic type error if $o$ is not the null object (\ref{null}),
-% TODO(lrn): Remove the next line when void is a proper supertype of all types.
-$S$ is not \VOID,
-and \code{Future<$U$>} is not a subtype of $S$.
-\item Otherwise,
-it is a dynamic type error if $r$ is not the null object (\ref{null}),
-% TODO(lrn): Remove the next line when void is a proper supertype of all types.
-$S$ is not \VOID{},
-and $U$ is not a subtype of $S$.
+\item
+  If the body of $f$ is marked \ASYNC{} (\ref{functions})
+  it is a dynamic type error if \code{Future<$U$>} is not a subtype of $T$.
+\item
+  Otherwise, it is a dynamic type error if $U$ is not a subtype of $T$.
 \end{itemize}
 
 \LMHash{}%
@@ -12131,8 +12130,8 @@ The members of a library $L$ are those top level declarations given within $L$.
   \alt \EXTERNAL{}? <getterSignature> `;'
   \alt \EXTERNAL{}? <setterSignature> `;'
   \alt <functionSignature> <functionBody>
-  \alt <returnType>? \GET{} <identifier> <functionBody>
-  \alt <returnType>? \SET{} <identifier> <formalParameterList> <functionBody>
+  \alt <type>? \GET{} <identifier> <functionBody>
+  \alt <type>? \SET{} <identifier> <formalParameterList> <functionBody>
   \alt (\FINAL{} | \CONST{}) <type> <staticFinalDeclarationList> `;'
   \alt <variableDeclaration> `;'
 
@@ -12759,7 +12758,9 @@ Type annotations are used in variable declarations (\ref{variables}) (including 
 Type annotations are used during static checking and when running programs.
 
 \begin{grammar}
-<type> ::= <typeName> <typeArguments>?
+<type> ::= <typeNotVoid> | \VOID{}
+
+<typeNotVoid> ::= <typeName> <typeArguments>?
 
 <typeName> ::= <qualified>
 
@@ -12928,8 +12929,8 @@ declaring a name for the same function type are equal:
 }
 
 \begin{dartCode}
-\TYPEDEF{} F = void Function<X>(X);
-\TYPEDEF{} G = void Function<Y>(Y);
+\TYPEDEF{} F = \VOID{} \FUNCTION{}<X>(X);
+\TYPEDEF{} G = \VOID{} \FUNCTION{}<Y>(Y);
 \\
 \VOID{} main() \{
   assert(F == G);
@@ -12973,7 +12974,7 @@ A \Index{type alias} declares a name for a type expression.
 <functionTypeAlias> ::= \gnewline{}
   <functionPrefix> <typeParameters>? <formalParameterList> `;'
 
-<functionPrefix> ::= <returnType>? <identifier>
+<functionPrefix> ::= <type>? <identifier>
 \end{grammar}
 
 % TODO(eernst): Introduce new type aliases and new function type syntax, then
@@ -13886,8 +13887,6 @@ or they are very, very likely to be developer mistakes.
 \subsection{Type FutureOr}
 \LMLabel{typeFutureOr}
 
-%% TODO(eernst): We should make this a separate section, or change the title of this section.
-
 \LMHash{}%
 The built-in type declaration \code{FutureOr},
 which is declared in the library \code{dart:async},
@@ -13948,46 +13947,318 @@ only allow invocations of members inherited from \code{Object}.
 \subsection{Type Void}
 \LMLabel{typeVoid}
 
-%% TODO(eernst): Adjust everything in this section when specifying generalized-void.
+\LMHash{}%
+The special type \VOID{} is used to indicate
+that the value of an expression is meaningless and intended to be discarded.
+
+\commentary{%
+A typical case is that the type \VOID{} is used as the return type
+of a function that ``does not return anything''.
+Technically, there will always be \emph{some} object
+which is the return value
+(\ref{functions}).
+But it is perfectly meaningful to have a function
+whose sole purpose is to create side-effects,
+such that \emph{any} use of the returned object
+would be misguided.
+%
+This does not mean that there is anything wrong
+with the returned object as such.
+It could be any object whatsoever.
+But the developer who chose the return type \VOID{}
+did that to indicate that it is a misunderstanding to
+ascribe any meaning to that object,
+or to use it for any purpose.
+}
+
+\commentary{%
+The type \VOID{} is a top type
+(\ref{superBoundedTypes}),
+so \VOID{} and \code{Object} are subtypes of each other
+(\ref{subtypes}),
+which also implies that any object can be
+the value of an expression of type \VOID.
+%
+Consequently, any instance of type \code{Type} which reifies the type \VOID{}
+must compare equal (according to the \code{==} operator \ref{equality})
+to any instance of \code{Type} which reifies the type \code{Object}
+(\ref{dynamicTypeSystem}).
+It is not guaranteed that \code{identical(\VOID, Object)} evaluates to true.
+In fact, it is not recommended that implementations strive to achieve this,
+because it may be more important to ensure that diagnostic messages
+(including stack traces and dynamic error messages)
+preserve enough information to use the word `void' when referring to types
+which are specified as such in source code.
+}
 
 \LMHash{}%
-The special type \VOID{} may only be used as the return type of a function: it is a compile-time error to use \VOID{} in any other context.
+In support of the notion
+that the value of an expression with static type \VOID{} should be discarded,
+such values can only be used in specific situations:
+The occurrence of an expression of type \VOID{} is a compile-time error
+unless it is permitted according to one of the following rules.
 
-\commentary{
-For example, as a type argument, or as the type of a variable or parameter
-
-Void is not an interface type.
-
-The only subtype relations that pertain to void are therefore:
 \begin{itemize}
-\item[$\bullet$]
-$\VOID{} <: \VOID{}$ (by reflexivity)
-\item[$\bullet$]
-$\bot <: \VOID{}$ (as bottom is a subtype of all types).
-\item[$\bullet$]
-$\VOID{} <: \DYNAMIC{}$ (as \DYNAMIC{} is a supertype of all types)
+\item
+  In an \synt{expressionStatement} \code{$e$;}, $e$ may have type \VOID.
+  \rationale{The value of $e$ is discarded.}
+\item
+  In the initialization and increment expressions of a for-loop,
+  \code{\FOR{} ($e_1$; $e_2$; $e_3$) {\ldots}},
+  $e_1$ may have type \VOID,
+  and each of the expressions in the expression list $e_3$ may have type \VOID.
+  \rationale{The values of $e_1$ and $e_3$ are discarded.}
+\item
+  In a type cast \code{$e$ as $T$}, $e$ may have type \VOID.
+  \rationale{%
+  Developers thus obtain the ability to \emph{override} the constraints
+  on usages of values with static type \VOID.
+  This means that it is not enforced that such values are discarded,
+  but they can only be used when the wish to do so
+  has been indicated explicitly.%
+  }
+\item
+  In a parenthesized expression \code{($e$)}, $e$ may have type \VOID.
+  \rationale{%
+  Note that \code{($e$)} itself has type \VOID,
+  which implies that it must occur in some context
+  where it is not an error to have it.%
+  }
+\item
+  In a conditional expression \code{$e$\,?\,$e_1$\,:\,$e_2$},
+  $e_1$ and $e_2$ may have type \VOID.
+  \rationale{%
+  The static type of the conditional expression is then \VOID,
+  even if one of the branches has a different type,
+  which means that the conditional expression must again occur
+  in some context where it is not an error to have it.%
+  }
+\item
+  In a null coalescing expression \code{$e_1$\,??\,$e_2$},
+  $e_2$ may have type \VOID.
+  \rationale{%
+  The static type of the null coalescing expression is then \VOID,
+  which in turn restricts where it can occur.%
+  }
+\item
+  \commentary{%
+  In a return statement \code{\RETURN\,$e$;},
+  $e$ may have type \VOID{} in a number of situations
+  (\ref{return}).%
+  }
+\item
+  \commentary{%
+  In an arrow function body \code{=> $e$},
+  the returned expression $e$ may have type \VOID{}
+  in a number of situations
+  (\ref{functions}).%
+  }
+\item
+  An initializing expression for a variable of type \VOID{}
+  may have type \VOID.
+  \rationale{Usages of that variable are constrained.}
+\item
+  An actual parameter expression corresponding to a formal parameter
+  whose statically known type annotation is \VOID{}
+  may have type \VOID.
+  \rationale{%
+  Usages of that parameter in the body of the callee
+  are statically expected to be constrained by having type \VOID.
+  See the discussion about soundness below
+  (\ref{voidSoundness}).
+  }
+\item
+  In an expression of the form \code{$e_1$\,=\,$e_2$}
+  where $e_1$ is an \synt{assignableExpression}
+  denoting a variable or formal parameter of type \VOID{},
+  $e_2$ may have type \VOID.
+  \rationale{%
+  Usages of that variable or formal parameter
+  are statically expected to be constrained by having type \VOID.
+  See the discussion about soundness below
+  (\ref{voidSoundness}).
+  }
+\item
+  Let $e$ be an expression ending in a \synt{cascadeSection}
+  of the form \code{..\,$S$\,$s$\;=\;$e_1$},
+  where $S$ is of the form
+
+  \noindent
+  \syntax{(<cascadeSelector> <argumentPart>*)
+    (<assignableSelector> <argumentPart>*)*}
+
+  \noindent
+  and $e_1$ is of the form \synt{expressionWithoutCascade}.
+
+  If $s$ is an \synt{assignableSelector} of the
+  form \code{.\id} or \code{?.\id}
+  where the static type of the identifier \id{} is \VOID,
+  $e_1$ may have type \VOID.
+  Otherwise, if $s$ is an \synt{assignableSelector} of the form
+  \code{[$\,e_0\,$]} where the static type of
+  the first formal parameter in the statically known declaration
+  of operator \code{[]=} is \VOID,
+  $e_0$ may have type \VOID.
+  Also, if the static type of the second formal parameter is \VOID,
+  $e_1$ may have type \VOID.
 \end{itemize}
 
-The analogous rules also hold for the $<<$ relation for similar reasons.
+\LMHash{}%
+Finally, we need to address situations involving implicit usage of
+a value whose static type can be \VOID{}.
+%
+It is a compile-time error for a for-in statement to have an iterator
+expression of type $T$ such that \code{Iterator<\VOID{}>}
+is the most specific instantiation of \code{Iterator}
+that is a superinterface of $T$, unless the
+iteration variable has type \VOID.
+%
+It is a compile-time error for an asynchronous for-in statement
+to have a stream expression of type $T$
+such that \code{Stream<\VOID{}>} is the most specific
+instantiation of \code{Stream} that is a superinterface of $T$,
+unless the iteration variable has type \VOID.
 
-Hence, the static checker will issue errors if one attempts to access a member of the result of a void method invocation (even for members of the null object (\ref{null}), such as \code{==}).
-Likewise, passing the result of a void method as a parameter or assigning it to a variable will raise an error unless the variable/formal parameter has type dynamic.
-
-On the other hand, it is possible to return the result of a void method from within a void method.
-One can also return the null object (\ref{null}); or a value of type \DYNAMIC{}.
-Returning any other result will cause a compile-time error.
-%% TODO(eernst): Correct this when integrating generalized-void.md.
-A dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
+\commentary{%
+Here are some examples:
 }
 
-\commentary{
-The name \VOID{} does not denote a \code{Type} object.
+\begin{dartCode}
+\FOR{} (Object x in <\VOID>[]) \{\} // \comment{Error.}
+\AWAIT{} \FOR{} (int x \IN{} new Stream<\VOID{}>.empty()) \{\} // \comment{Error.}
+\FOR{} (\VOID{} x \IN{} <\VOID{}>[]) \{\ldots\} // \comment{OK.}
+\FOR (\VAR{} x \IN{} <\VOID{}>[]) \{\ldots\} // \comment{OK, type of x inferred.}
+\end{dartCode}
+
+\commentary{%
+However, in the examples that are not errors
+the usage of \code{x} in the loop body is constrained,
+because it has type \VOID.%
 }
 
-\rationale{
-It is syntacticly illegal to use \VOID{} as an expression, and it would make no sense to do so.
-Type objects reify the run-time types of instances.
-No instance ever has type \VOID{}.
+\paragraph{Void Soundness}
+\LMLabel{voidSoundness}
+
+\LMHash{}%
+The constraints on usage of a value obtained from the evaluation of
+an expression with static type \VOID{}
+are not strictly enforced.
+
+\commentary{%
+The usage of a ``void value'' is not a soundness issue, that is,
+no invariants needed for correct execution of a Dart program
+can be violated because of such a usage.
+}
+
+\rationale{%
+It could be said that the type \VOID{} is used
+to help developers maintain a certain self-imposed discipline
+about the fact that certain objects are not \emph{intended} to be used.
+%
+Because of the fact that enforcement is not necessary,
+and because of the treatment of \VOID{} in earlier versions of Dart,
+the language uses a \emph{best effort} approach to ensure
+that the value of an expression of type \VOID{}
+will not be used.%
+}
+
+\commentary{%
+In fact, there are numerous ways in addition to the type cast
+in which a developer can get access to such a value:%
+}
+
+\begin{dartCode}
+\ABSTRACT{} \CLASS A<X> \{
+  final X x;
+  A(this.x);
+  Object foo(X x);
+\}
+\\
+\CLASS{} B<X> \EXTENDS{} A<X> \{
+  B(X x): super(x);
+  Object foo(Object x) => x;
+\}
+\\
+Object f<X>(X x) => x;
+\\
+\VOID{} main() \{
+  \VOID x = 42;
+  print(f(x)); // \comment{(1)}
+  \\
+  A<\VOID{}> a = B<\VOID{}>(x);
+  A<Object> aObject = a;
+  print(aObject.x); // \comment{(2)}
+  print(a.foo(x)); // \comment{(3)}
+\}
+\end{dartCode}
+
+\commentary{%
+At (1), a variable \code{x} of type \VOID{} is passed to
+a generic function \code{f},
+which is allowed because the actual type argument \VOID{} is inferred,
+and it is allowed to pass an actual argument of type \VOID{} to
+a formal parameter with the same type.
+%
+However, no special treatment is given when an expression has a type
+which is or contains a type variable whose value could be \VOID{},
+so we are allowed to return \code{x} in the body of \code{f},
+even though this means that we indirectly get access to the value
+of an expression of type \VOID{}, under the static type \code{Object}.
+
+At (2), we indirectly obtain access to the value of
+the variable \code{x} with type \VOID{},
+because we use an assignment to get access to the instance of \code{B}
+which was created with type argument \VOID{} under the type
+\code{A<Object>}.
+Note that \code{A<Object>} and \code{A<\VOID{}>} are subtypes of each other,
+that is, they are equivalent according to the subtype rules,
+so neither static nor dynamic type checks will fail.
+
+At (3), we indirectly obtain access to the value of
+the variable \code{x} with type \VOID{}
+under the static type \code{Object},
+because the statically known method signature of \code{foo}
+has parameter type \VOID{},
+but the actual implementation of \code{foo} which is invoked
+is an override whose parameter type is \code{Object},
+which is allowed because \code{Object} and \VOID{} are both top types.%
+}
+
+\rationale{%
+Obviously, the support for preventing developers from using values
+obtained from expressions of type \VOID{} is far from sound,
+in the sense that there are many ways to circumvent the rule
+that such a value should be discarded.
+
+However, we have chosen to focus on the simple, first-order usage
+(where an expression has type \VOID, and the value is used),
+and we have left higher-order cases largely unchecked,
+relying on additional tools such as linters to perform an analysis
+which covers indirect data flows.
+
+It would certainly have been possible to define sound rules,
+such that the value of an expression of type \VOID{}
+would be guaranteed to be discarded after some number of transfers
+from one variable or parameter to the next one, all with type \VOID{},
+explicitly, or as the value of a type parameter.
+In particular, we could require that method overrides should
+never override return type \code{Object} by return type \VOID{},
+or parameter types in the opposite direction;
+parameterized types with type argument \VOID{} could not be assigned
+to variables where the corresponding type argument is anything other than
+\VOID, etc.\ etc.
+
+But this would be quite impractical.
+In particular, the need to either prevent a large number of type variables
+from ever having the value \VOID{},
+or preventing certain usages of values whose type is such a type variable,
+or whose type contains such a type variable,
+that would be severely constraining on a very large part of all Dart code.
+
+So we have chosen to help developers maintain this self-imposed discipline
+in simple and direct cases,
+and leave it to ad-hoc reasoning or separate tools to ensure
+that the indirect cases are covered as closely as needed in practice.%
 }
 
 
