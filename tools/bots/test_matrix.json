@@ -1657,7 +1657,10 @@
         },
         {
           "name": "pub integration tests",
-          "script": "tools/bots/pub_integration_test.py"
+          "script": "tools/bots/pub_integration_test.py",
+          "arguments": [
+            "--mode=${mode}"
+          ]
         }
       ]
     },
