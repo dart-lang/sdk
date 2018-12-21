@@ -260,7 +260,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       marker_(NULL),
       gc_time_micros_(0),
       collections_(0),
-      mark_words_per_micro_(kConservativeInitialMarkSpeed) {
+      mark_words_per_micro_(kConservativeInitialMarkSpeed),
+      enable_concurrent_mark_(FLAG_concurrent_mark) {
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
