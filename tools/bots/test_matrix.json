@@ -177,16 +177,15 @@
         "timeout": 240,
         "use-sdk": true
       }},
-    "unittest-asserts-(linux|mac|win)": {
+    "unittest-asserts-(release|debug)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
-        "mode": "release",
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
       }},
-      "unittest-asserts-no-sdk-(linux|mac|win)": {
+    "unittest-asserts-no-sdk-(linux|mac|win)": {
         "options": {
           "compiler": "dartk",
           "enable-asserts": true,
@@ -379,7 +378,7 @@
         {
           "name": "unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
           ]
         },
@@ -1414,7 +1413,7 @@
         {
           "name": "analyzer unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analyzer"
           ],
           "shards": 2,
@@ -1423,7 +1422,7 @@
         {
           "name": "analysis_server unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analysis_server"
           ],
           "shards": 2,
@@ -1444,14 +1443,14 @@
         {
           "name": "analyzer_cli unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analyzer_cli"
           ]
         },
         {
           "name": "analyzer_plugin unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analyzer_plugin"
           ]
         },
@@ -1630,6 +1629,7 @@
     },
     {
       "builders": ["pkg-linux-release",
+                   "pkg-linux-debug",
                    "pkg-win-release",
                    "pkg-mac-release"],
       "meta": {
@@ -1644,14 +1644,14 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg"
           ]
         },
         {
           "name": "third_party pkg_tested unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg_tested"
           ]
         },
