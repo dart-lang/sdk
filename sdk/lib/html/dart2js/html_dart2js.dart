@@ -13818,6 +13818,8 @@ class Element extends Node
   @JSName('innerHTML')
   String _innerHtml;
 
+  String innerText;
+
   @JSName('localName')
   final String _localName;
 
