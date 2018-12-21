@@ -29,7 +29,7 @@ index ef06063a2..fa18ebfbf 100644
  
    args = [
 -    "--strong",
--    "--sync-async",
+     "--sync-async",
 -    "--reify-generic-functions",
      "--snapshot_kind=core",
      "--enable_mirrors=false",
