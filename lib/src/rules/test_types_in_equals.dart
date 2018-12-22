@@ -13,7 +13,7 @@ const _details = r'''
 
 **DO** test type arguments in operator ==(Object other).
 
-Not testing types so might result in null pointer exceptions which will be
+Not testing types might result in null pointer exceptions which will be
 unexpected for consumers of your class.
 
 **GOOD:**
