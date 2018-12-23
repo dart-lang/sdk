@@ -502,6 +502,9 @@ enum IndexSyntheticElementKind {
   /// The synthetic `values` getter of an enum.
   enumValues,
 
+  /// The synthetic `toString` method of an enum.
+  enumToString,
+
   /// The containing unit itself.
   unit
 }

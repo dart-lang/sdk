@@ -3562,6 +3562,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   /// Create the only method enums have - `toString()`.
   void createToStringMethodElement() {
     var method = new MethodElementImpl('toString', -1);
+    method.isSynthetic = true;
     if (_unlinkedEnum != null) {
       method.returnType = context.typeProvider.stringType;
       method.type = new FunctionTypeImpl(method);
