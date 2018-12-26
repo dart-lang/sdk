@@ -138,7 +138,6 @@ analysis_server/test/integration/analysis/get_errors_nonStandard_sdk_test: Skip
 front_end/test/fasta/ast_builder_test: Pass, Slow, Timeout
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
-front_end/test/hot_reload_e2e_test: Skip # Issue 31901
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 front_end/test/whole_program_test: Skip # Issue 31902
 
