@@ -1629,11 +1629,10 @@
     },
     {
       "builders": ["pkg-linux-release",
-                   "pkg-linux-debug",
                    "pkg-win-release",
                    "pkg-mac-release"],
       "meta": {
-        "description": "This configuration is used by the pkg builders."
+        "description": "This configuration is used by the release pkg builders."
       },
       "steps": [
         {
@@ -1659,7 +1658,41 @@
           "name": "pub integration tests",
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
-            "--mode=${mode}"
+            "--mode=release"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": ["pkg-linux-debug"],
+      "meta": {
+        "description": "This configuration is used by the debug pkg builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}",
+            "pkg"
+          ]
+        },
+        {
+          "name": "third_party pkg_tested unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}",
+            "pkg_tested"
+          ]
+        },
+        {
+          "name": "pub integration tests",
+          "script": "tools/bots/pub_integration_test.py",
+          "arguments": [
+            "--mode=debug"
           ]
         }
       ]
