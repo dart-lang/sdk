@@ -31,6 +31,7 @@ import 'package:kernel/ast.dart'
         SetLiteral,
         StaticInvocation,
         StringLiteral,
+        Supertype,
         TreeNode,
         Typedef,
         TypeParameter,
@@ -1659,22 +1660,28 @@ class KernelLibraryBuilder
     if (loader.target.legacyMode) return;
     if (arguments.types.isEmpty) return;
     Class klass;
-    List<DartType> klassArguments;
+    List<DartType> receiverTypeArguments;
     if (receiverType is InterfaceType) {
       klass = receiverType.classNode;
-      klassArguments = receiverType.typeArguments;
+      receiverTypeArguments = receiverType.typeArguments;
     } else {
       return;
-    }
-    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
-    for (int i = 0; i < klassArguments.length; ++i) {
-      substitutionMap[klass.typeParameters[i]] = klassArguments[i];
     }
     // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
     Member method = typeEnvironment.hierarchy.getDispatchTarget(klass, name) ??
         interfaceTarget;
     if (method == null || method is! Procedure) {
       return;
+    }
+    if (klass != method.enclosingClass) {
+      Supertype parent = typeEnvironment.hierarchy
+          .getClassAsInstanceOf(klass, method.enclosingClass);
+      klass = method.enclosingClass;
+      receiverTypeArguments = parent.typeArguments;
+    }
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    for (int i = 0; i < receiverTypeArguments.length; ++i) {
+      substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
     // The error is to be reported elsewhere.
