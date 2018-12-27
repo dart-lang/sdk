@@ -109,7 +109,7 @@ void cascadeStatic() {
   StaticFoo.decrement();
 }
 
-// Bug 339
+// https://github.com/dart-lang/linter/issues/339
 class Identifier339 {
   String value;
   String system;
@@ -193,4 +193,38 @@ class Bug694 {
 void function694() {
   Bug694.bar = 2;
   Bug694.foo = 3; // OK
+}
+
+class A {
+  int f;
+  int g;
+
+  int get p => 7;
+  int get q => 6;
+}
+
+class B {
+  final A a = A();
+
+  B operator +(other) {
+    return B();
+  }
+}
+
+// https://github.com/dart-lang/linter/issues/1323
+void bug1323() {
+  final B b1 = B();
+  final B b2 = B();
+
+  b1.a
+    ..f = 1
+    ..g = 1;
+  b2.a.f = 2; // OK
+
+  print('buffer statement.');
+
+  b1.a
+    ..p
+    ..q;
+  b2.a.p; // OK
 }

@@ -79,7 +79,8 @@ Element _getPrefixElementFromExpression(Expression rawExpression) {
     return DartTypeUtilities.getCanonicalElementFromIdentifier(
         expression.prefix);
   } else if (expression is PropertyAccess &&
-      _isInvokedWithoutNullAwareOperator(expression.operator)) {
+      _isInvokedWithoutNullAwareOperator(expression.operator) &&
+      expression.target is SimpleIdentifier) {
     return DartTypeUtilities.getCanonicalElementFromIdentifier(
         expression.target);
   }
@@ -121,7 +122,14 @@ class _CascadableExpression {
       null, [],
       canJoin: false, canReceive: false, canBeCascaded: false);
 
+  /// Whether this expression can be joined with a previous expression via a
+  /// cascade operation.
   final bool canJoin;
+
+  /// Whether this expression can receive an additional expression with a
+  /// cascade operation.
+  ///
+  /// For example, `a.b = 1` can receive, but `a = 1` cannot receive.
   final bool canReceive;
   final bool canBeCascaded;
 
@@ -178,7 +186,7 @@ class _CascadableExpression {
           isCritical: true);
     }
     // setters
-    final variable = _getPrefixElementFromExpression(node.leftHandSide);
+    final variable = _getPrefixElementFromExpression(leftExpression);
     final canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
         variable is VariableElement &&
         !variable.isStatic;
@@ -212,10 +220,35 @@ class _CascadableExpression {
           DartTypeUtilities.getCanonicalElementFromIdentifier(node.prefix), [],
           canJoin: true, canReceive: true, canBeCascaded: true);
 
-  factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) =>
-      new _CascadableExpression._internal(
-          DartTypeUtilities.getCanonicalElementFromIdentifier(node.target), [],
-          canJoin: true, canReceive: true, canBeCascaded: true);
+  factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
+    var targetIsSimple = node.target is SimpleIdentifier;
+    return new _CascadableExpression._internal(
+        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target), [],
+        // If the target is something like `(a + b).x`, then node can neither
+        // join, nor receive.
+        //
+        // This restriction is quite limiting. It means that this rule cannot
+        // report on the following code:
+        //
+        //     b1.a
+        //       ..f = 1
+        //       ..g = 1;
+        //     b2.a.f = 2; // Could report here.
+        //
+        // But it may be difficult to accurately know if complicated
+        // expressions are cascadable. Just because two expressions are "equal"
+        // or look the same, does not mean they can be cascaded; for example:
+        //
+        //     (b1 + b2).a
+        //       ..f = 1
+        //       ..g = 1;
+        //     (b1 + b2).a.f = 2; // Should not report here.
+        //
+        // TODO(srawlins): Look into whether this is possible.
+        canJoin: targetIsSimple,
+        canReceive: targetIsSimple,
+        canBeCascaded: true);
+  }
 
   _CascadableExpression._internal(this.element, this.criticalNodes,
       {this.canJoin,
@@ -223,6 +256,8 @@ class _CascadableExpression {
       this.canBeCascaded,
       this.isCritical = false});
 
+  /// Whether [this] is compatible to be joined with [expressionBox] with a
+  /// cascade operation.
   bool compatibleWith(_CascadableExpression expressionBox) =>
       element != null &&
       expressionBox.canReceive &&
