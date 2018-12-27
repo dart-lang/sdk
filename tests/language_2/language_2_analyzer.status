@@ -124,7 +124,7 @@ vm/regression_32912_test/03: MissingCompileTimeError # Issue 32912
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
-void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError
+void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError # issue 35508
 web_int_literals_test/01: MissingCompileTimeError
 web_int_literals_test/02: MissingCompileTimeError
 web_int_literals_test/03: MissingCompileTimeError
