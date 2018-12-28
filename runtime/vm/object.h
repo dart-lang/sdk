@@ -2913,6 +2913,11 @@ class Function : public Object {
   // redirecting: Redirecting generative or factory constructor.
   // external: Just a declaration that expects to be defined in another patch
   //           file.
+  // generated_body: Has a generated body.
+  // always_inline: Should always be inlined.
+  // polymorphic_target: A polymorphic method.
+  // has_pragma: Has a @pragma decoration.
+  // no_such_method_forwarder: A stub method that just calls noSuchMethod.
 
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
@@ -2930,7 +2935,8 @@ class Function : public Object {
   V(GeneratedBody, is_generated_body)                                          \
   V(AlwaysInline, always_inline)                                               \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
-  V(HasPragma, has_pragma)
+  V(HasPragma, has_pragma)                                                     \
+  V(IsNoSuchMethodForwarder, is_no_such_method_forwarder)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \

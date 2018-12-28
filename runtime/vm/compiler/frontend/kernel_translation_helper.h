@@ -519,13 +519,16 @@ class ProcedureHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsStatic() { return (flags_ & kStatic) != 0; }
-  bool IsAbstract() { return (flags_ & kAbstract) != 0; }
-  bool IsExternal() { return (flags_ & kExternal) != 0; }
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
-  bool IsRedirectingFactoryConstructor() {
+  bool IsStatic() const { return (flags_ & kStatic) != 0; }
+  bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
+  bool IsExternal() const { return (flags_ & kExternal) != 0; }
+  bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
+  }
+  bool IsNoSuchMethodForwarder() const {
+    return (flags_ & kNoSuchMethodForwarder) != 0;
   }
 
   NameIndex canonical_name_;

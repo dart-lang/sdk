@@ -667,6 +667,51 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
+  char buffer[1024];
+  const char* kScript =
+      "class Foo {\n"
+      "  void bar() {}\n"
+      "}\n"
+      "class Unused implements Foo {\n"
+      "  dynamic noSuchMethod(_) {}\n"
+      "}\n"
+      "void main() {\n"
+      "  Foo().bar();\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // Foo is hit.
+      "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":26,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[14],\"misses\":[]}},"
+
+      // Unused is missed.
+      "{\"scriptIndex\":0,\"startPos\":62,\"endPos\":87,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[62]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":91,\"endPos\":120,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[91,107,113],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart
