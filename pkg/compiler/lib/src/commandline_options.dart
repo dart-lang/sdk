@@ -36,6 +36,9 @@ class Flags {
   // Experimentally try to force part-file functions to be seen as IIFEs.
   static const String experimentStartupFunctions = '--experiment-code-2';
 
+  // Experimentally rely on JavaScript ToBoolean conversions.
+  static const String experimentToBoolean = '--experiment-code-3';
+
   // Add instrumentation to log every method call.
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';

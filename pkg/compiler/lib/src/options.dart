@@ -267,6 +267,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Experimental part file function generation.
   bool experimentStartupFunctions = false;
 
+  /// Experimental reliance on JavaScript ToBoolean conversions.
+  bool experimentToBoolean = false;
+
   /// Experimental instrumentation to investigate code bloat.
   ///
   /// If [true], the compiler will emit code that logs whenever a method is
@@ -335,6 +338,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
+      ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateCodeWithCompileTimeErrors =

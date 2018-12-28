@@ -368,7 +368,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(_closedWorld, _interceptorData)
+    new SsaInstructionSelection(_options, _closedWorld, _interceptorData)
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(_options).visitGraph(graph);
@@ -1722,10 +1722,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Statement elsePart;
 
     HBasicBlock thenBlock = node.block.successors[0];
-    // If we believe we will generate S1 as empty, try to generate
+    // If we believe we will generate S1 as empty, instead of
     //
     //     if (e) S1; else S2;
-    // as
+    //
+    // try to generate
+    //
     //     if (!e) S2; else S1;
     //
     // It is better to generate `!e` rather than try and negate it later.
@@ -1748,24 +1750,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       elsePart = unwrapStatement(generateStatementsInNewBlock(elseGraph));
     }
 
+    js.Statement code = _assembleIfThenElse(test, thenPart, elsePart);
+    pushStatement(code.withSourceInformation(node.sourceInformation));
+  }
+
+  js.Statement _assembleIfThenElse(
+      js.Expression test, js.Statement thenPart, js.Statement elsePart) {
     // Peephole rewrites:
     //
-    //     if (e); else S;   -->   if(!e) S;
+    //     if (e); else S;   -->   if (!e) S;
     //
     //     if (e);   -->   e;
     //
     // TODO(sra): We might be able to do better with reshaping the CFG.
-    js.Statement code;
     if (thenPart is js.EmptyStatement) {
       if (elsePart is js.EmptyStatement) {
-        code = new js.ExpressionStatement(test);
-      } else {
-        code = new js.If.noElse(new js.Prefix('!', test), elsePart);
+        return js.ExpressionStatement(test);
       }
-    } else {
-      code = new js.If(test, thenPart, elsePart);
+      test = js.Prefix('!', test);
+      var temp = thenPart;
+      thenPart = elsePart;
+      elsePart = temp;
     }
-    pushStatement(code.withSourceInformation(node.sourceInformation));
+
+    if (_options.experimentToBoolean) {
+      if (elsePart is js.EmptyStatement &&
+          thenPart is js.ExpressionStatement &&
+          thenPart.expression is js.Call) {
+        return js.ExpressionStatement(
+            js.Binary('&&', test, thenPart.expression));
+      }
+    }
+
+    return js.If(test, thenPart, elsePart);
   }
 
   visitIf(HIf node) {
