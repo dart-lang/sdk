@@ -1190,6 +1190,7 @@ LibTest/io/WebSocketTransformer/bind_A01_t01: RuntimeError
 LibTest/io/ZLibDecoder/fuse_A01_t01: RuntimeError
 LibTest/io/ZLibEncoder/fuse_A01_t01: RuntimeError
 LibTest/isolate/Isolate/addOnExitListener_A04_t01: RuntimeError
+LibTest/isolate/Isolate/kill_A01_t01: Timeout, Pass
 LibTest/isolate/Isolate/ping_A01_t01: Timeout, Pass
 LibTest/isolate/Isolate/ping_A04_t01: RuntimeError
 LibTest/isolate/Isolate/spawnUri_A05_t04: RuntimeError, Pass
