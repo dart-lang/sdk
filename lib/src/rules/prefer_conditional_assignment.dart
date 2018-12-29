@@ -37,33 +37,30 @@ String get fullName {
 
 ''';
 
-bool _checkExpression(Expression expression, Element element) =>
+bool _checkExpression(Expression expression, Expression condition) =>
     expression is AssignmentExpression &&
-    DartTypeUtilities.getCanonicalElementFromIdentifier(
-            expression.leftHandSide) ==
-        element;
+    DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(
+        expression.leftHandSide, condition);
 
-bool _checkStatement(Statement statement, Element element) {
+bool _checkStatement(Statement statement, Expression condition) {
   if (statement is ExpressionStatement) {
-    return _checkExpression(statement.expression, element);
+    return _checkExpression(statement.expression, condition);
   }
   if (statement is Block && statement.statements.length == 1) {
-    return _checkStatement(statement.statements.first, element);
+    return _checkStatement(statement.statements.first, condition);
   }
   return false;
 }
 
-Element _getElementInCondition(Expression rawExpression) {
+Expression _getExpressionCondition(Expression rawExpression) {
   final expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {
     if (DartTypeUtilities.isNullLiteral(expression.rightOperand)) {
-      return DartTypeUtilities.getCanonicalElementFromIdentifier(
-          expression.leftOperand);
+      return expression.leftOperand;
     }
     if (DartTypeUtilities.isNullLiteral(expression.leftOperand)) {
-      return DartTypeUtilities.getCanonicalElementFromIdentifier(
-          expression.rightOperand);
+      return expression.rightOperand;
     }
   }
   return null;
@@ -95,9 +92,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.elseStatement != null) {
       return;
     }
-    final elementInCondition = _getElementInCondition(node.condition);
-    if (elementInCondition != null &&
-        _checkStatement(node.thenStatement, elementInCondition)) {
+    final expressionInCondition = _getExpressionCondition(node.condition);
+    if (expressionInCondition != null &&
+        _checkStatement(node.thenStatement, expressionInCondition)) {
       rule.reportLint(node);
     }
   }

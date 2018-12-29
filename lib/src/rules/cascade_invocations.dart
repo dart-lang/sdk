@@ -244,7 +244,9 @@ class _CascadableExpression {
         //       ..g = 1;
         //     (b1 + b2).a.f = 2; // Should not report here.
         //
-        // TODO(srawlins): Look into whether this is possible.
+        // TODO(srawlins): Refactor this lint rule to use
+        // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
+        // should fix this issue.
         canJoin: targetIsSimple,
         canReceive: targetIsSimple,
         canBeCascaded: true);

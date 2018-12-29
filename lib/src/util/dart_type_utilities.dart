@@ -49,6 +49,67 @@ class DartTypeUtilities {
     return null;
   }
 
+  /// Return whether the canonical elements of two elements are equal.
+  static bool canonicalElementsAreEqual(Element element1, Element element2) =>
+      getCanonicalElement(element1) == getCanonicalElement(element2);
+
+  /// Returns whether the canonical elements from two nodes are equal.
+  ///
+  /// As in, [getCanonicalElementFromIdentifier], the two nodes must be
+  /// [Expression]s in order to be compared (otherwise `false` is returned).
+  ///
+  /// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
+  /// [PropertyAccess] (otherwise `false` is returned).
+  ///
+  /// If the two nodes are PrefixedIdentifiers, or PropertyAccess nodes, then
+  /// `true` is returned only if their canonical elements are equal, in
+  /// addition to their prefixes' and targets' (respectfully) canonical
+  /// elements.
+  ///
+  /// There is an inherent assumption about pure getters. For example:
+  ///
+  ///     A a1 = ...
+  ///     A a2 = ...
+  ///     a1.b.c; // statement 1
+  ///     a2.b.c; // statement 2
+  ///     a1.b.c; // statement 3
+  ///
+  /// The canonical elements from statements 1 and 2 are different, because a1
+  /// is not the same element as a2.  The canonical elements from statements 1
+  /// and 3 are considered to be equal, even though `A.b` may have side effects
+  /// which alter the returned value.
+  static bool canonicalElementsFromIdentifiersAreEqual(
+      Expression rawExpression1, Expression rawExpression2) {
+    if (rawExpression1 == null || rawExpression2 == null) return false;
+
+    final expression1 = rawExpression1.unParenthesized;
+    final expression2 = rawExpression2.unParenthesized;
+
+    if (expression1 is SimpleIdentifier) {
+      return expression2 is SimpleIdentifier &&
+          canonicalElementsAreEqual(
+              expression1.staticElement, expression2.staticElement);
+    }
+
+    if (expression1 is PrefixedIdentifier) {
+      return expression2 is PrefixedIdentifier &&
+          canonicalElementsAreEqual(expression1.prefix.staticElement,
+              expression2.prefix.staticElement) &&
+          canonicalElementsAreEqual(
+              expression1.staticElement, expression2.staticElement);
+    }
+
+    if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
+      final target1 = expression1.target;
+      final target2 = expression2.target;
+      return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
+          canonicalElementsAreEqual(expression1.propertyName.staticElement,
+              expression2.propertyName.staticElement);
+    }
+
+    return false;
+  }
+
   static Iterable<InterfaceType> getImplementedInterfaces(InterfaceType type) {
     void recursiveCall(InterfaceType type, Set<ClassElement> alreadyVisited,
         List<InterfaceType> interfaceTypes) {

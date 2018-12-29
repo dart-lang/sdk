@@ -43,3 +43,22 @@ class B {
     }
   }
 }
+
+class C {
+  final A a = A();
+}
+
+int unJoinablePropertyAccessReturn() {
+  final C c1 = C();
+  final C c2 = C();
+
+  c2.a._a = 1; // OK
+  return c1.a._a;
+}
+
+int joinablePropertyAccessReturn() {
+  final C c1 = C();
+
+  c1.a._a = 1; // LINT
+  return c1.a._a;
+}

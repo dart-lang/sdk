@@ -98,21 +98,37 @@ class Person {
   void goodBecauseHasElseStatement1() {
     if (_fullName == null) { // OK
       _fullName = getFullUserName(this);
-    }
-    else {}
+    } else {}
   }
 
   void goodBecauseHasElseStatement2() {
     if ((_fullName) == (null)) { // OK
       _fullName = getFullUserName(this);
-    }
-    else {}
+    } else {}
   }
 
   void goodBecauseHasElseStatement3() {
     if ((_fullName == null)) { // OK
       _fullName = getFullUserName(this);
-    }
-    else {}
+    } else {}
   }
+
+  A a;
+  A b;
+
+  void f() {
+    if (a.i == null) { // OK
+      b.i = 7;
+    }
+  }
+
+  void g() {
+    if (a.i == null) { // LINT
+      a.i = 7;
+    }
+  }
+}
+
+class A {
+  int i;
 }
