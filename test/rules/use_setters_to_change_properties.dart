@@ -11,7 +11,7 @@ abstract class A {
   void setW(int w) => _w = w; // LINT
 
   void setW1(int w) => this._w = w; // LINT
-  
+
   void setX(int x) { // LINT
     _x = x;
   }
@@ -29,6 +29,18 @@ class B extends A {
   int _y;
 
   void setY(int y) { // OK because it is an inherited method.
+    this._y = y;
+  }
+}
+
+abstract class C {
+  void setY(int y);
+}
+
+class D implements C {
+  int _y;
+
+  void setY(int y) { // OK because it is an implementation method.
     this._y = y;
   }
 }

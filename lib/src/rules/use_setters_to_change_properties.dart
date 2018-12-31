@@ -30,9 +30,6 @@ button.visible = false;
 
 ''';
 
-bool _hasInheritedMethod(MethodDeclaration node) =>
-    DartTypeUtilities.lookUpInheritedMethod(node) != null;
-
 class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
   UseSettersToChangeAProperty()
       : super(
@@ -58,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isSetter ||
         node.isGetter ||
-        _hasInheritedMethod(node) ||
+        DartTypeUtilities.overridesMethod(node) ||
         node.parameters?.parameters?.length != 1 ||
         node.returnType?.type?.name != 'void') {
       return;
