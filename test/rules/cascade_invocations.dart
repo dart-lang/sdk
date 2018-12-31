@@ -228,3 +228,8 @@ void bug1323() {
     ..q;
   b2.a.p; // OK
 }
+
+void bug1317() async {
+  final list = await Future.value([]);
+  list.forEach(print); // OK
+}
