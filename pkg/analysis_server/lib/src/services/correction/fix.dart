@@ -56,8 +56,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == HintCode.DIVISION_OPTIMIZATION ||
     errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL ||
     errorCode == HintCode.TYPE_CHECK_IS_NULL ||
-    errorCode == HintCode.UNDEFINED_GETTER ||
-    errorCode == HintCode.UNDEFINED_SETTER ||
     errorCode == HintCode.UNNECESSARY_CAST ||
     errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
     errorCode == HintCode.UNUSED_CATCH_STACK ||

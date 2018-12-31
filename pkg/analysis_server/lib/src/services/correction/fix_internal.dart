@@ -291,15 +291,6 @@ class FixProcessor {
     if (errorCode == HintCode.TYPE_CHECK_IS_NULL) {
       await _addFix_isNull();
     }
-    if (errorCode == HintCode.UNDEFINED_GETTER) {
-      await _addFix_undefinedClassAccessor_useSimilar();
-      await _addFix_createField();
-      await _addFix_createGetter();
-    }
-    if (errorCode == HintCode.UNDEFINED_SETTER) {
-      await _addFix_undefinedClassAccessor_useSimilar();
-      await _addFix_createField();
-    }
     if (errorCode == HintCode.UNNECESSARY_CAST) {
       await _addFix_removeUnnecessaryCast();
     }

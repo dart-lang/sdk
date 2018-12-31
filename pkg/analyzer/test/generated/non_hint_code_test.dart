@@ -1488,6 +1488,9 @@ g() {
 }
 
 class PubSuggestionCodeTest extends ResolverTestCase {
+  // TODO(brianwilkerson) The tests in this class are not being run, and all but
+  //  the first would fail. We should implement these checks and enable the
+  //  tests.
   test_import_package() async {
     Source source = addSource("import 'package:somepackage/other.dart';");
     await computeAnalysisResult(source);

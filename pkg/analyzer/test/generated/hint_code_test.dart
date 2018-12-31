@@ -110,13 +110,6 @@ class A {
     verify([source]);
   }
 
-  test_argumentTypeNotAssignable_message() async {
-    // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
-    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
-    expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message,
-        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message);
-  }
-
   test_argumentTypeNotAssignable_type() async {
     Source source = addSource(r'''
 m() {
@@ -2580,21 +2573,6 @@ class B extends A {
     verify([source]);
   }
 
-  test_mustBeImmutable_mixinApplication() async {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-@immutable
-class A {}
-class B {
-  int x;
-}
-class C = A with B;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
-    verify([source]);
-  }
-
   test_mustBeImmutable_fromMixin() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2620,6 +2598,21 @@ class A {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, []);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_mixinApplication() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B {
+  int x;
+}
+class C = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
     verify([source]);
   }
 
