@@ -440,6 +440,31 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
+  @failingTest
+  void test_locateRoots_options_withExclude() {
+    // https://github.com/dart-lang/sdk/issues/35519
+    Folder rootFolder = newFolder('/test/outer');
+    newFolder('/test/outer/test/data');
+    File dataFile = newFile('/test/outer/test/data/test.dart');
+    File optionsFile = newOptionsFile('/test/outer', content: '''
+analyzer:
+  exclude:
+    - test/data/**
+''');
+    File packagesFile = newPackagesFile('/test/outer');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.isAnalyzed(dataFile.path), isFalse);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+  }
+
   void test_locateRoots_single_dir_directOptions_directPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newOptionsFile('/test/root');

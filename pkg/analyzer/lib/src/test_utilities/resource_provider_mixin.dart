@@ -89,9 +89,9 @@ mixin ResourceProviderMixin {
     return resourceProvider.newFolder(convertedPath);
   }
 
-  File newOptionsFile(String directoryPath) {
+  File newOptionsFile(String directoryPath, {String content = ''}) {
     String path = join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME);
-    return newFile(path);
+    return newFile(path, content: content);
   }
 
   File newPackagesFile(String directoryPath) {
