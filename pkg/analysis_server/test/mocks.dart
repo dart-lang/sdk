@@ -1,10 +1,9 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -19,22 +18,6 @@ import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
 const _jsonEncoder = const JsonEncoder.withIndent('    ');
-
-/**
- * Answer the absolute path the SDK relative to the currently running
- * script or throw an exception if it cannot be found.
- */
-String get sdkPath {
-  Uri sdkUri = Platform.script.resolve('../../../sdk/');
-
-  // Verify the directory exists
-  Directory sdkDir = new Directory.fromUri(sdkUri);
-  if (!sdkDir.existsSync()) {
-    throw 'Specified Dart SDK does not exist: $sdkDir';
-  }
-
-  return sdkDir.path;
-}
 
 /**
  * A [Matcher] that check that the given [Response] has an expected identifier
@@ -343,45 +326,6 @@ class MockServerChannel implements ServerCommunicationChannel {
     }
     return response;
   }
-}
-
-/**
- * A mock [WebSocket] for testing.
- */
-class MockSocket<T> implements WebSocket {
-  StreamController<T> controller = new StreamController<T>();
-  MockSocket<T> twin;
-  Stream<T> stream;
-
-  MockSocket();
-
-  factory MockSocket.pair() {
-    MockSocket<T> socket1 = new MockSocket<T>();
-    MockSocket<T> socket2 = new MockSocket<T>();
-    socket1.twin = socket2;
-    socket2.twin = socket1;
-    socket1.stream = socket2.controller.stream;
-    socket2.stream = socket1.controller.stream;
-    return socket1;
-  }
-
-  void add(dynamic text) => controller.add(text as T);
-
-  void allowMultipleListeners() {
-    stream = stream.asBroadcastStream();
-  }
-
-  Future close([int code, String reason]) =>
-      controller.close().then((_) => twin.controller.close());
-
-  StreamSubscription<T> listen(void onData(dynamic event),
-          {Function onError, void onDone(), bool cancelOnError}) =>
-      stream.listen((T data) => onData(data),
-          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  Stream<T> where(bool test(dynamic t)) => stream.where((T data) => test(data));
 }
 
 class MockSource extends StringTypedMock implements Source {

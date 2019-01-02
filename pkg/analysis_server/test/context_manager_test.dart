@@ -1675,24 +1675,19 @@ abstract class ContextManagerTest with ResourceProviderMixin {
 
   String projPath = null;
 
-  AnalysisError missing_required_param = new AnalysisError(
-      new TestSource(), 0, 1, HintCode.MISSING_REQUIRED_PARAM, [
-    ['x']
-  ]);
-
   AnalysisError missing_return =
-      new AnalysisError(new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+      new AnalysisError(null, 0, 1, HintCode.MISSING_RETURN, [
     ['x']
   ]);
 
   AnalysisError invalid_assignment_error =
-      new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+      new AnalysisError(null, 0, 1, HintCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);
 
-  AnalysisError unused_local_variable = new AnalysisError(
-      new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+  AnalysisError unused_local_variable =
+      new AnalysisError(null, 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
     ['x']
   ]);
 
@@ -2608,26 +2603,5 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
     lastFlushedFiles = flushedFiles;
-  }
-}
-
-/**
- * A [Source] that knows it's [fullName].
- */
-class TestSource implements Source {
-  TestSource();
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class TestUriResolver extends UriResolver {
-  Map<Uri, Source> uriMap;
-
-  TestUriResolver(this.uriMap);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return uriMap[uri];
   }
 }

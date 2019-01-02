@@ -149,13 +149,6 @@ class TestDriver implements AnalysisDriver {
 
   Stream<ResolvedUnitResult> get results => _resultController.stream;
 
-  Future<void> computeResult(String uri) {
-    FileState file = fsState.getFileForUri(Uri.parse(uri));
-    var result = new _ResolvedUnitResultMock(currentSession, file.path);
-    _resultController.add(result);
-    return new Future.delayed(new Duration(milliseconds: 1));
-  }
-
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -180,16 +173,4 @@ class TestPluginManager implements PluginManager {
   void removedContextRoot(ContextRoot contextRoot) {
     removedContextRoots.add(contextRoot);
   }
-}
-
-class _ResolvedUnitResultMock implements ResolvedUnitResult {
-  @override
-  final AnalysisSession session;
-
-  @override
-  final String path;
-
-  _ResolvedUnitResultMock(this.session, this.path);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
