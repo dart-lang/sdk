@@ -23,6 +23,21 @@ import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.d
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
+/// The server moves to this state when a critical unrecoverrable error (for
+/// example, inconsistent document state between server/client) occurs and will
+/// reject all messages.
+class FailureStateMessageHandler extends ServerStateMessageHandler {
+  FailureStateMessageHandler(LspAnalysisServer server) : super(server);
+
+  @override
+  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+    return failure(
+        ErrorCodes.InternalError,
+        'An unrecoverable error occurred and the server cannot process messages',
+        null);
+  }
+}
+
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,

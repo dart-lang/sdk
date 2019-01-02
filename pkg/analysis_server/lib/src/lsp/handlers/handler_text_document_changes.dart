@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -28,17 +29,17 @@ class TextDocumentChangeHandler
     if (server.resourceProvider.hasOverlay(path)) {
       oldContents = server.resourceProvider.getFile(path).readAsStringSync();
     }
-    // Visual Studio has been seen to skip didOpen notifications for files that
-    // were already open when the LSP server initialized, so handle this with
-    // a specific message to make it clear what's happened.
+    // If we didn't have the file contents, the server and client are out of sync
+    // and this is a serious failure.
     if (oldContents == null) {
       return error(
-        ErrorCodes.InvalidParams,
+        ServerErrorCodes.ClientServerInconsistentState,
         'Unable to edit document because the file was not previously opened: $path',
         null,
       );
     }
-    final newContents = applyEdits(oldContents, params.contentChanges);
+    final newContents =
+        applyEdits(oldContents, params.contentChanges, failureIsCritical: true);
     return newContents.mapResult((newcontents) {
       server.documentVersions[path] = params.textDocument;
       server.updateOverlay(path, newContents.result);

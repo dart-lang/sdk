@@ -9,15 +9,20 @@ import 'package:dart_style/dart_style.dart';
 final DartFormatter formatter = new DartFormatter();
 
 ErrorOr<String> applyEdits(
-    String oldContent, List<TextDocumentContentChangeEvent> changes) {
+  String oldContent,
+  List<TextDocumentContentChangeEvent> changes, {
+  failureIsCritical: false,
+}) {
   String newContent = oldContent;
   for (var change in changes) {
     if (change.range == null && change.rangeLength == null) {
       newContent = change.text;
     } else {
       final lines = LineInfo.fromContent(newContent);
-      final offsetStart = toOffset(lines, change.range.start);
-      final offsetEnd = toOffset(lines, change.range.end);
+      final offsetStart = toOffset(lines, change.range.start,
+          failureIsCritial: failureIsCritical);
+      final offsetEnd = toOffset(lines, change.range.end,
+          failureIsCritial: failureIsCritical);
       if (offsetStart.isError) {
         return new ErrorOr<String>.error(offsetStart.error);
       }

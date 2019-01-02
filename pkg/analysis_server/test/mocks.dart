@@ -58,9 +58,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   final StreamController<lsp.Message> _serverToClient =
       new StreamController<lsp.Message>.broadcast();
 
-  bool _closed = false;
-
   String name;
+
+  /**
+   * Completer that will be signalled when the input stream is closed.
+   */
+  final Completer _closed = new Completer();
 
   MockLspServerChannel(bool _printMessages) {
     if (_printMessages) {
@@ -69,6 +72,13 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       _clientToServer.stream
           .listen((message) => print('==> ' + jsonEncode(message)));
     }
+  }
+
+  /**
+   * Future that will be completed when the input stream is closed.
+   */
+  Future get closed {
+    return _closed.future;
   }
 
   /**
@@ -100,7 +110,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   @override
   void close() {
-    _closed = true;
+    if (!_closed.isCompleted) {
+      _closed.complete();
+    }
   }
 
   @override
@@ -112,7 +124,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   @override
   void sendNotification(lsp.NotificationMessage notification) {
     // Don't deliver notifications after the connection is closed.
-    if (_closed) {
+    if (_closed.isCompleted) {
       return;
     }
     _serverToClient.add(notification);
@@ -120,7 +132,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   void sendNotificationToServer(lsp.NotificationMessage notification) {
     // Don't deliver notifications after the connection is closed.
-    if (_closed) {
+    if (_closed.isCompleted) {
       return;
     }
     notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
@@ -130,7 +142,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   @override
   void sendRequest(lsp.RequestMessage request) {
     // Don't deliver notifications after the connection is closed.
-    if (_closed) {
+    if (_closed.isCompleted) {
       return;
     }
     _serverToClient.add(request);
@@ -143,7 +155,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
    */
   Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
     // No further requests should be sent after the connection is closed.
-    if (_closed) {
+    if (_closed.isCompleted) {
       throw new Exception('sendLspRequest after connection closed');
     }
     request = _convertJson(request, lsp.RequestMessage.fromJson);
@@ -155,7 +167,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   @override
   void sendResponse(lsp.ResponseMessage response) {
     // Don't deliver responses after the connection is closed.
-    if (_closed) {
+    if (_closed.isCompleted) {
       return;
     }
     // Wrap send response in future to simulate WebSocket.
@@ -164,7 +176,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   void sendResponseToServer(lsp.ResponseMessage response) {
     // Don't deliver notifications after the connection is closed.
-    if (_closed) {
+    if (_closed.isCompleted) {
       return;
     }
     response = _convertJson(response, lsp.ResponseMessage.fromJson);

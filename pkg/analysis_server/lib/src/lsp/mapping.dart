@@ -401,10 +401,16 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
-ErrorOr<int> toOffset(server.LineInfo lineInfo, lsp.Position pos) {
+ErrorOr<int> toOffset(
+  server.LineInfo lineInfo,
+  lsp.Position pos, {
+  failureIsCritial: false,
+}) {
   if (pos.line > lineInfo.lineCount) {
     return new ErrorOr<int>.error(new lsp.ResponseError(
-        lsp.ServerErrorCodes.InvalidFileLineCol,
+        failureIsCritial
+            ? lsp.ServerErrorCodes.ClientServerInconsistentState
+            : lsp.ServerErrorCodes.InvalidFileLineCol,
         'Invalid line number',
         pos.line));
   }

@@ -16,6 +16,25 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
+  test_inconsistentStateError() async {
+    await initialize();
+    await openFile(mainFileUri, '');
+    // Attempt to make an illegal modification to the file. This indicates the
+    // client and server are out of sync and we expect the server to shut down.
+    final error = await expectErrorNotification<ShowMessageParams>(() async {
+      await changeFile(222, mainFileUri, [
+        new TextDocumentContentChangeEvent(
+            new Range(new Position(99, 99), new Position(99, 99)), null, ' '),
+      ]);
+    });
+
+    expect(error, isNotNull);
+    expect(error.message, contains('Invalid line'));
+
+    // Wait for up to 10 seconds for the server to shutdown.
+    await server.exited.timeout(const Duration(seconds: 10));
+  }
+
   test_shutdown_initialized() async {
     await initialize();
     final request = makeRequest(Method.shutdown, null);

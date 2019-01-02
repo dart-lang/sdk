@@ -163,6 +163,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities get clientCapabilities => _clientCapabilities;
 
+  Future<void> get exited => channel.closed;
+
   /**
    * The socket from which messages are being read has been closed.
    */
@@ -295,6 +297,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       // For notifications where we couldn't respond with an error, send it as
       // show instead of log.
       showError(error.message);
+    }
+
+    // Handle fatal errors where the client/server state is out of sync and we
+    // should not continue.
+    if (error.code == ServerErrorCodes.ClientServerInconsistentState) {
+      // Do not process any further messages.
+      messageHandler = new FailureStateMessageHandler(this);
+
+      final message = 'An unrecoverable error occurred.';
+      logError(
+          '$message\n\n${error.message}\n\n${error.code}\n\n${error.data}');
+
+      shutdown();
     }
   }
 
