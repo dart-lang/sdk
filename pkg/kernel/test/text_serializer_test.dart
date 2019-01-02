@@ -32,6 +32,12 @@ String writeExpression(Expression expression) {
 void test() {
   List<String> failures = [];
   List<String> tests = [
+    "(let (var \"x\" (dynamic) (int 0) 0) (null))",
+    "(let (var \"x\" (dynamic) _ 0) (null))",
+    "(let (const \"x\" (dynamic) (int 0) 0) (null))",
+    "(let (const \"x\" (dynamic) _ 0) (null))",
+    "(let (final \"x\" (dynamic) (int 0) 0) (null))",
+    "(let (final \"x\" (dynamic) _ 0) (null))",
     "(string \"Hello, 'string'!\")",
     "(string \"Hello, \\\"string\\\"!\")",
     "(string \"Yeah nah yeah, here is\\nthis really long string haiku\\n"

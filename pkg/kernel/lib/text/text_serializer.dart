@@ -52,6 +52,8 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitMapLiteral(MapLiteral expression) {
     return expression.isConst ? "const-map" : "map";
   }
+
+  String visitLet(Let _) => "let";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -325,7 +327,112 @@ MapLiteral wrapConstMapLiteral(
       keyType: tuple.first, valueType: tuple.second, isConst: true);
 }
 
-Case<Expression> expressionSerializer = new Case(const ExpressionTagger());
+TextSerializer<Let> letSerializer = new Wrapped(unwrapLet, wrapLet,
+    new Tuple2Serializer(variableDeclarationSerializer, expressionSerializer));
+
+Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
+  return new Tuple2(expression.variable, expression.body);
+}
+
+Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
+  return new Let(tuple.first, tuple.second);
+}
+
+Case<Expression> expressionSerializer =
+    new Case.uninitialized(const ExpressionTagger());
+
+class VariableDeclarationTagger implements Tagger<VariableDeclaration> {
+  const VariableDeclarationTagger();
+
+  String tag(VariableDeclaration decl) {
+    if (decl.isCovariant) throw UnimplementedError("covariant declaration");
+    if (decl.isFieldFormal) throw UnimplementedError("initializing formal");
+    if (decl.isConst) {
+      // It's not clear what invariants we assume about const/final.  For now
+      // throw if we have both.
+      if (decl.isFinal) throw UnimplementedError("const and final");
+      return "const";
+    }
+    if (decl.isFinal) {
+      return "final";
+    }
+    return "var";
+  }
+}
+
+TextSerializer<VariableDeclaration> varDeclarationSerializer = new Wrapped(
+    unwrapVariableDeclaration,
+    wrapVarDeclaration,
+    Tuple4Serializer(
+        const DartString(),
+        dartTypeSerializer,
+        new Optional(expressionSerializer),
+        new ListSerializer(expressionSerializer)));
+
+Tuple4<String, DartType, Expression, List<Expression>>
+    unwrapVariableDeclaration(VariableDeclaration declaration) {
+  return new Tuple4(declaration.name ?? "", declaration.type,
+      declaration.initializer, declaration.annotations);
+}
+
+VariableDeclaration wrapVarDeclaration(
+    Tuple4<String, DartType, Expression, List<Expression>> tuple) {
+  var result = new VariableDeclaration(tuple.first.isEmpty ? null : tuple.first,
+      initializer: tuple.third, type: tuple.second);
+  for (int i = 0; i < tuple.fourth.length; ++i) {
+    result.addAnnotation(tuple.fourth[i]);
+  }
+  return result;
+}
+
+TextSerializer<VariableDeclaration> finalDeclarationSerializer = new Wrapped(
+    unwrapVariableDeclaration,
+    wrapFinalDeclaration,
+    Tuple4Serializer(
+        const DartString(),
+        dartTypeSerializer,
+        new Optional(expressionSerializer),
+        new ListSerializer(expressionSerializer)));
+
+VariableDeclaration wrapFinalDeclaration(
+    Tuple4<String, DartType, Expression, List<Expression>> tuple) {
+  var result = new VariableDeclaration(tuple.first.isEmpty ? null : tuple.first,
+      initializer: tuple.third, type: tuple.second, isFinal: true);
+  for (int i = 0; i < tuple.fourth.length; ++i) {
+    result.addAnnotation(tuple.fourth[i]);
+  }
+  return result;
+}
+
+TextSerializer<VariableDeclaration> constDeclarationSerializer = new Wrapped(
+    unwrapVariableDeclaration,
+    wrapConstDeclaration,
+    Tuple4Serializer(
+        const DartString(),
+        dartTypeSerializer,
+        new Optional(expressionSerializer),
+        new ListSerializer(expressionSerializer)));
+
+VariableDeclaration wrapConstDeclaration(
+    Tuple4<String, DartType, Expression, List<Expression>> tuple) {
+  var result = new VariableDeclaration(tuple.first.isEmpty ? null : tuple.first,
+      initializer: tuple.third, type: tuple.second, isConst: true);
+  for (int i = 0; i < tuple.fourth.length; ++i) {
+    result.addAnnotation(tuple.fourth[i]);
+  }
+  return result;
+}
+
+TextSerializer<VariableDeclaration> variableDeclarationSerializer =
+    new Case(const VariableDeclarationTagger(), [
+  "var",
+  "final",
+  "const",
+], [
+  varDeclarationSerializer,
+  finalDeclarationSerializer,
+  constDeclarationSerializer,
+]);
 
 class DartTypeTagger extends DartTypeVisitor<String>
     implements Tagger<DartType> {
@@ -367,7 +474,8 @@ void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
 
-Case<DartType> dartTypeSerializer = new Case(const DartTypeTagger());
+Case<DartType> dartTypeSerializer =
+    new Case.uninitialized(const DartTypeTagger());
 
 void initializeSerializers() {
   expressionSerializer.tags.addAll([
@@ -396,6 +504,7 @@ void initializeSerializers() {
     "const-set",
     "map",
     "const-map",
+    "let",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -423,6 +532,7 @@ void initializeSerializers() {
     constSetLiteralSerializer,
     mapLiteralSerializer,
     constMapLiteralSerializer,
+    letSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",

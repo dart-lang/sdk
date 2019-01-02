@@ -112,10 +112,14 @@ class DartBool extends TextSerializer<bool> {
 // A tagged union of serializer/deserializers.
 class Case<T extends Node> extends TextSerializer<T> {
   final Tagger<T> tagger;
-  final List<String> tags = [];
-  final List<TextSerializer<T>> serializers = [];
+  final List<String> tags;
+  final List<TextSerializer<T>> serializers;
 
-  Case(this.tagger);
+  Case(this.tagger, this.tags, this.serializers);
+
+  Case.uninitialized(this.tagger)
+      : tags = [],
+        serializers = [];
 
   T readFrom(Iterator<Object> stream) {
     if (stream.current is! Iterator) {
@@ -290,6 +294,28 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
     for (int i = 0; i < object.length; ++i) {
       buffer.write(' ');
       elements.writeTo(buffer, object[i]);
+    }
+  }
+}
+
+class Optional<T> extends TextSerializer<T> {
+  final TextSerializer<T> contents;
+
+  const Optional(this.contents);
+
+  T readFrom(Iterator<Object> stream) {
+    if (stream.current == '_') {
+      stream.moveNext();
+      return null;
+    }
+    return contents.readFrom(stream);
+  }
+
+  void writeTo(StringBuffer buffer, T object) {
+    if (object == null) {
+      buffer.write('_');
+    } else {
+      contents.writeTo(buffer, object);
     }
   }
 }
