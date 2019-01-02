@@ -714,8 +714,7 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
   const ArgumentsDescriptor arg_desc(arg_desc_array);
 
   const intptr_t argc = DecodeOperandA().value();
-  const Token::Kind token_kind =
-      MethodTokenRecognizer::RecognizeTokenKind(name);
+  Token::Kind token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
 
   intptr_t checked_argument_count = 1;
   if ((token_kind != Token::kILLEGAL) ||
@@ -724,6 +723,9 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
     intptr_t argument_count = arg_desc.Count();
     ASSERT(argument_count <= 2);
     checked_argument_count = argument_count;
+  } else if (name.raw() ==
+             Library::PrivateCoreLibName(Symbols::_instanceOf()).raw()) {
+    token_kind = Token::kIS;
   }
 
   const ArgumentArray arguments = GetArguments(argc);
