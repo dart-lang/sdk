@@ -8,6 +8,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -18,6 +20,8 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -46,6 +50,7 @@ class LibraryAnalyzer {
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
+  final ResourceProvider _resourceProvider;
 
   final InheritanceManager2 _inheritance;
   final bool Function(Uri) _isLibraryUri;
@@ -76,7 +81,8 @@ class LibraryAnalyzer {
       this._context,
       this._resynthesizer,
       this._inheritance,
-      this._library)
+      this._library,
+      this._resourceProvider)
       : _typeProvider = _context.typeProvider,
         _typeSystem = _context.typeSystem;
 
@@ -213,7 +219,7 @@ class LibraryAnalyzer {
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement,
-        typeSystem: _context.typeSystem));
+        typeSystem: _context.typeSystem, resourceProvider: _resourceProvider));
 
     unit.accept(new OverrideVerifier(
       _inheritance,

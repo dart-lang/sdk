@@ -249,8 +249,15 @@ class CompilerAnalysisDriver {
     var resynthesizer = resultProvider.resynthesizer;
     _extensionTypes ??= ExtensionTypeSet(context.typeProvider, resynthesizer);
 
-    return LinkedAnalysisDriver(analysisOptions, resynthesizer, sourceFactory,
-        libraryUris, declaredVariables, summaryBytes, fsState);
+    return LinkedAnalysisDriver(
+        analysisOptions,
+        resynthesizer,
+        sourceFactory,
+        libraryUris,
+        declaredVariables,
+        summaryBytes,
+        fsState,
+        _resourceProvider);
   }
 
   FileSystemState _createFileSystemState(SourceFactory sourceFactory) {
@@ -290,6 +297,8 @@ class LinkedAnalysisDriver {
 
   final FileSystemState _fsState;
 
+  final ResourceProvider _resourceProvider;
+
   LinkedAnalysisDriver(
       this.analysisOptions,
       this.resynthesizer,
@@ -297,7 +306,8 @@ class LinkedAnalysisDriver {
       this.libraryUris,
       this.declaredVariables,
       this.summaryBytes,
-      this._fsState);
+      this._fsState,
+      this._resourceProvider);
 
   AnalysisContextImpl get context => resynthesizer.context;
 
@@ -326,7 +336,8 @@ class LinkedAnalysisDriver {
         context,
         resynthesizer,
         InheritanceManager2(context.typeSystem),
-        libraryFile);
+        libraryFile,
+        _resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
     // but it's async. We can't use `async` here because it would break our
     // developer tools extension (see web/web_command.dart). We should be able

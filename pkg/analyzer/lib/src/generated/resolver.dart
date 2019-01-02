@@ -14,6 +14,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -32,6 +34,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/constant/constant_verifier.dart';
@@ -280,18 +283,28 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final _InvalidAccessVerifier _invalidAccessVerifier;
 
+  /// The [WorkspacePackage] in which [_currentLibrary] is declared.
+  WorkspacePackage _workspacePackage;
+
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
   BestPracticesVerifier(
-      this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
-      {TypeSystem typeSystem})
-      : _nullType = typeProvider.nullType,
+    this._errorReporter,
+    TypeProvider typeProvider,
+    this._currentLibrary, {
+    TypeSystem typeSystem,
+    ResourceProvider resourceProvider,
+  })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
+    String libraryPath = _currentLibrary.source.fullName;
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, libraryPath, null /* ContextBuilder */);
+    _workspacePackage = workspace.findPackageFor(libraryPath);
   }
 
   @override
@@ -373,6 +386,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Commented out until we decide that we want this hint in the analyzer
       //    checkForOverrideEqualsButNotHashCode(node);
       _checkForImmutable(node);
+      _checkForInvalidSealedSuperclass(node);
       super.visitClassDeclaration(node);
     } finally {
       _enclosingClass = null;
@@ -384,6 +398,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _checkForImmutable(node);
+    _checkForInvalidSealedSuperclass(node);
     super.visitClassTypeAlias(node);
   }
 
@@ -512,6 +527,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
+      _checkForInvalidSealedSuperclass(node);
       super.visitMixinDeclaration(node);
     } finally {
       _enclosingClass = null;
@@ -920,6 +936,38 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
         decl.name, [decl.name.toString()]);
+  }
+
+  void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
+    bool currentPackageContains(Element element) {
+      String elementLibraryPath = element.library.source.fullName;
+      return _workspacePackage.contains(elementLibraryPath);
+    }
+
+    // [NamedCompilationUnitMember.declaredElement] is not necessarily a
+    // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
+    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
+    // `declaredElement` of these specific classes is a [ClassElement].
+    ClassElement element = node.declaredElement;
+    // TODO(srawlins): Perhaps replace this with a getter on Element, like
+    // `Element.hasOrInheritsSealed`?
+    for (InterfaceType supertype in element.allSupertypes) {
+      ClassElement superclass = supertype.element;
+      if (superclass.hasSealed) {
+        if (!currentPackageContains(superclass)) {
+          if (element.superclassConstraints.contains(supertype)) {
+            // This is a special violation of the sealed class contract,
+            // requiring specific messaging.
+            _errorReporter.reportErrorForNode(HintCode.MIXIN_ON_SEALED_CLASS,
+                node, [superclass.name.toString()]);
+          } else {
+            // This is a regular violation of the sealed class contract.
+            _errorReporter.reportErrorForNode(HintCode.SUBTYPE_OF_SEALED_CLASS,
+                node, [superclass.name.toString()]);
+          }
+        }
+      }
+    }
   }
 
   /// Check that the imported library does not define a loadLibrary function.

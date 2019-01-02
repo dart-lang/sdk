@@ -13,6 +13,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
@@ -2861,10 +2863,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     // Dart best practices.
     var inheritanceManager2 = new InheritanceManager2(context.typeSystem);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, typeProvider, libraryElement,
-        typeSystem: typeSystem));
+        typeSystem: typeSystem, resourceProvider: resourceProvider));
     unit.accept(new OverrideVerifier(
       inheritanceManager2,
       libraryElement,

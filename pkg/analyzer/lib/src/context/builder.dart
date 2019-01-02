@@ -283,25 +283,13 @@ class ContextBuilder {
 
   SourceFactory createSourceFactory(String rootPath, AnalysisOptions options,
       {SummaryDataStore summaryData}) {
-    Workspace workspace = createWorkspace(rootPath);
+    Workspace workspace =
+        ContextBuilder.createWorkspace(resourceProvider, rootPath, this);
     DartSdk sdk = findSdk(workspace.packageMap, options);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);
     }
     return workspace.createSourceFactory(sdk, summaryData);
-  }
-
-  Workspace createWorkspace(String rootPath) {
-    if (_hasPackageFileInPath(rootPath)) {
-      // Bazel workspaces that include package files are treated like normal
-      // (non-Bazel) directories. But may still use package:build.
-      return PackageBuildWorkspace.find(resourceProvider, rootPath, this) ??
-          BasicWorkspace.find(resourceProvider, rootPath, this);
-    }
-    Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
-    workspace ??= GnWorkspace.find(resourceProvider, rootPath);
-    workspace ??= PackageBuildWorkspace.find(resourceProvider, rootPath, this);
-    return workspace ?? BasicWorkspace.find(resourceProvider, rootPath, this);
   }
 
   /**
@@ -443,7 +431,8 @@ class ContextBuilder {
 
     // TODO(danrubel) restructure so that we don't create a workspace
     // both here and in createSourceFactory
-    Workspace workspace = createWorkspace(path);
+    Workspace workspace =
+        ContextBuilder.createWorkspace(resourceProvider, path, this);
     SourceFactory sourceFactory = workspace.createSourceFactory(null, null);
     AnalysisOptionsProvider optionsProvider =
         new AnalysisOptionsProvider(sourceFactory);
@@ -667,7 +656,8 @@ class ContextBuilder {
    * Return `true` if either the directory at [rootPath] or a parent of that
    * directory contains a `.packages` file.
    */
-  bool _hasPackageFileInPath(String rootPath) {
+  static bool _hasPackageFileInPath(
+      ResourceProvider resourceProvider, String rootPath) {
     Folder folder = resourceProvider.getFolder(rootPath);
     while (folder != null) {
       File file = folder.getChildAssumingFile('.packages');
@@ -677,6 +667,23 @@ class ContextBuilder {
       folder = folder.parent;
     }
     return false;
+  }
+
+  static Workspace createWorkspace(ResourceProvider resourceProvider,
+      String rootPath, ContextBuilder contextBuilder) {
+    if (_hasPackageFileInPath(resourceProvider, rootPath)) {
+      // Bazel workspaces that include package files are treated like normal
+      // (non-Bazel) directories. But may still use package:build.
+      return PackageBuildWorkspace.find(
+              resourceProvider, rootPath, contextBuilder) ??
+          BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
+    }
+    Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
+    workspace ??= GnWorkspace.find(resourceProvider, rootPath);
+    workspace ??=
+        PackageBuildWorkspace.find(resourceProvider, rootPath, contextBuilder);
+    return workspace ??
+        BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
   }
 }
 

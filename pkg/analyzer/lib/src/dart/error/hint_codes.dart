@@ -357,6 +357,18 @@ class HintCode extends ErrorCode {
           "or changing the return type to 'void'.");
 
   /**
+   * This hint is generated anywhere where a `@sealed` class is used as a
+   * a superclass constraint of a mixin.
+   */
+  static const HintCode MIXIN_ON_SEALED_CLASS = const HintCode(
+      'MIXIN_ON_SEALED_CLASS',
+      "The class '{0}' should not be used as a mixin constraint because it is "
+      "sealed, and any class mixing in this mixin has '{0}' as a superclass.",
+      correction:
+          "Try composing with this class, or refer to its documentation for "
+          "more information.");
+
+  /**
    * Generate a hint for classes that inherit from classes annotated with
    * `@immutable` but that are not immutable.
    */
@@ -476,6 +488,18 @@ class HintCode extends ErrorCode {
       "but this code is required to be able to run on earlier versions.",
       correction:
           "Try either importing 'dart:async' or updating the SDK constraints.");
+
+  /**
+   * This hint is generated anywhere where a `@sealed` class or mixin is used as
+   * a super-type of a class.
+   */
+  static const HintCode SUBTYPE_OF_SEALED_CLASS = const HintCode(
+      'SUBTYPE_OF_SEALED_CLASS',
+      "The class '{0}' should not be extended, mixed in, or implemented "
+      "because it is sealed.",
+      correction:
+          "Try composing instead of inheriting, or refer to its documentation "
+          "for more information.");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.

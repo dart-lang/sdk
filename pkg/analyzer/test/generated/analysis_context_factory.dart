@@ -537,8 +537,9 @@ class TestPackageUriResolver extends UriResolver {
   Map<String, Source> sourceMap = new HashMap<String, Source>();
 
   TestPackageUriResolver(Map<String, String> map) {
-    map.forEach((String uri, String contents) {
-      sourceMap[uri] = new StringSource(contents, '/test_pkg_source.dart');
+    map.forEach((String name, String contents) {
+      sourceMap['package:$name/$name.dart'] =
+          new StringSource(contents, '/$name/lib/$name.dart');
     });
   }
 

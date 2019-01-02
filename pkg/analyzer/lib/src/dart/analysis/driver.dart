@@ -1426,7 +1426,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.analysisContext,
             libraryContext.resynthesizer,
             libraryContext.inheritanceManager,
-            library);
+            library,
+            _resourceProvider);
         Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
         List<int> bytes;
@@ -1493,7 +1494,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.analysisContext,
           libraryContext.resynthesizer,
           libraryContext.inheritanceManager,
-          library);
+          library,
+          _resourceProvider);
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
 

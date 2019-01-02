@@ -711,7 +711,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
         packages.forEach((args) {
           String name = args[0];
           String content = args[1];
-          packageMap['package:$name/$name.dart'] = content;
+          packageMap[name] = content;
         });
         analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages(
             packageMap,
