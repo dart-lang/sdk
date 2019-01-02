@@ -262,7 +262,6 @@ class BazelWorkspace extends Workspace {
   WorkspacePackage findPackageFor(String filePath) {
     path.Context context = provider.pathContext;
     Folder folder = provider.getFolder(context.dirname(filePath));
-    String immediateParentPath = folder.path;
 
     while (true) {
       Folder parent = folder.parent;

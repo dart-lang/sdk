@@ -110,7 +110,6 @@ class GnWorkspace extends Workspace {
   @override
   WorkspacePackage findPackageFor(String path) {
     Folder folder = provider.getFolder(provider.pathContext.dirname(path));
-    String immediateParentPath = folder.path;
 
     while (true) {
       Folder parent = folder.parent;
