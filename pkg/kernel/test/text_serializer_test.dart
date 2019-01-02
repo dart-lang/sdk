@@ -58,6 +58,13 @@ void test() {
     "(is (bool true) (invalid))",
     "(as (bool true) (void))",
     "(type (bottom))",
+    "(list (dynamic) 3 (null) (null) (null))",
+    "(const-list (dynamic) 3 (int 0) (int 1) (int 2))",
+    "(set (dynamic) 3 (bool true) (bool false) (int 0))",
+    "(const-set (dynamic) 3 (int 0) (int 1) (int 2))",
+    "(map (dynamic) (void) 6 (int 0) (null) (int 1) (null) (int 2) (null))",
+    "(const-map (dynamic) (void) 6 (int 0) (null) (int 1) (null) "
+        "(int 2) (null))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

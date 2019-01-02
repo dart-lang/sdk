@@ -203,6 +203,35 @@ class Tuple2<T1, T2> {
   const Tuple2(this.first, this.second);
 }
 
+class Tuple3Serializer<T1, T2, T3> extends TextSerializer<Tuple3<T1, T2, T3>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+
+  const Tuple3Serializer(this.first, this.second, this.third);
+
+  Tuple3<T1, T2, T3> readFrom(Iterator<Object> stream) {
+    return new Tuple3(first.readFrom(stream), second.readFrom(stream),
+        third.readFrom(stream));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple3<T1, T2, T3> object) {
+    first.writeTo(buffer, object.first);
+    buffer.write(' ');
+    second.writeTo(buffer, object.second);
+    buffer.write(' ');
+    third.writeTo(buffer, object.third);
+  }
+}
+
+class Tuple3<T1, T2, T3> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+
+  const Tuple3(this.first, this.second, this.third);
+}
+
 class Tuple4Serializer<T1, T2, T3, T4>
     extends TextSerializer<Tuple4<T1, T2, T3, T4>> {
   final TextSerializer<T1> first;

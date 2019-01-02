@@ -41,6 +41,17 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitIsExpression(IsExpression _) => "is";
   String visitAsExpression(AsExpression _) => "as";
   String visitTypeLiteral(TypeLiteral _) => "type";
+  String visitListLiteral(ListLiteral expression) {
+    return expression.isConst ? "const-list" : "list";
+  }
+
+  String visitSetLiteral(SetLiteral expression) {
+    return expression.isConst ? "const-set" : "set";
+  }
+
+  String visitMapLiteral(MapLiteral expression) {
+    return expression.isConst ? "const-map" : "map";
+  }
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -221,6 +232,99 @@ DartType unwrapTypeLiteral(TypeLiteral expression) => expression.type;
 
 TypeLiteral wrapTypeLiteral(DartType type) => new TypeLiteral(type);
 
+TextSerializer<ListLiteral> listLiteralSerializer = new Wrapped(
+    unwrapListLiteral,
+    wrapListLiteral,
+    new Tuple2Serializer(
+        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+
+Tuple2<DartType, List<Expression>> unwrapListLiteral(ListLiteral expression) {
+  return new Tuple2(expression.typeArgument, expression.expressions);
+}
+
+ListLiteral wrapListLiteral(Tuple2<DartType, List<Expression>> tuple) {
+  return new ListLiteral(tuple.second,
+      typeArgument: tuple.first, isConst: false);
+}
+
+TextSerializer<ListLiteral> constListLiteralSerializer = new Wrapped(
+    unwrapListLiteral,
+    wrapConstListLiteral,
+    new Tuple2Serializer(
+        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+
+ListLiteral wrapConstListLiteral(Tuple2<DartType, List<Expression>> tuple) {
+  return new ListLiteral(tuple.second,
+      typeArgument: tuple.first, isConst: true);
+}
+
+TextSerializer<SetLiteral> setLiteralSerializer = new Wrapped(
+    unwrapSetLiteral,
+    wrapSetLiteral,
+    new Tuple2Serializer(
+        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+
+Tuple2<DartType, List<Expression>> unwrapSetLiteral(SetLiteral expression) {
+  return new Tuple2(expression.typeArgument, expression.expressions);
+}
+
+SetLiteral wrapSetLiteral(Tuple2<DartType, List<Expression>> tuple) {
+  return new SetLiteral(tuple.second,
+      typeArgument: tuple.first, isConst: false);
+}
+
+TextSerializer<SetLiteral> constSetLiteralSerializer = new Wrapped(
+    unwrapSetLiteral,
+    wrapConstSetLiteral,
+    new Tuple2Serializer(
+        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+
+SetLiteral wrapConstSetLiteral(Tuple2<DartType, List<Expression>> tuple) {
+  return new SetLiteral(tuple.second, typeArgument: tuple.first, isConst: true);
+}
+
+TextSerializer<MapLiteral> mapLiteralSerializer = new Wrapped(
+    unwrapMapLiteral,
+    wrapMapLiteral,
+    new Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
+        new ListSerializer(expressionSerializer)));
+
+Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
+    MapLiteral expression) {
+  List<Expression> entries = new List(2 * expression.entries.length);
+  for (int from = 0, to = 0; from < expression.entries.length; ++from) {
+    MapEntry entry = expression.entries[from];
+    entries[to++] = entry.key;
+    entries[to++] = entry.value;
+  }
+  return new Tuple3(expression.keyType, expression.valueType, entries);
+}
+
+MapLiteral wrapMapLiteral(Tuple3<DartType, DartType, List<Expression>> tuple) {
+  List<MapEntry> entries = new List(tuple.third.length ~/ 2);
+  for (int from = 0, to = 0; to < entries.length; ++to) {
+    entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
+  }
+  return new MapLiteral(entries,
+      keyType: tuple.first, valueType: tuple.second, isConst: false);
+}
+
+TextSerializer<MapLiteral> constMapLiteralSerializer = new Wrapped(
+    unwrapMapLiteral,
+    wrapConstMapLiteral,
+    new Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
+        new ListSerializer(expressionSerializer)));
+
+MapLiteral wrapConstMapLiteral(
+    Tuple3<DartType, DartType, List<Expression>> tuple) {
+  List<MapEntry> entries = new List(tuple.third.length ~/ 2);
+  for (int from = 0, to = 0; to < entries.length; ++to) {
+    entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
+  }
+  return new MapLiteral(entries,
+      keyType: tuple.first, valueType: tuple.second, isConst: true);
+}
+
 Case<Expression> expressionSerializer = new Case(const ExpressionTagger());
 
 class DartTypeTagger extends DartTypeVisitor<String>
@@ -286,6 +390,12 @@ void initializeSerializers() {
     "is",
     "as",
     "type",
+    "list",
+    "const-list",
+    "set",
+    "const-set",
+    "map",
+    "const-map",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -307,6 +417,12 @@ void initializeSerializers() {
     isExpressionSerializer,
     asExpressionSerializer,
     typeLiteralSerializer,
+    listLiteralSerializer,
+    constListLiteralSerializer,
+    setLiteralSerializer,
+    constSetLiteralSerializer,
+    mapLiteralSerializer,
+    constMapLiteralSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
