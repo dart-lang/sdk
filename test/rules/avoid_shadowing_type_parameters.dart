@@ -51,3 +51,9 @@ class E {
 
   void fn4<T>() {} // OK
 }
+
+typedef Fn1<T> = void Function<T>(T); // LINT
+typedef Fn2<T> = void Function<U>(T); // OK
+typedef Fn3<T> = void Function<U>(U); // OK
+typedef Fn4<T> = void Function(T); // OK
+typedef Fn5 = void Function<T>(T); // OK

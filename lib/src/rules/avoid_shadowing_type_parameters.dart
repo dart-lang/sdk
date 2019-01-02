@@ -40,8 +40,9 @@ class AvoidShadowingTypeParameters extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = _Visitor(this);
-    registry.addMethodDeclaration(this, visitor);
     registry.addFunctionDeclarationStatement(this, visitor);
+    registry.addGenericTypeAlias(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
   }
 }
 
@@ -60,6 +61,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (node.functionType.typeParameters == null) {
+      return;
+    }
+    _checkForShadowing(node.functionType.typeParameters, node.typeParameters);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.typeParameters == null) {
       return;
@@ -72,7 +81,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   // Check the ancestors of [node] for type parameter shadowing.
-  _checkAncestorParameters(TypeParameterList typeParameters, AstNode node) {
+  void _checkAncestorParameters(
+      TypeParameterList typeParameters, AstNode node) {
     var parent = node.parent;
 
     while (parent != null) {
@@ -89,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   // Check whether any of [typeParameters] shadow [ancestorTypeParameters].
-  _checkForShadowing(TypeParameterList typeParameters,
+  void _checkForShadowing(TypeParameterList typeParameters,
       TypeParameterList ancestorTypeParameters) {
     if (ancestorTypeParameters == null) {
       return;
