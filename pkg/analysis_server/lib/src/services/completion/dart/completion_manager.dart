@@ -1,11 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionContributor, CompletionRequest;
+    show AbortCompletion, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -30,6 +30,7 @@ import 'package:analysis_server/src/services/completion/dart/type_member_contrib
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -103,37 +104,43 @@ class DartCompletionManager implements CompletionContributor {
       new UriContributor(),
       new VariableNameContributor()
     ];
-    for (DartCompletionContributor contributor in contributors) {
-      String contributorTag =
-          'DartCompletionManager - ${contributor.runtimeType}';
-      performance.logStartTime(contributorTag);
-      List<CompletionSuggestion> contributorSuggestions =
-          await contributor.computeSuggestions(dartRequest);
-      performance.logElapseTime(contributorTag);
-      request.checkAborted();
+    try {
+      for (DartCompletionContributor contributor in contributors) {
+        String contributorTag =
+            'DartCompletionManager - ${contributor.runtimeType}';
+        performance.logStartTime(contributorTag);
+        List<CompletionSuggestion> contributorSuggestions =
+            await contributor.computeSuggestions(dartRequest);
+        performance.logElapseTime(contributorTag);
+        request.checkAborted();
 
-      for (CompletionSuggestion newSuggestion in contributorSuggestions) {
-        String key = newSuggestion.completion;
+        for (CompletionSuggestion newSuggestion in contributorSuggestions) {
+          String key = newSuggestion.completion;
 
-        // Append parenthesis for constructors to disambiguate from classes.
-        if (_isConstructor(newSuggestion)) {
-          key += '()';
-          String className = _getConstructorClassName(newSuggestion);
-          _ensureList(constructorMap, className).add(key);
-        }
+          // Append parenthesis for constructors to disambiguate from classes.
+          if (_isConstructor(newSuggestion)) {
+            key += '()';
+            String className = _getConstructorClassName(newSuggestion);
+            _ensureList(constructorMap, className).add(key);
+          }
 
-        // Local declarations hide both the class and its constructors.
-        if (!_isClass(newSuggestion)) {
-          List<String> constructorKeys = constructorMap[key];
-          constructorKeys?.forEach(suggestionMap.remove);
-        }
+          // Local declarations hide both the class and its constructors.
+          if (!_isClass(newSuggestion)) {
+            List<String> constructorKeys = constructorMap[key];
+            constructorKeys?.forEach(suggestionMap.remove);
+          }
 
-        CompletionSuggestion oldSuggestion = suggestionMap[key];
-        if (oldSuggestion == null ||
-            oldSuggestion.relevance < newSuggestion.relevance) {
-          suggestionMap[key] = newSuggestion;
+          CompletionSuggestion oldSuggestion = suggestionMap[key];
+          if (oldSuggestion == null ||
+              oldSuggestion.relevance < newSuggestion.relevance) {
+            suggestionMap[key] = newSuggestion;
+          }
         }
       }
+    } on InconsistentAnalysisException {
+      // The state of the code being analyzed has changed, so results are likely
+      // to be inconsistent. Just abort the operation.
+      throw new AbortCompletion();
     }
 
     // Adjust suggestion relevance before returning
