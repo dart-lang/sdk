@@ -935,31 +935,26 @@ class FragmentEmitter {
     const int maxChainLength = 30;
     js.Expression assignment = null;
     int chainLength = 0;
-    ConstantValue previousConstant = null;
+    bool previousIsNull = false;
     void flushAssignment() {
       if (assignment != null) {
         statements.add(js.js.statement('#;', assignment));
         assignment = null;
         chainLength = 0;
-        previousConstant = null;
+        previousIsNull = false;
       }
     }
 
     for (Field field in cls.fields) {
-      ConstantValue constant = field.initializerInAllocator;
-      if (constant != null) {
-        if (constant == previousConstant && chainLength < maxChainLength) {
+      if (field.nullInitializerInAllocator) {
+        if (previousIsNull && chainLength < maxChainLength) {
           assignment = js.js('#.# = #', [thisRef, field.name, assignment]);
         } else {
           flushAssignment();
-          assignment = js.js('#.# = #', [
-            thisRef,
-            field.name,
-            constantEmitter.generate(constant),
-          ]);
+          assignment = js.js('#.# = null', [thisRef, field.name]);
         }
         ++chainLength;
-        previousConstant = constant;
+        previousIsNull = true;
       } else {
         flushAssignment();
         js.Parameter parameter = new js.Parameter('t${parameters.length}');

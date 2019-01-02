@@ -31,12 +31,12 @@ abstract class AllocatorAnalysis {}
 //     this.x = this.z = null;
 //
 class KAllocatorAnalysis implements AllocatorAnalysis {
-  final CompilerOptions _options;
   final KernelToElementMap _elementMap;
 
-  final Map<KField, ConstantValue> _fixedInitializers = {};
+  final Map<KField, ConstantValue> _fixedInitializers =
+      <KField, ConstantValue>{};
 
-  KAllocatorAnalysis(this._options, KernelFrontEndStrategy kernelStrategy)
+  KAllocatorAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
 
   // Register class during resolution. Use simple syntactic analysis to find
@@ -44,29 +44,12 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
   void registerInstantiatedClass(KClass class_) {
     ir.Class classNode = _elementMap.getClassNode(class_);
 
-    Map<ir.Field, ConstantValue> inits = {};
+    Set<ir.Field> nulls = new Set<ir.Field>();
     for (ir.Field field in classNode.fields) {
       if (!field.isInstanceMember) continue;
       ir.Expression initializer = field.initializer;
-      // TODO(sra): Should really be using constant evaluator to determine
-      // value.
       if (initializer == null || initializer is ir.NullLiteral) {
-        inits[field] = const NullConstantValue();
-      } else if (initializer is ir.IntLiteral) {
-        if (_options.useStartupEmitter) {
-          BigInt intValue = BigInt.from(initializer.value).toUnsigned(64);
-          inits[field] = IntConstantValue(intValue);
-        }
-      } else if (initializer is ir.BoolLiteral) {
-        if (_options.useStartupEmitter) {
-          inits[field] = BoolConstantValue(initializer.value);
-        }
-      } else if (initializer is ir.StringLiteral) {
-        if (_options.useStartupEmitter) {
-          if (initializer.value.length <= 20) {
-            inits[field] = StringConstantValue(initializer.value);
-          }
-        }
+        nulls.add(field);
       }
     }
 
@@ -75,14 +58,15 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
         if (initializer is ir.FieldInitializer) {
           // TODO(sra): Check explicit initializer value to see if consistent
           // over all constructors.
-          inits.remove(initializer.field);
+          nulls.remove(initializer.field);
         }
       }
     }
 
-    inits.forEach((ir.Field fieldNode, ConstantValue value) {
-      _fixedInitializers[_elementMap.getField(fieldNode)] = value;
-    });
+    for (var fieldNode in nulls) {
+      _fixedInitializers[_elementMap.getField(fieldNode)] =
+          const NullConstantValue();
+    }
   }
 }
 
@@ -93,7 +77,8 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
 
   // --csp and --fast-startup have different constraints to the generated code.
   final CompilerOptions _options;
-  final Map<JField, ConstantValue> _fixedInitializers = {};
+  final Map<JField, ConstantValue> _fixedInitializers =
+      <JField, ConstantValue>{};
 
   JAllocatorAnalysis._(this._options);
 
@@ -105,7 +90,8 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
     int fieldCount = source.readInt();
     for (int i = 0; i < fieldCount; i++) {
       JField field = source.readMember();
-      ConstantValue value = source.readConstant();
+      // TODO(sra): Deserialize constant, when non-null is supported.
+      ConstantValue value = const NullConstantValue();
       analysis._fixedInitializers[field] = value;
     }
     source.end(tag);
@@ -118,7 +104,8 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
     sink.writeInt(_fixedInitializers.length);
     _fixedInitializers.forEach((JField field, ConstantValue value) {
       sink.writeMember(field);
-      sink.writeConstant(value);
+      // TODO(sra): Serialize constant, when non-null is supported.
+      assert(value.isNull);
     });
     sink.end(tag);
   }
@@ -128,9 +115,8 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
     var result = new JAllocatorAnalysis._(options);
 
     kAnalysis._fixedInitializers.forEach((KField kField, ConstantValue value) {
-      // TODO(sra): Translate constant, but Null and these primitives do not
-      // need translating.
-      if (value.isNull || value.isInt || value.isBool || value.isString) {
+      // TODO(sra): Translate constant, but Null does not need translating.
+      if (value.isNull) {
         JField jField = map.toBackendMember(kField);
         if (jField != null) {
           result._fixedInitializers[jField] = value;

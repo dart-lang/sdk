@@ -1067,13 +1067,15 @@ class ProgramBuilder {
         }
       }
 
-      ConstantValue initializerInAllocator = null;
+      // TODO(sra): Generalize for constants other than null.
+      bool nullInitializerInAllocator = false;
       if (_allocatorAnalysis.isInitializedInAllocator(field)) {
-        initializerInAllocator = _allocatorAnalysis.initializerValue(field);
+        assert(_allocatorAnalysis.initializerValue(field).isNull);
+        nullInitializerInAllocator = true;
       }
 
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
-          needsCheckedSetter, initializerInAllocator));
+          needsCheckedSetter, nullInitializerInAllocator));
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
