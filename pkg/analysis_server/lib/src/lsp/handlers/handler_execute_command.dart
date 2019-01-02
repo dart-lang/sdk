@@ -16,7 +16,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 /// based on the command.
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object> {
-  Map<String, CommandHandler> commandHandlers;
+  final Map<String, CommandHandler> commandHandlers;
   ExecuteCommandHandler(LspAnalysisServer server)
       : commandHandlers = {
           Commands.sortMembers: new SortMembersCommandHandler(server),

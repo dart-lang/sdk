@@ -8,8 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 
 const jsonRpcVersion = '2.0';
 
-Object id(Object obj) => obj;
-
 Object specToJson(Object obj) {
   if (obj is ToJsonable) {
     return obj.toJson();

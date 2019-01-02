@@ -109,7 +109,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   int nextRequestId = 1;
 
-  Map<int, Completer<ResponseMessage>> completers = {};
+  final Map<int, Completer<ResponseMessage>> completers = {};
 
   /**
    * Initialize a newly created server to send and receive messages to the given

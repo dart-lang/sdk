@@ -29,6 +29,26 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
   Future<ErrorOr<void>> handle(List<dynamic> arguments);
 }
 
+mixin Handler<P, R> {
+  LspAnalysisServer server;
+
+  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
+      new ErrorOr<R>.error(new ResponseError(code, message, data));
+
+  ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
+      new ErrorOr<R>.error(error.error);
+
+  Future<ErrorOr<ResolvedUnitResult>> requireUnit(String path) async {
+    final result = await server.getResolvedUnit(path);
+    if (result?.state != ResultState.VALID) {
+      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+    }
+    return success(result);
+  }
+
+  ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
+}
+
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -53,30 +73,10 @@ abstract class MessageHandler<P, R> with Handler<P, R> {
   }
 }
 
-mixin Handler<P, R> {
-  LspAnalysisServer server;
-
-  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
-      new ErrorOr<R>.error(new ResponseError(code, message, data));
-
-  ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
-      new ErrorOr<R>.error(error.error);
-
-  Future<ErrorOr<ResolvedUnitResult>> requireUnit(String path) async {
-    final result = await server.getResolvedUnit(path);
-    if (result?.state != ResultState.VALID) {
-      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
-    }
-    return success(result);
-  }
-
-  ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
-}
-
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
-  Map<Method, MessageHandler> _messageHandlers = {};
+  final Map<Method, MessageHandler> _messageHandlers = {};
 
   ServerStateMessageHandler(this.server) {
     // All server states support shutdown and exit.
