@@ -340,8 +340,9 @@ class _TypeToConvert {
       }
 
       addElementsFrom(type);
-      _allElements =
-          elements.where((element) => element.name.isNotEmpty).toList();
+      _allElements = elements
+          .where((element) => element.name != null && element.name.isNotEmpty)
+          .toList();
     }
     return _allElements;
   }
