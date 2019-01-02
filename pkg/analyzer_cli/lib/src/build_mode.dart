@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.build_mode;
-
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
@@ -193,7 +191,6 @@ class BuildMode with HasContextMixin {
   AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
-  final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,

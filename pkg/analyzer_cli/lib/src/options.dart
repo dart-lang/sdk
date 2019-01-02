@@ -74,11 +74,8 @@ class CommandLineOptions {
   /// The path to the dart SDK.
   String dartSdkPath;
 
-  /// The path to the folder with the 'vm_platform.dill' file.
-  String dartSdkPlatformBinariesPath;
-
   /// The path to the dart SDK summary file.
-  String dartSdkSummaryPath;
+  final String dartSdkSummaryPath;
 
   /// Whether to disable cache flushing.  This option can improve analysis
   /// speed at the expense of memory usage.  It may also be useful for working
@@ -139,16 +136,10 @@ class CommandLineOptions {
   /// This flag is deprecated and hard-coded to `true`.
   final bool strongMode = true;
 
-  /// Whether implicit casts are enabled (in strong mode)
-  final bool implicitCasts;
-
-  /// Whether implicit dynamic is enabled (mainly for strong mode users)
-  final bool implicitDynamic;
-
   /// Whether to treat lints as fatal
+  // TODO(devoncarew): Deprecate and remove this flag.
   final bool lintsAreFatal;
 
-  // TODO(devoncarew): Deprecate and remove this flag.
   /// Emit output in a verbose mode.
   final bool verbose;
 
@@ -198,8 +189,6 @@ class CommandLineOptions {
         infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
         warningsAreFatal = cast(args['fatal-warnings']),
         lintsAreFatal = cast(args['fatal-lints']),
-        implicitCasts = cast(args[implicitCastsFlag]),
-        implicitDynamic = !cast<bool>(args['no-implicit-dynamic']),
         trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
         color = cast(args['color']);
@@ -256,9 +245,6 @@ class CommandLineOptions {
         printAndFail('Invalid Dart SDK path: $sdkPath');
         return null; // Only reachable in testing.
       }
-
-      options.dartSdkPlatformBinariesPath =
-          computePlatformBinariesPath(sdkPath);
     }
 
     // Check package config.

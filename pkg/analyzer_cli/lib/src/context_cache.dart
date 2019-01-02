@@ -18,7 +18,7 @@ class ContextCache {
 
   /// A mapping from normalized paths (currently, directories) to cache entries
   /// which include builder, analysis_options paths, and [AnalysisOptionImpl]s.
-  Map<String, ContextCacheEntry> _byDirectory = {};
+  final Map<String, ContextCacheEntry> _byDirectory = {};
 
   ContextCache(this.resourceProvider, this.clOptions, this.verbosePrint);
 
