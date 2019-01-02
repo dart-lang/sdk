@@ -6,8 +6,8 @@ library kernel.serializer_combinators;
 
 import 'dart:convert' show json;
 
-import '../ast.dart' show Expression;
-import 'text_serializer.dart' show ExpressionTagger;
+import '../ast.dart' show Node;
+import 'text_serializer.dart' show Tagger;
 
 abstract class TextSerializer<T> {
   const TextSerializer();
@@ -110,11 +110,12 @@ class DartBool extends TextSerializer<bool> {
 // They require a function mapping serializables to a tag string.  This is
 // implemented by Tagger visitors.
 // A tagged union of serializer/deserializers.
-class Case<T extends Expression> extends TextSerializer<T> {
+class Case<T extends Node> extends TextSerializer<T> {
+  final Tagger<T> tagger;
   final List<String> tags = [];
   final List<TextSerializer<T>> serializers = [];
 
-  Case();
+  Case(this.tagger);
 
   T readFrom(Iterator<Object> stream) {
     if (stream.current is! Iterator) {
@@ -141,7 +142,7 @@ class Case<T extends Expression> extends TextSerializer<T> {
   }
 
   void writeTo(StringBuffer buffer, T object) {
-    String tag = object.accept(const ExpressionTagger());
+    String tag = tagger.tag(object);
     for (int i = 0; i < tags.length; ++i) {
       if (tags[i] == tag) {
         buffer.write("(${tag}");
@@ -182,7 +183,7 @@ class Tuple2Serializer<T1, T2> extends TextSerializer<Tuple2<T1, T2>> {
   final TextSerializer<T1> first;
   final TextSerializer<T2> second;
 
-  Tuple2Serializer(this.first, this.second);
+  const Tuple2Serializer(this.first, this.second);
 
   Tuple2<T1, T2> readFrom(Iterator<Object> stream) {
     return new Tuple2(first.readFrom(stream), second.readFrom(stream));
@@ -199,14 +200,48 @@ class Tuple2<T1, T2> {
   final T1 first;
   final T2 second;
 
-  Tuple2(this.first, this.second);
+  const Tuple2(this.first, this.second);
+}
+
+class Tuple4Serializer<T1, T2, T3, T4>
+    extends TextSerializer<Tuple4<T1, T2, T3, T4>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+
+  const Tuple4Serializer(this.first, this.second, this.third, this.fourth);
+
+  Tuple4<T1, T2, T3, T4> readFrom(Iterator<Object> stream) {
+    return new Tuple4(first.readFrom(stream), second.readFrom(stream),
+        third.readFrom(stream), fourth.readFrom(stream));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple4<T1, T2, T3, T4> object) {
+    first.writeTo(buffer, object.first);
+    buffer.write(' ');
+    second.writeTo(buffer, object.second);
+    buffer.write(' ');
+    third.writeTo(buffer, object.third);
+    buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth);
+  }
+}
+
+class Tuple4<T1, T2, T3, T4> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+
+  const Tuple4(this.first, this.second, this.third, this.fourth);
 }
 
 // A serializer/deserializer for lists.
 class ListSerializer<T> extends TextSerializer<List<T>> {
   final TextSerializer<T> elements;
 
-  ListSerializer(this.elements);
+  const ListSerializer(this.elements);
 
   List<T> readFrom(Iterator<Object> stream) {
     if (stream.current is! String) {

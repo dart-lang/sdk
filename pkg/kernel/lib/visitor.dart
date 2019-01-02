@@ -251,6 +251,8 @@ class TreeVisitor<R>
 }
 
 class DartTypeVisitor<R> {
+  const DartTypeVisitor();
+
   R defaultDartType(DartType node) => null;
 
   R visitInvalidType(InvalidType node) => defaultDartType(node);

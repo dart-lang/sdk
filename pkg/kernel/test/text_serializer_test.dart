@@ -54,6 +54,10 @@ void test() {
     "(rethrow)",
     "(throw (string \"error\"))",
     "(await (null))",
+    "(cond (bool true) (dynamic) (int 0) (int 1))",
+    "(is (bool true) (invalid))",
+    "(as (bool true) (void))",
+    "(type (bottom))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);
