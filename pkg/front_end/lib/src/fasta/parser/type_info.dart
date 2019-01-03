@@ -27,6 +27,9 @@ abstract class TypeInfo {
   /// or expressions, while `A<T>` only looks like a type reference.
   bool get couldBeExpression;
 
+  /// Return true if the receiver has a trailing `?`.
+  bool get isNullable;
+
   /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type, inserting a synthetic type reference if

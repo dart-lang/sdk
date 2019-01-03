@@ -100,6 +100,7 @@ import 'util.dart'
         isLetter,
         isLetterOrDigit,
         isOneOf,
+        isOneOfOrEof,
         isWhitespace,
         optional;
 
@@ -4881,13 +4882,24 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    TypeInfo typeInfo = computeType(token, true);
-    if (typeInfo.isConditionalExpressionStart(token, this)) {
-      typeInfo = typeInfo.asNonNullable;
-    }
+    TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
     listener.handleIsOperator(operator, not);
     return skipChainedAsIsOperators(token);
+  }
+
+  TypeInfo computeTypeAfterIsOrAs(Token token) {
+    TypeInfo typeInfo = computeType(token, true);
+    if (typeInfo.isNullable) {
+      Token next = typeInfo.skipType(token).next;
+      if (!isOneOfOrEof(next, const [')', '?', ';', 'is', 'as'])) {
+        // TODO(danrubel): investigate other situations
+        // where `?` should be considered part of the type info
+        // rather than the start of a conditional expression.
+        typeInfo = typeInfo.asNonNullable;
+      }
+    }
+    return typeInfo;
   }
 
   /// ```
@@ -4898,10 +4910,7 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
-    TypeInfo typeInfo = computeType(token, true);
-    if (typeInfo.isConditionalExpressionStart(token, this)) {
-      typeInfo = typeInfo.asNonNullable;
-    }
+    TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
     listener.handleAsOperator(operator);
     return skipChainedAsIsOperators(token);
@@ -4920,10 +4929,7 @@ class Parser {
       if (optional('!', next.next)) {
         next = next.next;
       }
-      TypeInfo typeInfo = computeType(next, true);
-      if (typeInfo.isConditionalExpressionStart(next, this)) {
-        typeInfo = typeInfo.asNonNullable;
-      }
+      TypeInfo typeInfo = computeTypeAfterIsOrAs(next);
       token = typeInfo.skipType(next);
       next = token.next;
       value = next.stringValue;

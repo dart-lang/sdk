@@ -99,6 +99,9 @@ class NoType implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  bool get isNullable => false;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     parser.reportRecoverableErrorWithToken(
         token.next, fasta.templateExpectedType);
@@ -138,6 +141,9 @@ class PrefixedType implements TypeInfo {
 
   @override
   bool get couldBeExpression => true;
+
+  @override
+  bool get isNullable => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -189,6 +195,9 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
   TypeInfo get asNonNullable => simpleTypeWith1Argument;
 
   @override
+  bool get isNullable => true;
+
+  @override
   bool isConditionalExpressionStart(Token token, Parser parser) =>
       isConditionalThenExpression(skipType(token), parser);
 
@@ -219,6 +228,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  bool get isNullable => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -265,6 +277,9 @@ class SimpleNullableType extends SimpleType {
   TypeInfo get asNonNullable => simpleType;
 
   @override
+  bool get isNullable => true;
+
+  @override
   bool isConditionalExpressionStart(Token token, Parser parser) =>
       isConditionalThenExpression(skipType(token), parser);
 
@@ -291,6 +306,9 @@ class SimpleType implements TypeInfo {
 
   @override
   bool get couldBeExpression => true;
+
+  @override
+  bool get isNullable => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -336,6 +354,9 @@ class VoidType implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  bool get isNullable => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -421,6 +442,9 @@ class ComplexTypeInfo implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  bool get isNullable => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
