@@ -1,3 +1,16 @@
+# 0.1.77
+
+* updated `prefer_final_locals` to check to for loop variables
+* fixed `type_annotate_public_apis` false positives on local functions
+* fixed `avoid_shadowing_type_parameters` to report shadowed type parameters in generic typedefs
+* fixed `use_setters_to_change_properties` to not wrongly lint overriding methods
+* fixed `cascade_invocations` to not lint awaited targets
+* fixed `prefer_conditional_assignment` false positives
+* fixed `join_return_with_assignment` false positives
+* fixed `cascade_invocations` false positives
+* miscellaneous documentation improvements
+* updated `invariant_booleans` status to experimental
+
 # 0.1.76
 
 * `unnecessary_parenthesis` updated to allow wrapping a `!` argument
