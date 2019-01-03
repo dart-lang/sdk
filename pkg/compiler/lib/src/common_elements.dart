@@ -215,7 +215,6 @@ abstract class CommonElements {
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element);
 
   // From dart:async
-  FunctionEntity get asyncHelperStart;
   FunctionEntity get asyncHelperStartSync;
   FunctionEntity get asyncHelperAwait;
   FunctionEntity get asyncHelperReturn;
@@ -248,8 +247,6 @@ abstract class CommonElements {
   FunctionEntity get syncStarIterableFactory;
 
   FunctionEntity get asyncAwaitCompleterFactory;
-
-  FunctionEntity get syncCompleterFactory;
 
   FunctionEntity get asyncStarStreamControllerFactory;
 
@@ -1027,8 +1024,6 @@ class CommonElementsImpl
   FunctionEntity _findAsyncHelperFunction(String name) =>
       _findLibraryMember(asyncLibrary, name);
 
-  FunctionEntity get asyncHelperStart =>
-      _findAsyncHelperFunction("_asyncStart");
   FunctionEntity get asyncHelperStartSync =>
       _findAsyncHelperFunction("_asyncStartSync");
   FunctionEntity get asyncHelperAwait =>
@@ -1080,10 +1075,6 @@ class CommonElementsImpl
   FunctionEntity get asyncAwaitCompleterFactory =>
       _asyncAwaitCompleterFactory ??=
           _findAsyncHelperFunction('_makeAsyncAwaitCompleter');
-
-  FunctionEntity _syncCompleterFactory;
-  FunctionEntity get syncCompleterFactory =>
-      _syncCompleterFactory ??= _findAsyncHelperFunction('_makeSyncCompleter');
 
   FunctionEntity _asyncStarStreamControllerFactory;
   FunctionEntity get asyncStarStreamControllerFactory =>

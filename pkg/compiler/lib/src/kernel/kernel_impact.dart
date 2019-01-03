@@ -144,9 +144,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
       case ir.AsyncMarker.Async:
         impactBuilder.registerFeature(Feature.ASYNC);
-        var completerFactory = _options.startAsyncSynchronously
-            ? commonElements.asyncAwaitCompleterFactory
-            : commonElements.syncCompleterFactory;
+        var completerFactory = commonElements.asyncAwaitCompleterFactory;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             completerFactory,
             const CallStructure.unnamed(0, 1),

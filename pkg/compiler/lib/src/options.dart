@@ -284,16 +284,12 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   String experimentalAllocationsPath;
 
+  /// If specified, a bundle of optimizations to enable (or disable).
+  int optimizationLevel = null;
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
-  // TODO(sigmund): delete these as we delete the underlying features
-
-  /// Whether to start `async` functions synchronously.
-  bool startAsyncSynchronously = true;
-
-  /// If specified, a bundle of optimizations to enable (or disable).
-  int optimizationLevel = null;
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
@@ -363,7 +359,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
-      ..startAsyncSynchronously = true
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
