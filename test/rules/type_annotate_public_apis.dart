@@ -10,6 +10,11 @@ f() {} //LINT
 
 void g(x) {} //LINT
 
+void h() {
+  void i(x) {} // OK
+  j() {} // OK
+}
+
 typedef Foo(x); //LINT
 
 typedef void Bar(int x);
@@ -18,15 +23,14 @@ int get xxx => 42; //OK: #151
 
 get xxxx => 42; //LINT
 
-set x(x) { } //LINT
+set x(x) {} // LINT
 
-set xx(int x) { } //OK
+set xx(int x) {} // OK
 
 _f() {}
 const _X = '';
 
 class A {
-
   var x; // LINT
   final xx = 1; //LINT
   static const y = ''; //LINT
@@ -34,9 +38,9 @@ class A {
 
   int get xxx => 42; //OK: #151
 
-  set xxxxx(x) { } //LINT
+  set xxxxx(x) {} // LINT
 
-  set xx(int x) { } //OK
+  set xx(int x) {} // OK
 
   get xxxx => 42; //LINT
 
@@ -49,8 +53,8 @@ class A {
   static void j(x) {} //LINT
   static void k(var v) {} //LINT
 
-  void l(_) { } //OK!
-  void ll(__) { } //OK!
+  void l(_) {} // OK!
+  void ll(__) {} // OK!
 
   var _x;
   final _xx = 1;

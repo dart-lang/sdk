@@ -82,7 +82,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name) &&
+        // Only report on top-level functions, not those declared within the
+        // scope of another function.
+        node.parent is CompilationUnit) {
       if (node.returnType == null && !node.isSetter) {
         rule.reportLint(node.name);
       } else {
