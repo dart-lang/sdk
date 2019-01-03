@@ -731,6 +731,30 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     assert((node.keyType is ImplicitTypeArgument) ==
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
+    KernelLibraryBuilder library = inferrer.library;
+    if (library != null &&
+        library.loader.target.enableSetLiterals &&
+        inferenceNeeded &&
+        node.entries.isEmpty) {
+      // Ambiguous set/map literal
+      DartType context =
+          inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+      if (context is InterfaceType) {
+        if (inferrer.classHierarchy
+                .isSubclassOf(inferrer.coreTypes.setClass, context.classNode) &&
+            !inferrer.classHierarchy
+                .isSubclassOf(inferrer.coreTypes.mapClass, context.classNode)) {
+          // Set literal
+          SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
+              typeArgument: const ImplicitTypeArgument(),
+              isConst: node.isConst);
+          node.replaceWith(setLiteral);
+          visitSetLiteralJudgment(setLiteral, typeContext);
+          node.inferredType = setLiteral.inferredType;
+          return;
+        }
+      }
+    }
     bool typeChecksNeeded = !inferrer.isTopLevel;
     if (inferenceNeeded || typeChecksNeeded) {
       formalTypes = [];
@@ -810,7 +834,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
-    return null;
   }
 
   void visitMethodInvocationJudgment(
@@ -1028,8 +1051,69 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitSetLiteralJudgment(SetLiteralJudgment node, DartType typeContext) {
-    // Not implemented
-    defaultExpression(node, typeContext);
+    var setClass = inferrer.coreTypes.setClass;
+    var setType = setClass.thisType;
+    List<DartType> inferredTypes;
+    DartType inferredTypeArgument;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    bool inferenceNeeded = node.typeArgument is ImplicitTypeArgument;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
+    if (inferenceNeeded || typeChecksNeeded) {
+      formalTypes = [];
+      actualTypes = [];
+    }
+    if (inferenceNeeded) {
+      inferredTypes = [const UnknownType()];
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(setType,
+          setClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: node.isConst);
+      inferredTypeArgument = inferredTypes[0];
+    } else {
+      inferredTypeArgument = node.typeArgument;
+    }
+    if (inferenceNeeded || typeChecksNeeded) {
+      for (int i = 0; i < node.expressions.length; ++i) {
+        Expression judgment = node.expressions[i];
+        inferrer.inferExpression(
+            judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+        if (inferenceNeeded) {
+          formalTypes.add(setType.typeArguments[0]);
+        }
+        actualTypes.add(getInferredType(judgment, inferrer));
+      }
+    }
+    if (inferenceNeeded) {
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+          setType,
+          setClass.typeParameters,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          inferredTypes);
+      inferredTypeArgument = inferredTypes[0];
+      inferrer.instrumentation?.record(
+          inferrer.uri,
+          node.fileOffset,
+          'typeArgs',
+          new InstrumentationValueForTypeArgs([inferredTypeArgument]));
+      node.typeArgument = inferredTypeArgument;
+    }
+    if (typeChecksNeeded) {
+      for (int i = 0; i < node.expressions.length; i++) {
+        inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
+            node.expressions[i], node.expressions[i].fileOffset,
+            isVoidAllowed: node.typeArgument is VoidType);
+      }
+    }
+    node.inferredType = new InterfaceType(setClass, [inferredTypeArgument]);
+    KernelLibraryBuilder inferrerLibrary = inferrer.library;
+    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInSetLiteral(
+          node, inferrer.typeSchemaEnvironment,
+          inferred: true);
+    }
   }
 
   void visitStaticAssignmentJudgment(
