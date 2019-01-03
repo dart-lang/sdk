@@ -320,16 +320,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
       }
     } else if (element?.isImmutable == true) {
-      AstNode parent = node.parent;
       if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
-    }
-    if (node.elementAnnotation?.isSealed == true &&
-        !(parent is ClassDeclaration || parent is ClassTypeAlias)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
+    } else if (element?.isLiteral == true) {
+      if (parent is! ConstructorDeclaration ||
+          (parent as ConstructorDeclaration).constKeyword == null) {
+        _errorReporter
+            .reportErrorForNode(HintCode.INVALID_LITERAL_ANNOTATION, node, []);
+      }
+    } else if (element?.isSealed == true) {
+      if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
+        _errorReporter.reportErrorForNode(HintCode.INVALID_SEALED_ANNOTATION,
+            node.parent, [node.element.name]);
+      }
     }
     super.visitAnnotation(node);
   }

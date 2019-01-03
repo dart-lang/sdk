@@ -26,9 +26,13 @@ class NonHintCodeTest extends ResolverTestCase {
 library meta;
 
 const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+const _Literal literal = const _Literal();
 
 class _AlwaysThrows {
   const _AlwaysThrows();
+}
+class _Literal {
+  const _Literal();
 }
 '''
       ]
@@ -679,6 +683,19 @@ class A {
   bool operator ==(x) { return x; }
   get hashCode => 0;
 }''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidLiteralAnnotation_constConstructor() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

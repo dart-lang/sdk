@@ -742,6 +742,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// subclasses as being immutable.
   bool get isImmutable;
 
+  /// Return `true` if this annotation marks the associated constructor as
+  /// being literal.
+  bool get isLiteral;
+
   /// Return `true` if this annotation marks the associated member as running
   /// a single test.
   bool get isIsTest;

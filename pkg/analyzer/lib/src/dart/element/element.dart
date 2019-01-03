@@ -2437,6 +2437,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// as being immutable.
   static String _IMMUTABLE_VARIABLE_NAME = "immutable";
 
+  /// The name of the top-level variable used to mark a constructor as being
+  /// literal.
+  static String _LITERAL_VARIABLE_NAME = "literal";
+
   /// The name of the top-level variable used to mark a function as running
   /// a single test.
   static String _IS_TEST_VARIABLE_NAME = "isTest";
@@ -2560,6 +2564,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isImmutable =>
       element is PropertyAccessorElement &&
       element.name == _IMMUTABLE_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isLiteral =>
+      element is PropertyAccessorElement &&
+      element.name == _LITERAL_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override

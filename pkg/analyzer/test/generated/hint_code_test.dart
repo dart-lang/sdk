@@ -1723,6 +1723,32 @@ class A {
     verify([source]);
   }
 
+  test_invalidLiteralAnnotation_nonConstConstructor() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  A() {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_LITERAL_ANNOTATION]);
+    verify([source]);
+  }
+
+  test_invalidLiteralAnnotation_nonConstructor() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  void m() {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_LITERAL_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidRequiredParam_on_named_parameter_with_default() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';

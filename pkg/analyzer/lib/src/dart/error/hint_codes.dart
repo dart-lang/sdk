@@ -214,6 +214,14 @@ class HintCode extends ErrorCode {
       "Only classes can be annotated as being immutable.");
 
   /**
+   * This hint is generated anywhere a @literal annotation is associated with
+   * anything other than a const constructor.
+   */
+  static const HintCode INVALID_LITERAL_ANNOTATION = const HintCode(
+      'INVALID_LITERAL_ANNOTATION',
+      "Only const constructors can be annotated as being literal.");
+
+  /**
    * This hint is generated anywhere where `@required` annotates a non named
    * parameter or a named parameter with default value.
    *
