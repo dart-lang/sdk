@@ -3639,13 +3639,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (!H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
+  if (!H.IsRoot(itarget_name) && !H.IsField(itarget_name) &&
+      !H.IsGetter(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, H.LookupMethodByMember(itarget_name,
                                   H.DartProcedureName(itarget_name)));
-    ASSERT((name.raw() == interface_target->name()) ||
-           (interface_target->IsGetterFunction() &&
-            Field::GetterSymbol(name) == interface_target->name()));
+    ASSERT(name.raw() == interface_target->name());
+    ASSERT(!interface_target->IsGetterFunction());
   }
 
   // TODO(sjindel): Avoid the check for null on unchecked closure calls if TFA
