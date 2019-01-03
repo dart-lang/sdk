@@ -3058,12 +3058,22 @@ static bool MayBeBoxableNumber(intptr_t cid) {
   return (cid == kDynamicCid) || (cid == kMintCid) || (cid == kDoubleCid);
 }
 
-static bool MaybeNumber(CompileType* type) {
+static bool MayBeNumber(CompileType* type) {
+  if (type->IsNone()) {
+    return false;
+  }
+  auto& compile_type = AbstractType::Handle(type->ToAbstractType()->raw());
+  if (compile_type.IsType() &&
+      Class::Handle(compile_type.type_class()).IsFutureOrClass()) {
+    const auto& type_args = TypeArguments::Handle(compile_type.arguments());
+    if (type_args.IsNull()) {
+      return true;
+    }
+    compile_type = type_args.TypeAt(0);
+  }
   // Note that type 'Number' is a subtype of itself.
-  return type->ToAbstractType()->IsDynamicType() ||
-         type->ToAbstractType()->IsObjectType() ||
-         type->ToAbstractType()->IsTypeParameter() ||
-         type->IsSubtypeOf(Type::Handle(Type::Number()));
+  return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
+         compile_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
@@ -3078,8 +3088,8 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     if (!MayBeBoxableNumber(compare->left()->Type()->ToCid()) ||
         !MayBeBoxableNumber(compare->right()->Type()->ToCid())) {
       compare->set_needs_number_check(false);
-    } else if (!MaybeNumber(compare->left()->Type()) ||
-               !MaybeNumber(compare->right()->Type())) {
+    } else if (!MayBeNumber(compare->left()->Type()) ||
+               !MayBeNumber(compare->right()->Type())) {
       compare->set_needs_number_check(false);
     }
   }
