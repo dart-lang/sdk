@@ -4257,18 +4257,6 @@ class ParameterElementForLink implements ParameterElementImpl {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
-    for (UnlinkedExpr annotation in unlinkedParam.annotations) {
-      if (annotation.operations.length == 1 &&
-          annotation.operations[0] == UnlinkedExprOperation.pushReference) {
-        ReferenceableElementForLink element =
-            this.compilationUnit.resolveRef(annotation.references[0].reference);
-        if (element is PropertyAccessorElementForLink &&
-            element.name == 'checked' &&
-            element.library.name == 'meta') {
-          return true;
-        }
-      }
-    }
     return false;
   }
 

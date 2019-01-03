@@ -1,3 +1,7 @@
+## 0.34.2
+* Removed support for the `@checked` annotation.  Please use the `covariant`
+  keyword instead.
+
 ## 0.34.1
 * Added logic to report a hint if a deprecated lint is specified in the user's
   analysis_options.yaml file, or if a lint is specified twice.

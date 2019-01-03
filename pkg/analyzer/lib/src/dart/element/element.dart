@@ -2418,10 +2418,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// throws, for dead code purposes.
   static String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
 
-  /// The name of the top-level variable used to mark a method parameter as
-  /// covariant.
-  static String _COVARIANT_VARIABLE_NAME = "checked";
-
   /// The name of the class used to mark an element as being deprecated.
   static String _DEPRECATED_CLASS_NAME = "Deprecated";
 
@@ -2534,13 +2530,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isConstantEvaluated => evaluationResult != null;
-
-  /// Return `true` if this annotation marks the associated parameter as being
-  /// covariant, meaning it is allowed to have a narrower type in an override.
-  bool get isCovariant =>
-      element is PropertyAccessorElement &&
-      element.name == _COVARIANT_VARIABLE_NAME &&
-      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isDeprecated {
@@ -6959,11 +6948,6 @@ class ParameterElementImpl extends VariableElementImpl
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
-    for (ElementAnnotationImpl annotation in metadata) {
-      if (annotation.isCovariant) {
-        return true;
-      }
-    }
     return false;
   }
 
@@ -7226,11 +7210,6 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   bool get isCovariant {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
-    }
-    for (ElementAnnotationImpl annotation in setter.variable.metadata) {
-      if (annotation.isCovariant) {
-        return true;
-      }
     }
     return false;
   }

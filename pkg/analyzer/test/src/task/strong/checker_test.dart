@@ -523,20 +523,18 @@ void main() {
   }
 
   test_covariantOverride() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 class C {
   num f(num x) => x;
 }
 class D extends C {
-  int f(@checked int x) => x;
+  int f(covariant int x) => x;
 }
 class E extends D {
   int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
 }
 class F extends E {
-  int f(@checked int x) => x;
+  int f(covariant int x) => x;
 }
 class G extends E implements D {}
 
@@ -544,32 +542,30 @@ class D_error extends C {
   /*error:INVALID_OVERRIDE*/int f(int x) => x;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(@checked double x) => 0;
+  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(@checked double x) => 0;
+  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(@checked double x) => 0;
+  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
 }
     ''');
   }
 
   @failingTest
   test_covariantOverride_fields() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 class A {
   get foo => '';
   set foo(_) {}
 }
 
 class B extends A {
-  @checked num foo;
+  covariant num foo;
 }
 class C extends A {
-  @checked @virtual num foo;
+  covariant @virtual num foo;
 }
 class D extends C {
   @virtual int foo;
@@ -581,9 +577,7 @@ class E extends D {
   }
 
   test_covariantOverride_leastUpperBound() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import "meta.dart";
 abstract class Top {}
 abstract class Left implements Top {}
 abstract class Right implements Top {}
@@ -600,17 +594,15 @@ abstract class TakesTop implements TakesLeft, TakesRight {
 }
 abstract class TakesBottom implements TakesLeft, TakesRight {
   // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
-  m(@checked Bottom x);
+  m(covariant Bottom x);
 }
     ''');
   }
 
   test_covariantOverride_markerIsInherited() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 class C {
-  num f(@checked num x) => x;
+  num f(covariant num x) => x;
 }
 class D extends C {
   int f(int x) => x;
@@ -3401,11 +3393,9 @@ abstract class D extends C {
 
   test_overrideNarrowsType_legalWithChecked() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 abstract class A { void test(A arg) { } }
-abstract class B extends A { void test(@checked B arg) { } }
+abstract class B extends A { void test(covariant B arg) { } }
 abstract class X implements A { }
 class C extends B with X { }
 class D extends B implements A { }

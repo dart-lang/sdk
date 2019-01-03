@@ -7256,54 +7256,6 @@ void main@5(int p@14) {}
         withOffsets: true);
   }
 
-  test_parameter_checked() async {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // my need to be changed.
-    var library = await checkLibrary(r'''
-library meta;
-const checked = null;
-class A<T> {
-  void f(@checked T t) {}
-}
-''');
-    checkElementText(library, r'''
-library meta;
-class A<T> {
-  void f(@
-        checked/*location: test.dart;checked?*/ covariant T t) {}
-}
-const dynamic checked = null;
-''');
-  }
-
-  test_parameter_checked_inherited() async {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // my need to be changed.
-    var library = await checkLibrary(r'''
-library meta;
-const checked = null;
-class A<T> {
-  void f(@checked T t) {}
-}
-class B<T> extends A<T> {
-  void f(T t) {}
-}
-''');
-    checkElementText(library, r'''
-library meta;
-class A<T> {
-  void f(@
-        checked/*location: test.dart;checked?*/ covariant T t) {}
-}
-class B<T> extends A<T> {
-  void f(covariant T t) {}
-}
-const dynamic checked = null;
-''');
-  }
-
   test_parameter_covariant() async {
     var library = await checkLibrary('class C { void m(covariant C c) {} }');
     checkElementText(library, r'''
