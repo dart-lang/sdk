@@ -35,11 +35,10 @@ SYSTEM_RENAMES = {
 }
 
 ARCH_RENAMES = {
-  '32': 'ia32',
   'ia32': 'ia32',
-
-  '64': 'x64',
   'x64': 'x64',
+  'arm': 'arm',
+  'arm64': 'arm64',
 }
 
 class Channel(object):
