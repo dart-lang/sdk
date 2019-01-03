@@ -7766,15 +7766,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   SimpleIdentifierImpl _methodName;
 
   /**
-   * The type invoke of the [methodName].
-   * 
-   * If the target element is a [MethodElement], this is the same as the
-   * [staticInvokeType]. If the target element is a [PropertyAccessorElement],
-   * presumably returning an [ExecutableElement] so that it can be invoked
-   * in this [MethodInvocation], then this type is the type of the accessor,
-   * and the [staticInvokeType] is the invoked type of the returned element.
+   * The invoke type of the [methodName] if the target element is a getter,
+   * or `null` otherwise.
    */
-  DartType methodNameType;
+  DartType _methodNameType;
 
   /**
    * Initialize a newly created method invocation. The [target] and [operator]
@@ -7824,6 +7819,26 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   void set methodName(SimpleIdentifier identifier) {
     _methodName = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  }
+
+  /**
+   * The invoke type of the [methodName].
+   *
+   * If the target element is a [MethodElement], this is the same as the
+   * [staticInvokeType]. If the target element is a getter, presumably
+   * returning an [ExecutableElement] so that it can be invoked in this
+   * [MethodInvocation], then this type is the type of the getter, and the
+   * [staticInvokeType] is the invoked type of the returned element.
+   */
+  DartType get methodNameType => _methodNameType ?? staticInvokeType;
+
+  /**
+   * Set the [methodName] invoke type, only if the target element is a getter.
+   * Otherwise, the target element itself is invoked, [_methodNameType] is
+   * `null`, and the getter will return [staticInvokeType].
+   */
+  set methodNameType(DartType methodNameType) {
+    _methodNameType = methodNameType;
   }
 
   @override

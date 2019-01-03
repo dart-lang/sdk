@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -249,7 +250,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertMethodInvocation(MethodInvocation invocation,
       Element expectedElement, String expectedInvokeType,
-      {String expectedNameType, String expectedType}) {
+      {String expectedMethodNameType,
+      String expectedNameType,
+      String expectedType}) {
+    MethodInvocationImpl invocationImpl = invocation;
+
     // TODO(scheglov) Check for Member.
     var element = invocation.methodName.staticElement;
     if (element is Member) {
@@ -273,6 +278,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     expectedType ??= _extractReturnType(expectedInvokeType);
     assertType(invocation, expectedType);
+
+    expectedMethodNameType ??= expectedInvokeType;
+    assertElementTypeString(
+        invocationImpl.methodNameType, expectedMethodNameType);
   }
 
   void assertPropertyAccess(

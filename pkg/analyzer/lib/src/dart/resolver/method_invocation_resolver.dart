@@ -139,9 +139,14 @@ class MethodInvocationResolver {
     return null;
   }
 
-  DartType _getCalleeType(FunctionType targetType) {
+  /// If the element of the invoked [targetType] is a getter, then actually
+  /// the return type of the [targetType] is invoked.  So, remember the
+  /// [targetType] into [MethodInvocationImpl.methodNameType] and return the
+  /// actual invoked type.
+  DartType _getCalleeType(MethodInvocation node, FunctionType targetType) {
     if (targetType.element.kind == ElementKind.GETTER) {
-      var calleeType = (targetType as FunctionTypeImpl).returnType;
+      (node as MethodInvocationImpl).methodNameType = targetType;
+      var calleeType = targetType.returnType;
       calleeType = _resolveTypeParameter(calleeType);
       return calleeType;
     }
@@ -328,9 +333,7 @@ class MethodInvocationResolver {
 
     var targetType = _inheritance.getMember(receiverType, _currentName);
     if (targetType != null) {
-      (node as MethodInvocationImpl).methodNameType = targetType;
-
-      var calleeType = _getCalleeType(targetType);
+      var calleeType = _getCalleeType(node, targetType);
 
       // TODO(scheglov) This is bad, we have to create members here.
       // Find a way to avoid this.
@@ -382,7 +385,7 @@ class MethodInvocationResolver {
         element = multiply.conflictingElements[0];
       }
       if (element is ExecutableElement) {
-        var calleeType = _getCalleeType(element.type);
+        var calleeType = _getCalleeType(node, element.type);
         return _setResolution(node, calleeType);
       }
       if (element is VariableElement) {
@@ -407,7 +410,7 @@ class MethodInvocationResolver {
 
     if (targetType != null) {
       nameNode.staticElement = targetType.element;
-      var calleeType = _getCalleeType(targetType);
+      var calleeType = _getCalleeType(node, targetType);
       return _setResolution(node, calleeType);
     }
 
@@ -456,7 +459,7 @@ class MethodInvocationResolver {
     }
 
     if (element is ExecutableElement) {
-      var calleeType = _getCalleeType(element.type);
+      var calleeType = _getCalleeType(node, element.type);
       return _setResolution(node, calleeType);
     }
 
@@ -479,7 +482,7 @@ class MethodInvocationResolver {
     // If there is that concrete dispatch target, then we are done.
     if (targetType != null) {
       nameNode.staticElement = targetType.element;
-      var calleeType = _getCalleeType(targetType);
+      var calleeType = _getCalleeType(node, targetType);
       _setResolution(node, calleeType);
       return;
     }
@@ -490,7 +493,7 @@ class MethodInvocationResolver {
     targetType = _inheritance.getInherited(receiverType, _currentName);
     if (targetType != null) {
       nameNode.staticElement = targetType.element;
-      var calleeType = _getCalleeType(targetType);
+      var calleeType = _getCalleeType(node, targetType);
       _setResolution(node, calleeType);
 
       ClassElementImpl receiverSuperClass = AbstractClassElementImpl.getImpl(
@@ -525,7 +528,7 @@ class MethodInvocationResolver {
     if (element != null) {
       if (element is ExecutableElement) {
         nameNode.staticElement = element;
-        var calleeType = _getCalleeType(element.type);
+        var calleeType = _getCalleeType(node, element.type);
         _setResolution(node, calleeType);
       } else {
         _reportInvocationOfNonFunction(node);

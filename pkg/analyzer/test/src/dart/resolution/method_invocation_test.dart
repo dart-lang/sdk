@@ -282,7 +282,11 @@ main(C c) {
 ''');
     await resolveTestFile();
     assertNoTestErrors();
-    _assertInvalidInvocation('c.foo();', findElement.getter('foo'));
+    _assertInvalidInvocation(
+      'c.foo();',
+      findElement.getter('foo'),
+      expectedMethodNameType: '() → dynamic',
+    );
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_superClass() async {
@@ -299,7 +303,11 @@ class B extends A {
 ''');
     await resolveTestFile();
     assertNoTestErrors();
-    _assertInvalidInvocation('foo();', findElement.getter('foo'));
+    _assertInvalidInvocation(
+      'foo();',
+      findElement.getter('foo'),
+      expectedMethodNameType: '() → dynamic',
+    );
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_thisClass() async {
@@ -314,7 +322,11 @@ class C {
 ''');
     await resolveTestFile();
     assertNoTestErrors();
-    _assertInvalidInvocation('foo();', findElement.getter('foo'));
+    _assertInvalidInvocation(
+      'foo();',
+      findElement.getter('foo'),
+      expectedMethodNameType: '() → dynamic',
+    );
   }
 
   test_error_invocationOfNonFunction_OK_Function() async {
@@ -346,6 +358,7 @@ class C<T extends MyFunction> {
       findNode.methodInvocation('foo(0)'),
       findElement.getter('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → T',
     );
   }
 
@@ -366,6 +379,7 @@ main() {
     _assertInvalidInvocation(
       'foo()',
       findElement.getter('foo'),
+      expectedMethodNameType: '() → int',
     );
   }
 
@@ -386,6 +400,7 @@ class C {
     _assertInvalidInvocation(
       'foo()',
       findElement.getter('foo'),
+      expectedMethodNameType: '() → int',
     );
   }
 
@@ -408,6 +423,7 @@ class B extends A {
     _assertInvalidInvocation(
       'foo()',
       findElement.getter('foo'),
+      expectedMethodNameType: '() → int',
     );
   }
 
@@ -822,6 +838,7 @@ main(C<void> c) {
       'c.foo()',
       findElement.getter('foo'),
       expectedNameType: 'void',
+      expectedMethodNameType: '() → void',
     );
   }
 
@@ -878,6 +895,7 @@ main() {
       'foo()',
       findElement.topGet('foo'),
       expectedNameType: 'void',
+      expectedMethodNameType: '() → void',
     );
   }
 
@@ -996,6 +1014,7 @@ main() {
       invocation,
       findElement.getter('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
     assertClassRef(invocation.target, findElement.class_('C'));
   }
@@ -1113,6 +1132,7 @@ main() {
       invocation,
       import.topGetter('foo'),
       '(int, int) → int',
+      expectedMethodNameType: '() → <T>(T, T) → T',
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -1161,6 +1181,7 @@ main(C c) {
       invocation,
       findElement.getter('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
   }
 
@@ -1182,6 +1203,31 @@ main(C c) {
       invocation,
       findElement.method('foo'),
       '(int) → void',
+      expectedMethodNameType: '(int) → void',
+    );
+  }
+
+  test_hasReceiver_instance_method_generic() async {
+    addTestFile(r'''
+class C {
+  T foo<T>(T a) {
+    return a;
+  }
+}
+
+main(C c) {
+  c.foo(0);
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var invocation = findNode.methodInvocation('foo(0);');
+    assertMethodInvocation(
+      invocation,
+      findElement.method('foo'),
+      '(int) → int',
+      expectedMethodNameType: '(int) → int',
     );
   }
 
@@ -1265,6 +1311,7 @@ main() {
       invocation,
       import.class_('C').getGetter('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
 
     PrefixedIdentifier target = invocation.target;
@@ -1323,6 +1370,7 @@ class B extends A {
       invocation,
       findElement.getter('foo', of: 'A'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
     assertSuperExpression(invocation.target);
   }
@@ -1392,6 +1440,7 @@ class B extends A {
       invocation,
       findElement.getter('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
   }
 
@@ -1413,6 +1462,7 @@ class C {
       invocation,
       findElement.getter('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
   }
 
@@ -1570,6 +1620,7 @@ main() {
       invocation,
       findElement.topFunction('foo'),
       '(int) → void',
+      expectedMethodNameType: '(int) → void',
     );
   }
 
@@ -1589,6 +1640,7 @@ main() {
       invocation,
       findElement.topGet('foo'),
       '(int) → double',
+      expectedMethodNameType: '() → (int) → double',
     );
   }
 
@@ -1608,6 +1660,7 @@ main() {
       invocation,
       findElement.topGet('foo'),
       '(int) → void',
+      expectedMethodNameType: '() → (int) → void',
     );
   }
 
@@ -1643,7 +1696,9 @@ main() {
   }
 
   void _assertInvalidInvocation(String search, Element expectedElement,
-      {String expectedNameType, bool dynamicNameType: false}) {
+      {String expectedMethodNameType,
+      String expectedNameType,
+      bool dynamicNameType: false}) {
     var invocation = findNode.methodInvocation(search);
     if (dynamicNameType) {
       assertTypeDynamic(invocation.methodName);
@@ -1653,6 +1708,7 @@ main() {
       invocation,
       expectedElement,
       'dynamic',
+      expectedMethodNameType: expectedMethodNameType,
       expectedNameType: expectedNameType,
       expectedType: 'dynamic',
     );
