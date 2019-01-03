@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -72,6 +73,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     fasta.Parser parser = new fasta.Parser(null);
+    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
@@ -526,6 +528,7 @@ class FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
     fasta.Parser parser = new fasta.Parser(null);
+    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
     parser.listener = astBuilder;
     astBuilder.parser = parser;

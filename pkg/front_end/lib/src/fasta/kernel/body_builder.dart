@@ -2342,6 +2342,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         expressions,
         rightBrace);
     library.checkBoundsInSetLiteral(node, typeEnvironment);
+    if (!library.loader.target.enableSetLiterals) {
+      node = wrapInProblem(node, fasta.messageSetLiteralsNotSupported,
+          lengthOfSpan(leftBrace, leftBrace.endGroup));
+    }
     push(node);
   }
 
@@ -2353,12 +2357,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
     assert(typeArguments == null || typeArguments.length > 2);
     if (typeArguments != null && typeArguments.length > 2) {
-      addProblem(
-          fasta.messageSetOrMapLiteralTooManyTypeArguments,
-          offsetForToken(leftBrace),
-          lengthOfSpan(leftBrace, leftBrace.endGroup));
+      if (library.loader.target.enableSetLiterals) {
+        addProblem(
+            fasta.messageSetOrMapLiteralTooManyTypeArguments,
+            offsetForToken(leftBrace),
+            lengthOfSpan(leftBrace, leftBrace.endGroup));
+      } else {
+        addProblem(
+            fasta.messageMapLiteralTypeArgumentMismatch,
+            offsetForToken(leftBrace),
+            lengthOfSpan(leftBrace, leftBrace.endGroup));
+      }
     }
-    assert(typeArguments == null);
     DartType implicitTypeArgument = this.implicitTypeArgument;
     push(forest.literalMap(
         constKeyword,

@@ -314,6 +314,7 @@ SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
 SetLiteralTooManyTypeArguments/analyzerCode: Fail
 SetLiteralTooManyTypeArguments/example: Fail
+SetLiteralsNotSupported/analyzerCode: Fail
 SetOrMapLiteralTooManyTypeArguments/analyzerCode: Fail
 SetOrMapLiteralTooManyTypeArguments/example: Fail
 SetterNotFound/example: Fail

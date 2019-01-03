@@ -1453,6 +1453,10 @@ SetOrMapLiteralTooManyTypeArguments:
   template: "A set or map literal requires exactly one or two type arguments, respectively."
   severity: ERROR_LEGACY_WARNING
 
+SetLiteralsNotSupported:
+  template: "Set literals are not supported yet."
+  script: "var s = { 24 };"
+
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
   severity: ERROR_LEGACY_WARNING

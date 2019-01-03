@@ -263,7 +263,7 @@ class Parser {
 
   /// Experimental flag for enabling set literal support.
   /// See https://github.com/dart-lang/sdk/issues/35121
-  bool enableSetLiterals = false;
+  bool enableSetLiterals = true;
 
   /// Represents parser state: what asynchronous syntax is allowed in the
   /// function being currently parsed. In rare situations, this can be set by

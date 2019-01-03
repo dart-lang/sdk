@@ -836,10 +836,25 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
+  void handleLiteralSet(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("LiteralSet", leftBrace);
+    state.discard(count);
+    state.pushNull("{}", leftBrace);
+  }
+
+  @override
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap", leftBrace);
     state.discard(count);
+    state.pushNull("{}", leftBrace);
+  }
+
+  @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("EmptyLiteralSetOrMap", leftBrace);
     state.pushNull("{}", leftBrace);
   }
 
