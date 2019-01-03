@@ -6507,17 +6507,17 @@ A \IndexCustom{map literal}{literal!map} denotes a map object.
 \end{grammar}
 
 \LMHash{}%
-A \synt{setOrMapLiteral} is either set literal (\ref {sets}) or a map literal,
+A \synt{setOrMapLiteral} $e$ is either set literal (\ref {sets}) or a map literal,
 determined by the type parameters or static context type.
 If the literal expression has exactly one type argument,
-then it is a set literal.
-If it has two type arguments, then it is a map literal.
-If it has three or more type arguments, it is a compile-time error.
-If it has \emph{no} type arguments,
-then if \code{LinkedHashSet<Null>} is assignable to the
-static context type of the literal,
-and \code{LinkedHashMap<Null, Null>} is not,
-it is set literal,
+then $e$ is a set literal.
+If $e$ has two type arguments, then it is a map literal.
+If $e$ has three or more type arguments, it is a compile-time error.
+If $e$ has \emph{no} type arguments,
+then let $S$ be the static context type of the literal.
+If $\basetype{S}$ (\ref{typeFutureOr}) is a subtype of \code{Iterable<Object>}
+and $\basetype{S}$ is not a subtype of \code{Map<Object, Object>},
+then $e$ is set literal,
 and otherwise it is a map literal.
 A map literal derived from \synt{setOrMapLiteral}
 is treated the same way as one derived from \synt{mapLiteral},
@@ -6723,10 +6723,10 @@ is evaluated as follows:
 \item
 For each $i \in 1 .. n$ in numeric order,
 the expression $e_i$ is evaluated producing object $v_i$.
-\item A fresh instance (\ref{generativeConstructors}) $s$
-of the built-in class \code{LinkedHashSet<$E$>}, is allocated.
-\item
-The operator \code{add} is invoked on $s$ with argument $v_i$ for each $i \in 1 .. n$ in numerical order.
+\item A fresh object (\ref{generativeConstructors}) $s$
+implementing the built-in class \code{Set<$E$>}, is created.
+\item The set $s$ is made to have the values $v_1, \ldots{} , v_n$ as elements,
+iterated in numerical order.
 \item
 The result of the evaluation is $s$.
 \end{itemize}
@@ -13943,6 +13943,15 @@ supertype, are few and not practically useful, so for now we choose to
 only allow invocations of members inherited from \code{Object}.
 }
 
+\LMHash{}%
+We define the auxiliary function
+\IndexCustom{\basetype{T}}{basetype(t)@\emph{basetype}$(T)$}
+as follows:
+
+\begin{itemize}
+\item If $T$ is \code{FutureOr<$S$>} for some $S$ then $\basetype{T} = \basetype{S}$.
+\item Otherwise $\basetype{T} = T$.
+\end{itemize}
 
 \subsection{Type Void}
 \LMLabel{typeVoid}
