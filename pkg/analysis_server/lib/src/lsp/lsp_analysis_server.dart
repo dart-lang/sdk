@@ -165,6 +165,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   Future<void> get exited => channel.closed;
 
+  addPriorityFile(String path) {
+    final didAdd = priorityFiles.add(path);
+    assert(didAdd);
+    if (didAdd) {
+      _updateDriversPriorityFiles();
+    }
+  }
+
   /**
    * The socket from which messages are being read has been closed.
    */
@@ -280,6 +288,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       new LogMessageParams(MessageType.Error, message),
       jsonRpcVersion,
     ));
+  }
+
+  removePriorityFile(String path) {
+    final didRemove = priorityFiles.remove(path);
+    assert(didRemove);
+    if (didRemove) {
+      _updateDriversPriorityFiles();
+    }
   }
 
   void sendErrorResponse(Message message, ResponseError error) {
@@ -404,6 +420,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       resourceProvider.removeOverlay(path);
     }
     driverMap.values.forEach((driver) => driver.changeFile(path));
+  }
+
+  _updateDriversPriorityFiles() {
+    driverMap.values.forEach((driver) {
+      driver.priorityFiles = priorityFiles.toList();
+    });
   }
 }
 

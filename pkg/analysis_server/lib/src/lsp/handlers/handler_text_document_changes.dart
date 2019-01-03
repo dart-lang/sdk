@@ -60,6 +60,7 @@ class TextDocumentCloseHandler
   ErrorOr<void> handle(DidCloseTextDocumentParams params) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
+      server.removePriorityFile(path);
       server.documentVersions[path] = null;
       server.updateOverlay(path, null);
       return success();
@@ -80,6 +81,7 @@ class TextDocumentOpenHandler
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
     return path.mapResult((path) {
+      server.addPriorityFile(path);
       // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
       server.documentVersions[path] = new VersionedTextDocumentIdentifier(
