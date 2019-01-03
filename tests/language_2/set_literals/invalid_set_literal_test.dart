@@ -68,7 +68,7 @@ void main() {
   }();
 
   // Constant sets must not contain equal elements.
-  const s = {
+  const cs = {
     1,
     "s",
     #foo,
