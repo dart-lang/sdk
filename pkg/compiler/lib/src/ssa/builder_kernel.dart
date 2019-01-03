@@ -498,9 +498,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           functionNode: node.function, checks: TargetChecks.none);
     }
 
-    // [fieldValues] accumulates the field initializer values, which may be
-    // overwritten by initializer-list initializers.
-    ConstructorData constructorData = new ConstructorData();
+    // [constructorData.fieldValues] accumulates the field initializer values,
+    // which may be overwritten by initializer-list initializers.
+    ConstructorData constructorData = ConstructorData();
     _buildInitializers(node, constructorData);
 
     List<HInstruction> constructorArguments = <HInstruction>[];
@@ -731,22 +731,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
           failedAt(field, "Unexpected member definition $definition.");
       }
 
+      bool ignoreAllocatorAnalysis = false;
+      if (nativeData.isNativeOrExtendsNative(cls)) {
+        // @Native classes have 'fields' which are really getters/setter.  Do
+        // not try to initialize e.g. 'tagName'.
+        if (nativeData.isNativeClass(cls)) return;
+        // Fields that survive this test are fields of custom elements.
+        ignoreAllocatorAnalysis = true;
+      }
+
       if (node.initializer == null) {
-        // Unassigned fields of native classes are not initialized to
-        // prevent overwriting pre-initialized native properties.
-        if (!nativeData.isNativeOrExtendsNative(cls)) {
-          if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
-            constructorData.fieldValues[field] =
-                graph.addConstantNull(closedWorld);
-          }
+        if (ignoreAllocatorAnalysis ||
+            !_allocatorAnalysis.isInitializedInAllocator(field)) {
+          constructorData.fieldValues[field] =
+              graph.addConstantNull(closedWorld);
         }
-      } else if (node.initializer is! ir.NullLiteral ||
-          !nativeData.isNativeClass(cls)) {
+      } else {
         // Compile the initializer in the context of the field so we know that
         // class type parameters are accessed as values.
         // TODO(sra): It would be sufficient to know the context was a field
         // initializer.
-        if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+        if (ignoreAllocatorAnalysis ||
+            !_allocatorAnalysis.isInitializedInAllocator(field)) {
           inlinedFrom(field,
               _sourceInformationBuilder.buildAssignment(node.initializer), () {
             node.initializer.accept(this);

@@ -390,17 +390,11 @@ class Field {
 
   final bool needsCheckedSetter;
 
-  final bool nullInitializerInAllocator; // TODO(sra): Generalize.
+  final ConstantValue initializerInAllocator;
 
   // TODO(floitsch): support renamed fields.
-  Field(
-      this.element,
-      this.name,
-      this.accessorName,
-      this.getterFlags,
-      this.setterFlags,
-      this.needsCheckedSetter,
-      this.nullInitializerInAllocator);
+  Field(this.element, this.name, this.accessorName, this.getterFlags,
+      this.setterFlags, this.needsCheckedSetter, this.initializerInAllocator);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
