@@ -4252,18 +4252,16 @@ bool Class::IsFutureOrClass() const {
          (library() == Library::AsyncLibrary());
 }
 
-// If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
-// If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
-// Type S is specified by this class parameterized with 'type_arguments', and
+// Checks if type S is a subtype of type T.
+// Type S is specified by class 'cls' parameterized with 'type_arguments', and
 // type T by class 'other' parameterized with 'other_type_arguments'.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
-bool Class::TypeTestNonRecursive(const Class& cls,
-                                 Class::TypeTestKind test_kind,
-                                 const TypeArguments& type_arguments,
-                                 const Class& other,
-                                 const TypeArguments& other_type_arguments,
-                                 Heap::Space space) {
+bool Class::IsSubtypeOf(const Class& cls,
+                        const TypeArguments& type_arguments,
+                        const Class& other,
+                        const TypeArguments& other_type_arguments,
+                        Heap::Space space) {
   // Use the 'this_class' object as if it was the receiver of this method, but
   // instead of recursing, reset it to the super class and loop.
   Thread* thread = Thread::Current();
@@ -4281,10 +4279,9 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     if (this_class.IsNullClass()) {
       return true;
     }
-    // In strong mode, check if 'other' is 'FutureOr'.
-    // If so, apply additional subtyping rules.
-    if (this_class.FutureOrTypeTest(zone, type_arguments, other,
-                                    other_type_arguments, space)) {
+    // Apply additional subtyping rules if 'other' is 'FutureOr'.
+    if (Class::IsSubtypeOfFutureOr(zone, this_class, type_arguments, other,
+                                   other_type_arguments, space)) {
       return true;
     }
     // DynamicType is not more specific than any type.
@@ -4318,8 +4315,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // above.
         return false;
       }
-      return type_arguments.TypeTest(test_kind, other_type_arguments,
-                                     from_index, num_type_params, space);
+      return type_arguments.IsSubtypeOf(other_type_arguments, from_index,
+                                        num_type_params, space);
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
@@ -4360,8 +4357,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       if (interface_class.IsDartFunctionClass()) {
         continue;
       }
-      if (interface_class.TypeTest(test_kind, interface_args, other,
-                                   other_type_arguments, space)) {
+      if (Class::IsSubtypeOf(interface_class, interface_args, other,
+                             other_type_arguments, space)) {
         return true;
       }
     }
@@ -4375,28 +4372,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
   return false;
 }
 
-// If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
-// If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
-// Type S is specified by this class parameterized with 'type_arguments', and
-// type T by class 'other' parameterized with 'other_type_arguments'.
-// This class and class 'other' do not need to be finalized, however, they must
-// be resolved as well as their interfaces.
-bool Class::TypeTest(TypeTestKind test_kind,
-                     const TypeArguments& type_arguments,
-                     const Class& other,
-                     const TypeArguments& other_type_arguments,
-                     Heap::Space space) const {
-  return TypeTestNonRecursive(*this, test_kind, type_arguments, other,
-                              other_type_arguments, space);
-}
-
-bool Class::FutureOrTypeTest(Zone* zone,
-                             const TypeArguments& type_arguments,
-                             const Class& other,
-                             const TypeArguments& other_type_arguments,
-                             Heap::Space space) const {
-  // In strong mode, there is no difference between 'is subtype of' and
-  // 'is more specific than'.
+bool Class::IsSubtypeOfFutureOr(Zone* zone,
+                                const Class& cls,
+                                const TypeArguments& type_arguments,
+                                const Class& other,
+                                const TypeArguments& other_type_arguments,
+                                Heap::Space space) {
   if (other.IsFutureOrClass()) {
     if (other_type_arguments.IsNull()) {
       return true;
@@ -4406,17 +4387,18 @@ bool Class::FutureOrTypeTest(Zone* zone,
     if (other_type_arg.IsTopType()) {
       return true;
     }
-    if (!type_arguments.IsNull() && IsFutureClass()) {
+    if (!type_arguments.IsNull() && cls.IsFutureClass()) {
       const AbstractType& type_arg =
           AbstractType::Handle(zone, type_arguments.TypeAt(0));
-      if (type_arg.TypeTest(Class::kIsSubtypeOf, other_type_arg, space)) {
+      if (type_arg.IsSubtypeOf(other_type_arg, space)) {
         return true;
       }
     }
     if (other_type_arg.HasTypeClass() &&
-        TypeTest(Class::kIsSubtypeOf, type_arguments,
-                 Class::Handle(zone, other_type_arg.type_class()),
-                 TypeArguments::Handle(other_type_arg.arguments()), space)) {
+        Class::IsSubtypeOf(cls, type_arguments,
+                           Class::Handle(zone, other_type_arg.type_class()),
+                           TypeArguments::Handle(other_type_arg.arguments()),
+                           space)) {
       return true;
     }
   }
@@ -5047,7 +5029,6 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
       type = TypeAt(from_index + i);
       name = type.BuildName(name_visibility);
     } else {
-      // Show dynamic type argument in strong mode.
       name = Symbols::Dynamic().raw();
     }
     pieces.Add(name);
@@ -5142,11 +5123,10 @@ bool TypeArguments::IsTopTypes(intptr_t from_index, intptr_t len) const {
   return true;
 }
 
-bool TypeArguments::TypeTest(TypeTestKind test_kind,
-                             const TypeArguments& other,
-                             intptr_t from_index,
-                             intptr_t len,
-                             Heap::Space space) const {
+bool TypeArguments::IsSubtypeOf(const TypeArguments& other,
+                                intptr_t from_index,
+                                intptr_t len,
+                                Heap::Space space) const {
   ASSERT(Length() >= (from_index + len));
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= (from_index + len));
@@ -5156,7 +5136,7 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
     type = TypeAt(from_index + i);
     other_type = other.TypeAt(from_index + i);
     if (type.IsNull() || other_type.IsNull() ||
-        !type.TypeTest(test_kind, other_type, space)) {
+        !type.IsSubtypeOf(other_type, space)) {
       return false;
     }
   }
@@ -7045,22 +7025,14 @@ RawFunction* Function::InstantiateSignatureFrom(
   return sig.raw();
 }
 
-// If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
-// of this function is a subtype or a supertype of the type of the specified
-// parameter of the other function. In strong mode, we only check for supertype,
-// i.e. contravariance.
+// Checks if the type of the specified parameter of this function is a supertype
+// of the type of the specified parameter of the other function (i.e. check
+// parameter contravariance).
 // Note that types marked as covariant are already dealt with in the front-end.
-// If test_kind == kIsMoreSpecificThan, checks if the type of the specified
-// parameter of this function is more specific than the type of the specified
-// parameter of the other function.
-// Note that for kIsMoreSpecificThan (non-strong mode only), we do not apply
-// contravariance of parameter types, but covariance of both parameter types and
-// result type.
-bool Function::TestParameterType(TypeTestKind test_kind,
-                                 intptr_t parameter_position,
-                                 intptr_t other_parameter_position,
-                                 const Function& other,
-                                 Heap::Space space) const {
+bool Function::IsContravariantParameter(intptr_t parameter_position,
+                                        const Function& other,
+                                        intptr_t other_parameter_position,
+                                        Heap::Space space) const {
   const AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (param_type.IsTopType()) {
@@ -7105,9 +7077,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
   return true;
 }
 
-bool Function::TypeTest(TypeTestKind test_kind,
-                        const Function& other,
-                        Heap::Space space) const {
+bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
@@ -7137,7 +7107,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
-  // In strong mode, 'void Function()' is a subtype of 'Object Function()'.
+  // 'void Function()' is a subtype of 'Object Function()'.
   if (!other_res_type.IsTopType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
     if (!res_type.IsSubtypeOf(other_res_type, space)) {
@@ -7148,8 +7118,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
   for (intptr_t i = 0; i < (other_num_fixed_params - other_num_ignored_params +
                             other_num_opt_pos_params);
        i++) {
-    if (!TestParameterType(test_kind, i + num_ignored_params,
-                           i + other_num_ignored_params, other, space)) {
+    if (!IsContravariantParameter(i + num_ignored_params, other,
+                                  i + other_num_ignored_params, space)) {
       return false;
     }
   }
@@ -7159,10 +7129,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   }
   // Check that for each optional named parameter of type T of the other
   // function type, there exists an optional named parameter of this function
-  // type with an identical name and with a type S that is a either a subtype
-  // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
-  // than T (if test_kind == kIsMoreSpecificThan). In strong mode, we only check
-  // for supertype, i.e. contravariance.
+  // type with an identical name and with a type S that is a supertype of T.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
   const int num_params = num_fixed_params + num_opt_named_params;
@@ -7178,7 +7145,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
-        if (!TestParameterType(test_kind, j, i, other, space)) {
+        if (!IsContravariantParameter(j, other, i, space)) {
           return false;
         }
         break;
@@ -7427,10 +7394,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   closure_function.set_kernel_offset(kernel_offset());
 
-  // In strong mode, change covariant parameter types to Object in the implicit
-  // closure of a method compiled by kernel.
-  // The VM's parser erases covariant types immediately in strong mode.
-  if (!is_static() && kernel_offset() > 0) {
+  // Change covariant parameter types to Object in the implicit closure.
+  if (!is_static()) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
     translation_helper.InitFromScript(function_script);
@@ -16151,8 +16116,8 @@ bool Instance::IsInstanceOf(
     }
     return other_class.IsNullClass() || other_class.IsObjectClass();
   }
-  return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
-                         Heap::kOld);
+  return Class::IsSubtypeOf(cls, type_arguments, other_class,
+                            other_type_arguments, Heap::kOld);
 }
 
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
@@ -16675,7 +16640,7 @@ bool AbstractType::IsTopType() const {
   if ((cid == kDynamicCid) || (cid == kInstanceCid)) {
     return true;
   }
-  // In strong mode, FutureOr<T> where T is a top type behaves as a top type.
+  // FutureOr<T> where T is a top type behaves as a top type.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (Class::Handle(zone, type_class()).IsFutureOrClass()) {
@@ -16753,9 +16718,8 @@ bool AbstractType::IsDartClosureType() const {
   return !IsFunctionType() && (type_class_id() == kClosureCid);
 }
 
-bool AbstractType::TypeTest(TypeTestKind test_kind,
-                            const AbstractType& other,
-                            Heap::Space space) const {
+bool AbstractType::IsSubtypeOf(const AbstractType& other,
+                               Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // Any type is a subtype of (and is more specific than) Object and dynamic.
@@ -16766,7 +16730,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  // Type parameters cannot be handled by Class::TypeTest().
+  // Type parameters cannot be handled by Class::IsSubtypeOf().
   // When comparing two uninstantiated function types, one returning type
   // parameter K, the other returning type parameter V, we cannot assume that K
   // is a subtype of V, or vice versa. We only return true if K equals V, as
@@ -16811,14 +16775,12 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     if (!bound.IsFinalized()) {
       return false;  // TODO(regis): Return "maybe after instantiation".
     }
-    // The current bound_trail cannot be used, because operands are swapped and
-    // the test is different anyway (more specific vs. subtype).
-    if (bound.IsMoreSpecificThan(other, space)) {
+    // The current bound_trail cannot be used, because operands are swapped.
+    if (bound.IsSubtypeOf(other, space)) {
       return true;
     }
-    // In strong mode, check if 'other' is 'FutureOr'.
-    // If so, apply additional subtyping rules.
-    if (FutureOrTypeTest(zone, other, space)) {
+    // Apply additional subtyping rules if 'other' is 'FutureOr'.
+    if (IsSubtypeOfFutureOr(zone, other, space)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -16828,7 +16790,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   }
   const Class& type_cls = Class::Handle(zone, type_class());
   const Class& other_type_cls = Class::Handle(zone, other.type_class());
-  // Function types cannot be handled by Class::TypeTest().
+  // Function types cannot be handled by Class::IsSubtypeOf().
   const bool other_is_dart_function_type = other.IsDartFunctionType();
   if (other_is_dart_function_type || other.IsFunctionType()) {
     if (IsFunctionType()) {
@@ -16840,13 +16802,12 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // Check for two function types.
       const Function& fun =
           Function::Handle(zone, Type::Cast(*this).signature());
-      return fun.TypeTest(test_kind, other_fun, space);
+      return fun.IsSubtypeOf(other_fun, space);
     }
     if (other.IsFunctionType() && !other_type_cls.IsTypedefClass()) {
-      // [this] is not a function type (and, in non-strong mode, does not
-      // declare a compatible call() method as verified above). Therefore,
-      // non-function type [this] cannot be a subtype of function type [other],
-      // unless [other] is not only a function type, but also a named typedef.
+      // [this] is not a function type. Therefore, non-function type [this]
+      // cannot be a subtype of function type [other], unless [other] is not
+      // only a function type, but also a named typedef.
       // Indeed a typedef also behaves as a regular class-based type (with type
       // arguments when generic).
       // This check is needed to avoid falling through to class-based type
@@ -16857,23 +16818,20 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
   }
   if (IsFunctionType()) {
-    // In strong mode, check if 'other' is 'FutureOr'.
-    // If so, apply additional subtyping rules.
-    if (FutureOrTypeTest(zone, other, space)) {
+    // Apply additional subtyping rules if 'other' is 'FutureOr'.
+    if (IsSubtypeOfFutureOr(zone, other, space)) {
       return true;
     }
     return false;
   }
-  return type_cls.TypeTest(
-      test_kind, TypeArguments::Handle(zone, arguments()), other_type_cls,
+  return Class::IsSubtypeOf(
+      type_cls, TypeArguments::Handle(zone, arguments()), other_type_cls,
       TypeArguments::Handle(zone, other.arguments()), space);
 }
 
-bool AbstractType::FutureOrTypeTest(Zone* zone,
-                                    const AbstractType& other,
-                                    Heap::Space space) const {
-  // In strong mode, there is no difference between 'is subtype of' and
-  // 'is more specific than'.
+bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
+                                       const AbstractType& other,
+                                       Heap::Space space) const {
   if (other.IsType() &&
       Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
     if (other.arguments() == TypeArguments::null()) {
@@ -16890,8 +16848,8 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
     if (other_type_arg.IsTopType()) {
       return true;
     }
-    // Retry the TypeTest function after unwrapping type arg of FutureOr.
-    if (TypeTest(Class::kIsSubtypeOf, other_type_arg, space)) {
+    // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.
+    if (IsSubtypeOf(other_type_arg, space)) {
       return true;
     }
   }

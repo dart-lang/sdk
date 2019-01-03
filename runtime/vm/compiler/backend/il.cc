@@ -3059,12 +3059,11 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 }
 
 static bool MaybeNumber(CompileType* type) {
-  ASSERT(Type::Handle(Type::Number())
-             .IsMoreSpecificThan(Type::Handle(Type::Number()), Heap::kOld));
+  // Note that type 'Number' is a subtype of itself.
   return type->ToAbstractType()->IsDynamicType() ||
          type->ToAbstractType()->IsObjectType() ||
          type->ToAbstractType()->IsTypeParameter() ||
-         type->IsMoreSpecificThan(Type::Handle(Type::Number()));
+         type->IsSubtypeOf(Type::Handle(Type::Number()));
 }
 
 // Returns a replacement for a strict comparison and signals if the result has

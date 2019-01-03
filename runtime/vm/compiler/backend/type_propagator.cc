@@ -543,11 +543,10 @@ void CompileType::Union(CompileType* other) {
   }
 
   const AbstractType* other_abstract_type = other->ToAbstractType();
-  if (abstract_type->IsMoreSpecificThan(*other_abstract_type, Heap::kOld)) {
+  if (abstract_type->IsSubtypeOf(*other_abstract_type, Heap::kOld)) {
     type_ = other_abstract_type;
     return;
-  } else if (other_abstract_type->IsMoreSpecificThan(*abstract_type,
-                                                     Heap::kOld)) {
+  } else if (other_abstract_type->IsSubtypeOf(*abstract_type, Heap::kOld)) {
     return;  // Nothing to do.
   }
 
@@ -595,7 +594,7 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
   const AbstractType* new_abstract_type = new_type->ToAbstractType();
 
   CompileType* preferred_type;
-  if (old_abstract_type->IsMoreSpecificThan(*new_abstract_type, Heap::kOld)) {
+  if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
     // Prefer old type, as it is clearly more specific.
     preferred_type = old_type;
   } else {
@@ -798,16 +797,16 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsMoreSpecificThan(type, Heap::kOld);
+  *is_instance = compile_type.IsSubtypeOf(type, Heap::kOld);
   return *is_instance;
 }
 
-bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
+bool CompileType::IsSubtypeOf(const AbstractType& other) {
   if (IsNone()) {
     return false;
   }
 
-  return ToAbstractType()->IsMoreSpecificThan(other, Heap::kOld);
+  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
 }
 
 CompileType* Value::Type() {
@@ -870,8 +869,7 @@ CompileType RedefinitionInstr::ComputeType() const {
       return CompileType::CreateNullable(is_nullable,
                                          constrained_type_->ToNullableCid());
     }
-    if (value()->Type()->IsMoreSpecificThan(
-            *constrained_type_->ToAbstractType())) {
+    if (value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())) {
       return is_nullable ? *value()->Type()
                          : value()->Type()->CopyNonNullable();
     } else {
@@ -1053,7 +1051,7 @@ CompileType ConstantInstr::ComputeType() const {
 CompileType AssertAssignableInstr::ComputeType() const {
   CompileType* value_type = value()->Type();
 
-  if (value_type->IsMoreSpecificThan(dst_type())) {
+  if (value_type->IsSubtypeOf(dst_type())) {
     return *value_type;
   }
 
@@ -1215,7 +1213,7 @@ CompileType StaticCallInstr::ComputeType() const {
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
     // TODO(dartbug.com/30480): instantiate generic result_type if possible.
-    // Also, consider fixing AbstractType::IsMoreSpecificThan to handle
+    // Also, consider fixing AbstractType::IsSubtypeOf to handle
     // non-instantiated types properly.
     if (result_type.IsInstantiated()) {
       TraceStrongModeType(this, result_type);

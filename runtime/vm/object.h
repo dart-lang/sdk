@@ -485,9 +485,6 @@ class Object {
 
   static const ClassId kClassId = kObjectCid;
 
-  // Different kinds of type tests.
-  enum TypeTestKind { kIsSubtypeOf = 0, kIsMoreSpecificThan };
-
   // Different kinds of name visibility.
   enum NameVisibility {
     // Internal names are the true names of classes, fields,
@@ -1002,23 +999,23 @@ class Class : public Object {
     return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
   }
 
-  // Check the subtype relationship.
-  bool IsSubtypeOf(const TypeArguments& type_arguments,
-                   const Class& other,
-                   const TypeArguments& other_type_arguments,
-                   Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, type_arguments, other, other_type_arguments,
-                    space);
-  }
-
-  // Check the 'more specific' relationship.
-  bool IsMoreSpecificThan(const TypeArguments& type_arguments,
+  // Returns true if the type specified by cls and type_arguments is a
+  // subtype of the type specified by other class and other_type_arguments.
+  static bool IsSubtypeOf(const Class& cls,
+                          const TypeArguments& type_arguments,
                           const Class& other,
                           const TypeArguments& other_type_arguments,
-                          Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, type_arguments, other,
-                    other_type_arguments, space);
-  }
+                          Heap::Space space);
+
+  // Returns true if the type specified by cls and type_arguments is a
+  // subtype of FutureOr<T> specified by other class and other_type_arguments.
+  // Returns false if other class is not a FutureOr.
+  static bool IsSubtypeOfFutureOr(Zone* zone,
+                                  const Class& cls,
+                                  const TypeArguments& type_arguments,
+                                  const Class& other,
+                                  const TypeArguments& other_type_arguments,
+                                  Heap::Space space);
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -1437,29 +1434,6 @@ class Class : public Object {
 
   // Helper that calls 'Class::New<Instance>(kIllegalCid)'.
   static RawClass* NewInstanceClass();
-
-  // Check the subtype or 'more specific' relationship.
-  bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& type_arguments,
-                const Class& other,
-                const TypeArguments& other_type_arguments,
-                Heap::Space space) const;
-
-  // Returns true if the type specified by this class and type_arguments is a
-  // subtype of FutureOr<T> specified by other class and other_type_arguments.
-  // Returns false if other class is not a FutureOr.
-  bool FutureOrTypeTest(Zone* zone,
-                        const TypeArguments& type_arguments,
-                        const Class& other,
-                        const TypeArguments& other_type_arguments,
-                        Heap::Space space) const;
-
-  static bool TypeTestNonRecursive(const Class& cls,
-                                   TypeTestKind test_kind,
-                                   const TypeArguments& type_arguments,
-                                   const Class& other,
-                                   const TypeArguments& other_type_arguments,
-                                   Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
@@ -2623,22 +2597,7 @@ class Function : public Object {
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
-  bool IsSubtypeOf(const Function& other,
-                   Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, space);
-  }
-
-  // Returns true if the type of this function is more specific than the type of
-  // the other function.
-  bool IsMoreSpecificThan(const Function& other,
-                          Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, space);
-  }
-
-  // Check the subtype or 'more specific' relationship.
-  bool TypeTest(TypeTestKind test_kind,
-                const Function& other,
-                Heap::Space space) const;
+  bool IsSubtypeOf(const Function& other, Heap::Space space) const;
 
   bool IsDispatcherOrImplicitAccessor() const {
     switch (kind()) {
@@ -3026,14 +2985,13 @@ class Function : public Object {
       GrowableHandlePtrArray<const String>* pieces) const;
   RawString* BuildSignature(NameVisibility name_visibility) const;
 
-  // Checks the type of the formal parameter at the given position for
-  // subtyping or 'more specific' relationship between the type of this function
-  // and the type of the other function.
-  bool TestParameterType(TypeTestKind test_kind,
-                         intptr_t parameter_position,
-                         intptr_t other_parameter_position,
-                         const Function& other,
-                         Heap::Space space) const;
+  // Returns true if the type of the formal parameter at the given position in
+  // this function is contravariant with the type of the other formal parameter
+  // at the given position in the other function.
+  bool IsContravariantParameter(intptr_t parameter_position,
+                                const Function& other,
+                                intptr_t other_parameter_position,
+                                Heap::Space space) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -6073,18 +6031,7 @@ class TypeArguments : public Instance {
   bool IsSubtypeOf(const TypeArguments& other,
                    intptr_t from_index,
                    intptr_t len,
-                   Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, space);
-  }
-
-  // Check the 'more specific' relationship, considering only a subvector of
-  // length 'len' starting at 'from_index'.
-  bool IsMoreSpecificThan(const TypeArguments& other,
-                          intptr_t from_index,
-                          intptr_t len,
-                          Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, from_index, len, space);
-  }
+                   Heap::Space space) const;
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
@@ -6194,14 +6141,6 @@ class TypeArguments : public Instance {
   bool IsDynamicTypes(bool raw_instantiated,
                       intptr_t from_index,
                       intptr_t len) const;
-
-  // Check the subtype or 'more specific' relationship, considering only a
-  // subvector of length 'len' starting at 'from_index'.
-  bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& other,
-                intptr_t from_index,
-                intptr_t len,
-                Heap::Space space) const;
 
   // Return the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
@@ -6389,14 +6328,7 @@ class AbstractType : public Instance {
   bool IsDartClosureType() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, space);
-  }
-
-  // Check the 'more specific' relationship.
-  bool IsMoreSpecificThan(const AbstractType& other, Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, space);
-  }
+  bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const;
 
   // Returns true iff subtype is a subtype of supertype, false otherwise or if
   // an error occurred.
@@ -6417,16 +6349,11 @@ class AbstractType : public Instance {
   void SetTypeTestingStub(const Instructions& instr) const;
 
  private:
-  // Check the 'is subtype of' or 'is more specific than' relationship.
-  bool TypeTest(TypeTestKind test_kind,
-                const AbstractType& other,
-                Heap::Space space) const;
-
   // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
   // Returns false if other type is not a FutureOr.
-  bool FutureOrTypeTest(Zone* zone,
-                        const AbstractType& other,
-                        Heap::Space space) const;
+  bool IsSubtypeOfFutureOr(Zone* zone,
+                           const AbstractType& other,
+                           Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.

@@ -234,7 +234,7 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const Class& interface_cls,
                                      TypeArguments* interface_type_args) {
   Class& cur_cls = Class::Handle(zone, instance_cls.raw());
-  // The following code is a specialization of Class::TypeTestNonRecursive().
+  // The following code is a specialization of Class::IsSubtypeOf().
   Array& interfaces = Array::Handle(zone);
   AbstractType& interface = AbstractType::Handle(zone);
   Class& cur_interface_cls = Class::Handle(zone);

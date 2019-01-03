@@ -137,8 +137,8 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (obj_class.IsSubtypeOf(Object::null_type_arguments(), list_class,
-                              Object::null_type_arguments(), Heap::kNew)) {
+    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(), list_class,
+                           Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -153,8 +153,8 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     ASSERT(!map_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (obj_class.IsSubtypeOf(Object::null_type_arguments(), map_class,
-                              Object::null_type_arguments(), Heap::kNew)) {
+    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(), map_class,
+                           Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -1983,9 +1983,9 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
         Class::Handle(I->object_store()->future_class());
     ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    bool is_future =
-        obj_class.IsSubtypeOf(Object::null_type_arguments(), future_class,
-                              Object::null_type_arguments(), Heap::kNew);
+    bool is_future = Class::IsSubtypeOf(
+        obj_class, Object::null_type_arguments(), future_class,
+        Object::null_type_arguments(), Heap::kNew);
     return is_future;
   }
   return false;
