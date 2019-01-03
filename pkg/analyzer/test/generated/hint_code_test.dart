@@ -2843,6 +2843,19 @@ class A {
     verify([source]);
   }
 
+  test_mustBeImmutable_directMixin() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+mixin A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
   test_mustBeImmutable_extends() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2851,6 +2864,21 @@ class A {}
 class B extends A {
   int x;
 }
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_mixinApplicationBase() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  int x;
+}
+class B {}
+@immutable
+class C = A with B;
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);

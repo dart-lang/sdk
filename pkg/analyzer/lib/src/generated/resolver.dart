@@ -321,7 +321,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (element?.isImmutable == true) {
       AstNode parent = node.parent;
-      if (parent is! ClassDeclaration) {
+      if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
@@ -527,6 +527,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
+      _checkForImmutable(node);
       _checkForInvalidSealedSuperclass(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -788,6 +789,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  /// Checks whether [node] violates the rules of [immutable].
+  ///
+  /// If [node] is marked with [immutable] or inherits from a class or mixin
+  /// marked with [immutable], this function searches the fields of [node] and
+  /// its superclasses, reporting a hint if any non-final instance fields are
+  /// found.
   void _checkForImmutable(NamedCompilationUnitMember node) {
     /// Return `true` if the given class [element] is annotated with the
     /// `@immutable` annotation.
