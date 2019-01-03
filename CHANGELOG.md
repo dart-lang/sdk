@@ -1,14 +1,3 @@
-##
-
-### Tool Changes
-
-#### Analyzer
-
-* Support for `declarations-casts` has been removed and the `implicit-casts`
-  option now has the combined semantics of both options. This means that users
-  that disable `implicit-casts` might now see errors that were not previously
-  being reported.
-
 ## 2.2.0-dev.XX.0
 (Add new changes here, and they will be copied to the change section for the
   next dev version)
@@ -20,6 +9,23 @@
 ### Dart VM
 
 ### Tool Changes
+
+#### Analyzer
+
+*   Support for `declarations-casts` has been removed and the `implicit-casts`
+    option now has the combined semantics of both options. This means that
+    users that disable `implicit-casts` might now see errors that were not
+    previously being reported.
+
+*   New hints added:
+
+    *   `INVALID_LITERAL_ANNOTATION` when something other than a const
+        constructor is annotated with `@literal`.
+    *   `SUBTYPE_OF_SEALED_CLASS` when any class or mixin subclasses (extends,
+        implements, mixes in, or constrains to) a `@sealed` class, and the two
+        are declared in different packages.
+    *   `MIXIN_ON_SEALED_CLASS` when a `@sealed` class is used as a superclass
+        constraint of a mixin.
 
 #### dart2js
 
