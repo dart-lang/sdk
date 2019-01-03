@@ -261,11 +261,9 @@ import 'package:meta/meta.dart';
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:meta/meta.dart';
                     @sealed class Foo {}
-                    @sealed mixin FooMixin {}
 
                     class Bar1 extends Foo {}
                     class Bar2 implements Foo {}
-                    class Bar3 extends Object with FooMixin {}
                     class Bar4 = Bar1 with Foo;
                     mixin Bar5 on Foo {}
                     mixin Bar6 implements Foo {}
@@ -285,13 +283,11 @@ import 'package:meta/meta.dart';
                      import 'package:meta/meta.dart';
                      part 'part1.dart';
                      @sealed class Foo {}
-                     @sealed mixin FooMixin {}
                      ''');
     Source source2 = addNamedSource('/pkg1/lib/part1.dart', r'''
                      part of 'lib1.dart';
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
-                     class Bar3 extends Object with FooMixin {}
                      class Bar4 = Bar1 with Foo;
                      mixin Bar5 on Foo {}
                      mixin Bar6 implements Foo {}
@@ -310,12 +306,10 @@ import 'package:meta/meta.dart';
     Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
                      import 'package:meta/meta.dart';
                      @sealed class Foo {}
-                     @sealed mixin FooMixin {}
                      ''');
     Source source2 = addNamedSource('/pkg1/lib/src/lib2.dart', r'''
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
-                     class Bar3 extends Object with FooMixin {}
                      class Bar4 = Bar1 with Foo;
                      mixin Bar5 on Foo {}
                      mixin Bar6 implements Foo {}
@@ -334,12 +328,10 @@ import 'package:meta/meta.dart';
     Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
                      import 'package:meta/meta.dart';
                      @sealed class Foo {}
-                     @sealed mixin FooMixin {}
                      ''');
     Source source2 = addNamedSource('/pkg1/test/test.dart', r'''
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
-                     class Bar3 extends Object with FooMixin {}
                      class Bar4 = Bar1 with Foo;
                      mixin Bar5 on Foo {}
                      mixin Bar6 implements Foo {}
@@ -1802,17 +1794,6 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
-  test_invalidSealedAnnotation_onMixin() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-@sealed mixin M {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_invalidSealedAnnotation_onMixinApplication() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -1825,6 +1806,17 @@ abstract class B {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onMixin() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed mixin M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
     verify([source]);
   }
 

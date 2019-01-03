@@ -228,15 +228,15 @@ class HintCode extends ErrorCode {
 
   /**
    * This hint is generated anywhere where `@sealed` annotates something other
-   * than a class or mixin.
+   * than a class.
    *
    * Parameters:
    * 0: the name of the member
    */
   static const HintCode INVALID_SEALED_ANNOTATION = const HintCode(
       'INVALID_SEALED_ANNOTATION',
-      "The member '{0}' is annotated with @sealed but only classes and mixins "
-      "can be annotated with it.",
+      "The member '{0}' is annotated with '@sealed' but only classes can be "
+      "annotated with it.",
       correction: "Remove @sealed.");
 
   /**

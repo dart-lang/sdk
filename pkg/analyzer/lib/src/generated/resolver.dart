@@ -327,9 +327,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (node.elementAnnotation?.isSealed == true &&
-        !(parent is ClassDeclaration ||
-            parent is ClassTypeAlias ||
-            parent is MixinDeclaration)) {
+        !(parent is ClassDeclaration || parent is ClassTypeAlias)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
     }
