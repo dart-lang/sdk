@@ -1415,7 +1415,6 @@ MissingImplementationNotAbstract:
      - inherit an implementation from a superclass or mixin,
      - mark the class as abstract, or
      - provide a 'noSuchMethod' implementation.
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   script:
     - "class C {foo();}"

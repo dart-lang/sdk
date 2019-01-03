@@ -30,8 +30,6 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
 import '../../api_prototype/file_system.dart';
 
 import '../../base/instrumentation.dart'
@@ -78,6 +76,7 @@ import '../kernel/kernel_shadow_ast.dart'
 import '../kernel/kernel_builder.dart'
     show
         ClassBuilder,
+        ClassHierarchyBuilder,
         Declaration,
         EnumBuilder,
         KernelFieldBuilder,
@@ -867,6 +866,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
+    // TODO(ahe): Move this to [ClassHierarchyBuilder].
     if (target.legacyMode) return;
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
@@ -879,6 +879,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
+    // TODO(ahe): Move this to [ClassHierarchyBuilder].
     if (target.legacyMode) return;
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
@@ -890,6 +891,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
+    // TODO(ahe): Move this to [ClassHierarchyBuilder].
     if (!target.backendTarget.enableNoSuchMethodForwarders) return;
 
     List<Class> changedClasses = new List<Class>();
@@ -920,24 +922,25 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
+  void buildClassHierarchy(
+      List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
+    if (!target.legacyMode) return;
+    ticker.logMs("Building class hierarchy");
+    ClassHierarchyBuilder classHierarchyBuilder =
+        new ClassHierarchyBuilder(objectClass);
+    for (int i = 0; i < sourceClasses.length; i++) {
+      classHierarchyBuilder.add(sourceClasses[i]);
+    }
+    ticker.logMs("Built class hierarchy");
+  }
+
   void createTypeInferenceEngine() {
     if (target.legacyMode) return;
     typeInferenceEngine = new ShadowTypeInferenceEngine(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    if (target.legacyMode) {
-      InterfaceResolver interfaceResolver = new InterfaceResolver(
-          null,
-          new TypeEnvironment(coreTypes, hierarchy,
-              legacyMode: target.legacyMode),
-          null,
-          target.legacyMode);
-      for (int i = 0; i < sourceClasses.length; i++) {
-        sourceClasses[i].cls.setupApiMembers(interfaceResolver);
-      }
-      return;
-    }
+    if (target.legacyMode) return;
 
     /// The first phase of top level initializer inference, which consists of
     /// creating kernel objects for all fields and top level variables that

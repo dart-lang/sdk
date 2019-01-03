@@ -248,6 +248,7 @@ class KernelTarget extends TargetImplementation {
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
+      loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);

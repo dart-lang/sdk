@@ -1,3 +1,18 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/abstract_members.dart:19:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property3=
+//  - A.property1=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class MyClass extends B {
+//       ^^^^^^^
+
 library;
 import self as self;
 import "dart:core" as core;

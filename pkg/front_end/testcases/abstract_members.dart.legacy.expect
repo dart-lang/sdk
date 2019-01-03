@@ -1,3 +1,42 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/abstract_members.dart:19:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property3=
+//  - A.property1=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class MyClass extends B {
+//       ^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:7:3: Context: 'A.abstractMethod' is defined here.
+//   abstractMethod();
+//   ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:10:12: Context: 'A.property3=' is defined here.
+//   void set property3(_);
+//            ^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:8:12: Context: 'A.property1=' is defined here.
+//   void set property1(_);
+//            ^^^^^^^^^
+
+// Unhandled errors:
+//
+// pkg/front_end/testcases/abstract_members.dart:19:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+//  - A.abstractMethod
+//  - A.property3=
+//  - A.property1=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class MyClass extends B {
+//       ^^^^^^^
+
 library;
 import self as self;
 import "dart:core" as core;

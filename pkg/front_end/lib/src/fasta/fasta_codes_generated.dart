@@ -6043,8 +6043,7 @@ const Code<Message Function(String name, List<String> _names)>
     const Code<Message Function(String name, List<String> _names)>(
         "MissingImplementationNotAbstract",
         templateMissingImplementationNotAbstract,
-        analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract(
