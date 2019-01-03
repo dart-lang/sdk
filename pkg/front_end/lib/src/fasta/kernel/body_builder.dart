@@ -1143,7 +1143,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
     push(forest.expressionStatement(popForEffect(), token));
   }

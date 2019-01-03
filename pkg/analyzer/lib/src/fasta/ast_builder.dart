@@ -340,7 +340,7 @@ class AstBuilder extends StackListener {
 
   void doPropertyGet() {}
 
-  void endExpressionStatement(Token semicolon) {
+  void handleExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
     Expression expression = pop();

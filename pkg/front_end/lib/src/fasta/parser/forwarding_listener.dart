@@ -136,11 +136,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    listener?.beginExpressionStatement(token);
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -546,8 +541,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
-    listener?.endExpressionStatement(token);
+  void handleExpressionStatement(Token token) {
+    listener?.handleExpressionStatement(token);
   }
 
   @override

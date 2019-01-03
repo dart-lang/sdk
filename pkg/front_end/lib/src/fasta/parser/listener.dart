@@ -251,8 +251,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Export");
   }
 
-  void beginExpressionStatement(Token token) {}
-
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.
@@ -260,7 +258,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExtraneousExpression");
   }
 
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     logEvent("ExpressionStatement");
   }
 

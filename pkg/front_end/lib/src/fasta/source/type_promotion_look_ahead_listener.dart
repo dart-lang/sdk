@@ -478,7 +478,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     debugEvent("ExpressionStatement", token);
     state.pop();
   }

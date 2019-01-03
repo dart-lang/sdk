@@ -3672,10 +3672,9 @@ class Parser {
     // TODO(brianwilkerson): If the next token is not the start of a valid
     // expression, then this method shouldn't report that we have an expression
     // statement.
-    listener.beginExpressionStatement(token.next);
     token = parseExpression(token);
     token = ensureSemicolon(token);
-    listener.endExpressionStatement(token);
+    listener.handleExpressionStatement(token);
     return token;
   }
 

@@ -201,12 +201,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    super.beginExpressionStatement(token);
-    begin('ExpressionStatement');
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     super.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -679,12 +673,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endExport(Token exportKeyword, Token semicolon) {
     end('Export');
     super.endExport(exportKeyword, semicolon);
-  }
-
-  @override
-  void endExpressionStatement(Token token) {
-    end('ExpressionStatement');
-    super.endExpressionStatement(token);
   }
 
   @override
