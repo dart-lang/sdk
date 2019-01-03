@@ -441,7 +441,7 @@ Future _processLoadRequest(request) async {
   final String inputFileUri = request[2];
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
-  final bool incremental = request[4];
+  bool incremental = request[4];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
@@ -449,6 +449,14 @@ Future _processLoadRequest(request) async {
   final String packageConfig = request[10];
   final String multirootFilepaths = request[11];
   final String multirootScheme = request[12];
+
+  if (bytecode) {
+    // Bytecode generator is hooked into kernel service after kernel component
+    // is produced. In case of incremental compilation resulting component
+    // doesn't have core libraries which are needed for bytecode generation.
+    // TODO(alexmarkov): Support bytecode generation in incremental compiler.
+    incremental = false;
+  }
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
