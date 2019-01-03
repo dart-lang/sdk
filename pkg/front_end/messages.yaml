@@ -1582,6 +1582,11 @@ FastaUsageLong:
         internal stack trace from the compiler. Multiple kinds can be separated by
         commas, for example, --fatal=errors,warnings.
 
+      --enable-experiment=<flag>
+      --disable-experiment=<flag>
+        Enable or disable an experimental flag, used to guard features currently
+        in development. Multiple experiments can be separated by commas.
+
 FastaCLIArgumentRequired:
   template: "Expected value after '#name'."
 

@@ -24,6 +24,8 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
@@ -292,6 +294,11 @@ class ProcessedOptions {
   Target _target;
   Target get target => _target ??=
       _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
+
+  bool isExperimentEnabled(ExperimentalFlag flag) {
+    // TODO(askesc): Determine default flag value from specification file.
+    return _raw.experimentalFlags[flag] ?? false;
+  }
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".

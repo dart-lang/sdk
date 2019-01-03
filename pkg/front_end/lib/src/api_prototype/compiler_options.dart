@@ -8,6 +8,8 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
+import 'experimental_flags.dart' show ExperimentalFlag;
+
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
@@ -119,6 +121,11 @@ class CompilerOptions {
   // TODO(sigmund): provide also a flag to load this data from a file (like
   // libraries.json)
   Map<String, List<Uri>> targetPatches = {};
+
+  /// Enable or disable experimental features. Features mapping to `true` are
+  /// explicitly enabled. Features mapping to `false` are explicitly disabled.
+  /// Features not mentioned in the map will have their default value.
+  Map<ExperimentalFlag, bool> experimentalFlags = {};
 
   /// The target platform that will consume the compiled code.
   ///

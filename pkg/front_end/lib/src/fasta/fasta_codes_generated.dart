@@ -3320,7 +3320,12 @@ const MessageCode messageFastaUsageLong =
     Makes messages of the given kinds fatal, that is, immediately stop the
     compiler with a non-zero exit-code. In --verbose mode, also display an
     internal stack trace from the compiler. Multiple kinds can be separated by
-    commas, for example, --fatal=errors,warnings.""");
+    commas, for example, --fatal=errors,warnings.
+
+  --enable-experiment=<flag>
+  --disable-experiment=<flag>
+    Enable or disable an experimental flag, used to guard features currently
+    in development. Multiple experiments can be separated by commas.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFastaUsageShort = messageFastaUsageShort;

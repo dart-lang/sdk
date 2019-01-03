@@ -18,6 +18,8 @@ import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
 
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
   final UriTranslator uriTranslator;
@@ -33,8 +35,12 @@ abstract class TargetImplementation extends Target {
   Declaration cachedNativeAnnotation;
   Declaration cachedNativeExtensionAnnotation;
 
+  bool enableSetLiterals;
+
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : super(ticker);
+      : enableSetLiterals = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.setLiterals),
+        super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
