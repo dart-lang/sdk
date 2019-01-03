@@ -148,6 +148,12 @@ abstract class Target {
   /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
   bool get errorOnUnexactWebIntLiterals => false;
 
+  /// Whether set literals are natively supported by this target. If set
+  /// literals are not supported by the target, they will be desugared into
+  /// explicit `Set` creation (for non-const set literals) or wrapped map
+  /// literals (for const set literals).
+  bool get supportsSetLiterals => false;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
