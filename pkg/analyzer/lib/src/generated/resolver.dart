@@ -834,41 +834,40 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     /// Return `true` if the given class [element] defines a non-final instance
     /// field.
-    bool hasNonFinalInstanceField(ClassElement element) {
-      for (FieldElement field in element.fields) {
-        if (!field.isSynthetic && !field.isFinal && !field.isStatic) {
-          return true;
-        }
-      }
-      return false;
+    Iterable<String> nonFinalInstanceFields(ClassElement element) {
+      return element.fields
+          .where((FieldElement field) =>
+              !field.isSynthetic && !field.isFinal && !field.isStatic)
+          .map((FieldElement field) => '${element.name}.${field.name}');
     }
 
     /// Return `true` if the given class [element] defines or inherits a
     /// non-final field.
-    bool hasOrInheritsNonFinalInstanceField(
+    Iterable<String> definedOrInheritedNonFinalInstanceFields(
         ClassElement element, HashSet<ClassElement> visited) {
+      Iterable<String> nonFinalFields = [];
       if (visited.add(element)) {
-        if (hasNonFinalInstanceField(element)) {
-          return true;
-        }
-        for (InterfaceType mixin in element.mixins) {
-          if (hasNonFinalInstanceField(mixin.element)) {
-            return true;
-          }
-        }
+        nonFinalFields = nonFinalInstanceFields(element);
+        nonFinalFields = nonFinalFields.followedBy(element.mixins.expand(
+            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element)));
         if (element.supertype != null) {
-          return hasOrInheritsNonFinalInstanceField(
-              element.supertype.element, visited);
+          nonFinalFields = nonFinalFields.followedBy(
+              definedOrInheritedNonFinalInstanceFields(
+                  element.supertype.element, visited));
         }
       }
-      return false;
+      return nonFinalFields;
     }
 
     ClassElement element = node.declaredElement;
-    if (isOrInheritsImmutable(element, new HashSet<ClassElement>()) &&
-        hasOrInheritsNonFinalInstanceField(
-            element, new HashSet<ClassElement>())) {
-      _errorReporter.reportErrorForNode(HintCode.MUST_BE_IMMUTABLE, node.name);
+    if (isOrInheritsImmutable(element, new HashSet<ClassElement>())) {
+      Iterable<String> nonFinalFields =
+          definedOrInheritedNonFinalInstanceFields(
+              element, new HashSet<ClassElement>());
+      if (nonFinalFields.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+            HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);
+      }
     }
   }
 
