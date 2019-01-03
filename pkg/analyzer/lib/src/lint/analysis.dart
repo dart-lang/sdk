@@ -254,7 +254,18 @@ class LintDriver {
 /// [errorSink].
 class StdLogger extends Logger {
   @override
-  void logError(String message, [exception]) => errorSink.writeln(message);
+  void logError(String message, [exception]) {
+    errorSink.writeln(message);
+    if (exception != null) {
+      errorSink.writeln(exception);
+    }
+  }
+
   @override
-  void logInformation(String message, [exception]) => outSink.writeln(message);
+  void logInformation(String message, [exception]) {
+    outSink.writeln(message);
+    if (exception != null) {
+      outSink.writeln(exception);
+    }
+  }
 }
