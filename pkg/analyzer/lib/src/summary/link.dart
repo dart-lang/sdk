@@ -2512,7 +2512,7 @@ class ExprTypeComputer {
         expression = AstCloner().cloneNode(expressionForInference);
         expression.accept(LocalElementBuilder(ElementHolder(), null));
       }
-    } else if (_builder.uc != null && _builder.uc.operations.isNotEmpty) {
+    } else if (_builder.hasNonEmptyExpr) {
       expression = _builder.build();
     }
     if (expression == null) {

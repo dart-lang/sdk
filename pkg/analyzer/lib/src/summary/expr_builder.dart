@@ -23,7 +23,7 @@ class ExprBuilder {
 
   final UnitResynthesizer resynthesizer;
   final ElementImpl context;
-  final UnlinkedExpr uc;
+  final UnlinkedExpr _uc;
   final bool requireValidConst;
 
   int intPtr = 0;
@@ -37,18 +37,20 @@ class ExprBuilder {
 
   final Map<String, ParameterElement> parametersInScope;
 
-  ExprBuilder(this.resynthesizer, this.context, this.uc,
+  ExprBuilder(this.resynthesizer, this.context, this._uc,
       {this.requireValidConst: true,
       this.localFunctions,
       Map<String, ParameterElement> parametersInScope})
       : this.parametersInScope =
             parametersInScope ?? _parametersInScope(context);
 
+  bool get hasNonEmptyExpr => _uc != null && _uc.operations.isNotEmpty;
+
   Expression build() {
-    if (requireValidConst && !uc.isValidConst) {
+    if (requireValidConst && !_uc.isValidConst) {
       return null;
     }
-    for (UnlinkedExprOperation operation in uc.operations) {
+    for (UnlinkedExprOperation operation in _uc.operations) {
       switch (operation) {
         case UnlinkedExprOperation.pushNull:
           _push(AstTestFactory.nullLiteral());
@@ -62,33 +64,33 @@ class ExprBuilder {
           break;
         // literals
         case UnlinkedExprOperation.pushInt:
-          int value = uc.ints[intPtr++];
+          int value = _uc.ints[intPtr++];
           _push(AstTestFactory.integer(value));
           break;
         case UnlinkedExprOperation.pushLongInt:
           int value = 0;
-          int count = uc.ints[intPtr++];
+          int count = _uc.ints[intPtr++];
           for (int i = 0; i < count; i++) {
-            int next = uc.ints[intPtr++];
+            int next = _uc.ints[intPtr++];
             value = value << 32 | next;
           }
           _push(AstTestFactory.integer(value));
           break;
         case UnlinkedExprOperation.pushDouble:
-          double value = uc.doubles[doublePtr++];
+          double value = _uc.doubles[doublePtr++];
           _push(AstTestFactory.doubleLiteral(value));
           break;
         case UnlinkedExprOperation.makeSymbol:
-          String component = uc.strings[stringPtr++];
+          String component = _uc.strings[stringPtr++];
           _push(AstTestFactory.symbolLiteral([component]));
           break;
         // String
         case UnlinkedExprOperation.pushString:
-          String value = uc.strings[stringPtr++];
+          String value = _uc.strings[stringPtr++];
           _push(AstTestFactory.string2(value));
           break;
         case UnlinkedExprOperation.concatenate:
-          int count = uc.ints[intPtr++];
+          int count = _uc.ints[intPtr++];
           List<InterpolationElement> elements = <InterpolationElement>[];
           for (int i = 0; i < count; i++) {
             Expression expr = _pop();
@@ -180,7 +182,7 @@ class ExprBuilder {
           List<Expression> arguments = _buildArguments();
           TypeArgumentList typeArguments = _buildTypeArguments();
           Expression target = _pop();
-          String name = uc.strings[stringPtr++];
+          String name = _uc.strings[stringPtr++];
           _push(AstTestFactory.methodInvocation3(
               target, name, typeArguments, arguments));
           break;
@@ -219,7 +221,7 @@ class ExprBuilder {
           _pushInstanceCreation();
           break;
         case UnlinkedExprOperation.pushParameter:
-          String name = uc.strings[stringPtr++];
+          String name = _uc.strings[stringPtr++];
           SimpleIdentifier identifier = AstTestFactory.identifier3(name);
           identifier.staticElement = parametersInScope[name];
           _push(identifier);
@@ -254,7 +256,7 @@ class ExprBuilder {
           break;
         case UnlinkedExprOperation.assignToProperty:
           Expression target = _pop();
-          String name = uc.strings[stringPtr++];
+          String name = _uc.strings[stringPtr++];
           SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
           PropertyAccess propertyAccess =
               AstTestFactory.propertyAccess(target, propertyNode);
@@ -294,13 +296,13 @@ class ExprBuilder {
   List<Expression> _buildArguments() {
     List<Expression> arguments;
     {
-      int numNamedArgs = uc.ints[intPtr++];
-      int numPositionalArgs = uc.ints[intPtr++];
+      int numNamedArgs = _uc.ints[intPtr++];
+      int numPositionalArgs = _uc.ints[intPtr++];
       int numArgs = numNamedArgs + numPositionalArgs;
       arguments = _removeTopItems(numArgs);
       // add names to the named arguments
       for (int i = 0; i < numNamedArgs; i++) {
-        String name = uc.strings[stringPtr++];
+        String name = _uc.strings[stringPtr++];
         int index = numPositionalArgs + i;
         arguments[index] =
             AstTestFactory.namedExpression2(name, arguments[index]);
@@ -330,7 +332,7 @@ class ExprBuilder {
       constructorName.name?.staticElement = constructorElement;
 
       var creation = astFactory.instanceCreationExpression(
-          uc.isValidConst
+          _uc.isValidConst
               ? TokenFactory.tokenFromKeyword(Keyword.CONST)
               : TokenFactory.tokenFromKeyword(Keyword.NEW),
           constructorName,
@@ -442,7 +444,7 @@ class ExprBuilder {
   }
 
   TypeArgumentList _buildTypeArguments() {
-    int numTypeArguments = uc.ints[intPtr++];
+    int numTypeArguments = _uc.ints[intPtr++];
     if (numTypeArguments == 0) {
       return null;
     }
@@ -483,7 +485,7 @@ class ExprBuilder {
       return AstTestFactory.postfixExpression(lhs, tokenType);
     }
 
-    switch (uc.assignmentOperators[assignmentOperatorPtr++]) {
+    switch (_uc.assignmentOperators[assignmentOperatorPtr++]) {
       case UnlinkedExprAssignOperator.assign:
         return binary(TokenType.EQ);
       case UnlinkedExprAssignOperator.ifNull:
@@ -524,7 +526,7 @@ class ExprBuilder {
   }
 
   Expression _createReference() {
-    EntityRef ref = uc.references[refPtr++];
+    EntityRef ref = _uc.references[refPtr++];
     if (ref.paramReference != 0) {
       // This is a reference to a type parameter.  For type inference purposes
       // we don't actually need to know which type parameter it's a reference
@@ -571,7 +573,7 @@ class ExprBuilder {
    * corresponding to this type.
    */
   TypeAnnotation _newTypeName() {
-    EntityRef typeRef = uc.references[refPtr++];
+    EntityRef typeRef = _uc.references[refPtr++];
     DartType type = resynthesizer.buildType(context, typeRef);
     return _buildTypeAst(type);
   }
@@ -590,7 +592,7 @@ class ExprBuilder {
 
   void _pushExtractProperty() {
     Expression target = _pop();
-    String name = uc.strings[stringPtr++];
+    String name = _uc.strings[stringPtr++];
     SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
     // Only String.length property access can be potentially resolved.
     if (name == 'length') {
@@ -600,7 +602,7 @@ class ExprBuilder {
   }
 
   void _pushInstanceCreation() {
-    EntityRef ref = uc.references[refPtr++];
+    EntityRef ref = _uc.references[refPtr++];
     ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     // prepare ConstructorElement
     TypeName typeNode;
@@ -676,7 +678,7 @@ class ExprBuilder {
 
   void _pushInvokeMethodRef() {
     List<Expression> arguments = _buildArguments();
-    EntityRef ref = uc.references[refPtr++];
+    EntityRef ref = _uc.references[refPtr++];
     ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     TypeArgumentList typeArguments = _buildTypeArguments();
@@ -710,7 +712,7 @@ class ExprBuilder {
   }
 
   void _pushList(TypeArgumentList typeArguments) {
-    int count = uc.ints[intPtr++];
+    int count = _uc.ints[intPtr++];
     List<Expression> elements = <Expression>[];
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
@@ -724,10 +726,10 @@ class ExprBuilder {
   }
 
   void _pushLocalFunctionReference() {
-    int popCount = uc.ints[intPtr++];
+    int popCount = _uc.ints[intPtr++];
     // Note: nonzero popCount is no longer used.
     assert(popCount == 0);
-    int functionIndex = uc.ints[intPtr++];
+    int functionIndex = _uc.ints[intPtr++];
     var localFunction = localFunctions[functionIndex];
     var parametersInScope =
         new Map<String, ParameterElement>.from(this.parametersInScope);
@@ -771,7 +773,7 @@ class ExprBuilder {
   }
 
   void _pushMap(TypeArgumentList typeArguments) {
-    int count = uc.ints[intPtr++];
+    int count = _uc.ints[intPtr++];
     List<MapLiteralEntry> entries = <MapLiteralEntry>[];
     for (int i = 0; i < count; i++) {
       Expression value = _pop();
@@ -800,7 +802,7 @@ class ExprBuilder {
   }
 
   void _pushSet(TypeArgumentList typeArguments) {
-    int count = uc.ints[intPtr++];
+    int count = _uc.ints[intPtr++];
     List<Expression> elements = <Expression>[];
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
