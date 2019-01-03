@@ -1206,7 +1206,7 @@ void Assembler::SetupDartSP() {
 #if defined(TARGET_OS_FUCHSIA)
   // Make any future signal handlers fail fast. Verifies our assumption in
   // EnterFrame.
-  LoadImmediate(CSP, 0);
+  orri(CSP, ZR, Immediate(16));
 #endif
 }
 

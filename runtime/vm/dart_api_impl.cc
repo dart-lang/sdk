@@ -2342,7 +2342,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  DARTSCOPE(thread);
   ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
