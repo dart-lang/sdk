@@ -1283,7 +1283,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // TODO(sra): Handle adding optional arguments default values.
           assert(!node.isInterceptedCall);
           return new HInvokeStatic(target, node.inputs.skip(1).toList(),
-              node.instructionType, node.typeArguments);
+              node.instructionType, node.typeArguments)
+            ..sourceInformation = node.sourceInformation;
         }
       }
     }

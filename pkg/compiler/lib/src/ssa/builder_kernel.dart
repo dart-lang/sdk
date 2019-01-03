@@ -4258,6 +4258,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else if (selector.isSetter) {
       push(new HInvokeDynamicSetter(selector, mask, null, inputs, isIntercepted,
           type, sourceInformation));
+    } else if (selector.isClosureCall) {
+      assert(!isIntercepted);
+      push(new HInvokeClosure(selector, inputs, type, typeArguments)
+        ..sourceInformation = sourceInformation);
     } else {
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, typeArguments, sourceInformation,
