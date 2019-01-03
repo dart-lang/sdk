@@ -1671,6 +1671,10 @@ table UnlinkedExpr {
   /// actual entity being referred to may be something other than a type.
   references:[EntityRef] (id: 2);
 
+  /// String representation of the expression in a form suitable to be tokenized
+  /// and parsed.
+  sourceRepresentation:string (id: 7);
+
   /// Sequence of strings consumed by the operations `pushString` and
   /// `invokeConstructor`.
   strings:[string] (id: 3);

@@ -355,7 +355,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       } on StateError {
         return new UnlinkedExprBuilder()..isValidConst = false;
       }
-      return serializer.toBuilder();
+      return serializer.toBuilder(a.atSign.next, a.endToken);
     }).toList();
   }
 
@@ -486,7 +486,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     _ConstExprSerializer serializer = new _ConstExprSerializer(
         forConst, this, localClosureIndexMap, parameterNames);
     serializer.serialize(expression);
-    return serializer.toBuilder();
+    return serializer.toBuilder(expression.beginToken, expression.endToken);
   }
 
   /// Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.

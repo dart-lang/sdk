@@ -1531,6 +1531,11 @@ abstract class UnlinkedExpr extends base.SummaryClass {
   @Id(2)
   List<EntityRef> get references;
 
+  /// String representation of the expression in a form suitable to be tokenized
+  /// and parsed.
+  @Id(7)
+  String get sourceRepresentation;
+
   /// Sequence of strings consumed by the operations `pushString` and
   /// `invokeConstructor`.
   @Id(3)

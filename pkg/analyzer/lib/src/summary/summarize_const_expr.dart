@@ -58,6 +58,34 @@ UnlinkedConstructorInitializerBuilder serializeConstructorInitializer(
   throw new StateError('Unexpected initializer type ${node.runtimeType}');
 }
 
+/// Converts all the tokens between [startToken] and [endToken] (inclusive) into
+/// a string which, when scanned, will yield the same tokens back.
+String tokensToString(Token startToken, Token endToken) {
+  var buffer = StringBuffer();
+  var token = startToken;
+  var spaceNeeded = false;
+  while (true) {
+    if (token.type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+      buffer.write(token.lexeme);
+      buffer.write(tokensToString(token.next, token.endGroup));
+      spaceNeeded = false;
+      token = token.endGroup;
+    } else if (token.type == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+      buffer.write(token.lexeme);
+      buffer.write(token.next.lexeme);
+      spaceNeeded = false;
+      token = token.next;
+    } else {
+      if (spaceNeeded) buffer.write(' ');
+      buffer.write(token.lexeme);
+      spaceNeeded = true;
+    }
+    if (identical(token, endToken)) break;
+    token = token.next;
+  }
+  return buffer.toString();
+}
+
 /// Instances of this class keep track of intermediate state during
 /// serialization of a single constant [Expression].
 abstract class AbstractConstExprSerializer {
@@ -175,7 +203,7 @@ abstract class AbstractConstExprSerializer {
 
   /// Return the [UnlinkedExprBuilder] that corresponds to the state of this
   /// serializer.
-  UnlinkedExprBuilder toBuilder() {
+  UnlinkedExprBuilder toBuilder(Token startToken, Token endToken) {
     return new UnlinkedExprBuilder(
         isValidConst: isValidConst,
         operations: operations,
@@ -183,7 +211,8 @@ abstract class AbstractConstExprSerializer {
         ints: ints,
         doubles: doubles,
         strings: strings,
-        references: references);
+        references: references,
+        sourceRepresentation: tokensToString(startToken, endToken));
   }
 
   /// Return `true` if the given [expr] is a sequence of identifiers.

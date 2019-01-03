@@ -8291,6 +8291,7 @@ class UnlinkedExprBuilder extends Object
   bool _isValidConst;
   List<idl.UnlinkedExprOperation> _operations;
   List<EntityRefBuilder> _references;
+  String _sourceRepresentation;
   List<String> _strings;
 
   @override
@@ -8352,6 +8353,15 @@ class UnlinkedExprBuilder extends Object
   }
 
   @override
+  String get sourceRepresentation => _sourceRepresentation ??= '';
+
+  /// String representation of the expression in a form suitable to be tokenized
+  /// and parsed.
+  void set sourceRepresentation(String value) {
+    this._sourceRepresentation = value;
+  }
+
+  @override
   List<String> get strings => _strings ??= <String>[];
 
   /// Sequence of strings consumed by the operations `pushString` and
@@ -8367,6 +8377,7 @@ class UnlinkedExprBuilder extends Object
       bool isValidConst,
       List<idl.UnlinkedExprOperation> operations,
       List<EntityRefBuilder> references,
+      String sourceRepresentation,
       List<String> strings})
       : _assignmentOperators = assignmentOperators,
         _doubles = doubles,
@@ -8374,6 +8385,7 @@ class UnlinkedExprBuilder extends Object
         _isValidConst = isValidConst,
         _operations = operations,
         _references = references,
+        _sourceRepresentation = sourceRepresentation,
         _strings = strings;
 
   /**
@@ -8436,6 +8448,7 @@ class UnlinkedExprBuilder extends Object
         signature.addInt(x.index);
       }
     }
+    signature.addString(this._sourceRepresentation ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -8444,6 +8457,7 @@ class UnlinkedExprBuilder extends Object
     fb.Offset offset_ints;
     fb.Offset offset_operations;
     fb.Offset offset_references;
+    fb.Offset offset_sourceRepresentation;
     fb.Offset offset_strings;
     if (!(_assignmentOperators == null || _assignmentOperators.isEmpty)) {
       offset_assignmentOperators = fbBuilder
@@ -8462,6 +8476,10 @@ class UnlinkedExprBuilder extends Object
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder
           .writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_sourceRepresentation != null) {
+      offset_sourceRepresentation =
+          fbBuilder.writeString(_sourceRepresentation);
     }
     if (!(_strings == null || _strings.isEmpty)) {
       offset_strings = fbBuilder
@@ -8485,6 +8503,9 @@ class UnlinkedExprBuilder extends Object
     }
     if (offset_references != null) {
       fbBuilder.addOffset(2, offset_references);
+    }
+    if (offset_sourceRepresentation != null) {
+      fbBuilder.addOffset(7, offset_sourceRepresentation);
     }
     if (offset_strings != null) {
       fbBuilder.addOffset(3, offset_strings);
@@ -8515,6 +8536,7 @@ class _UnlinkedExprImpl extends Object
   bool _isValidConst;
   List<idl.UnlinkedExprOperation> _operations;
   List<idl.EntityRef> _references;
+  String _sourceRepresentation;
   List<String> _strings;
 
   @override
@@ -8563,6 +8585,13 @@ class _UnlinkedExprImpl extends Object
   }
 
   @override
+  String get sourceRepresentation {
+    _sourceRepresentation ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 7, '');
+    return _sourceRepresentation;
+  }
+
+  @override
   List<String> get strings {
     _strings ??= const fb.ListReader<String>(const fb.StringReader())
         .vTableGet(_bc, _bcOffset, 3, const <String>[]);
@@ -8590,6 +8619,8 @@ abstract class _UnlinkedExprMixin implements idl.UnlinkedExpr {
     if (references.isNotEmpty)
       _result["references"] =
           references.map((_value) => _value.toJson()).toList();
+    if (sourceRepresentation != '')
+      _result["sourceRepresentation"] = sourceRepresentation;
     if (strings.isNotEmpty) _result["strings"] = strings;
     return _result;
   }
@@ -8602,6 +8633,7 @@ abstract class _UnlinkedExprMixin implements idl.UnlinkedExpr {
         "isValidConst": isValidConst,
         "operations": operations,
         "references": references,
+        "sourceRepresentation": sourceRepresentation,
         "strings": strings,
       };
 
