@@ -1443,6 +1443,47 @@ $code
     return unit;
   }
 
+  void test_assignment_complex() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
+  }
+
+  void test_assignment_simple() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+  }
+
+  void test_conditional() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
+  }
+
+  void test_conditional_complex() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
+  }
+
+  void test_conditional_simple() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
+  }
+
+  void test_for() {
+    parseNNBDCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
+  }
+
+  void test_for_conditional() {
+    parseNNBDCompilationUnit(
+        'main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
+  }
+
+  void test_for_nullable() {
+    parseNNBDCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
+  }
+
+  void test_foreach() {
+    parseNNBDCompilationUnit('main() { for(int x in [7]) { } }');
+  }
+
+  void test_foreach_nullable() {
+    parseNNBDCompilationUnit('main() { for(int? x in [7, null]) { } }');
+  }
+
   void test_is_nullable() {
     CompilationUnit unit =
         parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
@@ -1474,10 +1515,6 @@ $code
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
-  }
-
-  void test_simple_assignment() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
 
   void test_pragma_missing() {

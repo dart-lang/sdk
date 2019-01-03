@@ -44,13 +44,6 @@ abstract class TypeInfo {
   /// in valid code or during recovery.
   Token ensureTypeOrVoid(Token token, Parser parser);
 
-  /// Return `true` if the tokens comprising the type represented by the
-  /// receiver are the start of a conditional expression.
-  /// For example, `A?` or `A.b?` could be the start of a conditional expression
-  /// and require arbitrary look ahead to determine if it is,
-  /// while `A<T>?` cannot be the start of a conditional expression.
-  bool isConditionalExpressionStart(Token token, Parser parser);
-
   /// Call this function to parse an optional type (not void) after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type. This may modify the token stream

@@ -5051,9 +5051,6 @@ class Parser {
       TypeInfo typeInfo,
       bool onlyParseVariableDeclarationStart = false]) {
     typeInfo ??= computeType(beforeType, false);
-    if (typeInfo.isConditionalExpressionStart(beforeType, this)) {
-      typeInfo = noType;
-    }
 
     Token token = typeInfo.skipType(beforeType);
     Token next = token.next;
@@ -5073,8 +5070,46 @@ class Parser {
             computeTypeParamOrArg(next).parseVariables(next, this);
         listener.beginLocalFunctionDeclaration(start.next);
         token = typeInfo.parseType(beforeType, this);
-        next = token.next;
         return parseNamedFunctionRest(token, start.next, beforeFormals, false);
+      }
+    }
+
+    if (beforeType == start &&
+        typeInfo.isNullable &&
+        typeInfo.couldBeExpression) {
+      assert(optional('?', token));
+      assert(next.isIdentifier);
+      Token afterIdentifier = next.next;
+      //
+      // found <typeref> `?` <identifier>
+      // with no annotations or modifiers preceeding it
+      //
+      if (optional('=', afterIdentifier)) {
+        //
+        // look past the next expression
+        // to determine if this is part of a conditional expression
+        //
+        final originalListener = listener;
+        listener = new ForwardingListener();
+        // TODO(danrubel): consider using TokenStreamGhostWriter here
+        Token afterExpression =
+            parseExpressionWithoutCascade(afterIdentifier).next;
+        listener = originalListener;
+
+        if (optional(':', afterExpression)) {
+          // Looks like part of a conditional expression.
+          // Drop the type information and reset the last consumed token.
+          typeInfo = noType;
+          token = start;
+          next = token.next;
+        }
+      } else if (!afterIdentifier.isKeyword &&
+          !isOneOfOrEof(afterIdentifier, const [';', ',', ')'])) {
+        // Looks like part of a conditional expression.
+        // Drop the type information and reset the last consumed token.
+        typeInfo = noType;
+        token = start;
+        next = token.next;
       }
     }
 
@@ -5087,6 +5122,7 @@ class Parser {
         return parseExpressionStatement(start);
       }
     }
+
     if (next.type.isBuiltIn &&
         beforeType == start &&
         typeInfo.couldBeExpression) {

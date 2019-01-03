@@ -26,7 +26,6 @@ import 'type_info.dart';
 
 import 'util.dart'
     show
-        isOneOfOrEof,
         optional,
         skipMetadata,
         splitGtEq,
@@ -114,9 +113,6 @@ class NoType implements TypeInfo {
       ensureTypeNotVoid(token, parser);
 
   @override
-  bool isConditionalExpressionStart(Token token, Parser parser) => false;
-
-  @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
@@ -152,9 +148,6 @@ class PrefixedType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
-
-  @override
-  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -198,10 +191,6 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
   bool get isNullable => true;
 
   @override
-  bool isConditionalExpressionStart(Token token, Parser parser) =>
-      isConditionalThenExpression(skipType(token), parser);
-
-  @override
   Token parseTypeRest(Token start, Token token, Parser parser) {
     token = token.next;
     assert(optional('?', token));
@@ -241,9 +230,6 @@ class SimpleTypeWith1Argument implements TypeInfo {
       parseType(token, parser);
 
   @override
-  bool isConditionalExpressionStart(Token token, Parser parser) => false;
-
-  @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
@@ -280,10 +266,6 @@ class SimpleNullableType extends SimpleType {
   bool get isNullable => true;
 
   @override
-  bool isConditionalExpressionStart(Token token, Parser parser) =>
-      isConditionalThenExpression(skipType(token), parser);
-
-  @override
   Token parseTypeRest(Token start, Parser parser) {
     Token token = start.next;
     assert(optional('?', token));
@@ -317,9 +299,6 @@ class SimpleType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
-
-  @override
-  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -368,9 +347,6 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
-
-  @override
-  bool isConditionalExpressionStart(Token token, Parser parser) => false;
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -453,12 +429,6 @@ class ComplexTypeInfo implements TypeInfo {
   @override
   Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
-
-  @override
-  bool isConditionalExpressionStart(Token token, Parser parser) {
-    //return isConditionalThenExpression(token.next.next, parser);
-    return false;
-  }
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -1168,41 +1138,4 @@ Token splitCloser(Token closer) {
     return splitGtFromGtGtEq(closer);
   }
   return null;
-}
-
-/// Return `true` if the tokens after [token]
-/// represent a valid expression followed by a `:`.
-bool isConditionalThenExpression(Token token, Parser parser) {
-  // Quick checks for simple situations
-  Token next = token.next;
-  if (isOneOfOrEof(next, const ['?', ')', ';'])) {
-    return false;
-  } else if (next.isIdentifier) {
-    next = next.next;
-    if (optional(';', next)) {
-      // <identifier> `;`
-      return false;
-    } else if (isOneOfOrEof(next, const [
-      // Assignment operators
-      // TODO(danrubel): Consider replacing this with Token.isAssignmentOperator
-      '=', '&=', '&&=', '|=', '||=', '^=', '>>=', '<<=', '-=', '%=',
-      '+=', '??=', '/=', '*=', '~/='
-    ])) {
-      if (optional(';', next.next.next)) {
-        // <identifier> = <token> `;`
-        return false;
-      }
-    }
-  }
-
-  // TODO(danrubel): Enable more complex heavy weight lookahead
-  // once the parser can do it without modifying the token stream.
-  /*
-  final originalListener = parser.listener;
-  parser.listener = new ForwardingListener();
-  token = parser.parseExpression(token);
-  parser.listener = originalListener;
-  return optional(':', token.next);
-  */
-  return true;
 }
