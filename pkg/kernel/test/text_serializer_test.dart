@@ -32,12 +32,12 @@ String writeExpression(Expression expression) {
 void test() {
   List<String> failures = [];
   List<String> tests = [
-    "(let (var \"x\" (dynamic) (int 0) 0) (null))",
-    "(let (var \"x\" (dynamic) _ 0) (null))",
-    "(let (const \"x\" (dynamic) (int 0) 0) (null))",
-    "(let (const \"x\" (dynamic) _ 0) (null))",
-    "(let (final \"x\" (dynamic) (int 0) 0) (null))",
-    "(let (final \"x\" (dynamic) _ 0) (null))",
+    "(let (var \"x\" (dynamic) (int 0) ()) (null))",
+    "(let (var \"x\" (dynamic) _ ()) (null))",
+    "(let (const \"x\" (dynamic) (int 0) ()) (null))",
+    "(let (const \"x\" (dynamic) _ ()) (null))",
+    "(let (final \"x\" (dynamic) (int 0) ()) (null))",
+    "(let (final \"x\" (dynamic) _ ()) (null))",
     "(string \"Hello, 'string'!\")",
     "(string \"Hello, \\\"string\\\"!\")",
     "(string \"Yeah nah yeah, here is\\nthis really long string haiku\\n"
@@ -53,8 +53,8 @@ void test() {
     "(not (bool true))",
     "(&& (bool true) (bool false))",
     "(|| (&& (bool true) (not (bool true))) (bool true))",
-    "(concat 4 (string \"The opposite of \") (int 3) "
-        "(string \" is \") (int 7))",
+    "(concat ((string \"The opposite of \") (int 3) "
+        "(string \" is \") (int 7)))",
     "(symbol \"unquote-splicing\")",
     "(this)",
     "(rethrow)",
@@ -64,13 +64,13 @@ void test() {
     "(is (bool true) (invalid))",
     "(as (bool true) (void))",
     "(type (bottom))",
-    "(list (dynamic) 3 (null) (null) (null))",
-    "(const-list (dynamic) 3 (int 0) (int 1) (int 2))",
-    "(set (dynamic) 3 (bool true) (bool false) (int 0))",
-    "(const-set (dynamic) 3 (int 0) (int 1) (int 2))",
-    "(map (dynamic) (void) 6 (int 0) (null) (int 1) (null) (int 2) (null))",
-    "(const-map (dynamic) (void) 6 (int 0) (null) (int 1) (null) "
-        "(int 2) (null))",
+    "(list (dynamic) ((null) (null) (null)))",
+    "(const-list (dynamic) ((int 0) (int 1) (int 2)))",
+    "(set (dynamic) ((bool true) (bool false) (int 0)))",
+    "(const-set (dynamic) ((int 0) (int 1) (int 2)))",
+    "(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))",
+    "(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) "
+        "(int 2) (null)))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

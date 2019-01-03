@@ -277,24 +277,26 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
   const ListSerializer(this.elements);
 
   List<T> readFrom(Iterator<Object> stream) {
-    if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+    if (stream.current is! Iterator) {
+      throw StateError("expected a list, found an atom");
     }
-    int count = int.parse(stream.current);
+    Iterator<Object> list = stream.current;
+    list.moveNext();
+    List<T> result = [];
+    while (list.current != null) {
+      result.add(elements.readFrom(list));
+    }
     stream.moveNext();
-    List<T> result = new List<T>(count);
-    for (int i = 0; i < count; ++i) {
-      result[i] = elements.readFrom(stream);
-    }
     return result;
   }
 
   void writeTo(StringBuffer buffer, List<T> object) {
-    buffer.write(object.length);
+    buffer.write('(');
     for (int i = 0; i < object.length; ++i) {
-      buffer.write(' ');
+      if (i != 0) buffer.write(' ');
       elements.writeTo(buffer, object[i]);
     }
+    buffer.write(')');
   }
 }
 
