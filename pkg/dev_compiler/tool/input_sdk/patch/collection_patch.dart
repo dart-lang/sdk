@@ -509,7 +509,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
 /// Base class for our internal [LinkedHashSet]/[HashSet] implementations.
 ///
 /// This implements the common functionality.
-abstract class _InternalSet<E> extends _HashSetBase<E> {
+abstract class _InternalSet<E> extends _SetBase<E> {
   @notNull
   get _map;
 

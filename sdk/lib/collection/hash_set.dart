@@ -4,37 +4,6 @@
 
 part of dart.collection;
 
-/** Common parts of [HashSet] and [LinkedHashSet] implementations. */
-abstract class _HashSetBase<E> extends SetBase<E> {
-  // The following two methods override the ones in SetBase.
-  // It's possible to be more efficient if we have a way to create an empty
-  // set of the correct type.
-
-  Set<E> _newSet();
-
-  Set<R> _newSimilarSet<R>();
-
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSimilarSet);
-  Set<E> difference(Set<Object> other) {
-    Set<E> result = _newSet();
-    for (var element in this) {
-      if (!other.contains(element)) result.add(element);
-    }
-    return result;
-  }
-
-  Set<E> intersection(Set<Object> other) {
-    Set<E> result = _newSet();
-    for (var element in this) {
-      if (other.contains(element)) result.add(element);
-    }
-    return result;
-  }
-
-  // Subclasses can optimize this further.
-  Set<E> toSet() => _newSet()..addAll(this);
-}
-
 /**
  * An unordered hash-table based [Set] implementation.
  *
