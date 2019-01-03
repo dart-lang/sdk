@@ -3281,7 +3281,16 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(last->IsDefinition());
-      call->ReplaceUsesWith(last->AsDefinition());
+      Definition* ret = last->AsDefinition();
+      if (!ret->HasSSATemp()) {
+        // Currently, StoreIndexed and StoreInstanceField are defined as
+        // definitions despite producing no value. For now, catch the case
+        // where the new inlined code ends with one of those and replace
+        // the old uses of the original definition with uses of null.
+        ASSERT(ret->IsStoreIndexed() || ret->IsStoreInstanceField());
+        ret = flow_graph->constant_null();
+      }
+      call->ReplaceUsesWith(ret);
     }
     // Finally insert the sequence other definition in place of this one in the
     // graph.
@@ -3329,7 +3338,16 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(last->IsDefinition());
-      call->ReplaceUsesWith(last->AsDefinition());
+      Definition* ret = last->AsDefinition();
+      if (!ret->HasSSATemp()) {
+        // Currently, StoreIndexed and StoreInstanceField are defined as
+        // definitions despite producing no value. For now, catch the case
+        // where the new inlined code ends with one of those and replace
+        // the old uses of the original definition with uses of null.
+        ASSERT(ret->IsStoreIndexed() || ret->IsStoreInstanceField());
+        ret = flow_graph->constant_null();
+      }
+      call->ReplaceUsesWith(ret);
     }
     // Finally insert the sequence other definition in place of this one in the
     // graph.
