@@ -32,6 +32,14 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   /// Override this to change the analysis options for a given set of tests.
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
 
+  void addMetaPackage() {
+    newFile('/.pub-cache/meta/lib/meta.dart', content: r'''
+library meta;
+
+const alwaysThrows = const Object();
+''');
+  }
+
   @override
   Future<TestAnalysisResult> resolveFile(String path) async {
     var result = await driver.getResult(path);
@@ -52,6 +60,7 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
       'test': [getFolder('/test/lib')],
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
+      'meta': [getFolder('/.pub-cache/meta/lib')],
     };
 
     driver = new AnalysisDriver(

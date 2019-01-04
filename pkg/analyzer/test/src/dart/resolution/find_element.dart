@@ -225,7 +225,7 @@ class FindElement {
     unit.accept(new FunctionAstVisitor(
       variableDeclaration: (node) {
         var element = node.declaredElement;
-        if (element is LocalVariableElement) {
+        if (element is LocalVariableElement && element.name == name) {
           if (result != null) {
             fail('Not unique: $name');
           }

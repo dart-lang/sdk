@@ -65,7 +65,7 @@ main() {
     assertType(assignment, 'num'); // num + int = num
 
     SimpleIdentifier left = assignment.leftHandSide;
-    assertElement(left, findElement.localVar('x'));
+    assertElement(left, findElement.localVar('v'));
     assertType(left, 'num');
 
     Expression right = assignment.rightHandSide;
