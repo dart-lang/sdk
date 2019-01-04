@@ -57,10 +57,16 @@ ${parser.usage}""");
         testData["current"] = result["result"];
         testData["current_counter"] = 1;
       }
-      final occurences =
-          testData.putIfAbsent("occurences", () => <String, dynamic>{});
-      occurences.putIfAbsent(result["result"], () => 0);
-      occurences[result["result"]]++;
+      // Remove this code once all files are updated
+      const occurrencesMisspelled = "occurences";
+      var occurrences = testData[occurrencesMisspelled];
+      if (occurrences != null) {
+        testData["occurrences"] = occurrences;
+        testData.remove(occurrencesMisspelled);
+      }
+      occurrences = testData.putIfAbsent("occurrences", () => <String, dynamic>{});
+      occurrences.putIfAbsent(result["result"], () => 0);
+      occurrences[result["result"]]++;
     }
   }
 
