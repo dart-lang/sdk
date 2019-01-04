@@ -28,14 +28,11 @@ class Stopwatch {
    * var stopwatch = new Stopwatch()..start();
    * ```
    */
-  Stopwatch() {
-    if (_frequency == null) _initTicker();
-  }
 
   /**
    * Frequency of the elapsed counter in Hz.
    */
-  int get frequency => _frequency;
+  int get frequency => _frequency ?? _initTicker() ?? _frequency;
 
   /**
    * Starts the [Stopwatch].
