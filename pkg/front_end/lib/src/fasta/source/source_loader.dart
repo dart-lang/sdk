@@ -837,7 +837,7 @@ class SourceLoader<L> extends Loader<L> {
         builder.checkSupertypes(coreTypes);
       }
     }
-    ticker.logMs("Checked overrides");
+    ticker.logMs("Checked supertypes");
   }
 
   void checkBounds() {
