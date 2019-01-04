@@ -570,14 +570,14 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitConstructorDeclaration() {
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclaration fromNode = AstTestFactory.constructorDeclaration(
+    ConstructorDeclarationImpl fromNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
         AstTestFactory.formalParameterList(),
         null);
     ConstructorElement element = ElementFactory.constructorElement2(
         ElementFactory.classElement2(className), constructorName);
-    fromNode.element = element;
+    fromNode.declaredElement = element;
     ConstructorDeclaration toNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
@@ -618,12 +618,12 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitFunctionExpression() {
-    FunctionExpression fromNode = AstTestFactory.functionExpression2(
+    FunctionExpressionImpl fromNode = AstTestFactory.functionExpression2(
         AstTestFactory.formalParameterList(),
         AstTestFactory.emptyFunctionBody());
     MethodElement element = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
-    fromNode.element = element;
+    fromNode.declaredElement = element;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     FunctionExpression toNode = AstTestFactory.functionExpression2(

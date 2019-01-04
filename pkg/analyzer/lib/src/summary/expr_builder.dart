@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -766,9 +766,9 @@ class ExprBuilder {
       functionBody = astFactory.expressionFunctionBody(asyncKeyword,
           TokenFactory.tokenFromType(TokenType.FUNCTION), bodyExpr, null);
     }
-    var functionExpression = astFactory.functionExpression(
+    FunctionExpressionImpl functionExpression = astFactory.functionExpression(
         null, AstTestFactory.formalParameterList(parameters), functionBody);
-    functionExpression.element = functionElement;
+    functionExpression.declaredElement = functionElement;
     _push(functionExpression);
   }
 

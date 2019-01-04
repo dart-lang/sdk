@@ -3075,14 +3075,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit copy = astFactory.compilationUnit(
+    CompilationUnitImpl copy = astFactory.compilationUnit(
         _mapToken(node.beginToken),
         _cloneNode(node.scriptTag),
         _cloneNodeList(node.directives),
         _cloneNodeList(node.declarations),
         _mapToken(node.endToken));
     copy.lineInfo = node.lineInfo;
-    copy.element = node.element;
+    copy.declaredElement = node.declaredElement;
     return copy;
   }
 
@@ -3112,7 +3112,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   ConstructorDeclaration visitConstructorDeclaration(
       ConstructorDeclaration node) {
-    ConstructorDeclaration copy = astFactory.constructorDeclaration(
+    ConstructorDeclarationImpl copy = astFactory.constructorDeclaration(
         _cloneNode(node.documentationComment),
         _cloneNodeList(node.metadata),
         _mapToken(node.externalKeyword),
@@ -3126,7 +3126,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         _cloneNodeList(node.initializers),
         _cloneNode(node.redirectedConstructor),
         _cloneNode(node.body));
-    copy.element = node.element;
+    copy.declaredElement = node.declaredElement;
     return copy;
   }
 
@@ -3337,11 +3337,11 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression copy = astFactory.functionExpression(
+    FunctionExpressionImpl copy = astFactory.functionExpression(
         _cloneNode(node.typeParameters),
         _cloneNode(node.parameters),
         _cloneNode(node.body));
-    copy.element = node.element;
+    copy.declaredElement = node.declaredElement;
     copy.staticType = node.staticType;
     return copy;
   }
@@ -5749,7 +5749,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
+    ConstructorDeclarationImpl toNode = this._toNode as ConstructorDeclaration;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5764,7 +5764,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodeLists(node.initializers, toNode.initializers),
         _isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor),
         _isEqualNodes(node.body, toNode.body))) {
-      toNode.element = node.declaredElement;
+      toNode.declaredElement = node.declaredElement;
       return true;
     }
     return false;
@@ -6020,10 +6020,10 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression toNode = this._toNode as FunctionExpression;
+    FunctionExpressionImpl toNode = this._toNode as FunctionExpression;
     if (_and(_isEqualNodes(node.parameters, toNode.parameters),
         _isEqualNodes(node.body, toNode.body))) {
-      toNode.element = node.declaredElement;
+      toNode.declaredElement = node.declaredElement;
       toNode.staticType = node.staticType;
       return true;
     }

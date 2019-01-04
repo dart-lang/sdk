@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -55,8 +56,8 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression expression = super.visitFunctionExpression(node);
-    expression.element = node.declaredElement;
+    FunctionExpressionImpl expression = super.visitFunctionExpression(node);
+    expression.declaredElement = node.declaredElement;
     return expression;
   }
 

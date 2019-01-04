@@ -1586,7 +1586,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     FunctionElementImpl element = new FunctionElementImpl.forNode(null);
     element.parameters = parameterElements;
     element.type = new FunctionTypeImpl(element);
-    node.element = element;
+    (node as FunctionExpressionImpl).declaredElement = element;
     return node;
   }
 

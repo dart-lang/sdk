@@ -144,7 +144,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       element.generator = true;
     }
     _currentHolder.addConstructor(element);
-    node.element = element;
+    (node as ConstructorDeclarationImpl).declaredElement = element;
     if (constructorName == null) {
       Identifier returnType = node.returnType;
       if (returnType != null) {
@@ -208,7 +208,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression expression = node.functionExpression;
+    FunctionExpressionImpl expression = node.functionExpression;
     if (expression != null) {
       ElementHolder holder = new ElementHolder();
       _visitChildren(holder, node);
@@ -239,7 +239,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           element.hasImplicitReturnType = true;
         }
         _currentHolder.addFunction(element);
-        expression.element = element;
+        expression.declaredElement = element;
         functionName.staticElement = element;
       } else {
         SimpleIdentifier propertyNameNode = node.name;
@@ -282,7 +282,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             getter.hasImplicitReturnType = true;
           }
           _currentHolder.addAccessor(getter);
-          expression.element = getter;
+          expression.declaredElement = getter;
           propertyNameNode.staticElement = getter;
         } else {
           PropertyAccessorElementImpl setter =
@@ -312,7 +312,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           variable.setter = setter;
           variable.isFinal = false;
           _currentHolder.addAccessor(setter);
-          expression.element = setter;
+          expression.declaredElement = setter;
           propertyNameNode.staticElement = setter;
         }
       }
@@ -348,7 +348,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
-    node.element = element;
+    (node as FunctionExpressionImpl).declaredElement = element;
     holder.validate();
   }
 
@@ -1203,7 +1203,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression expression = node.functionExpression;
+    FunctionExpressionImpl expression = node.functionExpression;
     if (expression == null) {
       return;
     }
@@ -1245,7 +1245,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
 
     _currentHolder.addFunction(element);
-    expression.element = element;
+    expression.declaredElement = element;
     node.name.staticElement = element;
     holder.validate();
   }
@@ -1284,7 +1284,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
-    node.element = element;
+    (node as FunctionExpressionImpl).declaredElement = element;
     holder.validate();
   }
 

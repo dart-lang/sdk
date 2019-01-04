@@ -17,6 +17,7 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2751,7 +2752,7 @@ class ResolutionEraser extends GeneralizingAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (eraseDeclarations) {
-      node.element = null;
+      (node as ConstructorDeclarationImpl).declaredElement = null;
     }
     super.visitConstructorDeclaration(node);
   }
@@ -2785,7 +2786,7 @@ class ResolutionEraser extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (eraseDeclarations) {
-      node.element = null;
+      (node as FunctionExpressionImpl).declaredElement = null;
     }
     super.visitFunctionExpression(node);
   }
