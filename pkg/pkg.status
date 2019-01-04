@@ -37,6 +37,7 @@ front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta
 front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
 front_end/test/fasta/shaker_test: Skip # Issue http://dartbug.com/32531
 front_end/test/fasta/strong_test: Pass, ExtraSlow
+front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
@@ -138,6 +139,7 @@ analysis_server/test/integration/analysis/get_errors_nonStandard_sdk_test: Skip
 front_end/test/fasta/ast_builder_test: Pass, Slow, Timeout
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
+front_end/test/fasta/text_serialization_test: Pass, Slow, Timeout
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 front_end/test/whole_program_test: Skip # Issue 31902
 
