@@ -1206,10 +1206,6 @@ class Class : public Object {
 
   void Finalize() const;
 
-  // Apply given patch class to this class.
-  // Return true on success, or false and error otherwise.
-  bool ApplyPatch(const Class& patch, Error* error) const;
-
   RawObject* Invoke(const String& selector,
                     const Array& arguments,
                     const Array& argument_names,
