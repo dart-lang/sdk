@@ -48,7 +48,7 @@ Map<String, String> sdkLibraryVariables = {
   'dart.library.web_sql': 'true',
 };
 
-/// Shared compiler options between `dartdevc` and `dartdevk`.
+/// Shared compiler options between `dartdevc` kernel and analyzer backends.
 class SharedCompilerOptions {
   /// Whether to emit the source mapping file.
   ///

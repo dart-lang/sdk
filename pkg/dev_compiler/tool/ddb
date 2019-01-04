@@ -112,7 +112,8 @@ void main(List<String> args) {
   }
   ProcessResult result;
   if (kernel) {
-    result = runDdc('dartdevk', [
+    result = runDdc('dartdevc', [
+      '--kernel',
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
       '-o',

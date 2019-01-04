@@ -478,7 +478,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
-/// Configuration for `dartdevc` and `dartdevk`
+/// Configuration for `dartdevc` and `dartdevk` (DDC with Kernel)
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);

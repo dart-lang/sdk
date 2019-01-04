@@ -56,7 +56,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
   }
 }
 
-/// Runs dartdevk in batch mode for test.dart.
+/// Runs DDC in Kernel batch mode for test.dart.
 Future runBatch(ParsedArguments batchArgs) async {
   var totalTests = 0;
   var failedTests = 0;

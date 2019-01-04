@@ -80,7 +80,9 @@ Future<CompilerResult> _compile(List<String> args,
     ..addMultiOption('multi-root',
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
-        defaultsTo: [Uri.base.path]);
+        defaultsTo: [Uri.base.path])
+    ..addOption('dart-sdk',
+        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true);
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
