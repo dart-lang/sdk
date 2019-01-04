@@ -75,7 +75,7 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
     // TODO(sjindel/tfa): Implement serialization of type arguments when can use
     // them for optimizations.
-    sink.writeCanonicalNameReference(
+    sink.writeNullAllowedCanonicalNameReference(
         getCanonicalNameOfClass(metadata.concreteClass));
     sink.writeByte(metadata._flags);
   }

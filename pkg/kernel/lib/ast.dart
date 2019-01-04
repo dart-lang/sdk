@@ -5593,7 +5593,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeCanonicalNameReference(CanonicalName name);
+  void writeNullAllowedCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
