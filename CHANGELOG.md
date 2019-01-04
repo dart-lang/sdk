@@ -1,3 +1,8 @@
+# 0.1.78
+
+* restored `prefer_final_locals` to ignore loop variables, and
+* introduced a new `prefer_final_in_for_each` lint to handle the `for each` case
+
 # 0.1.77
 
 * updated `prefer_final_locals` to check to for loop variables
