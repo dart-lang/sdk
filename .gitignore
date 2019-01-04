@@ -42,6 +42,10 @@ CMakeLists.txt
 .vscode
 .history
 
+# analysis server files
+analysis_options.yaml
+compile_commands.json
+
 # GDB files
 .gdb_history
 
@@ -86,4 +90,3 @@ editor/util/testing/mac/Samples.suite/Results
 /outline.dill
 /generated/
 /crash_logs/
-compile_commands.json
