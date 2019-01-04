@@ -11,6 +11,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 
 import 'crawl.dart';
+import 'since.dart';
 
 const bulb = '💡';
 const checkMark = '✅';
@@ -39,10 +40,11 @@ void printAll(ScoreCard scorecard) {
 
 void printMarkdownTable(ScoreCard scorecard) {
   print(
-      '| name | fix | flutter user | flutter repo | pedantic | stagehand | status | bug refs |');
-  print('| :--- | :---: | :---:| :---: | :---: | :---: | :---: | :--- |');
+      '| name | since | fix | flutter user | flutter repo | pedantic | stagehand | status | bug refs |');
+  print('| :--- | :---: | :---: | :---:| :---: | :---: | :---: | :---: | :--- |');
   scorecard.forEach((lint) {
     var sb = StringBuffer('| `${lint.name}` |');
+    sb.write(' ${lint.since.sinceLinter} |');
     sb.write('${lint.hasFix ? " $bulb" : ""} |');
     sb.write('${lint.ruleSets.contains('flutter') ? " $checkMark" : ""} |');
     sb.write(
@@ -100,6 +102,7 @@ class ScoreCard {
 
     var issues = await _getIssues();
     var bugs = issues.where(_isBug).toList();
+    var sinceInfo = await sinceMap;
 
     var scorecard = ScoreCard();
     for (var lint in registeredLints) {
@@ -128,6 +131,7 @@ class ScoreCard {
           hasFix: lintsWithFixes.contains(lint.name),
           maturity: lint.maturity.name,
           ruleSets: ruleSets,
+          since: sinceInfo[lint.name],
           bugReferences: bugReferences));
     }
 
@@ -141,6 +145,7 @@ class LintScore {
   String name;
   bool hasFix;
   String maturity;
+  SinceInfo since;
 
   List<String> ruleSets;
   List<String> bugReferences;
@@ -150,7 +155,8 @@ class LintScore {
       this.hasFix,
       this.maturity,
       this.ruleSets,
-      this.bugReferences});
+      this.bugReferences,
+      this.since});
 
   String get _ruleSets => ruleSets.isNotEmpty ? ' ${ruleSets.toString()}' : '';
 
