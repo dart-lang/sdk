@@ -6507,10 +6507,9 @@ A \IndexCustom{map literal}{literal!map} denotes a map object.
 \end{grammar}
 
 \LMHash{}%
-A \synt{setOrMapLiteral} $e$ is either set literal (\ref {sets}) or a map literal,
+A \synt{setOrMapLiteral} $e$ is either a set literal (\ref {sets}) or a map literal,
 determined by the type parameters or static context type.
-If the literal expression has exactly one type argument,
-then $e$ is a set literal.
+If $e$ has exactly one type argument, then it is a set literal.
 If $e$ has two type arguments, then it is a map literal.
 If $e$ has three or more type arguments, it is a compile-time error.
 If $e$ has \emph{no} type arguments,
