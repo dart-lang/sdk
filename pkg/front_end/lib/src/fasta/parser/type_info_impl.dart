@@ -417,7 +417,8 @@ class ComplexTypeInfo implements TypeInfo {
   }
 
   @override
-  bool get couldBeExpression => false;
+  bool get couldBeExpression =>
+      typeArguments == noTypeParamOrArg && typeVariableStarters.isEmpty;
 
   @override
   bool get isNullable => false;

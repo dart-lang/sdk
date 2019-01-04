@@ -29,6 +29,7 @@ main() {
     defineReflectiveTests(NoTypeParamOrArgTest);
     defineReflectiveTests(SimpleTypeParamOrArgTest);
     defineReflectiveTests(TypeParamOrArgInfoTest);
+    defineReflectiveTests(CouldBeExpressionTest);
   });
 }
 
@@ -435,7 +436,9 @@ class SimpleTypeTest {
     expectInfo(simpleType, 'C(', required: true);
     expectInfo(simpleType, 'C<', required: true);
     expectComplexInfo('C.',
-        required: true, expectedErrors: [error(codeExpectedType, 2, 0)]);
+        required: true,
+        couldBeExpression: true,
+        expectedErrors: [error(codeExpectedType, 2, 0)]);
     expectInfo(simpleType, 'C=', required: true);
     expectInfo(simpleType, 'C*', required: true);
     expectInfo(simpleType, 'C do', required: true);
@@ -664,14 +667,19 @@ class SimpleTypeWith1ArgumentTest {
 class TypeInfoTest {
   void test_computeType_basic() {
     expectInfo(noType, '.', required: false);
-    expectComplexInfo('.', required: true, expectedErrors: [
-      error(codeExpectedType, 0, 1),
-      error(codeExpectedType, 1, 0)
-    ]);
+    expectComplexInfo('.',
+        required: true,
+        couldBeExpression: true,
+        expectedErrors: [
+          error(codeExpectedType, 0, 1),
+          error(codeExpectedType, 1, 0)
+        ]);
 
     expectInfo(noType, '.Foo', required: false);
     expectComplexInfo('.Foo',
-        required: true, expectedErrors: [error(codeExpectedType, 0, 1)]);
+        required: true,
+        couldBeExpression: true,
+        expectedErrors: [error(codeExpectedType, 0, 1)]);
   }
 
   void test_computeType_builtin() {
@@ -679,16 +687,20 @@ class TypeInfoTest {
     // an error for the builtin used as a type.
     expectComplexInfo('abstract',
         required: true,
+        couldBeExpression: true,
         expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 8)]);
     expectComplexInfo('export',
         required: true,
+        couldBeExpression: true,
         expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 6)]);
     expectComplexInfo('abstract Function()',
         required: false,
+        couldBeExpression: true,
         expectedAfter: 'Function',
         expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 8)]);
     expectComplexInfo('export Function()',
         required: false,
+        couldBeExpression: true,
         expectedAfter: 'Function',
         expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 6)]);
   }
@@ -2034,6 +2046,30 @@ class TypeParamOrArgInfoTest {
   }
 }
 
+@reflectiveTest
+class CouldBeExpressionTest {
+  void couldBeExpression(String code, bool expected) {
+    final typeInfo = computeType(scan(code), true);
+    expect(typeInfo.couldBeExpression, expected);
+  }
+
+  void test_simple() {
+    couldBeExpression('S', true);
+  }
+
+  void test_partial() {
+    couldBeExpression('.S', true);
+  }
+
+  void test_prefixed() {
+    couldBeExpression('p.S', true);
+  }
+
+  void test_typeArg() {
+    couldBeExpression('S<T>', false);
+  }
+}
+
 void expectInfo(expectedInfo, String source, {bool required}) {
   if (required == null) {
     compute(expectedInfo, source, scan(source), true);
@@ -2046,17 +2082,18 @@ void expectInfo(expectedInfo, String source, {bool required}) {
 void expectComplexInfo(String source,
     {bool required,
     bool inDeclaration = false,
+    bool couldBeExpression = false,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   if (required == null) {
-    computeComplex(source, scan(source), true, inDeclaration, expectedAfter,
-        expectedCalls, expectedErrors);
-    computeComplex(source, scan(source), false, inDeclaration, expectedAfter,
-        expectedCalls, expectedErrors);
+    computeComplex(source, scan(source), true, inDeclaration, couldBeExpression,
+        expectedAfter, expectedCalls, expectedErrors);
+    computeComplex(source, scan(source), false, inDeclaration,
+        couldBeExpression, expectedAfter, expectedCalls, expectedErrors);
   } else {
-    computeComplex(source, scan(source), required, inDeclaration, expectedAfter,
-        expectedCalls, expectedErrors);
+    computeComplex(source, scan(source), required, inDeclaration,
+        couldBeExpression, expectedAfter, expectedCalls, expectedErrors);
   }
 }
 
@@ -2085,6 +2122,7 @@ ComplexTypeInfo computeComplex(
     Token start,
     bool required,
     bool inDeclaration,
+    bool couldBeExpression,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors) {
@@ -2093,7 +2131,7 @@ ComplexTypeInfo computeComplex(
       const isInstanceOf<ComplexTypeInfo>(), source, start, required,
       inDeclaration: inDeclaration);
   expect(typeInfo.start, start.next, reason: source);
-  expect(typeInfo.couldBeExpression, isFalse);
+  expect(typeInfo.couldBeExpression, couldBeExpression);
   expectEnd(expectedAfter, typeInfo.skipType(start));
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'TypeInfo.skipType should not modify the token stream');
