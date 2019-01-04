@@ -93,26 +93,21 @@
 
 #### Linter
 
-The linter was bumped to `0.1.76` which introduces the following new lints to the SDK:
+The linter was bumped to `0.1.78` which introduces the following linter fixes to the SDK:
 
-* `unnecessary_await_in_return`
-* `use_function_type_syntax_for_parameters`
-* `avoid_returning_null_for_future`
-* `avoid_shadowing_type_parameters`
+* fixed `type_annotate_public_apis` false positives on local functions
+* fixed `avoid_shadowing_type_parameters` to report shadowed type parameters in generic typedefs
+* fixed `use_setters_to_change_properties` to not wrongly lint overriding methods
+* fixed `cascade_invocations` to not lint awaited targets
+* fixed `prefer_conditional_assignment` false positives
+* fixed `join_return_with_assignment` false positives
+* fixed `cascade_invocations` false positives
+* miscellaneous documentation improvements
+* updated `invariant_booleans` status to experimental
 
-and:
+and adds:
 
-* `unnecessary_parenthesis` has been updated to allow wrapping a `!` argument and improved to handle function expressions
-* miscellaneous documentation grammar and spelling fixes have been made
-* error messages for `always_declare_return_types` have been improved
-* `prefer_final_fields ` has been fixed to work with classes that have generic type arguments
-* (internal): deprecated code has been cleaned up
-* false positives in `unrelated_type_equality_checks` have been fixed
-
-In addition, `prefer_bool_in_asserts` has been deprecated as its semantics are
-redundant with Dart 2 checks and experimental lints `avoid_positional_boolean_parameters`,
-`literal_only_boolean_expressions`, `prefer_foreach`, `prefer_void_to_null` have all been
-promoted to stable.
+* a new `prefer_final_in_for_each` lint rule to flag loop variables that could be declared final
 
 #### Other Tools
 
