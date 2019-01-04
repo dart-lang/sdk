@@ -4,7 +4,18 @@
 
 import '../ast.dart';
 
+import '../text/serializer_combinators.dart' show TextSerializer;
+
+import '../text/text_reader.dart' show TextIterator;
+
+import '../text/text_serializer.dart'
+    show expressionSerializer, initializeSerializers;
+
 import '../visitor.dart' show Visitor;
+
+const Uri noUri = null;
+
+const int noOffset = -1;
 
 abstract class RoundTripFailure {
   /// [Uri] of the file containing the expression that produced an error during
@@ -19,25 +30,81 @@ abstract class RoundTripFailure {
 }
 
 class RoundTripSerializationFailure extends RoundTripFailure {
-  RoundTripSerializationFailure(Uri uri, int offset) : super(uri, offset);
+  final String message;
+
+  RoundTripSerializationFailure(this.message, Uri uri, int offset)
+      : super(uri, offset);
 }
 
 class RoundTripDeserializationFailure extends RoundTripFailure {
-  RoundTripDeserializationFailure(Uri uri, int offset) : super(uri, offset);
+  final String message;
+
+  RoundTripDeserializationFailure(this.message, Uri uri, int offset)
+      : super(uri, offset);
 }
 
 class RoundTripMismatchFailure extends RoundTripFailure {
-  RoundTripMismatchFailure(Uri uri, int offset) : super(uri, offset);
+  final String initial;
+  final String serialized;
+
+  RoundTripMismatchFailure(this.initial, this.serialized, Uri uri, int offset)
+      : super(uri, offset);
 }
 
 class RoundTripVerifier implements Visitor<void> {
   /// List of errors produced during round trips on the visited nodes.
   final List<RoundTripFailure> errors = <RoundTripFailure>[];
 
-  RoundTripVerifier();
+  RoundTripVerifier() {
+    initializeSerializers();
+  }
+
+  T readNode<T extends Node>(
+      String input, TextSerializer<T> serializer, Uri uri, int offset) {
+    TextIterator stream = new TextIterator(input, 0);
+    stream.moveNext();
+    T result;
+    try {
+      result = serializer.readFrom(stream);
+    } catch (exception) {
+      errors.add(new RoundTripDeserializationFailure(
+          exception.toString(), uri, offset));
+    }
+    if (stream.moveNext()) {
+      errors.add(new RoundTripDeserializationFailure(
+          "unexpected trailing text", uri, offset));
+    }
+    return result;
+  }
+
+  String writeNode<T extends Node>(
+      T node, TextSerializer<T> serializer, Uri uri, int offset) {
+    StringBuffer buffer = new StringBuffer();
+    try {
+      serializer.writeTo(buffer, node);
+    } catch (exception) {
+      errors.add(
+          new RoundTripSerializationFailure(exception.toString(), uri, offset));
+    }
+    return buffer.toString();
+  }
 
   void makeExpressionRoundTrip(Expression node) {
-    throw new UnimplementedError("makeExpressionRoundTrip");
+    Uri uri = node.location.file;
+    int offset = node.fileOffset;
+
+    String initial = writeNode(node, expressionSerializer, uri, offset);
+
+    // Do the round trip.
+    Expression deserialized =
+        readNode(initial, expressionSerializer, uri, offset);
+    String serialized =
+        writeNode(deserialized, expressionSerializer, uri, offset);
+
+    if (initial != serialized) {
+      errors
+          .add(new RoundTripMismatchFailure(initial, serialized, uri, offset));
+    }
   }
 
   void makeDartTypeRoundTrip(DartType node) {
