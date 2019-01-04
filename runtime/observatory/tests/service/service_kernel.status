@@ -36,7 +36,7 @@ pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
 set_vm_name_rpc_test: RuntimeError # Issue 35512 VMOptions=--vm-name=Walter not recognized when running from snapshot.
-simple_reload_test: RuntimeError # Issue 35506
+simple_reload_test: RuntimeError, Timeout # Issue 35506
 unused_changes_in_last_reload_test: RuntimeError
 
 # Kernel works slightly different. There are kernel specific versions.
