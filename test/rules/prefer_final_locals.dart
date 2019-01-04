@@ -20,23 +20,3 @@ void mutableCase() {
   label = 'hello world';
   print(label);
 }
-
-void fn() {
-  for (var i in [1, 2, 3]) { // LINT
-    print(i);
-  }
-
-  for (final i in [1, 2, 3]) { // OK
-    print(i);
-  }
-
-  for (var i in [1, 2, 3]) { // OK
-    i += 1;
-    print(i);
-  }
-
-  int j;
-  for (j in [1, 2, 3]) { // OK
-    print(j);
-  }
-}

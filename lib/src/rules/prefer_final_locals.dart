@@ -57,7 +57,6 @@ class PreferFinalLocals extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = new _Visitor(this);
-    registry.addForEachStatement(this, visitor);
     registry.addVariableDeclaration(this, visitor);
   }
 }
@@ -66,27 +65,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    final loopVariable = node.loopVariable;
-    if (loopVariable == null) {
-      // This statement is something like `for(a in b) { ... }`. Notice `a` is
-      // not actually declared from within the loop. `a` is a variable declared
-      // outside the loop.
-      return;
-    }
-
-    if (loopVariable.isFinal) {
-      return;
-    }
-
-    FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function != null &&
-        !function.isPotentiallyMutatedInScope(loopVariable.declaredElement)) {
-      rule.reportLint(loopVariable.identifier);
-    }
-  }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {

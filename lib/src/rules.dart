@@ -90,6 +90,7 @@ import 'package:linter/src/rules/prefer_contains.dart';
 import 'package:linter/src/rules/prefer_equal_for_default_values.dart';
 import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
+import 'package:linter/src/rules/prefer_final_in_for_each.dart';
 import 'package:linter/src/rules/prefer_final_locals.dart';
 import 'package:linter/src/rules/prefer_foreach.dart';
 import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
@@ -227,6 +228,7 @@ void registerLintRules() {
     ..register(new PreferEqualForDefaultValues())
     ..register(new PreferExpressionFunctionBodies())
     ..register(new PreferFinalFields())
+    ..register(new PreferFinalInForEach())
     ..register(new PreferFinalLocals())
     ..register(new PreferForeach())
     ..register(new PreferFunctionDeclarationsOverVariables())
