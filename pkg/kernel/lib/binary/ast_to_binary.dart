@@ -203,7 +203,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeStringReference(constant.value);
     } else if (constant is SymbolConstant) {
       writeByte(ConstantTag.SymbolConstant);
-      writeOptionalReference(constant.libraryReference);
+      writeNullAllowedReference(constant.libraryReference);
       writeStringReference(constant.name);
     } else if (constant is MapConstant) {
       writeByte(ConstantTag.MapConstant);
@@ -456,15 +456,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeByte(Tag.Something);
       writeFunctionNode(node);
-    }
-  }
-
-  void writeOptionalReference(Reference ref) {
-    if (ref == null) {
-      writeByte(Tag.Nothing);
-    } else {
-      writeByte(Tag.Something);
-      writeNonNullReference(ref);
     }
   }
 
@@ -1107,8 +1098,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
-    writeOptionalReference(node.forwardingStubSuperTargetReference);
-    writeOptionalReference(node.forwardingStubInterfaceTargetReference);
+    writeNullAllowedReference(node.forwardingStubSuperTargetReference);
+    writeNullAllowedReference(node.forwardingStubInterfaceTargetReference);
     writeOptionalFunctionNode(node.function);
     leaveScope(memberScope: true);
 

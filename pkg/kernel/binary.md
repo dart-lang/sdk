@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 14;
+  UInt32 formatVersion = 15;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -373,8 +373,8 @@ type Procedure extends Member {
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
-  Option<MemberReference> forwardingStubSuperTarget;
-  Option<MemberReference> forwardingStubInterfaceTarget;
+  MemberReference forwardingStubSuperTarget; // May be NullReference.
+  MemberReference forwardingStubInterfaceTarget; // May be NullReference.
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }
@@ -886,7 +886,7 @@ type StringConstant extends Constant {
 
 type SymbolConstant extends Constant {
   Byte tag = 5;
-  Option<LibraryReference> library;
+  LibraryReference library; // May be NullReference.
   StringReference name;
 }
 

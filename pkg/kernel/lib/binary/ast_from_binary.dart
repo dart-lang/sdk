@@ -216,10 +216,7 @@ class BinaryBuilder {
       case ConstantTag.StringConstant:
         return new StringConstant(readStringReference());
       case ConstantTag.SymbolConstant:
-        Reference libraryReference;
-        if (readAndCheckOptionTag()) {
-          libraryReference = readLibraryReference();
-        }
+        Reference libraryReference = readLibraryReference(allowNull: true);
         return new SymbolConstant(readStringReference(), libraryReference);
       case ConstantTag.MapConstant:
         final DartType keyType = readDartType();
@@ -1113,9 +1110,9 @@ class BinaryBuilder {
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
     var forwardingStubSuperTargetReference =
-        readAndCheckOptionTag() ? readMemberReference() : null;
+        readMemberReference(allowNull: true);
     var forwardingStubInterfaceTargetReference =
-        readAndCheckOptionTag() ? readMemberReference() : null;
+        readMemberReference(allowNull: true);
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));

@@ -1169,12 +1169,11 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kSymbolConstant: {
-        Tag initializer_tag = helper_.ReadTag();
-        if (initializer_tag == kSomething) {
-          const NameIndex index = helper_.ReadCanonicalNameReference();
-          temp_library_ = H.LookupLibraryByKernelLibrary(index);
-        } else {
+        const NameIndex index = helper_.ReadCanonicalNameReference();
+        if (index == -1) {
           temp_library_ = Library::null();
+        } else {
+          temp_library_ = H.LookupLibraryByKernelLibrary(index);
         }
         const String& symbol =
             H.DartIdentifier(temp_library_, helper_.ReadStringReference());

@@ -1024,20 +1024,17 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
     }
       /* Falls through */
     case kForwardingStubSuperTarget:
-      if (helper_->ReadTag() == kSomething) {
-        forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
-      }
+      forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
       /* Falls through */
     case kForwardingStubInterfaceTarget:
-      if (helper_->ReadTag() == kSomething) {
-        helper_->ReadCanonicalNameReference();
-      }
+      helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
       /* Falls through */
     case kFunction:
-      if (helper_->ReadTag() == kSomething)
+      if (helper_->ReadTag() == kSomething) {
         helper_->SkipFunctionNode();  // read function node.
+      }
       if (++next_read_ == field) return;
       /* Falls through */
     case kEnd:
