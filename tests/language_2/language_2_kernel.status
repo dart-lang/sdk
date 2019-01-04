@@ -636,8 +636,6 @@ type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/optimized_stacktrace_test: Crash
-vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27671_test: Skip # Unsupported
 vm/regress_29145_test: Skip # Issue 29145
