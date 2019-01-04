@@ -101,638 +101,638 @@ class RoundTripVerifier implements Visitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    throw new UnimplementedError("visitNamedType");
+    node.visitChildren(this);
   }
 
   @override
   void visitSupertype(Supertype node) {
-    throw new UnimplementedError("visitSupertype");
+    node.visitChildren(this);
   }
 
   @override
   void visitName(Name node) {
-    throw new UnimplementedError("visitName");
+    node.visitChildren(this);
   }
 
   @override
   void visitRedirectingFactoryConstructorReference(
       RedirectingFactoryConstructor node) {
-    throw new UnimplementedError("visitRedirectingFactoryConstructorReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitProcedureReference(Procedure node) {
-    throw new UnimplementedError("visitProcedureReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitConstructorReference(Constructor node) {
-    throw new UnimplementedError("visitConstructorReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitFieldReference(Field node) {
-    throw new UnimplementedError("visitFieldReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitTypeLiteralConstantReference(TypeLiteralConstant node) {
-    throw new UnimplementedError("visitTypeLiteralConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitTearOffConstantReference(TearOffConstant node) {
-    throw new UnimplementedError("visitTearOffConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitPartialInstantiationConstantReference(
       PartialInstantiationConstant node) {
-    throw new UnimplementedError("visitPartialInstantiationConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitInstanceConstantReference(InstanceConstant node) {
-    throw new UnimplementedError("visitInstanceConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitListConstantReference(ListConstant node) {
-    throw new UnimplementedError("visitListConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitMapConstantReference(MapConstant node) {
-    throw new UnimplementedError("visitMapConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitSymbolConstantReference(SymbolConstant node) {
-    throw new UnimplementedError("visitSymbolConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitStringConstantReference(StringConstant node) {
-    throw new UnimplementedError("visitStringConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitDoubleConstantReference(DoubleConstant node) {
-    throw new UnimplementedError("visitDoubleConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitIntConstantReference(IntConstant node) {
-    throw new UnimplementedError("visitIntConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitBoolConstantReference(BoolConstant node) {
-    throw new UnimplementedError("visitBoolConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitNullConstantReference(NullConstant node) {
-    throw new UnimplementedError("visitNullConstantReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitTypedefReference(Typedef node) {
-    throw new UnimplementedError("visitTypedefReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitClassReference(Class node) {
-    throw new UnimplementedError("visitClassReference");
+    node.visitChildren(this);
   }
 
   @override
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
-    throw new UnimplementedError("visitTypeLiteralConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitTearOffConstant(TearOffConstant node) {
-    throw new UnimplementedError("visitTearOffConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
-    throw new UnimplementedError("visitPartialInstantiationConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitInstanceConstant(InstanceConstant node) {
-    throw new UnimplementedError("visitInstanceConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitListConstant(ListConstant node) {
-    throw new UnimplementedError("visitListConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitMapConstant(MapConstant node) {
-    throw new UnimplementedError("visitMapConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitSymbolConstant(SymbolConstant node) {
-    throw new UnimplementedError("visitSymbolConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitStringConstant(StringConstant node) {
-    throw new UnimplementedError("visitStringConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitDoubleConstant(DoubleConstant node) {
-    throw new UnimplementedError("visitDoubleConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitIntConstant(IntConstant node) {
-    throw new UnimplementedError("visitIntConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitBoolConstant(BoolConstant node) {
-    throw new UnimplementedError("visitBoolConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitNullConstant(NullConstant node) {
-    throw new UnimplementedError("visitNullConstant");
+    node.visitChildren(this);
   }
 
   @override
   void visitTypedefType(TypedefType node) {
-    throw new UnimplementedError("visitTypedefType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitTypeParameterType(TypeParameterType node) {
-    throw new UnimplementedError("visitTypeParameterType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitFunctionType(FunctionType node) {
-    throw new UnimplementedError("visitFunctionType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitInterfaceType(InterfaceType node) {
-    throw new UnimplementedError("visitInterfaceType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitBottomType(BottomType node) {
-    throw new UnimplementedError("visitBottomType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitVoidType(VoidType node) {
-    throw new UnimplementedError("visitVoidType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitDynamicType(DynamicType node) {
-    throw new UnimplementedError("visitDynamicType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitInvalidType(InvalidType node) {
-    throw new UnimplementedError("visitInvalidType");
+    makeDartTypeRoundTrip(node);
   }
 
   @override
   void visitComponent(Component node) {
-    throw new UnimplementedError("visitComponent");
+    node.visitChildren(this);
   }
 
   @override
   void visitMapEntry(MapEntry node) {
-    throw new UnimplementedError("visitMapEntry");
+    node.visitChildren(this);
   }
 
   @override
   void visitCatch(Catch node) {
-    throw new UnimplementedError("visitCatch");
+    node.visitChildren(this);
   }
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    throw new UnimplementedError("visitSwitchCase");
+    node.visitChildren(this);
   }
 
   @override
   void visitNamedExpression(NamedExpression node) {
-    throw new UnimplementedError("visitNamedExpression");
+    node.visitChildren(this);
   }
 
   @override
   void visitArguments(Arguments node) {
-    throw new UnimplementedError("visitArguments");
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionNode(FunctionNode node) {
-    throw new UnimplementedError("visitFunctionNode");
+    node.visitChildren(this);
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    throw new UnimplementedError("visitTypeParameter");
+    node.visitChildren(this);
   }
 
   @override
   void visitTypedef(Typedef node) {
-    throw new UnimplementedError("visitTypedef");
+    node.visitChildren(this);
   }
 
   @override
   void visitLibraryPart(LibraryPart node) {
-    throw new UnimplementedError("visitLibraryPart");
+    node.visitChildren(this);
   }
 
   @override
   void visitCombinator(Combinator node) {
-    throw new UnimplementedError("visitCombinator");
+    node.visitChildren(this);
   }
 
   @override
   void visitLibraryDependency(LibraryDependency node) {
-    throw new UnimplementedError("visitLibraryDependency");
+    node.visitChildren(this);
   }
 
   @override
   void visitLibrary(Library node) {
-    throw new UnimplementedError("visitLibrary");
+    node.visitChildren(this);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    throw new UnimplementedError("visitAssertInitializer");
+    node.visitChildren(this);
   }
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    throw new UnimplementedError("visitLocalInitializer");
+    node.visitChildren(this);
   }
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    throw new UnimplementedError("visitRedirectingInitializer");
+    node.visitChildren(this);
   }
 
   @override
   void visitSuperInitializer(SuperInitializer node) {
-    throw new UnimplementedError("visitSuperInitializer");
+    node.visitChildren(this);
   }
 
   @override
   void visitFieldInitializer(FieldInitializer node) {
-    throw new UnimplementedError("visitFieldInitializer");
+    node.visitChildren(this);
   }
 
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
-    throw new UnimplementedError("visitInvalidInitializer");
+    node.visitChildren(this);
   }
 
   @override
   void visitClass(Class node) {
-    throw new UnimplementedError("visitClass");
+    node.visitChildren(this);
   }
 
   @override
   void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
-    throw new UnimplementedError("visitRedirectingFactoryConstructor");
+    node.visitChildren(this);
   }
 
   @override
   void visitField(Field node) {
-    throw new UnimplementedError("visitField");
+    node.visitChildren(this);
   }
 
   @override
   void visitProcedure(Procedure node) {
-    throw new UnimplementedError("visitProcedure");
+    node.visitChildren(this);
   }
 
   @override
   void visitConstructor(Constructor node) {
-    throw new UnimplementedError("visitConstructor");
+    node.visitChildren(this);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    throw new UnimplementedError("visitFunctionDeclaration");
+    node.visitChildren(this);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    throw new UnimplementedError("visitVariableDeclaration");
+    node.visitChildren(this);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    throw new UnimplementedError("visitYieldStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitTryFinally(TryFinally node) {
-    throw new UnimplementedError("visitTryFinally");
+    node.visitChildren(this);
   }
 
   @override
   void visitTryCatch(TryCatch node) {
-    throw new UnimplementedError("visitTryCatch");
+    node.visitChildren(this);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    throw new UnimplementedError("visitReturnStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
-    throw new UnimplementedError("visitIfStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    throw new UnimplementedError("visitContinueSwitchStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    throw new UnimplementedError("visitSwitchStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitForInStatement(ForInStatement node) {
-    throw new UnimplementedError("visitForInStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    throw new UnimplementedError("visitForStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
-    throw new UnimplementedError("visitDoStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    throw new UnimplementedError("visitWhileStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    throw new UnimplementedError("visitBreakStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    throw new UnimplementedError("visitLabeledStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    throw new UnimplementedError("visitAssertStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitEmptyStatement(EmptyStatement node) {
-    throw new UnimplementedError("visitEmptyStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitAssertBlock(AssertBlock node) {
-    throw new UnimplementedError("visitAssertBlock");
+    node.visitChildren(this);
   }
 
   @override
   void visitBlock(Block node) {
-    throw new UnimplementedError("visitBlock");
+    node.visitChildren(this);
   }
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    throw new UnimplementedError("visitExpressionStatement");
+    node.visitChildren(this);
   }
 
   @override
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    throw new UnimplementedError("visitCheckLibraryIsLoaded");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitLoadLibrary(LoadLibrary node) {
-    throw new UnimplementedError("visitLoadLibrary");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitInstantiation(Instantiation node) {
-    throw new UnimplementedError("visitInstantiation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitLet(Let node) {
-    throw new UnimplementedError("visitLet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
-    throw new UnimplementedError("visitNullLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitBoolLiteral(BoolLiteral node) {
-    throw new UnimplementedError("visitBoolLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    throw new UnimplementedError("visitDoubleLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitIntLiteral(IntLiteral node) {
-    throw new UnimplementedError("visitIntLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitStringLiteral(StringLiteral node) {
-    throw new UnimplementedError("visitStringLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitConstantExpression(ConstantExpression node) {
-    throw new UnimplementedError("visitConstantExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    throw new UnimplementedError("visitFunctionExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    throw new UnimplementedError("visitAwaitExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitMapLiteral(MapLiteral node) {
-    throw new UnimplementedError("visitMapLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitSetLiteral(SetLiteral node) {
-    throw new UnimplementedError("visitSetLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitListLiteral(ListLiteral node) {
-    throw new UnimplementedError("visitListLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitThrow(Throw node) {
-    throw new UnimplementedError("visitThrow");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitRethrow(Rethrow node) {
-    throw new UnimplementedError("visitRethrow");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitThisExpression(ThisExpression node) {
-    throw new UnimplementedError("visitThisExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitTypeLiteral(TypeLiteral node) {
-    throw new UnimplementedError("visitTypeLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
-    throw new UnimplementedError("visitSymbolLiteral");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitAsExpression(AsExpression node) {
-    throw new UnimplementedError("visitAsExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitIsExpression(IsExpression node) {
-    throw new UnimplementedError("visitIsExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitStringConcatenation(StringConcatenation node) {
-    throw new UnimplementedError("visitStringConcatenation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    throw new UnimplementedError("visitConditionalExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitLogicalExpression(LogicalExpression node) {
-    throw new UnimplementedError("visitLogicalExpression");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitNot(Not node) {
-    throw new UnimplementedError("visitNot");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitConstructorInvocation(ConstructorInvocation node) {
-    throw new UnimplementedError("visitConstructorInvocation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
-    throw new UnimplementedError("visitStaticInvocation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
-    throw new UnimplementedError("visitSuperMethodInvocation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    throw new UnimplementedError("visitDirectMethodInvocation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    throw new UnimplementedError("visitMethodInvocation");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitStaticSet(StaticSet node) {
-    throw new UnimplementedError("visitStaticSet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitStaticGet(StaticGet node) {
-    throw new UnimplementedError("visitStaticGet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitSuperPropertySet(SuperPropertySet node) {
-    throw new UnimplementedError("visitSuperPropertySet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
-    throw new UnimplementedError("visitSuperPropertyGet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitDirectPropertySet(DirectPropertySet node) {
-    throw new UnimplementedError("visitDirectPropertySet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitDirectPropertyGet(DirectPropertyGet node) {
-    throw new UnimplementedError("visitDirectPropertyGet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitPropertySet(PropertySet node) {
-    throw new UnimplementedError("visitPropertySet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitPropertyGet(PropertyGet node) {
-    throw new UnimplementedError("visitPropertyGet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitVariableSet(VariableSet node) {
-    throw new UnimplementedError("visitVariableSet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitVariableGet(VariableGet node) {
-    throw new UnimplementedError("visitVariableGet");
+    makeExpressionRoundTrip(node);
   }
 
   @override
   void visitInvalidExpression(InvalidExpression node) {
-    throw new UnimplementedError("visitInvalidExpression");
+    makeExpressionRoundTrip(node);
   }
 }
