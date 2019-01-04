@@ -84,6 +84,10 @@
 
         * `--new-deferred-split`: enables the new algorithm.
 
+#### dartdoc
+
+* dartdoc default styles now work much better on mobile.  Simple browsing
+  and searching of API docs now work in many cases.
 
 #### Pub
 
