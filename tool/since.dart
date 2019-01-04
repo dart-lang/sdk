@@ -9,7 +9,7 @@ import 'package:yaml/yaml.dart';
 import 'crawl.dart';
 
 main() async {
-  // Print for caching in since.yaml.
+  // Uncomment to (re)generate since.yaml contents.
 //  for (var lint in registeredLints) {
 //    var since = await findSinceLinter(lint);
 //    if (since != null) {
