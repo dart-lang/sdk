@@ -283,7 +283,158 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  void writeProcedureNodeList(List<Procedure> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeProcedureNode(node);
+    }
+  }
+
+  void writeFieldNodeList(List<Field> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeFieldNode(node);
+    }
+  }
+
+  void writeClassNodeList(List<Class> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeClassNode(node);
+    }
+  }
+
+  void writeConstructorNodeList(List<Constructor> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeConstructorNode(node);
+    }
+  }
+
+  void writeRedirectingFactoryConstructorNodeList(
+      List<RedirectingFactoryConstructor> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeRedirectingFactoryConstructorNode(node);
+    }
+  }
+
+  void writeSwitchCaseNodeList(List<SwitchCase> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeSwitchCaseNode(node);
+    }
+  }
+
+  void writeCatchNodeList(List<Catch> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeCatchNode(node);
+    }
+  }
+
+  void writeTypedefNodeList(List<Typedef> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeTypedefNode(node);
+    }
+  }
+
   void writeNode(Node node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeFunctionNode(FunctionNode node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeArgumentsNode(Arguments node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeLibraryNode(Library node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeProcedureNode(Procedure node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeFieldNode(Field node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeClassNode(Class node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeConstructorNode(Constructor node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeRedirectingFactoryConstructorNode(
+      RedirectingFactoryConstructor node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeSwitchCaseNode(SwitchCase node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeCatchNode(Catch node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeTypedefNode(Typedef node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -296,6 +447,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeByte(Tag.Something);
       writeNode(node);
+    }
+  }
+
+  void writeOptionalFunctionNode(FunctionNode node) {
+    if (node == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeFunctionNode(node);
     }
   }
 
@@ -501,7 +661,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// Write all of some of the libraries of the [component].
   void writeLibraries(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
-      writeNode(component.libraries[i]);
+      writeLibraryNode(component.libraries[i]);
     }
   }
 
@@ -727,13 +887,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraryParts(node);
     leaveScope(memberScope: true);
 
-    writeNodeList(node.typedefs);
+    writeTypedefNodeList(node.typedefs);
     classOffsets = new List<int>();
-    writeNodeList(node.classes);
+    writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
-    writeNodeList(node.fields);
+    writeFieldNodeList(node.fields);
     procedureOffsets = new List<int>();
-    writeNodeList(node.procedures);
+    writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
     // Fixed-size ints at the end used as an index.
@@ -874,12 +1034,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.supertype);
     writeOptionalNode(node.mixedInType);
     writeNodeList(node.implementedTypes);
-    writeNodeList(node.fields);
-    writeNodeList(node.constructors);
+    writeFieldNodeList(node.fields);
+    writeConstructorNodeList(node.constructors);
     procedureOffsets = <int>[];
-    writeNodeList(node.procedures);
+    writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
-    writeNodeList(node.redirectingFactoryConstructors);
+    writeRedirectingFactoryConstructorNodeList(
+        node.redirectingFactoryConstructors);
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
@@ -911,7 +1072,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
-    writeNode(node.function);
+    writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= new VariableIndexer();
     _variableIndexer.restoreScope(node.function.positionalParameters.length +
@@ -948,7 +1109,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeAnnotationList(node.annotations);
     writeOptionalReference(node.forwardingStubSuperTargetReference);
     writeOptionalReference(node.forwardingStubInterfaceTargetReference);
-    writeOptionalNode(node.function);
+    writeOptionalFunctionNode(node.function);
     leaveScope(memberScope: true);
 
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
@@ -1027,7 +1188,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1036,7 +1197,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1197,7 +1358,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
     writeNullAllowedReference(node.interfaceTargetReference);
   }
 
@@ -1206,7 +1367,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SuperMethodInvocation);
     writeOffset(node.fileOffset);
     writeName(node.name);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
     writeNullAllowedReference(node.interfaceTargetReference);
   }
 
@@ -1216,7 +1377,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeNonNullReference(node.targetReference);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1224,7 +1385,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.isConst ? Tag.ConstStaticInvocation : Tag.StaticInvocation);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1234,7 +1395,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         : Tag.ConstructorInvocation);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
-    writeNode(node.arguments);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1431,7 +1592,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionExpression(FunctionExpression node) {
     writeByte(Tag.FunctionExpression);
     writeOffset(node.fileOffset);
-    writeNode(node.function);
+    writeFunctionNode(node.function);
   }
 
   @override
@@ -1584,7 +1745,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SwitchStatement);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    writeNodeList(node.cases);
+    writeSwitchCaseNodeList(node.cases);
     _switchCaseIndexer.exit(node);
   }
 
@@ -1634,7 +1795,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.body);
     bool needsStackTrace = node.catches.any((Catch c) => c.stackTrace != null);
     writeByte(_encodeTryCatchFlags(needsStackTrace, node.isSynthetic));
-    writeNodeList(node.catches);
+    writeCatchNodeList(node.catches);
   }
 
   @override
@@ -1707,7 +1868,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
-    writeNode(node.function);
+    writeFunctionNode(node.function);
   }
 
   @override
