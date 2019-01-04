@@ -102,6 +102,6 @@ main() {
         "main",
         "dwarf_stack_trace_test.dart:23",
         "main", // dispatcher
-        "dwarf_stack_trace_test.dart:20"
+        "dwarf_stack_trace_test.dart:?"
       ]));
 }

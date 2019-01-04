@@ -98,7 +98,6 @@ io/compile_all_test: Pass
 io/namespace_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-dwarf_stack_trace_test: RuntimeError
 io/compile_all_test: Skip # We do not support --compile-all for precompilation
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
