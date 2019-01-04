@@ -109,6 +109,8 @@ import 'redirecting_factory_body.dart'
         getRedirectionTarget,
         isRedirectingFactory;
 
+import 'transform_set_literals.dart' show SetLiteralTransformer;
+
 import 'type_algorithms.dart' show calculateBounds;
 
 import 'kernel_api.dart';
@@ -201,6 +203,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   bool inCatchBlock = false;
 
   int functionNestingLevel = 0;
+
+  // Set by type inference when a set literal is encountered that needs to be
+  // transformed because the backend target does not support set literals.
+  bool transformSetLiterals = false;
 
   Statement problemInLoopOrSwitch;
 
@@ -547,6 +553,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           field.initializer = initializer;
           _typeInferrer?.inferFieldInitializer(
               this, field.builtType, initializer);
+
+          if (transformSetLiterals) {
+            library.loader.setLiteralTransformer ??=
+                new SetLiteralTransformer(library.loader);
+            field.target.accept(library.loader.setLiteralTransformer);
+          }
         }
       }
     }
@@ -735,6 +747,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     _typeInferrer?.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
+
+    if (transformSetLiterals) {
+      library.loader.setLiteralTransformer ??=
+          new SetLiteralTransformer(library.loader);
+      body.accept(library.loader.setLiteralTransformer);
+    }
 
     // For async, async*, and sync* functions with declared return types, we
     // need to determine whether those types are valid.

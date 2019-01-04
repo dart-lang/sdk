@@ -1114,6 +1114,12 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
+
+    KernelLibraryBuilder library = inferrer.library;
+    if (library != null &&
+        !library.loader.target.backendTarget.supportsSetLiterals) {
+      inferrer.helper.transformSetLiterals = true;
+    }
   }
 
   void visitStaticAssignmentJudgment(

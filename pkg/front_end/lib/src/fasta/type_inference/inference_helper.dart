@@ -13,6 +13,8 @@ abstract class InferenceHelper {
 
   Uri get uri;
 
+  set transformSetLiterals(bool value);
+
   Expression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage> context, bool suppressMessage});
 

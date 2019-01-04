@@ -89,6 +89,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
+import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
+
 import '../loader.dart' show Loader, untranslatableUriScheme;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
@@ -138,6 +140,8 @@ class SourceLoader<L> extends Loader<L> {
   InterfaceResolver interfaceResolver;
 
   Instrumentation instrumentation;
+
+  SetLiteralTransformer setLiteralTransformer;
 
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
       : super(target);
