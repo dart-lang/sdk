@@ -12,6 +12,8 @@ import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
@@ -25,6 +27,9 @@ import 'compiler_state.dart' show InitializedCompilerState;
 export '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, parseExperimentalFlag;
 
 export '../api_prototype/kernel_generator.dart' show kernelForComponent;
 
@@ -59,7 +64,8 @@ Future<InitializedCompilerState> initializeCompiler(
     Uri librariesSpecificationUri,
     List<Uri> inputSummaries,
     Target target,
-    {FileSystem fileSystem}) async {
+    {FileSystem fileSystem,
+    Map<ExperimentalFlag, bool> experiments}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
   bool listEqual(List<Uri> a, List<Uri> b) {
     if (a.length != b.length) return false;
@@ -69,11 +75,21 @@ Future<InitializedCompilerState> initializeCompiler(
     return true;
   }
 
+  bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
+    if (a == null || b == null) return a == b;
+    if (a.length != b.length) return false;
+    for (var flag in a.keys) {
+      if (!b.containsKey(flag) || a[flag] != b[flag]) return false;
+    }
+    return true;
+  }
+
   if (oldState != null &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      listEqual(oldState.options.inputSummaries, inputSummaries)) {
+      listEqual(oldState.options.inputSummaries, inputSummaries) &&
+      mapEqual(oldState.options.experimentalFlags, experiments)) {
     // Reuse old state.
 
     // These libraries are marked external when compiling. If not un-marking
@@ -96,6 +112,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance;
+  if (experiments != null) options.experimentalFlags = experiments;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

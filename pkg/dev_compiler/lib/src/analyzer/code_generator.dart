@@ -5727,8 +5727,21 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.Expression visitSetLiteral(SetLiteral node) =>
-      throw new UnsupportedError('literal sets are not yet supported');
+  JS.Expression visitSetLiteral(SetLiteral node) {
+    var type = node.staticType as InterfaceType;
+    if (!node.isConst) {
+      var setType = _emitType(type);
+      if (node.elements.isEmpty) {
+        return js.call('#.new()', [setType]);
+      }
+      return js
+          .call('#.from([#])', [setType, _visitExpressionList(node.elements)]);
+    }
+    return _cacheConst(() => runtimeCall('constSet(#, [#])', [
+          _emitType((node.staticType as InterfaceType).typeArguments[0]),
+          _visitExpressionList(node.elements)
+        ]));
+  }
 
   JS.Expression _emitConstList(
       DartType elementType, List<JS.Expression> elements) {

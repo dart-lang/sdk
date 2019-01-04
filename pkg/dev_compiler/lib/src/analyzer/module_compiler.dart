@@ -68,7 +68,6 @@ JSModuleFile compileWithAnalyzer(
     }
     explicitSources.add(sourceUri);
   }
-
   var driver = compilerDriver.linkLibraries(explicitSources, analyzerOptions);
 
   for (var libraryUri in driver.libraryUris) {

@@ -572,9 +572,11 @@ const nullCheck = const _NullCheck();
 
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
+  var oldCompilerState = _compilerState;
   _compilerState = await fe.initializeCompiler(
-      _compilerState, sdkUri, packagesUri, null, [], DevCompilerTarget(),
-      fileSystem: _fileSystem);
+      oldCompilerState, sdkUri, packagesUri, null, [], DevCompilerTarget(),
+      fileSystem: _fileSystem, experiments: const {});
+  if (!identical(oldCompilerState, _compilerState)) inference = null;
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);

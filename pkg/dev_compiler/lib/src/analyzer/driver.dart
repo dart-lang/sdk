@@ -73,7 +73,9 @@ class CompilerAnalysisDriver {
   ExtensionTypeSet get extensionTypes => _extensionTypes;
 
   factory CompilerAnalysisDriver(AnalyzerOptions options,
-      {SummaryDataStore summaryData, List<String> summaryPaths = const []}) {
+      {SummaryDataStore summaryData,
+      List<String> summaryPaths = const [],
+      Map<String, bool> experiments = const {}}) {
     AnalysisEngine.instance.processRequiredPlugins();
 
     var resourceProvider = options.resourceProvider;
@@ -81,6 +83,10 @@ class CompilerAnalysisDriver {
 
     var analysisOptions =
         contextBuilder.getAnalysisOptions(options.analysisRoot);
+
+    (analysisOptions as AnalysisOptionsImpl).enabledExperiments =
+        experiments.entries.where((e) => e.value).map((e) => e.key).toList();
+
     var dartSdk = contextBuilder.findSdk(null, analysisOptions);
 
     // Read the summaries.

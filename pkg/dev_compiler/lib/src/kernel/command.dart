@@ -10,7 +10,7 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
@@ -177,6 +177,16 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
+  var experiments = <fe.ExperimentalFlag, bool>{};
+  for (var name in options.experiments.keys) {
+    var flag = fe.parseExperimentalFlag(name);
+    if (flag != null) {
+      experiments[flag] = options.experiments[name];
+    } else {
+      stderr.writeln("Unknown experiment flag '$name'.");
+    }
+  }
+
   var oldCompilerState = compilerState;
   compilerState = await fe.initializeCompiler(
       oldCompilerState,
@@ -185,7 +195,8 @@ Future<CompilerResult> _compile(List<String> args,
       sourcePathToUri(librarySpecPath),
       summaryModules.keys.toList(),
       DevCompilerTarget(),
-      fileSystem: fileSystem);
+      fileSystem: fileSystem,
+      experiments: experiments);
 
   var output = argResults['out'] as String;
   // TODO(jmesserly): is there a cleaner way to do this?

@@ -183,6 +183,7 @@ class ProgramCompiler extends Object
   final Class privateSymbolClass;
   final Class linkedHashMapImplClass;
   final Class identityHashMapImplClass;
+  final Class linkedHashSetClass;
   final Class linkedHashSetImplClass;
   final Class identityHashSetImplClass;
   final Class syncIterableClass;
@@ -222,6 +223,7 @@ class ProgramCompiler extends Object
         linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
         identityHashMapImplClass =
             sdk.getClass('dart:_js_helper', 'IdentityMap'),
+        linkedHashSetClass = sdk.getClass('dart:collection', 'LinkedHashSet'),
         linkedHashSetImplClass = sdk.getClass('dart:collection', '_HashSet'),
         identityHashSetImplClass =
             sdk.getClass('dart:collection', '_IdentityHashSet'),
@@ -4887,7 +4889,19 @@ class ProgramCompiler extends Object
 
   @override
   visitSetLiteral(SetLiteral node) {
-    throw UnsupportedError("SetLiteral");
+    if (!node.isConst) {
+      var setType = visitInterfaceType(
+          InterfaceType(linkedHashSetClass, [node.typeArgument]));
+      if (node.expressions.isEmpty) {
+        return js.call('#.new()', [setType]);
+      }
+      return js.call(
+          '#.from([#])', [setType, _visitExpressionList(node.expressions)]);
+    }
+    return _cacheConst(() => runtimeCall('constSet(#, [#])', [
+          _emitType(node.typeArgument),
+          _visitExpressionList(node.expressions)
+        ]));
   }
 
   JS.Expression _emitConstList(
