@@ -1893,8 +1893,12 @@ abstract class InstanceState {
   BoolState logicalAnd(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
-    return BoolState.from(
-        convertToBool().value & rightOperand.convertToBool().value);
+    bool leftValue = convertToBool().value;
+    bool rightValue = rightOperand.convertToBool().value;
+    if (leftValue == null || rightValue == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(leftValue & rightValue);
   }
 
   /**
@@ -1918,8 +1922,12 @@ abstract class InstanceState {
   BoolState logicalOr(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
-    return BoolState.from(
-        convertToBool().value | rightOperand.convertToBool().value);
+    bool leftValue = convertToBool().value;
+    bool rightValue = rightOperand.convertToBool().value;
+    if (leftValue == null || rightValue == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(leftValue | rightValue);
   }
 
   /**
@@ -1946,8 +1954,12 @@ abstract class InstanceState {
   BoolState logicalXor(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
-    return BoolState.from(
-        convertToBool().value ^ rightOperand.convertToBool().value);
+    bool leftValue = convertToBool().value;
+    bool rightValue = rightOperand.convertToBool().value;
+    if (leftValue == null || rightValue == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(leftValue ^ rightValue);
   }
 
   /**

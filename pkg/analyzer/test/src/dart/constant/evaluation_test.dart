@@ -112,9 +112,40 @@ class A {}
     expect(result.type, typeProvider.nullType);
   }
 
-  test_visitBinaryExpression_and_bool() async {
+  test_visitBinaryExpression_and_bool_known_known() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const c = false & true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_and_bool_known_unknown() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const b = bool.fromEnvironment('y');
+const c = false & b;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_and_bool_unknown_known() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = bool.fromEnvironment('x');
+const c = a & true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_and_bool_unknown_unknown() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = bool.fromEnvironment('x');
+const b = bool.fromEnvironment('y');
+const c = a & b;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
         experiments: [EnableString.constant_update_2018]);
@@ -139,9 +170,40 @@ const c = 3 & false;
         experiments: [EnableString.constant_update_2018]);
   }
 
-  test_visitBinaryExpression_or_bool() async {
+  test_visitBinaryExpression_or_bool_known_known() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const c = false | true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_or_bool_known_unknown() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const b = bool.fromEnvironment('y');
+const c = false | b;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_or_bool_unknown_known() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = bool.fromEnvironment('x');
+const c = a | true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_or_bool_unknown_unknown() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = bool.fromEnvironment('x');
+const b = bool.fromEnvironment('y');
+const c = a | b;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
         experiments: [EnableString.constant_update_2018]);
@@ -263,9 +325,40 @@ const c = null ?? null;
     expect(result.isNull, isTrue);
   }
 
-  test_visitBinaryExpression_xor_bool() async {
+  test_visitBinaryExpression_xor_bool_known_known() async {
     CompilationUnit compilationUnit = await resolveSource('''
 const c = false ^ true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_xor_bool_known_unknown() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const b = bool.fromEnvironment('y');
+const c = false ^ b;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_xor_bool_unknown_known() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = bool.fromEnvironment('x');
+const c = a ^ true;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
+        experiments: [EnableString.constant_update_2018]);
+    expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_xor_bool_unknown_unknown() async {
+    CompilationUnit compilationUnit = await resolveSource('''
+const a = bool.fromEnvironment('x');
+const b = bool.fromEnvironment('y');
+const c = a ^ b;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'c',
         experiments: [EnableString.constant_update_2018]);
