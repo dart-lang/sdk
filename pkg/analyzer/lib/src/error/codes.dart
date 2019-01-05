@@ -3661,6 +3661,14 @@ class StaticWarningCode extends ErrorCode {
       'EQUAL_KEYS_IN_MAP', "Two keys in a map literal can't be equal.");
 
   /**
+   * It is a compile-time error if any two of the values in a constant set are
+   * equal according to `==`.
+   */
+  static const StaticWarningCode EQUAL_VALUES_IN_CONST_SET =
+      const StaticWarningCode('EQUAL_VALUES_IN_CONST_SET',
+          "Two values in a constant set can't be equal.");
+
+  /**
    * 14.2 Exports: It is a static warning to export two different libraries with
    * the same name.
    *

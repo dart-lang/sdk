@@ -585,6 +585,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
   StaticWarningCode.EQUAL_KEYS_IN_MAP,
+  StaticWarningCode.EQUAL_VALUES_IN_CONST_SET,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,

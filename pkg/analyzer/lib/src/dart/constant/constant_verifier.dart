@@ -180,10 +180,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (keyResult != null) {
           _reportErrorIfFromDeferredLibrary(key,
               CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
-          if (keys.contains(keyResult)) {
+          if (!keys.add(keyResult)) {
             invalidKeys.add(key);
-          } else {
-            keys.add(keyResult);
           }
           DartType type = keyResult.type;
           if (_implementsEqualsWhenNotAllowed(type)) {
@@ -203,10 +201,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         DartObjectImpl result = key
             .accept(new ConstantVisitor(_evaluationEngine, subErrorReporter));
         if (result != null) {
-          if (keys.contains(result)) {
+          if (!keys.add(result)) {
             invalidKeys.add(key);
-          } else {
-            keys.add(result);
           }
         } else {
           reportEqualKeys = false;
@@ -214,8 +210,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (reportEqualKeys) {
-      int length = invalidKeys.length;
-      for (int i = 0; i < length; i++) {
+      for (int i = 0; i < invalidKeys.length; i++) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
       }
@@ -231,16 +226,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSetLiteral(SetLiteral node) {
     super.visitSetLiteral(node);
+    HashSet<DartObject> elements = new HashSet<DartObject>();
+    List<Expression> invalidElements = new List<Expression>();
     if (node.isConst) {
-      DartObjectImpl result;
       for (Expression element in node.elements) {
-        result =
+        DartObjectImpl result =
             _validate(element, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
         if (result != null) {
           _reportErrorIfFromDeferredLibrary(
               element,
               CompileTimeErrorCode
                   .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY);
+          if (!elements.add(result)) {
+            invalidElements.add(element);
+          }
           DartType type = result.type;
           if (_implementsEqualsWhenNotAllowed(type)) {
             _errorReporter.reportErrorForNode(
@@ -249,6 +248,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                 [type.displayName]);
           }
         }
+      }
+      for (var invalidElement in invalidElements) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.EQUAL_VALUES_IN_CONST_SET, invalidElement);
       }
     }
   }

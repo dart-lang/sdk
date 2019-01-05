@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
@@ -13,8 +14,51 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(EqualValuesInConstSetTest);
     defineReflectiveTests(StaticWarningCodeTest);
   });
+}
+
+@reflectiveTest
+class EqualValuesInConstSetTest extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments => [EnableString.set_literals];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_simpleValues() async {
+    Source source = addSource('var s = const {0, 1, 0};');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EQUAL_VALUES_IN_CONST_SET]);
+    verify([source]);
+  }
+
+  test_valuesWithEqualTypeParams() async {
+    Source source = addSource(r'''
+class A<T> {
+  const A();
+}
+var s = const {A<int>(), A<int>()};
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EQUAL_VALUES_IN_CONST_SET]);
+    verify([source]);
+  }
+
+  test_valuesWithUnequalTypeParams() async {
+    // No error should be produced because A<int> and A<num> are different
+    // types.
+    Source source = addSource(r'''
+class A<T> {
+  const A();
+}
+const s = {A<int>(), A<num>()};
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
 }
 
 @reflectiveTest
