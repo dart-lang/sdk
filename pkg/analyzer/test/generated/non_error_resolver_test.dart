@@ -6094,7 +6094,7 @@ f() sync* {
     verify([source]);
   }
 
-  Future<Null> _check_wrongNumberOfParametersForOperator(
+  Future<void> _check_wrongNumberOfParametersForOperator(
       String name, String parameters) async {
     Source source = addSource("""
 class A {
@@ -6105,7 +6105,7 @@ class A {
     verify([source]);
   }
 
-  Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
+  Future<void> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "a");
   }
 }

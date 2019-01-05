@@ -277,7 +277,7 @@ const V = 0;
     });
   }
 
-  Future<Null> _validateAnnotation(
+  Future<void> _validateAnnotation(
       String annotationPrefix,
       String annotationText,
       validator(SimpleIdentifier name1, SimpleIdentifier name2,

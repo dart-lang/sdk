@@ -6486,7 +6486,7 @@ f() {
     verify([source]);
   }
 
-  Future<Null> _check_constEvalThrowsException_binary_null(
+  Future<void> _check_constEvalThrowsException_binary_null(
       String expr, bool resolved) async {
     Source source = addSource("const C = $expr;");
     await computeAnalysisResult(source);
@@ -6496,7 +6496,7 @@ f() {
     }
   }
 
-  Future<Null> _check_constEvalTypeBool_withParameter_binary(
+  Future<void> _check_constEvalTypeBool_withParameter_binary(
       String expr) async {
     Source source = addSource('''
 class A {
@@ -6511,7 +6511,7 @@ class A {
     verify([source]);
   }
 
-  Future<Null> _check_constEvalTypeBoolOrInt_withParameter_binary(
+  Future<void> _check_constEvalTypeBoolOrInt_withParameter_binary(
       String expr) async {
     Source source = addSource('''
 class A {
@@ -6526,7 +6526,7 @@ class A {
     verify([source]);
   }
 
-  Future<Null> _check_constEvalTypeInt_withParameter_binary(String expr) async {
+  Future<void> _check_constEvalTypeInt_withParameter_binary(String expr) async {
     Source source = addSource('''
 class A {
   final a;
@@ -6540,7 +6540,7 @@ class A {
     verify([source]);
   }
 
-  Future<Null> _check_constEvalTypeNum_withParameter_binary(String expr) async {
+  Future<void> _check_constEvalTypeNum_withParameter_binary(String expr) async {
     Source source = addSource('''
 class A {
   final a;
@@ -6554,7 +6554,7 @@ class A {
     verify([source]);
   }
 
-  Future<Null> _check_wrongNumberOfParametersForOperator(
+  Future<void> _check_wrongNumberOfParametersForOperator(
       String name, String parameters) async {
     Source source = addSource('''
 class A {
@@ -6566,12 +6566,12 @@ class A {
     verify([source]);
   }
 
-  Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
+  Future<void> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "");
     await _check_wrongNumberOfParametersForOperator(name, "a, b");
   }
 
-  Future<Null> _privateCollisionInMixinApplicationTest(String testCode) async {
+  Future<void> _privateCollisionInMixinApplicationTest(String testCode) async {
     addNamedSource('/lib1.dart', '''
 class A {
   int _x;

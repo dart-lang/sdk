@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1061,7 +1061,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   @override
-  Future<Null> performWork() async {
+  Future<void> performWork() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (_fileTracker.verifyChangedFilesIfNeeded()) {
@@ -1931,7 +1931,7 @@ abstract class AnalysisDriverGeneric {
   /**
    * Perform a single chunk of work and produce [results].
    */
-  Future<Null> performWork();
+  Future<void> performWork();
 }
 
 /**
@@ -2063,13 +2063,13 @@ class AnalysisDriverScheduler {
    * If the status is currently idle, the returned future will be signaled
    * immediately.
    */
-  Future<Null> waitForIdle() => _statusSupport.waitForIdle();
+  Future<void> waitForIdle() => _statusSupport.waitForIdle();
 
   /**
    * Run infinitely analysis cycle, selecting the drivers with the highest
    * priority first.
    */
-  Future<Null> _run() async {
+  Future<void> _run() async {
     // Give other microtasks the time to run before doing the analysis cycle.
     await null;
     Stopwatch timer = new Stopwatch()..start();

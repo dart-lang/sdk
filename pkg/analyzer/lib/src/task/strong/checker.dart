@@ -1556,7 +1556,7 @@ class _OverrideChecker {
   }
 }
 
-class _TopLevelInitializerValidator extends RecursiveAstVisitor<Null> {
+class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   final CodeChecker _codeChecker;
   final String _name;
 

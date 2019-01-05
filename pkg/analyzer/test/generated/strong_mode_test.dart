@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -4430,7 +4430,7 @@ main() {
     expectInitializerType('foo', 'int');
   }
 
-  Future<Null> _objectMethodOnFunctions_helper2(String code) async {
+  Future<void> _objectMethodOnFunctions_helper2(String code) async {
     await resolveTestUnit(code);
     expectIdentifierType('t0', "String");
     expectIdentifierType('t1', "() → String");

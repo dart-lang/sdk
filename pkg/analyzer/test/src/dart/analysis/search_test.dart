@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2016,7 +2016,7 @@ class NoMatchABCDEF {}
     return ElementLocator.locate(node);
   }
 
-  Future<Null> _resolveTestUnit(String code, {bool addToDriver: true}) async {
+  Future<void> _resolveTestUnit(String code, {bool addToDriver: true}) async {
     if (addToDriver) {
       addTestFile(code);
     } else {
@@ -2031,7 +2031,7 @@ class NoMatchABCDEF {}
     }
   }
 
-  Future<Null> _verifyNameReferences(
+  Future<void> _verifyNameReferences(
       String name, List<ExpectedResult> expectedMatches) async {
     var searchedFiles = new SearchedFiles();
     List<SearchResult> results =

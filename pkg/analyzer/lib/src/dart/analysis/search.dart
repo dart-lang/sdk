@@ -479,7 +479,7 @@ class Search {
     return results;
   }
 
-  Future<Null> _addResults(
+  Future<void> _addResults(
       List<SearchResult> results,
       Element element,
       SearchedFiles searchedFiles,
@@ -523,7 +523,7 @@ class Search {
   /**
    * Add results for [element] usage in the given [file].
    */
-  Future<Null> _addResultsInFile(
+  Future<void> _addResultsInFile(
       List<SearchResult> results,
       Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,

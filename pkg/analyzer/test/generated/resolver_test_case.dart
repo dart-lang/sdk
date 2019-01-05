@@ -456,7 +456,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    * Like [assertErrors], but takes a string of source code.
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
-  Future<Null> assertErrorsInCode(String code, List<ErrorCode> errors,
+  Future<void> assertErrorsInCode(String code, List<ErrorCode> errors,
       {bool verify: true}) async {
     Source source = addSource(code);
     await computeAnalysisResult(source);
@@ -471,7 +471,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    *
    * Like [assertErrors], but takes a string of source code.
    */
-  Future<Null> assertErrorsInUnverifiedCode(
+  Future<void> assertErrorsInUnverifiedCode(
       String code, List<ErrorCode> errors) async {
     Source source = addSource(code);
     await computeAnalysisResult(source);
@@ -493,7 +493,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    * Asserts that [code] has no errors or warnings.
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
-  Future<Null> assertNoErrorsInCode(String code) async {
+  Future<void> assertNoErrorsInCode(String code) async {
     Source source = addSource(code);
     await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -773,7 +773,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     return null;
   }
 
-  Future<Null> resolveWithAndWithoutExperimental(
+  Future<void> resolveWithAndWithoutExperimental(
       List<String> strSources,
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) async {
@@ -795,7 +795,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  Future<Null> resolveWithErrors(
+  Future<void> resolveWithErrors(
       List<String> strSources, List<ErrorCode> codes) async {
     Source source = await resolveSources(strSources);
     assertErrors(source, codes);
@@ -926,7 +926,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
         testUnit, testCode, search, (node) => node is SimpleIdentifier);
   }
 
-  Future<Null> resolveTestUnit(String code, {bool noErrors: true}) async {
+  Future<void> resolveTestUnit(String code, {bool noErrors: true}) async {
     testCode = code;
     testSource = addSource(testCode);
     TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);

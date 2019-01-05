@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -354,7 +354,7 @@ class C implements A, B {
     await checkFile(content);
   }
 
-  Future<Null> _assertErrorOnlyLeft(List<String> operators) async {
+  Future<void> _assertErrorOnlyLeft(List<String> operators) async {
     String code = 'var a = 1;\n';
     for (var i = 0; i < operators.length; i++) {
       String operator = operators[i];
