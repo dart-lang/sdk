@@ -78,6 +78,13 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
+    IntegerLiteral integer = super.visitIntegerLiteral(node);
+    integer.staticType = node.staticType;
+    return integer;
+  }
+
+  @override
   ListLiteral visitListLiteral(ListLiteral node) {
     ListLiteral literal = super.visitListLiteral(node);
     literal.staticType = node.staticType;

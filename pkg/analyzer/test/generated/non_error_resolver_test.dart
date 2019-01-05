@@ -50,12 +50,6 @@ class NonErrorResolverTest extends NonErrorResolverTestBase {
   }
 
   @override
-  @failingTest
-  test_intLiteralInDoubleContext_const_exact() {
-    return super.test_intLiteralInDoubleContext_const_exact();
-  }
-
-  @override
   @failingTest // Fails with the old task model
   test_issue_32394() {
     return super.test_issue_32394();
@@ -2626,28 +2620,6 @@ class C {
   const C(double x)
     : assert((x + 3) / 2 == 1.5)
     , assert(x == 0.0);
-}
-@C(0)
-@C(-0)
-@C(0x0)
-@C(-0x0)
-void main() {
-  const C(0);
-  const C(-0);
-  const C(0x0);
-  const C(-0x0);
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_intLiteralInDoubleContext_const_exact() async {
-    Source source = addSource(r'''
-class C {
-  const C(double x)
-    : assert("$x" == "0.0")
-    , assert(identical(x, 0.0));
 }
 @C(0)
 @C(-0)
