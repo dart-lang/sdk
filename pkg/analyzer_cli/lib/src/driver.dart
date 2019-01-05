@@ -165,9 +165,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   }
 
   @override
-  Future<Null> start(List<String> args, {SendPort sendPort}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<void> start(List<String> args, {SendPort sendPort}) async {
     if (analysisDriver != null) {
       throw new StateError("start() can only be called once");
     }

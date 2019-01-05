@@ -15,7 +15,7 @@ final String testDirectory = pathos.dirname(
 
 /// Recursively copy the specified [src] directory (or file)
 /// to the specified destination path.
-Future<Null> recursiveCopy(FileSystemEntity src, String dstPath) async {
+Future<void> recursiveCopy(FileSystemEntity src, String dstPath) async {
   if (src is Directory) {
     await (new Directory(dstPath)).create(recursive: true);
     for (FileSystemEntity entity in src.listSync()) {

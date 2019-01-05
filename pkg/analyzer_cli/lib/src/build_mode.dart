@@ -77,7 +77,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   /**
    * Performs analysis with given [options].
    */
-  Future<Null> analyze(
+  Future<void> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -147,7 +147,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    * Run the worker loop.
    */
   @override
-  Future<Null> run() async {
+  Future<void> run() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     errorSink = errorBuffer;
@@ -472,7 +472,7 @@ class BuildMode with HasContextMixin {
    *
    * Otherwise compute it and store into the [uriToUnit] and [assembler].
    */
-  Future<Null> _prepareUnlinkedUnit(String absoluteUri) async {
+  Future<void> _prepareUnlinkedUnit(String absoluteUri) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Maybe an input package contains the source.
@@ -497,7 +497,7 @@ class BuildMode with HasContextMixin {
    * Print errors for all explicit sources.  If [outputPath] is supplied, output
    * is sent to a new file at that path.
    */
-  Future<Null> _printErrors({String outputPath}) async {
+  Future<void> _printErrors({String outputPath}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     await logger.runAsync('Compute and print analysis errors', () async {
