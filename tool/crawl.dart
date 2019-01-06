@@ -6,9 +6,11 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:github/server.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 const _allPathSuffix = '/example/all.yaml';
@@ -48,6 +50,33 @@ Future<List<String>> get stagehandRules async =>
 Future<int> get latestMinor async =>
     _latestMinor ??= await _readLatestMinorVersion();
 
+List<String> _sdkTags;
+
+Future<List<String>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
+
+/// We don't care about SDKs previous to this bottom.
+final Version bottomDartSdk = new Version(2, 0, 0);
+
+Future<List<String>> _fetchSdkTags() {
+  var github = createGitHubClient();
+  var slug = RepositorySlug('dart-lang', 'sdk');
+
+  return github.repositories.listTags(slug).map((t) => t.name).where((t) {
+    // Filter on numeric release tags.
+    if (!t.startsWith(new RegExp(r'\d+'))) {
+      return false;
+    }
+
+    // Filter on botton.
+    try {
+      var version = Version.parse(t);
+      return version.compareTo(bottomDartSdk) >= 0;
+    } on FormatException {
+      return false;
+    }
+  }).toList();
+}
+
 Iterable<LintRule> _registeredLints;
 
 Iterable<LintRule> get registeredLints {
@@ -58,10 +87,27 @@ Iterable<LintRule> get registeredLints {
   return _registeredLints;
 }
 
-Future<String> findSinceLinter(LintRule lint) async {
+Future<String> findSinceDartSdk(String linterVersion) async =>
+    await dartSdkForLinter(linterVersion);
+
+Future<String> dartSdkForLinter(String version) async {
+  var sdkVersions = <String>[];
+  var sdks = await sdkTags;
+  for (var sdk in sdks) {
+    var linterVersion = await linterForDartSdk(sdk);
+    if (linterVersion == version) {
+      sdkVersions.add(sdk);
+    }
+  }
+
+  sdkVersions.sort();
+  return sdkVersions.isNotEmpty ? sdkVersions.first : null;
+}
+
+Future<String> findSinceLinter(String lint) async {
   // History recorded in `all.yaml` starts in minor 31.
   var rules_31 = await rulesForVersion(31);
-  if (rules_31.contains(lint.name)) {
+  if (rules_31.contains(lint)) {
     var version = await _crawlForVersion(lint);
     if (version != null) {
       return version;
@@ -72,7 +118,7 @@ Future<String> findSinceLinter(LintRule lint) async {
   for (var minor = 31; minor <= latest; ++minor) {
     var rules = await rulesForVersion(minor);
     if (rules != null) {
-      if (rules.contains(lint.name)) {
+      if (rules.contains(lint)) {
         return '0.1.$minor';
       }
     }
@@ -87,12 +133,12 @@ Future<int> _readLatestMinorVersion() async {
   return int.parse(pubspec['version'].split('.').last);
 }
 
-Future<String> _crawlForVersion(LintRule lint) async {
+Future<String> _crawlForVersion(String lint) async {
   var client = new http.Client();
   for (int minor = 1; minor < 31; ++minor) {
     var version = '0.1.$minor';
-    var req = await client
-        .get('$_rulePathPrefix/$version/lib/src/rules/${lint.name}.dart');
+    var req =
+        await client.get('$_rulePathPrefix/$version/lib/src/rules/$lint.dart');
     if (req.statusCode == 200) {
       return version;
     }
@@ -109,6 +155,36 @@ Future<List<String>> rulesForVersion(int minor) async {
   return null;
 }
 
+Map<String, String> _dartSdkToLinterMap = <String, String>{};
+
+Future<String> linterForDartSdk(String sdk) async =>
+    _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
+
+Future<String> _fetchLinterForVersion(String version) async {
+  var deps = await _fetchDEPSforVersion(version);
+  if (deps != null) {
+    for (var line in deps.split('\n')) {
+      if (line.trim().startsWith('"lint')) {
+        // "linter_tag": "0.1.59",
+        var split = line.trim().split('"linter_tag":');
+        if (split.length == 2) {
+          //  "0.1.59",
+          return split[1].split('"')[1];
+        }
+      }
+    }
+  }
+  return null;
+}
+
+Future<String> _fetchDEPSforVersion(String version) async {
+  var client = new http.Client();
+  //https://raw.githubusercontent.com/dart-lang/sdk/2.1.0-dev.1.0/DEPS
+  var req = await client
+      .get('https://raw.githubusercontent.com/dart-lang/sdk/$version/DEPS');
+  return req.body;
+}
+
 Future<LintConfig> _fetchConfig(String url) async {
   var client = new http.Client();
   var req = await client.get(url);
@@ -117,6 +193,10 @@ Future<LintConfig> _fetchConfig(String url) async {
 
 Future<List<String>> _fetchRules(String optionsUrl) async {
   var config = await _fetchConfig(optionsUrl);
+  if (config == null) {
+    print('no config found for: $optionsUrl (SKIPPED)');
+    return <String>[];
+  }
   var rules = <String>[];
   for (var ruleConfig in config.ruleConfigs) {
     rules.add(ruleConfig.name);
