@@ -2897,40 +2897,48 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_splitVariableDeclaration() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    // prepare DartVariableStatement, should be part of Block
-    VariableDeclarationStatement statement =
-        node.thisOrAncestorOfType<VariableDeclarationStatement>();
-    if (statement != null && statement.parent is Block) {
-    } else {
-      _coverageMarker();
+    var variableList = node?.thisOrAncestorOfType<VariableDeclarationList>();
+
+    // Must be a local variable declaration.
+    if (variableList?.parent is! VariableDeclarationStatement) {
       return;
     }
-    // check that statement declares single variable
-    List<VariableDeclaration> variables = statement.variables.variables;
+    VariableDeclarationStatement statement = variableList.parent;
+
+    // Cannot be `const` or `final`.
+    var keywordKind = variableList.keyword?.keyword;
+    if (keywordKind == Keyword.CONST || keywordKind == Keyword.FINAL) {
+      return;
+    }
+
+    var variables = variableList.variables;
     if (variables.length != 1) {
-      _coverageMarker();
       return;
     }
-    VariableDeclaration variable = variables[0];
-    // prepare initializer
-    Expression initializer = variable.initializer;
-    if (initializer == null) {
-      _coverageMarker();
+
+    // The caret must be between the type and the variable name.
+    var variable = variables[0];
+    if (!range.startEnd(statement, variable.name).contains(selectionOffset)) {
       return;
     }
+
+    // The variable must have an initializer.
+    if (variable.initializer == null) {
+      return;
+    }
+
     var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // remove initializer value
-      builder.addDeletion(range.endStart(variable.name, statement.semicolon));
-      // add assignment statement
-      String indent = utils.getNodePrefix(statement);
-      String name = variable.name.name;
-      String initSrc = _getNodeText(initializer);
-      SourceRange assignRange = range.endLength(statement, 0);
-      builder.addSimpleReplacement(
-          assignRange, eol + indent + name + ' = ' + initSrc + ';');
+    await changeBuilder.addFileEdit(file, (builder) {
+      if (variableList.type == null) {
+        builder.addReplacement(range.token(variableList.keyword), (builder) {
+          var type = variable.declaredElement.type;
+          builder.writeType(type);
+        });
+      }
+
+      var indent = utils.getNodePrefix(statement);
+      var name = variable.name.name;
+      builder.addSimpleInsertion(variable.name.end, ';' + eol + indent + name);
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.SPLIT_VARIABLE_DECLARATION);

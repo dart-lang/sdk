@@ -19,6 +19,24 @@ class SplitVariableDeclarationTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
 
+  test_const() async {
+    await resolveTestUnit('''
+main() {
+  const v = 1;
+}
+''');
+    await assertNoAssistAt('v = 1');
+  }
+
+  test_final() async {
+    await resolveTestUnit('''
+main() {
+  final v = 1;
+}
+''');
+    await assertNoAssistAt('v = 1');
+  }
+
   test_notOneVariable() async {
     await resolveTestUnit('''
 main() {
@@ -36,7 +54,7 @@ main() {
 ''');
     await assertHasAssistAt('v =', '''
 main() {
-  var v;
+  int v;
   v = 1;
 }
 ''');
@@ -79,7 +97,7 @@ main() {
 ''');
     await assertHasAssistAt('var ', '''
 main() {
-  var v;
+  int v;
   v = 1;
 }
 ''');
