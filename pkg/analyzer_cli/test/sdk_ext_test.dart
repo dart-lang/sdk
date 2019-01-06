@@ -1,10 +1,8 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /// Test that sdk extensions are properly detected in various scenarios.
-library analyzer_cli.test.sdk_ext;
-
 import 'dart:io';
 
 import 'package:analyzer/src/dart/sdk/sdk.dart';
