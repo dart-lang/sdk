@@ -12,6 +12,8 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
 
+import 'since.dart';
+
 /// Generates lint rule docs for publishing to https://dart-lang.github.io/
 void main([List<String> args]) async {
   var parser = new ArgParser(allowTrailingOptions: true)
@@ -95,11 +97,17 @@ Future<void> fetchBadgeInfo() async {
   }
 }
 
+Future<void> fetchSinceInfo() async {
+  sinceInfo = await sinceMap;
+}
+
 Future<LintConfig> fetchConfig(String url) async {
   var client = new http.Client();
   var req = await client.get(url);
   return processAnalysisOptionsFile(req.body);
 }
+
+Map<String, SinceInfo> sinceInfo;
 
 Future<void> generateDocs(String dir) async {
   String outDir = dir;
@@ -124,6 +132,9 @@ Future<void> generateDocs(String dir) async {
 
   // Fetch info for lint group/style badge generation.
   await fetchBadgeInfo();
+
+  // Fetch since info.
+  await fetchSinceInfo();
 
   // Generate index.
   new Indexer(Registry.ruleRegistry).generate(outDir);
@@ -160,9 +171,10 @@ ${parser.usage}
 ''');
 }
 
-String qualify(LintRule r) =>
-    r.name.toString() +
-    (r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})');
+String qualify(LintRule r) => r.name.toString() + describeMaturity(r);
+
+String describeMaturity(LintRule r) =>
+    r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})';
 
 String toDescription(LintRule r) =>
     '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
@@ -203,6 +215,12 @@ class Generator {
 
   String get name => rule.name;
 
+  String get since {
+    var info = sinceInfo[name];
+    // todo (pq): consider a footnote explaining that since info is static and "unreleased" tags may be stale.
+    return '${info.sinceLinter}, Dart Sdk ${info.sinceDartSdk ?? "unreleased"}';
+  }
+
   generate([String filePath]) {
     var generated = _generate();
     if (filePath != null) {
@@ -235,6 +253,7 @@ class Generator {
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
             <p>Maturity: $maturityString</p>
+            <p style="padding-bottom: 10px;">Since: $since</p>
             ${getBadges(name)}
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
