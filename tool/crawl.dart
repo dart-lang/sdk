@@ -67,7 +67,7 @@ Future<List<String>> _fetchSdkTags() {
       return false;
     }
 
-    // Filter on botton.
+    // Filter on bottom.
     try {
       var version = Version.parse(t);
       return version.compareTo(bottomDartSdk) >= 0;
