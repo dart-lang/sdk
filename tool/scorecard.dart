@@ -40,12 +40,13 @@ void printAll(ScoreCard scorecard) {
 
 void printMarkdownTable(ScoreCard scorecard) {
   print(
-      '| name | since | fix | flutter user | flutter repo | pedantic | stagehand | status | bug refs |');
+      '| name | linter | dart sdk | fix | flutter user | flutter repo | pedantic | stagehand | status | bug refs |');
   print(
-      '| :--- | :--- | :---: | :---:| :---: | :---: | :---: | :---: | :--- |');
+      '| :--- | :--- | :--- | :---: | :---:| :---: | :---: | :---: | :---: | :--- |');
   scorecard.forEach((lint) {
     var sb = StringBuffer('| `${lint.name}` |');
     sb.write(' ${lint.since.sinceLinter} |');
+    sb.write(' ${lint.since.sinceDartSdk} |');
     sb.write('${lint.hasFix ? " $bulb" : ""} |');
     sb.write('${lint.ruleSets.contains('flutter') ? " $checkMark" : ""} |');
     sb.write(
