@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'command_line/test_all.dart' as command_line;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
+import 'diagnostics/test_all.dart' as diagnostics;
 import 'fasta/test_all.dart' as fasta;
 import 'lint/test_all.dart' as lint;
 import 'options/test_all.dart' as options;
@@ -22,6 +23,7 @@ main() {
     command_line.main();
     context.main();
     dart.main();
+    diagnostics.main();
     fasta.main();
     lint.main();
     options.main();

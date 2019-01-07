@@ -7,7 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -284,7 +284,7 @@ import 'package:meta/meta.dart';
                      part 'part1.dart';
                      @sealed class Foo {}
                      ''');
-    Source source2 = addNamedSource('/pkg1/lib/part1.dart', r'''
+    addNamedSource('/pkg1/lib/part1.dart', r'''
                      part of 'lib1.dart';
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
@@ -307,7 +307,7 @@ import 'package:meta/meta.dart';
                      import 'package:meta/meta.dart';
                      @sealed class Foo {}
                      ''');
-    Source source2 = addNamedSource('/pkg1/lib/src/lib2.dart', r'''
+    addNamedSource('/pkg1/lib/src/lib2.dart', r'''
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
                      class Bar4 = Bar1 with Foo;
@@ -329,7 +329,7 @@ import 'package:meta/meta.dart';
                      import 'package:meta/meta.dart';
                      @sealed class Foo {}
                      ''');
-    Source source2 = addNamedSource('/pkg1/test/test.dart', r'''
+    addNamedSource('/pkg1/test/test.dart', r'''
                      class Bar1 extends Foo {}
                      class Bar2 implements Foo {}
                      class Bar4 = Bar1 with Foo;
@@ -370,149 +370,6 @@ class _VisibleForTemplate {
 '''
       ],
     ]);
-  }
-
-  test_argumentTypeNotAssignable_functionType() async {
-    Source source = addSource(r'''
-m() {
-  var a = new A();
-  a.n(() => 0);
-}
-class A {
-  n(void f(int i)) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_argumentTypeNotAssignable_type() async {
-    Source source = addSource(r'''
-m() {
-  var i = '';
-  n(i);
-}
-n(int i) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_after_cascade() async {
-    Source source = addSource(r'''
-m(x) {
-  x..a?.b.c;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_before_cascade() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_cascade_parenthesis() async {
-    Source source = addSource(r'''
-m(x) {
-  (x?.a)..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_false_methodInvocation() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a()?.b();
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_false_null() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a.hashCode;
-  x?.a.runtimeType;
-  x?.a.toString();
-  x?.b().hashCode;
-  x?.b().runtimeType;
-  x?.b().toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_false_propertyAccess() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a?.b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_methodInvocation() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a.b();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_parenthesized() async {
-    Source source = addSource(r'''
-m(x) {
-  (x?.a).b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_propertyAccess() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a.b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_several() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a
-    ..m()
-    ..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
   }
 
   test_deadCode_deadBlock_conditionalElse() async {
@@ -1051,233 +908,6 @@ f() {
     verify([source]);
   }
 
-  test_deprecatedAnnotationUse_assignment() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A operator+(A a) { return a; }
-}
-f(A a) {
-  A b;
-  a += b;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_call() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  call() {}
-  m() {
-    A a = new A();
-    a();
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_deprecated() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  m() {}
-  n() {m();}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_Deprecated() async {
-    Source source = addSource(r'''
-class A {
-  @Deprecated('0.9')
-  m() {}
-  n() {m();}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_export() async {
-    Source source = addSource("export 'deprecated_library.dart';");
-    addNamedSource("/deprecated_library.dart", r'''
-@deprecated
-library deprecated_library;
-class A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_field() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  int x = 1;
-}
-f(A a) {
-  return a.x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_getter() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  get m => 1;
-}
-f(A a) {
-  return a.m;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_import() async {
-    Source source = addSource(r'''
-import 'deprecated_library.dart';
-f(A a) {}''');
-    addNamedSource("/deprecated_library.dart", r'''
-@deprecated
-library deprecated_library;
-class A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_indexExpression() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  operator[](int i) {}
-}
-f(A a) {
-  return a[1];
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_instanceCreation() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A(int i) {}
-}
-f() {
-  A a = new A(1);
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_instanceCreation_namedConstructor() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A.named(int i) {}
-}
-f() {
-  A a = new A.named(1);
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_named() async {
-    Source source = addSource(r'''
-class A {
-  m({@deprecated int x}) {}
-  n() {m(x: 1);}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_operator() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  operator+(A a) {}
-}
-f(A a) {
-  A b;
-  return a + b;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_positional() async {
-    Source source = addSource(r'''
-class A {
-  m([@deprecated int x]) {}
-  n() {m(1);}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_setter() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  set s(v) {}
-}
-f(A a) {
-  return a.s = 1;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_superConstructor() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A() {}
-}
-class B extends A {
-  B() : super() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_superConstructor_namedConstructor() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A.named() {}
-}
-class B extends A {
-  B() : super.named() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
   test_deprecatedFunction_class() async {
     Source source = addSource(r'''
 class Function {}
@@ -1328,49 +958,6 @@ class A extends Object with Function {}
       HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION,
       HintCode.DEPRECATED_MIXIN_FUNCTION
     ]);
-    verify([source]);
-  }
-
-  test_divisionOptimization_double() async {
-    Source source = addSource(r'''
-f(double x, double y) {
-  var v = (x / y).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
-    verify([source]);
-  }
-
-  test_divisionOptimization_int() async {
-    Source source = addSource(r'''
-f(int x, int y) {
-  var v = (x / y).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
-    verify([source]);
-  }
-
-  test_divisionOptimization_propagatedType() async {
-    // Tests the propagated type information of the '/' method
-    Source source = addSource(r'''
-f(x, y) {
-  x = 1;
-  y = 1;
-  var v = (x / y).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_divisionOptimization_wrappedBinaryExpression() async {
-    Source source = addSource(r'''
-f(int x, int y) {
-  var v = (((x / y))).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
 
@@ -1746,66 +1333,6 @@ class A {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.INVALID_LITERAL_ANNOTATION]);
-    verify([source]);
-  }
-
-  test_invalidRequiredParam_on_named_parameter_with_default() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-m({@required a = 1}) => null;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
-    verify([source]);
-  }
-
-  test_invalidRequiredParam_on_positional_parameter() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-m([@required a]) => null;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
-    verify([source]);
-  }
-
-  test_invalidRequiredParam_on_positional_parameter_with_default() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-m([@required a = 1]) => null;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
-    verify([source]);
-  }
-
-  test_invalidRequiredParam_on_required_parameter() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-m(@required a) => null;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
-    verify([source]);
-  }
-
-  test_invalidRequiredParam_valid() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-m1() => null;
-m2(a) => null;
-m3([a]) => null;
-m4({a}) => null;
-m5({@required a}) => null;
-m6({a, @required b}) => null;
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
     verify([source]);
   }
 
