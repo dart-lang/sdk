@@ -52,7 +52,7 @@ class InterfaceResolverTest {
 
   InterfaceResolver get interfaceResolver {
     return cachedInterfaceResolver ??=
-        new InterfaceResolver(null, typeEnvironment, null, false);
+        new InterfaceResolver(null, typeEnvironment, null);
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;

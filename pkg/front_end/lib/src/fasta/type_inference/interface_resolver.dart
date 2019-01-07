@@ -257,7 +257,6 @@ class ForwardingNode extends Procedure {
   /// they would not be checked in an inherited implementation, a forwarding
   /// stub is introduced as a place to put the checks.
   Procedure _computeCovarianceFixes(Procedure interfaceMember) {
-    assert(!_interfaceResolver.legacyMode);
     var substitution =
         _interfaceResolver._substitutionFor(interfaceMember, enclosingClass);
     // We always create a forwarding stub when we've inherited a member from an
@@ -546,9 +545,7 @@ class ForwardingNode extends Procedure {
   /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    return !_interfaceResolver.legacyMode
-        ? _computeCovarianceFixes(resolve())
-        : resolve();
+    return _computeCovarianceFixes(resolve());
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -682,10 +679,8 @@ class InterfaceResolver {
 
   final Instrumentation _instrumentation;
 
-  final bool legacyMode;
-
-  InterfaceResolver(this._typeInferenceEngine, this._typeEnvironment,
-      this._instrumentation, this.legacyMode);
+  InterfaceResolver(
+      this._typeInferenceEngine, this._typeEnvironment, this._instrumentation);
 
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool get isTypeInferencePrepared =>
@@ -924,9 +919,7 @@ class InterfaceResolver {
             return;
           }
         }
-        if (!legacyMode &&
-            member.enclosingClass == class_ &&
-            _requiresTypeInference(member)) {
+        if (member.enclosingClass == class_ && _requiresTypeInference(member)) {
           inferMethodType(library, class_, member, candidates, start + 1, end);
         }
         var forwardingNode = new ForwardingNode(
@@ -1067,7 +1060,7 @@ class InterfaceResolver {
       if (resolution is Procedure &&
           resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
-        if (!legacyMode) class_.addMember(resolution);
+        class_.addMember(resolution);
         _instrumentation?.record(
             class_.location.file,
             class_.fileOffset,
@@ -1128,10 +1121,10 @@ class InterfaceResolver {
       Uri fileUri) {
     InferenceNode node;
     if (procedure.isAccessor && _requiresTypeInference(procedure)) {
-      if (!legacyMode && start < end) {
+      if (start < end) {
         node = new AccessorInferenceNode(
             this, procedure, candidates, start, end, library, fileUri);
-      } else if (!legacyMode && crossStart < crossEnd) {
+      } else if (crossStart < crossEnd) {
         node = new AccessorInferenceNode(this, procedure, candidates,
             crossStart, crossEnd, library, fileUri);
       } else if (procedure is SyntheticAccessor &&

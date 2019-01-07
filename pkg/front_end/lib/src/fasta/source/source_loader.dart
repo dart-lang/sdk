@@ -951,11 +951,8 @@ class SourceLoader<L> extends Loader<L> {
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
-    interfaceResolver = new InterfaceResolver(
-        typeInferenceEngine,
-        typeInferenceEngine.typeSchemaEnvironment,
-        instrumentation,
-        target.legacyMode);
+    interfaceResolver = new InterfaceResolver(typeInferenceEngine,
+        typeInferenceEngine.typeSchemaEnvironment, instrumentation);
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         Iterator<Declaration> iterator = library.iterator;
