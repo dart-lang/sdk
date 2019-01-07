@@ -740,10 +740,12 @@ class Driver implements ServerStarter {
    * Read the UUID from disk, generating and storing a new one if necessary.
    */
   String _readUuid(InstrumentationService service) {
-    File uuidFile = new File(PhysicalResourceProvider.INSTANCE
-        .getStateLocation('.instrumentation')
-        .getChild('uuid.txt')
-        .path);
+    final instrumentationLocation =
+        PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
+    if (instrumentationLocation == null) {
+      return _generateUuidString();
+    }
+    File uuidFile = new File(instrumentationLocation.getChild('uuid.txt').path);
     try {
       if (uuidFile.existsSync()) {
         String uuid = uuidFile.readAsStringSync();
@@ -754,9 +756,7 @@ class Driver implements ServerStarter {
     } catch (exception, stackTrace) {
       service.logPriorityException(exception, stackTrace);
     }
-    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
-    int random = new Random().nextInt(0x3fffffff);
-    String uuid = '$millisecondsSinceEpoch$random';
+    String uuid = _generateUuidString();
     try {
       uuidFile.parent.createSync(recursive: true);
       uuidFile.writeAsStringSync(uuid);
@@ -766,6 +766,15 @@ class Driver implements ServerStarter {
       uuid = 'temp-$uuid';
     }
     return uuid;
+  }
+
+  /**
+   * Constructs a uuid combining the current date and a random integer.
+   */
+  String _generateUuidString() {
+    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
+    int random = new Random().nextInt(0x3fffffff);
+    return '$millisecondsSinceEpoch$random';
   }
 
   /**
