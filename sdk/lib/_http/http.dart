@@ -1166,7 +1166,7 @@ abstract class Cookie {
  * that contains the content of and information about an HTTP request.
  *
  * __Note__: Check out the
- * [http_server](http://pub.dartlang.org/packages/http_server)
+ * [http_server](https://pub.dartlang.org/packages/http_server)
  * package, which makes working with the low-level
  * dart:io HTTP server subsystem easier.
  *
