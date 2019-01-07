@@ -218,7 +218,7 @@ class Generator {
   String get since {
     var info = sinceInfo[name];
     // todo (pq): consider a footnote explaining that since info is static and "unreleased" tags may be stale.
-    return '${info.sinceLinter}, Dart Sdk ${info.sinceDartSdk ?? "unreleased"}';
+    return 'Dart SDK: >= ${info.sinceDartSdk ?? "<unreleased>"} • <small>(Linter v${info.sinceLinter})</small>';
   }
 
   generate([String filePath]) {
@@ -253,7 +253,7 @@ class Generator {
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
             <p>Maturity: $maturityString</p>
-            <p style="padding-bottom: 10px;">Since: $since</p>
+            <p style="padding-bottom: 10px;">$since</p>
             ${getBadges(name)}
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
