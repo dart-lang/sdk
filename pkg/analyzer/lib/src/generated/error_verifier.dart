@@ -1342,7 +1342,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
@@ -4168,11 +4167,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    ClassElementImpl nominalSuperClass =
-        AbstractClassElementImpl.getImpl(_enclosingClass.supertype?.element);
-    bool nominalSuperClassHasNoSuchMethodForwarders =
-        nominalSuperClass != null && !nominalSuperClass.isAbstract;
-
     InterfaceTypeImpl enclosingType = _enclosingClass.type;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
@@ -4183,9 +4177,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMemberType == null) {
-        if (nominalSuperClassHasNoSuchMethodForwarders) {
-          continue;
-        }
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
@@ -4710,86 +4701,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         redirectedConstructorNode);
     return true;
-  }
-
-  /**
-   * Check that [_enclosingClass] is not a superinterface to itself.
-   *  The [path] is a list containing the potentially cyclic implements path.
-   *
-   * See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
-   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
-   */
-  bool _checkForRecursiveInterfaceInheritance(ClassElement element,
-      [List<ClassElement> path]) {
-    path ??= <ClassElement>[];
-
-    // Detect error condition.
-    int size = path.length;
-    // If this is not the base case (size > 0), and the enclosing class is the
-    // given class element then an error an error.
-    if (size > 0 && _enclosingClass == element) {
-      String enclosingClassName = _enclosingClass.displayName;
-      if (size > 1) {
-        // Construct a string showing the cyclic implements path:
-        // "A, B, C, D, A"
-        String separator = ", ";
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < size; i++) {
-          buffer.write(path[i].displayName);
-          buffer.write(separator);
-        }
-        buffer.write(element.displayName);
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-            _enclosingClass,
-            [enclosingClassName, buffer.toString()]);
-        return true;
-      } else {
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
-        // RECURSIVE_INTERFACE_INHERITANCE_ON or
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-        _errorReporter.reportErrorForElement(_getBaseCaseErrorCode(element),
-            _enclosingClass, [enclosingClassName]);
-        return true;
-      }
-    }
-
-    if (path.indexOf(element) > 0) {
-      return false;
-    }
-    path.add(element);
-
-    // n-case
-    InterfaceType supertype = element.supertype;
-    if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
-      return true;
-    }
-
-    for (InterfaceType type in element.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
-        return true;
-      }
-    }
-
-    for (InterfaceType type in element.superclassConstraints) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
-        return true;
-      }
-    }
-
-    for (InterfaceType type in element.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
-        return true;
-      }
-    }
-
-    path.removeAt(path.length - 1);
-    return false;
   }
 
   /**
@@ -5708,7 +5619,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-      _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(
         onClause?.superclassConstraints,
@@ -5864,30 +5774,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       overriddenMember = _getOverriddenMember(overriddenMember);
     }
     return null;
-  }
-
-  /**
-   * Return the error code that should be used when the given class [element]
-   * references itself directly.
-   */
-  ErrorCode _getBaseCaseErrorCode(ClassElement element) {
-    if (element.supertype?.element == _enclosingClass) {
-      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
-    }
-
-    for (InterfaceType type in element.superclassConstraints) {
-      if (type.element == _enclosingClass) {
-        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
-      }
-    }
-
-    for (InterfaceType type in element.mixins) {
-      if (type.element == _enclosingClass) {
-        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
-      }
-    }
-
-    return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS;
   }
 
   /**

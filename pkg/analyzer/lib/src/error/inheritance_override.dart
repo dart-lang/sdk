@@ -122,6 +122,10 @@ class _ClassVerifier {
       return;
     }
 
+    if (_checkForRecursiveInterfaceInheritance(classElement)) {
+      return;
+    }
+
     InterfaceTypeImpl type = classElement.type;
 
     // Add all superinterfaces of the direct supertype.
@@ -183,15 +187,13 @@ class _ClassVerifier {
         }
 
         var interfaceType = interface.map[name];
-        var concreteType = inheritance.getMember(type, name, concrete: true);
+        var concreteType = interface.implemented[name];
 
         // No concrete implementation of the name.
         if (concreteType == null) {
-          if (!classElement.hasNoSuchMethod) {
-            if (!_reportConcreteClassWithAbstractMember(name.name)) {
-              inheritedAbstract ??= [];
-              inheritedAbstract.add(interfaceType);
-            }
+          if (!_reportConcreteClassWithAbstractMember(name.name)) {
+            inheritedAbstract ??= [];
+            inheritedAbstract.add(interfaceType);
           }
           continue;
         }
@@ -402,6 +404,106 @@ class _ClassVerifier {
         }
       }
     }
+  }
+
+  /// Check that [classElement] is not a superinterface to itself.
+  /// The [path] is a list containing the potentially cyclic implements path.
+  ///
+  /// See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
+  bool _checkForRecursiveInterfaceInheritance(ClassElement element,
+      [List<ClassElement> path]) {
+    path ??= <ClassElement>[];
+
+    // Detect error condition.
+    int size = path.length;
+    // If this is not the base case (size > 0), and the enclosing class is the
+    // given class element then report an error.
+    if (size > 0 && classElement == element) {
+      String className = classElement.displayName;
+      if (size > 1) {
+        // Construct a string showing the cyclic implements path:
+        // "A, B, C, D, A"
+        String separator = ", ";
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < size; i++) {
+          buffer.write(path[i].displayName);
+          buffer.write(separator);
+        }
+        buffer.write(element.displayName);
+        reporter.reportErrorForElement(
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            classElement,
+            [className, buffer.toString()]);
+        return true;
+      } else {
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
+        // RECURSIVE_INTERFACE_INHERITANCE_ON or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
+        reporter.reportErrorForElement(
+            _getRecursiveErrorCode(element), classElement, [className]);
+        return true;
+      }
+    }
+
+    if (path.indexOf(element) > 0) {
+      return false;
+    }
+    path.add(element);
+
+    // n-case
+    InterfaceType supertype = element.supertype;
+    if (supertype != null &&
+        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
+      return true;
+    }
+
+    for (InterfaceType type in element.mixins) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    for (InterfaceType type in element.superclassConstraints) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    for (InterfaceType type in element.interfaces) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    path.removeAt(path.length - 1);
+    return false;
+  }
+
+  /// Return the error code that should be used when the given class [element]
+  /// references itself directly.
+  ErrorCode _getRecursiveErrorCode(ClassElement element) {
+    if (element.supertype?.element == classElement) {
+      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
+    }
+
+    for (InterfaceType type in element.superclassConstraints) {
+      if (type.element == classElement) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
+      }
+    }
+
+    for (InterfaceType type in element.mixins) {
+      if (type.element == classElement) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
+      }
+    }
+
+    return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS;
   }
 
   /// We identified that the current non-abstract class does not have the

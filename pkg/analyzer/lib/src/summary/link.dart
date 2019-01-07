@@ -700,6 +700,9 @@ class ClassElementForLink_Class extends ClassElementForLink
       _unlinkedClass.interfaces.map(_computeInterfaceType).toList();
 
   @override
+  bool get isAbstract => _unlinkedClass.isAbstract;
+
+  @override
   bool get isEnum => false;
 
   @override
@@ -1009,6 +1012,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
 
   @override
   bool get isMixin => false;
+
+  @override
+  bool get isAbstract => false;
 
   @override
   bool get isObject => false;
