@@ -4525,7 +4525,6 @@ const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 const MessageCode messageInheritedMembersConflict = const MessageCode(
     "InheritedMembersConflict",
     analyzerCodes: <String>["CONFLICTS_WITH_INHERITED_MEMBER"],
-    severity: Severity.errorLegacyWarning,
     message: r"""Can't inherit members that conflict with each other.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

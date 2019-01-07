@@ -1,6 +1,16 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/abstract_members.dart:19:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+// pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
+// abstract class A implements Interface1, Interface2, Interface3 {
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
 //  - A.abstractMethod
 //  - A.property3=
 //  - A.property1=
@@ -12,19 +22,23 @@
 //
 // class MyClass extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:7:3: Context: 'A.abstractMethod' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
 //   abstractMethod();
 //   ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:10:12: Context: 'A.property3=' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
 //   void set property3(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/abstract_members.dart:8:12: Context: 'A.property1=' is defined here.
+// pkg/front_end/testcases/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
 //   void set property1(_);
 //            ^^^^^^^^^
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/abstract_members.dart:19:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+// pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
+// abstract class A implements Interface1, Interface2, Interface3 {
+//                ^
+//
+// pkg/front_end/testcases/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
 //  - A.abstractMethod
 //  - A.property3=
 //  - A.property1=
@@ -41,7 +55,26 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class A extends core::Object {
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  method interfaceMethod1() → void {}
+}
+class Interface2 extends core::Object {
+  field dynamic interfaceMethod1 = null;
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+  method interfaceMethod2() → void {}
+}
+class Interface3 extends core::Object {
+  synthetic constructor •() → self::Interface3
+    : super core::Object::•()
+    ;
+  method interfaceMethod3() → void {}
+}
+abstract class A extends core::Object implements self::Interface1, self::Interface2, self::Interface3 {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
@@ -68,8 +101,12 @@ class MyClass extends self::B {
   method aMethod() → dynamic {}
   method bMethod() → dynamic {}
   method cMethod() → dynamic {}
+  no-such-method-forwarder get interfaceMethod1() → dynamic
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
   no-such-method-forwarder set property3(dynamic _) → void
     return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set interfaceMethod1(dynamic value) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property1(dynamic _) → void
     return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }

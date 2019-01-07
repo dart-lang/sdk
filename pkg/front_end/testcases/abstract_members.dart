@@ -2,7 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class A {
+class Interface1 {
+  void interfaceMethod1() {}
+}
+
+class Interface2 {
+  void interfaceMethod2() {}
+
+  var interfaceMethod1;
+}
+
+class Interface3 {
+  void interfaceMethod3() {}
+}
+
+abstract class A implements Interface1, Interface2, Interface3 {
   aMethod() {}
   abstractMethod();
   void set property1(_);

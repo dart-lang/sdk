@@ -1947,7 +1947,6 @@ DeclaredMemberConflictsWithInheritedMemberCause:
 
 InheritedMembersConflict:
   template: "Can't inherit members that conflict with each other."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CONFLICTS_WITH_INHERITED_MEMBER
   script:
     - >-

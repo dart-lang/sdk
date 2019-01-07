@@ -14,6 +14,9 @@ import '../messages.dart'
         LocatedMessage,
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
+        messageInheritedMembersConflict,
+        messageInheritedMembersConflictCause1,
+        messageInheritedMembersConflictCause2,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 
@@ -54,7 +57,8 @@ class ClassHierarchyBuilder {
 
   ClassHierarchyBuilder(this.objectClass);
 
-  Declaration handleOverride(Declaration member, Declaration superMember) {
+  Declaration handleOverride(KernelClassBuilder cls, Declaration member,
+      Declaration superMember, bool isMergingInterfaces) {
     if (member.next != null || superMember.next != null) {
       // Don't check overrides involving duplicated members.
       return member;
@@ -64,19 +68,32 @@ class ClassHierarchyBuilder {
     if ((memberKind(target) ?? ProcedureKind.Getter) !=
         (memberKind(superTarget) ?? ProcedureKind.Getter)) {
       String name = member.fullNameForErrors;
-      KernelClassBuilder cls = member.parent;
-      cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
-          member.charOffset, name.length,
-          context: <LocatedMessage>[
-            messageDeclaredMemberConflictsWithInheritedMemberCause.withLocation(
-                superMember.fileUri, superMember.charOffset, name.length)
-          ]);
+      if (isMergingInterfaces) {
+        cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
+            cls.fullNameForErrors.length,
+            context: <LocatedMessage>[
+              messageInheritedMembersConflictCause1.withLocation(
+                  member.fileUri, member.charOffset, name.length),
+              messageInheritedMembersConflictCause2.withLocation(
+                  superMember.fileUri, superMember.charOffset, name.length),
+            ]);
+      } else {
+        cls.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
+            member.charOffset, name.length,
+            context: <LocatedMessage>[
+              messageDeclaredMemberConflictsWithInheritedMemberCause
+                  .withLocation(
+                      superMember.fileUri, superMember.charOffset, name.length)
+            ]);
+      }
     }
     if (target.name == noSuchMethodName && !target.isAbstract) {
       hasNoSuchMethod = true;
     }
     Declaration result = member;
-    if (target.isAbstract) {
+    if (isMergingInterfaces) {
+      // TODO(ahe): Combine the signatures of member and superMember.
+    } else if (target.isAbstract) {
       if (!superTarget.isAbstract) {
         // An abstract method doesn't override an implemention inherited from a
         // superclass.
@@ -88,16 +105,17 @@ class ClassHierarchyBuilder {
     return result;
   }
 
-  void handleNewMember(Declaration member) {
+  void handleNewMember(Declaration member, bool isMergingInterfaces) {
     Member target = member.target;
-    if (target.isAbstract) {
+    if (!isMergingInterfaces && target.isAbstract) {
       abstractMemberCount++;
     }
   }
 
-  void handleInheritance(KernelClassBuilder cls, Declaration member) {
+  void handleInheritance(
+      KernelClassBuilder cls, Declaration member, bool isMergingInterfaces) {
     Member target = member.target;
-    if (target.isAbstract) {
+    if (!isMergingInterfaces && target.isAbstract) {
       if (isNameVisibleIn(target.name, cls.library)) {
         abstractMemberCount++;
       }
@@ -143,16 +161,29 @@ class ClassHierarchyBuilder {
           ..sort(compareDeclarations);
     List<Declaration> allMembers;
     List<Declaration> allSetters;
+    List<Declaration> interfaceMembers;
+    List<Declaration> interfaceSetters;
     if (supernode == null) {
       // This should be Object.
-      allMembers = sortedLocals;
-      allSetters = sortedSetters;
+      interfaceMembers = allMembers = sortedLocals;
+      interfaceSetters = allSetters = sortedSetters;
     } else {
-      allMembers = merge(cls, sortedLocals, supernode.classMembers);
-      allSetters = merge(cls, sortedSetters, supernode.classSetters);
+      allMembers = merge(cls, sortedLocals, supernode.classMembers, false);
+      allSetters = merge(cls, sortedSetters, supernode.classSetters, false);
+      List<KernelTypeBuilder> interfaces = cls.interfaces;
+      if (interfaces != null) {
+        MergeResult result = mergeInterfaces(cls, supernode, interfaces);
+        interfaceMembers = result.mergedMembers;
+        interfaceSetters = result.mergedSetters;
+      } else {
+        interfaceMembers = allMembers;
+        interfaceSetters = allSetters;
+      }
     }
-    nodes[cls] = new ClassHierarchyNode(cls, scope, allMembers, allSetters);
+    nodes[cls] = new ClassHierarchyNode(
+        cls, scope, allMembers, allSetters, interfaceMembers, interfaceSetters);
     mergeAccessors(cls, allMembers, allSetters);
+
     if (abstractMemberCount != 0 && !cls.isAbstract) {
       if (!hasNoSuchMethod) {
         reportMissingMembers(cls, allMembers, allSetters);
@@ -161,6 +192,46 @@ class ClassHierarchyBuilder {
     }
     hasNoSuchMethod = false;
     abstractMemberCount = 0;
+  }
+
+  MergeResult mergeInterfaces(KernelClassBuilder cls,
+      ClassHierarchyNode supernode, List<KernelTypeBuilder> interfaces) {
+    List<List<Declaration>> memberLists =
+        List<List<Declaration>>(interfaces.length + 1);
+    List<List<Declaration>> setterLists =
+        List<List<Declaration>>(interfaces.length + 1);
+    memberLists[0] = supernode.interfaceMembers;
+    setterLists[0] = supernode.interfaceSetters;
+    for (int i = 0; i < interfaces.length; i++) {
+      ClassHierarchyNode interfaceNode = getNode(interfaces[i]);
+      if (interfaceNode == null) {
+        memberLists[i + 1] = <Declaration>[];
+        setterLists[i + 1] = <Declaration>[];
+      } else {
+        memberLists[i + 1] = interfaceNode.interfaceMembers;
+        setterLists[i + 1] = interfaceNode.interfaceSetters;
+      }
+    }
+    return new MergeResult(
+        mergeLists(cls, memberLists), mergeLists(cls, setterLists));
+  }
+
+  List<Declaration> mergeLists(
+      KernelClassBuilder cls, List<List<Declaration>> input) {
+    // This is a k-way merge sort (where k is `interfaces.length + 1`). We
+    // merge the lists pairwise, which reduces the number of lists to merge by
+    // half on each iteration. Consequently, we perform O(log k) merges.
+    while (input.length > 1) {
+      List<List<Declaration>> output = <List<Declaration>>[];
+      for (int i = 0; i < input.length - 1; i += 2) {
+        output.add(merge(cls, input[i], input[i + 1], true));
+      }
+      if (input.length.isOdd) {
+        output.add(input.last);
+      }
+      input = output;
+    }
+    return input.single;
   }
 
   /// Merge [and check] accessors. This entails removing setters corresponding
@@ -284,8 +355,11 @@ class ClassHierarchyBuilder {
     return type is KernelNamedTypeBuilder ? type.declaration : null;
   }
 
-  List<Declaration> merge(KernelClassBuilder cls,
-      List<Declaration> localMembers, List<Declaration> superMembers) {
+  List<Declaration> merge(
+      KernelClassBuilder cls,
+      List<Declaration> localMembers,
+      List<Declaration> superMembers,
+      bool isMergingInterfaces) {
     final List<Declaration> mergedMembers = new List<Declaration>.filled(
         localMembers.length + superMembers.length, null,
         growable: true);
@@ -300,28 +374,28 @@ class ClassHierarchyBuilder {
       final int compare = compareDeclarations(localMember, superMember);
       if (compare == 0) {
         mergedMembers[mergedMemberCount++] =
-            handleOverride(localMember, superMember);
+            handleOverride(cls, localMember, superMember, isMergingInterfaces);
         i++;
         j++;
       } else if (compare < 0) {
-        handleNewMember(localMember);
+        handleNewMember(localMember, isMergingInterfaces);
         mergedMembers[mergedMemberCount++] = localMember;
         i++;
       } else {
-        handleInheritance(cls, superMember);
+        handleInheritance(cls, superMember, isMergingInterfaces);
         mergedMembers[mergedMemberCount++] = superMember;
         j++;
       }
     }
     while (i < localMembers.length) {
       final Declaration localMember = localMembers[i];
-      handleNewMember(localMember);
+      handleNewMember(localMember, isMergingInterfaces);
       mergedMembers[mergedMemberCount++] = localMember;
       i++;
     }
     while (j < superMembers.length) {
       final Declaration superMember = superMembers[j];
-      handleInheritance(cls, superMember);
+      handleInheritance(cls, superMember, isMergingInterfaces);
       mergedMembers[mergedMemberCount++] = superMember;
       j++;
     }
@@ -344,8 +418,27 @@ class ClassHierarchyNode {
   /// superclasses. The members are sorted by [compareDeclarations].
   final List<Declaration> classMembers;
 
+  /// Similar to [classMembers] but for setters.
   final List<Declaration> classSetters;
 
-  ClassHierarchyNode(
-      this.cls, this.localMembers, this.classMembers, this.classSetters);
+  /// All the interface members of this class including [interfaceMembers] of
+  /// its supertypes. The members are sorted by [compareDeclarations].
+  ///
+  /// In addition to the members of [classMembers] this also contains members
+  /// from interfaces.
+  final List<Declaration> interfaceMembers;
+
+  /// Similar to [interfaceMembers] but for setters.
+  final List<Declaration> interfaceSetters;
+
+  ClassHierarchyNode(this.cls, this.localMembers, this.classMembers,
+      this.classSetters, this.interfaceMembers, this.interfaceSetters);
+}
+
+class MergeResult {
+  final List<Declaration> mergedMembers;
+
+  final List<Declaration> mergedSetters;
+
+  MergeResult(this.mergedMembers, this.mergedSetters);
 }

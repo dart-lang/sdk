@@ -6,6 +6,7 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+abstract_members: TypeCheckError
 accessors: RuntimeError
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics

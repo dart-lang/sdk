@@ -6,6 +6,7 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+abstract_members: TypeCheckError
 accessors: RuntimeError
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
