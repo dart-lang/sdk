@@ -1299,7 +1299,7 @@ class CodeGenerator extends Object
     }
 
     var supertype = classElem.isMixin ? types.objectType : classElem.supertype;
-    var hasUnnamedSuper = _hasUnnamedConstructor(supertype.element);
+    var hasUnnamedSuper = _hasUnnamedInheritedConstructor(supertype.element);
 
     void emitMixinConstructors(JS.Expression className, [InterfaceType mixin]) {
       var supertype = classElem.supertype;
@@ -2384,24 +2384,23 @@ class CodeGenerator extends Object
         [className, _constructorName(name), args ?? []]);
   }
 
+  bool _hasUnnamedInheritedConstructor(ClassElement e) {
+    if (e == null) return false;
+    return _hasUnnamedConstructor(e) || _hasUnnamedSuperConstructor(e);
+  }
+
   bool _hasUnnamedSuperConstructor(ClassElement e) {
-    var supertype = e.supertype;
-    // Object or mixin declaration.
-    if (supertype == null) return false;
-    if (_hasUnnamedConstructor(supertype.element)) return true;
     for (var mixin in e.mixins) {
       if (_hasUnnamedConstructor(mixin.element)) return true;
     }
-    return false;
+    return _hasUnnamedInheritedConstructor(e.supertype?.element);
   }
 
   bool _hasUnnamedConstructor(ClassElement e) {
     if (e.type.isObject) return false;
     var ctor = e.unnamedConstructor;
-    if (ctor == null) return false;
-    if (!ctor.isSynthetic) return true;
-    if (e.fields.any((f) => !f.isStatic && !f.isSynthetic)) return true;
-    return _hasUnnamedSuperConstructor(e);
+    if (ctor != null && !ctor.isSynthetic) return true;
+    return e.fields.any((f) => !f.isStatic && !f.isSynthetic);
   }
 
   /// Initialize fields. They follow the sequence:

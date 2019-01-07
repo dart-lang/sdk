@@ -750,7 +750,7 @@ class ProgramCompiler extends Object
         .map((m) => hierarchy.getClassAsInstanceOf(c, m).asInterfaceType)
         .toList();
 
-    var hasUnnamedSuper = _hasUnnamedConstructor(superclass);
+    var hasUnnamedSuper = _hasUnnamedInheritedConstructor(superclass);
 
     void emitMixinConstructors(JS.Expression className, InterfaceType mixin) {
       JS.Statement mixinCtor;
@@ -1510,18 +1510,21 @@ class ProgramCompiler extends Object
         [className, _constructorName(name), args ?? []]);
   }
 
-  bool _hasUnnamedSuperConstructor(Class c) {
+  bool _hasUnnamedInheritedConstructor(Class c) {
     if (c == null) return false;
-    return _hasUnnamedConstructor(c.superclass) ||
-        _hasUnnamedConstructor(c.mixedInClass);
+    return _hasUnnamedConstructor(c) || _hasUnnamedSuperConstructor(c);
+  }
+
+  bool _hasUnnamedSuperConstructor(Class c) {
+    return _hasUnnamedConstructor(c.mixedInClass) ||
+        _hasUnnamedInheritedConstructor(c.superclass);
   }
 
   bool _hasUnnamedConstructor(Class c) {
     if (c == null || c == coreTypes.objectClass) return false;
     var ctor = unnamedConstructor(c);
     if (ctor != null && !ctor.isSynthetic) return true;
-    if (c.fields.any((f) => !f.isStatic)) return true;
-    return _hasUnnamedSuperConstructor(c);
+    return c.fields.any((f) => !f.isStatic);
   }
 
   /// Initialize fields. They follow the sequence:
@@ -1598,8 +1601,11 @@ class ProgramCompiler extends Object
   /// then we need to emit a special hidden default constructor for use by
   /// mixins.
   bool _usesMixinNew(Class mixin) {
-    return mixin.superclass?.superclass == null &&
-        mixin.constructors.every((c) => c.isExternal);
+    // TODO(jmesserly): mixin declarations don't get implicit constructor nodes,
+    // even if they have fields, so we need to ensure they're getting generated.
+    return mixin.isMixinDeclaration && _hasUnnamedConstructor(mixin) ||
+        mixin.superclass?.superclass == null &&
+            mixin.constructors.every((c) => c.isExternal);
   }
 
   JS.Statement _addConstructorToClass(
