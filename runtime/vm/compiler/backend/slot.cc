@@ -136,15 +136,46 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
+  bool used_guarded_state = false;
   if (field.guarded_cid() != kIllegalCid &&
       field.guarded_cid() != kDynamicCid) {
-    nullable_cid =
-        nullable_cid != kDynamicCid ? nullable_cid : field.guarded_cid();
-    is_nullable = is_nullable && field.is_nullable();
+    // Use guarded state if it is more precise then what we already have.
+    if (nullable_cid == kDynamicCid) {
+      nullable_cid = field.guarded_cid();
+      used_guarded_state = true;
+    }
 
+    if (is_nullable && !field.is_nullable()) {
+      is_nullable = false;
+      used_guarded_state = true;
+    }
+  }
+
+  const Slot& slot = SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kDartField,
+           IsImmutableBit::encode(field.is_final() || field.is_const()) |
+               IsNullableBit::encode(is_nullable) |
+               IsGuardedBit::encode(used_guarded_state),
+           nullable_cid, field.Offset(), &field,
+           &AbstractType::ZoneHandle(zone, field.type())));
+
+  // If properties of this slot were based on the guarded state make sure
+  // to add the field to the list of guarded fields. Note that during background
+  // compilation we might have two field clones that have incompatible guarded
+  // state - however both of these clones would correspond to the same slot.
+  // That is why we check the is_guarded_field() property of the slot rather
+  // than look at the current guarded state of the field, because current
+  // guarded state of the field might be set to kDynamicCid, while it was
+  // set to something more concrete when the slot was created.
+  // Note that we could have created this slot during an unsuccessful inlining
+  // attempt where we built and discarded the graph, in this case guarded
+  // fields associated with that graph are also discarded. However the slot
+  // itself stays behind in the compilation global cache. Thus we must always
+  // try to add it to the list of guarded fields of the current function.
+  if (slot.is_guarded_field()) {
     if (thread->isolate()->use_field_guards()) {
       ASSERT(parsed_function != nullptr);
-      parsed_function->AddToGuardedFields(&field);
+      parsed_function->AddToGuardedFields(&slot.field());
     } else {
       // In precompiled mode we use guarded_cid field for type information
       // inferred by TFA.
@@ -152,12 +183,7 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  return SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kDartField,
-           IsImmutableBit::encode(field.is_final() || field.is_const()) |
-               IsNullableBit::encode(is_nullable),
-           nullable_cid, field.Offset(), &field,
-           &AbstractType::ZoneHandle(zone, field.type())));
+  return slot;
 }
 
 CompileType Slot::ComputeCompileType() const {

@@ -133,5 +133,6 @@ compiler_sources_tests = [
   "backend/locations_helpers_test.cc",
   "backend/loops_test.cc",
   "backend/range_analysis_test.cc",
+  "backend/slot_test.cc",
   "cha_test.cc",
 ]
