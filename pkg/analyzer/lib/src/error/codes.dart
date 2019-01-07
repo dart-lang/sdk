@@ -544,7 +544,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
           "Const constructor can't be declared for a class with a mixin "
-          "that declares a field.",
+          "that declares an instance field.",
           correction: "Try removing the 'const' keyword or "
               "removing the 'with' clause from the class declaration, "
               "or removing fields from the mixin class.");

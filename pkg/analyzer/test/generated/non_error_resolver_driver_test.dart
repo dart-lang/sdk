@@ -68,12 +68,6 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTestBase {
 
   @override
   @failingTest
-  test_constConstructorWithMixinWithField_withoutSuperMixins() {
-    return super.test_constConstructorWithMixinWithField_withoutSuperMixins();
-  }
-
-  @override
-  @failingTest
   test_null_callOperator() {
     return super.test_null_callOperator();
   }

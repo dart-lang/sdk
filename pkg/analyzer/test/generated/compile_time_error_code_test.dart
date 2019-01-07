@@ -889,37 +889,6 @@ int f() {
     verify([source]);
   }
 
-  test_constConstructorWithMixinWithField() async {
-    Source source = addSource(r'''
-class A {
-  var a;
-}
-class B extends Object with A {
-  const B();
-}''');
-    await computeAnalysisResult(source);
-
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
-    ]);
-    verify([source]);
-  }
-
-  test_constConstructorWithMixinWithField_final() async {
-    Source source = addSource(r'''
-class A {
-  final int a = 0;
-}
-class B extends Object with A {
-  const B();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD]);
-    verify([source]);
-  }
-
   test_constConstructorWithNonConstSuper_explicit() async {
     Source source = addSource(r'''
 class A {

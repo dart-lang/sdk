@@ -26,12 +26,6 @@ main() {
 @reflectiveTest
 class NonErrorResolverTest extends NonErrorResolverTestBase {
   @override
-  @failingTest
-  test_constConstructorWithMixinWithField_withoutSuperMixins() {
-    return super.test_constConstructorWithMixinWithField_withoutSuperMixins();
-  }
-
-  @override
   @failingTest // Does not work with old task model
   test_infer_mixin_new_syntax() {
     return super.test_infer_mixin_new_syntax();
@@ -1045,32 +1039,6 @@ class B {
     addNamedSource("/c.dart", r'''
 const int value = 12345;
 ''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_constConstructorWithMixinWithField_withoutSuperMixins() async {
-    Source source = addSource(r'''
-class M {
-}
-class A extends Object with M {
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
-    ]);
-    verify([source]);
-  }
-
-  test_constConstructorWithMixinWithField_withSuperMixins_new_syntax() async {
-    Source source = addSource(r'''
-mixin M {
-}
-class A extends Object with M {
-  const A();
-}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

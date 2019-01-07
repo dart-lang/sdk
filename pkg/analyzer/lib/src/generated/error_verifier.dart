@@ -2570,15 +2570,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (constructor.factoryKeyword != null) {
       return;
     }
+
     // check for mixins
+    var hasInstanceField = false;
     for (var mixin in _enclosingClass.mixins) {
-      if (mixin.element.fields.isNotEmpty) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-            constructor.returnType);
-        return;
+      var fields = mixin.element.fields;
+      for (var i = 0; i < fields.length; ++i) {
+        if (!fields[i].isStatic) {
+          hasInstanceField = true;
+          break;
+        }
       }
     }
+    if (hasInstanceField) {
+      // TODO(scheglov) Provide the list of fields.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+          constructor.returnType);
+      return;
+    }
+
     // try to find and check super constructor invocation
     for (ConstructorInitializer initializer in constructor.initializers) {
       if (initializer is SuperConstructorInvocation) {
