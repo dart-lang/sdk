@@ -26,5 +26,5 @@ class TearOffInterfaceMethod extends core::Object {
 static method knownResult() → dynamic
   return new self::B::•();
 static method main(core::List<core::String> args) → dynamic {
-  [@vm.inferred-type.metadata=!? (skip check)] new self::TearOffInterfaceMethod::•(new self::B::•()).{self::TearOffInterfaceMethod::bazz}();
+  new self::TearOffInterfaceMethod::•(new self::B::•()).{self::TearOffInterfaceMethod::bazz}();
 }

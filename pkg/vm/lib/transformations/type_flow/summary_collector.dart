@@ -918,16 +918,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       return _makeCall(
           node, new DynamicSelector(CallKind.Method, node.name), args);
     }
+    // TODO(dartbug.com/34497): Once front-end desugars calls via
+    // fields/getters, handling of field and getter targets here
+    // can be turned into assertions.
     if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      // Call via field.
-      final fieldValue = _makeCall(
-          node,
+      // Call via field/getter.
+      final value = _makeCall(
+          null,
           (node.receiver is ThisExpression)
               ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
               : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
           new Args<TypeExpr>([receiver]));
       _makeCall(
-          null, DynamicSelector.kCall, new Args.withReceiver(args, fieldValue));
+          null, DynamicSelector.kCall, new Args.withReceiver(args, value));
       return _staticType(node);
     } else {
       // TODO(alexmarkov): overloaded arithmetic operators

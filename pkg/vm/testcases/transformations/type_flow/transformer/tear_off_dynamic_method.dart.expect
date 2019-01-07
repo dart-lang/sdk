@@ -18,7 +18,7 @@ class TearOffDynamicMethod extends core::Object {
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  field dynamic bazz;
   constructor •(dynamic arg) → self::TearOffDynamicMethod
     : self::TearOffDynamicMethod::bazz = arg.foo, super core::Object::•() {
-    [@vm.inferred-type.metadata=!? (skip check)] this.{self::TearOffDynamicMethod::bazz}();
+    this.{self::TearOffDynamicMethod::bazz}();
   }
 }
 static method knownResult() → dynamic

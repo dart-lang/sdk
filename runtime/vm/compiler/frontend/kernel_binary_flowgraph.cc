@@ -3639,6 +3639,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
+  // TODO(dartbug.com/34497): Once front-end desugars calls via
+  // fields/getters, filtering of field and getter interface targets here
+  // can be turned into assertions.
   if (!H.IsRoot(itarget_name) && !H.IsField(itarget_name) &&
       !H.IsGetter(itarget_name)) {
     interface_target = &Function::ZoneHandle(
