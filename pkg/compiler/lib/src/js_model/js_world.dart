@@ -456,11 +456,6 @@ class JsClosedWorld implements JClosedWorld {
         .any((each) => each.isGetter);
   }
 
-  FieldEntity locateSingleField(Selector selector, AbstractValue receiver) {
-    MemberEntity result = locateSingleMember(selector, receiver);
-    return (result != null && result.isField) ? result : null;
-  }
-
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver) {
     if (includesClosureCall(selector, receiver)) {
       return null;

@@ -34,7 +34,7 @@ class Tags {
   static const String runtimeTypeUse = 'runtimeType';
 }
 
-class StaticTypeDataComputer extends DataComputer {
+class StaticTypeDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
@@ -50,8 +50,8 @@ class StaticTypeDataComputer extends DataComputer {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
@@ -65,6 +65,9 @@ class StaticTypeDataComputer extends DataComputer {
                 getTypeEnvironment(elementMap), staticTypeCache))
         .run(node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
@@ -179,11 +182,11 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 }
 
 /// IR visitor for computing inference data for a member.
-class StaticTypeIrComputer extends IrDataExtractor {
+class StaticTypeIrComputer extends IrDataExtractor<String> {
   final CachedStaticType staticTypeCache;
 
   StaticTypeIrComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap, this.staticTypeCache)
+      Map<Id, ActualData<String>> actualMap, this.staticTypeCache)
       : super(reporter, actualMap);
 
   String getStaticTypeValue(ir.DartType type) {

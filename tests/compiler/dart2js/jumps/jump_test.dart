@@ -26,7 +26,7 @@ main(List<String> args) {
   });
 }
 
-class JumpDataComputer extends DataComputer {
+class JumpDataComputer extends DataComputer<String> {
   const JumpDataComputer();
 
   /// Compute closure data mapping for [member] as a kernel based element.
@@ -34,8 +34,8 @@ class JumpDataComputer extends DataComputer {
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
   /// for the data origin.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -45,6 +45,9 @@ class JumpDataComputer extends DataComputer {
             compiler.reporter, actualMap, localsMap.getLocalsMap(member))
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 class TargetData {
@@ -70,15 +73,15 @@ class GotoData {
 }
 
 /// Kernel IR visitor for computing jump data.
-class JumpsIrChecker extends IrDataExtractor {
+class JumpsIrChecker extends IrDataExtractor<String> {
   final KernelToLocalsMap _localsMap;
 
   int index = 0;
   Map<JumpTarget, TargetData> targets = <JumpTarget, TargetData>{};
   List<GotoData> gotos = <GotoData>[];
 
-  JumpsIrChecker(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      this._localsMap)
+  JumpsIrChecker(DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap, this._localsMap)
       : super(reporter, actualMap);
 
   void processData() {

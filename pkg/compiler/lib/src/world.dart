@@ -201,11 +201,6 @@ abstract class JClosedWorld implements World {
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
-
-  /// Returns the single field that matches a call to [selector] on the
-  /// [receiver]. If multiple targets exist or the single target is not a field,
-  /// `null` is returned.
-  FieldEntity locateSingleField(Selector selector, AbstractValue receiver);
 }
 
 abstract class OpenWorld implements World {

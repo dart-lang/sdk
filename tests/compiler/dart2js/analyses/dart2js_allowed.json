@@ -273,6 +273,10 @@
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1
   },
+  "pkg/compiler/lib/src/util/features.dart": {
+    "Dynamic invocation of 'sort'.": 1,
+    "Dynamic invocation of 'join'.": 1
+  },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
     "Dynamic access of 'superclass'.": 1,
     "Dynamic access of 'needsTearOff'.": 1

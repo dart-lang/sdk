@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show CompilerTask;
@@ -26,6 +27,7 @@ import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
+import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
 import 'types_propagation.dart';
@@ -41,6 +43,8 @@ class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend _backend;
 
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
+
+  Map<MemberEntity, OptimizationLog> loggersForTesting;
 
   SsaOptimizerTask(this._backend) : super(_backend.compiler.measurer);
 
@@ -65,12 +69,19 @@ class SsaOptimizerTask extends CompilerTask {
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
+
+    OptimizationLog log;
+    if (retainDataForTesting) {
+      loggersForTesting ??= {};
+      loggersForTesting[work.element] = log = new OptimizationLog();
+    }
+
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -79,10 +90,10 @@ class SsaOptimizerTask extends CompilerTask {
         // After type propagation, more instructions can be
         // simplified.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults, _options,
             closedWorld.commonElements, closedWorld),
@@ -108,7 +119,7 @@ class SsaOptimizerTask extends CompilerTask {
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -131,7 +142,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
           new SsaInstructionSimplifier(globalInferenceResults, _options,
-              _rtiSubstitutions, closedWorld, registry),
+              _rtiSubstitutions, closedWorld, registry, log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
@@ -143,7 +154,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
           new SsaInstructionSimplifier(globalInferenceResults, _options,
-              _rtiSubstitutions, closedWorld, registry),
+              _rtiSubstitutions, closedWorld, registry, log),
         ];
       }
       phases.forEach(runPhase);
@@ -188,10 +199,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
+  final OptimizationLog _log;
   HGraph _graph;
 
   SsaInstructionSimplifier(this._globalInferenceResults, this._options,
-      this._rtiSubstitutions, this._closedWorld, this._registry);
+      this._rtiSubstitutions, this._closedWorld, this._registry, this._log);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -1103,9 +1115,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   FieldEntity findConcreteFieldForDynamicAccess(
-      HInstruction receiver, Selector selector) {
+      HInvokeDynamicField node, HInstruction receiver) {
     AbstractValue receiverType = receiver.instructionType;
-    return _closedWorld.locateSingleField(selector, receiverType);
+    MemberEntity member = node.element is FieldEntity
+        ? node.element
+        : _closedWorld.locateSingleMember(node.selector, receiverType);
+    return member is FieldEntity ? member : null;
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -1197,27 +1212,30 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldEntity field =
-        findConcreteFieldForDynamicAccess(receiver, node.selector);
-    if (field != null) return directFieldGet(receiver, field);
+    FieldEntity field = node.element is FieldEntity
+        ? node.element
+        : findConcreteFieldForDynamicAccess(node, receiver);
+    if (field != null) {
+      HFieldGet result = _directFieldGet(receiver, field, node);
+      _log?.registerFieldGet(node, result);
+      return result;
+    }
 
-    if (node.element == null) {
-      MemberEntity element = _closedWorld.locateSingleMember(
-          node.selector, receiver.instructionType);
-      if (element != null && element.name == node.selector.name) {
-        node.element = element;
-        if (element.isFunction) {
-          // A property extraction getter, aka a tear-off.
-          node.sideEffects.clearAllDependencies();
-          node.sideEffects.clearAllSideEffects();
-          node.setUseGvn(); // We don't care about identity of tear-offs.
-        }
-      }
+    node.element ??= _closedWorld.locateSingleMember(
+        node.selector, receiver.instructionType);
+    if (node.element != null &&
+        node.element.name == node.selector.name &&
+        node.element.isFunction) {
+      // A property extraction getter, aka a tear-off.
+      node.sideEffects.clearAllDependencies();
+      node.sideEffects.clearAllSideEffects();
+      node.setUseGvn(); // We don't care about identity of tear-offs.
     }
     return node;
   }
 
-  HInstruction directFieldGet(HInstruction receiver, FieldEntity field) {
+  HInstruction _directFieldGet(
+      HInstruction receiver, FieldEntity field, HInstruction node) {
     bool isAssignable = !_closedWorld.fieldNeverChanges(field);
 
     AbstractValue type;
@@ -1225,10 +1243,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       type = AbstractValueFactory.fromNativeBehavior(
           _nativeData.getNativeFieldLoadBehavior(field), _closedWorld);
     } else {
+      // TODO(johnniwinther): Use the potentially more precise type of the
+      // node + find a test that shows its usefulness.
+      // type = _abstractValueDomain.intersection(
+      //     node.instructionType,
+      //     AbstractValueFactory.inferredTypeForMember(
+      //         field, _globalInferenceResults));
       type = AbstractValueFactory.inferredTypeForMember(
-          // ignore: UNNECESSARY_CAST
-          field as Entity,
-          _globalInferenceResults);
+          field, _globalInferenceResults);
     }
 
     return new HFieldGet(field, receiver, type, isAssignable: isAssignable);
@@ -1241,8 +1263,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldEntity field =
-        findConcreteFieldForDynamicAccess(receiver, node.selector);
+    FieldEntity field = findConcreteFieldForDynamicAccess(node, receiver);
     if (field == null || !field.isAssignable) return node;
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
@@ -1257,6 +1278,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // inline this access.
         // TODO(sra): If the input is such that we don't need a type check, we
         // can skip the test an generate the HFieldSet.
+        node.needsCheck = true;
         return node;
       }
       HInstruction other = value.convertType(
@@ -1266,7 +1288,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    return new HFieldSet(_abstractValueDomain, field, receiver, value);
+    HFieldSet result =
+        new HFieldSet(_abstractValueDomain, field, receiver, value);
+    _log?.registerFieldSet(node, result);
+    return result;
   }
 
   HInstruction visitInvokeClosure(HInvokeClosure node) {

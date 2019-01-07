@@ -1736,6 +1736,10 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
+  /// If `true` a call to the setter is needed for checking the type even
+  /// though the target field is known.
+  bool needsCheck = false;
+
   HInvokeDynamicSetter(
       Selector selector,
       AbstractValue mask,
@@ -1752,7 +1756,8 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 
   List<DartType> get typeArguments => const <DartType>[];
 
-  String toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
+  String toString() =>
+      'invoke dynamic setter: selector=$selector, mask=$mask, element=$element';
 }
 
 class HInvokeStatic extends HInvoke {
@@ -1914,7 +1919,7 @@ class HFieldGet extends HFieldAccess {
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
   bool typeEquals(other) => other is HFieldGet;
   bool dataEquals(HFieldGet other) => element == other.element;
-  String toString() => "FieldGet $element";
+  String toString() => "FieldGet(element=$element,type=$instructionType)";
 }
 
 class HFieldSet extends HFieldAccess {
@@ -1936,7 +1941,7 @@ class HFieldSet extends HFieldAccess {
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
   bool isJsStatement() => true;
-  String toString() => "FieldSet $element";
+  String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 
 class HGetLength extends HInstruction {

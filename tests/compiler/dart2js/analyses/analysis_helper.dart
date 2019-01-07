@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
@@ -204,18 +205,16 @@ class DynamicVisitor extends StaticTypeVisitorBase {
             }
           }
         });
-        _actualMessages.forEach((String uri,
-            Map<String, List<DiagnosticMessage>> actualMessagesMap) {
-          if (!_expectedJson.containsKey(uri)) {
-            actualMessagesMap.forEach(
-                (String message, List<DiagnosticMessage> actualMessages) {
-              if (!expectedMessages.containsKey(message)) {
-                for (DiagnosticMessage message in actualMessages) {
-                  reporter.reportError(message);
-                  errorCount++;
-                }
-              }
-            });
+      }
+    });
+    _actualMessages.forEach(
+        (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+      if (!_expectedJson.containsKey(uri)) {
+        actualMessagesMap
+            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+          for (DiagnosticMessage message in actualMessages) {
+            reporter.reportError(message);
+            errorCount++;
           }
         });
       }

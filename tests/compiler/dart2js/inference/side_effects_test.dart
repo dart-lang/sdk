@@ -25,7 +25,7 @@ main(List<String> args) {
   });
 }
 
-class SideEffectsDataComputer extends DataComputer {
+class SideEffectsDataComputer extends DataComputer<String> {
   const SideEffectsDataComputer();
 
   /// Compute side effects data for [member] from kernel based inference.
@@ -42,15 +42,21 @@ class SideEffectsDataComputer extends DataComputer {
             compiler.globalInference.resultsForTesting.inferredData)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// AST visitor for computing side effects data for a member.
-class SideEffectsIrComputer extends IrDataExtractor {
+class SideEffectsIrComputer extends IrDataExtractor<String> {
   final JsClosedWorld closedWorld;
   final InferredData inferredData;
 
-  SideEffectsIrComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap, this.closedWorld, this.inferredData)
+  SideEffectsIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap,
+      this.closedWorld,
+      this.inferredData)
       : super(reporter, actualMap);
 
   JsToElementMap get _elementMap => closedWorld.elementMap;

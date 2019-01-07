@@ -42,7 +42,9 @@ class IdValue {
     return id == other.id && value == other.value;
   }
 
-  String toString() {
+  String toString() => idToString(id, value);
+
+  static String idToString(Id id, String value) {
     switch (id.kind) {
       case IdKind.element:
         ElementId elementId = id;
@@ -207,17 +209,18 @@ class NodeId implements Id {
   String toString() => '$kind:$value';
 }
 
-class ActualData {
-  final IdValue value;
+class ActualData<T> {
+  final Id id;
+  final T value;
   final SourceSpan sourceSpan;
   final Object object;
 
-  ActualData(this.value, this.sourceSpan, this.object);
+  ActualData(this.id, this.value, this.sourceSpan, this.object);
 
   int get offset {
-    Id id = value.id;
     if (id is NodeId) {
-      return id.value;
+      NodeId nodeId = id;
+      return nodeId.value;
     } else {
       return sourceSpan.begin;
     }
@@ -228,17 +231,16 @@ class ActualData {
   }
 
   String toString() =>
-      'ActualData(value=$value,sourceSpan=$sourceSpan,object=$objectText)';
+      'ActualData(id=$id,value=$value,sourceSpan=$sourceSpan,object=$objectText)';
 }
 
-abstract class DataRegistry {
+abstract class DataRegistry<T> {
   DiagnosticReporter get reporter;
-  Map<Id, ActualData> get actualMap;
+  Map<Id, ActualData<T>> get actualMap;
 
-  void registerValue(
-      SourceSpan sourceSpan, Id id, String value, Object object) {
+  void registerValue(SourceSpan sourceSpan, Id id, T value, Object object) {
     if (actualMap.containsKey(id)) {
-      ActualData existingData = actualMap[id];
+      ActualData<T> existingData = actualMap[id];
       reportHere(reporter, sourceSpan,
           "Duplicate id ${id}, value=$value, object=$object");
       reportHere(
@@ -249,8 +251,7 @@ abstract class DataRegistry {
       Expect.fail("Duplicate id $id.");
     }
     if (value != null) {
-      actualMap[id] =
-          new ActualData(new IdValue(id, value), sourceSpan, object);
+      actualMap[id] = new ActualData<T>(id, value, sourceSpan, object);
     }
   }
 }
@@ -270,32 +271,32 @@ Id computeEntityId(ir.Member node) {
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
+abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
   final DiagnosticReporter reporter;
-  final Map<Id, ActualData> actualMap;
+  final Map<Id, ActualData<T>> actualMap;
 
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
-  String computeMemberValue(Id id, ir.Member member);
+  T computeMemberValue(Id id, ir.Member member);
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  String computeNodeValue(Id id, ir.TreeNode node);
+  T computeNodeValue(Id id, ir.TreeNode node);
 
   IrDataExtractor(this.reporter, this.actualMap);
 
   void computeForMember(ir.Member member) {
     ElementId id = computeEntityId(member);
     if (id == null) return;
-    String value = computeMemberValue(id, member);
+    T value = computeMemberValue(id, member);
     registerValue(computeSourceSpan(member), id, value, member);
   }
 
   void computeForNode(ir.TreeNode node, NodeId id) {
     if (id == null) return;
-    String value = computeNodeValue(id, node);
+    T value = computeNodeValue(id, node);
     registerValue(computeSourceSpan(node), id, value, node);
   }
 

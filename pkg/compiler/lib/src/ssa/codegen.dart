@@ -1998,8 +1998,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void registerSetter(HInvokeDynamic node) {
-    if (node.element != null) {
+  void registerSetter(HInvokeDynamic node, {bool needsCheck: false}) {
+    if (node.element is FieldEntity && !needsCheck) {
       // This is a dynamic update which we have found to have a single
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
@@ -2036,7 +2036,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(js
         .propertyCall(pop(), name, visitArguments(node.inputs))
         .withSourceInformation(node.sourceInformation));
-    registerSetter(node);
+    registerSetter(node, needsCheck: node.needsCheck);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {

@@ -25,12 +25,12 @@ main(List<String> args) {
   });
 }
 
-class CallersDataComputer extends DataComputer {
+class CallersDataComputer extends DataComputer<String> {
   const CallersDataComputer();
 
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -43,16 +43,23 @@ class CallersDataComputer extends DataComputer {
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// AST visitor for computing side effects data for a member.
-class CallersIrComputer extends IrDataExtractor {
+class CallersIrComputer extends IrDataExtractor<String> {
   final TypeGraphInferrer inferrer;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
 
-  CallersIrComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      this._elementMap, this.inferrer, this._closureDataLookup)
+  CallersIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap,
+      this._elementMap,
+      this.inferrer,
+      this._closureDataLookup)
       : super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {

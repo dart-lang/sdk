@@ -4253,11 +4253,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     AbstractValue type = _typeInferenceMap.selectorTypeOf(selector, mask);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, mask, null, inputs, isIntercepted,
-          type, sourceInformation));
+      push(new HInvokeDynamicGetter(selector, mask, element, inputs,
+          isIntercepted, type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, mask, null, inputs, isIntercepted,
-          type, sourceInformation));
+      push(new HInvokeDynamicSetter(selector, mask, element, inputs,
+          isIntercepted, type, sourceInformation));
     } else if (selector.isClosureCall) {
       assert(!isIntercepted);
       push(new HInvokeClosure(selector, inputs, type, typeArguments)

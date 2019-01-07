@@ -41,15 +41,15 @@ runTests(List<String> args, [int shardIndex]) {
   });
 }
 
-class TypeMaskDataComputer extends DataComputer {
+class TypeMaskDataComputer extends DataComputer<String> {
   const TypeMaskDataComputer();
 
   /// Compute type inference data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -65,10 +65,13 @@ class TypeMaskDataComputer extends DataComputer {
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// IR visitor for computing inference data for a member.
-class TypeMaskIrComputer extends IrDataExtractor {
+class TypeMaskIrComputer extends IrDataExtractor<String> {
   final GlobalTypeInferenceResults results;
   GlobalTypeInferenceMemberResult result;
   final JsToElementMap _elementMap;
@@ -77,7 +80,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
 
   TypeMaskIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
       this._localsMap,
