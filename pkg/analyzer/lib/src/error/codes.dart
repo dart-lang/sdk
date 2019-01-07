@@ -3016,7 +3016,7 @@ class StaticTypeWarningCode extends ErrorCode {
    */
   static const StaticTypeWarningCode INVOCATION_OF_NON_FUNCTION_EXPRESSION =
       const StaticTypeWarningCode('INVOCATION_OF_NON_FUNCTION_EXPRESSION',
-          "The expression doesn't evaluate to a function, so it can't invoked.");
+          "The expression doesn't evaluate to a function, so it can't be invoked.");
 
   /**
    * 12.20 Conditional: It is a static type warning if the type of
