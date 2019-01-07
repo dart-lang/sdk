@@ -346,8 +346,8 @@ abstract class int extends num {
   /**
    * Parse [source] as a, possibly signed, integer literal and return its value.
    *
-   * Like [parse] except that this function returns `null` for invalid inputs
-   * instead of throwing.
+   * Like [parse] except that this function returns `null` where a
+   * similar call to [parse] would throw a [FormatException].
    */
   external static int tryParse(String source, {int radix});
 }
