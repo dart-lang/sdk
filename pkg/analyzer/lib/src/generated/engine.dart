@@ -1750,6 +1750,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(useFastaParser);
 
+      // Append enabled experiments.
+      buffer.addInt(enabledExperiments.length);
+      for (String experimentName in enabledExperiments) {
+        buffer.addString(experimentName);
+      }
+
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
       _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
