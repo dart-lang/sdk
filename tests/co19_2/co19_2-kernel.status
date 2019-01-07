@@ -477,9 +477,11 @@ LibTest/io/Link/stat_A01_t01: RuntimeError
 LibTest/isolate/Isolate/spawn_A06_t03: Crash, Pass
 
 [ $runtime == vm && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass, Slow # https://github.com/dart-lang/co19/issues/198
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass, Slow # https://github.com/dart-lang/co19/issues/198
-LibTest/core/List/List_class_A01_t02: Timeout, Pass, Slow # https://github.com/dart-lang/co19/issues/198
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
+LibTest/collection/ListMixin/ListMixin_class_A01_t03: Pass, Slow
+LibTest/core/List/List_class_A01_t02: Pass, Slow
+LibTest/core/List/List_class_A01_t03: Pass, Slow
 LibTest/io/Directory/watch_A01_t02: RuntimeError, Pass
 LibTest/io/Directory/watch_A02_t01: RuntimeError, Pass
 LibTest/io/FileSystemCreateEvent/isDirectory_A01_t03: RuntimeError, Pass
