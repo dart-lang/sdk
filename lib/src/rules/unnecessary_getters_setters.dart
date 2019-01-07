@@ -14,7 +14,7 @@ const _details = r'''
 
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
-*AVOID** wrapping fields in getters and setters just to be "safe".
+*AVOID* wrapping fields in getters and setters just to be "safe".
 
 In Java and C#, it's common to hide all fields behind getters and setters (or
 properties in C#), even if the implementation just forwards to the field.  That
