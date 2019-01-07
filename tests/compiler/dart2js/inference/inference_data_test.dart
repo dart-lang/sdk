@@ -22,7 +22,7 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('inference_data'));
     await checkTests(dataDir, const InferenceDataComputer(),
-        args: args, options: [stopAfterTypeInference]);
+        args: args, testOmit: false, options: [stopAfterTypeInference]);
   });
 }
 

@@ -24,8 +24,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
-    await checkTests(dataDir, const RtiEmissionDataComputer(),
-        args: args, testOmit: true);
+    await checkTests(dataDir, const RtiEmissionDataComputer(), args: args);
   });
 }
 

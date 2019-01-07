@@ -36,7 +36,6 @@ runTests(List<String> args, [int shardIndex]) {
     await checkTests(dataDir, const RtiNeedDataComputer(),
         options: [],
         args: args,
-        testOmit: true,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1);
   });

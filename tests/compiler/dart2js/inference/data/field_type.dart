@@ -352,7 +352,7 @@ class A16 {
   // TODO(johnniwinther): Investigate why these include `null`. The ast version
   // didn't.
 
-  /*strong.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
+  /*element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   var f16;
 
   /*element: A16.:[exact=A16]*/
@@ -608,11 +608,7 @@ class A24 {
             bar24();
 
   /*element: A24.+:Value([exact=JSString], value: "foo")*/
-  operator +(
-
-          /*strong.[empty]*/
-          other) =>
-      'foo';
+  operator +(/*[empty]*/ other) => 'foo';
 
   /*element: A24.bar24:[exact=JSDouble]*/
   bar24() => 42.5;

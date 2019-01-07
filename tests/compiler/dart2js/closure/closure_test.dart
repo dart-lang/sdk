@@ -23,8 +23,7 @@ import 'package:kernel/ast.dart' as ir;
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const ClosureDataComputer(),
-        args: args, testOmit: true);
+    await checkTests(dataDir, const ClosureDataComputer(), args: args);
   });
 }
 

@@ -22,8 +22,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('model_data'));
-    await checkTests(dataDir, const ModelDataComputer(),
-        testOmit: true, args: args);
+    await checkTests(dataDir, const ModelDataComputer(), args: args);
   });
 }
 

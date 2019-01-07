@@ -34,8 +34,7 @@ main(List<String> args) {
     await checkTests(dataDir, const OutputUnitDataComputer(),
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         options: compilerOptions,
-        args: args,
-        testOmit: true, setUpFunction: () {
+        args: args, setUpFunction: () {
       importPrefixes.clear();
     });
   });

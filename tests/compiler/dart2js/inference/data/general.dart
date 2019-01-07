@@ -594,7 +594,7 @@ testSpecialization2() {
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
   (
-      /*strong.[null|exact=JSString]*/
+      /*[null|exact=JSString]*/
       () => a.toString())();
   a - 42;
   return a;
@@ -674,7 +674,7 @@ class A {
   /*element: A.generative:[exact=A]*/
   A.generative();
 
-  /*strong.element: A.==:[exact=JSBool]*/
+  /*element: A.==:[exact=JSBool]*/
   operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
       42 as dynamic;
 

@@ -509,8 +509,7 @@ typedef void Callback();
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
 Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
-    {bool testStrongMode: true,
-    List<String> skipForStrong: const <String>[],
+    {List<String> skipForStrong: const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[],
@@ -520,7 +519,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     Callback setUpFunction,
     int shards: 1,
     int shardIndex: 0,
-    bool testOmit: false,
+    bool testOmit: true,
     void onTest(Uri uri)}) async {
   dataComputer.setup();
 
@@ -546,20 +545,8 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     if (shouldContinue) continued = true;
     testCount++;
     List<String> testOptions = options.toList();
-    bool trustTypeAnnotations = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
-    }
-    if (name.contains('_strong')) {
-      if (!testStrongMode) {
-        // TODO(johnniwinther): Remove irrelevant tests.
-      }
-    }
-    if (name.endsWith('_checked.dart')) {
-      testOptions.add(Flags.enableCheckedMode);
-    }
-    if (name.contains('_trust')) {
-      trustTypeAnnotations = true;
     }
 
     if (onTest != null) {
@@ -609,29 +596,24 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (testStrongMode) {
-      if (skipForStrong.contains(name)) {
-        print('--skipped for kernel (strong mode)----------------------------');
-      } else {
-        print('--from kernel (strong mode)-----------------------------------');
-        List<String> options = new List<String>.from(testOptions);
-        if (trustTypeAnnotations && !testOmit) {
-          options.add(Flags.omitImplicitChecks);
-        }
-        MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
-        CompiledData<T> compiledData2 = await computeData(
-            entryPoint, memorySourceFiles, dataComputer,
-            options: options,
-            verbose: verbose,
-            testFrontend: testFrontend,
-            forUserLibrariesOnly: forUserLibrariesOnly,
-            globalIds: annotations.globalData.keys);
-        if (await checkCode(strongName, entity.uri, code, annotations,
-            compiledData2, dataComputer.dataValidator,
-            filterActualData: filterActualData,
-            fatalErrors: !testAfterFailures)) {
-          hasFailures = true;
-        }
+    if (skipForStrong.contains(name)) {
+      print('--skipped for kernel (strong mode)----------------------------');
+    } else {
+      print('--from kernel (strong mode)-----------------------------------');
+      List<String> options = new List<String>.from(testOptions);
+      MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
+      CompiledData<T> compiledData2 = await computeData(
+          entryPoint, memorySourceFiles, dataComputer,
+          options: options,
+          verbose: verbose,
+          testFrontend: testFrontend,
+          forUserLibrariesOnly: forUserLibrariesOnly,
+          globalIds: annotations.globalData.keys);
+      if (await checkCode(strongName, entity.uri, code, annotations,
+          compiledData2, dataComputer.dataValidator,
+          filterActualData: filterActualData,
+          fatalErrors: !testAfterFailures)) {
+        hasFailures = true;
       }
     }
     if (testOmit) {

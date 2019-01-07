@@ -7,7 +7,11 @@ class A {
   // We may ignore this for type inference because syntactically it always
   // throws an exception.
   /*element: A.noSuchMethod:[empty]*/
-  noSuchMethod(/*[null|subclass=Object]*/ im) => throw 'foo';
+  noSuchMethod(
+          /*strong.[null|subclass=Object]*/
+          /*omit.[null|exact=JSInvocationMirror]*/
+          im) =>
+      throw 'foo';
 }
 
 /*element: B.:[exact=B]*/

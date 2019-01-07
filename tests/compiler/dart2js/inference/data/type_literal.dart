@@ -12,13 +12,13 @@ main() {
 /*element: typeLiteral:[exact=TypeImpl]*/
 typeLiteral() => Object;
 
-/*strong.element: typeLiteralToString:[exact=JSString]*/
+/*element: typeLiteralToString:[exact=JSString]*/
 typeLiteralToString() => (Object). /*invoke: [exact=TypeImpl]*/ toString();
 
 /*element: typeLiteralSubstring:[exact=JSString]*/
 typeLiteralSubstring() {
   String name = (List). /*invoke: [exact=TypeImpl]*/ toString();
-  name = name. /*strong.invoke: [exact=JSString]*/ substring(
-      0, name. /*strong.invoke: [exact=JSString]*/ indexOf('<'));
+  name = name. /*invoke: [exact=JSString]*/ substring(
+      0, name. /*invoke: [exact=JSString]*/ indexOf('<'));
   return name;
 }

@@ -52,6 +52,8 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   }
 }
 
+/*strong.element: main:*/
+/*omit.element: main:FieldSet=[name=AppView.ctx,name=AppView.ctx]*/
 main() {
   var c1 = new ViewCardComponent();
   c1.ctx = new CardComponent();
