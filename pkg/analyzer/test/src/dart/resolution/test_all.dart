@@ -19,6 +19,7 @@ import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin_test;
 import 'method_invocation_test.dart' as method_invocation_test;
 import 'mixin_test.dart' as mixin_test;
+import 'non_nullable_test.dart' as non_nullable_test;
 import 'optional_const_test.dart' as optional_const_test;
 import 'property_access_test.dart' as property_access_test;
 import 'top_type_inference_test.dart' as top_type_inference_test;
@@ -38,6 +39,7 @@ main() {
     instance_member_inference_mixin_test.main();
     method_invocation_test.main();
     mixin_test.main();
+    non_nullable_test.main();
     optional_const_test.main();
     property_access_test.main();
     top_type_inference_test.main();

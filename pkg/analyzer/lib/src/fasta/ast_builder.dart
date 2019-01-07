@@ -99,7 +99,9 @@ class AstBuilder extends StackListener {
   /// `true` if non-nullable behavior is enabled
   bool enableNonNullable = false;
 
-  bool showNullableTypeErrors = true;
+  /// Is `true` if [enableNonNullable] is enabled, and the library directive
+  /// is annotated with `@pragma('analyzer:non-nullable')`.
+  bool hasPragmaAnalyzerNonNullable = false;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
@@ -967,7 +969,7 @@ class AstBuilder extends StackListener {
   @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
-    if (showNullableTypeErrors) {
+    if (!enableNonNullable) {
       reportErrorIfNullableType(questionMark);
     }
 
@@ -1128,7 +1130,7 @@ class AstBuilder extends StackListener {
   void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
-    if (showNullableTypeErrors) {
+    if (!enableNonNullable) {
       reportErrorIfNullableType(questionMark);
     }
 
@@ -2101,10 +2103,8 @@ class AstBuilder extends StackListener {
           if (arguments.length == 1) {
             Expression tag = arguments[0];
             if (tag is StringLiteral) {
-              // TODO(danrubel): handle other flags such as
-              // 'analyzer:non-nullable' without the trailing star.
-              if (tag.stringValue == 'analyzer:non-nullable*') {
-                showNullableTypeErrors = false;
+              if (tag.stringValue == 'analyzer:non-nullable') {
+                hasPragmaAnalyzerNonNullable = true;
                 break;
               }
             }

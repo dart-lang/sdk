@@ -2342,6 +2342,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   Map<int, AstNode> localDeclarations;
 
   /**
+   * Is `true` if the non-nullable feature is enabled, and this library
+   * unit is annotated with `@pragma('analyzer:non-nullable')`.
+   */
+  bool hasPragmaAnalyzerNonNullable = false;
+
+  /**
    * Initialize a newly created compilation unit to have the given directives
    * and declarations. The [scriptTag] can be `null` if there is no script tag
    * in the compilation unit. The list of [directives] can be `null` if there
