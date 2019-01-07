@@ -20,7 +20,7 @@ class RuntimeEntry;
   V(LoadBytecode)                                                              \
   V(CompileOptimized)                                                          \
   V(CompileUnoptimized)                                                        \
-  V(CompileClass)                                                              \
+  V(ClassLoading)                                                              \
   V(CompileParseRegExp)                                                        \
   V(DartCompiled)                                                              \
   V(DartInterpreted)                                                           \

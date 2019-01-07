@@ -60,6 +60,12 @@ class ClassFinalizer : public AllStatic {
   // Finalize the class including its fields and functions.
   static void FinalizeClass(const Class& cls);
 
+  // Completes loading of the class, this populates the function
+  // and fields of the class.
+  //
+  // Returns Error::null() if there is no loading error.
+  static RawError* LoadClassMembers(const Class& cls);
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Verify that the classes have been properly prefinalized. This is
   // needed during bootstrapping where the classes have been preloaded.

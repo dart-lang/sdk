@@ -3480,7 +3480,7 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   const Error& error =
-      Error::Handle(thread->zone(), Compiler::CompileClass(*this));
+      Error::Handle(thread->zone(), ClassFinalizer::LoadClassMembers(*this));
   if (!error.IsNull()) {
     ASSERT(thread == Thread::Current());
     if (thread->long_jump_base() != NULL) {
@@ -4011,12 +4011,13 @@ void Class::set_is_prefinalized() const {
                                             raw_ptr()->state_bits_));
 }
 
-void Class::set_is_marked_for_parsing() const {
-  set_state_bits(MarkedForParsingBit::update(true, raw_ptr()->state_bits_));
+void Class::set_is_marked_for_lazy_loading() const {
+  set_state_bits(MarkedForLazyLoadingBit::update(true, raw_ptr()->state_bits_));
 }
 
-void Class::reset_is_marked_for_parsing() const {
-  set_state_bits(MarkedForParsingBit::update(false, raw_ptr()->state_bits_));
+void Class::reset_is_marked_for_lazy_loading() const {
+  set_state_bits(
+      MarkedForLazyLoadingBit::update(false, raw_ptr()->state_bits_));
 }
 
 void Class::set_interfaces(const Array& value) const {

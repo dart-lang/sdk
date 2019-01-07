@@ -1136,11 +1136,11 @@ class Class : public Object {
   void SetRefinalizeAfterPatch() const;
   void ResetFinalization() const;
 
-  bool is_marked_for_parsing() const {
-    return MarkedForParsingBit::decode(raw_ptr()->state_bits_);
+  bool is_marked_for_lazy_loading() const {
+    return MarkedForLazyLoadingBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_marked_for_parsing() const;
-  void reset_is_marked_for_parsing() const;
+  void set_is_marked_for_lazy_loading() const;
+  void reset_is_marked_for_lazy_loading() const;
 
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
@@ -1326,7 +1326,7 @@ class Class : public Object {
     kAbstractBit = kClassFinalizedPos + kClassFinalizedSize,  // = 5
     kPatchBit = 6,
     kSynthesizedClassBit = 7,
-    kMarkedForParsingBit = 8,
+    kMarkedForLazyLoadingBit = 8,
     kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
     kFieldsMarkedNullableBit = 11,
@@ -1347,8 +1347,8 @@ class Class : public Object {
   class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
   class SynthesizedClassBit
       : public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
-  class MarkedForParsingBit
-      : public BitField<uint16_t, bool, kMarkedForParsingBit, 1> {};
+  class MarkedForLazyLoadingBit
+      : public BitField<uint16_t, bool, kMarkedForLazyLoadingBit, 1> {};
   class FieldsMarkedNullableBit
       : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
   class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};

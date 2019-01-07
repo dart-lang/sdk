@@ -476,7 +476,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     if (!cls.is_finalized()) {
       if (compile_mode_ == kForceCompile) {
         Error& err = Error::Handle();
-        if (cls.is_marked_for_parsing()) {
+        if (cls.is_marked_for_lazy_loading()) {
           const String& error_message = String::Handle(
               String::New("Unable to process 'force compile' request, "
                           "while the class is being finalized."));

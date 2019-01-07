@@ -1110,33 +1110,9 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     }
   }
 
-  // A top level class is parsed eagerly so just finalize it.
+  // A top level class is loaded eagerly so just finalize it.
   if (cls.IsTopLevel()) {
     FinalizeClass(cls);
-  } else {
-    // This class should not contain any functions or user-defined fields yet,
-    // because it has not been compiled yet. There may however be metadata
-    // fields because type parameters are parsed before the class body. Since
-    // 'FinalizeMemberTypes(cls)' has not been called yet, unfinalized
-    // member types could choke the snapshotter.
-    // Or
-    // if the class is being refinalized because a patch is being applied
-    // after the class has been finalized then it is ok for the class to have
-    // functions.
-    //
-    // TODO(kmillikin): This ASSERT will fail when bootstrapping from Kernel
-    // because classes are first created, methods are added, and then classes
-    // are finalized.  It is not easy to finalize classes earlier because not
-    // all bootstrap classes have been created yet.  It would be possible to
-    // create all classes, delay adding methods, finalize the classes, and then
-    // reprocess all classes to add methods, but that seems unnecessary.
-    // Marking the bootstrap classes as is_refinalize_after_patch seems cute but
-    // it causes other things to fail by violating their assumptions.  Reenable
-    // this ASSERT if it's important, remove it if it's just a sanity check and
-    // not required for correctness.
-    //
-    // ASSERT((Array::Handle(cls.functions()).Length() == 0) ||
-    //        cls.is_refinalize_after_patch());
   }
 }
 
@@ -1180,7 +1156,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (!super.IsNull()) {
     FinalizeClass(super);
   }
-  // Mark as parsed and finalized.
+  // Mark as loaded and finalized.
   cls.Finalize();
   // Every class should have at least a constructor, unless it is a top level
   // class or a typedef class. The Kernel frontend does not create an implicit
@@ -1202,6 +1178,158 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
+  }
+}
+
+static void AddRelatedClassesToList(
+    const Class& cls,
+    GrowableHandlePtrArray<const Class>* load_class_list,
+    GrowableHandlePtrArray<const Class>* load_patchclass_list) {
+  Zone* zone = Thread::Current()->zone();
+  Class& load_class = Class::Handle(zone);
+  AbstractType& interface_type = Type::Handle(zone);
+  Array& interfaces = Array::Handle(zone);
+
+  // Add all the interfaces implemented by the class that have not been
+  // already loaded to the load list. Mark the interface as loading so that
+  // we don't recursively add it back into the list.
+  interfaces ^= cls.interfaces();
+  for (intptr_t i = 0; i < interfaces.Length(); i++) {
+    interface_type ^= interfaces.At(i);
+    load_class ^= interface_type.type_class();
+    if (!load_class.is_finalized() &&
+        !load_class.is_marked_for_lazy_loading()) {
+      load_class_list->Add(load_class);
+      load_class.set_is_marked_for_lazy_loading();
+    }
+  }
+
+  // Walk up the super_class chain and add these classes to the list if they
+  // have not been already added to the load class list. Mark the class as
+  // loading so that we don't recursively add it back into the list.
+  load_class ^= cls.SuperClass();
+  while (!load_class.IsNull()) {
+    if (!load_class.is_finalized() &&
+        !load_class.is_marked_for_lazy_loading()) {
+      load_class_list->Add(load_class);
+      load_class.set_is_marked_for_lazy_loading();
+    }
+    load_class ^= load_class.SuperClass();
+  }
+
+  // Add patch classes if they exist to the load patchclass list if they have
+  // not already been loaded and patched. Mark the class as loading so that
+  // we don't recursively add it back into the list.
+  load_class ^= cls.GetPatchClass();
+  if (!load_class.IsNull()) {
+    if (!load_class.is_finalized() &&
+        !load_class.is_marked_for_lazy_loading()) {
+      load_patchclass_list->Add(load_class);
+      load_class.set_is_marked_for_lazy_loading();
+    }
+  }
+}
+
+RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  // If class is a top level class it is already loaded.
+  if (cls.IsTopLevel()) {
+    return Error::null();
+  }
+  // If the class is already marked for loading return immediately.
+  if (cls.is_marked_for_lazy_loading()) {
+    return Error::null();
+  }
+  // If the class is a typedef class there is no need to try and
+  // compile it. Just finalize it directly.
+  if (cls.IsTypedefClass()) {
+#if defined(DEBUG)
+    const Class& closure_cls =
+        Class::Handle(Isolate::Current()->object_store()->closure_class());
+    ASSERT(closure_cls.is_finalized());
+#endif
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      ClassFinalizer::FinalizeClass(cls);
+      return Error::null();
+    } else {
+      return Thread::Current()->StealStickyError();
+    }
+  }
+
+  Thread* const thread = Thread::Current();
+  StackZone zone(thread);
+#if !defined(PRODUCT)
+  VMTagScope tagScope(thread, VMTag::kClassLoadingTagId);
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "ClassLoading");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(0, "class", cls.ToCString());
+  }
+#endif  // !defined(PRODUCT)
+
+  // We remember all the classes that are being lazy loaded in these lists.
+  // This also allows us to reset the marked_for_loading state in case we see
+  // an error.
+  GrowableHandlePtrArray<const Class> load_class_list(thread->zone(), 4);
+  GrowableHandlePtrArray<const Class> load_patchclass_list(thread->zone(), 4);
+
+  // Load the class and all the interfaces it implements and super classes.
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    if (FLAG_trace_class_finalization) {
+      THR_Print("Lazy Loading Class '%s'\n", cls.ToCString());
+    }
+
+    // Add the primary class which needs to be load to the load list.
+    // Mark the class as loading so that we don't recursively add the same
+    // class back into the list.
+    load_class_list.Add(cls);
+    cls.set_is_marked_for_lazy_loading();
+
+    // Add all super classes, interface classes and patch class if one
+    // exists to the corresponding lists.
+    // NOTE: The load_class_list array keeps growing as more classes are added
+    // to it by AddRelatedClassesToList. It is not OK to hoist
+    // load_class_list.Length() into a local variable and iterate using the
+    // local variable.
+    for (intptr_t i = 0; i < load_class_list.length(); i++) {
+      AddRelatedClassesToList(load_class_list.At(i), &load_class_list,
+                              &load_patchclass_list);
+    }
+
+    // Finish lazy loading of these classes and finialize them.
+    for (intptr_t i = (load_class_list.length() - 1); i >= 0; i--) {
+      const Class& load_class = load_class_list.At(i);
+      ASSERT(!load_class.IsNull());
+      ClassFinalizer::FinalizeClass(load_class);
+      load_class.reset_is_marked_for_lazy_loading();
+    }
+    for (intptr_t i = (load_patchclass_list.length() - 1); i >= 0; i--) {
+      const Class& load_class = load_patchclass_list.At(i);
+      ASSERT(!load_class.IsNull());
+      ClassFinalizer::FinalizeClass(load_class);
+      load_class.reset_is_marked_for_lazy_loading();
+    }
+
+    return Error::null();
+  } else {
+    // Reset the marked for parsing flags.
+    for (intptr_t i = 0; i < load_class_list.length(); i++) {
+      const Class& load_class = load_class_list.At(i);
+      if (load_class.is_marked_for_lazy_loading()) {
+        load_class.reset_is_marked_for_lazy_loading();
+      }
+    }
+    for (intptr_t i = 0; i < load_patchclass_list.length(); i++) {
+      const Class& load_class = load_patchclass_list.At(i);
+      if (load_class.is_marked_for_lazy_loading()) {
+        load_class.reset_is_marked_for_lazy_loading();
+      }
+    }
+
+    return Thread::Current()->StealStickyError();
   }
 }
 
