@@ -478,6 +478,7 @@ LibTest/isolate/Isolate/spawn_A06_t03: Crash, Pass
 
 [ $runtime == vm && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t03: Pass, Slow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
 LibTest/collection/ListMixin/ListMixin_class_A01_t03: Pass, Slow
 LibTest/core/List/List_class_A01_t02: Pass, Slow
