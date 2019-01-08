@@ -1,5 +1,6 @@
 # This pubspec is currently mainly used to make it easier to develop by making 
 # it a package.
 name: testing
-#version: do-not-upload
-dependencies:
+publish_to: none
+environment:
+  sdk: '>=2.0.0 <3.0.0'
