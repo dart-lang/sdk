@@ -100,15 +100,14 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
       List<String> strings: const <String>[],
       List<_EntityRefValidator> referenceValidators:
           const <_EntityRefValidator>[],
-      bool forTypeInferenceOnly: false,
-      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
+      bool forTypeInferenceOnly: false}) {
     if (forTypeInferenceOnly && !containsNonConstExprs) {
       expect(constExpr, isNull);
       return;
     }
     expect(constExpr, isNotNull);
     expect(constExpr.sourceRepresentation,
-        _normalizeTokenString(sourceRepresentation, enableSetLiterals));
+        _normalizeTokenString(sourceRepresentation));
     expect(constExpr.isValidConst, isValidConst);
     expect(constExpr.operations, operators);
     expect(constExpr.ints, ints);
@@ -119,29 +118,6 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     for (int i = 0; i < referenceValidators.length; i++) {
       referenceValidators[i](constExpr.references[i]);
     }
-  }
-
-  String _normalizeTokenString(String tokenString, bool enableSetLiterals) {
-    // Note: to normalize the token string it's not sufficient to tokenize it
-    // and then pass the tokens to `tokensToString`; we also need to parse it
-    // because parsing modifies the token stream (splitting up `[]`, `>>`, and
-    // `>>>` tokens when circumstances warrant).
-    //
-    // We wrap the expression in "f() async => ...;" to ensure that the await
-    // keyword is properly parsed.
-    var sourceText = 'f() async => $tokenString;';
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    var reader = new CharSequenceReader(sourceText);
-    var stringSource = new StringSource(sourceText, null);
-    var scanner = new Scanner(stringSource, reader, errorListener);
-    var startToken = scanner.tokenize();
-    var parser = new Parser(stringSource, errorListener)
-      ..enableSetLiterals = enableSetLiterals;
-    var compilationUnit = parser.parseCompilationUnit(startToken);
-    var f = compilationUnit.declarations[0] as FunctionDeclaration;
-    var body = f.functionExpression.body as ExpressionFunctionBody;
-    var expression = body.expression;
-    return tokensToString(expression.beginToken, expression.endToken);
   }
 
   /**
@@ -824,11 +800,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
    * with the given [variableName].
    */
   UnlinkedVariable serializeVariableText(String text,
-      {String variableName: 'v',
-      bool allowErrors: false,
-      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
-    serializeLibraryText(text,
-        allowErrors: allowErrors, enableSetLiterals: enableSetLiterals);
+      {String variableName: 'v', bool allowErrors: false}) {
+    serializeLibraryText(text, allowErrors: allowErrors);
     return findVariable(variableName, failIfAbsent: true);
   }
 
@@ -2968,46 +2941,48 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet() {
-    UnlinkedVariable variable = serializeVariableText(
-        'const v = const <int>{11, 22, 33};',
-        enableSetLiterals: true);
+    experimentStatus = ExperimentStatus(set_literals: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const <int>{11, 22, 33};');
     assertUnlinkedConst(
-        variable.initializer.bodyExpr, 'const <int>{11, 22, 33}',
-        operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.makeTypedSet
-        ],
-        ints: [11, 22, 33, 3],
-        referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
-              expectedKind: ReferenceKind.classOrEnum)
-        ],
-        enableSetLiterals: true);
+      variable.initializer.bodyExpr,
+      'const <int>{11, 22, 33}',
+      operators: [
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.makeTypedSet
+      ],
+      ints: [11, 22, 33, 3],
+      referenceValidators: [
+        (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+            expectedKind: ReferenceKind.classOrEnum)
+      ],
+    );
   }
 
   test_constExpr_makeTypedSet_dynamic() {
-    UnlinkedVariable variable = serializeVariableText(
-        'const v = const <dynamic>{11, 22, 33};',
-        enableSetLiterals: true);
+    experimentStatus = ExperimentStatus(set_literals: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const <dynamic>{11, 22, 33};');
     assertUnlinkedConst(
-        variable.initializer.bodyExpr, 'const <dynamic>{11, 22, 33}',
-        operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.makeTypedSet
-        ],
-        ints: [11, 22, 33, 3],
-        referenceValidators: [(EntityRef r) => checkDynamicTypeRef(r)],
-        enableSetLiterals: true);
+      variable.initializer.bodyExpr,
+      'const <dynamic>{11, 22, 33}',
+      operators: [
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.makeTypedSet
+      ],
+      ints: [11, 22, 33, 3],
+      referenceValidators: [(EntityRef r) => checkDynamicTypeRef(r)],
+    );
   }
 
   test_constExpr_makeTypedSet_functionType() {
-    UnlinkedVariable variable = serializeVariableText(
-        'final v = <void Function(int)>{};',
-        enableSetLiterals: true);
+    experimentStatus = ExperimentStatus(set_literals: true);
+    UnlinkedVariable variable =
+        serializeVariableText('final v = <void Function(int)>{};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<void Function(int)>{}',
         operators: [UnlinkedExprOperation.makeTypedSet],
         ints: [
@@ -3034,9 +3009,9 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_functionType_withTypeParameters() {
+    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable = serializeVariableText(
-        'final v = <void Function<T>(Function<Q>(T, Q))>{};',
-        enableSetLiterals: true);
+        'final v = <void Function<T>(Function<Q>(T, Q))>{};');
     assertUnlinkedConst(variable.initializer.bodyExpr,
         '<void Function<T>(Function<Q>(T, Q))>{}',
         operators: [UnlinkedExprOperation.makeTypedSet],
@@ -3123,18 +3098,20 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeUntypedSet() {
-    UnlinkedVariable variable = serializeVariableText(
-        'const v = const {11, 22, 33};',
-        enableSetLiterals: true);
-    assertUnlinkedConst(variable.initializer.bodyExpr, 'const {11, 22, 33}',
-        operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.makeUntypedSet
-        ],
-        ints: [11, 22, 33, 3],
-        enableSetLiterals: true);
+    experimentStatus = ExperimentStatus(set_literals: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const {11, 22, 33};');
+    assertUnlinkedConst(
+      variable.initializer.bodyExpr,
+      'const {11, 22, 33}',
+      operators: [
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.pushInt,
+        UnlinkedExprOperation.makeUntypedSet
+      ],
+      ints: [11, 22, 33, 3],
+    );
   }
 
   test_constExpr_parenthesized() {
@@ -7418,9 +7395,9 @@ final v = f<int, String>();
   }
 
   test_expr_makeTypedSet() {
-    UnlinkedVariable variable = serializeVariableText(
-        'var v = <int>{11, 22, 33};',
-        enableSetLiterals: true);
+    experimentStatus = ExperimentStatus(set_literals: true);
+    UnlinkedVariable variable =
+        serializeVariableText('var v = <int>{11, 22, 33};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{11, 22, 33}',
         operators: [UnlinkedExprOperation.makeTypedSet],
         ints: [0],
@@ -7428,8 +7405,7 @@ final v = f<int, String>();
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
               expectedKind: ReferenceKind.classOrEnum)
         ],
-        forTypeInferenceOnly: true,
-        enableSetLiterals: true);
+        forTypeInferenceOnly: true);
   }
 
   test_expr_makeUntypedList() {
@@ -7465,8 +7441,8 @@ final v = f<int, String>();
   }
 
   test_expr_makeUntypedSet() {
-    UnlinkedVariable variable =
-        serializeVariableText('var v = {11, 22, 33};', enableSetLiterals: true);
+    experimentStatus = ExperimentStatus(set_literals: true);
+    UnlinkedVariable variable = serializeVariableText('var v = {11, 22, 33};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '{11, 22, 33}',
         operators: [
           UnlinkedExprOperation.pushInt,
@@ -7475,8 +7451,7 @@ final v = f<int, String>();
           UnlinkedExprOperation.makeUntypedSet
         ],
         ints: [11, 22, 33, 3],
-        forTypeInferenceOnly: true,
-        enableSetLiterals: true);
+        forTypeInferenceOnly: true);
   }
 
   test_expr_super() {
@@ -10783,6 +10758,30 @@ final v = $expr;
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
         ],
         forTypeInferenceOnly: true);
+  }
+
+  String _normalizeTokenString(String tokenString) {
+    // Note: to normalize the token string it's not sufficient to tokenize it
+    // and then pass the tokens to `tokensToString`; we also need to parse it
+    // because parsing modifies the token stream (splitting up `[]`, `>>`, and
+    // `>>>` tokens when circumstances warrant).
+    //
+    // We wrap the expression in "f() async => ...;" to ensure that the await
+    // keyword is properly parsed.
+    var sourceText = 'f() async => $tokenString;';
+    var errorListener = AnalysisErrorListener.NULL_LISTENER;
+    var reader = new CharSequenceReader(sourceText);
+    var stringSource = new StringSource(sourceText, null);
+    var scanner = new Scanner(stringSource, reader, errorListener);
+    var startToken = scanner.tokenize();
+    var parser = new Parser(stringSource, errorListener)
+      ..enableSetLiterals = experimentStatus.set_literals
+      ..enableNonNullable = experimentStatus.non_nullable;
+    var compilationUnit = parser.parseCompilationUnit(startToken);
+    var f = compilationUnit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as ExpressionFunctionBody;
+    var expression = body.expression;
+    return tokensToString(expression.beginToken, expression.endToken);
   }
 }
 

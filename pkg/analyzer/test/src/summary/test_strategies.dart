@@ -22,7 +22,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' show posix;
@@ -36,15 +35,19 @@ String absUri(String path) {
   return posix.toUri(absolutePath).toString();
 }
 
-CompilationUnit _parseText(String text,
-    {bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
+CompilationUnit _parseText(
+  String text, {
+  ExperimentStatus experimentStatus,
+}) {
+  experimentStatus ??= ExperimentStatus();
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
   Parser parser =
       new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-        ..enableSetLiterals = enableSetLiterals;
+        ..enableSetLiterals = experimentStatus.set_literals
+        ..enableNonNullable = experimentStatus.non_nullable;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -91,8 +94,8 @@ void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class ResynthesizeTestStrategy {
-  //Future<LibraryElementImpl> checkLibrary(String text,
-  //    {bool allowErrors: false, bool dumpSummaries: false});
+  /// The set of [ExperimentStatus] enabled in this test.
+  ExperimentStatus experimentStatus;
 
   void set allowMissingFiles(bool value);
 
@@ -124,6 +127,9 @@ abstract class ResynthesizeTestStrategy {
 /// generation using the old two-phase API.
 class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     implements ResynthesizeTestStrategy {
+  @override
+  ExperimentStatus experimentStatus = ExperimentStatus();
+
   final Set<Source> serializedSources = new Set<Source>();
 
   final Map<String, UnlinkedUnitBuilder> uriToUnit =
@@ -206,7 +212,10 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         }
         return null;
       }
-      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+
+      String contents = context.getContents(source).data;
+      CompilationUnit unit = _parseText(contents);
+
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
       return unlinkedUnit;
@@ -285,6 +294,9 @@ class SerializedMockSdk {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class SummaryBaseTestStrategy {
+  /// The set of [ExperimentStatus] enabled in this test.
+  ExperimentStatus experimentStatus;
+
   /// Add the given package bundle as a dependency so that it may be referenced
   /// by the files under test.
   void addBundle(String path, PackageBundle bundle);
@@ -332,9 +344,7 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
 
   /// Serialize the given library [text], then deserialize it and store its
   /// summary in [lib].
-  void serializeLibraryText(String text,
-      {bool allowErrors: false,
-      bool enableSetLiterals: IsEnabledByDefault.set_literals});
+  void serializeLibraryText(String text, {bool allowErrors: false});
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -346,11 +356,8 @@ class SummaryBlackBoxTestStrategyPrelink
   bool get skipFullyLinkedData => true;
 
   @override
-  void serializeLibraryText(String text,
-      {bool allowErrors: false,
-      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
-    super.serializeLibraryText(text,
-        allowErrors: allowErrors, enableSetLiterals: enableSetLiterals);
+  void serializeLibraryText(String text, {bool allowErrors: false}) {
+    super.serializeLibraryText(text, allowErrors: allowErrors);
 
     UnlinkedUnit getPart(String absoluteUri) {
       return _linkerInputs.getUnit(absoluteUri);
@@ -507,6 +514,9 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   _FilesToLink<UnlinkedUnitBuilder> _filesToLink =
       new _FilesToLink<UnlinkedUnitBuilder>();
 
+  @override
+  ExperimentStatus experimentStatus = ExperimentStatus();
+
   _LinkerInputs _linkerInputs;
 
   bool get _allowMissingFiles;
@@ -541,20 +551,16 @@ abstract class _SummaryBaseTestStrategyTwoPhase
     return assembler.assemble();
   }
 
-  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text,
-          {bool enableSetLiterals: IsEnabledByDefault.set_literals}) =>
+  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
       serializeAstUnlinked(
-          _parseText(text, enableSetLiterals: enableSetLiterals));
+          _parseText(text, experimentStatus: experimentStatus));
 
   _LinkerInputs _createLinkerInputs(String text,
-      {String path: '/test.dart',
-      String uri,
-      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
+      {String path: '/test.dart', String uri}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
-    UnlinkedUnitBuilder unlinkedDefiningUnit = createUnlinkedSummary(
-        testDartUri, text,
-        enableSetLiterals: enableSetLiterals);
+    UnlinkedUnitBuilder unlinkedDefiningUnit =
+        createUnlinkedSummary(testDartUri, text);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     _LinkerInputs linkerInputs = new _LinkerInputs(
         _allowMissingFiles,
@@ -573,7 +579,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 /// generation using the old two-phase API.
 ///
 /// Not intended to be used directly; instead use a derived class that either
-/// exercises the full summary algorithmm or just pre-linking.
+/// exercises the full summary algorithm or just pre-linking.
 abstract class _SummaryBlackBoxTestStrategyTwoPhase
     extends _SummaryBaseTestStrategyTwoPhase
     implements SummaryBlackBoxTestStrategy {
@@ -595,12 +601,9 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
   bool get containsNonConstExprs => true;
 
   @override
-  void serializeLibraryText(String text,
-      {bool allowErrors: false,
-      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
+  void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    _linkerInputs =
-        _createLinkerInputs(text, enableSetLiterals: enableSetLiterals);
+    _linkerInputs = _createLinkerInputs(text);
     linked = link(
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,
