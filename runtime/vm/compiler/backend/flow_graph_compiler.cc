@@ -318,6 +318,16 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
+  // On ARM64 we cannot use the position of the label bound in the
+  // FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
+  // emit the monomorphic entry and frame entry (instead on ARM64 this is done
+  // in FlowGraphCompiler::CompileGraph()).
+  //
+  // See http://dartbug.com/34162
+#if defined(TARGET_ARCH_ARM64)
+  return 0;
+#endif
+
   BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
