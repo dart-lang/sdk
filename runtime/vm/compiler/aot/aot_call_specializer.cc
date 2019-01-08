@@ -550,14 +550,13 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-    // Issue http://dartbug.com/35180 for adding support for Token::kBIT_NOT
-    // here.
 #ifndef TARGET_ARCH_DBC
-    if (op_kind == Token::kNEGATE) {
-      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-      replacement =
-          new (Z) UnaryInt64OpInstr(Token::kNEGATE, left_value, DeoptId::kNone,
-                                    Instruction::kNotSpeculative);
+    if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+      if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
+        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+        replacement = new (Z) UnaryInt64OpInstr(
+            op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
+      }
     }
 #endif
   }
