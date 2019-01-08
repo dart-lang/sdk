@@ -26,9 +26,12 @@
 % =======
 % Significant changes to the specification.
 % 2.2
-%  - Specify whether the values of literal expressions override Object.==.
-%  - Allow Type objects as case expressions and const map keys.
-%  - Introduce set literals.
+% - Specify whether the values of literal expressions override Object.==.
+% - Allow Type objects as case expressions and const map keys.
+% - Introduce set literals.
+% - Specify that a getter/setter and a method with the same basename is
+%   an error, also in the case where a class obtains both from its
+%   superinterfaces.
 %
 % 2.1
 % - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
@@ -3659,15 +3662,31 @@ the basename of a setter named \code{$n$=} is $n$.
 
 \LMHash{}%
 Let $C$ be a class.
-It is a compile-time error if $C$ declares a
-\begin{itemize}
-\item constructor named \code{$C$.$n$} and a static member with basename $n$.
-\item getter or a setter with basename $n$, and has a method named $n$.
-\item method named $n$, and has a getter or a setter with basename $n$.
-\item static member with basename $n$, and has an instance member with basename $n$.
-\end{itemize}
+It is a compile-time error if $C$
+declares a constructor named \code{$C$.$n$} and
+a static member with basename $n$.
+It is a compile-time error if $C$
+declares a static member with basename $n$ and
+the interface of $C$ has an instance member with basename $n$.
+It is a compile-time error if the interface of $C$
+has a method named $n$ and a setter with basename $n$.
+
+\LMHash{}%
 These errors occur when the getters or setters are defined explicitly
 as well as when they are induced by variable declarations.
+
+\commentary{%
+Note that other errors which are similar in nature are covered elsewhere.
+For instance, if $C$ is a class that has two superinterfaces $I_1$ and $I_2$,
+where $I_1$ has a method named $m$
+and $I_2$ has a getter named $m$,
+then it is an error because the computation of the interface of $C$
+includes a computation of the combined member signature
+(\ref{combinedMemberSignatures})
+of that getter and that method,
+and it is an error for a combined member signature
+to include a getter and a non-getter.
+}
 
 
 \section{Interfaces}
@@ -4117,11 +4136,12 @@ with the same name \id{} to be inherited then
 exactly one member is inherited, namely
 the combined member signature named \id{},
 from the direct superinterfaces
-%% TODO(eernst): This is only well-defined when $J$ is a class interface.
+% This is well-defined because $I$ is a class interface.
 in the textual order that they are declared,
 with respect to $L$
 (\ref{combinedMemberSignatures}).
-
+It is a compile-time error
+if the computation of said combined member signature fails.
 
 \subsubsection{Correct Member Overrides}
 \LMLabel{correctMemberOverrides}
