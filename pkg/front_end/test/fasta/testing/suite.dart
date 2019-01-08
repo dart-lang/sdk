@@ -56,7 +56,13 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show MatchExpectation, Print, TypeCheck, Verify, WriteDill;
+    show
+        KernelTextSerialization,
+        MatchExpectation,
+        Print,
+        TypeCheck,
+        Verify,
+        WriteDill;
 
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
@@ -92,9 +98,15 @@ const String EXPECTATIONS = '''
   {
     "name": "VerificationError",
     "group": "Fail"
+  },
+  {
+    "name": "TextSerializationFailure",
+    "group": "Fail"
   }
 ]
 ''';
+
+const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
 String generateExpectationName(bool legacyMode) {
   return legacyMode ? "legacy" : "strong";
@@ -127,6 +139,7 @@ class FastaContext extends ChainContext {
       bool updateExpectations,
       bool updateComments,
       bool skipVm,
+      bool kernelTextSerialization,
       this.uriTranslator,
       bool fullCompile)
       : steps = <Step>[
@@ -146,6 +159,9 @@ class FastaContext extends ChainContext {
       steps.add(const TypeCheck());
     }
     steps.add(const EnsureNoErrors());
+    if (kernelTextSerialization) {
+      steps.add(const KernelTextSerialization());
+    }
     if (fullCompile && !skipVm) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
@@ -209,6 +225,8 @@ class FastaContext extends ChainContext {
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool kernelTextSerialization =
+        environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String platformBinaries = environment["platformBinaries"];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
@@ -224,6 +242,7 @@ class FastaContext extends ChainContext {
         updateExpectations,
         updateComments,
         skipVm,
+        kernelTextSerialization,
         uriTranslator,
         environment.containsKey(ENABLE_FULL_COMPILE));
   }

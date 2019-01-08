@@ -65,9 +65,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   void storeLastSeenUriAndOffset(Node node) {
-    if (node is TreeNode && node.location != null) {
-      lastSeenUri = node.location.file;
-      lastSeenOffset = node.fileOffset;
+    if (node is TreeNode) {
+      Location location = node.location;
+      if (location != null) {
+        lastSeenUri = location.file;
+        lastSeenOffset = node.fileOffset;
+      }
     }
   }
 
@@ -102,8 +105,13 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   void makeExpressionRoundTrip(Expression node) {
-    Uri uri = node.location.file;
-    int offset = node.fileOffset;
+    Uri uri = noUri;
+    int offset = noOffset;
+    Location location = node.location;
+    if (location != null) {
+      uri = location.file;
+      offset = node.fileOffset;
+    }
 
     String initial = writeNode(node, expressionSerializer, uri, offset);
 

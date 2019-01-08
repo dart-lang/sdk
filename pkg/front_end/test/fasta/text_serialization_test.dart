@@ -11,6 +11,7 @@ import 'testing/suite.dart';
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[ENABLE_FULL_COMPILE] = "";
+  environment[KERNEL_TEXT_SERIALIZATION] = "";
   return FastaContext.create(suite, environment);
 }
 

@@ -25,6 +25,14 @@ import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
+import 'package:kernel/text/text_serialization_verifier.dart'
+    show
+        TextDeserializationFailure,
+        TextRoundTripFailure,
+        TextSerializationFailure,
+        TextSerializationVerificationFailure,
+        TextSerializationVerifier;
+
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step;
 
@@ -38,6 +46,9 @@ import '../compiler_context.dart' show CompilerContext;
 import '../kernel/verifier.dart' show verifyComponent;
 
 import '../messages.dart' show LocatedMessage;
+
+import '../fasta_codes.dart'
+    show templateInternalProblemUnhandled, templateUnspecified;
 
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
@@ -195,6 +206,76 @@ Please create file ${expectedFile.path} with this content:
 $actual""",
           null);
     }
+  }
+}
+
+class KernelTextSerialization extends Step<Component, Component, ChainContext> {
+  const KernelTextSerialization();
+
+  String get name => "kernel text serialization";
+
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
+    StringBuffer messages = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
+            }
+            messages.writeAll(message.plainTextFormatted, "\n");
+          });
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+      TextSerializationVerifier verifier = new TextSerializationVerifier();
+      for (Library library in component.libraries) {
+        if (library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package") {
+          library.accept(verifier);
+        }
+      }
+      for (TextSerializationVerificationFailure failure in verifier.failures) {
+        LocatedMessage message;
+        if (failure is TextSerializationFailure) {
+          message = templateUnspecified
+              .withArguments(
+                  "Failed to serialize a node: ${failure.message.isNotEmpty}")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else if (failure is TextDeserializationFailure) {
+          message = templateUnspecified
+              .withArguments(
+                  "Failed to deserialize a node: ${failure.message.isNotEmpty}")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else if (failure is TextRoundTripFailure) {
+          String formattedInitial =
+              failure.initial.isNotEmpty ? failure.initial : "<empty>";
+          String formattedSerialized =
+              failure.serialized.isNotEmpty ? failure.serialized : "<empty>";
+          message = templateUnspecified
+              .withArguments(
+                  "Round trip failure: initial doesn't match serialized.\n"
+                  "  Initial    : $formattedInitial\n"
+                  "  Serialized : $formattedSerialized")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else {
+          message = templateInternalProblemUnhandled
+              .withArguments(
+                  "${failure.runtimeType}", "KernelTextSerialization.run")
+              .withLocation(failure.uri, failure.offset, 1);
+        }
+        options.report(message, message.code.severity);
+      }
+
+      if (verifier.failures.isNotEmpty) {
+        return new Result<Component>(
+            null,
+            context.expectationSet["TextSerializationFailure"],
+            "$messages",
+            null);
+      }
+      return pass(component);
+    });
   }
 }
 
