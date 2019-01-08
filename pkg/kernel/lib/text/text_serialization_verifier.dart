@@ -53,7 +53,7 @@ class RoundTripMismatchFailure extends RoundTripFailure {
 
 class TextSerializationVerifier implements Visitor<void> {
   /// List of errors produced during round trips on the visited nodes.
-  final List<RoundTripFailure> errors = <RoundTripFailure>[];
+  final List<RoundTripFailure> failures = <RoundTripFailure>[];
 
   Uri lastSeenUri = noUri;
 
@@ -78,11 +78,11 @@ class TextSerializationVerifier implements Visitor<void> {
     try {
       result = serializer.readFrom(stream);
     } catch (exception) {
-      errors.add(new RoundTripDeserializationFailure(
+      failures.add(new RoundTripDeserializationFailure(
           exception.toString(), uri, offset));
     }
     if (stream.moveNext()) {
-      errors.add(new RoundTripDeserializationFailure(
+      failures.add(new RoundTripDeserializationFailure(
           "unexpected trailing text", uri, offset));
     }
     return result;
@@ -94,7 +94,7 @@ class TextSerializationVerifier implements Visitor<void> {
     try {
       serializer.writeTo(buffer, node);
     } catch (exception) {
-      errors.add(
+      failures.add(
           new RoundTripSerializationFailure(exception.toString(), uri, offset));
     }
     return buffer.toString();
@@ -113,7 +113,7 @@ class TextSerializationVerifier implements Visitor<void> {
         writeNode(deserialized, expressionSerializer, uri, offset);
 
     if (initial != serialized) {
-      errors
+      failures
           .add(new RoundTripMismatchFailure(initial, serialized, uri, offset));
     }
   }
@@ -130,7 +130,7 @@ class TextSerializationVerifier implements Visitor<void> {
         writeNode(deserialized, dartTypeSerializer, uri, offset);
 
     if (initial != serialized) {
-      errors
+      failures
           .add(new RoundTripMismatchFailure(initial, serialized, uri, offset));
     }
   }
