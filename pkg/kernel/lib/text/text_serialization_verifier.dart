@@ -51,7 +51,7 @@ class RoundTripMismatchFailure extends RoundTripFailure {
       : super(uri, offset);
 }
 
-class RoundTripVerifier implements Visitor<void> {
+class TextSerializationVerifier implements Visitor<void> {
   /// List of errors produced during round trips on the visited nodes.
   final List<RoundTripFailure> errors = <RoundTripFailure>[];
 
@@ -59,7 +59,7 @@ class RoundTripVerifier implements Visitor<void> {
 
   int lastSeenOffset = noOffset;
 
-  RoundTripVerifier() {
+  TextSerializationVerifier() {
     initializeSerializers();
   }
 
