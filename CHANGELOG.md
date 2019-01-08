@@ -21,6 +21,9 @@
 
     *   `INVALID_LITERAL_ANNOTATION` when something other than a const
         constructor is annotated with `@literal`.
+    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
+        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
+        const constructor is called in a non-const context (or with `new`).
     *   `SUBTYPE_OF_SEALED_CLASS` when any class or mixin subclasses (extends,
         implements, mixes in, or constrains to) a `@sealed` class, and the two
         are declared in different packages.
