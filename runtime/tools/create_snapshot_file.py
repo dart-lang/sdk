@@ -12,7 +12,7 @@ import optparse
 import string
 import subprocess
 import sys
-import google3.third_party.dart_lang.v2_1_1_dev_0_1.runtime.tools.utils as utils
+import utils
 
 
 HOST_OS = utils.GuessOS()
