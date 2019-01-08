@@ -81,8 +81,8 @@ String _castErrorMessage(from, to) {
       }
     }
   }
-  return "Type '${typeName(from)}' is not a subtype of "
-      "expected type '${typeName(to)}'.";
+  return "Expected a value of type '${typeName(to)}', "
+      "but got one of type '${typeName(from)}'";
 }
 
 /// The symbol that references the thrown Dart Object (typically but not
