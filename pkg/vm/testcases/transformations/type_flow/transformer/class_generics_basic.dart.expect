@@ -8,7 +8,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
     ;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasTearOffUses:false]  method foo() → dynamic
     return new self::D::•<self::C::T>();
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id1([@vm.inferred-type.metadata=#lib::Y] generic-covariant-impl self::C::T x) → dynamic
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id1([@vm.inferred-type.metadata=#lib::Y (skip check)] generic-covariant-impl self::C::T x) → dynamic
     return x;
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id2([@vm.inferred-type.metadata=#lib::Z] generic-covariant-impl self::C::T x) → dynamic
     return x;
@@ -57,9 +57,9 @@ class C2<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::C2<self::C2::T>
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id3([@vm.inferred-type.metadata=dart.core::_Double] generic-covariant-impl core::Comparable<self::C2::T> x) → dynamic
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id3([@vm.inferred-type.metadata=dart.core::_Double (skip check)] generic-covariant-impl core::Comparable<self::C2::T> x) → dynamic
     return x;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id4([@vm.inferred-type.metadata=#lib::K<#lib::J>] generic-covariant-impl self::K<self::I<self::C2::T>> x) → dynamic
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method id4([@vm.inferred-type.metadata=#lib::K<#lib::J> (skip check)] generic-covariant-impl self::K<self::I<self::C2::T>> x) → dynamic
     return x;
 }
 static method main() → dynamic {

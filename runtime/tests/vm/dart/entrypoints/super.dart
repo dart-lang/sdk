@@ -49,6 +49,11 @@ C getC() {
 void testOneC(C x, int i) => x.target1(i);
 
 test(List<String> args) {
+  // Make sure the check on target1.x is not completely eliminated.
+  if (args.length > 0) {
+    (C<int>() as C<num>).target1(1.0);
+  }
+
   expectedEntryPoint = -1;
   for (int i = 0; i < 100; ++i) {
     testOneC(getC(), i);

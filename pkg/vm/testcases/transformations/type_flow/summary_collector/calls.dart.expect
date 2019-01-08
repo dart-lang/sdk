@@ -37,7 +37,7 @@ RESULT: _T {}?
 t5 = _Call direct [#lib::B::] (_T (#lib::B))
 t6 = _Call [#lib::A::foo1] (%aa, _T (#lib::B))
 t7* = _Call get [#lib::A::foo2] (%aa)
-t8 = _Narrow (t7 to _T (dart.core::int)+?)
+t8 = _TypeCheck (t7 against dart.core::int) (for aa.{#lib::A::foo2} as{TypeError} dart.core::int)
 t9 = _Call set [#lib::A::foo3] (%aa, t8)
 t10* = _Call get [#lib::A::foo1] (%aa)
 t11* = _Call get [#lib::A::foo2] (%aa)

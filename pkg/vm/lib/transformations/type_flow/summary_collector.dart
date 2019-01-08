@@ -61,7 +61,7 @@ class _SummaryNormalizer extends StatementVisitor {
     }
 
     for (Statement st in statements) {
-      if (st is Call) {
+      if (st is Call || st is TypeCheck) {
         _normalizeExpr(st, false);
       } else if (st is Use) {
         _normalizeExpr(st.arg, true);
@@ -283,6 +283,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final GenericInterfacesInfo _genericInterfacesInfo;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
+  final Map<AsExpression, TypeCheck> explicitCasts =
+      <AsExpression, TypeCheck>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
 
   Summary _summary;
@@ -338,7 +340,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       } else {
         Parameter valueParam = _declareParameter("value", member.type, null);
         TypeExpr runtimeType = _translator.translate(member.type);
-        final check = new TypeCheck(valueParam, runtimeType, null);
+        final check = new TypeCheck(
+            valueParam, runtimeType, member, Type.fromStatic(member.type));
         _summary.add(check);
         _summary.result = check;
       }
@@ -393,17 +396,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       for (int i = 0; i < function.positionalParameters.length; ++i) {
+        final decl = function.positionalParameters[i];
         _declareParameter(
-            function.positionalParameters[i].name,
-            function.positionalParameters[i].isGenericCovariantImpl
+            decl.name,
+            _useTypeCheckForParameter(decl)
                 ? null
                 : useTypesFrom.positionalParameters[i].type,
             function.positionalParameters[i].initializer);
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
+        final decl = function.namedParameters[i];
         _declareParameter(
-            function.namedParameters[i].name,
-            function.namedParameters[i].isGenericCovariantImpl
+            decl.name,
+            _useTypeCheckForParameter(decl)
                 ? null
                 : useTypesFrom.namedParameters[i].type,
             function.namedParameters[i].initializer);
@@ -411,15 +416,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
       int count = firstParamIndex;
       for (int i = 0; i < function.positionalParameters.length; ++i) {
-        Join v = _declareVariable(function.positionalParameters[i],
-            useTypeCheck:
-                function.positionalParameters[i].isGenericCovariantImpl,
+        final decl = function.positionalParameters[i];
+        Join v = _declareVariable(decl,
+            useTypeCheck: _useTypeCheckForParameter(decl),
             checkType: useTypesFrom.positionalParameters[i].type);
         v.values.add(_summary.statements[count++]);
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
-        Join v = _declareVariable(function.namedParameters[i],
-            useTypeCheck: function.namedParameters[i].isGenericCovariantImpl,
+        final decl = function.namedParameters[i];
+        Join v = _declareVariable(decl,
+            useTypeCheck: _useTypeCheckForParameter(decl),
             checkType: useTypesFrom.namedParameters[i].type);
         v.values.add(_summary.statements[count++]);
       }
@@ -468,6 +474,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     Statistics.summariesCreated++;
 
     return _summary;
+  }
+
+  bool _useTypeCheckForParameter(VariableDeclaration decl) {
+    return decl.isCovariant || decl.isGenericCovariantImpl;
   }
 
   Args<Type> rawArguments(Selector selector) {
@@ -599,9 +609,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     TypeExpr variable = join;
     if (useTypeCheck) {
       TypeExpr runtimeType = _translator.translate(type);
-      variable = new TypeCheck(variable, runtimeType, decl);
+      variable = new TypeCheck(
+          variable, runtimeType, decl, Type.fromStatic(decl.type));
       _summary.add(variable);
-      _summary.add(new Use(variable));
     }
 
     _variables[decl] = variable;
@@ -729,15 +739,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitAsExpression(AsExpression node) {
     TypeExpr operand = _visit(node.operand);
     Type type = new Type.fromStatic(node.type);
-
-    TypeExpr result = _makeNarrow(operand, type);
-
     TypeExpr runtimeType = _translator.translate(node.type);
-    if (runtimeType is Statement) {
-      result = new TypeCheck(operand, runtimeType, /*parameter=*/ null);
-      _summary.add(result);
-    }
-
+    TypeExpr result = new TypeCheck(operand, runtimeType, node, type);
+    explicitCasts[node] = result;
+    _summary.add(result);
     return result;
   }
 

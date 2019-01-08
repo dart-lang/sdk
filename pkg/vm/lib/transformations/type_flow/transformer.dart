@@ -16,6 +16,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
@@ -208,6 +209,8 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _setInferredType(member, _typeFlowAnalysis.fieldType(member));
       } else {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
+        final uncheckedParameters =
+            _typeFlowAnalysis.uncheckedParameters(member);
         assertx(argTypes != null);
 
         final int firstParamIndex =
@@ -219,7 +222,8 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
         for (int i = 0; i < positionalParams.length; i++) {
           _setInferredType(
-              positionalParams[i], argTypes.values[firstParamIndex + i]);
+              positionalParams[i], argTypes.values[firstParamIndex + i],
+              skipCheck: uncheckedParameters.contains(positionalParams[i]));
         }
 
         // TODO(dartbug.com/32292): make sure parameters are sorted in kernel
@@ -229,7 +233,8 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           final param = findNamedParameter(member.function, names[i]);
           assertx(param != null);
           _setInferredType(param,
-              argTypes.values[firstParamIndex + positionalParams.length + i]);
+              argTypes.values[firstParamIndex + positionalParams.length + i],
+              skipCheck: uncheckedParameters.contains(param));
         }
 
         // TODO(alexmarkov): figure out how to pass receiver type.
@@ -484,6 +489,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
 /// transforms unreachable calls into 'throw' expressions.
 class _TreeShakerPass1 extends Transformer {
   final TreeShaker shaker;
+  Procedure _unsafeCast;
 
   _TreeShakerPass1(this.shaker);
 
@@ -812,6 +818,24 @@ class _TreeShakerPass1 extends Transformer {
   @override
   TreeNode visitAssertInitializer(AssertInitializer node) {
     return _visitAssertNode(node);
+  }
+
+  @override
+  TreeNode visitAsExpression(AsExpression node) {
+    node.transformChildren(this);
+    TypeCheck check = shaker.typeFlowAnalysis.explicitCast(node);
+    if (check != null && check.canAlwaysSkip) {
+      return StaticInvocation(
+          unsafeCast, Arguments([node.operand], types: [node.type]));
+    }
+    return node;
+  }
+
+  Procedure get unsafeCast {
+    _unsafeCast ??= shaker.typeFlowAnalysis.environment.coreTypes.index
+        .getTopLevelMember('dart:_internal', 'unsafeCast');
+    assertx(_unsafeCast != null);
+    return _unsafeCast;
   }
 }
 

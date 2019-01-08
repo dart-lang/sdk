@@ -1,6 +1,7 @@
 library #lib;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 import "package:expect/expect.dart" as exp;
 
 class T1 extends core::Object {
@@ -17,7 +18,7 @@ class A1 extends core::Object {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method call([dynamic a1 = null, dynamic a2 = null, dynamic a3 = null, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = null, [@vm.inferred-type.metadata=#lib::T1?] dynamic a5 = null]) → void {
-    [@vm.direct-call.metadata=#lib::A1::foo] this.{self::A1::foo} = a5 as{TypeError} self::T1;
+    [@vm.direct-call.metadata=#lib::A1::foo] this.{self::A1::foo} = _in::unsafeCast<self::T1>(a5);
   }
 }
 class B1 extends core::Object {

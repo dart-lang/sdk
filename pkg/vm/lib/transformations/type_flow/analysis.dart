@@ -154,7 +154,8 @@ class _DirectInvocation extends _Invocation {
     //
     // TODO(sjindel): Use [TypeCheck] to avoid bounds checks.
     if (selector.member.function != null) {
-      typeChecksNeeded = !selector.member.function.typeParameters.isEmpty;
+      typeChecksNeeded = selector.member.function.typeParameters
+          .any((t) => t.isGenericCovariantImpl);
     }
   }
 
@@ -1206,6 +1207,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
   Class get futureOrClass => environment.coreTypes.futureOrClass;
   Class get futureClass => environment.coreTypes.futureClass;
+  Class get functionClass => environment.coreTypes.functionClass;
 }
 
 class _WorkList {
@@ -1395,9 +1397,15 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
+  TypeCheck explicitCast(AsExpression cast) =>
+      summaryCollector.explicitCasts[cast];
+
   Type fieldType(Field field) => _fieldValues[field]?.value;
 
   Args<Type> argumentTypes(Member member) => _summaries[member]?.argumentTypes;
+
+  List<VariableDeclaration> uncheckedParameters(Member member) =>
+      _summaries[member]?.uncheckedParameters;
 
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 

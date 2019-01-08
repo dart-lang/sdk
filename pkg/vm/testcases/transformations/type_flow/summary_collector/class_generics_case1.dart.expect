@@ -17,9 +17,9 @@ RESULT: _T {}?
 %key = _Parameter #1
 %value = _Parameter #2
 t3 = _Extract (%this[#lib::_NotRealHashMap/0])
-t4 = _TypeCheck (%key against t3) (for parameter key)
+t4 = _TypeCheck (%key against t3) (for key)
 t5 = _Extract (%this[#lib::_NotRealHashMap/1])
-t6 = _TypeCheck (%value against t5) (for parameter value)
+t6 = _TypeCheck (%value against t5) (for value)
 RESULT: _T {}?
 ------------ #lib::InheritedElement:: ------------
 %this = _Parameter #0 [_T (#lib::InheritedElement)+]

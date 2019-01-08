@@ -45,6 +45,7 @@ abstract class TypeHierarchy implements GenericInterfacesInfo {
 
   Class get futureOrClass;
   Class get futureClass;
+  Class get functionClass;
 }
 
 /// Basic normalization of Dart types.
@@ -615,6 +616,15 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
+    if (runtimeType._type is InterfaceType &&
+        (runtimeType._type as InterfaceType).classNode ==
+            typeHierarchy.functionClass) {
+      // TODO(35573): "implements/extends Function" is not handled correctly by
+      // the CFE. By returning "false" we force an approximation -- that a type
+      // check against "Function" might fail, whatever the LHS is.
+      return false;
+    }
+
     if (!typeHierarchy.isSubtype(this.classNode.rawType, runtimeType._type)) {
       return false;
     }

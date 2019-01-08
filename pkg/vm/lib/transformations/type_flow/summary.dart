@@ -413,9 +413,30 @@ class TypeCheck extends Statement {
   TypeExpr arg;
   TypeExpr type;
 
-  final VariableDeclaration parameter;
+  // The Kernel which this TypeCheck corresponds to. Can be a
+  // VariableDeclaration, AsExpression or Field.
+  //
+  // VariableDeclaration is used for parameter type-checks.
+  // Field is used for type-checks of parameters to implicit setters.
+  final TreeNode node;
 
-  TypeCheck(this.arg, this.type, this.parameter);
+  final Type staticType;
+
+  // 'isTestedOnlyOnCheckedEntryPoint' is whether or not this parameter's type-check will
+  // occur on the "checked" entrypoint in the VM but will be skipped on
+  // "unchecked" entrypoint.
+  bool isTestedOnlyOnCheckedEntryPoint;
+
+  VariableDeclaration get parameter =>
+      node is VariableDeclaration ? node : null;
+
+  bool canAlwaysSkip = true;
+
+  TypeCheck(this.arg, this.type, this.node, this.staticType) {
+    assertx(node != null);
+    isTestedOnlyOnCheckedEntryPoint =
+        parameter != null && !parameter.isCovariant;
+  }
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitTypeCheck(this);
@@ -423,9 +444,7 @@ class TypeCheck extends Statement {
   @override
   String dump() {
     String result = "$label = _TypeCheck ($arg against $type)";
-    if (parameter != null) {
-      result += " (for parameter ${parameter.name})";
-    }
+    result += " (for ${node})";
     return result;
   }
 
@@ -437,32 +456,34 @@ class TypeCheck extends Statement {
     // TODO(sjindel/tfa): Narrow the result if possible.
     assertx(checkType is AnyType || checkType is RuntimeType);
 
+    bool canSkip = true; // Can this check be skipped on this invocation.
+
     if (checkType is AnyType) {
       // If we don't know what the RHS of the check is going to be, we can't
       // guarantee that it will pass.
-      callHandler.typeCheckTriggered();
-      if (kPrintTrace) {
-        tracePrint("TypeCheck failed, type is unknown");
-      }
+      canSkip = false;
     } else if (checkType is RuntimeType) {
-      final bool canSkip =
-          argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
-      if (!canSkip) {
-        callHandler.typeCheckTriggered();
-        if (kPrintTrace) {
-          tracePrint("TypeCheck of $argType against $checkType failed.");
-        }
-      }
+      canSkip = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
       argType = argType.intersection(
           Type.fromStatic(checkType.representedTypeRaw), typeHierarchy);
     } else {
       assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
     }
 
-    if (parameter != null) {
-      argType =
-          argType.intersection(Type.fromStatic(parameter.type), typeHierarchy);
+    // If this check might be skipped on an
+    // unchecked entry-point, we need to signal that the call-site must be
+    // checked.
+    if (!canSkip) {
+      canAlwaysSkip = false;
+      if (isTestedOnlyOnCheckedEntryPoint) {
+        callHandler.typeCheckTriggered();
+      }
+      if (kPrintTrace) {
+        tracePrint("TypeCheck of $argType against $checkType failed.");
+      }
     }
+
+    argType = argType.intersection(staticType, typeHierarchy);
 
     return argType;
   }
@@ -601,5 +622,17 @@ class Summary {
       }
     }
     return new Args<Type>(argTypes, names: argNames);
+  }
+
+  List<VariableDeclaration> get uncheckedParameters {
+    final params = List<VariableDeclaration>();
+    for (Statement statement in _statements) {
+      if (statement is TypeCheck &&
+          statement.canAlwaysSkip &&
+          statement.parameter != null) {
+        params.add(statement.parameter);
+      }
+    }
+    return params;
   }
 }

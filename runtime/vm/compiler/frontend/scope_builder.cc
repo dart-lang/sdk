@@ -1473,6 +1473,13 @@ void ScopeBuilder::AddVariableDeclarationParameter(
       variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
       break;
   }
+
+  // TODO(sjindel): We can also skip these checks on dynamic invocations as
+  // well.
+  if (parameter_type.IsSkipCheck()) {
+    variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  }
+
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset,
                          variable);

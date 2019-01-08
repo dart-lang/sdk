@@ -12,13 +12,13 @@ RESULT: t2
 %this = _Parameter #0 [_T (#lib::C<dynamic>)+]
 %x = _Parameter #1
 t2 = _Extract (%this[#lib::C/0])
-t3 = _TypeCheck (%x against t2) (for parameter x)
+t3 = _TypeCheck (%x against t2) (for x)
 RESULT: t3
 ------------ #lib::C::id2 ------------
 %this = _Parameter #0 [_T (#lib::C<dynamic>)+]
 %x = _Parameter #1
 t2 = _Extract (%this[#lib::C/0])
-t3 = _TypeCheck (%x against t2) (for parameter x)
+t3 = _TypeCheck (%x against t2) (for x)
 RESULT: t3
 ------------ #lib::D:: ------------
 %this = _Parameter #0 [_T (#lib::D<dynamic>)+]
@@ -77,7 +77,7 @@ RESULT: _T {}?
 %x = _Parameter #1
 t2 = _Extract (%this[#lib::C2/0])
 t3 = _CreateRuntimeType (dart.core::Comparable @ (t2))
-t4 = _TypeCheck (%x against t3) (for parameter x)
+t4 = _TypeCheck (%x against t3) (for x)
 RESULT: t4
 ------------ #lib::C2::id4 ------------
 %this = _Parameter #0 [_T (#lib::C2<dynamic>)+]
@@ -85,7 +85,7 @@ RESULT: t4
 t2 = _Extract (%this[#lib::C2/0])
 t3 = _CreateRuntimeType (#lib::I @ (t2))
 t4 = _CreateRuntimeType (#lib::K @ (t3))
-t5 = _TypeCheck (%x against t4) (for parameter x)
+t5 = _TypeCheck (%x against t4) (for x)
 RESULT: t5
 ------------ #lib::main ------------
 t0 = _Call direct [#lib::C::] (_T (#lib::C<dart.core::int>))
