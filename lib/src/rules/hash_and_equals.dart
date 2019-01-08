@@ -67,8 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       'hash_and_equals', 'Override `==` if overriding `hashCode`.',
       correction: 'Implement `==`.');
   static const LintCode equalsMemberCode = const LintCode(
-      'hash_and_equals', // ignore: prefer_single_quotes
-      'Override `hashCode` if overriding `==`.',
+      'hash_and_equals', 'Override `hashCode` if overriding `==`.',
       correction: 'Implement `hashCode`.');
 
   final LintRule rule;
