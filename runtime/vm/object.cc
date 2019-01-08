@@ -3144,67 +3144,6 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 #endif
 }
 
-bool Class::ValidatePostFinalizePatch(const Class& orig_class,
-                                      Error* error) const {
-  ASSERT(error != NULL);
-  // Not allowed to add new fields in a post finalization patch.
-  if (fields() != Object::empty_array().raw()) {
-    *error = LanguageError::NewFormatted(
-        *error,  // No previous error.
-        Script::Handle(script()), token_pos(), Report::AtLocation,
-        Report::kError, Heap::kNew,
-        "new fields are not allowed for this patch");
-    return false;
-  }
-  // There seem to be no functions, the patch is pointless.
-  if (functions() == Object::empty_array().raw()) {
-    *error = LanguageError::NewFormatted(*error,  // No previous error.
-                                         Script::Handle(script()), token_pos(),
-                                         Report::AtLocation, Report::kError,
-                                         Heap::kNew, "no functions to patch");
-    return false;
-  }
-  // Iterate over all functions that will be patched and make sure
-  // the original function was declared 'external' and has not executed
-  // so far i.e no code has been generated for it.
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  Zone* zone = thread->zone();
-  const Array& funcs = Array::Handle(zone, functions());
-  Function& func = Function::Handle(zone);
-  Function& orig_func = Function::Handle(zone);
-  String& name = String::Handle(zone);
-  for (intptr_t i = 0; i < funcs.Length(); i++) {
-    func ^= funcs.At(i);
-    name ^= func.name();
-    orig_func ^= orig_class.LookupFunctionAllowPrivate(name);
-    if (!orig_func.IsNull()) {
-      if (!orig_func.is_external() || orig_func.HasCode()) {
-        // We can only patch external functions in a post finalized class.
-        *error = LanguageError::NewFormatted(
-            *error,  // No previous error.
-            Script::Handle(script()), token_pos(), Report::AtLocation,
-            Report::kError, Heap::kNew,
-            !orig_func.is_external()
-                ? "'%s' is not external and therefore cannot be patched"
-                : "'%s' has already executed and therefore cannot be patched",
-            name.ToCString());
-        return false;
-      }
-    } else if (!Library::IsPrivate(name)) {
-      // We can only have new private functions that are added.
-      *error = LanguageError::NewFormatted(
-          *error,  // No previous error.
-          Script::Handle(script()), token_pos(), Report::AtLocation,
-          Report::kError, Heap::kNew,
-          "'%s' is not private and therefore cannot be patched",
-          name.ToCString());
-      return false;
-    }
-  }
-  return true;
-}
-
 void Class::set_dependent_code(const Array& array) const {
   StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
@@ -3989,13 +3928,6 @@ void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(
       ClassFinalizedBits::update(RawClass::kFinalized, raw_ptr()->state_bits_));
-}
-
-void Class::SetRefinalizeAfterPatch() const {
-  ASSERT(!IsTopLevel());
-  set_state_bits(ClassFinalizedBits::update(RawClass::kRefinalizeAfterPatch,
-                                            raw_ptr()->state_bits_));
-  set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
 }
 
 void Class::ResetFinalization() const {
@@ -9097,8 +9029,6 @@ const char* Script::GetKindAsCString() const {
       return "library";
     case RawScript::kSourceTag:
       return "source";
-    case RawScript::kPatchTag:
-      return "patch";
     case RawScript::kEvaluateTag:
       return "evaluate";
     case RawScript::kKernelTag:
@@ -11083,11 +11013,6 @@ RawLibrary* Library::LookupLibrary(Thread* thread, const String& url) {
     ASSERT(map.Release().raw() == object_store->libraries_map());
   }
   return lib.raw();
-}
-
-RawError* Library::Patch(const Script& script) const {
-  ASSERT(script.kind() == RawScript::kPatchTag);
-  return Compiler::Compile(*this, script);
 }
 
 bool Library::IsPrivate(const String& name) {

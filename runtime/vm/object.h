@@ -1128,12 +1128,6 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
-  bool is_refinalize_after_patch() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
-           RawClass::kRefinalizeAfterPatch;
-  }
-
-  void SetRefinalizeAfterPatch() const;
   void ResetFinalization() const;
 
   bool is_marked_for_lazy_loading() const {
@@ -1277,7 +1271,6 @@ class Class : public Object {
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  bool ValidatePostFinalizePatch(const Class& orig_class, Error* error) const;
   void ReplaceEnum(const Class& old_enum) const;
   void CopyStaticFieldValues(const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
@@ -3781,8 +3774,6 @@ class Library : public Object {
   void set_is_in_fullsnapshot(bool value) const {
     StoreNonPointer(&raw_ptr()->is_in_fullsnapshot_, value);
   }
-
-  RawError* Patch(const Script& script) const;
 
   RawString* PrivateName(const String& name) const;
 

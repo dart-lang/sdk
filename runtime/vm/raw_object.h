@@ -909,7 +909,6 @@ class RawClass : public RawObject {
     kAllocated = 0,         // Initial state.
     kPreFinalized,          // VM classes: size precomputed, but no checks done.
     kFinalized,             // Class parsed, finalized and ready for use.
-    kRefinalizeAfterPatch,  // Class needs to be refinalized (patched).
   };
 
  private:
@@ -1252,7 +1251,6 @@ class RawScript : public RawObject {
     kScriptTag = 0,
     kLibraryTag,
     kSourceTag,
-    kPatchTag,
     kEvaluateTag,
     kKernelTag,
   };
