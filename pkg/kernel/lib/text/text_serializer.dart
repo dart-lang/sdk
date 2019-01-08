@@ -14,6 +14,40 @@ abstract class Tagger<T extends Node> {
   String tag(T node);
 }
 
+class NameTagger implements Tagger<Name> {
+  const NameTagger();
+
+  String tag(Name name) => name.isPrivate ? "private" : "public";
+}
+
+TextSerializer<Name> publicName =
+    new Wrapped(unwrapPublicName, wrapPublicName, const DartString());
+
+String unwrapPublicName(Name name) => name.name;
+
+Name wrapPublicName(String name) => new Name(name);
+
+TextSerializer<Name> privateName = new Wrapped(unwrapPrivateName,
+    wrapPrivateName, Tuple2Serializer(const DartString(), const DartString()));
+
+Tuple2<String, String> unwrapPrivateName(Name name) {
+  return new Tuple2(name.library.importUri.toString(), name.name);
+}
+
+Name wrapPrivateName(Tuple2<String, String> tuple) {
+  // We need a map from import URI to libraries.  More generally, we will need
+  // a way to map any 'named' node to the node's reference.
+  throw UnimplementedError('deserialization of private names');
+}
+
+TextSerializer<Name> nameSerializer = new Case(const NameTagger(), [
+  "public",
+  "private",
+], [
+  publicName,
+  privateName
+]);
+
 class ExpressionTagger extends ExpressionVisitor<String>
     implements Tagger<Expression> {
   const ExpressionTagger();
