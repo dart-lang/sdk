@@ -112,9 +112,22 @@ bool isEquals(ClassMember element) =>
 bool isFinalOrConst(Token token) =>
     isKeyword(token, Keyword.FINAL) || isKeyword(token, Keyword.CONST);
 
-/// Returns `true` if this element is the `hashCode` method declaration.
+/// Returns `true` if this element is a `hashCode` method or field declaration.
 bool isHashCode(ClassMember element) =>
-    element is MethodDeclaration && element.name?.name == 'hashCode';
+    (element is MethodDeclaration && element.name?.name == 'hashCode') ||
+    (element is FieldDeclaration &&
+        getFieldIdentifier(element, 'hashCode') != null);
+
+/// Returns a field identifier with the given [name] in the given [decl]'s
+/// variable declaration list or `null` if none is found.
+SimpleIdentifier getFieldIdentifier(FieldDeclaration decl, String name) {
+  for (var v in decl.fields.variables) {
+    if (v.name?.name == name) {
+      return v.name;
+    }
+  }
+  return null;
+}
 
 /// Returns `true` if the keyword associated with the given [token] matches
 /// [keyword].

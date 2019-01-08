@@ -33,3 +33,18 @@ class Better //OK!
 }
 
 class OK {}
+
+class AlsoOk {
+  @override
+  final int hashCode;
+  AlsoOk(this.hashCode);
+
+  @override
+  bool operator ==(Object other) => other is AlsoOk && other.hashCode == hashCode; //OK
+}
+
+class NotOk {
+  @override
+  final int hashCode; //LINT
+  NotOk(this.hashCode);
+}
