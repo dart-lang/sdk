@@ -72,6 +72,9 @@ class BottomTypeImpl extends TypeImpl {
   bool get isBottom => true;
 
   @override
+  Nullability get nullability => Nullability.nonNullable;
+
+  @override
   bool operator ==(Object object) => identical(object, this);
 
   @override
@@ -119,6 +122,9 @@ class BottomTypeImpl extends TypeImpl {
  */
 class CircularFunctionTypeImpl extends DynamicTypeImpl
     implements _FunctionTypeImplLazy {
+  @override
+  Nullability nullability = Nullability.nullable;
+
   CircularFunctionTypeImpl() : super._circular();
 
   @override
@@ -292,8 +298,10 @@ class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
   FunctionTypedElement _computedElement;
 
   DeferredFunctionTypeImpl(this._computeElement, String name,
-      List<DartType> typeArguments, bool isInstantiated)
-      : super._(null, name, null, typeArguments, null, null, isInstantiated);
+      List<DartType> typeArguments, bool isInstantiated,
+      {Nullability nullability = Nullability.nullable})
+      : super._(null, name, null, typeArguments, null, null, isInstantiated,
+            nullability: nullability);
 
   @override
   FunctionTypedElement get element {
@@ -332,6 +340,9 @@ class DynamicTypeImpl extends TypeImpl {
 
   @override
   bool get isDynamic => true;
+
+  @override
+  Nullability get nullability => Nullability.nullable;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -384,17 +395,22 @@ class DynamicTypeImpl extends TypeImpl {
  * The type of a function, method, constructor, getter, or setter.
  */
 abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
+  @override
+  final Nullability nullability;
+
   /**
    * Initialize a newly created function type to be declared by the given
    * [element], and also initialize [typeArguments] to match the
    * [typeParameters], which permits later substitution.
    */
-  factory FunctionTypeImpl(FunctionTypedElement element) {
+  factory FunctionTypeImpl(FunctionTypedElement element,
+      {Nullability nullability = Nullability.nullable}) {
     if (element is FunctionTypeAliasElement) {
       throw new StateError('Use FunctionTypeImpl.forTypedef for typedefs');
     }
     return new _FunctionTypeImplLazy._(
-        element, null, null, null, null, null, false);
+        element, null, null, null, null, null, false,
+        nullability: nullability);
   }
 
   /**
@@ -404,9 +420,11 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Note: this constructor mishandles generics.
    * See https://github.com/dart-lang/sdk/issues/34657.
    */
-  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element) {
+  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
+      {Nullability nullability = Nullability.nullable}) {
     return new _FunctionTypeImplLazy._(
-        element, element?.name, null, null, null, null, false);
+        element, element?.name, null, null, null, null, false,
+        nullability: nullability);
   }
 
   /**
@@ -417,7 +435,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * If type formals is empty, this returns the original unless [force] is set
    * to [true].
    */
-  factory FunctionTypeImpl.fresh(FunctionType original, {bool force = false}) {
+  factory FunctionTypeImpl.fresh(FunctionType original,
+      {bool force = false, Nullability nullability = Nullability.nullable}) {
     // We build up a substitution for the type parameters,
     // {variablesFresh/variables} then apply it.
 
@@ -465,19 +484,21 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     function.returnType = newType.returnType;
     function.typeParameters = freshVarElements;
     function.shareParameters(newType.parameters);
-    return function.type = new FunctionTypeImpl(function);
+    return function.type =
+        new FunctionTypeImpl(function, nullability: nullability);
   }
 
   /// Creates a function type that's not associated with any element in the
   /// element tree.
-  factory FunctionTypeImpl.synthetic(
-      DartType returnType,
-      List<TypeParameterElement> typeFormals,
-      List<ParameterElement> parameters) {
-    return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters);
+  factory FunctionTypeImpl.synthetic(DartType returnType,
+      List<TypeParameterElement> typeFormals, List<ParameterElement> parameters,
+      {Nullability nullability = Nullability.nullable}) {
+    return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters,
+        nullability: nullability);
   }
 
-  FunctionTypeImpl._(Element element, String name) : super(element, name);
+  FunctionTypeImpl._(Element element, String name, this.nullability)
+      : super(element, name);
 
   @deprecated
   @override
@@ -823,9 +844,9 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (identical(returnType, this.returnType) &&
         identical(parameters, this.parameters)) {
       return this;
-    } else {
-      return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters);
     }
+    return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters,
+        nullability: nullability);
   }
 
   @override
@@ -1191,6 +1212,9 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
  * A concrete implementation of an [InterfaceType].
  */
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
+  @override
+  final Nullability nullability;
+
   /**
    * A list containing the actual types of the type arguments.
    */
@@ -1231,7 +1255,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * Initialize a newly created type to be declared by the given [element].
    */
-  InterfaceTypeImpl(ClassElement element, [this.prunedTypedefs])
+  InterfaceTypeImpl(ClassElement element,
+      [this.prunedTypedefs, this.nullability = Nullability.nullable])
       : super(element, element.displayName);
 
   /**
@@ -1239,7 +1264,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * with the given [name] and [typeArguments].
    */
   InterfaceTypeImpl.elementWithNameAndArgs(
-      ClassElement element, String name, this._typeArgumentsComputer)
+      ClassElement element, String name, this._typeArgumentsComputer,
+      {this.nullability = Nullability.nullable})
       : prunedTypedefs = null,
         super(element, name) {
     _typeArguments = null;
@@ -1249,14 +1275,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Initialize a newly created type to have the given [name]. This constructor
    * should only be used in cases where there is no declaration of the type.
    */
-  InterfaceTypeImpl.named(String name)
+  InterfaceTypeImpl.named(String name,
+      {this.nullability = Nullability.nullable})
       : prunedTypedefs = null,
         super(null, name);
 
   /**
    * Private constructor.
    */
-  InterfaceTypeImpl._(Element element, String name, this.prunedTypedefs)
+  InterfaceTypeImpl._(Element element, String name, this.prunedTypedefs,
+      {this.nullability = Nullability.nullable})
       : super(element, name);
 
   @override
@@ -2042,7 +2070,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       // alias, and function type aliases are always expanded by starting with
       // base types.
       assert(this.prunedTypedefs == null);
-      InterfaceTypeImpl result = new InterfaceTypeImpl._(element, name, prune);
+      InterfaceTypeImpl result = new InterfaceTypeImpl._(element, name, prune,
+          nullability: nullability);
       result.typeArguments = typeArguments
           .map((DartType t) => (t as TypeImpl).pruned(prune))
           .toList();
@@ -2070,7 +2099,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(typeArguments, this.typeArguments)) {
       return this;
     } else {
-      return new InterfaceTypeImpl._(element, name, prunedTypedefs)
+      return new InterfaceTypeImpl._(element, name, prunedTypedefs,
+          nullability: nullability)
         ..typeArguments = typeArguments;
     }
   }
@@ -2093,7 +2123,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return this;
     }
 
-    InterfaceTypeImpl newType = new InterfaceTypeImpl(element, prune);
+    InterfaceTypeImpl newType =
+        new InterfaceTypeImpl(element, prune, nullability);
     newType.typeArguments = newTypeArguments;
     return newType;
   }
@@ -2449,7 +2480,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         lubArguments[i] = DynamicTypeImpl.instance;
       }
     }
-    InterfaceTypeImpl lub = new InterfaceTypeImpl(firstElement);
+
+    Nullability computeNullability() {
+      Nullability first = (firstType as InterfaceTypeImpl).nullability;
+      Nullability second = (secondType as InterfaceTypeImpl).nullability;
+      if (first == Nullability.nullable || second == Nullability.nullable) {
+        return Nullability.nullable;
+      } else if (first == Nullability.indeterminate ||
+          second == Nullability.indeterminate) {
+        return Nullability.indeterminate;
+      }
+      return Nullability.nonNullable;
+    }
+
+    InterfaceTypeImpl lub =
+        new InterfaceTypeImpl(firstElement, null, computeNullability());
     lub.typeArguments = lubArguments;
     return lub;
   }
@@ -2515,6 +2560,27 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 /**
+ * The nullability of a type.
+ */
+enum Nullability {
+  /**
+   * An indication that the type includes the value `null`.
+   */
+  nullable,
+
+  /**
+   * An indication that the type is a legacy type which may be interpreted as
+   * either nullable or non-nullable as appropriate.
+   */
+  indeterminate,
+
+  /**
+   * An indication that the type does not include the value `null`.
+   */
+  nonNullable
+}
+
+/**
  * The abstract class `TypeImpl` implements the behavior common to objects
  * representing the declared type of elements in the element model.
  */
@@ -2568,6 +2634,11 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isVoid => false;
+
+  /**
+   * Return the nullability of this type.
+   */
+  Nullability get nullability;
 
   /**
    * Append a textual representation of this type to the given [buffer]. The set
@@ -2774,6 +2845,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   static bool _comparingBounds = false;
 
   static bool _appendingBounds = false;
+
+  @override
+  Nullability nullability = Nullability.nullable;
 
   /**
    * Initialize a newly created type parameter type to be declared by the given
@@ -2986,6 +3060,9 @@ class UndefinedTypeImpl extends TypeImpl {
   bool get isUndefined => true;
 
   @override
+  Nullability get nullability => Nullability.indeterminate;
+
+  @override
   bool operator ==(Object object) => identical(object, this);
 
   @override
@@ -3060,6 +3137,9 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool get isVoid => true;
+
+  @override
+  Nullability get nullability => Nullability.nullable;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -3146,9 +3226,10 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
       this._typeArguments,
       this._returnType,
       this._parameters,
-      this._isInstantiated)
+      this._isInstantiated,
+      {Nullability nullability = Nullability.nullable})
       : _typeParameters = null,
-        super._(element, name);
+        super._(element, name, nullability);
 
   /**
    * Return the base parameter elements of this function element.
@@ -3354,7 +3435,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
     newTypeArgs.addAll(argumentTypes);
 
     return new _FunctionTypeImplLazy._(element, name, prunedTypedefs,
-        newTypeArgs, _returnType, _parameters, true);
+        newTypeArgs, _returnType, _parameters, true,
+        nullability: nullability);
   }
 
   @override
@@ -3375,7 +3457,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
           .map((DartType t) => (t as TypeImpl).pruned(prune))
           .toList(growable: false);
       return new _FunctionTypeImplLazy._(element, name, prune, typeArgs,
-          _returnType, _parameters, _isInstantiated);
+          _returnType, _parameters, _isInstantiated,
+          nullability: nullability);
     }
   }
 
@@ -3403,7 +3486,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
     List<DartType> typeArgs =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
     return new _FunctionTypeImplLazy._(element, name, prune, typeArgs,
-        _returnType, _parameters, _isInstantiated);
+        _returnType, _parameters, _isInstantiated,
+        nullability: nullability);
   }
 
   @override
@@ -3450,8 +3534,9 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   @override
   final List<ParameterElement> parameters;
 
-  _FunctionTypeImplStrict._(this.returnType, this.typeFormals, this.parameters)
-      : super._(null, null);
+  _FunctionTypeImplStrict._(this.returnType, this.typeFormals, this.parameters,
+      {Nullability nullability = Nullability.nullable})
+      : super._(null, null, nullability);
 
   @override
   List<TypeParameterElement> get boundTypeParameters => typeFormals;
@@ -3506,7 +3591,8 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
     return new _FunctionTypeImplStrict._(
         returnType.substitute2(argumentTypes, parameterTypes),
         const [],
-        _transformOrShare(parameters, transformParameter));
+        _transformOrShare(parameters, transformParameter),
+        nullability: nullability);
   }
 
   @override
@@ -3565,7 +3651,8 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
       return this;
     }
     return new _FunctionTypeImplStrict._(
-        newReturnType, newTypeFormals, newParameters);
+        newReturnType, newTypeFormals, newParameters,
+        nullability: nullability);
   }
 
   @override
