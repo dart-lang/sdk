@@ -142,6 +142,7 @@ type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
+vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 vm/type_cast_vm_test: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
@@ -271,9 +272,6 @@ vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 [ $compiler == app_jitk && $mode == product ]
 vm/causal_async_exception_stack2_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
-
-[ $compiler == app_jitk && ($mode == debug || $mode == release) ]
-assertion_test: RuntimeError
 
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $fasta ]
 const_optional_args_test/01: MissingCompileTimeError

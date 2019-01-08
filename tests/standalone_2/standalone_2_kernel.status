@@ -33,8 +33,6 @@ io/test_extension_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
-oom_error_stacktrace_test: RuntimeError
-out_of_memory_test: RuntimeError
 
 [ $compiler == dartkp ]
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
@@ -64,9 +62,6 @@ io/test_extension_fail_test: Fail # Memory leak (issue 34724)
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
-
-[ $compiler == app_jitk && ($mode == debug || $mode == release) ]
-dart_developer_disabled_env_test: RuntimeError
 
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
