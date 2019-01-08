@@ -68,7 +68,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    MethodDeclaration eq, hash;
+    MethodDeclaration eq;
+    ClassMember hash;
     for (ClassMember member in node.members) {
       if (isEquals(member)) {
         eq = member;
@@ -81,7 +82,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(eq.name);
     }
     if (hash != null && eq == null) {
-      rule.reportLint(hash.name);
+      if (hash is MethodDeclaration) {
+        rule.reportLint(hash.name);
+      } else if (hash is FieldDeclaration) {
+        rule.reportLint(getFieldIdentifier(hash, 'hashCode'));
+      }
     }
   }
 }
