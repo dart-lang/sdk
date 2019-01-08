@@ -1130,12 +1130,6 @@ class Class : public Object {
 
   void ResetFinalization() const;
 
-  bool is_marked_for_lazy_loading() const {
-    return MarkedForLazyLoadingBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_is_marked_for_lazy_loading() const;
-  void reset_is_marked_for_lazy_loading() const;
-
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
@@ -1318,15 +1312,14 @@ class Class : public Object {
     kClassFinalizedSize = 2,
     kAbstractBit = kClassFinalizedPos + kClassFinalizedSize,  // = 5
     kPatchBit = 6,
-    kSynthesizedClassBit = 7,
-    kMarkedForLazyLoadingBit = 8,
-    kMixinAppAliasBit = 9,
-    kMixinTypeAppliedBit = 10,
-    kFieldsMarkedNullableBit = 11,
-    kCycleFreeBit = 12,
-    kEnumBit = 13,
-    kTransformedMixinApplicationBit = 14,
-    kIsAllocatedBit = 15,
+    kSynthesizedClassBit,
+    kMixinAppAliasBit,
+    kMixinTypeAppliedBit,
+    kFieldsMarkedNullableBit,
+    kCycleFreeBit,
+    kEnumBit,
+    kTransformedMixinApplicationBit,
+    kIsAllocatedBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
@@ -1340,8 +1333,6 @@ class Class : public Object {
   class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
   class SynthesizedClassBit
       : public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
-  class MarkedForLazyLoadingBit
-      : public BitField<uint16_t, bool, kMarkedForLazyLoadingBit, 1> {};
   class FieldsMarkedNullableBit
       : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
   class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};

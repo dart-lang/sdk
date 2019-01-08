@@ -3943,15 +3943,6 @@ void Class::set_is_prefinalized() const {
                                             raw_ptr()->state_bits_));
 }
 
-void Class::set_is_marked_for_lazy_loading() const {
-  set_state_bits(MarkedForLazyLoadingBit::update(true, raw_ptr()->state_bits_));
-}
-
-void Class::reset_is_marked_for_lazy_loading() const {
-  set_state_bits(
-      MarkedForLazyLoadingBit::update(false, raw_ptr()->state_bits_));
-}
-
 void Class::set_interfaces(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->interfaces_, value.raw());
