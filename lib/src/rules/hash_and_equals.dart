@@ -11,12 +11,14 @@ const _desc = r'Always override `hashCode` if overriding `==`.';
 
 const _details = r'''
 
-**DO** override `hashCode` if overriding `==`.
+**DO** override `hashCode` if overriding `==` and prefer overriding `==` if
+overriding `hashCode`.
 
 Every object in Dart has a `hashCode`.  Both the `==` operator and the
 `hashCode` property of objects must be consistent in order for a common hash
 map implementation to function properly.  Thus, when overriding `==`, the
-`hashCode` should also be overriden to maintain consistency.
+`hashCode` should also be overriden to maintain consistency. Similarly, if
+`hashCode` is overridden, `==` should be also.
 
 **BAD:**
 ```
@@ -42,7 +44,6 @@ class Better {
   int get hashCode => value.hashCode;
 }
 ```
-
 ''';
 
 class HashAndEquals extends LintRule implements NodeLintRule {
@@ -62,6 +63,14 @@ class HashAndEquals extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static const LintCode hashMemberCode = const LintCode(
+      'hash_and_equals', 'Override `==` if overriding `hashCode`.',
+      correction: 'Implement `==`.');
+  static const LintCode equalsMemberCode = const LintCode(
+      'hash_and_equals', // ignore: prefer_single_quotes
+      'Override `hashCode` if overriding `==`.',
+      correction: 'Implement `hashCode`.');
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -79,13 +88,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (eq != null && hash == null) {
-      rule.reportLint(eq.name);
+      rule.reportLint(eq.name, errorCode: equalsMemberCode);
     }
     if (hash != null && eq == null) {
       if (hash is MethodDeclaration) {
-        rule.reportLint(hash.name);
+        rule.reportLint(hash.name, errorCode: hashMemberCode);
       } else if (hash is FieldDeclaration) {
-        rule.reportLint(getFieldIdentifier(hash, 'hashCode'));
+        rule.reportLint(getFieldIdentifier(hash, 'hashCode'),
+            errorCode: hashMemberCode);
       }
     }
   }
