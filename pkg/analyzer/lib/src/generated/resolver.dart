@@ -366,9 +366,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
-    if (operatorType == TokenType.EQ) {
-      _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
-    } else {
+    if (operatorType != TokenType.EQ) {
       _checkForDeprecatedMemberUse(node.staticElement, node);
     }
     super.visitAssignmentExpression(node);
@@ -598,12 +596,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _checkForInvalidAssignment(node.name, node.initializer);
-    super.visitVariableDeclaration(node);
   }
 
   /// Check for the passed is expression for the unnecessary type check hint
@@ -880,41 +872,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);
       }
     }
-  }
-
-  /// This verifies that the passed left hand side and right hand side represent
-  /// a valid assignment.
-  ///
-  /// This method corresponds to ErrorVerifier.checkForInvalidAssignment.
-  ///
-  /// @param lhs the left hand side expression
-  /// @param rhs the right hand side expression
-  /// @return `true` if and only if an error code is generated on the passed
-  ///         node
-  /// See [HintCode.INVALID_ASSIGNMENT].
-  bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
-    if (lhs == null || rhs == null) {
-      return false;
-    }
-    VariableElement leftVariableElement = ErrorVerifier.getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? ErrorVerifier.getStaticType(lhs)
-        : leftVariableElement.type;
-    DartType staticRightType = ErrorVerifier.getStaticType(rhs);
-    if (!_typeSystem.isAssignableTo(staticRightType, leftType)) {
-      // The warning was generated on this rhs
-      return false;
-    }
-    // Test for, and then generate the hint
-    DartType bestRightType = rhs.staticType;
-    if (leftType != null && bestRightType != null) {
-      if (!_typeSystem.isAssignableTo(bestRightType, leftType)) {
-        _errorReporter.reportTypeErrorForNode(
-            HintCode.INVALID_ASSIGNMENT, rhs, [bestRightType, leftType]);
-        return true;
-      }
-    }
-    return false;
   }
 
   void _checkForInvalidFactory(MethodDeclaration decl) {

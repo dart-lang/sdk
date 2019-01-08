@@ -161,23 +161,6 @@ class HintCode extends ErrorCode {
               "rename the function in the imported library.");
 
   /**
-   * This hint is generated anywhere where the
-   * [StaticTypeWarningCode.INVALID_ASSIGNMENT] would have been generated, if we
-   * used propagated information for the warnings.
-   *
-   * Parameters:
-   * 0: the name of the right hand side type
-   * 1: the name of the left hand side type
-   */
-  // TODO(brianwilkerson) This hint code should be removed, as should the code
-  //  that appears to generate it.
-  static const HintCode INVALID_ASSIGNMENT = const HintCode(
-      'INVALID_ASSIGNMENT',
-      "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
-      correction: "Try changing the type of the variable, or "
-          "casting the right-hand type to '{1}'.");
-
-  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */

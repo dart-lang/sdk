@@ -15,6 +15,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/util/yaml_test.dart';
 import 'resolver_test_case.dart';
 
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CrossPackageHintCodeTest);
+    defineReflectiveTests(HintCodeTest);
+  });
+}
+
 final metaLibraryStub = r'''
 library meta;
 
@@ -58,13 +65,6 @@ class _VisibleForTesting {
   const _VisibleForTesting();
 }
 ''';
-
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(CrossPackageHintCodeTest);
-    defineReflectiveTests(HintCodeTest);
-  });
-}
 
 @reflectiveTest
 class CrossPackageHintCodeTest extends ResolverTestCase {
@@ -118,7 +118,7 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
-  test_subtypeOfSealedClass_with() async {
+  test_subtypeOfSealedClass_mixinApplication() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
       [
@@ -133,21 +133,22 @@ import 'package:meta/meta.dart';
     newBasicPackage('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
-                    class Bar extends Object with Foo {}
+                    class Bar1 {}
+                    class Bar2 = Bar1 with Foo;
                     ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
     verify([source]);
   }
 
-  test_subtypeOfSealedMixin_with() async {
+  test_subtypeOfSealedClass_mixinImplements() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
       [
         'foo',
         r'''
 import 'package:meta/meta.dart';
-@sealed mixin Foo {}
+@sealed class Foo {}
 '''
       ]
     ]);
@@ -155,7 +156,7 @@ import 'package:meta/meta.dart';
     newBasicPackage('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
-                    class Bar extends Object with Foo {}
+                    mixin Bar implements Foo {}
                     ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
@@ -184,7 +185,7 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
-  test_subtypeOfSealedClass_mixinImplements() async {
+  test_subtypeOfSealedClass_with() async {
     super.resetWith(packages: [
       ['meta', metaLibraryStub],
       [
@@ -199,53 +200,7 @@ import 'package:meta/meta.dart';
     newBasicPackage('/pkg1');
     Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
                     import 'package:foo/foo.dart';
-                    mixin Bar implements Foo {}
-                    ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
-    verify([source]);
-  }
-
-  test_subtypeOfSealedClass_mixinApplication() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-      [
-        'foo',
-        r'''
-import 'package:meta/meta.dart';
-@sealed class Foo {}
-'''
-      ]
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                    import 'package:foo/foo.dart';
-                    class Bar1 {}
-                    class Bar2 = Bar1 with Foo;
-                    ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
-    verify([source]);
-  }
-
-  test_subtypeOfSealedMixin_mixinApplication() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-      [
-        'foo',
-        r'''
-import 'package:meta/meta.dart';
-@sealed mixin Foo {}
-'''
-      ]
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                    import 'package:foo/foo.dart';
-                    class Bar1 {}
-                    class Bar2 = Bar1 with Foo;
+                    class Bar extends Object with Foo {}
                     ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
@@ -271,30 +226,6 @@ import 'package:meta/meta.dart';
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-  }
-
-  test_subtypeOfSealedClass_withinPart_OK() async {
-    super.resetWith(packages: [
-      ['meta', metaLibraryStub],
-    ]);
-
-    newBasicPackage('/pkg1');
-    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
-                     import 'package:meta/meta.dart';
-                     part 'part1.dart';
-                     @sealed class Foo {}
-                     ''');
-    addNamedSource('/pkg1/lib/part1.dart', r'''
-                     part of 'lib1.dart';
-                     class Bar1 extends Foo {}
-                     class Bar2 implements Foo {}
-                     class Bar4 = Bar1 with Foo;
-                     mixin Bar5 on Foo {}
-                     mixin Bar6 implements Foo {}
-                     ''');
-    await computeAnalysisResult(source1);
-    assertNoErrors(source1);
-    verify([source1]);
   }
 
   test_subtypeOfSealedClass_withinPackageLibDirectory_OK() async {
@@ -339,6 +270,75 @@ import 'package:meta/meta.dart';
     await computeAnalysisResult(source1);
     assertNoErrors(source1);
     verify([source1]);
+  }
+
+  test_subtypeOfSealedClass_withinPart_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    newBasicPackage('/pkg1');
+    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                     import 'package:meta/meta.dart';
+                     part 'part1.dart';
+                     @sealed class Foo {}
+                     ''');
+    addNamedSource('/pkg1/lib/part1.dart', r'''
+                     part of 'lib1.dart';
+                     class Bar1 extends Foo {}
+                     class Bar2 implements Foo {}
+                     class Bar4 = Bar1 with Foo;
+                     mixin Bar5 on Foo {}
+                     mixin Bar6 implements Foo {}
+                     ''');
+    await computeAnalysisResult(source1);
+    assertNoErrors(source1);
+    verify([source1]);
+  }
+
+  test_subtypeOfSealedMixin_mixinApplication() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed mixin Foo {}
+'''
+      ]
+    ]);
+
+    newBasicPackage('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar1 {}
+                    class Bar2 = Bar1 with Foo;
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedMixin_with() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed mixin Foo {}
+'''
+      ]
+    ]);
+
+    newBasicPackage('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar extends Object with Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
   }
 }
 
@@ -1255,13 +1255,6 @@ f(var y) {
     verify([source]);
   }
 
-  test_invalidAssignment_message() async {
-    // The implementation of HintCode.INVALID_ASSIGNMENT assumes that
-    // StaticTypeWarningCode.INVALID_ASSIGNMENT has the same message.
-    expect(StaticTypeWarningCode.INVALID_ASSIGNMENT.message,
-        HintCode.INVALID_ASSIGNMENT.message);
-  }
-
   test_invalidAssignment_staticVariable() async {
     Source source = addSource(r'''
 class A {
@@ -1396,6 +1389,17 @@ import 'package:meta/meta.dart';
     verify([source]);
   }
 
+  test_invalidSealedAnnotation_onMixin() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed mixin M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidSealedAnnotation_onMixinApplication() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -1408,17 +1412,6 @@ abstract class B {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invalidSealedAnnotation_onMixin() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-@sealed mixin M {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
     verify([source]);
   }
 
@@ -2464,21 +2457,6 @@ class B extends A {
     verify([source]);
   }
 
-  test_mustBeImmutable_mixinApplicationBase() async {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-class A {
-  int x;
-}
-class B {}
-@immutable
-class C = A with B;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
-    verify([source]);
-  }
-
   test_mustBeImmutable_fromMixin() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2515,6 +2493,21 @@ class A {}
 class B {
   int x;
 }
+class C = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_mixinApplicationBase() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  int x;
+}
+class B {}
+@immutable
 class C = A with B;
 ''');
     await computeAnalysisResult(source);
