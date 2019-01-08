@@ -609,7 +609,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       throw "${class_.fileUri}: No class info for ${class_.name}";
     }
     _ClassInfo superInfo = _infoFor[superclass];
-    if (info == null) {
+    if (superInfo == null) {
       throw "${superclass.fileUri}: No class info for ${superclass.name}";
     }
     if (!info.isSubtypeOf(superInfo)) return null;
@@ -1405,7 +1405,7 @@ class ClassSet extends IterableBase<Class> {
   ClassSet(this._classes);
 
   bool contains(Object class_) {
-    return _classes.contains(_classes);
+    return _classes.contains(class_);
   }
 
   ClassSet union(ClassSet other) {
