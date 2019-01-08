@@ -19,14 +19,14 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 Below is a list of LSP methods and their implementation status.
 
 - Method: The LSP method name
-- Basic Impl: This method has a basic implementation but may not support all capabilities
-- Capabilities: All client capabilities (in the spec at time of writing) are supported/handled correctly
+- Basic Impl: This method has an implementation but may assume some client capabilities
+- Capabilities: Only types from the original spec or as advertised in client capabilities are returned
 - Tests: Has automated tests
 - Tested Client: Has been manually tested in at least one LSP client editor
 
 | Method | Basic Impl | Capabilities | Tests | Tested Client | Notes |
 | - | - | - | - | - | - |
-| initialize | ✅ | | ✅ | ✅ | trace and other options NYI
+| initialize | ✅ | ✅ | ✅ | ✅ | trace and other options NYI
 | initialized | ✅ | ✅ | ✅ | ✅ |
 | shutdown | ✅ | ✅ | ✅ | ✅ | supported but does nothing |
 | exit | | | | | |
@@ -47,16 +47,16 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/willSaveWaitUntil | | | | |
 | textDocument/didClose | ✅ | ✅ | ✅ | ✅ |
 | textDocument/publishDiagnostics | ✅ | ✅ | ✅ | ✅ |
-| textDocument/completion | ✅ | | ✅ | |
+| textDocument/completion | ✅ | ✅ | ✅ | ✅ |
 | completionItem/resolve | | | | | not required |
-| textDocument/hover | ✅ | | ✅ | |
-| textDocument/signatureHelp | ✅ | | ✅ | | correct trigger character handling outstanding
-| textDocument/definition | ✅ | | ✅ | |
+| textDocument/hover | ✅ | ✅ | ✅ | ✅ |
+| textDocument/signatureHelp | ✅ | ✅ | ✅ | ✅ | trigger character handling outstanding
+| textDocument/definition | ✅ | ✅ | ✅ | ✅ |
 | textDocument/typeDefinition | | | | |
 | textDocument/implementation | | | | |
-| textDocument/references | ✅ | | ✅ | |
+| textDocument/references | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentHighlight | | | | |
-| textDocument/documentSymbol | ✅ | | ✅ | |
+| textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (refactors) | | | | |

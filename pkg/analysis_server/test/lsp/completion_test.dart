@@ -177,7 +177,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
-  test_plainText_simple() async {
+  test_plainText() async {
     final content = '''
     class MyClass {
       String abcdefghij;
@@ -199,41 +199,6 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
-  }
-
-  test_snippet_simple() async {
-    final content = '''
-    class MyClass {
-      String abcdefghij;
-    }
-
-    main() {
-      MyClass a;
-      a.abc^
-    }
-    ''';
-
-    await initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities));
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
-    final item = res.singleWhere((c) => c.label == 'abcdefghij');
-    // ignore: deprecated_member_use
-    expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
-    expect(updated, contains('a.abcdefghij'));
-    expect(item.kind, equals(CompletionItemKind.Field));
-  }
-
-  @failingTest
-  test_snippet_withSelection() async {
-    // TODO(dantup): Implement snippet functionality + test.
-    // Like above, but one that actually has a selectionOffset and results in
-    // a snippet with tabstop.
-    fail('NYI');
   }
 
   test_unopenFile() async {

@@ -325,8 +325,6 @@ lsp.CompletionItem toCompletionItem(
       ? suggestion.displayText
       : suggestion.completion;
 
-  final useSnippets =
-      completionCapabilities?.completionItem?.snippetSupport == true;
   final useDeprecated =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
   final formats = completionCapabilities?.completionItem?.documentationFormat;
@@ -352,7 +350,8 @@ lsp.CompletionItem toCompletionItem(
     (1000000 - suggestion.relevance).toString(),
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
-    useSnippets ? lsp.InsertTextFormat.Snippet : lsp.InsertTextFormat.PlainText,
+    // We don't have completions that use snippets, so we always return PlainText.
+    lsp.InsertTextFormat.PlainText,
     new lsp.TextEdit(
       // TODO(dantup): If `clientSupportsSnippets == true` then we should map
       // `selection` in to a snippet (see how Dart Code does this).
@@ -475,6 +474,10 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   }
 
   lsp.ParameterInformation toParameterInfo(server.ParameterInfo param) {
+    // LSP 3.14.0 supports providing label offsets (to avoid clients having
+    // to guess based on substrings). We should check the
+    // signatureHelp.signatureInformation.parameterInformation.labelOffsetSupport
+    // capability when deciding to send that.
     return new lsp.ParameterInformation(getParamLabel(param), null);
   }
 
@@ -489,7 +492,15 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
       ),
     ],
     0, // activeSignature
-    null, // activeParameter
+    // TODO(dantup): The LSP spec says this value will default to 0 if it's
+    // not supplied or outside of the value range. However, setting -1 results
+    // in no parameters being selected in VS Code, whereas null/0 will select the first.
+    // We'd like for none to be selected (since we don't support this yet) so
+    // we send -1. I've made a request for LSP to support not selecting a parameter
+    // (because you could also be on param 5 of an invalid call to a function
+    // taking only 3 arguments) here:
+    // https://github.com/Microsoft/language-server-protocol/issues/456#issuecomment-452318297
+    -1, // activeParameter
   );
 }
 

@@ -288,7 +288,9 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     final res =
         await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
 
-    expect(res.activeParameter, isNull);
+    // TODO(dantup): Update this when there is clarification on how to handle
+    // no valid selected parameter.
+    expect(res.activeParameter, -1);
     expect(res.activeSignature, equals(0));
     expect(res.signatures, hasLength(1));
     final sig = res.signatures.first;
