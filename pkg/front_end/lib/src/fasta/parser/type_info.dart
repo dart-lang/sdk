@@ -190,7 +190,7 @@ TypeInfo computeType(final Token token, bool required,
   if (isGeneralizedFunctionType(next)) {
     // `Function` ...
     return new ComplexTypeInfo(token, noTypeParamOrArg)
-        .computeNoTypeGFT(required);
+        .computeNoTypeGFT(token, required);
   }
 
   // We've seen an identifier.
@@ -201,17 +201,21 @@ TypeInfo computeType(final Token token, bool required,
     if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
       next = typeParamOrArg.skip(next).next;
-      if (!isGeneralizedFunctionType(next)) {
-        if (optional('?', next) && typeParamOrArg == simpleTypeArgument1) {
-          if (required || looksLikeName(next.next)) {
+      if (optional('?', next)) {
+        next = next.next;
+        if (!isGeneralizedFunctionType(next)) {
+          if ((required || looksLikeName(next)) &&
+              typeParamOrArg == simpleTypeArgument1) {
             // identifier `<` identifier `>` `?` identifier
             return simpleNullableTypeWith1Argument;
           }
-        } else {
-          if (required || looksLikeName(next)) {
-            // identifier `<` identifier `>` identifier
-            return typeParamOrArg.typeInfo;
-          }
+          // identifier `<` identifier `>` `?` non-identifier
+          return noType;
+        }
+      } else if (!isGeneralizedFunctionType(next)) {
+        if (required || looksLikeName(next)) {
+          // identifier `<` identifier `>` identifier
+          return typeParamOrArg.typeInfo;
         }
         // identifier `<` identifier `>` non-identifier
         return noType;
@@ -234,14 +238,29 @@ TypeInfo computeType(final Token token, bool required,
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next;
-      if (typeParamOrArg == noTypeParamOrArg &&
-          !isGeneralizedFunctionType(next)) {
-        if (required || looksLikeName(next)) {
-          // identifier `.` identifier identifier
-          return prefixedType;
+      if (typeParamOrArg == noTypeParamOrArg) {
+        if (optional('?', next)) {
+          next = next.next;
+          if (!isGeneralizedFunctionType(next)) {
+            if (required || looksLikeName(next)) {
+              // identifier `.` identifier `?` identifier
+              // TODO(danrubel): consider adding PrefixedNullableType
+              // Fall through to build complex type
+            } else {
+              // identifier `.` identifier `?` non-identifier
+              return noType;
+            }
+          }
         } else {
-          // identifier `.` identifier non-identifier
-          return noType;
+          if (!isGeneralizedFunctionType(next)) {
+            if (required || looksLikeName(next)) {
+              // identifier `.` identifier identifier
+              return prefixedType;
+            } else {
+              // identifier `.` identifier non-identifier
+              return noType;
+            }
+          }
         }
       }
       // identifier `.` identifier
@@ -265,18 +284,14 @@ TypeInfo computeType(final Token token, bool required,
   }
 
   if (optional('?', next)) {
-    if (required) {
+    next = next.next;
+    if (isGeneralizedFunctionType(next)) {
+      // identifier `?` Function `(`
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeIdentifierQuestionGFT(required);
+    } else if (required || looksLikeName(next)) {
       // identifier `?`
       return simpleNullableType;
-    } else {
-      next = next.next;
-      if (isGeneralizedFunctionType(next)) {
-        // identifier `?` Function `(`
-        return simpleNullableType;
-      } else if (looksLikeName(next)) {
-        // identifier `?` identifier `=`
-        return simpleNullableType;
-      }
     }
   } else if (required || looksLikeName(next)) {
     // identifier identifier

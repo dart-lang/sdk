@@ -109,7 +109,64 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
  */
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
-    with ComplexParserTestMixin {}
+    with ComplexParserTestMixin {
+  void test_conditionalExpression_precedence_nullableType_as2() {
+    ExpressionStatement statement = parseStatement('x as bool? ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isAsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 1)]);
+  }
+
+  void test_conditionalExpression_precedence_nullableType_as3() {
+    ExpressionStatement statement =
+        parseStatement('(x as bool?) ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isParenthesizedExpression);
+    expect((condition as ParenthesizedExpression).expression, isAsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]);
+  }
+
+  void test_conditionalExpression_precedence_nullableType_is2() {
+    ExpressionStatement statement =
+        parseStatement('x is String? ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isIsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]);
+  }
+
+  void test_conditionalExpression_precedence_nullableType_is3() {
+    ExpressionStatement statement =
+        parseStatement('(x is String?) ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isParenthesizedExpression);
+    expect((condition as ParenthesizedExpression).expression, isIsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 12, 1)]);
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ErrorParserTest].
@@ -1449,6 +1506,26 @@ $code
 
   void test_assignment_simple() {
     parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+  }
+
+  void test_gft_nullable() {
+    parseNNBDCompilationUnit('main() { C? Function() x = 7; }');
+  }
+
+  void test_gft_nullable_1() {
+    parseNNBDCompilationUnit('main() { C Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_2() {
+    parseNNBDCompilationUnit('main() { C? Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_3() {
+    parseNNBDCompilationUnit('main() { C? Function()? Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_prefixed() {
+    parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
   }
 
   void test_conditional() {
