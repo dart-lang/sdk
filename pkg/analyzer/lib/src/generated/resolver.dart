@@ -34,6 +34,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
@@ -286,6 +287,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   WorkspacePackage _workspacePackage;
 
+  /// The [LinterContext] used for possible const calculations.
+  LinterContext _linterContext;
+
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
@@ -295,6 +299,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary, {
     TypeSystem typeSystem,
     ResourceProvider resourceProvider,
+    DeclaredVariables declaredVariables,
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
@@ -305,6 +310,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     Workspace workspace = ContextBuilder.createWorkspace(
         resourceProvider, libraryPath, null /* ContextBuilder */);
     _workspacePackage = workspace.findPackageFor(libraryPath);
+    _linterContext = LinterContextImpl(null /* allUnits */,
+        null /* currentUnit */, declaredVariables, typeProvider, _typeSystem);
   }
 
   @override
@@ -480,6 +487,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
+    _checkForLiteralConstructorUse(node);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -1001,6 +1009,32 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
     return false;
+  }
+
+  /// Check that the instance creation node is const if the constructor is
+  /// marked with [literal].
+  _checkForLiteralConstructorUse(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.constructorName;
+    ConstructorElement constructor = constructorName.staticElement;
+    if (constructor == null) {
+      return;
+    }
+    if (!node.isConst &&
+        constructor.hasLiteral &&
+        _linterContext.canBeConst(node)) {
+      // Echoing jwren's TODO from _checkForDeprecatedMemberUse:
+      // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
+      // have the logic centralized elsewhere, instead of doing this logic
+      // here.
+      String fullConstructorName = constructorName.type.name.name;
+      if (constructorName.name != null) {
+        fullConstructorName = '$fullConstructorName.${constructorName.name}';
+      }
+      HintCode hint = node.keyword?.keyword == Keyword.NEW
+          ? HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
+          : HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+      _errorReporter.reportErrorForNode(hint, node, [fullConstructorName]);
+    }
   }
 
   /// Generate a hint for functions or methods that have a return type, but do

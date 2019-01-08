@@ -2836,6 +2836,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasLiteral {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasOverride {
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -6398,6 +6410,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasJS => false;
+
+  @override
+  bool get hasLiteral => false;
 
   @override
   bool get hasOverride => false;

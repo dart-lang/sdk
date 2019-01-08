@@ -1323,6 +1323,55 @@ class A {
     verify([source]);
   }
 
+  test_nonConstCallToLiteralConstructor_nonConstContext() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = A();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_usingNew() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = new A();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW]);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_namedConstructor() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A.named();
+}
+void main() {
+  var a = A.named();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+    verify([source]);
+  }
+
   test_invalidLiteralAnnotation_nonConstructor() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';

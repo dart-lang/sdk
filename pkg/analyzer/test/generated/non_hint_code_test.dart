@@ -483,6 +483,57 @@ class A {
     verify([source]);
   }
 
+  test_nonConstCallToLiteralConstructor_constCreation() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+
+void main() {
+  const a = const A();
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_constContextCreation() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+
+void main() {
+  const a = A();
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nonConstCallToLiteralConstructor_unconstableCreation() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A(List list);
+}
+
+void main() {
+  var a = A(new List());
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_overrideOnNonOverridingField_inInterface() async {
     Source source = addSource(r'''
 class A {

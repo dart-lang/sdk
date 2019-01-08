@@ -399,6 +399,27 @@ class HintCode extends ErrorCode {
       "but does not invoke the overridden method.");
 
   /**
+   * Generate a hint for non-const instance creation using a constructor
+   * annotated with `@literal`.
+   */
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = const HintCode(
+      'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+      "This instance creation must be 'const', because the {0} constructor is "
+      "marked as '@literal'.",
+      correction: "Try adding a 'const' keyword.");
+
+  /**
+   * Generate a hint for non-const instance creation (with the `new` keyword)
+   * using a constructor annotated with `@literal`.
+   */
+  static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
+      const HintCode(
+          'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+          "This instance creation must be 'const', because the {0} constructor is "
+          "marked as '@literal'.",
+          correction: "Try replacing the 'new' keyword with 'const'.");
+
+  /**
    * When the left operand of a binary expression uses '?.' operator, it can be
    * `null`.
    */
