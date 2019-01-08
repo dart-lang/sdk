@@ -395,7 +395,8 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
-    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+    VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
+                                                : VMTag::kGCNewSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
     new_space_.Evacuate();
     RecordAfterGC(kScavenge);
@@ -410,7 +411,8 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     {
-      VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+      VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
+                                                  : VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
       new_space_.Scavenge();
       RecordAfterGC(kScavenge);
@@ -438,7 +440,8 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
   if (BeginOldSpaceGC(thread)) {
     RecordBeforeGC(type, reason);
-    VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
+    VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
+                                                : VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
     old_space_.CollectGarbage(type == kMarkCompact, true /* finish */);
     RecordAfterGC(type);

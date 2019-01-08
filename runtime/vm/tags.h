@@ -26,6 +26,7 @@ class RuntimeEntry;
   V(DartInterpreted)                                                           \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
+  V(GCIdle)                                                                    \
   V(Embedder)                                                                  \
   V(Runtime)                                                                   \
   V(Native)
