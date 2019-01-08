@@ -152,18 +152,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         appendLibraries(data, bytesLength);
 
-        try {
-          await dillLoadedData.buildOutlines();
-        } catch (e) {
-          if (!initializedFromDill) rethrow;
-
-          // Retry without initializing from dill.
-          initializedFromDill = false;
-          data.reset();
-          bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-          appendLibraries(data, bytesLength);
-          await dillLoadedData.buildOutlines();
-        }
+        await dillLoadedData.buildOutlines();
         summaryBytes = null;
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
@@ -689,17 +678,7 @@ class PackageChangedError {
 }
 
 class IncrementalCompilerData {
-  bool includeUserLoadedLibraries;
-  Procedure userLoadedUriMain;
-  Component component;
-
-  IncrementalCompilerData() {
-    reset();
-  }
-
-  reset() {
-    includeUserLoadedLibraries = false;
-    userLoadedUriMain = null;
-    component = null;
-  }
+  bool includeUserLoadedLibraries = false;
+  Procedure userLoadedUriMain = null;
+  Component component = null;
 }
