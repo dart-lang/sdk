@@ -36,10 +36,13 @@ abstract class TargetImplementation extends Target {
   Declaration cachedNativeExtensionAnnotation;
 
   bool enableSetLiterals;
+  bool enableConstantUpdate2018;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : enableSetLiterals = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.setLiterals),
+        enableConstantUpdate2018 = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.constantUpdate2018),
         super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist

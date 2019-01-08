@@ -41,6 +41,11 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'package:kernel/transformations/constants.dart' as constants
+    show transformLibraries;
+
 import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
@@ -64,7 +69,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unhandled, unimplemented;
 
 import '../severity.dart' show Severity;
 
@@ -92,6 +97,8 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder;
+
+import 'kernel_constants.dart' show KernelConstantsBackend;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -741,12 +748,25 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a bundle of
   /// libraries for the first time.
   void runBuildTransformations() {
+    if (loader.target.enableConstantUpdate2018) {
+      constants.transformLibraries(
+          loader.libraries,
+          new KernelConstantsBackend(),
+          loader.coreTypes,
+          new TypeEnvironment(loader.coreTypes, loader.hierarchy,
+              legacyMode: false));
+      ticker.logMs("Evaluated constants");
+    }
     backendTarget.performModularTransformationsOnLibraries(
         component, loader.coreTypes, loader.hierarchy, loader.libraries,
         logger: (String msg) => ticker.logMs(msg));
   }
 
   void runProcedureTransformations(Procedure procedure) {
+    if (loader.target.enableConstantUpdate2018) {
+      unimplemented('constant evaluation during expression evaluation',
+          procedure.fileOffset, procedure.fileUri);
+    }
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
