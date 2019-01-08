@@ -17,7 +17,7 @@ const Uri noUri = null;
 
 const int noOffset = -1;
 
-abstract class RoundTripFailure {
+abstract class TextSerializationVerificationFailure {
   /// [Uri] of the file containing the expression that produced an error during
   /// the round trip.
   final Uri uri;
@@ -26,34 +26,35 @@ abstract class RoundTripFailure {
   /// during the round trip.
   final int offset;
 
-  RoundTripFailure(this.uri, this.offset);
+  TextSerializationVerificationFailure(this.uri, this.offset);
 }
 
-class RoundTripSerializationFailure extends RoundTripFailure {
+class TextSerializationFailure extends TextSerializationVerificationFailure {
   final String message;
 
-  RoundTripSerializationFailure(this.message, Uri uri, int offset)
+  TextSerializationFailure(this.message, Uri uri, int offset)
       : super(uri, offset);
 }
 
-class RoundTripDeserializationFailure extends RoundTripFailure {
+class TextDeserializationFailure extends TextSerializationVerificationFailure {
   final String message;
 
-  RoundTripDeserializationFailure(this.message, Uri uri, int offset)
+  TextDeserializationFailure(this.message, Uri uri, int offset)
       : super(uri, offset);
 }
 
-class RoundTripMismatchFailure extends RoundTripFailure {
+class TextRoundTripFailure extends TextSerializationVerificationFailure {
   final String initial;
   final String serialized;
 
-  RoundTripMismatchFailure(this.initial, this.serialized, Uri uri, int offset)
+  TextRoundTripFailure(this.initial, this.serialized, Uri uri, int offset)
       : super(uri, offset);
 }
 
 class TextSerializationVerifier implements Visitor<void> {
   /// List of errors produced during round trips on the visited nodes.
-  final List<RoundTripFailure> failures = <RoundTripFailure>[];
+  final List<TextSerializationVerificationFailure> failures =
+      <TextSerializationVerificationFailure>[];
 
   Uri lastSeenUri = noUri;
 
@@ -78,11 +79,11 @@ class TextSerializationVerifier implements Visitor<void> {
     try {
       result = serializer.readFrom(stream);
     } catch (exception) {
-      failures.add(new RoundTripDeserializationFailure(
-          exception.toString(), uri, offset));
+      failures.add(
+          new TextDeserializationFailure(exception.toString(), uri, offset));
     }
     if (stream.moveNext()) {
-      failures.add(new RoundTripDeserializationFailure(
+      failures.add(new TextDeserializationFailure(
           "unexpected trailing text", uri, offset));
     }
     return result;
@@ -94,8 +95,8 @@ class TextSerializationVerifier implements Visitor<void> {
     try {
       serializer.writeTo(buffer, node);
     } catch (exception) {
-      failures.add(
-          new RoundTripSerializationFailure(exception.toString(), uri, offset));
+      failures
+          .add(new TextSerializationFailure(exception.toString(), uri, offset));
     }
     return buffer.toString();
   }
@@ -113,8 +114,7 @@ class TextSerializationVerifier implements Visitor<void> {
         writeNode(deserialized, expressionSerializer, uri, offset);
 
     if (initial != serialized) {
-      failures
-          .add(new RoundTripMismatchFailure(initial, serialized, uri, offset));
+      failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
     }
   }
 
@@ -130,8 +130,7 @@ class TextSerializationVerifier implements Visitor<void> {
         writeNode(deserialized, dartTypeSerializer, uri, offset);
 
     if (initial != serialized) {
-      failures
-          .add(new RoundTripMismatchFailure(initial, serialized, uri, offset));
+      failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
     }
   }
 
