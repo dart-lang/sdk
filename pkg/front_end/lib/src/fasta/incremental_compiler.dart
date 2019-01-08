@@ -222,8 +222,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             " of ${userCode.loader.builders.length} libraries");
       }
 
-      reusedLibraries.addAll(platformBuilders);
-
       KernelTarget userCodeOld = userCode;
       userCode = new KernelTarget(
           new HybridFileSystem(
@@ -559,11 +557,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<LibraryBuilder> computeReusedLibraries(
       Set<Uri> invalidatedUris, UriTranslator uriTranslator,
       {Set<LibraryBuilder> notReused}) {
-    if (userCode == null && userBuilders == null) {
-      return <LibraryBuilder>[];
-    }
-
     List<LibraryBuilder> result = <LibraryBuilder>[];
+    result.addAll(platformBuilders);
+    if (userCode == null && userBuilders == null) {
+      return result;
+    }
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
