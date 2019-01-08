@@ -30,6 +30,7 @@ import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
+import '../ir/static_type.dart';
 import '../ir/scope.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
@@ -108,6 +109,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
+
+  Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 
   KernelToElementMapImpl(this.reporter, Environment environment,
       this._frontendStrategy, this.options) {
@@ -1344,6 +1347,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     ir.Member node = memberData.node;
     KernelImpactBuilder builder = new KernelImpactBuilder(
         this, member, reporter, options, variableScopeModel, annotations);
+    if (retainDataForTesting) {
+      typeMapsForTesting ??= {};
+      typeMapsForTesting[member] = builder.typeMapsForTesting = {};
+    }
     node.accept(builder);
     memberData.staticTypes = builder.cachedStaticTypes;
     return builder.impactBuilder;
@@ -1359,6 +1366,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         members.getData(member).staticTypes;
     assert(staticTypes != null, "No static types cached for $member.");
     return staticTypes;
+  }
+
+  Map<ir.Expression, TypeMap> getTypeMapsForTesting(KMember member) {
+    return typeMapsForTesting[member];
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

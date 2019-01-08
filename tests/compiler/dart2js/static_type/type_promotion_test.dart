@@ -7,7 +7,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/cached_static_type.dart';
+import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -21,13 +21,14 @@ import '../helpers/ir_types.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, new StaticTypeDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+    Directory dataDir =
+        new Directory.fromUri(Platform.script.resolve('type_promotion_data'));
+    await checkTests(dataDir, new TypePromotionDataComputer(),
+        args: args, testFrontend: true);
   });
 }
 
-class StaticTypeDataComputer extends DataComputer<String> {
+class TypePromotionDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
@@ -48,14 +49,10 @@ class StaticTypeDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
-    Map<ir.TreeNode, ir.DartType> staticTypeCache =
-        elementMap.getCachedStaticTypes(member);
+    Map<ir.Expression, TypeMap> typeMaps =
+        elementMap.getTypeMapsForTesting(member);
     ir.Member node = elementMap.getMemberNode(member);
-    new StaticTypeIrComputer(
-            compiler.reporter,
-            actualMap,
-            new CachedStaticType(
-                getTypeEnvironment(elementMap), staticTypeCache))
+    new TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps)
         .run(node);
   }
 
@@ -64,11 +61,11 @@ class StaticTypeDataComputer extends DataComputer<String> {
 }
 
 /// IR visitor for computing inference data for a member.
-class StaticTypeIrComputer extends IrDataExtractor<String> {
-  final CachedStaticType staticTypeCache;
+class TypePromotionIrComputer extends IrDataExtractor<String> {
+  final Map<ir.Expression, TypeMap> typeMaps;
 
-  StaticTypeIrComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap, this.staticTypeCache)
+  TypePromotionIrComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap, this.typeMaps)
       : super(reporter, actualMap);
 
   @override
@@ -78,8 +75,9 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {
-    if (node is ir.VariableGet || node is ir.MethodInvocation) {
-      return typeToText(node.accept(staticTypeCache));
+    if (node is ir.VariableGet) {
+      TypeMap type = typeMaps[node];
+      return type.getText(typesToText);
     }
     return null;
   }

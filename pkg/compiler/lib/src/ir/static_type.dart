@@ -34,6 +34,7 @@ enum ClassRelation {
 /// the readily compute static types of subexpressions.
 abstract class StaticTypeVisitor extends StaticTypeBase {
   Map<ir.Expression, ir.DartType> _cache = {};
+  Map<ir.Expression, TypeMap> typeMapsForTesting;
 
   StaticTypeVisitor(ir.TypeEnvironment typeEnvironment)
       : super(typeEnvironment);
@@ -51,6 +52,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   VariableScopeModel get variableScopeModel;
 
   bool completes(ir.DartType type) => type != const ir.BottomType();
+
   Set<ir.VariableDeclaration> _currentVariables;
   Set<ir.VariableDeclaration> _invalidatedVariables =
       new Set<ir.VariableDeclaration>();
@@ -511,6 +513,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitVariableGet(ir.VariableGet node) {
+    if (typeMapsForTesting != null) {
+      typeMapsForTesting[node] = typeMap;
+    }
     ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
     assert(
         node.promotedType == null ||
@@ -1246,6 +1251,23 @@ class TypeHolder {
         equalSets(falseTypes, other.falseTypes);
   }
 
+  void _getText(
+      StringBuffer sb, String Function(Iterable<ir.DartType>) typesToText) {
+    sb.write('{');
+    String comma = '';
+    if (trueTypes != null) {
+      sb.write('true:');
+      sb.write(typesToText(trueTypes));
+      comma = ',';
+    }
+    if (falseTypes != null) {
+      sb.write(comma);
+      sb.write('false:');
+      sb.write(typesToText(falseTypes));
+    }
+    sb.write('}');
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TypeHolder(');
@@ -1318,51 +1340,6 @@ class TargetInfo {
       newTypeHolders.add(TypeHolder(declaredType, trueTypes, falseTypes));
       return changed;
     }
-    /*bool addTypeHolder(TypeHolder typeHolder) {
-      bool changed = true;
-      TypeHolder newTypeHolder;
-      if (typeHolder != null) {
-        if (isTrue) {
-          if (typeHolder.trueTypes == null) {
-            newTypeHolder = new TypeHolder(declaredType,
-                new Set<ir.DartType>()..add(type), typeHolder.falseTypes);
-          } else if (typeHolder.trueTypes.contains(type)) {
-            changed = false;
-            newTypeHolder = typeHolder;
-          } else {
-            newTypeHolder = new TypeHolder(
-                declaredType,
-                new Set<ir.DartType>.from(typeHolder.trueTypes)..add(type),
-                typeHolder.falseTypes);
-          }
-        } else {
-          if (typeHolder.falseTypes == null) {
-            newTypeHolder = new TypeHolder(declaredType, typeHolder.trueTypes,
-                new Set<ir.DartType>()..add(type));
-          } else if (typeHolder.falseTypes.contains(type)) {
-            changed = false;
-            newTypeHolder = typeHolder;
-          } else {
-            newTypeHolder = new TypeHolder(declaredType, typeHolder.trueTypes,
-                new Set<ir.DartType>.from(typeHolder.falseTypes)..add(type));
-          }
-        }
-      } else {
-        if (isTrue) {
-          newTypeHolder = new TypeHolder(
-              declaredType, new Set<ir.DartType>()..add(type), null);
-        } else {
-          newTypeHolder = new TypeHolder(
-              declaredType, null, new Set<ir.DartType>()..add(type));
-        }
-      }
-      // TODO(johnniwinther): Check validity; if the true types are
-      // contradicting, for instance if the local is known to be and instance
-      // of types `int` and `String` simultaneously, then we could flag code
-      // as dead code.
-      newTypeHolders.add(newTypeHolder);
-      return changed;
-    }*/
 
     bool changed = false;
     if (typeHolders.isEmpty) {
@@ -1387,16 +1364,101 @@ class TargetInfo {
 
   /// Returns the [TargetInfo] that describes that the local is either of [this]
   /// or the [other] type.
+  ///
+  /// Returns `null` if the join is empty.
   TargetInfo join(TargetInfo other) {
+    if (other == null) return null;
     if (identical(this, other)) return this;
 
-    Set<TypeHolder> newTypeHolders = new Set<TypeHolder>.from(typeHolders);
-    newTypeHolders.addAll(other.typeHolders);
-    Set<ir.DartType> newDeclarationsOfInterest =
-        new Set<ir.DartType>.from(typesOfInterest);
-    newDeclarationsOfInterest.addAll(other.typesOfInterest);
-    return new TargetInfo(
-        declaredType, newTypeHolders, newDeclarationsOfInterest);
+    Set<TypeHolder> newTypeHolders = new Set<TypeHolder>();
+    Set<ir.DartType> newTypesOfInterest = new Set<ir.DartType>();
+
+    /// Adds the [typeHolders] to [newTypeHolders] for types in
+    /// [otherTypesOfInterest] while removing the information
+    /// invalidated by [otherTrueTypes] and [otherFalseTypes].
+    void addTypeHolders(
+        Iterable<TypeHolder> typeHolders,
+        Set<ir.DartType> otherTrueTypes,
+        Set<ir.DartType> otherFalseTypes,
+        Iterable<ir.DartType> otherTypesOfInterest) {
+      for (TypeHolder typeHolder in typeHolders) {
+        Set<ir.DartType> newTrueTypes;
+        if (typeHolder.trueTypes != null) {
+          newTrueTypes = new Set<ir.DartType>.from(typeHolder.trueTypes);
+
+          /// Only types in [otherTypesOfInterest] has information from all
+          /// paths.
+          newTrueTypes.retainAll(otherTypesOfInterest);
+
+          /// Remove types that are known to be false on other paths; these
+          /// would amount to knowing that a variable is or is not of some
+          /// type.
+          newTrueTypes.removeAll(otherFalseTypes);
+          if (newTrueTypes.isEmpty) {
+            newTrueTypes = null;
+          } else {
+            newTypesOfInterest.addAll(newTrueTypes);
+          }
+        }
+        Set<ir.DartType> newFalseTypes;
+        if (typeHolder.falseTypes != null) {
+          newFalseTypes = new Set<ir.DartType>.from(typeHolder.falseTypes);
+
+          /// Only types in [otherTypesOfInterest] has information from all
+          /// paths.
+          newFalseTypes.retainAll(otherTypesOfInterest);
+
+          /// Remove types that are known to be true on other paths; these
+          /// would amount to knowing that a variable is or is not of some
+          /// type.
+          newFalseTypes.removeAll(otherTrueTypes);
+          if (newFalseTypes.isEmpty) {
+            newFalseTypes = null;
+          } else {
+            newTypesOfInterest.addAll(newFalseTypes);
+          }
+        }
+        if (newTrueTypes != null || newFalseTypes != null) {
+          // Only include type holders with information.
+          newTypeHolders
+              .add(new TypeHolder(declaredType, newTrueTypes, newFalseTypes));
+        }
+      }
+    }
+
+    Set<ir.DartType> thisTrueTypes = new Set<ir.DartType>();
+    Set<ir.DartType> thisFalseTypes = new Set<ir.DartType>();
+    for (TypeHolder typeHolder in typeHolders) {
+      if (typeHolder.trueTypes != null) {
+        thisTrueTypes.addAll(typeHolder.trueTypes);
+      }
+      if (typeHolder.falseTypes != null) {
+        thisFalseTypes.addAll(typeHolder.falseTypes);
+      }
+    }
+
+    Set<ir.DartType> otherTrueTypes = new Set<ir.DartType>();
+    Set<ir.DartType> otherFalseTypes = new Set<ir.DartType>();
+    for (TypeHolder typeHolder in other.typeHolders) {
+      if (typeHolder.trueTypes != null) {
+        otherTrueTypes.addAll(typeHolder.trueTypes);
+      }
+      if (typeHolder.falseTypes != null) {
+        otherFalseTypes.addAll(typeHolder.falseTypes);
+      }
+    }
+
+    addTypeHolders(this.typeHolders, otherTrueTypes, otherFalseTypes,
+        other.typesOfInterest);
+    addTypeHolders(
+        other.typeHolders, thisTrueTypes, thisFalseTypes, this.typesOfInterest);
+
+    if (newTypeHolders.isEmpty) {
+      assert(newTypesOfInterest.isEmpty);
+      return null;
+    }
+
+    return new TargetInfo(declaredType, newTypeHolders, newTypesOfInterest);
   }
 
   /// Computes a single type that soundly represents the promoted type of the
@@ -1427,6 +1489,20 @@ class TargetInfo {
       }
     }
     return candidate;
+  }
+
+  void _getText(
+      StringBuffer sb, String Function(Iterable<ir.DartType>) typesToText) {
+    sb.write('[');
+    String comma = '';
+    for (TypeHolder typeHolder in typeHolders) {
+      sb.write(comma);
+      typeHolder._getText(sb, typesToText);
+      comma = ',';
+    }
+    sb.write('|');
+    sb.write(typesToText(typesOfInterest));
+    sb.write(']');
   }
 
   String toString() {
@@ -1489,22 +1565,11 @@ class TypeMap {
     Map<ir.VariableDeclaration, TargetInfo> newInfoMap = {};
     bool changed = false;
     _targetInfoMap.forEach((ir.VariableDeclaration variable, TargetInfo info) {
-      TargetInfo otherInfo = other._targetInfoMap[variable];
-      if (otherInfo != null) {
-        TargetInfo result = info.join(otherInfo);
-        changed |= !identical(info, result);
+      TargetInfo result = info.join(other._targetInfoMap[variable]);
+      changed |= !identical(info, result);
+      if (result != null) {
+        // Add only non-empty information.
         newInfoMap[variable] = result;
-      } else {
-        changed = true;
-        newInfoMap[variable] = info;
-      }
-    });
-    other._targetInfoMap
-        .forEach((ir.VariableDeclaration variable, TargetInfo otherInfo) {
-      TargetInfo info = _targetInfoMap[variable];
-      if (info == null) {
-        changed = true;
-        newInfoMap[variable] = otherInfo;
       }
     });
     return changed ? new TypeMap(newInfoMap) : this;
@@ -1569,6 +1634,19 @@ class TypeMap {
       type = info.typeOf(typeEnvironment);
     }
     return type ?? node.promotedType ?? node.variable.type;
+  }
+
+  String getText(String Function(Iterable<ir.DartType>) typesToText) {
+    StringBuffer sb = new StringBuffer();
+    sb.write('{');
+    String comma = '';
+    _targetInfoMap.forEach((ir.VariableDeclaration variable, TargetInfo info) {
+      sb.write('${comma}${variable.name}:');
+      info._getText(sb, typesToText);
+      comma = ',';
+    });
+    sb.write('}');
+    return sb.toString();
   }
 
   String toString() {
