@@ -9311,7 +9311,9 @@ class ArrayOfTuplesView {
   class TupleView {
    public:
     TupleView(const Array& array, intptr_t index)
-        : array_(array), index_(index) {}
+        : array_(array), index_(index) {
+      ASSERT(!array.IsNull());
+    }
 
     template <EnumType kElement>
     typename std::tuple_element<kElement, TupleT>::type::RawObjectType* Get()

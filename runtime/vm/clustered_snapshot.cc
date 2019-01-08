@@ -4616,7 +4616,7 @@ void Serializer::Serialize() {
   intptr_t code_order_length = 0;
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
     !defined(TARGET_ARCH_DBC)
-  if (Snapshot::IncludesCode(kind_)) {
+  if (kind_ == Snapshot::kFullAOT) {
     auto code_objects =
         static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
             ->discovered_objects();
