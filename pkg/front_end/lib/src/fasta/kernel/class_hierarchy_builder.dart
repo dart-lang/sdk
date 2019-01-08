@@ -220,9 +220,9 @@ class ClassHierarchyBuilder {
 
   List<Declaration> mergeLists(
       KernelClassBuilder cls, List<List<Declaration>> input) {
-    // This is a k-way merge sort (where k is `interfaces.length + 1`). We
-    // merge the lists pairwise, which reduces the number of lists to merge by
-    // half on each iteration. Consequently, we perform O(log k) merges.
+    // This is a k-way merge sort (where k is `input.length + 1`). We merge the
+    // lists pairwise, which reduces the number of lists to merge by half on
+    // each iteration. Consequently, we perform O(log k) merges.
     while (input.length > 1) {
       List<List<Declaration>> output = <List<Declaration>>[];
       for (int i = 0; i < input.length - 1; i += 2) {
