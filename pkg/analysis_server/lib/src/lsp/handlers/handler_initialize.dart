@@ -38,6 +38,9 @@ class InitializeMessageHandler
     server.messageHandler =
         new InitializingStateMessageHandler(server, openWorkspacePaths);
 
+    final codeActionLiteralSupport =
+        params.capabilities.textDocument?.codeAction?.codeActionLiteralSupport;
+
     return success(new InitializeResult(new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,
@@ -69,8 +72,13 @@ class InitializeMessageHandler
         null,
         true, // documentSymbolProvider
         null,
-        Either2<bool, CodeActionOptions>.t2(
-            new CodeActionOptions(DartCodeActionKind.serverSupportedKinds)),
+        // "The `CodeActionOptions` return type is only valid if the client
+        // signals code action literal support via the property
+        // `textDocument.codeAction.codeActionLiteralSupport`."
+        codeActionLiteralSupport != null
+            ? Either2<bool, CodeActionOptions>.t2(
+                new CodeActionOptions(DartCodeActionKind.serverSupportedKinds))
+            : Either2<bool, CodeActionOptions>.t1(true),
         null,
         true, // documentFormattingProvider
         false, // documentRangeFormattingProvider

@@ -23,6 +23,7 @@ abstract class DartCodeActionKind {
     // We have to explicitly list this for the client to enable built-in command.
     CodeActionKind.SourceOrganizeImports,
     SortMembers,
+    CodeActionKind.QuickFix,
   ];
   static const SortMembers = const CodeActionKind('source.sortMembers');
 }
