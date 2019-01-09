@@ -99,6 +99,7 @@ class JsKernelToElementMap
   JsConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
+  ir.ClassHierarchy _classHierarchy;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -1057,10 +1058,16 @@ class JsKernelToElementMap
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(programEnv.mainComponent),
-          new ir.ClassHierarchy(programEnv.mainComponent));
+          new ir.CoreTypes(programEnv.mainComponent), classHierarchy);
     }
     return _typeEnvironment;
+  }
+
+  ir.ClassHierarchy get classHierarchy {
+    if (_classHierarchy == null) {
+      _classHierarchy ??= new ir.ClassHierarchy(programEnv.mainComponent);
+    }
+    return _classHierarchy;
   }
 
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
@@ -1098,8 +1105,7 @@ class JsKernelToElementMap
     return new CachedStaticType(
         // We need a copy of the type environment since the `thisType` field
         // is holds state, making the environment contextually bound.
-        new ir.TypeEnvironment(
-            typeEnvironment.coreTypes, typeEnvironment.hierarchy)
+        new ir.TypeEnvironment(typeEnvironment.coreTypes, classHierarchy)
           ..thisType = thisType,
         cachedStaticTypes);
   }

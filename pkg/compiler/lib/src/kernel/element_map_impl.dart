@@ -71,6 +71,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
+  ir.ClassHierarchy _classHierarchy;
 
   /// Library environment. Used for fast lookup.
   KProgramEnv env = new KProgramEnv();
@@ -718,10 +719,16 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(env.mainComponent),
-          new ir.ClassHierarchy(env.mainComponent));
+          new ir.CoreTypes(env.mainComponent), classHierarchy);
     }
     return _typeEnvironment;
+  }
+
+  ir.ClassHierarchy get classHierarchy {
+    if (_classHierarchy == null) {
+      _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
+    }
+    return _classHierarchy;
   }
 
   DartType getStaticType(ir.Expression node) {

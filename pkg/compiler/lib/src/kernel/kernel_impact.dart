@@ -42,7 +42,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
       this._options, this.variableScopeModel, this._annotations)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
-        super(elementMap.typeEnvironment);
+        super(elementMap.typeEnvironment, elementMap.classHierarchy);
 
   CommonElements get commonElements => elementMap.commonElements;
 

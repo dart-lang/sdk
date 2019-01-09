@@ -31,7 +31,8 @@ main() {
 }
 
 class Visitor extends StaticTypeVisitorBase {
-  Visitor(ir.Component component) : super(component);
+  Visitor(ir.Component component)
+      : super(component, new ir.ClassHierarchy(component));
 
   ir.DartType getStaticType(ir.Expression node) {
     if (typeEnvironment == null) {

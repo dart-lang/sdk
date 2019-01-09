@@ -36,7 +36,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   Map<ir.Expression, ir.DartType> _cache = {};
   Map<ir.Expression, TypeMap> typeMapsForTesting;
 
-  StaticTypeVisitor(ir.TypeEnvironment typeEnvironment)
+  final ir.ClassHierarchy hierarchy;
+
+  StaticTypeVisitor(ir.TypeEnvironment typeEnvironment, this.hierarchy)
       : super(typeEnvironment);
 
   Map<ir.Expression, ir.DartType> get cachedStaticTypes => _cache;
@@ -165,8 +167,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.PropertyGet node, ir.DartType receiverType) {
     ir.Member interfaceTarget = node.interfaceTarget;
     if (interfaceTarget == null && receiverType is ir.InterfaceType) {
-      interfaceTarget = node.interfaceTarget = typeEnvironment.hierarchy
-          .getInterfaceMember(receiverType.classNode, node.name);
+      interfaceTarget = node.interfaceTarget =
+          hierarchy.getInterfaceMember(receiverType.classNode, node.name);
     }
     if (interfaceTarget != null) {
       ir.Class superclass = interfaceTarget.enclosingClass;
@@ -205,7 +207,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType receiverType = visitNode(node.receiver);
     ir.DartType valueType = super.visitPropertySet(node);
     if (node.interfaceTarget == null && receiverType is ir.InterfaceType) {
-      node.interfaceTarget = typeEnvironment.hierarchy
+      node.interfaceTarget = hierarchy
           .getInterfaceMember(receiverType.classNode, node.name, setter: true);
     }
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
@@ -388,8 +390,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       interfaceTarget = node.interfaceTarget = objectEquals;
     }
     if (interfaceTarget == null && receiverType is ir.InterfaceType) {
-      ir.Member member = typeEnvironment.hierarchy
-          .getInterfaceMember(receiverType.classNode, node.name);
+      ir.Member member =
+          hierarchy.getInterfaceMember(receiverType.classNode, node.name);
       if (_isApplicable(node.arguments, member)) {
         interfaceTarget = node.interfaceTarget = member;
       }
