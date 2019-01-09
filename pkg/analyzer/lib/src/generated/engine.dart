@@ -17,6 +17,7 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -1422,8 +1423,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool dart2jsHint = false;
 
-  @override
-  List<String> enabledExperiments = const <String>[];
+  List<String> _enabledExperiments = const <String>[];
+
+  /**
+   * Parsed [enabledExperiments].
+   */
+  ExperimentStatus _experimentStatus = ExperimentStatus();
 
   @override
   List<String> enabledPluginNames = const <String>[];
@@ -1602,6 +1607,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set enableConditionalDirectives(_) {}
 
   @override
+  List<String> get enabledExperiments => _enabledExperiments;
+
+  set enabledExperiments(List<String> enabledExperiments) {
+    _enabledExperiments = enabledExperiments;
+    _experimentStatus = ExperimentStatus.fromStrings(enabledExperiments);
+  }
+
+  @override
   @deprecated
   bool get enableGenericMethods => true;
 
@@ -1653,6 +1666,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set excludePatterns(List<String> patterns) {
     _excludePatterns = patterns;
   }
+
+  /**
+   * The set of enabled experiments.
+   */
+  ExperimentStatus get experimentStatus => _experimentStatus;
 
   /**
    * Return `true` to enable mixin declarations.

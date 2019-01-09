@@ -12,12 +12,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
@@ -70,8 +70,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _typeProvider, declaredVariables,
         forAnalysisDriver: forAnalysisDriver,
         typeSystem: _typeSystem,
-        experimentStatus: ExperimentStatus.fromStrings(
-            currentLibrary.context.analysisOptions.enabledExperiments));
+        experimentStatus:
+            (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
+                .experimentStatus);
   }
 
   @override

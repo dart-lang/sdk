@@ -12,7 +12,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -20,7 +19,7 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
+    show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -2336,13 +2335,9 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
-      computeConstants(
-          context.typeProvider,
-          context.typeSystem,
-          context.declaredVariables,
-          [this],
-          ExperimentStatus.fromStrings(
-              context.analysisOptions.enabledExperiments));
+      AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+      computeConstants(context.typeProvider, context.typeSystem,
+          context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
     return evaluationResult?.value;
   }
@@ -2556,12 +2551,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.library?.name == _META_LIB_NAME;
 
   @override
-  bool get isLiteral =>
-      element is PropertyAccessorElement &&
-      element.name == _LITERAL_VARIABLE_NAME &&
-      element.library?.name == _META_LIB_NAME;
-
-  @override
   bool get isIsTest =>
       element is PropertyAccessorElement &&
       element.name == _IS_TEST_VARIABLE_NAME &&
@@ -2578,6 +2567,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is ConstructorElement &&
       element.enclosingElement.name == _JS_CLASS_NAME &&
       element.library?.name == _JS_LIB_NAME;
+
+  @override
+  bool get isLiteral =>
+      element is PropertyAccessorElement &&
+      element.name == _LITERAL_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isMustCallSuper =>
@@ -2639,13 +2634,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
-      computeConstants(
-          context.typeProvider,
-          context.typeSystem,
-          context.declaredVariables,
-          [this],
-          ExperimentStatus.fromStrings(
-              context.analysisOptions.enabledExperiments));
+      AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+      computeConstants(context.typeProvider, context.typeSystem,
+          context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
     return constantValue;
   }

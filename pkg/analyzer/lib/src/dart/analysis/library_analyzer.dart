@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -182,13 +181,8 @@ class LibraryAnalyzer {
    * Compute [_constants] in all units.
    */
   void _computeConstants() {
-    computeConstants(
-        _typeProvider,
-        _context.typeSystem,
-        _declaredVariables,
-        _constants.toList(),
-        ExperimentStatus.fromStrings(
-            _context.analysisOptions.enabledExperiments));
+    computeConstants(_typeProvider, _context.typeSystem, _declaredVariables,
+        _constants.toList(), _analysisOptions.experimentStatus);
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {

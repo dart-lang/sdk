@@ -670,9 +670,8 @@ class FileState {
       return _createEmptyCompilationUnit();
     }
 
-    AnalysisOptions analysisOptions = _fsState._analysisOptions;
-    ExperimentStatus experimentStatus =
-        new ExperimentStatus.fromStrings(analysisOptions.enabledExperiments);
+    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
+    ExperimentStatus experimentStatus = analysisOptions.experimentStatus;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
     scanner.enableGtGtGt = experimentStatus.constant_update_2018;
