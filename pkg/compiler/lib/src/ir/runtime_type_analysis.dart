@@ -1,18 +1,42 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
 
 import '../common/names.dart';
-import '../elements/types.dart';
-import '../ir/util.dart';
-import '../universe/feature.dart';
-import 'element_map.dart';
+import 'util.dart';
+
+/// Enum for recognized use kinds of `Object.runtimeType`.
+enum RuntimeTypeUseKind {
+  /// Unknown use of `Object.runtimeType`. This is the fallback value if the
+  /// usage didn't match any of the recognized patterns.
+  unknown,
+
+  /// `Object.runtimeType` used in a pattern like
+  /// `a.runtimeType == b.runtimeType`.
+  equals,
+
+  /// `Object.runtimeType` used in a pattern like `'${e.runtimeType}'` or
+  /// `e.runtimeType.toString()`.
+  string,
+}
+
+class RuntimeTypeUseData {
+  /// The use kind of `Object.runtimeType`.
+  final RuntimeTypeUseKind kind;
+
+  /// The receiver expression.
+  final ir.Expression receiver;
+
+  /// The argument expression if [kind] is `RuntimeTypeUseKind.equals`.
+  final ir.Expression argument;
+
+  RuntimeTypeUseData(this.kind, this.receiver, this.argument);
+}
 
 /// Computes the [RuntimeTypeUse] corresponding to the `e.runtimeType` [node].
-RuntimeTypeUse computeRuntimeTypeUse(
-    KernelToElementMap elementMap, ir.PropertyGet node) {
+RuntimeTypeUseData computeRuntimeTypeUse(ir.PropertyGet node) {
   /// Returns `true` if [node] is of the form `e.runtimeType`.
   bool isGetRuntimeType(ir.TreeNode node) {
     return node is ir.PropertyGet && node.name.name == Identifiers.runtimeType_;
@@ -304,8 +328,5 @@ RuntimeTypeUse computeRuntimeTypeUse(
     receiver = node.receiver;
   }
 
-  DartType receiverType = elementMap.getStaticType(receiver);
-  DartType argumentType =
-      argument == null ? null : elementMap.getStaticType(argument);
-  return new RuntimeTypeUse(kind, receiverType, argumentType);
+  return new RuntimeTypeUseData(kind, receiver, argument);
 }

@@ -9,6 +9,7 @@
 library compiler.universe.feature;
 
 import '../elements/types.dart';
+import '../ir/runtime_type_analysis.dart';
 import '../util/util.dart';
 
 /// A language feature that may be seen in the program.
@@ -146,21 +147,6 @@ class ListLiteralUse {
   String toString() {
     return 'ListLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
   }
-}
-
-/// Enum for recognized use kinds of `Object.runtimeType`.
-enum RuntimeTypeUseKind {
-  /// Unknown use of `Object.runtimeType`. This is the fallback value if the
-  /// usage didn't match any of the recogized patterns.
-  unknown,
-
-  /// `Object.runtimeType` used in a pattern like
-  /// `a.runtimeType == b.runtimeType`.
-  equals,
-
-  /// `Object.runtimeType` used in a pattern like `'${e.runtimeType}'` or
-  /// `e.runtimeType.toString()`.
-  string,
 }
 
 /// A use of `Object.runtimeType`.

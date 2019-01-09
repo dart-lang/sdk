@@ -14,6 +14,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/runtime_type_analysis.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
@@ -27,7 +28,6 @@ import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import 'element_map.dart';
-import 'runtime_type_analysis.dart';
 
 class KernelImpactBuilder extends StaticTypeVisitor {
   final ResolutionWorldImpactBuilder impactBuilder;
@@ -604,19 +604,24 @@ class KernelImpactBuilder extends StaticTypeVisitor {
         constraint, const <DartType>[]));
 
     if (node.name.name == Identifiers.runtimeType_) {
-      RuntimeTypeUse runtimeTypeUse = computeRuntimeTypeUse(elementMap, node);
+      RuntimeTypeUseData data = computeRuntimeTypeUse(node);
+      DartType receiverType = elementMap.getStaticType(data.receiver);
+      DartType argumentType = data.argument == null
+          ? null
+          : elementMap.getStaticType(data.argument);
+
       if (_options.omitImplicitChecks) {
-        switch (runtimeTypeUse.kind) {
+        switch (data.kind) {
           case RuntimeTypeUseKind.string:
             if (!_options.laxRuntimeTypeToString) {
-              if (runtimeTypeUse.receiverType == commonElements.objectType) {
+              if (receiverType == commonElements.objectType) {
                 reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
                     MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
               } else {
                 reporter.reportHintMessage(
                     computeSourceSpanFromTreeNode(node),
                     MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
-                    {'receiverType': '${runtimeTypeUse.receiverType}.'});
+                    {'receiverType': '${receiverType}.'});
               }
             }
             break;
@@ -625,7 +630,8 @@ class KernelImpactBuilder extends StaticTypeVisitor {
             break;
         }
       }
-      impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
+      impactBuilder.registerRuntimeTypeUse(
+          new RuntimeTypeUse(data.kind, receiverType, argumentType));
     }
   }
 
@@ -696,7 +702,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
   @override
   void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
-    if (elementMap.typeEnvironment.isSubtypeOf(operandType, node.type)) {
+    if (typeEnvironment.isSubtypeOf(operandType, node.type)) {
       // Skip unneeded casts.
       return;
     }
