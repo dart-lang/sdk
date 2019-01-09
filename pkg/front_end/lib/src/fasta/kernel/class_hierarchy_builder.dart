@@ -45,6 +45,18 @@ bool isNameVisibleIn(
   return !name.isPrivate || name.library == library.target;
 }
 
+/// Returns true if [a] is a class member conflict with [b].  [a] is assumed to
+/// be declared in the class, [b] is assumed to be inherited.
+///
+/// See the section named "Class Member Conflicts" in [Dart Programming
+/// Language Specification](
+/// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
+bool isInheritanceConflict(Declaration a, Declaration b) {
+  if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
+  if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
+  return memberKind(a.target) != memberKind(b.target);
+}
+
 class ClassHierarchyBuilder {
   final Map<KernelClassBuilder, ClassHierarchyNode> nodes =
       <KernelClassBuilder, ClassHierarchyNode>{};
@@ -74,10 +86,7 @@ class ClassHierarchyBuilder {
       // Don't check overrides involving duplicated members.
       return a;
     }
-    Member aTarget = a.target;
-    Member bTarget = b.target;
-    if ((memberKind(aTarget) ?? ProcedureKind.Getter) !=
-        (memberKind(bTarget) ?? ProcedureKind.Getter)) {
+    if (isInheritanceConflict(a, b)) {
       String name = a.fullNameForErrors;
       if (mergeKind == MergeKind.interfaces) {
         cls.addProblem(messageInheritedMembersConflict, cls.charOffset,
@@ -97,6 +106,8 @@ class ClassHierarchyBuilder {
             ]);
       }
     }
+    Member aTarget = a.target;
+    Member bTarget = b.target;
     if (mergeKind == MergeKind.superclass &&
         aTarget.name == noSuchMethodName &&
         !aTarget.isAbstract) {
@@ -104,7 +115,10 @@ class ClassHierarchyBuilder {
     }
     Declaration result = a;
     if (mergeKind == MergeKind.interfaces) {
-      // TODO(ahe): Combine the signatures of a and b.
+      // TODO(ahe): Combine the signatures of a and b.  See the section named
+      // "Combined Member Signatures" in [Dart Programming Language
+      // Specification](
+      // ../../../../../../docs/language/dartLangSpec.tex#combinedMemberSignatures).
     } else if (aTarget.isAbstract) {
       if (mergeKind == MergeKind.superclass && !bTarget.isAbstract) {
         // An abstract method doesn't override an implemention inherited from a
