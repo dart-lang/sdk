@@ -120,12 +120,12 @@ class CompilerOptions {
   /// directly, while relative URIs are resolved from the [sdkRoot].
   // TODO(sigmund): provide also a flag to load this data from a file (like
   // libraries.json)
-  Map<String, List<Uri>> targetPatches = {};
+  Map<String, List<Uri>> targetPatches = <String, List<Uri>>{};
 
   /// Enable or disable experimental features. Features mapping to `true` are
   /// explicitly enabled. Features mapping to `false` are explicitly disabled.
   /// Features not mentioned in the map will have their default value.
-  Map<ExperimentalFlag, bool> experimentalFlags = {};
+  Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
   /// The target platform that will consume the compiled code.
   ///

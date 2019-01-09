@@ -3323,9 +3323,9 @@ const MessageCode messageFastaUsageLong =
     commas, for example, --fatal=errors,warnings.
 
   --enable-experiment=<flag>
-  --disable-experiment=<flag>
     Enable or disable an experimental flag, used to guard features currently
-    in development. Multiple experiments can be separated by commas.""");
+    in development. Prefix an experiment name with 'no-' to disable it.
+    Multiple experiments can be separated by commas.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFastaUsageShort = messageFastaUsageShort;
