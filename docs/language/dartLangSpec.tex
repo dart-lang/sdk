@@ -13740,16 +13740,18 @@ The built-in class \FUNCTION{} is a supertype of all function types
 It is impossible to extend, implement, or mix in the class \FUNCTION{}.
 
 \LMHash{}%
-If a class declaration or mixin application has \FUNCTION{} as super-class,
-it instead uses \OBJECT{} as super-class.
+If a class declaration or mixin application has \FUNCTION{} as superclass,
+it instead uses \code{Object} as superclass.
 
 \LMHash{}%
 If a class or mixin declaration implements \FUNCTION{}, it has no effect.
-It is as if the \FUNCTION was removed from the \code{implements} clause (and if it's the only implemented interface, the entire clause is removed).
-The resulting class or mixin interface does not have \FUNCTION{} as a super-interface.
+It is as if the \FUNCTION was removed from the \code{implements} clause
+(and if it's the only implemented interface, the entire clause is removed).
+The resulting class or mixin interface
+does not have \FUNCTION{} as a superinterface.
 
 \LMHash{}%
-If a mixin application mixes \FUNCTION{} onto a super-class, it follows the
+If a mixin application mixes \FUNCTION{} onto a superclass, it follows the
 normal rules for mixin-application, but since the result of that mixin
 application is equivalent to a class with \code{implements Function}, and
 that clause has no effect, the resulting class also does not
@@ -13760,9 +13762,10 @@ of the superclass with no new members and no new interfaces.}
 \rationale{Since using \FUNCTION{} in these ways has no effect, it would be
 reasonable to disallow it completely, like we do extending, implementing or
 mixing in types like \code{int} or \code{String}.
-For backwards compatibility with Dart 1 programs, the syntax is allowed to remain,
-even if it has no effect. Tools may choose to warning users that their code
-has no effect.}
+For backwards compatibility with Dart 1 programs,
+the syntax is allowed to remain, even if it has no effect.
+Tools may choose to warn users that their code has no effect.}
+
 
 \subsection{Type \DYNAMIC{}}
 \LMLabel{typeDynamic}
