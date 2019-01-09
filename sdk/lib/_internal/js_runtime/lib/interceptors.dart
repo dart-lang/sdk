@@ -52,7 +52,7 @@ import 'dart:_foreign_helper'
         JS_EMBEDDED_GLOBAL,
         JS_INTERCEPTOR_CONSTANT,
         JS_STRING_CONCAT;
-import 'dart:math' show Random;
+import 'dart:math' show Random, ln2;
 
 part 'js_array.dart';
 part 'js_number.dart';

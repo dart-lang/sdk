@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
 import 'dart:_foreign_helper' show JS, JSExportName;
-import 'dart:math' show Random;
+import 'dart:math' show Random, ln2;
 import 'dart:_runtime' as dart;
 
 part 'js_array.dart';
