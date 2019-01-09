@@ -23,9 +23,9 @@ occasion, we believe that breaking changes are needed, or justified:
 
 ## Scope of compatibility
 
-For a program to be considered as covered under the compatibility statement made
-above -- and thus subject to a breaking change notification -- it must abide to
-the following basic conditions:
+It is not practical to offer compatability to programs that do not follow
+best practices. Thus, the breaking change process assumes that programs
+abide by the following basic conditions:
 
 * Must contain no static analysis **errors**
 
@@ -46,9 +46,9 @@ channel](https://www.dartlang.org/tools/sdk/archive#stable-channel)).
 
 ## Breaking change notification
 
-Any party intending to make a breaking change to a program that follows the
-scope of compatibility, much perform the following actions. These must be
-performed before the potential change hits a dev channel build.
+Anyone wishing to make a breaking change to Dart is expected to perform the
+following steps.  It is expected that all of these steps are followed prior
+to a change being released in a dev channel release.
 
 ### Step 1: announcement
 
