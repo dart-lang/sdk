@@ -156,6 +156,8 @@ class ClassHierarchyBuilder {
   }
 
   void add(KernelClassBuilder cls) {
+    assert(!hasNoSuchMethod);
+    assert(abstractMemberCount == 0);
     if (cls.isPatch) {
       // TODO(ahe): What about patch classes. Have we injected patched members
       // into the class-builder's scope?
@@ -390,7 +392,13 @@ class ClassHierarchyBuilder {
     if (declaration is KernelClassBuilder) {
       ClassHierarchyNode node = nodes[declaration];
       if (node == null) {
+        bool savedHasNoSuchMethod = hasNoSuchMethod;
+        hasNoSuchMethod = false;
+        int savedAbstractMemberCount = abstractMemberCount;
+        abstractMemberCount = 0;
         add(declaration);
+        hasNoSuchMethod = savedHasNoSuchMethod;
+        abstractMemberCount = savedAbstractMemberCount;
         node = nodes[declaration];
       }
       return node;
