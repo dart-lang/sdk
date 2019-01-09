@@ -293,7 +293,7 @@
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
-    "dartkp-bare-linux-release-x64": {
+    "dartkp-bare-linux-(debug|release)-(x64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions"]
     }},
@@ -520,7 +520,9 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-bare-linux-release-x64"
+        "vm-kernel-precomp-bare-linux-release-x64",
+        "vm-kernel-precomp-bare-linux-release-simarm",
+        "vm-kernel-precomp-bare-linux-release-simarm64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp builders using bare instructions."
