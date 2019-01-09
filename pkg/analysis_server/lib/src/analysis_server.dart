@@ -1042,6 +1042,9 @@ class ServerPerformance {
   /// The number of requests.
   int requestCount = 0;
 
+  /// The number of requests that recorded latency information.
+  int latencyCount = 0;
+
   /// The total latency (milliseconds) for all recorded requests.
   int requestLatency = 0;
 
@@ -1057,6 +1060,7 @@ class ServerPerformance {
     if (clientRequestTime != null) {
       int latency =
           new DateTime.now().millisecondsSinceEpoch - clientRequestTime;
+      ++latencyCount;
       requestLatency += latency;
       maxLatency = max(maxLatency, latency);
       if (latency > 150) {

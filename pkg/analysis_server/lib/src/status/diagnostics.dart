@@ -226,10 +226,6 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
 
-    // TODO(dantup): The latency stats are never populated for LSP because the
-    // client will never send timestamps (it's also misleading for non-LSP
-    // if the client does not send timestamps (VS Code doesn't) as it shows 0ms).
-
     void writeRow(List<String> data, {List<String> classes}) {
       buf.write("<tr>");
       for (int i = 0; i < data.length; i++) {
@@ -245,28 +241,11 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="columns">');
 
-    ServerPerformance perf = server.performanceAfterStartup;
-    if (perf != null) {
+    if (server.performanceAfterStartup != null) {
       buf.writeln('<div class="column one-half">');
+
       h3('Current');
-
-      int requestCount = perf.requestCount;
-      int averageLatency =
-          requestCount > 0 ? (perf.requestLatency ~/ requestCount) : 0;
-      int maximumLatency = perf.maxLatency;
-      double slowRequestPercent =
-          requestCount > 0 ? (perf.slowRequestCount / requestCount) : 0.0;
-
-      buf.write('<table>');
-      writeRow([printInteger(requestCount), 'requests'],
-          classes: ["right", null]);
-      writeRow([printMilliseconds(averageLatency), 'average latency'],
-          classes: ["right", null]);
-      writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
-          classes: ["right", null]);
-      writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
-          classes: ["right", null]);
-      buf.write('</table>');
+      _writePerformanceTable(server.performanceAfterStartup, writeRow);
 
       String time = server.uptime.toString();
       if (time.contains('.')) {
@@ -278,36 +257,46 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     }
 
     buf.writeln('<div class="column one-half">');
-    h3('Startup');
-    perf = server.performanceDuringStartup;
 
+    h3('Startup');
+    _writePerformanceTable(server.performanceDuringStartup, writeRow);
+
+    if (server.performanceAfterStartup != null) {
+      int startupTime = server.performanceAfterStartup.startTime -
+          server.performanceDuringStartup.startTime;
+      buf.writeln(
+          writeOption('Initial analysis time', printMilliseconds(startupTime)));
+    }
+
+    buf.write('</div>');
+
+    buf.write('</div>');
+  }
+
+  void _writePerformanceTable(ServerPerformance perf,
+      void writeRow(List<String> data, {List<String> classes})) {
     int requestCount = perf.requestCount;
+    int latencyCount = perf.latencyCount;
     int averageLatency =
-        requestCount > 0 ? (perf.requestLatency ~/ requestCount) : 0;
+        latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : 0;
     int maximumLatency = perf.maxLatency;
     double slowRequestPercent =
-        requestCount > 0 ? (perf.slowRequestCount / requestCount) : 0.0;
+        latencyCount > 0 ? (perf.slowRequestCount / latencyCount) : 0.0;
 
     buf.write('<table>');
     writeRow([printInteger(requestCount), 'requests'],
         classes: ["right", null]);
-    writeRow([printMilliseconds(averageLatency), 'average latency'],
+    writeRow([printInteger(latencyCount), 'requests with latency information'],
         classes: ["right", null]);
-    writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
-        classes: ["right", null]);
-    writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
-        classes: ["right", null]);
-    buf.write('</table>');
-
-    if (server.performanceAfterStartup != null) {
-      int startupTime =
-          server.performanceAfterStartup.startTime - perf.startTime;
-      buf.writeln(
-          writeOption('Initial analysis time', printMilliseconds(startupTime)));
+    if (latencyCount > 0) {
+      writeRow([printMilliseconds(averageLatency), 'average latency'],
+          classes: ["right", null]);
+      writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
+          classes: ["right", null]);
+      writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
+          classes: ["right", null]);
     }
-    buf.write('</div>');
-
-    buf.write('</div>');
+    buf.write('</table>');
   }
 }
 
