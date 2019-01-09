@@ -4,7 +4,7 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart' show Class, DartType, Member;
+import 'package:kernel/ast.dart' show Class, DartType, Member, Supertype;
 
 import '../problems.dart' show unimplemented;
 
@@ -18,9 +18,11 @@ import '../kernel/kernel_builder.dart'
 
 import '../modifier.dart' show abstractMask;
 
-import 'dill_member_builder.dart' show DillMemberBuilder;
-
 import 'dill_library_builder.dart' show DillLibraryBuilder;
+
+import 'dill_loader.dart' show DillLoader;
+
+import 'dill_member_builder.dart' show DillMemberBuilder;
 
 class DillClassBuilder extends KernelClassBuilder {
   final Class cls;
@@ -40,6 +42,18 @@ class DillClassBuilder extends KernelClassBuilder {
                 isModifiable: false),
             parent,
             cls.fileOffset);
+
+  KernelTypeBuilder get supertype {
+    KernelTypeBuilder supertype = super.supertype;
+    if (supertype == null) {
+      Supertype targetSupertype = cls.supertype;
+      if (targetSupertype == null) return null;
+      DillLoader loader = library.loader;
+      super.supertype = supertype =
+          loader.computeTypeBuilder(targetSupertype.asInterfaceType);
+    }
+    return supertype;
+  }
 
   @override
   Class get actualCls => cls;

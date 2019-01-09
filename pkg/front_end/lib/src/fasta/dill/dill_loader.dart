@@ -6,20 +6,38 @@ library fasta.dill_loader;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show Library, Component, Source;
+import 'package:kernel/ast.dart'
+    show
+        BottomType,
+        Class,
+        Component,
+        DartType,
+        DartTypeVisitor,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        InvalidType,
+        Library,
+        Source,
+        TypeParameterType,
+        TypedefType,
+        VoidType;
 
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../kernel/kernel_builder.dart' show LibraryBuilder;
+import '../kernel/kernel_builder.dart'
+    show KernelNamedTypeBuilder, KernelTypeBuilder, LibraryBuilder;
 
 import '../loader.dart' show Loader;
 
 import '../problems.dart' show unhandled;
 
 import '../target_implementation.dart' show TargetImplementation;
+
+import 'dill_class_builder.dart' show DillClassBuilder;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -74,5 +92,57 @@ class DillLoader extends Loader<Library> {
       DillLibraryBuilder library = builder;
       library.finalizeExports();
     });
+  }
+
+  KernelTypeBuilder computeTypeBuilder(DartType type) {
+    return type.accept(new TypeBuilderComputer(this));
+  }
+}
+
+class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
+  final DillLoader loader;
+
+  const TypeBuilderComputer(this.loader);
+
+  KernelTypeBuilder defaultDartType(DartType node) {
+    throw "Unsupported";
+  }
+
+  KernelTypeBuilder visitInvalidType(InvalidType node) {
+    throw "Not implemented";
+  }
+
+  KernelTypeBuilder visitDynamicType(DynamicType node) {
+    throw "Not implemented";
+  }
+
+  KernelTypeBuilder visitVoidType(VoidType node) {
+    throw "Not implemented";
+  }
+
+  KernelTypeBuilder visitBottomType(BottomType node) {
+    throw "Not implemented";
+  }
+
+  KernelTypeBuilder visitInterfaceType(InterfaceType node) {
+    Class kernelClass = node.classNode;
+    Library kernelLibrary = kernelClass.enclosingLibrary;
+    DillLibraryBuilder library = loader.builders[kernelLibrary.importUri];
+    String name = kernelClass.name;
+    DillClassBuilder cls = library[name];
+    // TODO(ahe): Also compute type arguments.
+    return new KernelNamedTypeBuilder(name, null)..bind(cls);
+  }
+
+  KernelTypeBuilder visitFunctionType(FunctionType node) {
+    throw "Not implemented";
+  }
+
+  KernelTypeBuilder visitTypeParameterType(TypeParameterType node) {
+    throw "Not implemented";
+  }
+
+  KernelTypeBuilder visitTypedefType(TypedefType node) {
+    throw "Not implemented";
   }
 }
