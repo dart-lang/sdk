@@ -387,12 +387,13 @@ class JavaScriptBackend {
 
   JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
-      bool useStartupEmitter: false,
+      bool useStartupEmitter: true,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler) {
+    useStartupEmitter = true;
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);

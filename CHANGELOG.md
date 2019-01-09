@@ -32,6 +32,13 @@
 
 #### dart2js
 
+* `--fast-startup` is forced on.  The flag is silently ignored and will be
+  deprecated and then removed at a later date.
+
+  The alternative 'full emitter' is no longer available. The generated code for
+  `--fast-startup` is optimized to load faster, even though it can be slightly
+  larger.
+
 * We fixed a bug in how deferred constructor calls were incorrectly not
   marked as deferred. The old behavior didn't cause breakages, but was imprecise
   and pushed more code to the main output unit.

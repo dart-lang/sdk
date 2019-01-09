@@ -20,9 +20,8 @@ main() {
 main() {
   runTest() async {
     String generated = await compileAll(TEST);
-
-    Expect.isTrue(generated
-        .contains(new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));
+    // No methods (including no constructor body method.
+    Expect.isTrue(generated.contains('.A.prototype = {}'));
   }
 
   asyncTest(() async {
