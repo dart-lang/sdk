@@ -72,4 +72,21 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
       unorderedEquals([workspaceFolder1Path]),
     );
   }
+
+  test_changeWorkspaceFolders_removeFlushesDiagnostics() async {
+    // Add our standard test project as well as a dummy project.
+    await initialize(workspaceFolders: [projectFolderUri, workspaceFolder1Uri]);
+
+    // Generate an error in the test project.
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await openFile(mainFileUri, 'String a = 1;');
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+
+    // Ensure the error is removed if we removed the workspace folder.
+    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await changeWorkspaceFolders(remove: [projectFolderUri]);
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    expect(updatedDiagnostics, hasLength(0));
+  }
 }

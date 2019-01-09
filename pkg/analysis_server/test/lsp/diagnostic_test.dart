@@ -32,6 +32,21 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     expect(updatedDiagnostics, hasLength(1));
   }
 
+  test_deletedFile() async {
+    newFile(mainFilePath, content: 'String a = 1;');
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final originalDiagnostics = await firstDiagnosticsUpdate;
+    expect(originalDiagnostics, hasLength(1));
+
+    // Deleting the file should result in an update to remove the diagnostics.
+    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await deleteFile(mainFilePath);
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    expect(updatedDiagnostics, hasLength(0));
+  }
+
   test_initialAnalysis() async {
     newFile(mainFilePath, content: 'String a = 1;');
 

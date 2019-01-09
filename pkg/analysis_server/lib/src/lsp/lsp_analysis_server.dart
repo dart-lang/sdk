@@ -404,6 +404,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
+  void publishDiagnostics(String path, List<Diagnostic> errors) {
+    final params =
+        new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final message = new NotificationMessage(
+      Method.textDocument_publishDiagnostics,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   void showError(String message) {
     channel.sendNotification(new NotificationMessage(
       Method.window_showMessage,
@@ -479,14 +490,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             result.errors,
             toDiagnostic);
 
-        final params = new PublishDiagnosticsParams(
-            Uri.file(result.path).toString(), serverErrors);
-        final message = new NotificationMessage(
-          Method.textDocument_publishDiagnostics,
-          params,
-          jsonRpcVersion,
-        );
-        analysisServer.sendNotification(message);
+        analysisServer.publishDiagnostics(result.path, serverErrors);
       }
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
@@ -524,7 +528,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void applyFileRemoved(nd.AnalysisDriver driver, String file) {
     driver.removeFile(file);
-    // sendAnalysisNotificationFlushResults(analysisServer, [file]);
+    analysisServer.publishDiagnostics(file, []);
   }
 
   @override
@@ -567,8 +571,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    // sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+    // Flush any errors for these files that the client may be displaying.
+    flushedFiles
+        ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
 }
