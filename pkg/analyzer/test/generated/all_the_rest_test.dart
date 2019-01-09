@@ -31,13 +31,13 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/test_utilities/element_type_matchers.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/element_type_matchers.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';

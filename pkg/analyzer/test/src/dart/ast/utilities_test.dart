@@ -14,12 +14,12 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/parser_test.dart' show ParserTestCase;
 import '../../../generated/test_support.dart';
+import '../../../util/ast_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {

@@ -26,7 +26,6 @@ import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/src/test_utilities/element_type_matchers.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
@@ -34,6 +33,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
+import '../../util/element_type_matchers.dart';
 import 'abstract_context.dart';
 
 main() {

@@ -15,7 +15,6 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
@@ -26,6 +25,7 @@ import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/ast_type_matchers.dart';
 import 'parser_fasta_listener.dart';
 import 'parser_test.dart';
 import 'test_support.dart';
