@@ -97,14 +97,16 @@ class ClassHierarchyBuilder {
             ]);
       }
     }
-    if (aTarget.name == noSuchMethodName && !aTarget.isAbstract) {
+    if (mergeKind == MergeKind.superclass &&
+        aTarget.name == noSuchMethodName &&
+        !aTarget.isAbstract) {
       hasNoSuchMethod = true;
     }
     Declaration result = a;
     if (mergeKind == MergeKind.interfaces) {
       // TODO(ahe): Combine the signatures of a and b.
     } else if (aTarget.isAbstract) {
-      if (!bTarget.isAbstract) {
+      if (mergeKind == MergeKind.superclass && !bTarget.isAbstract) {
         // An abstract method doesn't override an implemention inherited from a
         // superclass.
         result = b;
@@ -124,7 +126,8 @@ class ClassHierarchyBuilder {
   /// implementing/overriding anything.
   void handleOnlyA(Declaration member, MergeKind mergeKind) {
     Member target = member.target;
-    if (mergeKind == MergeKind.superclass && target.isAbstract) {
+    if (mergeKind == MergeKind.supertypes ||
+        (mergeKind == MergeKind.superclass && target.isAbstract)) {
       abstractMemberCount++;
     }
   }
@@ -139,7 +142,8 @@ class ClassHierarchyBuilder {
   void handleOnlyB(
       KernelClassBuilder cls, Declaration member, MergeKind mergeKind) {
     Member target = member.target;
-    if (mergeKind == MergeKind.superclass && target.isAbstract) {
+    if (mergeKind == MergeKind.supertypes ||
+        (mergeKind == MergeKind.superclass && target.isAbstract)) {
       if (isNameVisibleIn(target.name, cls.library)) {
         abstractMemberCount++;
       }
@@ -189,8 +193,8 @@ class ClassHierarchyBuilder {
     List<Declaration> interfaceSetters;
     if (supernode == null) {
       // This should be Object.
-      interfaceMembers = classMembers = localMembers;
-      interfaceSetters = classSetters = localSetters;
+      classMembers = localMembers;
+      classSetters = localSetters;
     } else {
       classMembers = merge(
           cls, localMembers, supernode.classMembers, MergeKind.superclass);
@@ -202,8 +206,16 @@ class ClassHierarchyBuilder {
         interfaceMembers = result.mergedMembers;
         interfaceSetters = result.mergedSetters;
       } else {
-        interfaceMembers = classMembers;
-        interfaceSetters = classSetters;
+        interfaceMembers = supernode.interfaceMembers;
+        interfaceSetters = supernode.interfaceSetters;
+      }
+      if (interfaceMembers != null) {
+        interfaceMembers =
+            merge(cls, classMembers, interfaceMembers, MergeKind.supertypes);
+      }
+      if (interfaceMembers != null) {
+        interfaceSetters =
+            merge(cls, classSetters, interfaceSetters, MergeKind.supertypes);
       }
     }
     nodes[cls] = new ClassHierarchyNode(cls, scope, classMembers, classSetters,
@@ -223,19 +235,21 @@ class ClassHierarchyBuilder {
   MergeResult mergeInterfaces(KernelClassBuilder cls,
       ClassHierarchyNode supernode, List<KernelTypeBuilder> interfaces) {
     List<List<Declaration>> memberLists =
-        List<List<Declaration>>(interfaces.length + 1);
+        new List<List<Declaration>>(interfaces.length + 1);
     List<List<Declaration>> setterLists =
-        List<List<Declaration>>(interfaces.length + 1);
+        new List<List<Declaration>>(interfaces.length + 1);
     memberLists[0] = supernode.interfaceMembers;
     setterLists[0] = supernode.interfaceSetters;
     for (int i = 0; i < interfaces.length; i++) {
       ClassHierarchyNode interfaceNode = getNode(interfaces[i]);
       if (interfaceNode == null) {
-        memberLists[i + 1] = <Declaration>[];
-        setterLists[i + 1] = <Declaration>[];
+        memberLists[i + 1] = null;
+        setterLists[i + 1] = null;
       } else {
-        memberLists[i + 1] = interfaceNode.interfaceMembers;
-        setterLists[i + 1] = interfaceNode.interfaceSetters;
+        memberLists[i + 1] =
+            interfaceNode.interfaceMembers ?? interfaceNode.classMembers;
+        setterLists[i + 1] =
+            interfaceNode.interfaceSetters ?? interfaceNode.classSetters;
       }
     }
     return new MergeResult(
@@ -250,7 +264,15 @@ class ClassHierarchyBuilder {
     while (input.length > 1) {
       List<List<Declaration>> output = <List<Declaration>>[];
       for (int i = 0; i < input.length - 1; i += 2) {
-        output.add(merge(cls, input[i], input[i + 1], MergeKind.interfaces));
+        List<Declaration> first = input[i];
+        List<Declaration> second = input[i + 1];
+        if (first == null) {
+          output.add(second);
+        } else if (second == null) {
+          output.add(first);
+        } else {
+          output.add(merge(cls, first, second, MergeKind.interfaces));
+        }
       }
       if (input.length.isOdd) {
         output.add(input.last);
@@ -350,6 +372,7 @@ class ClassHierarchyBuilder {
         }
       }
     }
+    if (missingNames.isEmpty) return;
     cls.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
             cls.fullNameForErrors, missingNames),
