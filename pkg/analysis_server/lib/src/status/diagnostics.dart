@@ -13,6 +13,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
+    show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -310,23 +312,17 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 }
 
 class CompletionPage extends DiagnosticPageWithNav {
-  CompletionPage(DiagnosticsSite site)
+  CompletionPage(DiagnosticsSite site, this.server)
       : super(site, 'completion', 'Code Completion',
             description: 'Latency statistics for code completion.');
+
+  @override
+  AnalysisServer server;
 
   @override
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-
-    // TODO(dantup): This one should be supported, just isn't yet.
-    if (this.server is! AnalysisServer) {
-      generateNotApplicablePage();
-      return;
-    }
-
-    // TODO(dantup): ...
-    final server = this.server as AnalysisServer;
 
     CompletionDomainHandler completionDomain = server.handlers
         .firstWhere((handler) => handler is CompletionDomainHandler);
@@ -591,15 +587,14 @@ class ContextsPage extends DiagnosticPageWithNav {
 
 /// A page with a proscriptive notion of layout.
 abstract class DiagnosticPage extends Page {
-  final Site site;
+  final DiagnosticsSite site;
 
   DiagnosticPage(this.site, String id, String title, {String description})
       : super(id, title, description: description);
 
   bool get isNavPage => false;
 
-  AbstractAnalysisServer get server =>
-      (site as DiagnosticsSite).socketServer.analysisServer;
+  AbstractAnalysisServer get server => site.socketServer.analysisServer;
 
   Future<void> generateContainer(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -677,7 +672,7 @@ abstract class DiagnosticPage extends Page {
 }
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
-  DiagnosticPageWithNav(Site site, String id, String title,
+  DiagnosticPageWithNav(DiagnosticsSite site, String id, String title,
       {String description})
       : super(site, id, title, description: description);
 
@@ -722,10 +717,6 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
     buf.writeln('</div>');
   }
-
-  void generateNotApplicablePage() {
-    buf.write('This page is not applicable for this server.');
-  }
 }
 
 class DiagnosticsSite extends Site implements AbstractGetHandler {
@@ -738,15 +729,24 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
-    pages.add(new CompletionPage(this));
     pages.add(new CommunicationsPage(this));
     pages.add(new ContextsPage(this));
     pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
-    pages.add(new PluginsPage(this));
     pages.add(new ProfilePage(this));
-    pages.add(new SubscriptionsPage(this));
+
+    // Add server-specific pages. Ordering doesn't matter as the items are
+    // sorted later.
+    final server = this.socketServer.analysisServer;
+    if (server is AnalysisServer) {
+      pages.add(new CompletionPage(this, server));
+      pages.add(new PluginsPage(this, server));
+      pages.add(new SubscriptionsPage(this, this.socketServer.analysisServer));
+    } else if (server is LspAnalysisServer) {
+      // TODO(dantup): Implement an LSP version of the completion page
+      // pages.add(new LspCompletionPage(this, server));
+    }
 
     ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -851,7 +851,7 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
 class ExceptionPage extends DiagnosticPage {
   final StackTrace trace;
 
-  ExceptionPage(Site site, String message, this.trace)
+  ExceptionPage(DiagnosticsSite site, String message, this.trace)
       : super(site, '', '500 Oops', description: message);
 
   Future generateContent(Map<String, String> params) async {
@@ -1038,7 +1038,7 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
 class NotFoundPage extends DiagnosticPage {
   final String path;
 
-  NotFoundPage(Site site, this.path)
+  NotFoundPage(DiagnosticsSite site, this.path)
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
   Future generateContent(Map<String, String> params) async {
@@ -1050,24 +1050,16 @@ class NotFoundPage extends DiagnosticPage {
 // TODO(devoncarew): We're not currently tracking the time spent in specific
 // lints by default (analysisOptions / driverOptions enableTiming)
 class PluginsPage extends DiagnosticPageWithNav {
-  PluginsPage(DiagnosticsSite site)
+  PluginsPage(DiagnosticsSite site, this.server)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
+
+  @override
+  AnalysisServer server;
 
   @override
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-
-    // TODO(dantup): Maybe we shouldn't show this in the nav at all?
-    if (this.server is! AnalysisServer) {
-      generateNotApplicablePage();
-      return;
-    }
-
-    // TODO(dantup): Is there a better way? The is! above doesn't seem to
-    // work, possible because 'server' is not immutable (it's a better) and maybe
-    // because the code below is in a callback?
-    final server = this.server as AnalysisServer;
 
     h3('Analysis plugins');
     List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
@@ -1287,6 +1279,7 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
+    buf.writeln(writeOption('Server type', server.runtimeType));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
     bool uxExp1 =
@@ -1308,7 +1301,7 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('</div>');
 
-    List<String> lines = (site as DiagnosticsSite).lastPrintedLines;
+    List<String> lines = site.lastPrintedLines;
     if (lines.isNotEmpty) {
       h3('Debug output');
       p(lines.join('\n'), style: 'white-space: pre');
@@ -1317,25 +1310,17 @@ class StatusPage extends DiagnosticPageWithNav {
 }
 
 class SubscriptionsPage extends DiagnosticPageWithNav {
-  SubscriptionsPage(DiagnosticsSite site)
+  SubscriptionsPage(DiagnosticsSite site, this.server)
       : super(site, 'subscriptions', 'Subscriptions',
             description: 'Registered subscriptions to analysis server events.');
+
+  @override
+  AnalysisServer server;
 
   @override
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-
-    // TODO(dantup): Maybe we shouldn't show this in the nav at all?
-    if (this.server is! AnalysisServer) {
-      generateNotApplicablePage();
-      return;
-    }
-
-    // TODO(dantup): Is there a better way? The is! above doesn't seem to
-    // work, possible because 'server' is not immutable (it's a better) and maybe
-    // because the code below is in a callback?
-    final server = this.server as AnalysisServer;
 
     // server domain
     h3('Server domain subscriptions');
