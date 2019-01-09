@@ -138,6 +138,20 @@ abstract class AbstractLspAnalysisServerTest
     await pumpEventQueue();
   }
 
+  Future changeWorkspaceFolders({List<Uri> add, List<Uri> remove}) async {
+    var notification = makeNotification(
+      Method.workspace_didChangeWorkspaceFolders,
+      new DidChangeWorkspaceFoldersParams(
+        new WorkspaceFoldersChangeEvent(
+          add?.map(toWorkspaceFolder)?.toList() ?? const [],
+          remove?.map(toWorkspaceFolder)?.toList() ?? const [],
+        ),
+      ),
+    );
+    channel.sendNotificationToServer(notification);
+    await pumpEventQueue();
+  }
+
   Future closeFile(Uri uri) async {
     var notification = makeNotification(
       Method.textDocument_didClose,

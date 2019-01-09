@@ -7202,13 +7202,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   static ServerCapabilitiesWorkspaceFolders fromJson(
       Map<String, dynamic> json) {
     final supported = json['supported'];
-    final changeNotifications = json['changeNotifications'] is String
-        ? new Either2<String, bool>.t1(json['changeNotifications'])
-        : (json['changeNotifications'] is bool
-            ? new Either2<String, bool>.t2(json['changeNotifications'])
-            : (json['changeNotifications'] == null
-                ? null
-                : (throw '''${json['changeNotifications']} was not one of (String, bool)''')));
+    final changeNotifications = json['changeNotifications'];
     return new ServerCapabilitiesWorkspaceFolders(
         supported, changeNotifications);
   }
@@ -7219,7 +7213,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   /// notification is registered on the client side. The ID can be used to
   /// unregister for these events using the `client/unregisterCapability`
   /// request.
-  final Either2<String, bool> changeNotifications;
+  final bool changeNotifications;
 
   /// The server has support for workspace folders
   final bool supported;

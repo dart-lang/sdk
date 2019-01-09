@@ -1,0 +1,75 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'server_abstract.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ChangeWorkspaceFoldersTest);
+  });
+}
+
+@reflectiveTest
+class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
+  String workspaceFolder1Path, workspaceFolder2Path, workspaceFolder3Path;
+  Uri workspaceFolder1Uri, workspaceFolder2Uri, workspaceFolder3Uri;
+
+  @override
+  void setUp() {
+    super.setUp();
+    workspaceFolder1Path = convertPath('/workspace1');
+    workspaceFolder2Path = convertPath('/workspace2');
+    workspaceFolder3Path = convertPath('/workspace3');
+    workspaceFolder1Uri = Uri.file(workspaceFolder1Path);
+    workspaceFolder2Uri = Uri.file(workspaceFolder2Path);
+    workspaceFolder3Uri = Uri.file(workspaceFolder3Path);
+  }
+
+  test_changeWorkspaceFolders_add() async {
+    await initialize(rootUri: workspaceFolder1Uri);
+    await changeWorkspaceFolders(
+        add: [workspaceFolder2Uri, workspaceFolder3Uri]);
+
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([
+        workspaceFolder1Path,
+        workspaceFolder2Path,
+        workspaceFolder3Path,
+      ]),
+    );
+  }
+
+  test_changeWorkspaceFolders_addAndRemove() async {
+    await initialize(
+      workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],
+    );
+
+    await changeWorkspaceFolders(
+      add: [workspaceFolder3Uri],
+      remove: [workspaceFolder2Uri],
+    );
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path, workspaceFolder3Path]),
+    );
+  }
+
+  test_changeWorkspaceFolders_remove() async {
+    await initialize(
+      workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],
+    );
+
+    await changeWorkspaceFolders(
+      remove: [workspaceFolder2Uri],
+    );
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+  }
+}

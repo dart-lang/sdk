@@ -91,7 +91,8 @@ class InitializeMessageHandler
         null,
         null,
         new ExecuteCommandOptions(Commands.serverSupportedCommands),
-        null,
+        new ServerCapabilitiesWorkspace(
+            new ServerCapabilitiesWorkspaceFolders(true, true)),
         null)));
   }
 }

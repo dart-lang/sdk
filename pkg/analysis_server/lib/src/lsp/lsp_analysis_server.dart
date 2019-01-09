@@ -203,6 +203,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             null, new Uri.file(path).toString());
   }
 
+  void handleClientConnection(ClientCapabilities capabilities) {
+    _clientCapabilities = capabilities;
+
+    performanceAfterStartup = new ServerPerformance();
+    performance = performanceAfterStartup;
+  }
+
   /// Handles a response from the client by invoking the completer that the
   /// outbound request created.
   void handleClientResponse(ResponseMessage message) {
@@ -384,13 +391,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
-  void handleClientConnection(ClientCapabilities capabilities) {
-    _clientCapabilities = capabilities;
-
-    performanceAfterStartup = new ServerPerformance();
-    performance = performanceAfterStartup;
-  }
-
   void setAnalysisRoots(List<String> includedPaths) {
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
     contextManager.setRoots(uniquePaths.toList(), [], {});
@@ -420,6 +420,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     });
 
     return new Future.value();
+  }
+
+  void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
+    // TODO(dantup): This is currently case-sensitive!
+    final newPaths =
+        HashSet<String>.of(contextManager.includedPaths ?? const [])
+          ..addAll(addedPaths ?? const [])
+          ..removeAll(removedPaths ?? const []);
+
+    contextManager.setRoots(newPaths.toList(), [], {});
   }
 
   void updateOverlay(String path, String contents) {
