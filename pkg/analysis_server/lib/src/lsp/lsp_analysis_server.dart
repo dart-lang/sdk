@@ -21,6 +21,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -43,11 +44,6 @@ import 'package:watcher/watcher.dart';
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
-
-  /**
-   * The options of this server instance.
-   */
-  AnalysisServerOptions options;
 
   /**
    * The channel from which messages are received and to which responses should
@@ -118,11 +114,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   LspAnalysisServer(
     this.channel,
     ResourceProvider baseResourceProvider,
-    this.options,
+    AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
     ResolverProvider packageResolverProvider: null,
-  }) : super(baseResourceProvider) {
+  }) : super(options, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
@@ -235,8 +231,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * Handle a [message] that was read from the communication channel.
    */
   void handleMessage(Message message) {
-    // TODO(dantup): Put in all the things this server is missing, like:
-    //     _performance.logRequest(message);
+    performance.logRequestTiming(null);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         try {
@@ -375,6 +370,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // Log the full message since showMessage above may be truncated or formatted
     // badly (eg. VS Code takes the newlines out).
     logError(fullError.toString());
+
+    // remember the last few exceptions
+    if (exception is CaughtException) {
+      stackTrace ??= exception.stackTrace;
+    }
+    exceptions.add(new ServerException(
+      message,
+      exception,
+      stackTrace is StackTrace ? stackTrace : null,
+      false,
+    ));
   }
 
   void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,
@@ -382,8 +388,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
   }
 
-  void setClientCapabilities(ClientCapabilities capabilities) {
+  void handleClientConnection(ClientCapabilities capabilities) {
     _clientCapabilities = capabilities;
+
+    performanceAfterStartup = new ServerPerformance();
+    performance = performanceAfterStartup;
   }
 
   /**

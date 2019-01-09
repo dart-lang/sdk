@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
@@ -222,6 +223,11 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
+    // TODO(dantup): The latency stats are never populated for LSP because the
+    // client will never send timestamps (it's also misleading for non-LSP
+    // if the client does not send timestamps (VS Code doesn't) as it shows 0ms).
+
     void writeRow(List<String> data, {List<String> classes}) {
       buf.write("<tr>");
       for (int i = 0; i < data.length; i++) {
@@ -312,6 +318,16 @@ class CompletionPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
+    // TODO(dantup): This one should be supported, just isn't yet.
+    if (this.server is! AnalysisServer) {
+      generateNotApplicablePage();
+      return;
+    }
+
+    // TODO(dantup): ...
+    final server = this.server as AnalysisServer;
+
     CompletionDomainHandler completionDomain = server.handlers
         .firstWhere((handler) => handler is CompletionDomainHandler);
 
@@ -582,7 +598,7 @@ abstract class DiagnosticPage extends Page {
 
   bool get isNavPage => false;
 
-  AnalysisServer get server =>
+  AbstractAnalysisServer get server =>
       (site as DiagnosticsSite).socketServer.analysisServer;
 
   Future<void> generateContainer(Map<String, String> params) async {
@@ -706,12 +722,16 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
     buf.writeln('</div>');
   }
+
+  void generateNotApplicablePage() {
+    buf.write('This page is not applicable for this server.');
+  }
 }
 
 class DiagnosticsSite extends Site implements AbstractGetHandler {
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
-  SocketServer socketServer;
+  AbstractSocketServer socketServer;
 
   /// The last few lines printed.
   final List<String> lastPrintedLines;
@@ -1037,6 +1057,18 @@ class PluginsPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
+    // TODO(dantup): Maybe we shouldn't show this in the nav at all?
+    if (this.server is! AnalysisServer) {
+      generateNotApplicablePage();
+      return;
+    }
+
+    // TODO(dantup): Is there a better way? The is! above doesn't seem to
+    // work, possible because 'server' is not immutable (it's a better) and maybe
+    // because the code below is in a callback?
+    final server = this.server as AnalysisServer;
+
     h3('Analysis plugins');
     List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
 
@@ -1293,6 +1325,18 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
+
+    // TODO(dantup): Maybe we shouldn't show this in the nav at all?
+    if (this.server is! AnalysisServer) {
+      generateNotApplicablePage();
+      return;
+    }
+
+    // TODO(dantup): Is there a better way? The is! above doesn't seem to
+    // work, possible because 'server' is not immutable (it's a better) and maybe
+    // because the code below is in a callback?
+    final server = this.server as AnalysisServer;
+
     // server domain
     h3('Server domain subscriptions');
     ul(ServerService.VALUES, (item) {

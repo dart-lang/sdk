@@ -34,7 +34,7 @@ class InitializeMessageHandler
       openWorkspacePaths.add(params.rootUri);
     }
 
-    server.setClientCapabilities(params.capabilities);
+    server.handleClientConnection(params.capabilities);
     server.messageHandler =
         new InitializingStateMessageHandler(server, openWorkspacePaths);
 

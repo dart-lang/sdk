@@ -407,37 +407,10 @@ class Driver implements ServerStarter {
         defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
-    if (analysisServerOptions.useLanguageServerProtocol) {
-      startLspServer(results, analysisServerOptions, dartSdkManager,
-          instrumentationService);
-    } else {
-      startAnalysisServer(results, analysisServerOptions, parser,
-          dartSdkManager, instrumentationService, analytics);
-    }
-  }
-
-  void startAnalysisServer(
-      ArgResults results,
-      AnalysisServerOptions analysisServerOptions,
-      CommandLineParser parser,
-      DartSdkManager dartSdkManager,
-      InstrumentationService instrumentationService,
-      telemetry.Analytics analytics) {
-    String trainDirectory = results[TRAIN_USING];
-    if (trainDirectory != null) {
-      if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
-        print("Training directory '$trainDirectory' not found.\n");
-        exitCode = 1;
-        return null;
-      }
-    }
-
-    int port;
-    bool serve_http = false;
+    int diagnosticServerPort;
     if (results[PORT_OPTION] != null) {
       try {
-        port = int.parse(results[PORT_OPTION]);
-        serve_http = true;
+        diagnosticServerPort = int.parse(results[PORT_OPTION]);
       } on FormatException {
         print('Invalid port number: ${results[PORT_OPTION]}');
         print('');
@@ -446,6 +419,40 @@ class Driver implements ServerStarter {
         return null;
       }
     }
+
+    if (analysisServerOptions.useLanguageServerProtocol) {
+      startLspServer(results, analysisServerOptions, dartSdkManager,
+          instrumentationService, diagnosticServerPort);
+    } else {
+      startAnalysisServer(
+          results,
+          analysisServerOptions,
+          parser,
+          dartSdkManager,
+          instrumentationService,
+          analytics,
+          diagnosticServerPort);
+    }
+  }
+
+  void startAnalysisServer(
+    ArgResults results,
+    AnalysisServerOptions analysisServerOptions,
+    CommandLineParser parser,
+    DartSdkManager dartSdkManager,
+    InstrumentationService instrumentationService,
+    telemetry.Analytics analytics,
+    int diagnosticServerPort,
+  ) {
+    String trainDirectory = results[TRAIN_USING];
+    if (trainDirectory != null) {
+      if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
+        print("Training directory '$trainDirectory' not found.\n");
+        exitCode = 1;
+        return null;
+      }
+    }
+    final serve_http = diagnosticServerPort != null;
 
     //
     // Process all of the plugins so that extensions are registered.
@@ -474,7 +481,7 @@ class Driver implements ServerStarter {
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
-      diagnosticServer.startOnPort(port);
+      diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
     if (trainDirectory != null) {
@@ -539,12 +546,24 @@ class Driver implements ServerStarter {
     AnalysisServerOptions analysisServerOptions,
     DartSdkManager dartSdkManager,
     InstrumentationService instrumentationService,
+    int diagnosticServerPort,
   ) {
+    final serve_http = diagnosticServerPort != null;
+
+    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+
     final socketServer = new LspSocketServer(
       analysisServerOptions,
       dartSdkManager,
       instrumentationService,
     );
+
+    httpServer = new HttpAnalysisServer(socketServer);
+
+    diagnosticServer.httpServer = httpServer;
+    if (serve_http) {
+      diagnosticServer.startOnPort(diagnosticServerPort);
+    }
 
     _captureLspExceptions(socketServer, instrumentationService, () {
       LspStdioAnalysisServer stdioServer =
