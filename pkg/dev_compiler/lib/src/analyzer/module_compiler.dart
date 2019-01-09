@@ -5,11 +5,12 @@
 import 'dart:convert' show json;
 import 'dart:io' show File;
 
-import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, StaticWarningCode;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show LibraryElement, UriReferencedElement;
+import 'package:analyzer/error/error.dart';
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as path;
@@ -67,7 +68,6 @@ JSModuleFile compileWithAnalyzer(
     }
     explicitSources.add(sourceUri);
   }
-
   var driver = compilerDriver.linkLibraries(explicitSources, analyzerOptions);
 
   for (var libraryUri in driver.libraryUris) {

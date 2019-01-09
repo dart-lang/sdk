@@ -103,12 +103,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<List> implementationBuilders = <List<List>>[];
 
-  /// Indicates whether type inference (and type promotion) should be disabled
-  /// for this library.
-  @override
-  final bool disableTypeInference;
-
   final List<Object> accessors = <Object>[];
+
+  final bool legacyMode;
 
   String documentationComment;
 
@@ -138,8 +135,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
-      : disableTypeInference = loader.target.disableTypeInference,
-        currentDeclaration = libraryDeclaration,
+      : currentDeclaration = libraryDeclaration,
+        legacyMode = loader.target.legacyMode,
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 
@@ -402,7 +399,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset = info.charOffset;
       bool hasInitializer = info.initializerTokenForInference != null;
       Token initializerTokenForInference =
-          type == null ? info.initializerTokenForInference : null;
+          type != null || legacyMode ? null : info.initializerTokenForInference;
       if (initializerTokenForInference != null) {
         Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
@@ -675,7 +672,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
                     this.fileUri, -1, noLength)
               ]);
         } else {
-          usedParts.add(part.uri);
+          if (isPatch) {
+            usedParts.add(part.fileUri);
+          } else {
+            usedParts.add(part.uri);
+          }
           includePart(part, usedParts);
         }
       } else {
@@ -895,6 +896,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void checkBoundsInOutline(covariant typeEnvironment);
+
+  int finalizeInitializingFormals();
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to

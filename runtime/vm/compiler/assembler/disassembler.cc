@@ -329,19 +329,23 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("Static call target functions {\n");
     const auto& table = Array::Handle(zone, code.static_calls_target_table());
     auto& cls = Class::Handle(zone);
-    auto& kind_and_offset = Smi::Handle(zone);
+    auto& kind_type_and_offset = Smi::Handle(zone);
     auto& function = Function::Handle(zone);
     auto& code = Code::Handle(zone);
     if (!table.IsNull()) {
       StaticCallsTable static_calls(table);
       for (auto& call : static_calls) {
-        kind_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
+        kind_type_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
         function = call.Get<Code::kSCallTableFunctionTarget>();
         code = call.Get<Code::kSCallTableCodeTarget>();
 
-        auto kind = Code::KindField::decode(kind_and_offset.Value());
-        auto offset = Code::OffsetField::decode(kind_and_offset.Value());
+        auto kind = Code::KindField::decode(kind_type_and_offset.Value());
+        auto offset = Code::OffsetField::decode(kind_type_and_offset.Value());
+        auto entry_point =
+            Code::EntryPointField::decode(kind_type_and_offset.Value());
 
+        const char* s_entry_point =
+            entry_point == Code::kUncheckedEntry ? " <unchecked-entry>" : "";
         const char* skind = nullptr;
         switch (kind) {
           case Code::kPcRelativeCall:
@@ -359,15 +363,17 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
         if (function.IsNull()) {
           cls ^= code.owner();
           if (cls.IsNull()) {
-            THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
-                      code.QualifiedName(), code.raw(), skind);
+            THR_Print("  0x%" Px ": %s, %p (%s)%s\n", start + offset,
+                      code.QualifiedName(), code.raw(), skind, s_entry_point);
           } else {
-            THR_Print("  0x%" Px ": allocation stub for %s, %p (%s)\n",
-                      start + offset, cls.ToCString(), code.raw(), skind);
+            THR_Print("  0x%" Px ": allocation stub for %s, %p (%s)%s\n",
+                      start + offset, cls.ToCString(), code.raw(), skind,
+                      s_entry_point);
           }
         } else {
-          THR_Print("  0x%" Px ": %s, %p (%s)\n", start + offset,
-                    function.ToFullyQualifiedCString(), code.raw(), skind);
+          THR_Print("  0x%" Px ": %s, %p (%s)%s\n", start + offset,
+                    function.ToFullyQualifiedCString(), code.raw(), skind,
+                    s_entry_point);
         }
       }
     }
@@ -389,6 +395,11 @@ void Disassembler::DisassembleCode(const Function& function,
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 
+#else   // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+void Disassembler::DisassembleCode(const Function& function,
+                                   const Code& code,
+                                   bool optimized) {}
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart

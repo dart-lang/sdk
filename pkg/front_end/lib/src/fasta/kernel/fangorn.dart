@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         AwaitExpression,
         Block,
         BoolLiteral,
+        BreakStatement,
         Catch,
         CheckLibraryIsLoaded,
         ConditionalExpression,
@@ -23,6 +24,7 @@ import 'package:kernel/ast.dart'
         ExpressionStatement,
         InvalidExpression,
         IsExpression,
+        LabeledStatement,
         Let,
         LibraryDependency,
         LogicalExpression,
@@ -80,9 +82,7 @@ import 'kernel_shadow_ast.dart'
         AssertInitializerJudgment,
         AssertStatementJudgment,
         BlockJudgment,
-        BreakJudgment,
         CatchJudgment,
-        ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
         EmptyStatementJudgment,
@@ -90,12 +90,11 @@ import 'kernel_shadow_ast.dart'
         ForJudgment,
         IfJudgment,
         IntJudgment,
-        LabeledStatementJudgment,
         ListLiteralJudgment,
         LoadLibraryJudgment,
-        MapEntryJudgment,
         MapLiteralJudgment,
         ReturnJudgment,
+        SetLiteralJudgment,
         ShadowLargeIntLiteral,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
@@ -194,20 +193,36 @@ class Fangorn extends Forest {
   }
 
   @override
+  SetLiteralJudgment literalSet(
+      Token constKeyword,
+      bool isConst,
+      Object typeArgument,
+      Object typeArguments,
+      Token leftBrace,
+      List<Expression> expressions,
+      Token rightBrace) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
+    return new SetLiteralJudgment(expressions,
+        typeArgument: typeArgument, isConst: isConst)
+      ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
+  }
+
+  @override
   MapLiteralJudgment literalMap(
       Token constKeyword,
       bool isConst,
       DartType keyType,
       DartType valueType,
       Object typeArguments,
-      Token leftBracket,
+      Token leftBrace,
       List<MapEntry> entries,
-      Token rightBracket) {
+      Token rightBrace) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
     return new MapLiteralJudgment(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
-      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
+      ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
   }
 
   @override
@@ -237,7 +252,7 @@ class Fangorn extends Forest {
 
   @override
   MapEntry mapEntry(Expression key, Token colon, Expression value) {
-    return new MapEntryJudgment(key, value)..fileOffset = offsetForToken(colon);
+    return new MapEntry(key, value)..fileOffset = offsetForToken(colon);
   }
 
   @override
@@ -336,7 +351,7 @@ class Fangorn extends Forest {
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new BreakJudgment(null)..fileOffset = breakKeyword.charOffset;
+    return new BreakStatement(null)..fileOffset = breakKeyword.charOffset;
   }
 
   @override
@@ -364,7 +379,7 @@ class Fangorn extends Forest {
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ContinueJudgment(null)..fileOffset = continueKeyword.charOffset;
+    return new BreakStatement(null)..fileOffset = continueKeyword.charOffset;
   }
 
   @override
@@ -386,16 +401,14 @@ class Fangorn extends Forest {
   Statement forStatement(
       Token forKeyword,
       Token leftParenthesis,
-      List<VariableDeclaration> variableList,
-      List<Expression> initializers,
+      List<VariableDeclaration> variables,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
-    return new ForJudgment(
-        variableList, initializers, condition, updaters, body)
+    return new ForJudgment(variables, condition, updaters, body)
       ..fileOffset = forKeyword.charOffset;
   }
 
@@ -462,7 +475,7 @@ class Fangorn extends Forest {
 
   @override
   Statement syntheticLabeledStatement(Statement statement) {
-    return new LabeledStatementJudgment(statement);
+    return new LabeledStatement(statement);
   }
 
   @override
@@ -481,10 +494,14 @@ class Fangorn extends Forest {
   @override
   Statement tryStatement(Token tryKeyword, Statement body,
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
-    if (finallyBlock != null) {
-      return new TryFinallyJudgment(body, catchClauses, finallyBlock);
+    Statement result = body;
+    if (catchClauses != null) {
+      result = new TryCatchJudgment(result, catchClauses);
     }
-    return new TryCatchJudgment(body, catchClauses ?? const <CatchJudgment>[]);
+    if (finallyBlock != null) {
+      result = new TryFinallyJudgment(result, finallyBlock);
+    }
+    return result;
   }
 
   @override

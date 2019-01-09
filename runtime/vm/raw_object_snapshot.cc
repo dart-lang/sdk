@@ -297,62 +297,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(param_class, kAsReference);
 }
 
-RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  ASSERT(reader != NULL);
-
-  // Allocate bounded type object.
-  BoundedType& bounded_type =
-      BoundedType::ZoneHandle(reader->zone(), BoundedType::New());
-  reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
-
-  // Read the code object for the type testing stub and set its entrypoint.
-  reader->EnqueueTypePostprocessing(bounded_type);
-
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(bounded_type, bounded_type.raw()->from(),
-                     bounded_type.raw()->to(), kAsReference);
-
-  return bounded_type.raw();
-}
-
-void RawBoundedType::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
-  ASSERT(writer != NULL);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(kBoundedTypeCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
-}
-
-RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();  // MixinAppType objects do not survive finalization.
-  return MixinAppType::null();
-}
-
-void RawMixinAppType::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();  // MixinAppType objects do not survive finalization.
-}
-
 RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,

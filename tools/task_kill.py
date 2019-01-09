@@ -40,6 +40,7 @@ EXECUTABLE_NAMES = {
     'dart_precompiled_runtime': 'dart_precompiled_runtime',
     'firefox': 'firefox',
     'gen_snapshot': 'gen_snapshot',
+    'flutter_tester': 'flutter_tester',
     'git': 'git',
   },
   'macos': {
@@ -230,6 +231,7 @@ def KillDart():
   status = Kill("dart", dump_stacks=True)
   status += Kill("gen_snapshot", dump_stacks=True)
   status += Kill("dart_precompiled_runtime", dump_stacks=True)
+  status += Kill("flutter_tester", dump_stacks=True)
   return status
 
 def Main():

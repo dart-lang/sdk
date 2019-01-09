@@ -368,7 +368,7 @@ class _TestResynthesizerResultProvider extends ResynthesizerResultProvider {
 
   _TestResynthesizerResultProvider(
       InternalAnalysisContext context, SummaryDataStore dataStore)
-      : super(context, dataStore);
+      : super(context, null, dataStore);
 
   @override
   bool hasResultsForSource(Source source) {

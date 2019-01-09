@@ -403,6 +403,11 @@ class PageSpace {
   // Have threads release marking stack blocks, etc.
   void AbandonMarkingForShutdown();
 
+  bool enable_concurrent_mark() const { return enable_concurrent_mark_; }
+  void set_enable_concurrent_mark(bool enable_concurrent_mark) {
+    enable_concurrent_mark_ = enable_concurrent_mark;
+  }
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -453,16 +458,13 @@ class PageSpace {
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
-  bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
+  bool CanIncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     if (max_capacity_in_words_ == 0) {
       // Unlimited.
       return true;
     }
-    // TODO(issue 27413): Make the check against capacity and the bump
-    // of capacity atomic so that CapacityInWords does not exceed
-    // max_capacity_in_words_.
     intptr_t free_capacity_in_words =
-        (max_capacity_in_words_ - CapacityInWords());
+        (max_capacity_in_words_ - usage_.capacity_in_words);
     return ((free_capacity_in_words > 0) &&
             (increase_in_words <= free_capacity_in_words));
   }
@@ -508,6 +510,8 @@ class PageSpace {
   int64_t gc_time_micros_;
   intptr_t collections_;
   intptr_t mark_words_per_micro_;
+
+  bool enable_concurrent_mark_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;

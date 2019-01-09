@@ -984,13 +984,6 @@ class BrowserTestRunner {
     var id = status.browser.id;
 
     status.currentTest.stopwatch.stop();
-
-    // Before closing the browser, we'll try to capture a screenshot on
-    // windows when using IE (to debug flakiness).
-    if (status.browser is IE) {
-      await captureInternetExplorerScreenshot(
-          'IE screenshot for ${status.currentTest.url}');
-    }
     await status.browser.close();
     var lastKnownMessage =
         'Dom could not be fetched, since the test timed out.';
@@ -1654,61 +1647,4 @@ body div {
 """;
     return driverContent;
   }
-}
-
-Future captureInternetExplorerScreenshot(String message) async {
-  if (Platform.environment['USERNAME'] != 'chrome-bot') {
-    return;
-  }
-
-  print('--------------------------------------------------------------------');
-  final String date =
-      new DateTime.now().toUtc().toIso8601String().replaceAll(':', '_');
-  final screenshotName = 'ie_screenshot_${date}.png';
-
-  // The "capture_screen.ps1" script is next to "test.dart" in "tools/"
-  final powerShellScript =
-      Platform.script.resolve('../../capture_screenshot.ps1').toFilePath();
-  final screenshotFile =
-      Platform.script.resolve('../../../$screenshotName').toFilePath();
-
-  final args = [
-    '-ExecutionPolicy',
-    'ByPass',
-    '-File',
-    powerShellScript,
-    screenshotFile
-  ];
-  final ProcessResult result =
-      await Process.run('powershell.exe', args, runInShell: true);
-  if (result.exitCode != 0) {
-    print('[$message] Failed to capture IE screenshot on windows: '
-        'powershell.exe "${args.join(' ')}" returned with:\n'
-        'exit code: ${result.exitCode}\n'
-        'stdout: ${result.stdout}\n'
-        'stderr: ${result.stderr}');
-  } else {
-    final gsutilScript = Platform.script
-        .resolve('../../../third_party/gsutil/gsutil.py')
-        .toFilePath();
-    final storageUrl = 'gs://dart-temp-crash-archive/$screenshotName';
-    final args = [
-      gsutilScript,
-      'cp',
-      screenshotFile,
-      storageUrl,
-    ];
-    final ProcessResult result = await Process.run('python', args);
-    if (result.exitCode != 0) {
-      print('[$message] Failed upload captured IE screenshot to cloud storage: '
-          '"${args.join(' ')}" returned with:\n'
-          'exit code: ${result.exitCode}\n'
-          'stdout: ${result.stdout}\n'
-          'stderr: ${result.stderr}');
-    } else {
-      print('[$message] Successfully uploaded screenshot to $storageUrl');
-    }
-    new File(screenshotFile).deleteSync();
-  }
-  print('--------------------------------------------------------------------');
 }

@@ -304,7 +304,7 @@ class SimulatorHelpers {
     if (cls->ptr()->num_type_arguments_ != 0) {
       return false;
     }
-    RawType* typ = cls->ptr()->canonical_type_;
+    RawType* typ = cls->ptr()->declaration_type_;
     if (typ == Object::null()) {
       return false;
     }
@@ -557,8 +557,10 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
                          sizeof(uintptr_t)];
   // Low address.
   stack_base_ = reinterpret_cast<uword>(stack_) + kSimulatorStackUnderflowSize;
+  // Limit for StackOverflowError.
+  overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
+  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
 
   last_setjmp_buffer_ = NULL;
 
@@ -3981,11 +3983,6 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // in the previous C++ frames.
   StackResource::Unwind(thread);
 
-  // Set the tag.
-  thread->set_vm_tag(VMTag::kDartCompiledTagId);
-  // Clear top exit frame.
-  thread->set_top_exit_frame_info(0);
-
   fp_ = reinterpret_cast<RawObject**>(fp);
 
   if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
@@ -4002,6 +3999,11 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   } else {
     pc_ = pc;
   }
+
+  // Set the tag.
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
+  // Clear top exit frame.
+  thread->set_top_exit_frame_info(0);
 
   buf->Longjmp();
   UNREACHABLE();

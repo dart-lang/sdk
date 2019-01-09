@@ -9,8 +9,11 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/analyzer.dart'
+    show parseCompilationUnit, parseDirectives;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 

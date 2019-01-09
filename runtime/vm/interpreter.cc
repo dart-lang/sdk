@@ -117,6 +117,9 @@ class InterpreterHelpers {
                                : static_cast<intptr_t>(kSmiCid);
   }
 
+  // The usage counter is actually a 'hotness' counter.
+  // For an instance call, both the usage counters of the caller and of the
+  // calle will get incremented, as well as the ICdata counter at the call site.
   DART_FORCE_INLINE static void IncrementUsageCounter(RawFunction* f) {
     f->ptr()->usage_counter_++;
   }
@@ -129,38 +132,6 @@ class InterpreterHelpers {
         reinterpret_cast<intptr_t>(entries[offset + count_offset]);
     const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);
     *reinterpret_cast<intptr_t*>(&entries[offset + count_offset]) = raw_smi_new;
-  }
-
-  DART_FORCE_INLINE static bool IsStrictEqualWithNumberCheck(RawObject* lhs,
-                                                             RawObject* rhs) {
-    if (lhs == rhs) {
-      return true;
-    }
-
-    if (lhs->IsHeapObject() && rhs->IsHeapObject()) {
-      const intptr_t lhs_cid = lhs->GetClassId();
-      const intptr_t rhs_cid = rhs->GetClassId();
-      if (lhs_cid == rhs_cid) {
-        switch (lhs_cid) {
-          case kDoubleCid:
-            return (bit_cast<uint64_t, double>(
-                        static_cast<RawDouble*>(lhs)->ptr()->value_) ==
-                    bit_cast<uint64_t, double>(
-                        static_cast<RawDouble*>(rhs)->ptr()->value_));
-
-          case kMintCid:
-            return (static_cast<RawMint*>(lhs)->ptr()->value_ ==
-                    static_cast<RawMint*>(rhs)->ptr()->value_);
-        }
-      }
-    }
-
-    return false;
-  }
-
-  template <typename T>
-  DART_FORCE_INLINE static T* Untag(T* tagged) {
-    return tagged->ptr();
   }
 
   DART_FORCE_INLINE static bool CheckIndex(RawSmi* index, RawSmi* length) {
@@ -187,301 +158,9 @@ class InterpreterHelpers {
         Array::element_offset(ArgumentsDescriptor::kPositionalCountIndex)));
   }
 
-  static bool ObjectArraySetIndexed(Thread* thread,
-                                    RawObject** FP,
-                                    RawObject** result) {
-    return ObjectArraySetIndexedUnchecked(thread, FP, result);
-  }
-
-  static bool ObjectArraySetIndexedUnchecked(Thread* thread,
-                                             RawObject** FP,
-                                             RawObject** result) {
-    RawObject** args = FrameArguments(FP, 3);
-    RawSmi* index = static_cast<RawSmi*>(args[1]);
-    RawArray* array = static_cast<RawArray*>(args[0]);
-    if (CheckIndex(index, array->ptr()->length_)) {
-      array->StorePointer(array->ptr()->data() + Smi::Value(index), args[2],
-                          thread);
-      return true;
-    }
-    return false;
-  }
-
-  static bool ObjectArrayGetIndexed(Thread* thread,
-                                    RawObject** FP,
-                                    RawObject** result) {
-    RawObject** args = FrameArguments(FP, 2);
-    RawSmi* index = static_cast<RawSmi*>(args[1]);
-    RawArray* array = static_cast<RawArray*>(args[0]);
-    if (CheckIndex(index, array->ptr()->length_)) {
-      *result = array->ptr()->data()[Smi::Value(index)];
-      return true;
-    }
-    return false;
-  }
-
-  static bool GrowableArraySetIndexed(Thread* thread,
-                                      RawObject** FP,
-                                      RawObject** result) {
-    return GrowableArraySetIndexedUnchecked(thread, FP, result);
-  }
-
-  static bool GrowableArraySetIndexedUnchecked(Thread* thread,
-                                               RawObject** FP,
-                                               RawObject** result) {
-    RawObject** args = FrameArguments(FP, 3);
-    RawSmi* index = static_cast<RawSmi*>(args[1]);
-    RawGrowableObjectArray* array =
-        static_cast<RawGrowableObjectArray*>(args[0]);
-    if (CheckIndex(index, array->ptr()->length_)) {
-      RawArray* data = array->ptr()->data_;
-      data->StorePointer(data->ptr()->data() + Smi::Value(index), args[2],
-                         thread);
-      return true;
-    }
-    return false;
-  }
-
-  static bool GrowableArrayGetIndexed(Thread* thread,
-                                      RawObject** FP,
-                                      RawObject** result) {
-    RawObject** args = FrameArguments(FP, 2);
-    RawSmi* index = static_cast<RawSmi*>(args[1]);
-    RawGrowableObjectArray* array =
-        static_cast<RawGrowableObjectArray*>(args[0]);
-    if (CheckIndex(index, array->ptr()->length_)) {
-      *result = array->ptr()->data_->ptr()->data()[Smi::Value(index)];
-      return true;
-    }
-    return false;
-  }
-
-  static bool Double_getIsNan(Thread* thread,
-                              RawObject** FP,
-                              RawObject** result) {
-    RawObject** args = FrameArguments(FP, 1);
-    RawDouble* d = static_cast<RawDouble*>(args[0]);
-    *result =
-        isnan(d->ptr()->value_) ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool Double_getIsInfinite(Thread* thread,
-                                   RawObject** FP,
-                                   RawObject** result) {
-    RawObject** args = FrameArguments(FP, 1);
-    RawDouble* d = static_cast<RawDouble*>(args[0]);
-    *result =
-        isinf(d->ptr()->value_) ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool ObjectEquals(Thread* thread, RawObject** FP, RawObject** result) {
-    RawObject** args = FrameArguments(FP, 2);
-    *result = args[0] == args[1] ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool ObjectRuntimeType(Thread* thread,
-                                RawObject** FP,
-                                RawObject** result) {
-    RawObject** args = FrameArguments(FP, 1);
-    const intptr_t cid = GetClassId(args[0]);
-    if (cid == kClosureCid) {
-      return false;
-    }
-    if (cid < kNumPredefinedCids) {
-      if (cid == kDoubleCid) {
-        *result = thread->isolate()->object_store()->double_type();
-        return true;
-      } else if (RawObject::IsStringClassId(cid)) {
-        *result = thread->isolate()->object_store()->string_type();
-        return true;
-      } else if (RawObject::IsIntegerClassId(cid)) {
-        *result = thread->isolate()->object_store()->int_type();
-        return true;
-      }
-    }
-    RawClass* cls = thread->isolate()->class_table()->At(cid);
-    if (cls->ptr()->num_type_arguments_ != 0) {
-      return false;
-    }
-    RawType* typ = cls->ptr()->canonical_type_;
-    if (typ == Object::null()) {
-      return false;
-    }
-    *result = static_cast<RawObject*>(typ);
-    return true;
-  }
-
-  static bool GetDoubleOperands(RawObject** args, double* d1, double* d2) {
-    RawObject* obj2 = args[1];
-    if (!obj2->IsHeapObject()) {
-      *d2 =
-          static_cast<double>(reinterpret_cast<intptr_t>(obj2) >> kSmiTagSize);
-    } else if (obj2->GetClassId() == kDoubleCid) {
-      RawDouble* obj2d = static_cast<RawDouble*>(obj2);
-      *d2 = obj2d->ptr()->value_;
-    } else {
-      return false;
-    }
-    RawDouble* obj1 = static_cast<RawDouble*>(args[0]);
-    *d1 = obj1->ptr()->value_;
-    return true;
-  }
-
-  static RawObject* AllocateDouble(Thread* thread, double value) {
-    const intptr_t instance_size = Double::InstanceSize();
-    const uword start =
-        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-    if (LIKELY(start != 0)) {
-      uword tags = 0;
-      tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
-      tags = RawObject::SizeTag::update(instance_size, tags);
-      tags = RawObject::NewBit::update(true, tags);
-      // Also writes zero in the hash_ field.
-      *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
-      *reinterpret_cast<double*>(start + Double::value_offset()) = value;
-      return reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-    }
-    return NULL;
-  }
-
-  static bool Double_add(Thread* thread, RawObject** FP, RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    RawObject* new_double = AllocateDouble(thread, d1 + d2);
-    if (new_double != NULL) {
-      *result = new_double;
-      return true;
-    }
-    return false;
-  }
-
-  static bool Double_mul(Thread* thread, RawObject** FP, RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    RawObject* new_double = AllocateDouble(thread, d1 * d2);
-    if (new_double != NULL) {
-      *result = new_double;
-      return true;
-    }
-    return false;
-  }
-
-  static bool Double_sub(Thread* thread, RawObject** FP, RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    RawObject* new_double = AllocateDouble(thread, d1 - d2);
-    if (new_double != NULL) {
-      *result = new_double;
-      return true;
-    }
-    return false;
-  }
-
-  static bool Double_div(Thread* thread, RawObject** FP, RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    RawObject* new_double = AllocateDouble(thread, d1 / d2);
-    if (new_double != NULL) {
-      *result = new_double;
-      return true;
-    }
-    return false;
-  }
-
-  static bool Double_greaterThan(Thread* thread,
-                                 RawObject** FP,
-                                 RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    *result = d1 > d2 ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool Double_greaterEqualThan(Thread* thread,
-                                      RawObject** FP,
-                                      RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    *result = d1 >= d2 ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool Double_lessThan(Thread* thread,
-                              RawObject** FP,
-                              RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    *result = d1 < d2 ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool Double_equal(Thread* thread, RawObject** FP, RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    *result = d1 == d2 ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool Double_lessEqualThan(Thread* thread,
-                                   RawObject** FP,
-                                   RawObject** result) {
-    double d1, d2;
-    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
-      return false;
-    }
-    *result = d1 <= d2 ? Bool::True().raw() : Bool::False().raw();
-    return true;
-  }
-
-  static bool ClearAsyncThreadStack(Thread* thread,
-                                    RawObject** FP,
-                                    RawObject** result) {
-    thread->clear_async_stack_trace();
-    *result = Object::null();
-    return true;
-  }
-
-  static bool SetAsyncThreadStackTrace(Thread* thread,
-                                       RawObject** FP,
-                                       RawObject** result) {
-    RawObject** args = FrameArguments(FP, 1);
-    thread->set_raw_async_stack_trace(
-        reinterpret_cast<RawStackTrace*>(args[0]));
-    *result = Object::null();
-    return true;
-  }
-
   DART_FORCE_INLINE static RawBytecode* FrameBytecode(RawObject** FP) {
     ASSERT(GetClassId(FP[kKBCPcMarkerSlotFromFp]) == kBytecodeCid);
     return static_cast<RawBytecode*>(FP[kKBCPcMarkerSlotFromFp]);
-  }
-
-  DART_FORCE_INLINE static uint8_t* GetTypedData(RawObject* obj,
-                                                 RawObject* index) {
-    ASSERT(RawObject::IsTypedDataClassId(obj->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(obj);
-    const intptr_t byte_offset = Smi::Value(RAW_CAST(Smi, index));
-    ASSERT(byte_offset >= 0);
-    return array->ptr()->data() + byte_offset;
   }
 };
 
@@ -496,53 +175,68 @@ DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
   return function;
 }
 
-IntrinsicHandler Interpreter::intrinsics_[Interpreter::kIntrinsicCount];
+void LookupCache::Clear() {
+  for (intptr_t i = 0; i < kNumEntries; i++) {
+    entries_[i].receiver_cid = kIllegalCid;
+  }
+}
 
-// Synchronization primitives support.
-void Interpreter::InitOnce() {
-  for (intptr_t i = 0; i < kIntrinsicCount; i++) {
-    intrinsics_[i] = 0;
+bool LookupCache::Lookup(intptr_t receiver_cid,
+                         RawString* function_name,
+                         RawFunction** target) const {
+  ASSERT(receiver_cid != kIllegalCid);  // Sentinel value.
+
+  const intptr_t hash =
+      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t probe1 = hash & kTableMask;
+  if (entries_[probe1].receiver_cid == receiver_cid &&
+      entries_[probe1].function_name == function_name) {
+    *target = entries_[probe1].target;
+    return true;
   }
 
-  intrinsics_[kObjectArraySetIndexedIntrinsic] =
-      InterpreterHelpers::ObjectArraySetIndexed;
-  intrinsics_[kObjectArraySetIndexedUncheckedIntrinsic] =
-      InterpreterHelpers::ObjectArraySetIndexedUnchecked;
-  intrinsics_[kObjectArrayGetIndexedIntrinsic] =
-      InterpreterHelpers::ObjectArrayGetIndexed;
-  intrinsics_[kGrowableArraySetIndexedIntrinsic] =
-      InterpreterHelpers::GrowableArraySetIndexed;
-  intrinsics_[kGrowableArraySetIndexedUncheckedIntrinsic] =
-      InterpreterHelpers::GrowableArraySetIndexedUnchecked;
-  intrinsics_[kGrowableArrayGetIndexedIntrinsic] =
-      InterpreterHelpers::GrowableArrayGetIndexed;
-  intrinsics_[kObjectEqualsIntrinsic] = InterpreterHelpers::ObjectEquals;
-  intrinsics_[kObjectRuntimeTypeIntrinsic] =
-      InterpreterHelpers::ObjectRuntimeType;
+  intptr_t probe2 = (hash >> 3) & kTableMask;
+  if (entries_[probe2].receiver_cid == receiver_cid &&
+      entries_[probe2].function_name == function_name) {
+    *target = entries_[probe2].target;
+    return true;
+  }
 
-  intrinsics_[kDouble_getIsNaNIntrinsic] = InterpreterHelpers::Double_getIsNan;
-  intrinsics_[kDouble_getIsInfiniteIntrinsic] =
-      InterpreterHelpers::Double_getIsInfinite;
-  intrinsics_[kDouble_addIntrinsic] = InterpreterHelpers::Double_add;
-  intrinsics_[kDouble_mulIntrinsic] = InterpreterHelpers::Double_mul;
-  intrinsics_[kDouble_subIntrinsic] = InterpreterHelpers::Double_sub;
-  intrinsics_[kDouble_divIntrinsic] = InterpreterHelpers::Double_div;
-  intrinsics_[kDouble_greaterThanIntrinsic] =
-      InterpreterHelpers::Double_greaterThan;
-  intrinsics_[kDouble_greaterEqualThanIntrinsic] =
-      InterpreterHelpers::Double_greaterEqualThan;
-  intrinsics_[kDouble_lessThanIntrinsic] = InterpreterHelpers::Double_lessThan;
-  intrinsics_[kDouble_equalIntrinsic] = InterpreterHelpers::Double_equal;
-  intrinsics_[kDouble_lessEqualThanIntrinsic] =
-      InterpreterHelpers::Double_lessEqualThan;
-  intrinsics_[kClearAsyncThreadStackTraceIntrinsic] =
-      InterpreterHelpers::ClearAsyncThreadStack;
-  intrinsics_[kSetAsyncThreadStackTraceIntrinsic] =
-      InterpreterHelpers::SetAsyncThreadStackTrace;
+  return false;
+}
+
+void LookupCache::Insert(intptr_t receiver_cid,
+                         RawString* function_name,
+                         RawFunction* target) {
+  // Otherwise we have to clear the cache or rehash on scavenges too.
+  ASSERT(function_name->IsOldObject());
+  ASSERT(target->IsOldObject());
+
+  const intptr_t hash =
+      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t probe1 = hash & kTableMask;
+  if (entries_[probe1].receiver_cid == kIllegalCid) {
+    entries_[probe1].receiver_cid = receiver_cid;
+    entries_[probe1].function_name = function_name;
+    entries_[probe1].target = target;
+    return;
+  }
+
+  const intptr_t probe2 = (hash >> 3) & kTableMask;
+  if (entries_[probe2].receiver_cid == kIllegalCid) {
+    entries_[probe2].receiver_cid = receiver_cid;
+    entries_[probe2].function_name = function_name;
+    entries_[probe2].target = target;
+    return;
+  }
+
+  entries_[probe1].receiver_cid = receiver_cid;
+  entries_[probe1].function_name = function_name;
+  entries_[probe1].target = target;
 }
 
 Interpreter::Interpreter()
-    : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
+    : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -556,8 +250,10 @@ Interpreter::Interpreter()
   // Low address.
   stack_base_ =
       reinterpret_cast<uword>(stack_) + kInterpreterStackUnderflowSize;
+  // Limit for StackOverflowError.
+  overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
+  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
 
   last_setjmp_buffer_ = NULL;
 
@@ -579,6 +275,8 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
+  pp_ = NULL;
+  argdesc_ = NULL;
 #if defined(DEBUG)
   if (trace_file_ != NULL) {
     FlushTraceBuffer();
@@ -596,8 +294,10 @@ Interpreter::~Interpreter() {
 
 // Get the active Interpreter for the current isolate.
 Interpreter* Interpreter::Current() {
-  Interpreter* interpreter = Thread::Current()->interpreter();
+  Thread* thread = Thread::Current();
+  Interpreter* interpreter = thread->interpreter();
   if (interpreter == NULL) {
+    TransitionGeneratedToVM transition(thread);
     interpreter = new Interpreter();
     Thread::Current()->set_interpreter(interpreter);
   }
@@ -690,19 +390,6 @@ void Interpreter::Exit(Thread* thread,
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
   }
 #endif
-}
-
-void Interpreter::CallRuntime(Thread* thread,
-                              RawObject** base,
-                              RawObject** exit_frame,
-                              uint32_t* pc,
-                              intptr_t argc_tag,
-                              RawObject** args,
-                              RawObject** result,
-                              uword target) {
-  Exit(thread, base, exit_frame, pc);
-  NativeArguments native_args(thread, argc_tag, args, result);
-  reinterpret_cast<RuntimeFunction>(target)(native_args);
 }
 
 // Calling into runtime may trigger garbage collection and relocate objects,
@@ -1166,8 +853,48 @@ void Interpreter::InlineCacheMiss(int checked_args,
   // Handler arguments: arguments to check and an ICData object.
   const intptr_t miss_handler_argc = checked_args + 1;
   RawObject** exit_frame = miss_handler_args + miss_handler_argc;
-  CallRuntime(thread, FP, exit_frame, pc, miss_handler_argc, miss_handler_args,
-              result, reinterpret_cast<uword>(handler));
+  Exit(thread, FP, exit_frame, pc);
+  NativeArguments native_args(thread, miss_handler_argc, miss_handler_args,
+                              result);
+  handler(native_args);
+}
+
+DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
+                                                  RawString* target_name,
+                                                  RawObject** call_base,
+                                                  RawObject** top,
+                                                  uint32_t** pc,
+                                                  RawObject*** FP,
+                                                  RawObject*** SP) {
+  const intptr_t type_args_len =
+      InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+
+  intptr_t receiver_cid =
+      InterpreterHelpers::GetClassId(call_base[receiver_idx]);
+
+  RawFunction* target;
+  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
+    // Table lookup miss.
+    top[1] = call_base[receiver_idx];
+    top[2] = target_name;
+    top[3] = argdesc_;
+    top[4] = 0;  // Result slot.
+
+    Exit(thread, *FP, top + 5, *pc);
+    NativeArguments native_args(thread, 3, /* argv */ top + 1,
+                                /* result */ top + 4);
+    DRT_InterpretedInterfaceCallMissHandler(native_args);
+
+    target = static_cast<RawFunction*>(top[4]);
+    target_name = static_cast<RawString*>(top[2]);
+    argdesc_ = static_cast<RawArray*>(top[3]);
+    ASSERT(target->IsFunction());
+    lookup_cache_.Insert(receiver_cid, target_name, target);
+  }
+
+  top[0] = target;
+  return Invoke(thread, call_base, top, pc, FP, SP);
 }
 
 DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
@@ -1380,7 +1107,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_), \
                   exit_fp);                                                    \
       }                                                                        \
-      ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());                    \
+      ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));                          \
       return special_[KernelBytecode::kExceptionSpecialIndex];                 \
     }                                                                          \
     goto DispatchAfterException;                                               \
@@ -1886,7 +1613,7 @@ SwitchDispatch:
     {
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
-      if (reinterpret_cast<uword>(SP) >= stack_limit() ||
+      if (reinterpret_cast<uword>(SP) >= overflow_stack_limit() ||
           thread->HasScheduledInterrupts()) {
         Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, 0, NULL, NULL);
@@ -2106,7 +1833,36 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InstanceCall, A_D);
+    BYTECODE(InterfaceCall, A_D);
+
+    // Check if single stepping.
+    if (thread->isolate()->single_step()) {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
+    }
+
+    {
+      const uint16_t argc = rA;
+      const uint16_t kidx = rD;
+
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      RawString* target_name = static_cast<RawString*>(LOAD_CONSTANT(kidx));
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                         &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DynamicCall, A_D);
 
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
@@ -2319,7 +2075,6 @@ SwitchDispatch:
     DISPATCH();
   }
 
-  // Return and return like instructions (Intrinsic).
   {
     RawObject* result;  // result to return to the caller.
 
@@ -2349,7 +2104,7 @@ SwitchDispatch:
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
                   exit_fp);
       }
-      ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());
+      ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
       ASSERT(fp_ == FrameArguments(FP, argc + kKBCEntrySavedSlots));
       // Exception propagation should have been done.
@@ -3016,11 +2771,6 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // in the previous C++ frames.
   StackResource::Unwind(thread);
 
-  // Set the tag.
-  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
-  // Clear top exit frame.
-  thread->set_top_exit_frame_info(0);
-
   fp_ = reinterpret_cast<RawObject**>(fp);
 
   if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
@@ -3037,6 +2787,11 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   } else {
     pc_ = pc;
   }
+
+  // Set the tag.
+  thread->set_vm_tag(VMTag::kDartInterpretedTagId);
+  // Clear top exit frame.
+  thread->set_top_exit_frame_info(0);
 
   buf->Longjmp();
   UNREACHABLE();

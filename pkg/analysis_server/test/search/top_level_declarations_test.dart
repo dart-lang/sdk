@@ -67,16 +67,18 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
 class A {} // A
 class B = Object with A;
 typedef C();
-D() {}
-var E = null;
+typedef D();
+E() {}
+var F = null;
 class ABC {}
 ''');
-    await findTopLevelDeclarations('^[A-E]\$');
+    await findTopLevelDeclarations('^[A-F]\$');
     assertHasDeclaration(ElementKind.CLASS, 'A');
     assertHasDeclaration(ElementKind.CLASS, 'B');
     assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'C');
-    assertHasDeclaration(ElementKind.FUNCTION, 'D');
-    assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'E');
+    assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'D');
+    assertHasDeclaration(ElementKind.FUNCTION, 'E');
+    assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'F');
     assertNoDeclaration(ElementKind.CLASS, 'ABC');
   }
 }

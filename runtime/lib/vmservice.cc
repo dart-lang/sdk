@@ -78,7 +78,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 };
 #endif  // !PRODUCT
 
-DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
+DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 0, 2) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return Bool::Get(false).raw();
@@ -101,7 +101,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
+DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
@@ -111,7 +111,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
+DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
@@ -121,7 +121,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
+DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
 #ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: Booting dart:vmservice library.\n");
@@ -141,7 +141,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
+DEFINE_NATIVE_ENTRY(VMService_OnExit, 0, 0) {
 #ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: processed exit message.\n");
@@ -153,7 +153,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
+DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 0, 1) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return Object::null();
@@ -168,7 +168,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
+DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   bool result = false;
@@ -181,7 +181,7 @@ DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
+DEFINE_NATIVE_ENTRY(VMService_CancelStream, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
@@ -191,7 +191,7 @@ DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
+DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0, 0) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return Object::null();
@@ -381,7 +381,7 @@ static void FilenameFinalizer(void* isolate_callback_data,
 
 #endif
 
-DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
+DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return Object::null();
@@ -439,7 +439,7 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
+DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 0, 2) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return Object::null();

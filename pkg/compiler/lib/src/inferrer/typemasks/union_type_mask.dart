@@ -357,9 +357,8 @@ class UnionTypeMask implements TypeMask {
         .any((e) => e.needsNoSuchMethodHandling(selector, closedWorld));
   }
 
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
-    return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+    return disjointMasks.any((e) => e.canHit(element, name, closedWorld));
   }
 
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {

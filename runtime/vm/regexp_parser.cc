@@ -190,7 +190,6 @@ void RegExpBuilder::AddQuantifierToAtom(
 
 RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
     : zone_(Thread::Current()->zone()),
-      error_(error),
       captures_(NULL),
       in_(in),
       current_(kEndMarker),
@@ -200,8 +199,7 @@ RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
       multiline_(multiline),
       simple_(false),
       contains_anchor_(false),
-      is_scanned_for_captures_(false),
-      failed_(false) {
+      is_scanned_for_captures_(false) {
   Advance();
 }
 
@@ -239,14 +237,16 @@ bool RegExpParser::simple() {
 }
 
 void RegExpParser::ReportError(const char* message) {
-  failed_ = true;
-  *error_ = String::New(message);
   // Zip to the end to make sure the no more input is read.
   current_ = kEndMarker;
   next_pos_ = in().Length();
 
-  const Error& error = Error::Handle(LanguageError::New(*error_));
-  Report::LongJump(error);
+  // Throw a FormatException on parsing failures.
+  const String& msg = String::Handle(
+      String::Concat(String::Handle(String::New(message)), in()));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, msg);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
   UNREACHABLE();
 }
 
@@ -1012,34 +1012,20 @@ RegExpTree* RegExpParser::ParseCharacterClass() {
 // ----------------------------------------------------------------------------
 // The Parser interface.
 
-bool RegExpParser::ParseRegExp(const String& input,
+void RegExpParser::ParseRegExp(const String& input,
                                bool multiline,
                                RegExpCompileData* result) {
   ASSERT(result != NULL);
-  LongJumpScope jump;
   RegExpParser parser(input, &result->error, multiline);
-  if (setjmp(*jump.Set()) == 0) {
-    RegExpTree* tree = parser.ParsePattern();
-    ASSERT(tree != NULL);
-    ASSERT(result->error.IsNull());
-    result->tree = tree;
-    intptr_t capture_count = parser.captures_started();
-    result->simple = tree->IsAtom() && parser.simple() && capture_count == 0;
-    result->contains_anchor = parser.contains_anchor();
-    result->capture_count = capture_count;
-  } else {
-    ASSERT(!result->error.IsNull());
-    Thread::Current()->clear_sticky_error();
-
-    // Throw a FormatException on parsing failures.
-    const String& message =
-        String::Handle(String::Concat(result->error, input));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, message);
-
-    Exceptions::ThrowByType(Exceptions::kFormat, args);
-  }
-  return !parser.failed();
+  // Throws an exception if 'input' is not valid.
+  RegExpTree* tree = parser.ParsePattern();
+  ASSERT(tree != NULL);
+  ASSERT(result->error.IsNull());
+  result->tree = tree;
+  intptr_t capture_count = parser.captures_started();
+  result->simple = tree->IsAtom() && parser.simple() && capture_count == 0;
+  result->contains_anchor = parser.contains_anchor();
+  result->capture_count = capture_count;
 }
 
 }  // namespace dart

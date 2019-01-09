@@ -4,9 +4,9 @@
 
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../native/behavior.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 
@@ -64,7 +64,7 @@ class AbstractValueFactory {
 
     AbstractValue result =
         abstractValueDomain.unionOfMany(typesReturned.map(fromNativeType));
-    assert(!abstractValueDomain.isEmpty(result),
+    assert(abstractValueDomain.isEmpty(result).isPotentiallyFalse,
         "Unexpected empty return value for $nativeBehavior.");
     return result;
   }

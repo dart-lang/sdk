@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -795,7 +795,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   bool isSubtypeOf(DartType type) {
-    var typeSystem = new StrongTypeSystemImpl(null);
+    var typeSystem = new Dart2TypeSystem(null);
     return FunctionTypeImpl.relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
@@ -2053,6 +2053,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant: true}) {
+    // First check if this is actually an instance of Bottom
+    if (this.isDartCoreNull) {
+      if (isCovariant) {
+        return this;
+      } else {
+        return typeProvider.objectType;
+      }
+    }
+
+    // Otherwise, recurse over type arguments.
     var typeArguments = _transformOrShare(
         this.typeArguments,
         (t) => (t as TypeImpl)

@@ -120,12 +120,14 @@ class ObjectPointerVisitor;
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
+  RW(ObjectPool, global_object_pool)                                           \
   RW(Array, library_load_error_table)                                          \
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
+  RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
   RW(GrowableObjectArray, type_testing_stubs)                                  \
   RW(GrowableObjectArray, changed_in_last_reload)                              \

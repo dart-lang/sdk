@@ -58,8 +58,5 @@ class DillTarget extends TargetImplementation {
   }
 
   @override
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {}
-
-  @override
   void breakCycle(ClassBuilder cls) {}
 }

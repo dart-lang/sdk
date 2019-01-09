@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,6 +17,7 @@ import 'package:front_end/src/base/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/find_node.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
@@ -443,6 +444,27 @@ class E extends C<int> {
 
     var covariantE = getClassCovariantParameters(AstFinder.getClass(unit, "E"));
     expect(covariantE.toList(), []);
+  }
+
+  test_covarianceChecks2() async {
+    var content = r'''
+class View<T1> {
+  View<T1> create() => this;
+}
+
+class Bar<T2> extends View<Bar<T2>> {}
+
+main() {
+  var b = new Bar<int>();
+  b.create();
+}
+''';
+    var source = addSource(content);
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+
+    var findNode = FindNode(content, unit);
+    expect(getImplicitCast(findNode.methodInvocation('b.create')), isNull);
   }
 
   test_covarianceChecks_genericMethods() async {
@@ -2909,7 +2931,7 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
 }
 
 /// Test cases for [StrongModeStaticTypeAnalyzer2Test]
-abstract class StrongModeStaticTypeAnalyzer2TestCases
+mixin StrongModeStaticTypeAnalyzer2TestCases
     implements StaticTypeAnalyzer2TestShared {
   void expectStaticInvokeType(String search, String type) {
     var invocation = findIdentifier(search).parent as MethodInvocation;
@@ -2925,17 +2947,6 @@ main() {
 ''';
     await resolveTestUnit(code);
     expectInitializerType('foo', 'int');
-  }
-
-  test_dynamicObjectMethod_toString() async {
-    String code = r'''
-main() {
-  dynamic a = null;
-  var foo = a.toString();
-}
-''';
-    await resolveTestUnit(code);
-    expectInitializerType('foo', 'String');
   }
 
   test_futureOr_promotion1() async {
@@ -3610,22 +3621,6 @@ class D extends C {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_OVERRIDE]);
     verify([source]);
-  }
-
-  test_genericMethod_partiallyAppliedErrorWithBound() async {
-    await resolveTestUnit(r'''
-void f<X extends List, Y>() => null;
-
-void test() {
-  f<int>();
-}
-''', noErrors: false);
-    assertErrors(testSource, [
-      // Make sure to catch both the missing parameter:
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-      // And the incorrect parameter:
-      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-    ]);
   }
 
   test_genericMethod_propagatedType_promotion() async {
@@ -4435,7 +4430,7 @@ main() {
     expectInitializerType('foo', 'int');
   }
 
-  Future<Null> _objectMethodOnFunctions_helper2(String code) async {
+  Future<void> _objectMethodOnFunctions_helper2(String code) async {
     await resolveTestUnit(code);
     expectIdentifierType('t0', "String");
     expectIdentifierType('t1', "() → String");

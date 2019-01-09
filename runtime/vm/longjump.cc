@@ -9,7 +9,6 @@
 #include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
-#include "vm/object_store.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -24,8 +23,10 @@ void LongJumpScope::Jump(int value, const Error& error) {
   // A zero is the default return value from setting up a LongJumpScope
   // using Set.
   ASSERT(value != 0);
+  ASSERT(!error.IsNull());
 
   Thread* thread = Thread::Current();
+  DEBUG_ASSERT(thread->TopErrorHandlerIsSetJump());
 
 #if defined(DEBUG)
 #define CHECK_REUSABLE_HANDLE(name)                                            \

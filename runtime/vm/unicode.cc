@@ -280,6 +280,31 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
   *dst = ch;
   return i;
 }
+intptr_t Utf8::ReportInvalidByte(const uint8_t* utf8_array,
+                                 intptr_t array_len,
+                                 intptr_t len) {
+  intptr_t i = 0;
+  intptr_t j = 0;
+  intptr_t num_bytes;
+  for (; (i < array_len) && (j < len); i += num_bytes, ++j) {
+    int32_t ch;
+    bool is_supplementary = IsSupplementarySequenceStart(utf8_array[i]);
+    num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
+    if (ch == -1) {
+      break;  // Invalid input.
+    }
+    if (is_supplementary) {
+      j = j + 1;
+    }
+  }
+  OS::PrintErr("Invalid UTF8 sequence encountered, ");
+  for (intptr_t idx = 0; idx < 10 && (i + idx) < array_len; idx++) {
+    OS::PrintErr("(Error Code: %X + idx: %" Pd " )", utf8_array[idx + i],
+                 (idx + i));
+  }
+  OS::PrintErr("\n");
+  return i;
+}
 
 bool Utf8::DecodeToLatin1(const uint8_t* utf8_array,
                           intptr_t array_len,

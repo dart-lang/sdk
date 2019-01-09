@@ -10,6 +10,16 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 
+/// Returns a textual representation of [node] that include the runtime type and
+/// hash code of the node and a one line prefix of the node toString text.
+String nodeToDebugString(ir.Node node, [int textLength = 40]) {
+  String blockText = node.toString().replaceAll('\n', ' ');
+  if (blockText.length > textLength) {
+    blockText = blockText.substring(0, textLength - 3) + '...';
+  }
+  return '(${node.runtimeType}:${node.hashCode})${blockText}';
+}
+
 /// Comparator for the canonical order or named arguments.
 // TODO(johnniwinther): Remove this when named parameters are sorted in dill.
 int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
@@ -101,3 +111,99 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
   }
   return null;
 }
+
+/// Check whether [node] is immediately guarded by a
+/// [ir.CheckLibraryIsLoaded], and hence the node is a deferred access.
+ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
+  // Note: this code relies on the CFE generating the code as we expect it here.
+  // If one day we optimize away redundant CheckLibraryIsLoaded instructions,
+  // we'd need to derive this information directly from the CFE (See #35005),
+  ir.TreeNode parent = node.parent;
+
+  // TODO(sigmund): remove when CFE generates the correct tree (#35320). For
+  // instance, it currently generates
+  //
+  //   let _ = check(prefix) in (prefix::field.property)
+  //
+  // instead of:
+  //
+  //   (let _ = check(prefix) in prefix::field).property
+  if (node is ir.StaticGet) {
+    while (parent is ir.PropertyGet || parent is ir.MethodInvocation) {
+      parent = parent.parent;
+    }
+  }
+
+  if (parent is ir.Let) {
+    var initializer = parent.variable.initializer;
+    if (initializer is ir.CheckLibraryIsLoaded) {
+      return initializer.import;
+    }
+  }
+  return null;
+}
+
+class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
+  const _FreeVariableVisitor();
+
+  bool visit(ir.DartType type) {
+    if (type != null) return type.accept(this);
+    return false;
+  }
+
+  bool visitList(List<ir.DartType> types) {
+    for (ir.DartType type in types) {
+      if (visit(type)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypedefType(ir.TypedefType node) {
+    return visitList(node.typeArguments);
+  }
+
+  @override
+  bool visitTypeParameterType(ir.TypeParameterType node) {
+    return true;
+  }
+
+  @override
+  bool visitFunctionType(ir.FunctionType node) {
+    if (visit(node.returnType)) return true;
+    if (visitList(node.positionalParameters)) return true;
+    for (ir.NamedType namedType in node.namedParameters) {
+      if (visit(namedType.type)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitInterfaceType(ir.InterfaceType node) {
+    return visitList(node.typeArguments);
+  }
+
+  @override
+  bool visitBottomType(ir.BottomType node) => false;
+
+  @override
+  bool visitVoidType(ir.VoidType node) => false;
+
+  @override
+  bool visitDynamicType(ir.DynamicType node) => false;
+
+  @override
+  bool visitInvalidType(ir.InvalidType node) => false;
+
+  @override
+  bool defaultDartType(ir.DartType node) {
+    throw new UnsupportedError("FreeVariableVisitor.defaultTypeNode");
+  }
+}
+
+/// Returns `true` if [type] contains a type variable.
+///
+/// All type variables (class type variables, generic method type variables,
+/// and function type variables) are considered.
+bool containsFreeVariables(ir.DartType type) =>
+    type.accept(const _FreeVariableVisitor());

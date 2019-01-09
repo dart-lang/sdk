@@ -250,11 +250,6 @@ class Selector {
 
   bool appliesUnnamed(MemberEntity element) {
     assert(name == element.name);
-    return appliesUntyped(element);
-  }
-
-  bool appliesUntyped(MemberEntity element) {
-    assert(name == element.name);
     if (memberName.isPrivate && memberName.library != element.library) {
       // TODO(johnniwinther): Maybe this should be
       // `memberName != element.memberName`.

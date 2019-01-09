@@ -1,14 +1,20 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
@@ -200,6 +206,16 @@ abstract class LinterContext {
   TypeProvider get typeProvider;
 
   TypeSystem get typeSystem;
+
+  /// Return `true` if it would be valid for the given instance creation
+  /// [expression] to have a keyword of `const`.
+  ///
+  /// The [expression] is expected to be a node within one of the compilation
+  /// units in [allUnits].
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool canBeConst(InstanceCreationExpression expression);
 }
 
 /// Implementation of [LinterContext]
@@ -221,6 +237,34 @@ class LinterContextImpl implements LinterContext {
 
   LinterContextImpl(this.allUnits, this.currentUnit, this.declaredVariables,
       this.typeProvider, this.typeSystem);
+
+  @override
+  bool canBeConst(InstanceCreationExpression expression) {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = expression.staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = expression.keyword;
+    ConstantAnalysisErrorListener listener =
+        new ConstantAnalysisErrorListener();
+    try {
+      expression.keyword = new KeywordToken(Keyword.CONST, expression.offset);
+      LibraryElement library = element.library;
+      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
+      expression.accept(new ConstantVerifier(
+          errorReporter, library, typeProvider, declaredVariables));
+    } finally {
+      expression.keyword = oldKeyword;
+    }
+    return !listener.hasConstError;
+  }
 }
 
 class LinterContextUnit {
@@ -319,15 +363,21 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   @override
   AstVisitor getVisitor() => null;
 
-  void reportLint(AstNode node, {bool ignoreSyntheticNodes: true}) {
+  void reportLint(AstNode node,
+      {List<Object> arguments: const [],
+      ErrorCode errorCode,
+      bool ignoreSyntheticNodes: true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(lintCode, node, []);
+      reporter.reportErrorForNode(lintCode, node, arguments);
     }
   }
 
-  void reportLintForToken(Token token, {bool ignoreSyntheticTokens: true}) {
+  void reportLintForToken(Token token,
+      {List<Object> arguments: const [],
+      ErrorCode errorCode,
+      bool ignoreSyntheticTokens: true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(lintCode, token, []);
+      reporter.reportErrorForToken(lintCode, token, arguments);
     }
   }
 
@@ -380,27 +430,19 @@ abstract class NodeLintRule {
   /// This method is invoked to let the [LintRule] register node processors
   /// in the given [registry].
   ///
-  /// In a future release of the analyzer, a `context` argument will be added.
-  /// To opt into the new API, use [NodeLintRuleWithContext] instead.
-  void registerNodeProcessors(NodeLintRegistry registry);
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
+  void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
 }
 
 /// [LintRule]s that implement this interface want to process only some types
 /// of AST nodes, and will register their processors in the registry.
 ///
-/// TODO(paulberry): once NodeLintRule is removed, rename this interface to
-/// NodeLintRule.
-abstract class NodeLintRuleWithContext extends NodeLintRule {
-  /// This method is invoked to let the [LintRule] register node processors
-  /// in the given [registry].
-  ///
-  /// The node processors may use the provided [context] to access information
-  /// that is not available from the AST nodes or their associated elements.
-  /// In a future release of the analyzer, [context] will become a required
-  /// parameter.
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]);
-}
+/// This class exists solely to allow a smoother transition from analyzer
+/// version 0.33.*.  It will be removed in a future analyzer release, so please
+/// use [NodeLintRule] instead.
+@deprecated
+abstract class NodeLintRuleWithContext extends NodeLintRule {}
 
 class PrintingReporter implements Reporter, Logger {
   final Printer _print;

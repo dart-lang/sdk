@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show CompilerTask;
@@ -11,6 +12,8 @@ import '../constants/values.dart';
 import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart';
@@ -18,14 +21,13 @@ import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
+import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
 import 'types_propagation.dart';
@@ -41,6 +43,8 @@ class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend _backend;
 
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
+
+  Map<MemberEntity, OptimizationLog> loggersForTesting;
 
   SsaOptimizerTask(this._backend) : super(_backend.compiler.measurer);
 
@@ -65,12 +69,19 @@ class SsaOptimizerTask extends CompilerTask {
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
+
+    OptimizationLog log;
+    if (retainDataForTesting) {
+      loggersForTesting ??= {};
+      loggersForTesting[work.element] = log = new OptimizationLog();
+    }
+
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -79,10 +90,10 @@ class SsaOptimizerTask extends CompilerTask {
         // After type propagation, more instructions can be
         // simplified.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults, _options,
             closedWorld.commonElements, closedWorld),
@@ -108,7 +119,7 @@ class SsaOptimizerTask extends CompilerTask {
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry),
+            _rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -131,7 +142,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
           new SsaInstructionSimplifier(globalInferenceResults, _options,
-              _rtiSubstitutions, closedWorld, registry),
+              _rtiSubstitutions, closedWorld, registry, log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
@@ -143,7 +154,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
           new SsaInstructionSimplifier(globalInferenceResults, _options,
-              _rtiSubstitutions, closedWorld, registry),
+              _rtiSubstitutions, closedWorld, registry, log),
         ];
       }
       phases.forEach(runPhase);
@@ -155,16 +166,17 @@ class SsaOptimizerTask extends CompilerTask {
 /// cannot change.  The current implementation is conservative for the purpose
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
-bool isFixedLength(mask, JClosedWorld closedWorld) {
-  if (mask.isContainer && mask.length != null) {
+bool isFixedLength(AbstractValue mask, JClosedWorld closedWorld) {
+  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+  if (abstractValueDomain.isContainer(mask) &&
+      abstractValueDomain.getContainerLength(mask) != null) {
     // A container on which we have inferred the length.
     return true;
   }
   // TODO(sra): Recognize any combination of fixed length indexables.
-  if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
-      mask.containsOnly(closedWorld.commonElements.jsUnmodifiableArrayClass) ||
-      mask.containsOnlyString(closedWorld) ||
-      closedWorld.abstractValueDomain.isTypedArray(mask)) {
+  if (abstractValueDomain.isFixedArray(mask).isDefinitelyTrue ||
+      abstractValueDomain.isStringOrNull(mask).isDefinitelyTrue ||
+      abstractValueDomain.isTypedArray(mask).isDefinitelyTrue) {
     return true;
   }
   return false;
@@ -187,10 +199,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
+  final OptimizationLog _log;
   HGraph _graph;
 
   SsaInstructionSimplifier(this._globalInferenceResults, this._options,
-      this._rtiSubstitutions, this._closedWorld, this._registry);
+      this._rtiSubstitutions, this._closedWorld, this._registry, this._log);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -220,8 +233,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // might be that an operation thought to return double, can be
         // simplified to an int. For example:
         // `2.5 * 10`.
-        if (!(replacement.isNumberOrNull(_abstractValueDomain) &&
-            instruction.isNumberOrNull(_abstractValueDomain))) {
+        if (!(replacement
+                .isNumberOrNull(_abstractValueDomain)
+                .isDefinitelyTrue &&
+            instruction
+                .isNumberOrNull(_abstractValueDomain)
+                .isDefinitelyTrue)) {
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           AbstractValue newType = _abstractValueDomain.intersection(
@@ -278,9 +295,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (test is! HIdentity) return;
     HInstruction tested;
-    if (test.inputs[0].isNull(_abstractValueDomain)) {
+    if (test.inputs[0].isNull(_abstractValueDomain).isDefinitelyTrue) {
       tested = test.inputs[1];
-    } else if (test.inputs[1].isNull(_abstractValueDomain)) {
+    } else if (test.inputs[1].isNull(_abstractValueDomain).isDefinitelyTrue) {
       tested = test.inputs[0];
     } else {
       return;
@@ -298,7 +315,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // This ofen comes from the dart code `x ?? false`.
     if (_sameOrRefinementOf(tested, whenNotNullValue) &&
         _isBoolConstant(whenNullValue, false) &&
-        whenNotNullValue.isBooleanOrNull(_abstractValueDomain) &&
+        whenNotNullValue
+            .isBooleanOrNull(_abstractValueDomain)
+            .isDefinitelyTrue &&
         _mostlyEmpty(whenNullBlock) &&
         _mostlyEmpty(whenNotNullBlock)) {
       HInstruction trueConstant = _graph.addConstantBool(true, _closedWorld);
@@ -318,7 +337,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // This ofen comes from the dart code `x ?? true`.
     if (_sameOrRefinementOf(tested, whenNotNullValue) &&
         _isBoolConstant(whenNullValue, true) &&
-        whenNotNullValue.isBooleanOrNull(_abstractValueDomain) &&
+        whenNotNullValue
+            .isBooleanOrNull(_abstractValueDomain)
+            .isDefinitelyTrue &&
         _mostlyEmpty(whenNullBlock) &&
         _mostlyEmpty(whenNotNullBlock)) {
       HInstruction falseConstant = _graph.addConstantBool(false, _closedWorld);
@@ -372,7 +393,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   ConstantValue getConstantFromType(HInstruction node) {
     if (node.isValue(_abstractValueDomain) &&
-        !node.canBeNull(_abstractValueDomain)) {
+        node.isNull(_abstractValueDomain).isDefinitelyFalse) {
       ConstantValue value =
           _abstractValueDomain.getPrimitiveValue(node.instructionType);
       if (value.isBool) {
@@ -423,17 +444,23 @@ class SsaInstructionSimplifier extends HBaseVisitor
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
-    if (input.isBoolean(_abstractValueDomain)) return input;
+    if (input.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
+      return input;
+    }
 
     // If the code is unreachable, remove the HBoolify.  This can happen when
     // there is a throw expression in a short-circuit conditional.  Removing the
     // unreachable HBoolify makes it easier to reconstruct the short-circuit
     // operation.
-    if (_abstractValueDomain.isEmpty(input.instructionType)) return input;
+    if (_abstractValueDomain.isEmpty(input.instructionType).isDefinitelyTrue) {
+      return input;
+    }
 
     // All values that cannot be 'true' are boolified to false.
     AbstractValue mask = input.instructionType;
-    if (!_abstractValueDomain.containsType(mask, commonElements.jsBoolClass)) {
+    if (_abstractValueDomain
+        .containsType(mask, commonElements.jsBoolClass)
+        .isPotentiallyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
     return node;
@@ -470,7 +497,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexablePrimitive(_abstractValueDomain)) {
+    if (actualReceiver
+        .isIndexablePrimitive(_abstractValueDomain)
+        .isDefinitelyTrue) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstantValue constant = constantInput.constant;
@@ -485,11 +514,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       AbstractValue actualType = node.instructionType;
       AbstractValue resultType = _abstractValueDomain.positiveIntType;
       // If we already have computed a more specific type, keep that type.
-      if (_abstractValueDomain.isInstanceOfOrNull(
-          actualType, commonElements.jsUInt31Class)) {
+      if (_abstractValueDomain
+          .isInstanceOfOrNull(actualType, commonElements.jsUInt31Class)
+          .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint31Type;
-      } else if (_abstractValueDomain.isInstanceOfOrNull(
-          actualType, commonElements.jsUInt32Class)) {
+      } else if (_abstractValueDomain
+          .isInstanceOfOrNull(actualType, commonElements.jsUInt32Class)
+          .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint32Type;
       }
       HGetLength result =
@@ -530,12 +561,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     bool applies(MemberEntity element) {
       return selector.applies(element) &&
           (mask == null ||
-              _abstractValueDomain.canHit(mask, element, selector));
+              _abstractValueDomain
+                  .isTargetingMember(mask, element, selector.memberName)
+                  .isPotentiallyTrue);
     }
 
     if (selector.isCall || selector.isOperator) {
       FunctionEntity target;
-      if (input.isExtendableArray(_abstractValueDomain)) {
+      if (input.isExtendableArray(_abstractValueDomain).isDefinitelyTrue) {
         if (applies(commonElements.jsArrayRemoveLast)) {
           target = commonElements.jsArrayRemoveLast;
         } else if (applies(commonElements.jsArrayAdd)) {
@@ -546,7 +579,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             target = commonElements.jsArrayAdd;
           }
         }
-      } else if (input.isStringOrNull(_abstractValueDomain)) {
+      } else if (input.isStringOrNull(_abstractValueDomain).isDefinitelyTrue) {
         if (commonElements.appliesToJsStringSplit(
             selector, mask, _abstractValueDomain)) {
           return handleStringSplit(node);
@@ -555,12 +588,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
           HInstruction argument = node.inputs[2];
-          if (argument.isString(_abstractValueDomain) &&
-              !input.canBeNull(_abstractValueDomain)) {
+          if (argument.isString(_abstractValueDomain).isDefinitelyTrue &&
+              input.isNull(_abstractValueDomain).isDefinitelyFalse) {
             return new HStringConcat(input, argument, node.instructionType);
           }
         } else if (applies(commonElements.jsStringToString) &&
-            !input.canBeNull(_abstractValueDomain)) {
+            input.isNull(_abstractValueDomain).isDefinitelyFalse) {
           return input;
         }
       }
@@ -596,7 +629,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction handleStringSplit(HInvokeDynamic node) {
     HInstruction argument = node.inputs[2];
-    if (!argument.isString(_abstractValueDomain)) return node;
+    if (!argument.isString(_abstractValueDomain).isDefinitelyTrue) {
+      return node;
+    }
 
     // Replace `s.split$1(pattern)` with
     //
@@ -787,7 +822,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitBoundsCheck(HBoundsCheck node) {
     HInstruction index = node.index;
-    if (index.isInteger(_abstractValueDomain)) return node;
+    if (index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
+      return node;
+    }
     if (index.isConstant()) {
       HConstant constantInstruction = index;
       assert(!constantInstruction.constant.isInt);
@@ -815,8 +852,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction right = node.right;
     // We can only perform this rewriting on Integer, as it is not
     // valid for -0.0.
-    if (left.isInteger(_abstractValueDomain) &&
-        right.isInteger(_abstractValueDomain)) {
+    if (left.isInteger(_abstractValueDomain).isDefinitelyTrue &&
+        right.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       if (left is HConstant && left.constant.isZero) return right;
       if (right is HConstant && right.constant.isZero) return left;
     }
@@ -826,8 +863,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitMultiply(HMultiply node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
-    if (left.isNumber(_abstractValueDomain) &&
-        right.isNumber(_abstractValueDomain)) {
+    if (left.isNumber(_abstractValueDomain).isDefinitelyTrue &&
+        right.isNumber(_abstractValueDomain).isDefinitelyTrue) {
       if (left is HConstant && left.constant.isOne) return right;
       if (right is HConstant && right.constant.isOne) return left;
     }
@@ -873,15 +910,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
-    if (!(left.isNumberOrNull(_abstractValueDomain) &&
-        right.isNumberOrNull(_abstractValueDomain))) {
-      if (_abstractValueDomain.areDisjoint(leftType, rightType)) {
+    if (!(left.isNumberOrNull(_abstractValueDomain).isDefinitelyTrue &&
+        right.isNumberOrNull(_abstractValueDomain).isDefinitelyTrue)) {
+      if (_abstractValueDomain
+          .areDisjoint(leftType, rightType)
+          .isDefinitelyTrue) {
         return makeFalse();
       }
     }
 
-    if (left.isNull(_abstractValueDomain) &&
-        right.isNull(_abstractValueDomain)) {
+    if (left.isNull(_abstractValueDomain).isDefinitelyTrue &&
+        right.isNull(_abstractValueDomain).isDefinitelyTrue) {
       return makeTrue();
     }
 
@@ -893,11 +932,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
 
-    if (left.isConstantBoolean() && right.isBoolean(_abstractValueDomain)) {
+    if (left.isConstantBoolean() &&
+        right.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
       return compareConstant(left, right);
     }
 
-    if (right.isConstantBoolean() && left.isBoolean(_abstractValueDomain)) {
+    if (right.isConstantBoolean() &&
+        left.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
       return compareConstant(right, left);
     }
 
@@ -906,8 +947,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // dart2js runtime has not always been consistent with the Dart
       // specification (section 16.0.1), which makes distinctions on NaNs and
       // -0.0 that are hard to implement efficiently.
-      if (left.isIntegerOrNull(_abstractValueDomain)) return makeTrue();
-      if (!left.canBePrimitiveNumber(_abstractValueDomain)) return makeTrue();
+      if (left.isIntegerOrNull(_abstractValueDomain).isDefinitelyTrue) {
+        return makeTrue();
+      }
+      if (left.isPrimitiveNumber(_abstractValueDomain).isDefinitelyFalse) {
+        return makeTrue();
+      }
     }
 
     return null;
@@ -939,7 +984,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // This is mostly harmless (if a little confusing) but does cause a lot of
     // `x = false;` copies to be inserted when a loop body has many continue
     // statements or ends with a switch.
-    var uses =
+    DominatedUses uses =
         DominatedUses.of(condition, block.first, excludePhiOutEdges: true);
     if (uses.isEmpty) return;
     uses.replaceWith(_graph.addConstantBool(value, _closedWorld));
@@ -989,7 +1034,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
     HInstruction expression = node.expression;
-    if (expression.isInteger(_abstractValueDomain)) {
+    if (expression.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       if (element == commonElements.intClass ||
           element == commonElements.numClass ||
           commonElements.isNumberOrStringSupertype(element)) {
@@ -1001,7 +1046,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return _graph.addConstantBool(false, _closedWorld);
       }
-    } else if (expression.isDouble(_abstractValueDomain)) {
+    } else if (expression.isDouble(_abstractValueDomain).isDefinitelyTrue) {
       if (element == commonElements.doubleClass ||
           element == commonElements.numClass ||
           commonElements.isNumberOrStringSupertype(element)) {
@@ -1014,14 +1059,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return _graph.addConstantBool(false, _closedWorld);
       }
-    } else if (expression.isNumber(_abstractValueDomain)) {
+    } else if (expression.isNumber(_abstractValueDomain).isDefinitelyTrue) {
       if (element == commonElements.numClass) {
         return _graph.addConstantBool(true, _closedWorld);
       } else {
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
-    } else if (expression.canBePrimitiveNumber(_abstractValueDomain) &&
+    } else if (expression
+            .isPrimitiveNumber(_abstractValueDomain)
+            .isPotentiallyTrue &&
         element == commonElements.intClass) {
       // We let the JS semantics decide for that check.
       return node;
@@ -1033,9 +1080,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
       AbstractValue expressionMask = expression.instructionType;
       AbstractBool isInstanceOf =
           _abstractValueDomain.isInstanceOf(expressionMask, element);
-      if (isInstanceOf == AbstractBool.True) {
+      if (isInstanceOf.isDefinitelyTrue) {
         return _graph.addConstantBool(true, _closedWorld);
-      } else if (isInstanceOf == AbstractBool.False) {
+      } else if (isInstanceOf.isDefinitelyFalse) {
         return _graph.addConstantBool(false, _closedWorld);
       }
     }
@@ -1068,9 +1115,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   FieldEntity findConcreteFieldForDynamicAccess(
-      HInstruction receiver, Selector selector) {
+      HInvokeDynamicField node, HInstruction receiver) {
     AbstractValue receiverType = receiver.instructionType;
-    return _closedWorld.locateSingleField(selector, receiverType);
+    MemberEntity member = node.element is FieldEntity
+        ? node.element
+        : _closedWorld.locateSingleMember(node.selector, receiverType);
+    return member is FieldEntity ? member : null;
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -1095,23 +1145,30 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitGetLength(HGetLength node) {
-    dynamic receiver = node.receiver;
+    HInstruction receiver = node.receiver;
     if (_graph.allocatedFixedLists.contains(receiver)) {
       // TODO(ngeoffray): checking if the second input is an integer
       // should not be necessary but it currently makes it easier for
       // other optimizations to reason about a fixed length constructor
       // that we know takes an int.
-      if (receiver.inputs[0].isInteger(_abstractValueDomain)) {
+      if (receiver.inputs[0].isInteger(_abstractValueDomain).isDefinitelyTrue) {
         return receiver.inputs[0];
       }
-    } else if (receiver.isConstantList() || receiver.isConstantString()) {
-      return _graph.addConstantInt(receiver.constant.length, _closedWorld);
+    } else if (receiver.isConstantList()) {
+      HConstant constantReceiver = receiver;
+      ListConstantValue constant = constantReceiver.constant;
+      return _graph.addConstantInt(constant.length, _closedWorld);
+    } else if (receiver.isConstantString()) {
+      HConstant constantReceiver = receiver;
+      StringConstantValue constant = constantReceiver.constant;
+      return _graph.addConstantInt(constant.length, _closedWorld);
     } else {
-      dynamic type = receiver.instructionType;
-      if (type.isContainer && type.length != null) {
-        HInstruction constant =
-            _graph.addConstantInt(type.length, _closedWorld);
-        if (type.isNullable) {
+      AbstractValue type = receiver.instructionType;
+      if (_abstractValueDomain.isContainer(type) &&
+          _abstractValueDomain.getContainerLength(type) != null) {
+        HInstruction constant = _graph.addConstantInt(
+            _abstractValueDomain.getContainerLength(type), _closedWorld);
+        if (_abstractValueDomain.isNull(type).isPotentiallyTrue) {
           // If the container can be null, we update all uses of the length
           // access to use the constant instead, but keep the length access in
           // the graph, to ensure we still have a null check.
@@ -1155,27 +1212,30 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldEntity field =
-        findConcreteFieldForDynamicAccess(receiver, node.selector);
-    if (field != null) return directFieldGet(receiver, field);
+    FieldEntity field = node.element is FieldEntity
+        ? node.element
+        : findConcreteFieldForDynamicAccess(node, receiver);
+    if (field != null) {
+      HFieldGet result = _directFieldGet(receiver, field, node);
+      _log?.registerFieldGet(node, result);
+      return result;
+    }
 
-    if (node.element == null) {
-      MemberEntity element = _closedWorld.locateSingleMember(
-          node.selector, receiver.instructionType);
-      if (element != null && element.name == node.selector.name) {
-        node.element = element;
-        if (element.isFunction) {
-          // A property extraction getter, aka a tear-off.
-          node.sideEffects.clearAllDependencies();
-          node.sideEffects.clearAllSideEffects();
-          node.setUseGvn(); // We don't care about identity of tear-offs.
-        }
-      }
+    node.element ??= _closedWorld.locateSingleMember(
+        node.selector, receiver.instructionType);
+    if (node.element != null &&
+        node.element.name == node.selector.name &&
+        node.element.isFunction) {
+      // A property extraction getter, aka a tear-off.
+      node.sideEffects.clearAllDependencies();
+      node.sideEffects.clearAllSideEffects();
+      node.setUseGvn(); // We don't care about identity of tear-offs.
     }
     return node;
   }
 
-  HInstruction directFieldGet(HInstruction receiver, FieldEntity field) {
+  HInstruction _directFieldGet(
+      HInstruction receiver, FieldEntity field, HInstruction node) {
     bool isAssignable = !_closedWorld.fieldNeverChanges(field);
 
     AbstractValue type;
@@ -1183,10 +1243,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       type = AbstractValueFactory.fromNativeBehavior(
           _nativeData.getNativeFieldLoadBehavior(field), _closedWorld);
     } else {
+      // TODO(johnniwinther): Use the potentially more precise type of the
+      // node + find a test that shows its usefulness.
+      // type = _abstractValueDomain.intersection(
+      //     node.instructionType,
+      //     AbstractValueFactory.inferredTypeForMember(
+      //         field, _globalInferenceResults));
       type = AbstractValueFactory.inferredTypeForMember(
-          // ignore: UNNECESSARY_CAST
-          field as Entity,
-          _globalInferenceResults);
+          field, _globalInferenceResults);
     }
 
     return new HFieldGet(field, receiver, type, isAssignable: isAssignable);
@@ -1199,8 +1263,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldEntity field =
-        findConcreteFieldForDynamicAccess(receiver, node.selector);
+    FieldEntity field = findConcreteFieldForDynamicAccess(node, receiver);
     if (field == null || !field.isAssignable) return node;
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
@@ -1215,6 +1278,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // inline this access.
         // TODO(sra): If the input is such that we don't need a type check, we
         // can skip the test an generate the HFieldSet.
+        node.needsCheck = true;
         return node;
       }
       HInstruction other = value.convertType(
@@ -1224,7 +1288,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    return new HFieldSet(_abstractValueDomain, field, receiver, value);
+    HFieldSet result =
+        new HFieldSet(_abstractValueDomain, field, receiver, value);
+    _log?.registerFieldSet(node, result);
+    return result;
   }
 
   HInstruction visitInvokeClosure(HInvokeClosure node) {
@@ -1241,7 +1308,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // TODO(sra): Handle adding optional arguments default values.
           assert(!node.isInterceptedCall);
           return new HInvokeStatic(target, node.inputs.skip(1).toList(),
-              node.instructionType, node.typeArguments);
+              node.instructionType, node.typeArguments)
+            ..sourceInformation = node.sourceInformation;
         }
       }
     }
@@ -1273,17 +1341,23 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (commonElements.isCheckInt(element)) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
-        if (argument.isInteger(_abstractValueDomain)) return argument;
+        if (argument.isInteger(_abstractValueDomain).isDefinitelyTrue) {
+          return argument;
+        }
       }
     } else if (commonElements.isCheckNum(element)) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
-        if (argument.isNumber(_abstractValueDomain)) return argument;
+        if (argument.isNumber(_abstractValueDomain).isDefinitelyTrue) {
+          return argument;
+        }
       }
     } else if (commonElements.isCheckString(element)) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
-        if (argument.isString(_abstractValueDomain)) return argument;
+        if (argument.isString(_abstractValueDomain).isDefinitelyTrue) {
+          return argument;
+        }
       }
     }
     return node;
@@ -1293,7 +1367,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // If type information is not needed, use the raw Array.
     HInstruction source = node.inputs[0];
     if (source.usedBy.length != 1) return node;
-    if (!source.isArray(_abstractValueDomain)) return node;
+    if (source.isArray(_abstractValueDomain).isPotentiallyFalse) {
+      return node;
+    }
     for (HInstruction user in node.usedBy) {
       if (user is HGetLength) continue;
       if (user is HIndex) continue;
@@ -1371,7 +1447,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
-    if (input.isString(_abstractValueDomain)) return input;
+    if (input.isString(_abstractValueDomain).isDefinitelyTrue) {
+      return input;
+    }
 
     HInstruction asString(String string) =>
         _graph.addConstant(constantSystem.createString(string), _closedWorld);
@@ -1407,18 +1485,26 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // it directly. Keep the stringifier for primitives (since they have fast
       // path code in the stringifier) and for classes requiring interceptors
       // (since SsaInstructionSimplifier runs after SsaSimplifyInterceptors).
-      if (input.canBePrimitive(_abstractValueDomain)) return null;
-      if (input.canBeNull(_abstractValueDomain)) return null;
+      if (input.isPrimitive(_abstractValueDomain).isPotentiallyTrue) {
+        return null;
+      }
+      if (input.isNull(_abstractValueDomain).isPotentiallyTrue) {
+        return null;
+      }
       Selector selector = Selectors.toString_;
       AbstractValue toStringType = AbstractValueFactory.inferredTypeForSelector(
           selector, input.instructionType, _globalInferenceResults);
-      if (!_abstractValueDomain.containsOnlyType(
-          toStringType, _closedWorld.commonElements.jsStringClass)) {
+      if (_abstractValueDomain
+          .containsOnlyType(
+              toStringType, _closedWorld.commonElements.jsStringClass)
+          .isPotentiallyFalse) {
         return null;
       }
       // All intercepted classes extend `Interceptor`, so if the receiver can't
       // be a class extending `Interceptor` then it can be called directly.
-      if (!_abstractValueDomain.canBeInterceptor(input.instructionType)) {
+      if (_abstractValueDomain
+          .isInterceptor(input.instructionType)
+          .isDefinitelyFalse) {
         var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
         HInstruction result = new HInvokeDynamicMethod(
             selector,
@@ -1628,7 +1714,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // be a class extending `Interceptor` then the substitution methods can be
       // called directly. (We don't care about Null since contexts reading class
       // type variables originate from instance methods.)
-      if (!_abstractValueDomain.canBeInterceptor(object.instructionType)) {
+      if (_abstractValueDomain
+          .isInterceptor(object.instructionType)
+          .isDefinitelyFalse) {
         return new HTypeInfoReadVariable.noInterceptor(
             variable, object, node.instructionType);
       }
@@ -1677,9 +1765,10 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
         isAssignable: !isFixedLength(array.instructionType, closedWorld));
     indexNode.block.addBefore(indexNode, length);
 
-    AbstractValue type = indexArgument.isPositiveInteger(_abstractValueDomain)
-        ? indexArgument.instructionType
-        : closedWorld.abstractValueDomain.positiveIntType;
+    AbstractValue type =
+        indexArgument.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue
+            ? indexArgument.instructionType
+            : closedWorld.abstractValueDomain.positiveIntType;
     HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type)
       ..sourceInformation = indexNode.sourceInformation;
     indexNode.block.addBefore(indexNode, check);
@@ -1690,7 +1779,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     // the index eg. if it is a constant.  The range information from the
     // BoundsCheck instruction is attached to the input directly by
     // visitBoundsCheck in the SsaValueRangeAnalyzer.
-    if (!indexArgument.isInteger(_abstractValueDomain)) {
+    if (indexArgument.isInteger(_abstractValueDomain).isPotentiallyFalse) {
       indexArgument.replaceAllUsersDominatedBy(indexNode, check);
     }
     boundsChecked.add(indexNode);
@@ -2117,7 +2206,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
   }
 
   void visitSwitch(HSwitch node) {
-    if (node.expression.isInteger(_abstractValueDomain)) {
+    if (node.expression.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       Range switchRange = ranges[node.expression];
       if (switchRange != null &&
           switchRange.lower is IntValue &&
@@ -2672,7 +2761,9 @@ class SsaTypeConversionInserter extends HBaseVisitor
       return;
     }
 
-    if (!_abstractValueDomain.canBeNull(input.instructionType)) return;
+    if (_abstractValueDomain.isNull(input.instructionType).isDefinitelyFalse) {
+      return;
+    }
 
     List<HBasicBlock> trueTargets = <HBasicBlock>[];
     List<HBasicBlock> falseTargets = <HBasicBlock>[];
@@ -3043,8 +3134,9 @@ class MemorySet {
     if (nonEscapingReceivers.contains(second)) return false;
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
-    return !_abstractValueDomain.areDisjoint(
-        first.instructionType, second.instructionType);
+    return _abstractValueDomain
+        .areDisjoint(first.instructionType, second.instructionType)
+        .isPotentiallyFalse;
   }
 
   bool isFinal(Object element) {
@@ -3059,7 +3151,8 @@ class MemorySet {
 
   bool couldBeTypedArray(HInstruction receiver) {
     return closedWorld.abstractValueDomain
-        .couldBeTypedArray(receiver.instructionType);
+        .couldBeTypedArray(receiver.instructionType)
+        .isPotentiallyTrue;
   }
 
   /// Returns whether [receiver] escapes the current function.

@@ -714,8 +714,7 @@ class TypeSchemaEnvironmentTest {
   }
 
   TypeSchemaEnvironment _makeEnv() {
-    return new TypeSchemaEnvironment(
-        coreTypes, new ClassHierarchy(component), false);
+    return new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(component));
   }
 
   DartType _map(DartType key, DartType value) =>

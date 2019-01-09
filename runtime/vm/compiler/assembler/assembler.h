@@ -352,20 +352,7 @@ class ObjIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.value_; }
 
-  static intptr_t Hashcode(Key key) {
-    if (key.type() != ObjectPool::kTaggedObject) {
-      return key.raw_value_;
-    }
-    if (key.obj_->IsSmi()) {
-      return Smi::Cast(*key.obj_).Value();
-    }
-    // TODO(asiva) For now we assert that the object is from Old space
-    // and use the address of the raw object, once the weak_entry_table code
-    // in heap allows for multiple thread access we should switch this code
-    // to create a temporary raw obj => id mapping and use that.
-    ASSERT(key.obj_->IsOld());
-    return reinterpret_cast<intptr_t>(key.obj_->raw());
-  }
+  static intptr_t Hashcode(Key key);
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     if (kv.key_.entry_bits_ != key.entry_bits_) return false;
@@ -383,10 +370,40 @@ class ObjIndexPair {
 
 class ObjectPoolWrapper : public ValueObject {
  public:
+  ObjectPoolWrapper() : zone_(nullptr) {}
+  ~ObjectPoolWrapper() {
+    if (zone_ != nullptr) {
+      Reset();
+      zone_ = nullptr;
+    }
+  }
+
+  // Clears all existing entries in this object pool builder.
+  //
+  // Note: Any code which has been compiled via this builder might use offsets
+  // into the pool which are not correct anymore.
+  void Reset();
+
+  // Initializes this object pool builder from [other].
+  //
+  // All entries from [other] will be populated, including their
+  // kind/patchability bits.
+  void InitializeFrom(const ObjectPool& other);
+
+  // Initialize this object pool builder with a [zone].
+  //
+  // Any objects added later on will be referenced using handles from [zone].
+  void InitializeWithZone(Zone* zone) {
+    ASSERT(object_pool_.length() == 0);
+    ASSERT(zone_ == nullptr && zone != nullptr);
+    zone_ = zone;
+  }
+
   intptr_t AddObject(
       const Object& obj,
       ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   intptr_t AddImmediate(uword imm);
+
   intptr_t FindObject(
       const Object& obj,
       ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
@@ -399,6 +416,9 @@ class ObjectPoolWrapper : public ValueObject {
 
   RawObjectPool* MakeObjectPool();
 
+  intptr_t CurrentLength() { return object_pool_.length(); }
+  ObjectPoolWrapperEntry& EntryAt(intptr_t i) { return object_pool_[i]; }
+
  private:
   intptr_t AddObject(ObjectPoolWrapperEntry entry);
   intptr_t FindObject(ObjectPoolWrapperEntry entry);
@@ -408,6 +428,11 @@ class ObjectPoolWrapper : public ValueObject {
 
   // Hashmap for fast lookup in object pool.
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+
+  // The zone used for allocating the handles we keep in the map and array (or
+  // NULL, in which case allocations happen using the zone active at the point
+  // of insertion).
+  Zone* zone_;
 };
 
 enum RestorePP { kRestoreCallerPP, kKeepCalleePP };

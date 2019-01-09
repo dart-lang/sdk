@@ -515,11 +515,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   ProfilerDartStackWalker(Thread* thread,
                           Sample* sample,
                           SampleBuffer* sample_buffer,
-                          uword stack_lower,
-                          uword stack_upper,
                           uword pc,
                           uword fp,
-                          uword sp,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
       : ProfilerStackWalker((thread->isolate() != NULL)
@@ -530,10 +527,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                             skip_count),
         thread_(thread),
         pc_(reinterpret_cast<uword*>(pc)),
-        fp_(reinterpret_cast<uword*>(fp)),
-        sp_(reinterpret_cast<uword*>(sp)),
-        stack_upper_(stack_upper),
-        stack_lower_(stack_lower) {}
+        fp_(reinterpret_cast<uword*>(fp)) {}
 
   bool IsInterpretedFrame(uword* fp) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -600,6 +594,19 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
     sample_->set_exit_frame_sample(has_exit_frame);
 
+    if (!has_exit_frame && !in_interpreted_frame &&
+        (CallerPC(in_interpreted_frame) == EntryMarker(in_interpreted_frame))) {
+      // During the prologue of a function, CallerPC will return the caller's
+      // caller. For most frames, the missing PC will be added during profile
+      // processing. However, during this stack walk, it can cause us to fail
+      // to identify the entry frame and lead the stack walk into the weeds.
+      // Do not continue the stalk walk since this might be a false positive
+      // from a Smi or unboxed value.
+      RELEASE_ASSERT(!has_exit_frame);
+      sample_->set_ignore_sample(true);
+      return;
+    }
+
     for (;;) {
       // Skip entry frame.
       if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
@@ -620,20 +627,6 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                                                    in_interpreted_frame));
       }
 
-#if !defined(TARGET_ARCH_DBC)
-      RawCode* marker = PCMarker(in_interpreted_frame);
-      if (marker == StubCode::InvokeDartCode().raw() ||
-          marker == StubCode::InvokeDartCodeFromBytecode().raw()) {
-        // During the prologue of a function, CallerPC will return the caller's
-        // caller. For most frames, the missing PC will be added during profile
-        // processing. However, during this stack walk, it can cause us to fail
-        // to identify the entry frame and lead the stack walk into the weeds.
-        RELEASE_ASSERT(!has_exit_frame);
-        sample_->set_ignore_sample(true);
-        return;
-      }
-#endif
-
       if (!Append(reinterpret_cast<uword>(pc_))) {
         break;  // Sample is full.
       }
@@ -648,14 +641,6 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   }
 
  private:
-  uword InitialReturnAddress() const {
-    ASSERT(sp_ != NULL);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(sp_, kWordSize);
-    ASAN_UNPOISON(sp_, kWordSize);
-    return *(sp_);
-  }
-
   uword* CallerPC(bool interp) const {
     ASSERT(fp_ != NULL);
     uword* caller_pc_ptr =
@@ -676,20 +661,6 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     return reinterpret_cast<uword*>(*caller_fp_ptr);
   }
 
-  RawCode* PCMarker(bool interp) const {
-    ASSERT(fp_ != NULL);
-    if (interp) {
-      // We don't need this extra check for the interpreter because its frame
-      // build is atomic from the profiler's point of view.
-      return NULL;
-    }
-    uword* pc_marker_ptr = fp_ + kPcMarkerSlotFromFp;
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(pc_marker_ptr, kWordSize);
-    ASAN_UNPOISON(pc_marker_ptr, kWordSize);
-    return reinterpret_cast<RawCode*>(*pc_marker_ptr);
-  }
-
   uword* ExitLink(bool interp) const {
     ASSERT(fp_ != NULL);
     uword* exit_link_ptr =
@@ -700,23 +671,21 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     return reinterpret_cast<uword*>(*exit_link_ptr);
   }
 
-  bool ValidFramePointer() const { return ValidFramePointer(fp_); }
-
-  bool ValidFramePointer(uword* fp) const {
-    if (fp == NULL) {
-      return false;
-    }
-    uword cursor = reinterpret_cast<uword>(fp);
-    cursor += sizeof(fp);
-    return (cursor >= stack_lower_) && (cursor < stack_upper_);
+  // Note because of stack guards, it is important that this marker lives
+  // above FP.
+  uword* EntryMarker(bool interp) const {
+    ASSERT(!interp);
+    ASSERT(fp_ != NULL);
+    uword* entry_marker_ptr = fp_ + kSavedCallerPcSlotFromFp + 1;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(entry_marker_ptr, kWordSize);
+    ASAN_UNPOISON(entry_marker_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*entry_marker_ptr);
   }
 
   Thread* const thread_;
   uword* pc_;
   uword* fp_;
-  uword* sp_;
-  const uword stack_upper_;
-  const uword stack_lower_;
 };
 
 // If the VM is compiled without frame pointers (which is the default on
@@ -1218,8 +1187,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     native_stack_walker.walk();
   } else if (exited_dart_code) {
     ProfilerDartStackWalker dart_exit_stack_walker(
-        thread, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
-        /* allocation_sample*/ true);
+        thread, sample, sample_buffer, pc, fp, /* allocation_sample*/ true);
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
@@ -1418,9 +1386,8 @@ void Profiler::SampleThread(Thread* thread,
       &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
       sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
-  ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer,
-                                            stack_lower, stack_upper, pc, fp,
-                                            sp, /* allocation_sample*/ false);
+  ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer, pc,
+                                            fp, /* allocation_sample*/ false);
 
   // All memory access is done inside CollectSample.
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,

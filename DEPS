@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "92eb86a60b26089eaffc4fa9703895f71a251a76",
+  "co19_2_rev": "9c03cd19b61a9307db192f174a7e7a1ec6759bb2",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -49,15 +49,15 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
 
-  "gperftools_revision": "9608fa3bcf8020d35f59fbf70cd3cbe4b015b972",
+  "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "0.1.14",
   "boolean_selector_tag" : "1.0.4",
-  "boringssl_gen_rev": "fc47eaa1a245d858bae462cd64d4155605b850ea",
-  "boringssl_rev" : "189270cd190267f5bd60cfe8f8ce7a61d07ba6f4",
+  "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
+  "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
   "charcode_tag": "v1.1.2",
   "chrome_rev" : "19997",
   "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
@@ -79,9 +79,9 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.1",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.24.1",
+  "dartdoc_tag" : "v0.27.0",
   "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
   "fixnum_tag": "0.10.9",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
@@ -97,7 +97,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.73",
+  "linter_tag": "0.1.78",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
@@ -136,7 +136,6 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
   "test_tag": "1.3.4",
-  "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -162,7 +161,7 @@ deps = {
       "packages": [
           {
               "package": "dart/dart-sdk/${{platform}}",
-              "version": "version:2.2.0-dev.0.0",
+              "version": "version:2.1.1-dev.0.1",
           },
       ],
       "dep_type": "cipd",
@@ -355,8 +354,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_tag"),
-  Var("dart_root") + "/third_party/pkg/tuple":
-      Var("dart_git") + "tuple.git" + "@" + Var("tuple_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
   # Unittest is an early version, 0.11.x, of the package "test"

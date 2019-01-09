@@ -31,6 +31,15 @@ class InductionVar : public ZoneAllocated {
     kPeriodic,
   };
 
+  // Strict bound on unit stride linear induction:
+  //   i < U (i++)
+  //   i > L (i--)
+  struct Bound {
+    Bound(BranchInstr* b, InductionVar* l) : branch_(b), limit_(l) {}
+    BranchInstr* branch_;
+    InductionVar* limit_;
+  };
+
   // Constructor for an invariant.
   InductionVar(int64_t offset, int64_t mult, Definition* def)
       : kind_(kInvariant), offset_(offset), mult_(mult), def_(def) {}
@@ -95,6 +104,7 @@ class InductionVar : public ZoneAllocated {
     ASSERT(kind_ != kInvariant);
     return next_;
   }
+  const GrowableArray<Bound>& bounds() { return bounds_; }
 
   // For debugging.
   const char* ToCString() const;
@@ -109,9 +119,26 @@ class InductionVar : public ZoneAllocated {
     return x != nullptr && x->kind_ == kInvariant && x->mult_ == 0;
   }
 
+  // Returns true if x is a constant. Sets the value.
+  static bool IsConstant(InductionVar* x, int64_t* c) {
+    if (IsConstant(x)) {
+      *c = x->offset_;
+      return true;
+    }
+    return false;
+  }
+
   // Returns true if x is linear.
   static bool IsLinear(InductionVar* x) {
     return x != nullptr && x->kind_ == kLinear;
+  }
+
+  // Returns true if x is linear with constant stride. Sets the stride.
+  static bool IsLinear(InductionVar* x, int64_t* s) {
+    if (IsLinear(x)) {
+      return IsConstant(x->next_, s);
+    }
+    return false;
   }
 
   // Returns true if x is wrap-around.
@@ -124,9 +151,15 @@ class InductionVar : public ZoneAllocated {
     return x != nullptr && x->kind_ == kPeriodic;
   }
 
+  // Returns true if x is any induction.
+  static bool IsInduction(InductionVar* x) {
+    return x != nullptr && x->kind_ != kInvariant;
+  }
+
  private:
   friend class InductionVarAnalysis;
 
+  // Induction classification.
   const Kind kind_;
   union {
     struct {
@@ -139,6 +172,9 @@ class InductionVar : public ZoneAllocated {
       InductionVar* next_;
     };
   };
+
+  // Bounds on induction.
+  GrowableArray<Bound> bounds_;
 
   DISALLOW_COPY_AND_ASSIGN(InductionVar);
 };
@@ -215,6 +251,8 @@ class LoopInfo : public ZoneAllocated {
   DirectChainedHashMap<InductionKV> induction_;
 
   // Constraint on a header phi.
+  // TODO(ajcbik): very specific to smi range analysis,
+  //               should we really store it here?
   ConstraintInstr* limit_;
 
   // Loop hierarchy.

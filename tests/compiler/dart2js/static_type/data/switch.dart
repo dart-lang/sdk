@@ -14,8 +14,8 @@ main() {
 
 switch1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
-    switch (/*dynamic*/ c) {
+    /*Class*/ c.next;
+    switch (/*Class*/ c) {
       label:
       case 0:
         /*dynamic*/ c.next;
@@ -34,13 +34,13 @@ switch1(dynamic c) {
 
 switch2(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
-    switch (/*dynamic*/ c) {
+    /*Class*/ c.next;
+    switch (/*Class*/ c) {
       case 0:
-        /*dynamic*/ c.next;
+        /*Class*/ c.next;
         break;
       case 1:
-        /*dynamic*/ c.next;
+        /*Class*/ c.next;
         c = 0;
         break;
     }
@@ -53,7 +53,7 @@ switch3(dynamic c) {
   switch (/*dynamic*/ c) {
     case 0:
       if (/*dynamic*/ c is! Class) return;
-      /*dynamic*/ c.next;
+      /*Class*/ c.next;
       break;
     case 1:
       /*dynamic*/ c.next;

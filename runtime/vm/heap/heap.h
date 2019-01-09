@@ -426,11 +426,21 @@ class NoHeapGrowthControlScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
 };
 
-// Note: During this scope, the code pages are non-executable.
+// Note: During this scope all pages are writable and the code pages are
+// non-executable.
 class WritableVMIsolateScope : StackResource {
  public:
   explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
+};
+
+class WritableCodePages : StackResource {
+ public:
+  explicit WritableCodePages(Thread* thread, Isolate* isolate);
+  ~WritableCodePages();
+
+ private:
+  Isolate* isolate_;
 };
 
 // This scope forces heap growth, forces use of the bump allocator, and

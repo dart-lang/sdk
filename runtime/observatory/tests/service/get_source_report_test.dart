@@ -75,8 +75,12 @@ var tests = <IsolateTest>[
       'scriptId': func.location.script.id
     };
     var coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
+    final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, 6);
+
+    // Running in app_jitk mode will result in the number of ranges being 6
+    // during the training run and 7 when running from the snapshot.
+    expect(((numRanges == 6) || (numRanges == 7)), isTrue);
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(
@@ -91,7 +95,7 @@ var tests = <IsolateTest>[
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, 6);
+    expect(coverage['ranges'].length, numRanges);
     expect(allRangesCompiled(coverage), isTrue);
 
     // One function

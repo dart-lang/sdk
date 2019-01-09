@@ -1,6 +1,7 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
@@ -29,8 +30,8 @@ class InheritedReferenceContributorTest extends DartCompletionContributorTest {
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_inherited_method_with_required_named() async {
-    addMetaPackageSource();
-    resolveSource('/testB.dart', '''
+    addMetaPackage();
+    resolveSource('/home/test/lib/b.dart', '''
 import 'package:meta/meta.dart';
 
 lib libB;
@@ -38,7 +39,7 @@ class A {
    bool foo(int bar, {bool boo, @required int baz}) => false;
 }''');
     addTestSource('''
-import "testB.dart";
+import "b.dart";
 class B extends A {
   b() => f^
 }
@@ -51,13 +52,13 @@ class B extends A {
 
   test_AwaitExpression_inherited() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
 lib libB;
 class A {
   Future y() async {return 0;}
 }''');
     addTestSource('''
-import "testB.dart";
+import "b.dart";
 class B extends A {
   Future a() async {return 0;}
   foo() async {await ^}
@@ -72,19 +73,19 @@ class B extends A {
     assertNotSuggested('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertSuggestMethod('y', 'A', 'dynamic');
+    assertSuggestMethod('y', 'A', 'Future<dynamic>');
   }
 
   test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
       lib B;
       class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
       class E extends F { var e1; e2() { } }
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }''');
     addTestSource('''
-      import "testB.dart";
+      import "b.dart";
       class A extends E implements I with M {a() {^}}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -163,7 +164,7 @@ $spaces_4});''',
   }
 
   test_inherited() async {
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -172,7 +173,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "testB.dart";
+import "b.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -239,13 +240,13 @@ mixin M on C {
   }
 
   test_method_parameters_mixed_required_and_named() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   void m(x, {int y}) {}
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -282,13 +283,13 @@ class B extends A {
   }
 
   test_method_parameters_mixed_required_and_positional() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   void m(x, [int y]) {}
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -325,13 +326,13 @@ class B extends A {
   }
 
   test_method_parameters_named() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   void m({x, int y}) {}
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -368,13 +369,13 @@ class B extends A {
   }
 
   test_method_parameters_none() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   void m() {}
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -405,13 +406,13 @@ class B extends A {
   }
 
   test_method_parameters_positional() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   void m([x, int y]) {}
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -448,13 +449,13 @@ class B extends A {
   }
 
   test_method_parameters_required() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   void m(x, int y) {}
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -471,7 +472,7 @@ class B extends A {
   }
 
   test_mixin_ordering() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class B {}
 class M1 {
   void m() {}
@@ -481,7 +482,7 @@ class M2 {
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class C extends B with M1, M2 {
   void f() {
     ^
@@ -493,13 +494,13 @@ class C extends B with M1, M2 {
   }
 
   test_no_parameters_field() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   int x;
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -510,13 +511,13 @@ class B extends A {
   }
 
   test_no_parameters_getter() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   int get x => null;
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -527,13 +528,13 @@ class B extends A {
   }
 
   test_no_parameters_setter() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {
   set x(int value) {};
 }
 ''');
     addTestSource('''
-import 'libA.dart';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -544,7 +545,7 @@ class B extends A {
   }
 
   test_outside_class() async {
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -553,7 +554,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "testB.dart";
+import "b.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -585,7 +586,7 @@ foo() {^}
   }
 
   test_static_field() async {
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -594,7 +595,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "testB.dart";
+import "b.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -626,7 +627,7 @@ class B extends A1 with A2 {
   }
 
   test_static_method() async {
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -635,7 +636,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "testB.dart";
+import "b.dart";
 class A1 {
   int x;
   int y() {return 0;}

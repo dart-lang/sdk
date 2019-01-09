@@ -136,11 +136,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    listener?.beginExpressionStatement(token);
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -546,11 +541,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
-    listener?.endExpressionStatement(token);
-  }
-
-  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     listener?.endFactoryMethod(beginToken, factoryKeyword, endToken);
@@ -625,8 +615,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
-    listener?.endFunctionType(functionToken);
+  void endFunctionType(Token functionToken, Token questionMark) {
+    listener?.endFunctionType(functionToken, questionMark);
   }
 
   @override
@@ -1002,6 +992,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleExpressionStatement(Token token) {
+    listener?.handleExpressionStatement(token);
+  }
+
+  @override
   void handleExtraneousExpression(Token token, Message message) {
     listener?.handleExtraneousExpression(token, message);
   }
@@ -1349,8 +1344,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken) {
-    listener?.handleType(beginToken);
+  void handleType(Token beginToken, Token questionMark) {
+    listener?.handleType(beginToken, questionMark);
   }
 
   @override
@@ -1396,6 +1391,11 @@ class ForwardingListener implements Listener {
   @override
   void logEvent(String name) {
     listener?.logEvent(name);
+  }
+
+  @override
+  void reportErrorIfNullableType(Token questionMark) {
+    listener?.reportErrorIfNullableType(questionMark);
   }
 
   @override

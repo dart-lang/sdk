@@ -31,7 +31,7 @@ namedLocalFunctionInvoke() {
 // Invocation of an unnamed local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: unnamedLocalFunctionInvoke:[null|subclass=Object]*/
+/*element: unnamedLocalFunctionInvoke:[null|subclass=JSInt]*/
 unnamedLocalFunctionInvoke() {
   var local = /*[exact=JSUInt31]*/ () => 0;
   return local();
@@ -62,6 +62,7 @@ recursiveLocalFunction() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
+@pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeMissingArgument() {
   /*[exact=JSUInt31]*/ local(/*[empty]*/ x) => 0;
   dynamic b = local;
@@ -73,6 +74,7 @@ namedLocalFunctionInvokeMissingArgument() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
+@pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeExtraArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
   dynamic b = local;
@@ -84,6 +86,7 @@ namedLocalFunctionInvokeExtraArgument() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
+@pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeExtraNamedArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
   dynamic b = local;
@@ -118,7 +121,7 @@ closureCallToString() {
 
 /*element: _callCompare:[subclass=Closure]*/
 _callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
-  compare(a: 0, b: 1) == 0;
+  compare(a: 0, b: 1) /*invoke: [null|subclass=JSInt]*/ == 0;
   return compare;
 }
 

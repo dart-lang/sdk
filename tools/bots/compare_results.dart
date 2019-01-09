@@ -148,7 +148,7 @@ bool search(
           output = "$name ${event.description} "
               "(${event.after.outcome}${expect})";
         } else {
-          output = "name ${event.description} "
+          output = "$name ${event.description} "
               "(${event.before?.outcome} -> ${event.after.outcome}${expect})";
         }
       } else {
@@ -157,10 +157,15 @@ bool search(
             "${before?.matches} ${after.matches} "
             "${before?.flaked} ${after.flaked}";
       }
+    } else {
+      output = name;
     }
     if (logs != null) {
       final log = logs[event.after.key];
-      if (log != null) logSection?.add("\n\nLog for $output\n${log["log"]}");
+      final bar = '=' * (output.length + 2);
+      if (log != null) {
+        logSection?.add("\n\n/$bar\\\n| $output |\n\\$bar/\n\n${log["log"]}");
+      }
     }
     if (!options["logs-only"]) {
       print(output);

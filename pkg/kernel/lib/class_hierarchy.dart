@@ -58,11 +58,11 @@ abstract class ClassHierarchy {
   /// q be the largest number such that S_q has cardinality one.  The least
   /// upper bound of I and J is the sole element of S_q.
   ///
-  /// This is called the "classic" least upper bound to distinguish it from the
-  /// strong mode least upper bound, which has special behaviors in the case
-  /// where one type is a subtype of the other, or where both types are based on
-  /// the same class.
-  InterfaceType getClassicLeastUpperBound(
+  /// This is called the "legacy" least upper bound to distinguish it from the
+  /// Dart 2 least upper bound, which has special behaviors in the case where
+  /// one type is a subtype of the other, or where both types are based on the
+  /// same class.
+  InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
@@ -506,7 +506,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getClassicLeastUpperBound(
+  InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
@@ -609,7 +609,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       throw "${class_.fileUri}: No class info for ${class_.name}";
     }
     _ClassInfo superInfo = _infoFor[superclass];
-    if (info == null) {
+    if (superInfo == null) {
       throw "${superclass.fileUri}: No class info for ${superclass.name}";
     }
     if (!info.isSubtypeOf(superInfo)) return null;
@@ -1405,7 +1405,7 @@ class ClassSet extends IterableBase<Class> {
   ClassSet(this._classes);
 
   bool contains(Object class_) {
-    return _classes.contains(_classes);
+    return _classes.contains(class_);
   }
 
   ClassSet union(ClassSet other) {

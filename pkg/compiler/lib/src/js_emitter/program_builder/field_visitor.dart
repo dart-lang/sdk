@@ -146,7 +146,7 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
+        _codegenWorldBuilder.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
@@ -154,7 +154,7 @@ class FieldVisitor {
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
     return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
+        _codegenWorldBuilder.hasInvokedSetter(field);
   }
 
   static bool fieldAccessNeverThrows(FieldEntity field) {

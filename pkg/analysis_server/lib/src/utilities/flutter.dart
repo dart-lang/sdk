@@ -19,6 +19,8 @@ const _PADDING_NAME = "Padding";
 const _STATE_NAME = "State";
 const _STATEFUL_WIDGET_NAME = "StatefulWidget";
 const _STATELESS_WIDGET_NAME = "StatelessWidget";
+const _STREAM_BUILDER_NAME = "StreamBuilder";
+const _STREAM_BUILDER_URI = "package:flutter/src/widgets/async.dart";
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 final _frameworkUri = Uri.parse('package:flutter/src/widgets/framework.dart');
@@ -304,6 +306,14 @@ bool isExactWidgetTypeContainer(DartType type) {
 bool isExactWidgetTypePadding(DartType type) {
   return type is InterfaceType &&
       _isExactWidget(type.element, _PADDING_NAME, _BASIC_URI);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `StreamBuilder`.
+ */
+bool isExactWidgetTypeStreamBuilder(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _STREAM_BUILDER_NAME, _STREAM_BUILDER_URI);
 }
 
 /**

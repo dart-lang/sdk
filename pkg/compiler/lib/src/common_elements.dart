@@ -11,10 +11,10 @@ import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'kernel/dart2js_target.dart';
-import 'types/abstract_value_domain.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -215,7 +215,6 @@ abstract class CommonElements {
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element);
 
   // From dart:async
-  FunctionEntity get asyncHelperStart;
   FunctionEntity get asyncHelperStartSync;
   FunctionEntity get asyncHelperAwait;
   FunctionEntity get asyncHelperReturn;
@@ -248,8 +247,6 @@ abstract class CommonElements {
   FunctionEntity get syncStarIterableFactory;
 
   FunctionEntity get asyncAwaitCompleterFactory;
-
-  FunctionEntity get syncCompleterFactory;
 
   FunctionEntity get asyncStarStreamControllerFactory;
 
@@ -472,8 +469,6 @@ abstract class CommonElements {
   ClassEntity get jsGetNameEnum;
 
   ClassEntity get expectNoInlineClass;
-
-  ClassEntity get expectTrustTypeAnnotationsClass;
 
   ClassEntity get expectAssumeDynamicClass;
 
@@ -1029,8 +1024,6 @@ class CommonElementsImpl
   FunctionEntity _findAsyncHelperFunction(String name) =>
       _findLibraryMember(asyncLibrary, name);
 
-  FunctionEntity get asyncHelperStart =>
-      _findAsyncHelperFunction("_asyncStart");
   FunctionEntity get asyncHelperStartSync =>
       _findAsyncHelperFunction("_asyncStartSync");
   FunctionEntity get asyncHelperAwait =>
@@ -1082,10 +1075,6 @@ class CommonElementsImpl
   FunctionEntity get asyncAwaitCompleterFactory =>
       _asyncAwaitCompleterFactory ??=
           _findAsyncHelperFunction('_makeAsyncAwaitCompleter');
-
-  FunctionEntity _syncCompleterFactory;
-  FunctionEntity get syncCompleterFactory =>
-      _syncCompleterFactory ??= _findAsyncHelperFunction('_makeSyncCompleter');
 
   FunctionEntity _asyncStarStreamControllerFactory;
   FunctionEntity get asyncStarStreamControllerFactory =>
@@ -1239,7 +1228,9 @@ class CommonElementsImpl
     }
     return selector.applies(_jsStringSplit) &&
         (receiver == null ||
-            abstractValueDomain.canHit(receiver, jsStringSplit, selector));
+            abstractValueDomain
+                .isTargetingMember(receiver, jsStringSplit, selector.memberName)
+                .isPotentiallyTrue);
   }
 
   FunctionEntity _jsStringSplit;
@@ -1664,7 +1655,6 @@ class CommonElementsImpl
 
   bool _expectAnnotationChecked = false;
   ClassEntity _expectNoInlineClass;
-  ClassEntity _expectTrustTypeAnnotationsClass;
   ClassEntity _expectAssumeDynamicClass;
 
   void _ensureExpectAnnotations() {
@@ -1673,15 +1663,10 @@ class CommonElementsImpl
       LibraryEntity library = _env.lookupLibrary(PACKAGE_EXPECT);
       if (library != null) {
         _expectNoInlineClass = _env.lookupClass(library, 'NoInline');
-        _expectTrustTypeAnnotationsClass =
-            _env.lookupClass(library, 'TrustTypeAnnotations');
         _expectAssumeDynamicClass = _env.lookupClass(library, 'AssumeDynamic');
-        if (_expectNoInlineClass == null ||
-            _expectTrustTypeAnnotationsClass == null ||
-            _expectAssumeDynamicClass == null) {
+        if (_expectNoInlineClass == null || _expectAssumeDynamicClass == null) {
           // This is not the package you're looking for.
           _expectNoInlineClass = null;
-          _expectTrustTypeAnnotationsClass = null;
           _expectAssumeDynamicClass = null;
         }
       }
@@ -1691,11 +1676,6 @@ class CommonElementsImpl
   ClassEntity get expectNoInlineClass {
     _ensureExpectAnnotations();
     return _expectNoInlineClass;
-  }
-
-  ClassEntity get expectTrustTypeAnnotationsClass {
-    _ensureExpectAnnotations();
-    return _expectTrustTypeAnnotationsClass;
   }
 
   ClassEntity get expectAssumeDynamicClass {

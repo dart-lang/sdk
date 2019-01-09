@@ -478,7 +478,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     debugEvent("ExpressionStatement", token);
     state.pop();
   }
@@ -619,7 +619,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType", functionToken);
   }
 
@@ -836,10 +836,25 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
+  void handleLiteralSet(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("LiteralSet", leftBrace);
+    state.discard(count);
+    state.pushNull("{}", leftBrace);
+  }
+
+  @override
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap", leftBrace);
     state.discard(count);
+    state.pushNull("{}", leftBrace);
+  }
+
+  @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("EmptyLiteralSetOrMap", leftBrace);
     state.pushNull("{}", leftBrace);
   }
 
@@ -1212,7 +1227,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type", beginToken);
     state.pop();
   }

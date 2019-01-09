@@ -1,18 +1,20 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer_cli.src.build_mode;
 
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -35,9 +37,6 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/cache.dart';
 
 /**
  * Persistent Bazel worker.
@@ -58,14 +57,6 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         resourceProvider, logger, 256 * 1024 * 1024);
   }
 
-  factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
-      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
-        inputStream: stdinStream, outputStream: stdoutStream);
-    return new AnalyzerWorkerLoop(resourceProvider, connection,
-        dartSdkPath: dartSdkPath);
-  }
-
   factory AnalyzerWorkerLoop.sendPort(
       ResourceProvider resourceProvider, SendPort sendPort,
       {String dartSdkPath}) {
@@ -75,10 +66,18 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         dartSdkPath: dartSdkPath);
   }
 
+  factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
+      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
+    AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
+        inputStream: stdinStream, outputStream: stdoutStream);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
+  }
+
   /**
    * Performs analysis with given [options].
    */
-  Future<Null> analyze(
+  Future<void> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -148,7 +147,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    * Run the worker loop.
    */
   @override
-  Future<Null> run() async {
+  Future<void> run() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     errorSink = errorBuffer;
@@ -174,7 +173,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 /**
  * Analyzer used when the "--build-mode" option is supplied.
  */
-class BuildMode extends Object with HasContextMixin {
+class BuildMode with HasContextMixin {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
@@ -192,7 +191,6 @@ class BuildMode extends Object with HasContextMixin {
   AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
-  final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
@@ -474,7 +472,7 @@ class BuildMode extends Object with HasContextMixin {
    *
    * Otherwise compute it and store into the [uriToUnit] and [assembler].
    */
-  Future<Null> _prepareUnlinkedUnit(String absoluteUri) async {
+  Future<void> _prepareUnlinkedUnit(String absoluteUri) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Maybe an input package contains the source.
@@ -499,7 +497,7 @@ class BuildMode extends Object with HasContextMixin {
    * Print errors for all explicit sources.  If [outputPath] is supplied, output
    * is sent to a new file at that path.
    */
-  Future<Null> _printErrors({String outputPath}) async {
+  Future<void> _printErrors({String outputPath}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     await logger.runAsync('Compute and print analysis errors', () async {

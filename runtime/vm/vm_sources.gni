@@ -239,6 +239,8 @@ vm_sources = [
   "resolver.cc",
   "resolver.h",
   "reusable_handles.h",
+  "reverse_pc_lookup_cache.cc",
+  "reverse_pc_lookup_cache.h",
   "ring_buffer.h",
   "runtime_entry.cc",
   "runtime_entry.h",

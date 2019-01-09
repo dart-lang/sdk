@@ -58,9 +58,9 @@ rules:
   }
 
   void _performParseTask(String content) {
-    var path = resourceProvider.convertPath('/test.yaml');
+    var path = '/test.yaml';
     if (content == null) {
-      source = resourceProvider.getFile(path).createSource();
+      source = getFile(path).createSource();
     } else {
       source = newSource(path, content);
     }

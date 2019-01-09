@@ -168,10 +168,8 @@ void IrregexpCompilationPipeline::ParseFunction(
   const bool multiline = regexp.is_multi_line();
 
   RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-  if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-    // Parsing failures are handled in the RegExp factory constructor.
-    UNREACHABLE();
-  }
+  // Parsing failures are handled in the RegExp factory constructor.
+  RegExpParser::ParseRegExp(pattern, multiline, compile_data);
 
   regexp.set_num_bracket_expressions(compile_data->capture_count);
   if (compile_data->simple) {
@@ -332,161 +330,6 @@ bool Compiler::IsBackgroundCompilation() {
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   UNREACHABLE();
   return Error::null();
-}
-
-static void AddRelatedClassesToList(
-    const Class& cls,
-    GrowableHandlePtrArray<const Class>* parse_list,
-    GrowableHandlePtrArray<const Class>* patch_list) {
-  Zone* zone = Thread::Current()->zone();
-  Class& parse_class = Class::Handle(zone);
-  AbstractType& interface_type = Type::Handle(zone);
-  Array& interfaces = Array::Handle(zone);
-
-  // Add all the interfaces implemented by the class that have not been
-  // already parsed to the parse list. Mark the interface as parsed so that
-  // we don't recursively add it back into the list.
-  interfaces ^= cls.interfaces();
-  for (intptr_t i = 0; i < interfaces.Length(); i++) {
-    interface_type ^= interfaces.At(i);
-    parse_class ^= interface_type.type_class();
-    if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
-      parse_list->Add(parse_class);
-      parse_class.set_is_marked_for_parsing();
-    }
-  }
-
-  // Walk up the super_class chain and add these classes to the list if they
-  // have not been already parsed to the parse list. Mark the class as parsed
-  // so that we don't recursively add it back into the list.
-  parse_class ^= cls.SuperClass();
-  while (!parse_class.IsNull()) {
-    if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
-      parse_list->Add(parse_class);
-      parse_class.set_is_marked_for_parsing();
-    }
-    parse_class ^= parse_class.SuperClass();
-  }
-
-  // Add patch classes if they exist to the parse list if they have not already
-  // been parsed and patched. Mark the class as parsed so that we don't
-  // recursively add it back into the list.
-  parse_class ^= cls.GetPatchClass();
-  if (!parse_class.IsNull()) {
-    if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
-      patch_list->Add(parse_class);
-      parse_class.set_is_marked_for_parsing();
-    }
-  }
-}
-
-RawError* Compiler::CompileClass(const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  // If class is a top level class it is already parsed.
-  if (cls.IsTopLevel()) {
-    return Error::null();
-  }
-  // If the class is already marked for parsing return immediately.
-  if (cls.is_marked_for_parsing()) {
-    return Error::null();
-  }
-  // If the class is a typedef class there is no need to try and
-  // compile it. Just finalize it directly.
-  if (cls.IsTypedefClass()) {
-#if defined(DEBUG)
-    const Class& closure_cls =
-        Class::Handle(Isolate::Current()->object_store()->closure_class());
-    ASSERT(closure_cls.is_finalized());
-#endif
-    LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
-      ClassFinalizer::FinalizeClass(cls);
-      return Error::null();
-    } else {
-      Thread* thread = Thread::Current();
-      Error& error = Error::Handle(thread->zone());
-      error = thread->sticky_error();
-      thread->clear_sticky_error();
-      return error.raw();
-    }
-  }
-
-  Thread* const thread = Thread::Current();
-  StackZone zone(thread);
-#if !defined(PRODUCT)
-  VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "CompileClass");
-  if (tds.enabled()) {
-    tds.SetNumArguments(1);
-    tds.CopyArgument(0, "class", cls.ToCString());
-  }
-#endif  // !defined(PRODUCT)
-
-  // We remember all the classes that are being compiled in these lists. This
-  // also allows us to reset the marked_for_parsing state in case we see an
-  // error.
-  GrowableHandlePtrArray<const Class> parse_list(thread->zone(), 4);
-  GrowableHandlePtrArray<const Class> patch_list(thread->zone(), 4);
-
-  // Parse the class and all the interfaces it implements and super classes.
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    if (FLAG_trace_compiler) {
-      THR_Print("Compiling Class '%s'\n", cls.ToCString());
-    }
-
-    // Add the primary class which needs to be parsed to the parse list.
-    // Mark the class as parsed so that we don't recursively add the same
-    // class back into the list.
-    parse_list.Add(cls);
-    cls.set_is_marked_for_parsing();
-
-    // Add all super classes, interface classes and patch class if one
-    // exists to the corresponding lists.
-    // NOTE: The parse_list array keeps growing as more classes are added
-    // to it by AddRelatedClassesToList. It is not OK to hoist
-    // parse_list.Length() into a local variable and iterate using the local
-    // variable.
-    for (intptr_t i = 0; i < parse_list.length(); i++) {
-      AddRelatedClassesToList(parse_list.At(i), &parse_list, &patch_list);
-    }
-
-    // Finalize these classes.
-    for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
-      const Class& parse_class = parse_list.At(i);
-      ASSERT(!parse_class.IsNull());
-      ClassFinalizer::FinalizeClass(parse_class);
-      parse_class.reset_is_marked_for_parsing();
-    }
-    for (intptr_t i = (patch_list.length() - 1); i >= 0; i--) {
-      const Class& parse_class = patch_list.At(i);
-      ASSERT(!parse_class.IsNull());
-      ClassFinalizer::FinalizeClass(parse_class);
-      parse_class.reset_is_marked_for_parsing();
-    }
-
-    return Error::null();
-  } else {
-    // Reset the marked for parsing flags.
-    for (intptr_t i = 0; i < parse_list.length(); i++) {
-      const Class& parse_class = parse_list.At(i);
-      if (parse_class.is_marked_for_parsing()) {
-        parse_class.reset_is_marked_for_parsing();
-      }
-    }
-    for (intptr_t i = 0; i < patch_list.length(); i++) {
-      const Class& parse_class = patch_list.At(i);
-      if (parse_class.is_marked_for_parsing()) {
-        parse_class.reset_is_marked_for_parsing();
-      }
-    }
-    Thread* thread = Thread::Current();
-    Error& error = Error::Handle(thread->zone());
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
-  }
 }
 
 class CompileParsedFunctionHelper : public ValueObject {
@@ -869,7 +712,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       done = true;
     } else {
       // We bailed out or we encountered an error.
-      const Error& error = Error::Handle(thread()->sticky_error());
+      const Error& error = Error::Handle(thread()->StealStickyError());
 
       if (error.raw() == Object::branch_offset_error().raw()) {
         // Compilation failed due to an out of range branch offset in the
@@ -889,12 +732,14 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         done = true;
       }
 
-      // If is is not a background compilation, clear the error if it was not a
-      // real error, but just a bailout. If we're it a background compilation
-      // this will be dealt with in the caller.
       if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        thread()->clear_sticky_error();
+        // If is is not a background compilation, discard the error if it was
+        // not a real error, but just a bailout. If we're it a background
+        // compilation this will be dealt with in the caller.
+      } else {
+        // Otherwise, continue propagating.
+        thread()->set_sticky_error(error);
       }
     }
   }
@@ -955,6 +800,8 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
     if (result.IsNull()) {
+      const Error& error = Error::Handle(thread->StealStickyError());
+
       if (Compiler::IsBackgroundCompilation()) {
         // Try again later, background compilation may abort because of
         // state change during compilation.
@@ -962,59 +809,58 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
           THR_Print("Aborted background compilation: %s\n",
                     function.ToFullyQualifiedCString());
         }
-        {
-          // If it was a bailout, then disable optimization.
-          Error& error = Error::Handle();
-          // We got an error during compilation.
-          error = thread->sticky_error();
-          thread->clear_sticky_error();
 
-          if (error.raw() == Object::background_compilation_error().raw()) {
-            if (FLAG_trace_compiler) {
-              THR_Print(
-                  "--> disabling background optimizations for '%s' (will "
-                  "try to re-compile on isolate thread again)\n",
-                  function.ToFullyQualifiedCString());
-            }
-
-            // Ensure we don't attempt to re-compile the function on the
-            // background compiler.
-            function.set_is_background_optimizable(false);
-
-            // Trigger another optimization soon on the main thread.
-            function.SetUsageCounter(optimized
-                                         ? FLAG_optimization_counter_threshold
-                                         : FLAG_compilation_counter_threshold);
-          } else if ((error.IsLanguageError() &&
-                      LanguageError::Cast(error).kind() == Report::kBailout) ||
-                     error.IsUnhandledException()) {
-            if (FLAG_trace_compiler) {
-              THR_Print("--> disabling optimizations for '%s'\n",
-                        function.ToFullyQualifiedCString());
-            }
-            function.SetIsOptimizable(false);
+        // We got an error during compilation.
+        // If it was a bailout, then disable optimization.
+        if (error.raw() == Object::background_compilation_error().raw()) {
+          if (FLAG_trace_compiler) {
+            THR_Print(
+                "--> disabling background optimizations for '%s' (will "
+                "try to re-compile on isolate thread again)\n",
+                function.ToFullyQualifiedCString());
           }
+
+          // Ensure we don't attempt to re-compile the function on the
+          // background compiler.
+          function.set_is_background_optimizable(false);
+
+          // Trigger another optimization soon on the main thread.
+          function.SetUsageCounter(optimized
+                                       ? FLAG_optimization_counter_threshold
+                                       : FLAG_compilation_counter_threshold);
+          return Error::null();
+        } else if (error.IsLanguageError() &&
+                   LanguageError::Cast(error).kind() == Report::kBailout) {
+          if (FLAG_trace_compiler) {
+            THR_Print("--> disabling optimizations for '%s'\n",
+                      function.ToFullyQualifiedCString());
+          }
+          function.SetIsOptimizable(false);
+          return Error::null();
+        } else {
+          // The background compiler does not execute Dart code or handle
+          // isolate messages.
+          ASSERT(!error.IsUnwindError());
+          return error.raw();
         }
-        return Error::null();
       }
       if (optimized) {
-        // Optimizer bailed out. Disable optimizations and never try again.
-        if (trace_compiler) {
-          THR_Print("--> disabling optimizations for '%s'\n",
-                    function.ToFullyQualifiedCString());
-        } else if (FLAG_trace_failed_optimization_attempts) {
-          THR_Print("Cannot optimize: %s\n",
-                    function.ToFullyQualifiedCString());
+        if (error.IsLanguageError() &&
+            LanguageError::Cast(error).kind() == Report::kBailout) {
+          // Optimizer bailed out. Disable optimizations and never try again.
+          if (trace_compiler) {
+            THR_Print("--> disabling optimizations for '%s'\n",
+                      function.ToFullyQualifiedCString());
+          } else if (FLAG_trace_failed_optimization_attempts) {
+            THR_Print("Cannot optimize: %s\n",
+                      function.ToFullyQualifiedCString());
+          }
+          function.SetIsOptimizable(false);
+          return Error::null();
         }
-        function.SetIsOptimizable(false);
-        return Error::null();
+        return error.raw();
       } else {
         ASSERT(!optimized);
-        // Encountered error.
-        Error& error = Error::Handle();
-        // We got an error during compilation.
-        error = thread->sticky_error();
-        thread->clear_sticky_error();
         // The non-optimizing compiler can get an unhandled exception
         // due to OOM or Stack overflow errors, it should not however
         // bail out.
@@ -1051,11 +897,9 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
   } else {
     Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
-    Error& error = Error::Handle();
     // We got an error during compilation or it is a bailout from background
     // compilation (e.g., during parsing with EnsureIsFinalized).
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
+    const Error& error = Error::Handle(thread->StealStickyError());
     if (error.raw() == Object::background_compilation_error().raw()) {
       // Exit compilation, retry it later.
       if (FLAG_trace_bailout) {
@@ -1101,20 +945,13 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
     pipeline->ParseFunction(parsed_function);
     return Error::null();
   } else {
-    Thread* const thread = Thread::Current();
-    StackZone stack_zone(thread);
-    Error& error = Error::Handle();
     // We got an error during compilation or it is a bailout from background
     // compilation (e.g., during parsing with EnsureIsFinalized).
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
     // Unoptimized compilation or precompilation may encounter compile-time
     // errors, but regular optimized compilation should not.
     ASSERT(!optimized);
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
-  UNREACHABLE();
-  return Error::null();
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
@@ -1249,15 +1086,9 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
     }
     return Error::null();
   } else {
-    Error& error = Error::Handle();
-    Thread* thread = Thread::Current();
     // We got an error during compilation.
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
-  UNREACHABLE();
-  return Error::null();
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
@@ -1313,11 +1144,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     ASSERT(!func.IsNull());
     if (!func.HasCode() &&
         !func.is_abstract() && !func.IsRedirectingFactory()) {
-      if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
-          func.HasOptionalParameters()) {
-        // Skipping optional parameters in mixin application.
-        continue;
-      }
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();
@@ -1425,11 +1251,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     }
   }
 
-  Thread* const thread = Thread::Current();
-  StackZone zone(thread);
-  const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
-  thread->clear_sticky_error();
-  return error.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
@@ -1493,10 +1315,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     }
   }
 
-  Thread* const thread = Thread::Current();
-  const Object& result = PassiveObject::Handle(thread->sticky_error());
-  thread->clear_sticky_error();
-  return result.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
@@ -1845,11 +1664,6 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   FATAL1("Attempt to compile script %s", script.ToCString());
-  return Error::null();
-}
-
-RawError* Compiler::CompileClass(const Class& cls) {
-  FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 

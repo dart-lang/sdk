@@ -4,10 +4,10 @@
 
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
@@ -19,9 +19,11 @@ import 'nodes.dart';
 class SsaInstructionSelection extends HBaseVisitor {
   final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
+  final CompilerOptions _options;
   HGraph graph;
 
-  SsaInstructionSelection(this._closedWorld, this._interceptorData);
+  SsaInstructionSelection(
+      this._options, this._closedWorld, this._interceptorData);
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
@@ -88,8 +90,12 @@ class SsaInstructionSelection extends HBaseVisitor {
   String simpleOp(HInstruction left, HInstruction right) {
     AbstractValue leftType = left.instructionType;
     AbstractValue rightType = right.instructionType;
-    if (!_abstractValueDomain.canBeNull(leftType)) return '===';
-    if (!_abstractValueDomain.canBeNull(rightType)) return '===';
+    if (_abstractValueDomain.isNull(leftType).isDefinitelyFalse) {
+      return '===';
+    }
+    if (_abstractValueDomain.isNull(rightType).isDefinitelyFalse) {
+      return '===';
+    }
 
     // Dart `null` is implemented by JavaScript `null` and `undefined` which are
     // not strict-equals, so we can't use `===`. We would like to use `==` but
@@ -98,29 +104,30 @@ class SsaInstructionSelection extends HBaseVisitor {
       return '==';
     }
 
-    if (_abstractValueDomain.isNumberOrNull(leftType) &&
-        _abstractValueDomain.isNumberOrNull(rightType)) {
+    if (_abstractValueDomain.isNumberOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isNumberOrNull(rightType).isDefinitelyTrue) {
       return '==';
     }
-    if (_abstractValueDomain.isStringOrNull(leftType) &&
-        _abstractValueDomain.isStringOrNull(rightType)) {
+    if (_abstractValueDomain.isStringOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isStringOrNull(rightType).isDefinitelyTrue) {
       return '==';
     }
-    if (_abstractValueDomain.isBooleanOrNull(leftType) &&
-        _abstractValueDomain.isBooleanOrNull(rightType)) {
+    if (_abstractValueDomain.isBooleanOrNull(leftType).isDefinitelyTrue &&
+        _abstractValueDomain.isBooleanOrNull(rightType).isDefinitelyTrue) {
       return '==';
     }
 
-    // ToPrimitive conversions of an object occur when the other operand is a
-    // primitive (Number, String, Symbol and, indirectly, Boolean). We use
-    // 'intercepted' types as a proxy for all the primitive types.
-    bool intercepted(AbstractValue type) => _abstractValueDomain
-        .canBeInterceptor(_abstractValueDomain.excludeNull(type));
-
-    if (intercepted(leftType)) return null;
-    if (intercepted(rightType)) return null;
+    if (_intercepted(leftType)) return null;
+    if (_intercepted(rightType)) return null;
     return '==';
   }
+
+  // ToPrimitive conversions of an object occur when the other operand is a
+  // primitive (Number, String, Symbol and, indirectly, Boolean). We use
+  // 'intercepted' types as a proxy for all the primitive types.
+  bool _intercepted(AbstractValue type) => _abstractValueDomain
+      .isInterceptor(_abstractValueDomain.excludeNull(type))
+      .isPotentiallyTrue;
 
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     if (node.isInterceptedCall) {
@@ -137,7 +144,12 @@ class SsaInstructionSelection extends HBaseVisitor {
     return node;
   }
 
-  void tryReplaceInterceptorWithDummy(
+  HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
+    // The receiver parameter should never be replaced with a dummy constant.
+    return node;
+  }
+
+  bool tryReplaceInterceptorWithDummy(
       HInvoke node, Selector selector, AbstractValue mask) {
     // Calls of the form
     //
@@ -161,7 +173,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
     // TODO(15933): Make automatically generated property extraction closures
     // work with the dummy receiver optimization.
-    if (selector.isGetter) return;
+    if (selector.isGetter) return false;
 
     // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
     HInstruction interceptor = node.inputs[0];
@@ -178,8 +190,10 @@ class SsaInstructionSelection extends HBaseVisitor {
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
         dummy.usedBy.add(node);
+        return true;
       }
     }
+    return false;
   }
 
   HInstruction visitFieldSet(HFieldSet setter) {
@@ -271,7 +285,9 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(_abstractValueDomain)) return simpleBinary(assignOp);
+      if (op.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+        return simpleBinary(assignOp);
+      }
       return noMatchingRead();
     }
 
@@ -288,6 +304,40 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (op is HBitXor) return bitop('^');
 
     return noMatchingRead();
+  }
+
+  visitIf(HIf node) {
+    if (!_options.experimentToBoolean) return node;
+    HInstruction condition = node.inputs.single;
+    // if (x != null) --> if (x)
+    if (condition is HNot) {
+      HInstruction test = condition.inputs.single;
+      if (test is HIdentity) {
+        HInstruction operand1 = test.inputs[0];
+        HInstruction operand2 = test.inputs[1];
+        if (operand2.isNull(_abstractValueDomain).isDefinitelyTrue &&
+            !_intercepted(operand1.instructionType)) {
+          if (test.usedBy.length == 1 && condition.usedBy.length == 1) {
+            node.changeUse(condition, operand1);
+            condition.block.remove(condition);
+            test.block.remove(test);
+          }
+        }
+      }
+    }
+    // if (x == null) => if (!x)
+    if (condition is HIdentity && condition.usedBy.length == 1) {
+      HInstruction operand1 = condition.inputs[0];
+      HInstruction operand2 = condition.inputs[1];
+      if (operand2.isNull(_abstractValueDomain).isDefinitelyTrue &&
+          !_intercepted(operand1.instructionType)) {
+        var not = HNot(operand1, _abstractValueDomain.boolType);
+        node.block.addBefore(node, not);
+        node.changeUse(condition, not);
+        condition.block.remove(condition);
+      }
+    }
+    return node;
   }
 }
 

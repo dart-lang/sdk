@@ -451,6 +451,7 @@ var #staticStateDeclaration = {};
 
 // Ensure holders are in fast mode, now we have finished adding things.
 convertAllToFastObject(holders);
+convertToFastObject(#staticState);
 
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
@@ -934,26 +935,31 @@ class FragmentEmitter {
     const int maxChainLength = 30;
     js.Expression assignment = null;
     int chainLength = 0;
-    bool previousIsNull = false;
+    ConstantValue previousConstant = null;
     void flushAssignment() {
       if (assignment != null) {
         statements.add(js.js.statement('#;', assignment));
         assignment = null;
         chainLength = 0;
-        previousIsNull = false;
+        previousConstant = null;
       }
     }
 
     for (Field field in cls.fields) {
-      if (field.nullInitializerInAllocator) {
-        if (previousIsNull && chainLength < maxChainLength) {
+      ConstantValue constant = field.initializerInAllocator;
+      if (constant != null) {
+        if (constant == previousConstant && chainLength < maxChainLength) {
           assignment = js.js('#.# = #', [thisRef, field.name, assignment]);
         } else {
           flushAssignment();
-          assignment = js.js('#.# = null', [thisRef, field.name]);
+          assignment = js.js('#.# = #', [
+            thisRef,
+            field.name,
+            constantEmitter.generate(constant),
+          ]);
         }
         ++chainLength;
-        previousIsNull = true;
+        previousConstant = constant;
       } else {
         flushAssignment();
         js.Parameter parameter = new js.Parameter('t${parameters.length}');
@@ -1260,19 +1266,24 @@ class FragmentEmitter {
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
         if (cls.isSoftDeferred != softDeferred) continue;
+        bool firstAlias = true;
         for (InstanceMethod method in cls.methods) {
           if (method.aliasName != null) {
-            assignments.add(js.js.statement('#.prototype.# = #.prototype.#', [
-              classReference(cls),
-              js.quoteName(method.aliasName),
-              classReference(cls),
-              js.quoteName(method.name)
-            ]));
+            if (firstAlias) {
+              firstAlias = false;
+              assignments.add(js.js.statement(
+                  assignments.isEmpty
+                      ? 'var _ = #.prototype;'
+                      : '_ = #.prototype',
+                  classReference(cls)));
+            }
+            assignments.add(js.js.statement('_.# = _.#',
+                [js.quoteName(method.aliasName), js.quoteName(method.name)]));
           }
         }
       }
     }
-    return new js.Block(assignments);
+    return wrapPhase('aliases', assignments);
   }
 
   /// Encodes the optional default values so that the runtime Function.apply

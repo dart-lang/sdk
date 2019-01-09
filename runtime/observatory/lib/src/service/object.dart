@@ -2748,8 +2748,6 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeParameter;
     case 'TypeRef':
       return M.InstanceKind.typeRef;
-    case 'BoundedType':
-      return M.InstanceKind.boundedType;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);
@@ -3699,7 +3697,7 @@ class Script extends HeapObject implements M.Script {
     }
     // Line and column numbers start at 1 in the VM.
     column -= 1;
-    String sourceLine = getLine(line).text;
+    String sourceLine = getLine(line)?.text;
     if (sourceLine == null) {
       return null;
     }

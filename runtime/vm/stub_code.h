@@ -14,6 +14,7 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
+class ObjectPoolWrapper;
 class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
@@ -151,7 +152,7 @@ class StubCode : public AllStatic {
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-  static RawCode* GetBuildMethodExtractorStub();
+  static RawCode* GetBuildMethodExtractorStub(ObjectPoolWrapper* pool);
   static void GenerateBuildMethodExtractorStub(Assembler* assembler);
 #endif
 

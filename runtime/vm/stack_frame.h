@@ -152,6 +152,18 @@ class StackFrame : public ValueObject {
   // Check validity of a frame, used for assertion purposes.
   virtual bool IsValid() const;
 
+  // Returns the isolate containing the bare instructions of the current frame.
+  //
+  // If the frame does not belong to a bare instructions snapshot, it will
+  // return nullptr.
+  Isolate* IsolateOfBareInstructionsFrame() const;
+
+  // Returns true iff the current frame is a bare instructions dart frame.
+  bool IsBareInstructionsDartFrame() const;
+
+  // Returns true iff the current frame is a bare instructions stub frame.
+  bool IsBareInstructionsStubFrame() const;
+
   // Frame type.
   virtual bool IsDartFrame(bool validate = true) const {
     ASSERT(!validate || IsValid());
@@ -160,6 +172,7 @@ class StackFrame : public ValueObject {
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
+
   virtual bool is_interpreted() const { return is_interpreted_; }
 
   RawFunction* LookupDartFunction() const;
@@ -180,7 +193,9 @@ class StackFrame : public ValueObject {
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const {
-    return IsStubFrame() ? "stub" : "dart";
+    if (IsBareInstructionsStubFrame()) return "bare-stub";
+    if (IsStubFrame()) return "stub";
+    return IsBareInstructionsDartFrame() ? "bare-dart" : "dart";
   }
 
   Isolate* isolate() const { return thread_->isolate(); }

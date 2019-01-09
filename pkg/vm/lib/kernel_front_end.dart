@@ -21,6 +21,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         DiagnosticMessageHandler,
         FileSystem,
         FileSystemEntity,
+        FileSystemException,
         ProcessedOptions,
         Severity,
         StandardFileSystem,
@@ -54,6 +55,7 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
+import 'transformations/call_site_annotator.dart' as call_site_annotator;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -69,14 +71,12 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addFlag('link-platform',
       help: 'Include platform into resulting kernel file.', defaultsTo: true);
-  args.addFlag('sync-async',
-      help: 'Start `async` functions synchronously', defaultsTo: true);
   args.addFlag('embed-sources',
       help: 'Embed source files in the generated kernel component',
       defaultsTo: true);
   args.addMultiOption('filesystem-root',
       help: 'A base path for the multi-root virtual file system.'
-          ' If multi-root file system is used, the input script should be specified using URI.');
+          ' If multi-root file system is used, the input script and .packages file should be specified using URI.');
   args.addOption('filesystem-scheme',
       help: 'The URI scheme for the multi-root virtual filesystem.');
   args.addOption('target',
@@ -162,8 +162,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
-  final Uri packagesUri =
-      packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null;
+  final Uri packagesUri = packages != null
+      ? convertFileOrUriArgumentToUri(fileSystem, packages)
+      : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
   final List<Uri> linkedDependencies = <Uri>[];
@@ -337,6 +338,13 @@ Future _runGlobalTransformations(
     no_dynamic_invocations_annotator.transformComponent(component);
   }
 
+  // TODO(35069): avoid recomputing CSA by reading it from the platform files.
+  void ignoreAmbiguousSupertypes(cls, a, b) {}
+  final hierarchy = new ClassHierarchy(component,
+      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+  call_site_annotator.transformLibraries(
+      component, component.libraries, coreTypes, hierarchy);
+
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(component, coreTypes);
@@ -372,8 +380,7 @@ Future _performConstantEvaluation(
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
     final hierarchy = new ClassHierarchy(component);
-    final typeEnvironment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
+    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
@@ -462,7 +469,7 @@ Target createFrontEndTarget(String targetName) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags = new TargetFlags(syncAsync: true);
+  final TargetFlags targetFlags = new TargetFlags();
   return getTarget(targetName, targetFlags);
 }
 
@@ -526,7 +533,9 @@ Future<Uri> convertToPackageUri(
   String uriString = (await asFileUri(fileSystem, uri)).toString();
   List<String> packages;
   try {
-    packages = await new File(packagesUri.toFilePath()).readAsLines();
+    packages =
+        await new File((await asFileUri(fileSystem, packagesUri)).toFilePath())
+            .readAsLines();
   } on IOException {
     // Can't read packages file - silently give up.
     return uri;
@@ -538,7 +547,15 @@ Future<Uri> convertToPackageUri(
       continue;
     }
     final packageName = line.substring(0, colon);
-    final packagePath = line.substring(colon + 1);
+    String packagePath;
+    try {
+      packagePath = (await asFileUri(
+              fileSystem, packagesUri.resolve(line.substring(colon + 1))))
+          .toString();
+    } on FileSystemException {
+      // Can't resolve package path.
+      continue;
+    }
     if (uriString.startsWith(packagePath)) {
       return Uri.parse(
           'package:$packageName/${uriString.substring(packagePath.length)}');

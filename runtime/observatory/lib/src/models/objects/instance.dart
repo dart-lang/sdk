@@ -120,9 +120,6 @@ enum InstanceKind {
 
   /// An instance of the Dart class TypeRef.
   typeRef,
-
-  /// An instance of the Dart class BoundedType.
-  boundedType,
 }
 
 bool isTypedData(InstanceKind kind) {
@@ -163,7 +160,6 @@ bool isAbstractType(InstanceKind kind) {
     case InstanceKind.type:
     case InstanceKind.typeRef:
     case InstanceKind.typeParameter:
-    case InstanceKind.boundedType:
       return true;
     default:
       return false;
@@ -376,25 +372,21 @@ abstract class Instance extends Object implements InstanceRef {
   ///   TypeParameter
   int get parameterIndex;
 
-  /// [optional] The type bounded by a BoundedType instance
-  /// - or -
-  /// the referent of a TypeRef instance.
+  /// [optional] The referent of a TypeRef instance.
   ///
   /// The value will always be of one of the kinds:
-  /// Type, TypeRef, TypeParameter, BoundedType.
+  /// Type, TypeRef, TypeParameter.
   ///
   /// Provided for instance kinds:
-  ///   BoundedType
   ///   TypeRef
   InstanceRef get targetType;
 
-  /// [optional] The bound of a TypeParameter or BoundedType.
+  /// [optional] The bound of a TypeParameter.
   ///
   /// The value will always be of one of the kinds:
-  /// Type, TypeRef, TypeParameter, BoundedType.
+  /// Type, TypeRef, TypeParameter.
   ///
   /// Provided for instance kinds:
-  ///   BoundedType
   ///   TypeParameter
   InstanceRef get bound;
 

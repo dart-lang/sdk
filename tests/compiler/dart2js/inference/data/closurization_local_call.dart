@@ -23,21 +23,9 @@ closurizedCallToString() {
   var c = new Class();
   c.call(); // Make `Class.call` live.
   var local = /*[exact=JSUInt31]*/ () => 42;
-  local
-      .
-
-      /*strong.invoke: [subclass=Closure]*/
-      toString();
+  local. /*invoke: [subclass=Closure]*/ toString();
   local();
-  local
-      .
-
-      /*strong.invoke: [subclass=Closure]*/
-      toString();
+  local. /*invoke: [subclass=Closure]*/ toString();
   local.call();
-  return local
-      .
-
-      /*strong.invoke: [subclass=Closure]*/
-      toString();
+  return local. /*invoke: [subclass=Closure]*/ toString();
 }

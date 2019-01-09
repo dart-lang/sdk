@@ -16,7 +16,9 @@ import 'constants/constant_system.dart';
 import 'deferred_load.dart';
 import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
+import 'elements/names.dart';
 import 'elements/types.dart';
+import 'inferrer/abstract_value_domain.dart';
 import 'ir/static_type.dart';
 import 'js_backend/annotations.dart';
 import 'js_backend/allocator_analysis.dart'
@@ -28,7 +30,6 @@ import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types.dart' show RuntimeTypesNeed;
 import 'js_model/locals.dart';
 import 'js_emitter/sorter.dart';
-import 'types/abstract_value_domain.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/selector.dart' show Selector;
 
@@ -166,10 +167,9 @@ abstract class JClosedWorld implements World {
   bool needsNoSuchMethod(ClassEntity cls, Selector selector, ClassQuery query);
 
   /// Returns whether [element] will be the one used at runtime when being
-  /// invoked on an instance of [cls]. [selector] is used to ensure library
+  /// invoked on an instance of [cls]. [name] is used to ensure library
   /// privacy is taken into account.
-  bool hasElementIn(
-      covariant ClassEntity cls, Selector selector, covariant Entity element);
+  bool hasElementIn(ClassEntity cls, Name name, MemberEntity element);
 
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
@@ -201,11 +201,6 @@ abstract class JClosedWorld implements World {
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
-
-  /// Returns the single field that matches a call to [selector] on the
-  /// [receiver]. If multiple targets exist or the single target is not a field,
-  /// `null` is returned.
-  FieldEntity locateSingleField(Selector selector, AbstractValue receiver);
 }
 
 abstract class OpenWorld implements World {

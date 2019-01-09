@@ -17,6 +17,7 @@ import '../elements/types.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/util.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
@@ -35,9 +36,10 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   final CompilerOptions _options;
   final MemberEntity currentMember;
   final VariableScopeModel variableScopeModel;
+  final Set<PragmaAnnotation> _annotations;
 
   KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
-      this._options, this.variableScopeModel)
+      this._options, this.variableScopeModel, this._annotations)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
         super(elementMap.typeEnvironment);
@@ -45,6 +47,11 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   CommonElements get commonElements => elementMap.commonElements;
 
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
+
+  bool get useAsserts => _options.enableUserAssertions;
+
+  bool get inferEffectivelyFinalVariableTypes =>
+      !_annotations.contains(PragmaAnnotation.disableFinal);
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
   DartType checkType(ir.DartType irType, TypeUseKind kind) {
@@ -137,9 +144,7 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
       case ir.AsyncMarker.Async:
         impactBuilder.registerFeature(Feature.ASYNC);
-        var completerFactory = _options.startAsyncSynchronously
-            ? commonElements.asyncAwaitCompleterFactory
-            : commonElements.syncCompleterFactory;
+        var completerFactory = commonElements.asyncAwaitCompleterFactory;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             completerFactory,
             const CallStructure.unnamed(0, 1),
@@ -250,10 +255,12 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     InterfaceType type = elementMap.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     CallStructure callStructure = elementMap.getCallStructure(node.arguments);
+    ImportEntity deferredImport = elementMap.getImport(getDeferredImport(node));
     impactBuilder.registerStaticUse(isConst
-        ? new StaticUse.constConstructorInvoke(constructor, callStructure, type)
+        ? new StaticUse.constConstructorInvoke(
+            constructor, callStructure, type, deferredImport)
         : new StaticUse.typedConstructorInvoke(
-            constructor, callStructure, type));
+            constructor, callStructure, type, deferredImport));
     if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
@@ -319,8 +326,13 @@ class KernelImpactBuilder extends StaticTypeVisitor {
         _handleExtractTypeArguments(node, target, typeArguments);
         return;
       }
+      ImportEntity deferredImport =
+          elementMap.getImport(getDeferredImport(node));
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target, elementMap.getCallStructure(node.arguments), typeArguments));
+          target,
+          elementMap.getCallStructure(node.arguments),
+          typeArguments,
+          deferredImport));
     }
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
@@ -380,17 +392,20 @@ class KernelImpactBuilder extends StaticTypeVisitor {
     ir.Member target = node.target;
     if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
       FunctionEntity method = elementMap.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(method));
+      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(
+          method, elementMap.getImport(getDeferredImport(node))));
     } else {
       MemberEntity member = elementMap.getMember(target);
-      impactBuilder.registerStaticUse(new StaticUse.staticGet(member));
+      impactBuilder.registerStaticUse(new StaticUse.staticGet(
+          member, elementMap.getImport(getDeferredImport(node))));
     }
   }
 
   @override
   void handleStaticSet(ir.StaticSet node, ir.DartType valueType) {
     MemberEntity member = elementMap.getMember(node.target);
-    impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
+    impactBuilder.registerStaticUse(new StaticUse.staticSet(
+        member, elementMap.getImport(getDeferredImport(node))));
   }
 
   void handleSuperInvocation(ir.Name name, ir.Node arguments) {
@@ -527,24 +542,24 @@ class KernelImpactBuilder extends StaticTypeVisitor {
           ? ClassRelation.thisExpression
           : ClassRelation.subtype;
       DartType receiverDartType = elementMap.getDartType(receiverType);
-
+      Object constraint;
+      if (receiverDartType is InterfaceType) {
+        constraint = new StrongModeConstraint(commonElements, _nativeBasicData,
+            receiverDartType.element, relation);
+      }
       ir.Member interfaceTarget = node.interfaceTarget;
       if (interfaceTarget == null) {
         // TODO(johnniwinther): Avoid treating a known function call as a
         // dynamic call when CFE provides a way to distinguish the two.
         impactBuilder.registerDynamicUse(
-            new ConstrainedDynamicUse(selector, null, typeArguments));
-        if (operatorFromString(node.name.name) == null) {
+            new ConstrainedDynamicUse(selector, constraint, typeArguments));
+        if (operatorFromString(node.name.name) == null &&
+            receiverDartType.isDynamic) {
+          // We might implicitly call a getter that returns a function.
           impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
               selector.toCallSelector(), null, typeArguments));
         }
       } else {
-        Object constraint;
-        if (receiverDartType is InterfaceType) {
-          constraint = new StrongModeConstraint(commonElements,
-              _nativeBasicData, receiverDartType.element, relation);
-        }
-
         if (interfaceTarget is ir.Field ||
             interfaceTarget is ir.Procedure &&
                 interfaceTarget.kind == ir.ProcedureKind.Getter) {
@@ -680,7 +695,11 @@ class KernelImpactBuilder extends StaticTypeVisitor {
   }
 
   @override
-  void handleAsExpression(ir.AsExpression node) {
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
+    if (elementMap.typeEnvironment.isSubtypeOf(operandType, node.type)) {
+      // Skip unneeded casts.
+      return;
+    }
     DartType type = elementMap.getDartType(node.type);
     if (node.isTypeError) {
       impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
@@ -723,8 +742,9 @@ class KernelImpactBuilder extends StaticTypeVisitor {
 
   @override
   void handleTypeLiteral(ir.TypeLiteral node) {
-    impactBuilder.registerTypeUse(
-        new TypeUse.typeLiteral(elementMap.getDartType(node.type)));
+    ImportEntity deferredImport = elementMap.getImport(getDeferredImport(node));
+    impactBuilder.registerTypeUse(new TypeUse.typeLiteral(
+        elementMap.getDartType(node.type), deferredImport));
     if (node.type is ir.FunctionType) {
       ir.FunctionType functionType = node.type;
       assert(functionType.typedef != null);

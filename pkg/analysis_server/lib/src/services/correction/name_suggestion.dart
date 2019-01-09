@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
-List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
+final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
 /**
  * Returns all variants of names by removing leading words one by one.
@@ -37,7 +37,7 @@ List<String> getVariableNameSuggestionsForExpression(
   if (isMethod) {
     // If we're in a build() method, use 'build' as the name prefix.
     MethodDeclaration method =
-        assignedExpression.getAncestor((n) => n is MethodDeclaration);
+        assignedExpression.thisOrAncestorOfType<MethodDeclaration>();
     if (method != null) {
       String enclosingName = method.name?.name;
       if (enclosingName != null && enclosingName.startsWith('build')) {

@@ -21,7 +21,7 @@ class D extends self::C<core::String> implements self::M {
 }
 class E extends self::D {
   synthetic constructor •() → self::E
-    : super self::C::•()
+    : super self::D::•()
     ;
 }
 abstract class _F&C&M extends self::C<core::int> implements self::M {
@@ -31,7 +31,7 @@ abstract class _F&C&M extends self::C<core::int> implements self::M {
 }
 class F extends self::_F&C&M {
   synthetic constructor •() → self::F
-    : super self::C::•()
+    : super self::_F&C&M::•()
     ;
 }
 static method main() → dynamic {

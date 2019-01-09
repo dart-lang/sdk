@@ -12,10 +12,10 @@ import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show ImmutableEmptySet, Setlet;
 import '../world.dart' show JClosedWorld;
+import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'locals_handler.dart' show ArgumentsTypes;
 import 'inferrer_engine.dart';
@@ -478,8 +478,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     if (inferrer.options.assignmentCheckPolicy.isTrusted ||
-        inferrer.options.assignmentCheckPolicy.isEmitted ||
-        inferrer.trustTypeAnnotations(_member)) {
+        inferrer.options.assignmentCheckPolicy.isEmitted) {
       return _potentiallyNarrowType(mask, inferrer);
     }
     return mask;
@@ -792,8 +791,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   AbstractValue potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
-    if (inferrer.options.parameterCheckPolicy.isTrusted ||
-        inferrer.trustTypeAnnotations(_method)) {
+    if (inferrer.options.parameterCheckPolicy.isTrusted) {
       // In checked or strong mode we don't trust the types of the arguments
       // passed to a parameter. The means that the checking of a parameter is
       // based on the actual arguments.
@@ -1084,7 +1082,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       Selector selector, AbstractValue mask, InferrerEngine inferrer) {
     JClosedWorld closedWorld = inferrer.closedWorld;
     if (mask == null) return null;
-    if (!inferrer.abstractValueDomain.isIntegerOrNull(mask)) {
+    if (inferrer.abstractValueDomain.isIntegerOrNull(mask).isPotentiallyFalse) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
@@ -1265,7 +1263,8 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
         }
       }));
     }
-    if (isConditional && abstractValueDomain.canBeNull(receiver.type)) {
+    if (isConditional &&
+        abstractValueDomain.isNull(receiver.type).isPotentiallyTrue) {
       // Conditional call sites (e.g. `a?.b`) may be null if the receiver is
       // null.
       result = abstractValueDomain.includeNull(result);
@@ -1487,8 +1486,10 @@ class NarrowTypeInformation extends TypeInformation {
     AbstractValue intersection =
         abstractValueDomain.intersection(input, typeAnnotation);
     if (debug.ANOMALY_WARN) {
-      if (!abstractValueDomain.contains(input, intersection) ||
-          !abstractValueDomain.contains(typeAnnotation, intersection)) {
+      if (abstractValueDomain.contains(input, intersection).isDefinitelyFalse ||
+          abstractValueDomain
+              .contains(typeAnnotation, intersection)
+              .isDefinitelyFalse) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
             "$typeAnnotation");
       }
@@ -1732,8 +1733,8 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       for (String key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];
         if (!abstractValueDomain.containsDictionaryKey(type, key) &&
-            !abstractValueDomain.containsAll(value.type) &&
-            !abstractValueDomain.canBeNull(value.type)) {
+            abstractValueDomain.containsAll(value.type).isDefinitelyFalse &&
+            abstractValueDomain.isNull(value.type).isDefinitelyFalse) {
           return toTypeMask(inferrer);
         }
         if (abstractValueDomain.getDictionaryValueForKey(type, key) !=

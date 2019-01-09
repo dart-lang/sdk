@@ -30,11 +30,13 @@ import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
+import '../ir/static_type.dart';
 import '../ir/scope.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
+import '../js_backend/annotations.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/namer.dart';
@@ -108,7 +110,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
 
-  Map<KMember, Map<ir.TreeNode, ir.DartType>> staticTypeCacheForTesting;
+  Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 
   KernelToElementMapImpl(this.reporter, Environment environment,
       this._frontendStrategy, this.options) {
@@ -707,6 +709,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   ImportEntity getImport(ir.LibraryDependency node) {
+    if (node == null) return null;
     ir.Library library = node.parent;
     KLibraryData data = libraries.getData(getLibraryInternal(library));
     return data.imports[node];
@@ -1337,21 +1340,36 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           commonElements, nativeBasicData, reporter, options);
 
   ResolutionImpact computeWorldImpact(
-      KMember member, VariableScopeModel variableScopeModel) {
-    ir.Member node = members.getData(member).node;
+      KMember member,
+      VariableScopeModel variableScopeModel,
+      Set<PragmaAnnotation> annotations) {
+    KMemberData memberData = members.getData(member);
+    ir.Member node = memberData.node;
     KernelImpactBuilder builder = new KernelImpactBuilder(
-        this, member, reporter, options, variableScopeModel);
-    node.accept(builder);
+        this, member, reporter, options, variableScopeModel, annotations);
     if (retainDataForTesting) {
-      staticTypeCacheForTesting ??= {};
-      staticTypeCacheForTesting[member] = builder.staticTypeCacheForTesting;
+      typeMapsForTesting ??= {};
+      typeMapsForTesting[member] = builder.typeMapsForTesting = {};
     }
+    node.accept(builder);
+    memberData.staticTypes = builder.cachedStaticTypes;
     return builder.impactBuilder;
   }
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = members.getData(member).node;
     return ScopeModel.computeScopeModel(node);
+  }
+
+  Map<ir.Expression, ir.DartType> getCachedStaticTypes(KMember member) {
+    Map<ir.Expression, ir.DartType> staticTypes =
+        members.getData(member).staticTypes;
+    assert(staticTypes != null, "No static types cached for $member.");
+    return staticTypes;
+  }
+
+  Map<ir.Expression, TypeMap> getTypeMapsForTesting(KMember member) {
+    return typeMapsForTesting[member];
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

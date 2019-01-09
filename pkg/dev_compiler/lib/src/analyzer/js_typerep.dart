@@ -5,13 +5,12 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl;
+import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 import '../compiler/js_typerep.dart';
 import 'driver.dart';
 
 class JSTypeRep extends SharedJSTypeRep<DartType> {
-  final StrongTypeSystemImpl rules;
+  final Dart2TypeSystem rules;
   final TypeProvider types;
 
   final ClassElement _jsBool;

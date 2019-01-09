@@ -96,6 +96,13 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
+  /// `true` if non-nullable behavior is enabled
+  bool enableNonNullable = false;
+
+  /// Is `true` if [enableNonNullable] is enabled, and the library directive
+  /// is annotated with `@pragma('analyzer:non-nullable')`.
+  bool hasPragmaAnalyzerNonNullable = false;
+
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
@@ -335,7 +342,7 @@ class AstBuilder extends StackListener {
 
   void doPropertyGet() {}
 
-  void endExpressionStatement(Token semicolon) {
+  void handleExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
     Expression expression = pop();
@@ -625,12 +632,23 @@ class AstBuilder extends StackListener {
         SimpleIdentifier fieldName;
         Expression left = initializerObject.leftHandSide;
         if (left is PropertyAccess) {
-          var thisExpression = left.target as ThisExpression;
-          thisKeyword = thisExpression.thisKeyword;
-          period = left.operator;
+          Expression target = left.target;
+          if (target is ThisExpression) {
+            thisKeyword = target.thisKeyword;
+            period = left.operator;
+          } else {
+            assert(target is SuperExpression);
+            // Recovery:
+            // Parser has reported FieldInitializedOutsideDeclaringClass.
+          }
           fieldName = left.propertyName;
+        } else if (left is SimpleIdentifier) {
+          fieldName = left;
         } else {
-          fieldName = left as SimpleIdentifier;
+          // Recovery:
+          // Parser has reported invalid assignment.
+          SuperExpression superExpression = left;
+          fieldName = ast.simpleIdentifier(superExpression.superKeyword);
         }
         initializers.add(ast.constructorFieldInitializer(
             thisKeyword,
@@ -879,6 +897,29 @@ class AstBuilder extends StackListener {
     push(ast.nullLiteral(token));
   }
 
+  @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    // TODO(danrubel): From a type resolution standpoint, this could be either
+    // a set literal or a map literal depending upon the context
+    // in which this expression occurs.
+    // For now, generate a map literal.
+    handleLiteralMap(0, leftBrace, constKeyword, rightBrace);
+  }
+
+  void handleLiteralSet(
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+    assert(optional('{', leftBracket));
+    assert(optionalOrNull('const', constKeyword));
+    assert(optional('}', rightBracket));
+    debugEvent("LiteralSet");
+
+    List<Expression> entries = popTypedList(count) ?? <Expression>[];
+    TypeArgumentList typeArguments = pop();
+    push(ast.setLiteral(
+        constKeyword, typeArguments, leftBracket, entries, rightBracket));
+  }
+
   void handleLiteralMap(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     assert(optional('{', leftBracket));
@@ -926,12 +967,15 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
 
     TypeArgumentList arguments = pop();
     Identifier name = pop();
-    push(ast.typeName(name, arguments));
+    push(ast.typeName(name, arguments, question: questionMark));
   }
 
   @override
@@ -1083,15 +1127,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
 
     FormalParameterList parameters = pop();
     TypeAnnotation returnType = pop();
     TypeParameterList typeParameters = pop();
     push(ast.genericFunctionType(
-        returnType, functionToken, typeParameters, parameters));
+        returnType, functionToken, typeParameters, parameters,
+        question: questionMark));
   }
 
   void handleFormalParameterWithoutValue(Token token) {
@@ -2047,6 +2095,23 @@ class AstBuilder extends StackListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
+    if (enableNonNullable && metadata != null) {
+      for (Annotation annotation in metadata) {
+        Identifier pragma = annotation.name;
+        if (pragma is SimpleIdentifier && pragma.name == 'pragma') {
+          NodeList<Expression> arguments = annotation.arguments.arguments;
+          if (arguments.length == 1) {
+            Expression tag = arguments[0];
+            if (tag is StringLiteral) {
+              if (tag.stringValue == 'analyzer:non-nullable') {
+                hasPragmaAnalyzerNonNullable = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
     Comment comment = _findComment(metadata, libraryKeyword);
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));
@@ -2518,7 +2583,7 @@ class AstBuilder extends StackListener {
     // keyword up to an element?
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     handleNoTypeArguments(voidKeyword);
-    handleType(voidKeyword);
+    handleType(voidKeyword, null);
   }
 
   @override

@@ -87,27 +87,29 @@ void test() {
 
   // Nested literals.
   Object o = {{2}};
-  Expect.type<LinkedHashSet<LinkedHashSet<int>>>(o);
+  Expect.type<LinkedHashSet<Set<int>>>(o);
+  Expect.type<LinkedHashSet<int>>((o as Set).first);
   Set<Set<int>> set = o;
   Expect.equals(1, set.length);
   Expect.equals(1, set.first.length);
   Expect.equals(2, set.first.first);
 
   o = {{2}, <int>{}};
-  Expect.type<LinkedHashSet<LinkedHashSet<int>>>(o);
+  Expect.type<LinkedHashSet<Set<int>>>(o);
+  Expect.type<LinkedHashSet<int>>((o as Set).first);
   set = o;
   Expect.equals(2, set.length);
   Expect.equals(1, set.first.length);
   Expect.equals(2, set.first.first);
 
-  set = {{}};
-  Expect.type<Set<Map<dynamic, dynamic>>>(set);
-  Expect.equals(1, set.length);
-  Expect.equals(0, set.first.length);
+  var set2 = {{}};
+  Expect.type<Set<Map<dynamic, dynamic>>>(set2);
+  Expect.equals(1, set2.length);
+  Expect.equals(0, set2.first.length);
 
-  set = {{1}, {}};  // Set<Object>
-  Expect.type<Set<Object>>(set);
-  Expect.notType<Set<Set<Object>>>(set);
+  var set3 = {{1}, {}};  // Set<Object>
+  Expect.type<Set<Object>>(set3);
+  Expect.notType<Set<Set<Object>>>(set3);
 
   // Trailing comma.
   Iterable<Object> i;
@@ -117,8 +119,8 @@ void test() {
 
   o = {1, 2, 3,};
   Expect.type<Set<int>>(o);
-  set = o;
-  Expect.equals(3, set.length);
+  Set<Object> set4 = o;
+  Expect.equals(3, set4.length);
 }
 
 class Equality {

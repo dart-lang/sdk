@@ -390,6 +390,9 @@ class ActivationFrame : public ZoneAllocated {
   }
 
   RawObject* GetStackVar(VariableIndex var_index);
+  RawObject* GetRelativeContextVar(intptr_t ctxt_level,
+                                   intptr_t slot_index,
+                                   intptr_t frame_ctx_level);
   RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
 
   uword pc_;

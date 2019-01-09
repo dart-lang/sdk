@@ -46,6 +46,7 @@ abstract class ExpressionVisitor<R> {
   R visitRethrow(Rethrow node) => defaultExpression(node);
   R visitThrow(Throw node) => defaultExpression(node);
   R visitListLiteral(ListLiteral node) => defaultExpression(node);
+  R visitSetLiteral(SetLiteral node) => defaultExpression(node);
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
@@ -167,6 +168,7 @@ class TreeVisitor<R>
   R visitRethrow(Rethrow node) => defaultExpression(node);
   R visitThrow(Throw node) => defaultExpression(node);
   R visitListLiteral(ListLiteral node) => defaultExpression(node);
+  R visitSetLiteral(SetLiteral node) => defaultExpression(node);
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
@@ -249,6 +251,8 @@ class TreeVisitor<R>
 }
 
 class DartTypeVisitor<R> {
+  const DartTypeVisitor();
+
   R defaultDartType(DartType node) => null;
 
   R visitInvalidType(InvalidType node) => defaultDartType(node);
@@ -494,6 +498,7 @@ abstract class ExpressionVisitor1<R, T> {
   R visitRethrow(Rethrow node, T arg) => defaultExpression(node, arg);
   R visitThrow(Throw node, T arg) => defaultExpression(node, arg);
   R visitListLiteral(ListLiteral node, T arg) => defaultExpression(node, arg);
+  R visitSetLiteral(SetLiteral node, T arg) => defaultExpression(node, arg);
   R visitMapLiteral(MapLiteral node, T arg) => defaultExpression(node, arg);
   R visitAwaitExpression(AwaitExpression node, T arg) =>
       defaultExpression(node, arg);

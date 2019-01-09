@@ -184,6 +184,7 @@ DeoptContext::~DeoptContext() {
 }
 
 void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&deopt_info_));
 

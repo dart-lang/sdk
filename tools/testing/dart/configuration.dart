@@ -33,7 +33,8 @@ class TestConfiguration {
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
-      this.noStatus,
+      this.cleanExit,
+      this.silentFailures,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -84,7 +85,8 @@ class TestConfiguration {
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
-  final bool noStatus;
+  final bool cleanExit;
+  final bool silentFailures;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;

@@ -11,6 +11,7 @@ import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart';
@@ -22,7 +23,6 @@ import '../js_backend/runtime_types.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
@@ -198,11 +198,11 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(
             closedWorld.annotationsData.tryInlineFunctions),
         map.toBackendFunctionSet(
+            closedWorld.annotationsData.disableFinalFunctions),
+        map.toBackendFunctionSet(
             closedWorld.annotationsData.cannotThrowFunctions),
         map.toBackendFunctionSet(
             closedWorld.annotationsData.sideEffectFreeFunctions),
-        map.toBackendMemberSet(
-            closedWorld.annotationsData.trustTypeAnnotationsMembers),
         map.toBackendMemberSet(
             closedWorld.annotationsData.assumeDynamicMembers));
 

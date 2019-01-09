@@ -110,9 +110,9 @@ CompletionSuggestion createSuggestion(Element element,
 }
 
 /**
- * Common mixin for sharing behavior
+ * Common mixin for sharing behavior.
  */
-abstract class ElementSuggestionBuilder {
+mixin ElementSuggestionBuilder {
   /**
    * A collection of completion suggestions.
    */

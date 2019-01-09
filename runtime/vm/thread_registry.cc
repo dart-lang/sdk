@@ -99,6 +99,7 @@ void ThreadRegistry::AcquireMarkingStacks() {
   while (thread != NULL) {
     if (!thread->BypassSafepoints()) {
       thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     thread = thread->next_;
   }
@@ -110,6 +111,7 @@ void ThreadRegistry::ReleaseMarkingStacks() {
   while (thread != NULL) {
     if (!thread->BypassSafepoints()) {
       thread->MarkingStackRelease();
+      thread->DeferredMarkingStackRelease();
     }
     thread = thread->next_;
   }

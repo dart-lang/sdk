@@ -133,9 +133,9 @@ class KernelEnumBuilder extends SourceClassBuilder
     /// }
 
     members["index"] = new KernelFieldBuilder(null, intType, "index",
-        finalMask | hasInitializerMask, parent, charOffset, null);
+        finalMask | hasInitializerMask, parent, charOffset);
     members["_name"] = new KernelFieldBuilder(null, stringType, "_name",
-        finalMask | hasInitializerMask, parent, charOffset, null);
+        finalMask | hasInitializerMask, parent, charOffset);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
         null,
         constMask,
@@ -160,8 +160,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         "values",
         constMask | staticMask | hasInitializerMask,
         parent,
-        charOffset,
-        null);
+        charOffset);
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
         null,
@@ -219,8 +218,7 @@ class KernelEnumBuilder extends SourceClassBuilder
             name,
             constMask | staticMask | hasInitializerMask,
             parent,
-            enumConstantInfo.charOffset,
-            null);
+            enumConstantInfo.charOffset);
         metadataCollector?.setDocumentationComment(
             fieldBuilder.target, documentationComment);
         members[name] = fieldBuilder..next = existing;

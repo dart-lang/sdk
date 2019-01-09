@@ -673,9 +673,11 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
       new char[(OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer +
                 kSimulatorStackUnderflowSize)];
   // Low address.
-  stack_limit_ = reinterpret_cast<uword>(stack_) + OSThread::kStackSizeBuffer;
+  stack_limit_ = reinterpret_cast<uword>(stack_);
+  // Limit for StackOverflowError.
+  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBuffer;
   // High address.
-  stack_base_ = stack_limit_ + OSThread::GetSpecifiedStackSize();
+  stack_base_ = overflow_stack_limit_ + OSThread::GetSpecifiedStackSize();
 
   pc_modified_ = false;
   icount_ = 0;
@@ -3743,8 +3745,11 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Restore pool pointer.
   int32_t code =
       *reinterpret_cast<int32_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
-  int32_t pp = *reinterpret_cast<int32_t*>(code + Code::object_pool_offset() -
-                                           kHeapObjectTag);
+  int32_t pp = (FLAG_precompiled_mode && FLAG_use_bare_instructions)
+                   ? reinterpret_cast<int32_t>(thread->global_object_pool())
+                   : *reinterpret_cast<int32_t*>(
+                         (code + Code::object_pool_offset() - kHeapObjectTag));
+
   set_register(CODE_REG, code);
   set_register(PP, pp);
   buf->Longjmp();

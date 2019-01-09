@@ -43,7 +43,6 @@ class CompilationTraceLoader : public ValueObject {
                            const char* cls_cstr,
                            const char* func_cstr);
   RawObject* CompileFunction(const Function& function);
-  RawObject* EvaluateInitializer(const Field& field);
 
   Thread* thread_;
   Zone* zone_;

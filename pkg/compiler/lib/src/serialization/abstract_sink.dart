@@ -17,6 +17,9 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   /// Visitor used for serializing [DartType]s.
   DartTypeWriter _dartTypeWriter;
 
+  /// Visitor used for serializing [ir.DartType]s.
+  DartTypeNodeWriter _dartTypeNodeWriter;
+
   /// Stack of tags used when [useDataKinds] is `true` to help debugging section
   /// inconsistencies between serialization and deserialization.
   List<String> _tags;
@@ -33,6 +36,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   AbstractDataSink({this.useDataKinds: false}) {
     _dartTypeWriter = new DartTypeWriter(this);
+    _dartTypeNodeWriter = new DartTypeNodeWriter(this);
     _stringIndex = new IndexedSink<String>(this);
     _uriIndex = new IndexedSink<Uri>(this);
     _memberNodeIndex = new IndexedSink<ir.Member>(this);
@@ -87,6 +91,25 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       writeEnum(DartTypeKind.none);
     } else {
       _dartTypeWriter.visit(value, functionTypeVariables);
+    }
+  }
+
+  @override
+  void writeDartTypeNode(ir.DartType value, {bool allowNull: false}) {
+    _writeDataKind(DataKind.dartTypeNode);
+    _writeDartTypeNode(value, [], allowNull: allowNull);
+  }
+
+  void _writeDartTypeNode(
+      ir.DartType value, List<ir.TypeParameter> functionTypeVariables,
+      {bool allowNull: false}) {
+    if (value == null) {
+      if (!allowNull) {
+        throw new UnsupportedError("Missing ir.DartType node is not allowed.");
+      }
+      writeEnum(DartTypeNodeKind.none);
+    } else {
+      value.accept1(_dartTypeNodeWriter, functionTypeVariables);
     }
   }
 
@@ -219,7 +242,8 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeMemberNode(member);
       _MemberData memberData = _memberData[member] ??= new _MemberData(member);
       int index = memberData.getIndexByTreeNode(value);
-      assert(index != null, "No index found for ${value.runtimeType}.");
+      assert(
+          index != null, "No TreeNode index found for ${value.runtimeType}.");
       _writeIntInternal(index);
     }
   }

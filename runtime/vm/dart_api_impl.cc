@@ -111,15 +111,13 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
-      ASSERT(typeHandle_.IsMalformed() || typeHandle_.IsTypeParameter() ||
-             typeHandle_.IsCanonical());
+      ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
       // Verify that the types in the function signature are all canonical or
       // a TypeParameter.
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsMalformed() || typeHandle_.IsTypeParameter() ||
-               typeHandle_.IsCanonical());
+        ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
       }
     }
   }
@@ -139,11 +137,8 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    Error& malformed_type_error = Error::Handle(zone);
-    if (obj_class.IsSubtypeOf(Object::null_type_arguments(), list_class,
-                              Object::null_type_arguments(),
-                              &malformed_type_error, NULL, Heap::kNew)) {
-      ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
+    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(), list_class,
+                           Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -158,11 +153,8 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     ASSERT(!map_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    Error& malformed_type_error = Error::Handle(zone);
-    if (obj_class.IsSubtypeOf(Object::null_type_arguments(), map_class,
-                              Object::null_type_arguments(),
-                              &malformed_type_error, NULL, Heap::kNew)) {
-      ASSERT(malformed_type_error.IsNull());  // Type is a raw Map.
+    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(), map_class,
+                           Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -1619,9 +1611,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   if (I->sticky_error() != Object::null()) {
     Thread* T = Thread::Current();
     TransitionNativeToVM transition(T);
-    Dart_Handle error = Api::NewHandle(T, I->sticky_error());
-    I->clear_sticky_error();
-    return error;
+    return Api::NewHandle(T, I->StealStickyError());
   }
   if (FLAG_print_class_table) {
     HANDLESCOPE(Thread::Current());
@@ -1638,9 +1628,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   API_TIMELINE_BEGIN_END_BASIC(T);
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
-    return error;
+    return Api::NewHandle(T, T->StealStickyError());
   }
   return Api::Success();
 }
@@ -1685,7 +1673,7 @@ DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
     const Error* error;
     {
       NoSafepointScope no_safepoint;
-      RawError* raw_error = T->get_and_clear_sticky_error();
+      RawError* raw_error = T->StealStickyError();
       T->UnwindScopes(T->top_exit_frame_info());
       error = &Error::Handle(T->zone(), raw_error);
     }
@@ -1880,11 +1868,8 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     RETURN_TYPE_ERROR(Z, object, Instance);
   }
   CHECK_CALLBACK_STATE(T);
-  Error& malformed_type_error = Error::Handle(Z);
   *value = instance.IsInstanceOf(type_obj, Object::null_type_arguments(),
-                                 Object::null_type_arguments(),
-                                 &malformed_type_error);
-  ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
+                                 Object::null_type_arguments());
   return Api::Success();
 }
 
@@ -1998,11 +1983,9 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
         Class::Handle(I->object_store()->future_class());
     ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    Error& malformed_type_error = Error::Handle(Z);
-    bool is_future = obj_class.IsSubtypeOf(
-        Object::null_type_arguments(), future_class,
-        Object::null_type_arguments(), &malformed_type_error, NULL, Heap::kNew);
-    ASSERT(malformed_type_error.IsNull());  // Type is a raw Future.
+    bool is_future = Class::IsSubtypeOf(
+        obj_class, Object::null_type_arguments(), future_class,
+        Object::null_type_arguments(), Heap::kNew);
     return is_future;
   }
   return false;
@@ -2359,7 +2342,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  DARTSCOPE(thread);
   ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
@@ -3818,26 +3801,18 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 
   Instance& new_object = Instance::Handle(Z);
   if (constructor.IsRedirectingFactory()) {
-    ClassFinalizer::ResolveRedirectingFactory(cls, constructor);
     Type& redirect_type = Type::Handle(constructor.RedirectionType());
     constructor = constructor.RedirectionTarget();
-    if (constructor.IsNull()) {
-      ASSERT(redirect_type.IsMalformed());
-      return Api::NewHandle(T, redirect_type.error());
-    }
+    ASSERT(!constructor.IsNull());
 
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type argument.
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
-      Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree,
-          &bound_error, NULL, NULL, Heap::kNew);
-      if (!bound_error.IsNull()) {
-        return Api::NewHandle(T, bound_error.raw());
-      }
+          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
+          Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
 
@@ -4426,38 +4401,6 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
 
 // --- Native fields and functions ---
 
-DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
-                                                      Dart_Handle name,
-                                                      int field_count) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
-#else
-  DARTSCOPE(Thread::Current());
-  const String& cls_name = Api::UnwrapStringHandle(Z, name);
-  if (cls_name.IsNull()) {
-    RETURN_TYPE_ERROR(Z, name, String);
-  }
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  if (!Utils::IsUint(16, field_count)) {
-    return Api::NewError(
-        "Invalid field_count passed to Dart_CreateNativeWrapperClass");
-  }
-  CHECK_CALLBACK_STATE(T);
-
-  String& cls_symbol = String::Handle(Z, Symbols::New(T, cls_name));
-  const Class& cls =
-      Class::Handle(Z, Class::NewNativeWrapper(lib, cls_symbol, field_count));
-  if (cls.IsNull()) {
-    return Api::NewError(
-        "Unable to create native wrapper class : already exists");
-  }
-  return Api::NewHandle(T, cls.RareType());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
                                                          int* count) {
   Thread* thread = Thread::Current();
@@ -4684,6 +4627,7 @@ Dart_GetNativeFieldsOfArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
                                                intptr_t* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if (value == NULL) {
     RETURN_NULL_ERROR(value);
@@ -5027,7 +4971,6 @@ static void CheckIsEntryPoint(const Class& klass) {
         "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
         "aot/entry_point_pragma.md\n",
         String::Handle(klass.UserVisibleName()).ToCString());
-    UNREACHABLE();
   }
 #endif
 }
@@ -5570,6 +5513,12 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
   return NULL;
 }
 
+DART_EXPORT void Dart_SetNativeServiceStreamCallback(
+    Dart_NativeStreamConsumer consumer,
+    const char* stream_id) {
+  return;
+}
+
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
@@ -5672,6 +5621,12 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
   }
   Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
   return NULL;
+}
+
+DART_EXPORT void Dart_SetNativeServiceStreamCallback(
+    Dart_NativeStreamConsumer consumer,
+    const char* stream_id) {
+  Service::SetNativeServiceStreamCallback(consumer, stream_id);
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,

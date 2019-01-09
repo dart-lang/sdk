@@ -961,8 +961,9 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
+    reportErrorIfNullableType(questionMark);
     List<TypeBuilder> arguments = pop();
     int charOffset = pop();
     Object name = pop();
@@ -1183,8 +1184,9 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType");
+    reportErrorIfNullableType(questionMark);
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset
     TypeBuilder returnType = pop();
@@ -1506,6 +1508,8 @@ class OutlineBuilder extends StackListener {
       // the tokens for the expression.
       // TODO(ahe): Might be clearer if this search was moved to
       // `library.addFields`.
+      // TODO(ahe): I don't even think this is necessary. [token] points to ;
+      // or , and we don't otherwise store tokens.
       beforeLast = next;
       next = next.next;
     }

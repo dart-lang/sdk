@@ -12,7 +12,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -21,12 +20,12 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -187,7 +186,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    AnalysisResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(path);
     if (result == null) {
       p(
           'An AST could not be produced for the file '
@@ -387,7 +386,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
-    b.write(writeOption('Declaration casts', options.declarationCasts));
 
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));
@@ -399,6 +397,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Generate hints', options.hint));
     b.write(writeOption('Preserve comments', options.preserveComments));
     b.write(writeOption('Strong mode hints', options.strongModeHints));
+
+    b.write(writeOption('Enabled experiments', options.enabledExperiments));
 
     return b.toString();
   }
@@ -714,7 +714,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
   SocketServer socketServer;
 
   /// The last few lines printed.
-  List<String> lastPrintedLines = <String>[];
+  final List<String> lastPrintedLines;
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
@@ -724,7 +724,6 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
-    pages.add(new OverlaysPage(this));
     pages.add(new PluginsPage(this));
     pages.add(new ProfilePage(this));
     pages.add(new SubscriptionsPage(this));
@@ -783,7 +782,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    AnalysisResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(path);
     if (result == null) {
       p(
           'An element model could not be produced for the file '
@@ -956,11 +955,6 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
       : super(site, 'memory', 'Memory and CPU Usage',
             description: 'Memory and CPU usage for the analysis server.');
 
-  DiagnosticDomainHandler get diagnosticDomain {
-    return server.handlers
-        .firstWhere((handler) => handler is DiagnosticDomainHandler);
-  }
-
   @override
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -1030,49 +1024,6 @@ class NotFoundPage extends DiagnosticPage {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-  }
-}
-
-class OverlaysPage extends DiagnosticPageWithNav {
-  OverlaysPage(DiagnosticsSite site)
-      : super(site, 'overlays', 'Overlays',
-            description: 'Editing overlays - unsaved file changes.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    FileContentOverlay overlays = server.fileContentOverlay;
-    List<String> paths = overlays.paths.toList()..sort();
-
-    String overlayPath = params['overlay'];
-    if (overlayPath != null) {
-      p(overlayPath);
-
-      if (overlays[overlayPath] != null) {
-        buf.write('<pre><code>');
-        buf.write(escape(overlays[overlayPath]));
-        buf.writeln('</code></pre>');
-      } else {
-        p('<code>${escape(overlayPath)}</code> not found.', raw: true);
-      }
-
-      return;
-    }
-
-    if (paths.isEmpty) {
-      blankslate('No overlays.');
-    } else {
-      String lenCounter(List list) {
-        return '<span class="counter" style="float: right;">${list.length}</span>';
-      }
-
-      h3('Overlays ${lenCounter(paths)}', raw: true);
-      ul(paths, (String overlayPath) {
-        String uri = '$path?overlay=${Uri.encodeQueryComponent(overlayPath)}';
-        buf.writeln('<a href="$uri">${escape(overlayPath)}</a>');
-      });
-    }
   }
 }
 
@@ -1246,7 +1197,7 @@ class ServiceProtocol {
   final WebSocket socket;
 
   int _id = 0;
-  Map<String, Completer<Map>> _completers = {};
+  final Map<String, Completer<Map>> _completers = {};
 
   ServiceProtocol._(this.socket) {
     socket.listen(_handleMessage);
@@ -1304,8 +1255,6 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
-    buf.writeln(writeOption('Use fasta parser',
-        diagnosticsSite.socketServer.analysisServerOptions.useFastaParser));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
     bool uxExp1 =

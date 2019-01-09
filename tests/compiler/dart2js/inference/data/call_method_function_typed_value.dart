@@ -6,8 +6,13 @@
 
 import "package:expect/expect.dart";
 
-/*strong.element: f:[subclass=JSInt]*/
-int f(int /*[null|subclass=Object]*/ i) => 2 /*invoke: [exact=JSUInt31]*/ * i;
+/*element: f:[subclass=JSInt]*/
+int f(
+        int
+            /*strong.[null|subclass=Object]*/
+            /*omit.[null|subclass=JSInt]*/
+            i) =>
+    2 /*invoke: [exact=JSUInt31]*/ * i;
 
 typedef int IntToInt(int x);
 

@@ -64,6 +64,7 @@ class RawInteger;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
+class ReversePcLookupCache;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
@@ -133,10 +134,12 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
 //
-//       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//       V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
+  V(PRODUCT, use_bare_instructions, Bare, use_bare_instructions,               \
+    FLAG_use_bare_instructions)                                                \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
@@ -195,11 +198,15 @@ class Isolate : public BaseIsolate {
 
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
-  void EnableIncrementalBarrier(MarkingStack* marking_stack);
+  void EnableIncrementalBarrier(MarkingStack* marking_stack,
+                                MarkingStack* deferred_marking_stack);
   void DisableIncrementalBarrier();
 
   StoreBuffer* store_buffer() const { return store_buffer_; }
   MarkingStack* marking_stack() const { return marking_stack_; }
+  MarkingStack* deferred_marking_stack() const {
+    return deferred_marking_stack_;
+  }
 
   ThreadRegistry* thread_registry() const { return thread_registry_; }
   SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
@@ -602,7 +609,7 @@ class Isolate : public BaseIsolate {
   void SetStickyError(RawError* sticky_error);
 
   RawError* sticky_error() const { return sticky_error_; }
-  void clear_sticky_error();
+  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
   void RetainKernelBlob(const ExternalTypedData& kernel_blob);
 
@@ -703,6 +710,17 @@ class Isolate : public BaseIsolate {
 
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
+
+  // Returns the pc -> code lookup cache object for this isolate.
+  ReversePcLookupCache* reverse_pc_lookup_cache() const {
+    return reverse_pc_lookup_cache_;
+  }
+
+  // Sets the pc -> code lookup cache object for this isolate.
+  void set_reverse_pc_lookup_cache(ReversePcLookupCache* table) {
+    ASSERT(reverse_pc_lookup_cache_ == nullptr);
+    reverse_pc_lookup_cache_ = table;
+  }
 
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
@@ -848,6 +866,7 @@ class Isolate : public BaseIsolate {
 
   StoreBuffer* store_buffer_;
   MarkingStack* marking_stack_;
+  MarkingStack* deferred_marking_stack_;
   Heap* heap_;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
@@ -865,6 +884,7 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
+  V(Bare)                                                                      \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
@@ -1005,6 +1025,8 @@ class Isolate : public BaseIsolate {
 
   Dart_QualifiedFunctionName* embedder_entry_points_;
   const char** obfuscation_map_;
+
+  ReversePcLookupCache* reverse_pc_lookup_cache_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

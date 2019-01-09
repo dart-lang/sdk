@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.12
+# Dart VM Service Protocol 3.13
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.12_ of the Dart VM Service Protocol. This
+This document describes of _version 3.13_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -31,7 +31,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getFlagList](#getflaglist)
   - [getIsolate](#getisolate)
-  - [getScripts](#getisolatescripts)
+  - [getScripts](#getscripts)
   - [getObject](#getobject)
   - [getSourceReport](#getsourcereport)
   - [getStack](#getstack)
@@ -2731,5 +2731,6 @@ version | comments
 3.10 | Add 'invoke'.
 3.11 | Rename 'invoke' parameter 'receiverId' to 'targetId.
 3.12 | Add 'getScripts' RPC and `ScriptList` object.
+3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

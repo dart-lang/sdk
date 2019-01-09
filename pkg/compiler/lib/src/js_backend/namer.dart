@@ -522,22 +522,27 @@ class Namer {
   final Map<Entity, jsAst.Name> userGlobalsSecondName = {};
   final Map<String, jsAst.Name> internalGlobals = {};
 
+  _registerName(
+      Map<String, String> map, jsAst.Name jsName, String originalName) {
+    // Non-finalized names are not present in the output program
+    if (jsName is TokenName && !jsName.isFinalized) return;
+    map[jsName.name] = originalName;
+    var getterName = userGetters[jsName];
+    if (getterName != null) map[getterName.name] = originalName;
+    var setterName = userSetters[jsName];
+    if (setterName != null) map[setterName.name] = originalName;
+  }
+
   Map<String, String> createMinifiedGlobalNameMap() {
     var map = <String, String>{};
     userGlobals.forEach((entity, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = entity.name;
+      _registerName(map, jsName, entity.name);
     });
     userGlobalsSecondName.forEach((entity, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = entity.name;
+      _registerName(map, jsName, entity.name);
     });
     internalGlobals.forEach((name, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = name;
+      _registerName(map, jsName, name);
     });
     return map;
   }
@@ -550,27 +555,22 @@ class Namer {
   final Map<String, String> userInstanceMembersOriginalName = HashMap();
   final Map<MemberEntity, jsAst.Name> internalInstanceMembers = HashMap();
   final Map<String, jsAst.Name> userInstanceOperators = HashMap();
+  final Map<jsAst.Name, jsAst.Name> userGetters = HashMap();
+  final Map<jsAst.Name, jsAst.Name> userSetters = HashMap();
 
   Map<String, String> createMinifiedInstanceNameMap() {
     var map = <String, String>{};
     internalInstanceMembers.forEach((entity, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = entity.name;
+      _registerName(map, jsName, entity.name);
     });
     userInstanceMembers.forEach((name, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      var originalName = userInstanceMembersOriginalName[name];
-      map[jsName.name] = originalName ?? name;
+      _registerName(map, jsName, userInstanceMembersOriginalName[name] ?? name);
     });
 
     // TODO(sigmund): reverse the operator names back to the original Dart
     // names.
     userInstanceOperators.forEach((name, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = name;
+      _registerName(map, jsName, name);
     });
     return map;
   }
@@ -1067,14 +1067,16 @@ class Namer {
   jsAst.Name deriveSetterName(jsAst.Name disambiguatedName) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    return new SetterName(_literalSetterPrefix, disambiguatedName);
+    return userSetters[disambiguatedName] ??=
+        new SetterName(_literalSetterPrefix, disambiguatedName);
   }
 
   /// Annotated name for the setter of any member with [disambiguatedName].
   jsAst.Name deriveGetterName(jsAst.Name disambiguatedName) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    return new GetterName(_literalGetterPrefix, disambiguatedName);
+    return userGetters[disambiguatedName] ??=
+        new GetterName(_literalGetterPrefix, disambiguatedName);
   }
 
   /// Annotated name for the getter of [element].

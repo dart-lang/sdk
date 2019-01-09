@@ -128,9 +128,14 @@ abstract class TestSuite {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
     };
-    if (configuration.copyCoreDumps && Platform.isWindows) {
-      _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-          new Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
+    if (Platform.isWindows) {
+      _environmentOverrides['DART_SUPPRESS_WER'] = '1';
+      if (configuration.copyCoreDumps) {
+        _environmentOverrides['DART_CRASHPAD_HANDLER'] =
+            new Path(buildDir + '/crashpad_handler.exe')
+                .absolute
+                .toNativePath();
+      }
     }
   }
 
@@ -559,6 +564,7 @@ class StandardTestSuite extends TestSuite {
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
   Set<String> _testListPossibleFilenames;
+  RegExp _selectorFilenameRegExp;
 
   static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
 
@@ -570,6 +576,7 @@ class StandardTestSuite extends TestSuite {
         suiteDir = Repository.dir.join(suiteDirectory),
         extraVmOptions = configuration.vmOptions,
         super(configuration, suiteName, statusFilePaths) {
+    // Initialize _dart2JsBootstrapDependencies
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
@@ -579,6 +586,8 @@ class StandardTestSuite extends TestSuite {
             .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
     }
+
+    // Initialize _testListPossibleFilenames
     if (configuration.testList != null) {
       _testListPossibleFilenames = Set<String>();
       for (String s in configuration.testList) {
@@ -595,6 +604,18 @@ class StandardTestSuite extends TestSuite {
         }
       }
     }
+
+    // Initialize _selectorFilenameRegExp
+    String pattern = configuration.selectors[suiteName].pattern;
+    if (pattern.contains("/")) {
+      String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
+      // If the selector is a multitest name ending in a number or 'none'
+      // we also accept test file names that don't contain that last part.
+      if (int.tryParse(lastPart) != null || lastPart == "none") {
+        pattern = pattern.substring(0, pattern.lastIndexOf("/"));
+      }
+    }
+    _selectorFilenameRegExp = new RegExp(pattern);
   }
 
   /**
@@ -717,28 +738,12 @@ class StandardTestSuite extends TestSuite {
     // The definitive check against configuration.testList is performed in
     // TestSuite.enqueueNewTestCase().
     if (_testListPossibleFilenames?.contains(filename) == false) return;
-    bool match = false;
     // Note: have to use Path instead of a filename for matching because
     // on Windows we need to convert backward slashes to forward slashes.
     // Our display test names (and filters) are given using forward slashes
     // while filenames on Windows use backwards slashes.
-    final Path filePath = new Path(filename);
-    for (var regex in configuration.selectors.values) {
-      String pattern = regex.pattern;
-      if (pattern.contains("/")) {
-        String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
-        if (int.tryParse(lastPart) != null ||
-            lastPart.toLowerCase() == "none") {
-          pattern = pattern.substring(0, pattern.lastIndexOf("/"));
-        }
-      }
-      if (pattern != regex.pattern) {
-        regex = new RegExp(pattern);
-      }
-      if (regex.hasMatch(filePath.toString())) match = true;
-      if (match) break;
-    }
-    if (!match) return;
+    final Path filePath = Path(filename);
+    if (!_selectorFilenameRegExp.hasMatch(filePath.toString())) return;
 
     if (!isTestFile(filename)) return;
 
@@ -813,12 +818,6 @@ class StandardTestSuite extends TestSuite {
   void enqueueStandardTest(TestInformation info, String testName) {
     var commonArguments =
         commonArgumentsFromFile(info.filePath, info.optionsFromFile);
-
-    // TODO(floitsch): Hack. When running the 2.0 tests always start
-    // async functions synchronously.
-    if (suiteName.endsWith("_2")) {
-      commonArguments.insert(0, "--sync-async");
-    }
 
     var vmOptionsList = getVmOptions(info.optionsFromFile);
     assert(!vmOptionsList.isEmpty);
@@ -896,7 +895,7 @@ class StandardTestSuite extends TestSuite {
             compilationArtifact);
 
     Map<String, String> environment = environmentOverrides;
-    Map<String, String> extraEnv = info.optionsFromFile['environment'];
+    var extraEnv = info.optionsFromFile['environment'] as Map<String, String>;
     if (extraEnv != null) {
       environment = new Map.from(environment)..addAll(extraEnv);
     }
@@ -1033,27 +1032,6 @@ class StandardTestSuite extends TestSuite {
 
     var htmlPath = '$tempDir/test.html';
     new File(htmlPath).writeAsStringSync(content);
-
-    // TODO(floitsch): Hack. When running the 2.0 tests always start
-    // async functions synchronously.
-    if (suiteName.endsWith("_2") &&
-        configuration.compiler == Compiler.dart2js) {
-      if (optionsFromFile == null) {
-        optionsFromFile = const <String, dynamic>{
-          'sharedOptions': const ['--sync-async']
-        };
-      } else {
-        optionsFromFile = new Map<String, dynamic>.from(optionsFromFile);
-        var sharedOptions = optionsFromFile['sharedOptions'];
-        if (sharedOptions == null) {
-          sharedOptions = const <String>['--sync-async'];
-        } else {
-          sharedOptions = sharedOptions.toList();
-          sharedOptions.insert(0, "--sync-async");
-        }
-        optionsFromFile['sharedOptions'] = sharedOptions;
-      }
-    }
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test.
@@ -1471,7 +1449,8 @@ class StandardTestSuite extends TestSuite {
       Compiler.dartkb,
       Compiler.dartkp,
       Compiler.precompiler,
-      Compiler.appJit
+      Compiler.appJit,
+      Compiler.appJitk,
     ];
 
     const runtimes = const [Runtime.none, Runtime.dartPrecompiled, Runtime.vm];

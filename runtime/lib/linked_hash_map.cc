@@ -12,13 +12,13 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getIndex, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getIndex, 0, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   return map.index();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_setIndex, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setIndex, 0, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypedData& index =
@@ -27,13 +27,13 @@ DEFINE_NATIVE_ENTRY(LinkedHashMap_setIndex, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getData, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getData, 0, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   return map.data();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_setData, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setData, 0, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Array& data = Array::CheckedHandle(zone, arguments->NativeArgAt(1));
@@ -41,13 +41,13 @@ DEFINE_NATIVE_ENTRY(LinkedHashMap_setData, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getHashMask, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getHashMask, 0, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   return map.hash_mask();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_setHashMask, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setHashMask, 0, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& hashMask = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
@@ -55,13 +55,13 @@ DEFINE_NATIVE_ENTRY(LinkedHashMap_setHashMask, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getDeletedKeys, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getDeletedKeys, 0, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   return map.deleted_keys();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_setDeletedKeys, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setDeletedKeys, 0, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& deletedKeys = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
@@ -69,13 +69,13 @@ DEFINE_NATIVE_ENTRY(LinkedHashMap_setDeletedKeys, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getUsedData, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getUsedData, 0, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   return map.used_data();
 }
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_setUsedData, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setUsedData, 0, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& usedData = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));

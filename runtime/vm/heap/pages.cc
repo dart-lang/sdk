@@ -260,7 +260,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       marker_(NULL),
       gc_time_micros_(0),
       collections_(0),
-      mark_words_per_micro_(kConservativeInitialMarkSpeed) {
+      mark_words_per_micro_(kConservativeInitialMarkSpeed),
+      enable_concurrent_mark_(FLAG_concurrent_mark) {
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
@@ -289,6 +290,13 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 }
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
+  {
+    MutexLocker ml(pages_lock_);
+    if (!CanIncreaseCapacityInWordsLocked(kPageSizeInWords)) {
+      return NULL;
+    }
+    IncreaseCapacityInWordsLocked(kPageSizeInWords);
+  }
   const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
@@ -297,6 +305,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
   if (page == NULL) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
+    IncreaseCapacityInWords(-kPageSizeInWords);
     return NULL;
   }
 
@@ -329,25 +338,31 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
     }
   }
 
-  IncreaseCapacityInWordsLocked(kPageSizeInWords);
   page->set_object_end(page->memory_->end());
   return page;
 }
 
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
-  const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  {
+    MutexLocker ml(pages_lock_);
+    if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {
+      return NULL;
+    }
+    IncreaseCapacityInWordsLocked(page_size_in_words);
+  }
+  const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];
   Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
                    kVmNameSize);
   HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
   if (page == NULL) {
+    IncreaseCapacityInWords(-page_size_in_words);
     return NULL;
   }
   page->set_next(large_pages_);
   large_pages_ = page;
-  IncreaseCapacityInWords(page_size_in_words);
   // Only one object in this page (at least until String::MakeExternal or
   // Array::MakeFixedLength is called).
   page->set_object_end(page->object_start() + size);
@@ -441,9 +456,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   after_allocation.used_in_words += size >> kWordSizeLog2;
   // Can we grow by one page?
   after_allocation.capacity_in_words += kPageSizeInWords;
-  if ((growth_policy == kForceGrowth ||
-       !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
-      CanIncreaseCapacityInWords(kPageSizeInWords)) {
+  if (growth_policy == kForceGrowth ||
+      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
     HeapPage* page = AllocatePage(type);
     if (page == NULL) {
       return 0;
@@ -498,9 +512,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     SpaceUsage after_allocation = GetCurrentUsage();
     after_allocation.used_in_words += size >> kWordSizeLog2;
     after_allocation.capacity_in_words += page_size_in_words;
-    if ((growth_policy == kForceGrowth ||
-         !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
-        CanIncreaseCapacityInWords(page_size_in_words)) {
+    if (growth_policy == kForceGrowth ||
+        !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
@@ -1005,9 +1018,8 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
 #else
-    if (!FLAG_concurrent_mark) return;    // Disabled.
+    if (!enable_concurrent_mark()) return;  // Disabled.
     if (FLAG_marker_tasks == 0) return;   // Disabled.
-    if (FLAG_write_protect_code) return;  // Not implemented.
 #endif
   }
 
@@ -1393,7 +1405,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-#if defined(TARGET_ARCH_IA32) || !defined(CONCURRENT_MARKING)
+#if defined(TARGET_ARCH_IA32)
   intptr_t headroom = 0;
 #else
   intptr_t headroom = heap_->new_space()->CapacityInWords();

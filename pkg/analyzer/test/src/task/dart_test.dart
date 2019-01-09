@@ -3158,9 +3158,7 @@ class B {}''');
 
   void _performParseTask(String content) {
     if (content == null) {
-      source = resourceProvider
-          .getFile(resourceProvider.convertPath('/test.dart'))
-          .createSource();
+      source = getFile('/test.dart').createSource();
     } else {
       source = newSource('/test.dart', content);
     }

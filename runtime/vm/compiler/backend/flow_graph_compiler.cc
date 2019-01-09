@@ -65,6 +65,7 @@ DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
+DECLARE_FLAG(int, gc_every);
 DECLARE_FLAG(bool, trace_compiler);
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -240,16 +241,9 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
+      (FLAG_gc_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    bool is_auxiliary_isolate = ServiceIsolate::IsServiceIsolate(isolate());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Certain flags should not effect the kernel isolate itself.  They might be
-    // used by tests via the "VMOptions=--..." annotation to test VM
-    // functionality in the main isolate.
-    is_auxiliary_isolate =
-        is_auxiliary_isolate || KernelIsolate::IsKernelIsolate(isolate());
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    if (!is_auxiliary_isolate) {
+    if (!Isolate::IsVMInternalIsolate(isolate())) {
       return true;
     }
   }
@@ -324,6 +318,16 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
+  // On ARM64 we cannot use the position of the label bound in the
+  // FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
+  // emit the monomorphic entry and frame entry (instead on ARM64 this is done
+  // in FlowGraphCompiler::CompileGraph()).
+  //
+  // See http://dartbug.com/34162
+#if defined(TARGET_ARCH_ARM64)
+  return 0;
+#endif
+
   BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
@@ -341,7 +345,7 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
   // Intrinsification happened.
 #ifdef DART_PRECOMPILER
   if (parsed_function().function().IsDynamicFunction()) {
-    return Instructions::kUncheckedEntryOffset;
+    return Instructions::kMonomorphicEntryOffset;
   }
 #endif
   return 0;
@@ -699,29 +703,40 @@ void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
                                           null_check_name_idx);
 }
 
-void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function) {
+void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
+                                                Code::EntryKind entry_kind) {
   ASSERT(function.IsZoneHandle());
-  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kPcRelativeCall, assembler()->CodeSize(), &function, NULL));
+  const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
+                               ? Code::kUncheckedEntry
+                               : Code::kDefaultEntry;
+  static_calls_target_table_.Add(
+      new (zone()) StaticCallsStruct(Code::kPcRelativeCall, entry_point,
+                                     assembler()->CodeSize(), &function, NULL));
 }
 
 void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
   ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
   ASSERT(!stub_code.IsNull());
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kPcRelativeCall, assembler()->CodeSize(), NULL, &stub_code));
+      Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(), NULL,
+      &stub_code));
 }
 
-void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
+void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
+                                            Code::EntryKind entry_kind) {
   ASSERT(func.IsZoneHandle());
+  const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
+                               ? Code::kUncheckedEntry
+                               : Code::kDefaultEntry;
   static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kCallViaCode, assembler()->CodeSize(), &func, NULL));
+      Code::kCallViaCode, entry_point, assembler()->CodeSize(), &func, NULL));
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
   ASSERT(code.IsZoneHandle() || code.IsReadOnlyHandle());
-  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
-      Code::kCallViaCode, assembler()->CodeSize(), NULL, &code));
+  static_calls_target_table_.Add(
+      new (zone()) StaticCallsStruct(Code::kCallViaCode, Code::kDefaultEntry,
+                                     assembler()->CodeSize(), NULL, &code));
 }
 
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
@@ -1081,13 +1096,15 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
       Array::Handle(zone(), Array::New(array_length, Heap::kOld));
 
   StaticCallsTable entries(targets);
-  auto& kind_and_offset = Smi::Handle(zone());
+  auto& kind_type_and_offset = Smi::Handle(zone());
   for (intptr_t i = 0; i < calls.length(); i++) {
     auto entry = calls[i];
-    kind_and_offset = Smi::New(Code::KindField::encode(entry->call_kind) |
-                               Code::OffsetField::encode(entry->offset));
+    kind_type_and_offset =
+        Smi::New(Code::KindField::encode(entry->call_kind) |
+                 Code::EntryPointField::encode(entry->entry_point) |
+                 Code::OffsetField::encode(entry->offset));
     auto view = entries[i];
-    view.Set<Code::kSCallTableKindAndOffset>(kind_and_offset);
+    view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
     const Object* target = nullptr;
     if (entry->function != nullptr) {
       view.Set<Code::kSCallTableFunctionTarget>(*calls[i]->function);
@@ -1259,7 +1276,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   if (FLAG_precompiled_mode) {
     // TODO(#34162): Support unchecked entry-points in precompiled mode.
     ic_data = ic_data.AsUnaryClassChecks();
-    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs);
+    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
   ASSERT(!ic_data.IsNull());
@@ -2104,7 +2121,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
   bool is_non_smi = false;
-  if (int_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kOld)) {
+  if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
     __ BranchIfSmi(instance_reg, done);
     is_non_smi = true;
   }

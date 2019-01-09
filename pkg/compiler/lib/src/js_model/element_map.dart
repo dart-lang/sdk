@@ -11,7 +11,9 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
+import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
@@ -21,7 +23,6 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
@@ -165,6 +166,9 @@ abstract class JsToElementMap {
   /// modified in another get their values updated correctly.
   Map<Local, JRecordField> makeRecordContainer(
       KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
+
+  /// Returns a provider for static types for [member].
+  StaticTypeProvider getStaticTypeProvider(MemberEntity member);
 }
 
 /// Interface for type inference results for kernel IR nodes.

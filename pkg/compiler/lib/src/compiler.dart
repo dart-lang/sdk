@@ -26,7 +26,11 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
+import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
+import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
+import 'inferrer/types.dart'
+    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/inferred_data.dart';
@@ -38,9 +42,6 @@ import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'serialization/task.dart';
 import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
-import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
-import 'types/types.dart'
-    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
@@ -67,10 +68,9 @@ abstract class Compiler {
   /// Options provided from command-line arguments.
   final CompilerOptions options;
 
-  /**
-   * If true, stop compilation after type inference is complete. Used for
-   * debugging and testing purposes only.
-   */
+  // These internal flags are used to stop compilation after a specific phase.
+  // Used only for debugging and testing purposes only.
+  bool stopAfterClosedWorld = false;
   bool stopAfterTypeInference = false;
 
   /// Output provider from user of Compiler API.
@@ -106,7 +106,7 @@ abstract class Compiler {
   JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
 
-  AbstractValueStrategy abstractValueStrategy = const TypeMaskStrategy();
+  AbstractValueStrategy abstractValueStrategy;
 
   GenericTask selfTask;
 
@@ -145,6 +145,10 @@ abstract class Compiler {
       : this.options = options {
     options.deriveOptions();
     options.validate();
+
+    abstractValueStrategy = options.useTrivialAbstractValueDomain
+        ? const TrivialAbstractValueStrategy()
+        : const TypeMaskStrategy();
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);
@@ -251,6 +255,7 @@ abstract class Compiler {
       generateJavaScriptCode(results);
     } else {
       KernelResult result = await kernelLoader.load(uri);
+      reporter.log("Kernel load complete");
       if (result == null) return;
       if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
         return;
@@ -390,6 +395,7 @@ abstract class Compiler {
     selfTask.measureSubtask("compileFromKernel", () {
       JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
+      if (stopAfterClosedWorld) return;
       if (closedWorld != null) {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);

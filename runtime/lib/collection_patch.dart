@@ -543,7 +543,7 @@ class HashSet<E> {
   factory HashSet.identity() => new _IdentityHashSet<E>();
 }
 
-class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
+class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   static const int _INITIAL_CAPACITY = 8;
 
   List<_HashSetEntry<E>> _buckets =

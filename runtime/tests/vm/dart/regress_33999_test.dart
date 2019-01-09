@@ -8,12 +8,16 @@
 
 // Class with two type parameters.
 class A<U, T> {
-  T field;
+  T field1;
+  List<T> field2;
+  T Function(T) field3;
 }
 
 // Class with a single type parameter
 class B<T> {
-  T field;
+  T field1;
+  List<T> field2;
+  T Function(T) field3;
 }
 
 var TRUE = true;
@@ -22,9 +26,13 @@ void foo(bool f) {
   dynamic x = f ? new B<int>() : new A<String, int>();
   if (f == TRUE) {
     // Prevent constant folding by accessing a global
-    x.field = 10;
+    x.field1 = 10;
+    x.field2 = <int>[];
+    x.field3 = (int i) => ++i;
   } else {
-    x.field = 10;
+    x.field1 = 10;
+    x.field2 = <int>[];
+    x.field3 = (int i) => ++i;
   }
 }
 

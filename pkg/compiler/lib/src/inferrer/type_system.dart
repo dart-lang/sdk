@@ -6,9 +6,9 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
 
 /// Strategy for creating type information from members and parameters and type
@@ -310,7 +310,9 @@ class TypeSystem {
   TypeInformation refineReceiver(
       Selector selector, AbstractValue mask, TypeInformation receiver,
       {bool isConditional}) {
-    if (_abstractValueDomain.isExact(receiver.type)) return receiver;
+    if (_abstractValueDomain.isExact(receiver.type).isDefinitelyTrue) {
+      return receiver;
+    }
     AbstractValue otherType = _closedWorld.computeReceiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
@@ -321,8 +323,8 @@ class TypeSystem {
     }
     // If this is refining to nullable subtype of `Object` just return
     // the receiver. We know the narrowing is useless.
-    if (_abstractValueDomain.canBeNull(otherType) &&
-        _abstractValueDomain.containsAll(otherType)) {
+    if (_abstractValueDomain.isNull(otherType).isPotentiallyTrue &&
+        _abstractValueDomain.containsAll(otherType).isPotentiallyTrue) {
       return receiver;
     }
     TypeInformation newType =
@@ -365,7 +367,7 @@ class TypeSystem {
     if (isNullable) {
       otherType = _abstractValueDomain.includeNull(otherType);
     }
-    if (_abstractValueDomain.isExact(type.type)) {
+    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) {
       return type;
     } else {
       TypeInformation newType =
@@ -379,7 +381,7 @@ class TypeSystem {
    * Returns the non-nullable type of [type].
    */
   TypeInformation narrowNotNull(TypeInformation type) {
-    if (_abstractValueDomain.isExact(type.type)) {
+    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) {
       return type;
     }
     TypeInformation newType = new NarrowTypeInformation(_abstractValueDomain,
@@ -472,7 +474,9 @@ class TypeSystem {
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
         _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
-        _abstractValueDomain.isInstanceOfOrNull(type.type, typedDataClass);
+        _abstractValueDomain
+            .isInstanceOfOrNull(type.type, typedDataClass)
+            .isDefinitelyTrue;
     bool isConst = (type.type == _abstractValueDomain.constListType);
     bool isFixed = (type.type == _abstractValueDomain.fixedListType) ||
         isConst ||
@@ -648,7 +652,9 @@ class TypeSystem {
       // work the result will be `dynamic`.
       // TODO(sigmund): change to `mask == dynamicType` so we can continue to
       // track the non-nullable bit.
-      if (_abstractValueDomain.containsAll(mask)) return dynamicType;
+      if (_abstractValueDomain.containsAll(mask).isPotentiallyTrue) {
+        return dynamicType;
+      }
       list.add(mask);
     }
 
@@ -657,7 +663,9 @@ class TypeSystem {
       newType =
           newType == null ? mask : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
-      if (_abstractValueDomain.containsAll(newType)) return dynamicType;
+      if (_abstractValueDomain.containsAll(newType).isPotentiallyTrue) {
+        return dynamicType;
+      }
     }
 
     return newType ?? _abstractValueDomain.emptyType;

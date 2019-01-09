@@ -98,9 +98,8 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
-    return forwardTo.canHit(element, selector, closedWorld);
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+    return forwardTo.canHit(element, name, closedWorld);
   }
 
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {

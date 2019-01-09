@@ -46,7 +46,7 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   void writeLibraries(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
       Library library = component.libraries[i];
-      if (predicate(library)) writeNode(library);
+      if (predicate(library)) writeLibraryNode(library);
     }
   }
 

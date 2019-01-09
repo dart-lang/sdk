@@ -16,7 +16,7 @@ class MyTest extends core::Object {
   method foo() → void {}
 }
 abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTest {
-  synthetic constructor •() → self::_MyTest2&Object&MyTest
+  const synthetic constructor •() → self::_MyTest2&Object&MyTest
     : super core::Object::•()
     ;
   @self::failingTest
@@ -24,7 +24,7 @@ abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTe
 }
 class MyTest2 extends self::_MyTest2&Object&MyTest {
   synthetic constructor •() → self::MyTest2
-    : super core::Object::•()
+    : super self::_MyTest2&Object&MyTest::•()
     ;
 }
 static const field self::_FailingTest failingTest = const self::_FailingTest::•();

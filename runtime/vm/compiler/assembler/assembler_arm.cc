@@ -24,6 +24,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
@@ -3162,10 +3163,16 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   COMPILE_ASSERT(PP < CODE_REG);
   COMPILE_ASSERT(CODE_REG < FP);
   COMPILE_ASSERT(FP < LR);
-  EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
-  // Setup pool pointer for this dart function.
-  LoadPoolPointer();
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
+
+    // Setup pool pointer for this dart function.
+    LoadPoolPointer();
+  } else {
+    EnterFrame((1 << FP) | (1 << LR), 0);
+  }
+  set_constant_pool_allowed(true);
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -3186,8 +3193,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 }
 
 void Assembler::LeaveDartFrame() {
-  ldr(PP,
-      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  }
   set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
@@ -3196,8 +3205,10 @@ void Assembler::LeaveDartFrame() {
 }
 
 void Assembler::LeaveDartFrameAndReturn() {
-  ldr(PP,
-      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  }
   set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
@@ -3216,21 +3227,21 @@ void Assembler::LeaveStubFrame() {
 // R0 receiver, R9 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 #endif
+  intptr_t start = CodeSize();
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
   Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
 
 #if defined(TESTING) || defined(DEBUG)
   set_use_far_branches(saved_use_far_branches);

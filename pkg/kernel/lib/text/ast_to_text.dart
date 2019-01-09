@@ -1264,6 +1264,21 @@ class Printer extends Visitor<Null> {
     writeSymbol(']');
   }
 
+  visitSetLiteral(SetLiteral node) {
+    if (node.isConst) {
+      writeWord('const');
+      writeSpace();
+    }
+    if (node.typeArgument != null) {
+      writeSymbol('<');
+      writeType(node.typeArgument);
+      writeSymbol('>');
+    }
+    writeSymbol('{');
+    writeList(node.expressions, writeNode);
+    writeSymbol('}');
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       writeWord('const');
@@ -1973,6 +1988,7 @@ class Precedence extends ExpressionVisitor<int> {
   int visitRethrow(Rethrow node) => PRIMARY;
   int visitThrow(Throw node) => EXPRESSION;
   int visitListLiteral(ListLiteral node) => PRIMARY;
+  int visitSetLiteral(SetLiteral node) => PRIMARY;
   int visitMapLiteral(MapLiteral node) => PRIMARY;
   int visitAwaitExpression(AwaitExpression node) => PREFIX;
   int visitFunctionExpression(FunctionExpression node) => EXPRESSION;

@@ -4,6 +4,8 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
+enum_initialization_near_stack_overflow_test: Pass, CompileTimeError, OK
+
 [ $compiler == app_jitk ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -140,6 +142,7 @@ type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
+vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 vm/type_cast_vm_test: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
@@ -190,7 +193,15 @@ implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
-set_literals/*: Skip
+set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/09: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/10: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/29: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/30: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/31: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/32: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/33: MissingCompileTimeError # Requires constant evaluation
+set_literals/invalid_set_literal_test/34: MissingCompileTimeError # Requires constant evaluation
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
@@ -204,8 +215,6 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
-const_constructor_mixin3_test: CompileTimeError # Issue 33644.
-const_constructor_mixin_test: CompileTimeError # Issue 33644.
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -263,9 +272,6 @@ vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 [ $compiler == app_jitk && $mode == product ]
 vm/causal_async_exception_stack2_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
-
-[ $compiler == app_jitk && ($mode == debug || $mode == release) ]
-assertion_test: RuntimeError
 
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $fasta ]
 const_optional_args_test/01: MissingCompileTimeError
@@ -406,6 +412,13 @@ assertion_initializer_const_error2_test/cc10: Crash
 assertion_initializer_const_error2_test/cc11: Crash
 async_await_test: RuntimeError
 async_return_types_test/nestedFuture: Fail
+async_star/async_star_cancel_test: DartkCrash
+async_star/async_star_invalid_test/01: DartkCrash
+async_star/async_star_invalid_test/02: DartkCrash
+async_star/async_star_invalid_test/03: DartkCrash
+async_star/async_star_invalid_test/04: DartkCrash
+async_star/async_star_invalid_test/none: DartkCrash
+async_star/async_star_test: DartkCrash
 compile_time_constant_checked_test/02: MissingCompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
@@ -621,8 +634,6 @@ type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/optimized_stacktrace_test: Crash
-vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27671_test: Skip # Unsupported
 vm/regress_29145_test: Skip # Issue 29145
@@ -1046,8 +1057,6 @@ conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loadin
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
-const_constructor_mixin3_test: CompileTimeError # Issue 33644.
-const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_list_test: RuntimeError
 const_locals_test: RuntimeError

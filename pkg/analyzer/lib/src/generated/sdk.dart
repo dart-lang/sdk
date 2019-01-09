@@ -265,7 +265,7 @@ class SdkDescription {
   }
 }
 
-class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
+class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /**
    * The prefix added to the name of a library to form the URI used in code to
    * reference the library.
@@ -351,7 +351,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitMapLiteralEntry(MapLiteralEntry node) {
+  void visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
@@ -392,7 +392,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
       }
       _librariesMap.setLibrary(libraryName, library);
     }
-    return null;
   }
 }
 

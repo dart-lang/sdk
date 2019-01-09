@@ -47,6 +47,7 @@ class CoreTypes {
   Class _doubleClass;
   Class _stringClass;
   Class _listClass;
+  Class _setClass;
   Class _mapClass;
   Class _iterableClass;
   Class _iteratorClass;
@@ -54,19 +55,13 @@ class CoreTypes {
   Class _typeClass;
   Class _functionClass;
   Class _invocationClass;
-  Constructor _externalNameDefaultConstructor;
   Class _invocationMirrorClass;
   Constructor _invocationMirrorWithTypeConstructor;
-  Constructor _invocationMirrorWithoutTypeConstructor;
-  Class _noSuchMethodErrorClass;
   Constructor _noSuchMethodErrorDefaultConstructor;
   Procedure _listFromConstructor;
   Procedure _listUnmodifiableConstructor;
-  Procedure _printProcedure;
   Procedure _identicalProcedure;
-  Constructor _duplicatedFieldInitializerErrorDefaultConstructor;
   Constructor _fallThroughErrorUrlAndLineConstructor;
-  Constructor _compileTimeErrorDefaultConstructor;
   Procedure _objectEquals;
   Procedure _mapUnmodifiable;
 
@@ -76,15 +71,11 @@ class CoreTypes {
   Class _futureClass;
   Class _stackTraceClass;
   Class _streamClass;
-  Class _completerClass;
   Class _asyncAwaitCompleterClass;
   Class _futureOrClass;
   Constructor _asyncAwaitCompleterConstructor;
   Procedure _completeOnAsyncReturnProcedure;
-  Procedure _completerSyncConstructor;
-  Procedure _completerComplete;
   Procedure _completerCompleteError;
-  Procedure _futureMicrotaskConstructor;
   Constructor _syncIterableDefaultConstructor;
   Constructor _streamIteratorDefaultConstructor;
   Constructor _asyncStarStreamControllerDefaultConstructor;
@@ -176,18 +167,9 @@ class CoreTypes {
     return _boolClass ??= index.getClass('dart:core', 'bool');
   }
 
-  Class get completerClass {
-    return _completerClass ??= index.getClass('dart:async', 'Completer');
-  }
-
   Class get asyncAwaitCompleterClass {
     return _asyncAwaitCompleterClass ??=
         index.getClass('dart:async', '_AsyncAwaitCompleter');
-  }
-
-  Procedure get completerSyncConstructor {
-    return _completerSyncConstructor ??=
-        index.getMember('dart:async', 'Completer', 'sync');
   }
 
   Constructor get asyncAwaitCompleterConstructor {
@@ -198,11 +180,6 @@ class CoreTypes {
   Member get completeOnAsyncReturn {
     return _completeOnAsyncReturnProcedure ??=
         index.getTopLevelMember('dart:async', '_completeOnAsyncReturn');
-  }
-
-  Procedure get completerComplete {
-    return _completerComplete ??=
-        index.getMember('dart:async', 'Completer', 'complete');
   }
 
   Procedure get completerCompleteError {
@@ -222,22 +199,12 @@ class CoreTypes {
     return _doubleClass ??= index.getClass('dart:core', 'double');
   }
 
-  Constructor get externalNameDefaultConstructor {
-    return _externalNameDefaultConstructor ??=
-        index.getMember('dart:_internal', 'ExternalName', '');
-  }
-
   Class get functionClass {
     return _functionClass ??= index.getClass('dart:core', 'Function');
   }
 
   Class get futureClass {
     return _futureClass ??= index.getClass('dart:async', 'Future');
-  }
-
-  Procedure get futureMicrotaskConstructor {
-    return _futureMicrotaskConstructor ??=
-        index.getMember('dart:async', 'Future', 'microtask');
   }
 
   Class get futureOrClass {
@@ -271,11 +238,6 @@ class CoreTypes {
         index.getMember('dart:core', '_InvocationMirror', '_withType');
   }
 
-  Constructor get invocationMirrorWithoutTypeConstructor {
-    return _invocationMirrorWithoutTypeConstructor ??=
-        index.getMember('dart:core', '_InvocationMirror', '_withoutType');
-  }
-
   Class get iterableClass {
     return _iterableClass ??= index.getClass('dart:core', 'Iterable');
   }
@@ -298,6 +260,10 @@ class CoreTypes {
         index.getMember('dart:core', 'List', 'unmodifiable');
   }
 
+  Class get setClass {
+    return _setClass ??= index.getClass('dart:core', 'Set');
+  }
+
   Class get mapClass {
     return _mapClass ??= index.getClass('dart:core', 'Map');
   }
@@ -309,11 +275,6 @@ class CoreTypes {
 
   Library get mirrorsLibrary {
     return _mirrorsLibrary ??= index.tryGetLibrary('dart:mirrors');
-  }
-
-  Class get noSuchMethodErrorClass {
-    return _noSuchMethodErrorClass ??=
-        index.getClass('dart:core', 'NoSuchMethodError');
   }
 
   Constructor get noSuchMethodErrorDefaultConstructor {
@@ -348,10 +309,6 @@ class CoreTypes {
 
   Field get pragmaOptions {
     return _pragmaOptions ??= index.getMember('dart:core', 'pragma', 'options');
-  }
-
-  Procedure get printProcedure {
-    return _printProcedure ??= index.getTopLevelMember('dart:core', 'print');
   }
 
   Class get stackTraceClass {
@@ -416,19 +373,9 @@ class CoreTypes {
     return _typeClass ??= index.getClass('dart:core', 'Type');
   }
 
-  Constructor get duplicatedFieldInitializerErrorDefaultConstructor {
-    return _duplicatedFieldInitializerErrorDefaultConstructor ??=
-        index.getMember('dart:core', '_DuplicatedFieldInitializerError', '');
-  }
-
   Constructor get fallThroughErrorUrlAndLineConstructor {
     return _fallThroughErrorUrlAndLineConstructor ??=
         index.getMember('dart:core', 'FallThroughError', '_create');
-  }
-
-  Constructor get compileTimeErrorDefaultConstructor {
-    return _compileTimeErrorDefaultConstructor ??=
-        index.getMember('dart:core', '_CompileTimeError', '');
   }
 
   Procedure get boolFromEnvironment {

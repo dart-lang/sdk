@@ -132,7 +132,7 @@ Future<bool> computeKernel(List<String> args,
   Target target;
   var summaryOnly = parsedArgs['summary-only'] as bool;
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
-  var targetFlags = new TargetFlags(syncAsync: true);
+  var targetFlags = new TargetFlags();
   if (summaryOnly) {
     target = new SummaryTarget(sources, excludeNonSources, targetFlags);
   } else {

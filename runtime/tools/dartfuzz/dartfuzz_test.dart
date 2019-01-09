@@ -49,18 +49,40 @@ abstract class TestRunner {
   String description;
 
   // Factory.
-  static TestRunner getTestRunner(
-      String mode, String top, String tmp, Map<String, String> env) {
-    if (mode.startsWith('jit-opt'))
-      return new TestRunnerJIT(
-          getTag(mode), top, tmp, env, ['--optimization_counter_threshold=1']);
+  static TestRunner getTestRunner(String mode, String top, String tmp,
+      Map<String, String> env, Random rand) {
+    String tag = getTag(mode);
+    if (mode.startsWith('jit-stress'))
+      switch (rand.nextInt(6)) {
+        case 0:
+          return new TestRunnerJIT('JIT-NOFIELDGUARDS', tag, top, tmp, env,
+              ['--use_field_guards=false']);
+        case 1:
+          return new TestRunnerJIT(
+              'JIT-NOINTRINSIFY', tag, top, tmp, env, ['--intrinsify=false']);
+        case 2:
+          return new TestRunnerJIT('JIT-COMPACTEVERY', tag, top, tmp, env,
+              ['--gc_every=1000', '--use_compactor=true']);
+        case 3:
+          return new TestRunnerJIT('JIT-MARKSWEEPEVERY', tag, top, tmp, env,
+              ['--gc_every=1000', '--use_compactor=false']);
+        case 4:
+          return new TestRunnerJIT('JIT-DEPOPTEVERY', tag, top, tmp, env,
+              ['--deoptimize_every=100']);
+        case 5:
+          return new TestRunnerJIT('JIT-STACKTRACEEVERY', tag, top, tmp, env,
+              ['--stacktrace_every=100']);
+        case 6:
+          // Crashes (https://github.com/dart-lang/sdk/issues/35196):
+          return new TestRunnerJIT('JIT-OPTCOUNTER', tag, top, tmp, env,
+              ['--optimization_counter_threshold=1']);
+      }
     if (mode.startsWith('jit'))
-      return new TestRunnerJIT(getTag(mode), top, tmp, env, []);
-    if (mode.startsWith('aot'))
-      return new TestRunnerAOT(getTag(mode), top, tmp, env);
+      return new TestRunnerJIT('JIT', tag, top, tmp, env, []);
+    if (mode.startsWith('aot')) return new TestRunnerAOT(tag, top, tmp, env);
     if (mode.startsWith('kbc'))
-      return new TestRunnerKBC(mode, getTag(mode), top, tmp, env);
-    if (mode.startsWith('js')) return new TestRunnerJS(top, tmp, env);
+      return new TestRunnerKBC(mode, tag, top, tmp, env);
+    if (mode.startsWith('js')) return new TestRunnerJS(tag, top, tmp, env);
     throw ('unknown runner in mode: $mode');
   }
 
@@ -84,13 +106,13 @@ abstract class TestRunner {
 
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
-  TestRunnerJIT(String tag, String top, String tmp, Map<String, String> e,
-      List<String> extra_flags) {
-    description = extra_flags.length == 0 ? 'JIT-${tag}' : 'JIT-OPT-${tag}';
+  TestRunnerJIT(String prefix, String tag, String top, String tmp,
+      Map<String, String> e, List<String> extra_flags) {
+    description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     fileName = '$tmp/fuzz.dart';
     env = e;
-    cmd = [dart] + extra_flags + [fileName];
+    cmd = [dart, "--deterministic"] + extra_flags + [fileName];
   }
 
   TestResult run() {
@@ -179,9 +201,9 @@ class TestRunnerKBC implements TestRunner {
 
 /// Concrete test runner of Dart2JS.
 class TestRunnerJS implements TestRunner {
-  TestRunnerJS(String top, String tmp, Map<String, String> e) {
-    description = 'Dart2JS';
-    dart2js = '$top/out/ReleaseX64/dart-sdk/bin/dart2js';
+  TestRunnerJS(String tag, String top, String tmp, Map<String, String> e) {
+    description = 'Dart2JS-$tag';
+    dart2js = '$top/sdk/bin/dart2js';
     fileName = '$tmp/fuzz.dart';
     js = '$tmp/out.js';
     env = e;
@@ -241,8 +263,8 @@ class DartFuzzTest {
     rand = new Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
-    runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env);
-    runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env);
+    runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env, rand);
+    runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env, rand);
     isolate = 'Isolate (${tmpDir.path}) '
         '${runner1.description} - ${runner2.description}';
 
@@ -464,10 +486,9 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      int cluster_modes = modes.indexOf('aot-debug-arm32');
       Random rand = new Random();
       do {
-        mode = modes[rand.nextInt(cluster_modes)];
+        mode = clusterModes[rand.nextInt(clusterModes.length)];
       } while (mode == other);
     }
     // Verify mode.
@@ -490,9 +511,8 @@ class DartFuzzTestSession {
   // Passes each port to isolate.
   SendPort port;
 
-  // Supported modes.
-  static const List<String> modes = [
-    // Cluster options:
+  // Modes used on cluster runs.
+  static const List<String> clusterModes = [
     'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-arm32',
@@ -505,6 +525,18 @@ class DartFuzzTestSession {
     'jit-arm64',
     'jit-dbc',
     'jit-dbc64',
+    'jit-stress-debug-ia32',
+    'jit-stress-debug-x64',
+    'jit-stress-debug-arm32',
+    'jit-stress-debug-arm64',
+    'jit-stress-debug-dbc',
+    'jit-stress-debug-dbc64',
+    'jit-stress-ia32',
+    'jit-stress-x64',
+    'jit-stress-arm32',
+    'jit-stress-arm64',
+    'jit-stress-dbc',
+    'jit-stress-dbc64',
     'aot-debug-x64',
     'aot-x64',
     'kbc-int-debug-x64',
@@ -513,30 +545,21 @@ class DartFuzzTestSession {
     'kbc-int-x64',
     'kbc-cmp-x64',
     'kbc-mix-x64',
+  ];
+
+  // Modes not used on cluster runs because they have outstanding issues.
+  static const List<String> nonClusterModes = [
     // Times out often:
     'aot-debug-arm32',
     'aot-debug-arm64',
     'aot-arm32',
     'aot-arm64',
     // Too many divergences (due to arithmetic):
-    'js',
-    // https://github.com/dart-lang/sdk/issues/35196
-    'jit-opt-debug-ia32',
-    'jit-opt-debug-x64',
-    'jit-opt-debug-arm32',
-    'jit-opt-debug-arm64',
-    'jit-opt-debug-dbc',
-    'jit-opt-debug-dbc64',
-    'jit-opt-ia32',
-    'jit-opt-x64',
-    'jit-opt-arm32',
-    'jit-opt-arm64',
-    'jit-opt-dbc',
-    'jit-opt-dbc64',
-    // Not supported:
-    'aot-debug-ia32',
-    'aot-ia32',
+    'js-x64',
   ];
+
+  // All modes.
+  static List<String> modes = clusterModes + nonClusterModes;
 }
 
 /// Main driver for a fuzz testing session.

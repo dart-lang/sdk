@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -14,9 +15,11 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/src/test_utilities/ast_type_matchers.dart';
+import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show ScannerResult, scanString;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
@@ -34,6 +37,7 @@ main() {
     defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
     defineReflectiveTests(FormalParameterParserTest_Fasta);
+    defineReflectiveTests(NNBDParserTest_Fasta);
     defineReflectiveTests(RecoveryParserTest_Fasta);
     defineReflectiveTests(SimpleParserTest_Fasta);
     defineReflectiveTests(StatementParserTest_Fasta);
@@ -69,6 +73,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     fasta.Parser parser = new fasta.Parser(null);
+    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
@@ -104,7 +109,64 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
  */
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
-    with ComplexParserTestMixin {}
+    with ComplexParserTestMixin {
+  void test_conditionalExpression_precedence_nullableType_as2() {
+    ExpressionStatement statement = parseStatement('x as bool? ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isAsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 1)]);
+  }
+
+  void test_conditionalExpression_precedence_nullableType_as3() {
+    ExpressionStatement statement =
+        parseStatement('(x as bool?) ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isParenthesizedExpression);
+    expect((condition as ParenthesizedExpression).expression, isAsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]);
+  }
+
+  void test_conditionalExpression_precedence_nullableType_is2() {
+    ExpressionStatement statement =
+        parseStatement('x is String? ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isIsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]);
+  }
+
+  void test_conditionalExpression_precedence_nullableType_is3() {
+    ExpressionStatement statement =
+        parseStatement('(x is String?) ? (x + y) : z;');
+    ConditionalExpression expression = statement.expression;
+    Expression condition = expression.condition;
+    expect(condition, isParenthesizedExpression);
+    expect((condition as ParenthesizedExpression).expression, isIsExpression);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 12, 1)]);
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ErrorParserTest].
@@ -144,7 +206,10 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   void test_invalidOperatorAfterSuper_constructorInitializer2() {
     parseCompilationUnit('class C { C() : super?.namedConstructor(); }',
         errors: [
-          expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 21, 2)
+          expectedError(
+              ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
+              21,
+              2)
         ]);
   }
 
@@ -190,13 +255,140 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
+
+  void test_mapLiteral() {
+    MapLiteral map = parseExpression('{3: 6}', parseSetLiterals: true);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+    MapLiteralEntry entry = map.entries[0];
+    IntegerLiteral key = entry.key;
+    expect(key.value, 3);
+    IntegerLiteral value = entry.value;
+    expect(value.value, 6);
+  }
+
+  void test_mapLiteral_const() {
+    MapLiteral map = parseExpression('const {3: 6}', parseSetLiterals: true);
+    expect(map.constKeyword, isNotNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+    MapLiteralEntry entry = map.entries[0];
+    IntegerLiteral key = entry.key;
+    expect(key.value, 3);
+    IntegerLiteral value = entry.value;
+    expect(value.value, 6);
+  }
+
+  void test_setLiteral() {
+    SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(1));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_const() {
+    SetLiteral set = parseExpression('const {3, 6}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value1 = set.elements[0];
+    expect(value1.value, 3);
+    IntegerLiteral value2 = set.elements[1];
+    expect(value2.value, 6);
+  }
+
+  void test_setLiteral_const_typeArgument() {
+    SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNotNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_invalid_map_entry() {
+    parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments1() {
+    parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          15,
+          1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments2() {
+    parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          15,
+          1),
+    ]);
+  }
+
+  @failingTest
+  void test_setLiteral_invalid_too_many_type_arguments3() {
+    parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
+          ParserErrorCode.EXPECTED_TOKEN,
+          10,
+          1),
+    ]);
+  }
+
+  void test_setLiteral_nested_typeArgument() {
+    SetLiteral set = parseExpression('<Set<int>>{{3}}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg1 = set.typeArguments.arguments[0];
+    expect(typeArg1.name.name, 'Set');
+    expect(typeArg1.typeArguments.arguments, hasLength(1));
+    NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
+    expect(typeArg2.name.name, 'int');
+    expect(set.elements.length, 1);
+    SetLiteral intSet = set.elements[0];
+    expect(intSet.elements, hasLength(1));
+    IntegerLiteral value = intSet.elements[0];
+    expect(value.value, 3);
+  }
+
+  void test_setLiteral_typeArgument() {
+    SetLiteral set = parseExpression('<int>{3}', parseSetLiterals: true);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+  }
 }
 
 /**
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * Fasta parser.
  */
-class FastaParserTestCase extends Object
+class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
@@ -393,6 +585,7 @@ class FastaParserTestCase extends Object
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
     fasta.Parser parser = new fasta.Parser(null);
+    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
@@ -446,8 +639,10 @@ class FastaParserTestCase extends Object
   Expression parseExpression(String source,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      int expectedEndOffset}) {
+      int expectedEndOffset,
+      bool parseSetLiterals = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
+    _parserProxy.fastaParser.enableSetLiterals = parseSetLiterals;
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;
@@ -900,6 +1095,15 @@ class ParserProxy extends analyzer.ParserAdapter {
 @reflectiveTest
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
+  @override
+  void test_equalityExpression_precedence_relational_right() {
+    parseExpression("== is", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+  }
+
   void test_invalidTypeParameters_super() {
     parseCompilationUnit('class C<X super Y> {}', errors: [
       // TODO(danrubel): Improve recovery.
@@ -912,15 +1116,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
-    ]);
-  }
-
-  @override
-  void test_equalityExpression_precedence_relational_right() {
-    parseExpression("== is", codes: [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
     ]);
   }
 
@@ -1286,5 +1481,148 @@ mixin A {
     createParser('/// Doc\nmixin M {}');
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
+  }
+}
+
+/**
+ * Tests of the fasta parser based on [ComplexParserTestMixin].
+ */
+@reflectiveTest
+class NNBDParserTest_Fasta extends FastaParserTestCase {
+  parseNNBDCompilationUnit(String code, {List<ExpectedError> errors}) {
+    createParser('''
+@pragma('analyzer:non-nullable') library nnbd.parser.test;
+$code
+''');
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
+    assertNoErrors();
+    return unit;
+  }
+
+  void test_assignment_complex() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
+  }
+
+  void test_assignment_simple() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+  }
+
+  void test_gft_nullable() {
+    parseNNBDCompilationUnit('main() { C? Function() x = 7; }');
+  }
+
+  void test_gft_nullable_1() {
+    parseNNBDCompilationUnit('main() { C Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_2() {
+    parseNNBDCompilationUnit('main() { C? Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_3() {
+    parseNNBDCompilationUnit('main() { C? Function()? Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_prefixed() {
+    parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
+  }
+
+  void test_conditional() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
+  }
+
+  void test_conditional_complex() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
+  }
+
+  void test_conditional_simple() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
+  }
+
+  void test_for() {
+    parseNNBDCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
+  }
+
+  void test_for_conditional() {
+    parseNNBDCompilationUnit(
+        'main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
+  }
+
+  void test_for_nullable() {
+    parseNNBDCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
+  }
+
+  void test_foreach() {
+    parseNNBDCompilationUnit('main() { for(int x in [7]) { } }');
+  }
+
+  void test_foreach_nullable() {
+    parseNNBDCompilationUnit('main() { for(int? x in [7, null]) { } }');
+  }
+
+  void test_is_nullable() {
+    CompilationUnit unit =
+        parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    ConditionalExpression expression = statement.expression;
+
+    IsExpression condition = expression.condition;
+    expect((condition.type as NamedType).question, isNotNull);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_is_nullable_parenthesis() {
+    CompilationUnit unit =
+        parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    ConditionalExpression expression = statement.expression;
+
+    ParenthesizedExpression condition = expression.condition;
+    IsExpression isExpression = condition.expression;
+    expect((isExpression.type as NamedType).question, isNotNull);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_pragma_missing() {
+    createParser("library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, false);
+  }
+
+  void test_pragma_non_nullable() {
+    createParser("@pragma('analyzer:non-nullable') library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, true);
+  }
+
+  void test_pragma_non_nullable_not_enabled() {
+    createParser("@pragma('analyzer:non-nullable') library foo;");
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, false);
+  }
+
+  void test_pragma_other() {
+    createParser("@pragma('analyzer:foo') library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, false);
+  }
+
+  void test_enableNonNullable_false() {
+    parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 20, 1)]);
   }
 }

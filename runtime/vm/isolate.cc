@@ -36,6 +36,7 @@
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
@@ -741,7 +742,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
     if (I->ErrorsFatal()) {
       if (has_listener) {
-        T->clear_sticky_error();
+        T->ClearStickyError();
       } else {
         T->set_sticky_error(result);
       }
@@ -779,6 +780,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = false;
+  api_flags->copy_parent_code = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -789,6 +791,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
 #undef INIT_FROM_FIELD
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = should_load_vmservice();
+  api_flags->copy_parent_code = false;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -946,7 +949,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       handler_info_cache_(),
       catch_entry_moves_cache_(),
       embedder_entry_points_(NULL),
-      obfuscation_map_(NULL) {
+      obfuscation_map_(NULL),
+      reverse_pc_lookup_cache_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   set_compilation_allowed(true);
@@ -973,6 +977,9 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  delete reverse_pc_lookup_cache_;
+  reverse_pc_lookup_cache_ = nullptr;
 
   delete background_compiler_;
   background_compiler_ = NULL;
@@ -2041,9 +2048,11 @@ void Isolate::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
 }
 
-void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack) {
+void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
+                                       MarkingStack* deferred_marking_stack) {
   ASSERT(marking_stack_ == NULL);
   marking_stack_ = marking_stack;
+  deferred_marking_stack_ = deferred_marking_stack;
   thread_registry()->AcquireMarkingStacks();
   ASSERT(Thread::Current()->is_marking());
 }
@@ -2052,6 +2061,7 @@ void Isolate::DisableIncrementalBarrier() {
   thread_registry()->ReleaseMarkingStacks();
   ASSERT(marking_stack_ != NULL);
   marking_stack_ = NULL;
+  deferred_marking_stack_ = NULL;
   ASSERT(!Thread::Current()->is_marking());
 }
 
@@ -2318,8 +2328,11 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   deoptimized_code.Add(code);
 }
 
-void Isolate::clear_sticky_error() {
+RawError* Isolate::StealStickyError() {
+  NoSafepointScope no_safepoint;
+  RawError* return_value = sticky_error_;
   sticky_error_ = Error::null();
+  return return_value;
 }
 
 #if !defined(PRODUCT)
@@ -2848,12 +2861,12 @@ void Isolate::UnscheduleThread(Thread* thread,
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());
-      sticky_error_ = thread->sticky_error();
-      thread->clear_sticky_error();
+      sticky_error_ = thread->StealStickyError();
     }
   } else {
     ASSERT(thread->api_top_scope_ == NULL);
     ASSERT(thread->zone_ == NULL);
+    ASSERT(thread->sticky_error() == Error::null());
   }
   if (!bypass_safepoint) {
     // Ensure that the thread reports itself as being at a safepoint.

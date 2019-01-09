@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ import 'analysis_options_test.dart' as analysis_options_test;
 import 'build_mode_test.dart' as build_mode_test;
 import 'driver_test.dart' as driver_test;
 import 'embedder_test.dart' as embedder_test;
-import 'error_test.dart' as error_test;
 import 'errors_reported_once_test.dart' as errors_reported_once_test;
 import 'errors_upgrade_fails_cli_test.dart' as errors_upgrade_fails_cli_test;
 import 'options_test.dart' as options_test;
@@ -21,7 +20,6 @@ main() {
   build_mode_test.main();
   driver_test.main();
   embedder_test.main();
-  error_test.main();
   errors_reported_once_test.main();
   errors_upgrade_fails_cli_test.main();
   options_test.main();

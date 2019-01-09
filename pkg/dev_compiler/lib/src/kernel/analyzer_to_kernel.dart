@@ -1,10 +1,9 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHO@override S file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide MapEntry;
 import 'dart:collection';
-import 'package:analyzer/analyzer.dart' as a;
 import 'package:analyzer/dart/element/element.dart' as a;
 import 'package:analyzer/dart/element/type.dart' as a;
 import 'package:analyzer/file_system/physical_file_system.dart' as a;
@@ -74,7 +73,7 @@ class AnalyzerToKernel {
   final a.StoreBasedSummaryResynthesizer _resynth;
   final a.SummaryDataStore _summaryData;
   final a.TypeProvider types;
-  final a.StrongTypeSystemImpl rules;
+  final a.Dart2TypeSystem rules;
 
   final _references = HashMap<a.Element, Reference>();
   final _typeParams = HashMap<a.TypeParameterElement, TypeParameter>();
@@ -84,7 +83,7 @@ class AnalyzerToKernel {
       : _resynth = (context.resultProvider as a.InputPackagesResultProvider)
             .resynthesizer,
         types = context.typeProvider,
-        rules = context.typeSystem as a.StrongTypeSystemImpl;
+        rules = context.typeSystem as a.Dart2TypeSystem;
 
   /// Create an Analyzer summary to Kernel tree converter, using the provided
   /// [analyzerSdkSummary] and [summaryPaths].
@@ -869,7 +868,7 @@ a.StoreBasedSummaryResynthesizer _createSummaryResynthesizer(
     a.SummaryDataStore summaryData, String dartSdkPath) {
   var context = _createContextForSummaries(summaryData, dartSdkPath);
   return a.StoreBasedSummaryResynthesizer(
-      context, context.sourceFactory, /*strongMode*/ true, summaryData);
+      context, null, context.sourceFactory, /*strongMode*/ true, summaryData);
 }
 
 /// Creates a dummy Analyzer context so we can use summary resynthesizer.

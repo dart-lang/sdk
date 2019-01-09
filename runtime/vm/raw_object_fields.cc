@@ -20,10 +20,9 @@ namespace dart {
   F(Class, library_)                                                           \
   F(Class, type_parameters_)                                                   \
   F(Class, super_type_)                                                        \
-  F(Class, mixin_)                                                             \
   F(Class, signature_function_)                                                \
   F(Class, constants_)                                                         \
-  F(Class, canonical_type_)                                                    \
+  F(Class, declaration_type_)                                                  \
   F(Class, invocation_dispatcher_cache_)                                       \
   F(Class, allocation_stub_)                                                   \
   F(Class, direct_implementors_)                                               \
@@ -141,17 +140,12 @@ namespace dart {
   F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
+  F(Type, signature_)                                                          \
   F(TypeRef, type_)                                                            \
   F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
   F(TypeParameter, parameterized_function_)                                    \
-  F(BoundedType, type_)                                                        \
-  F(BoundedType, bound_)                                                       \
-  F(BoundedType, hash_)                                                        \
-  F(BoundedType, type_parameter_)                                              \
-  F(MixinAppType, super_type_)                                                 \
-  F(MixinAppType, mixin_types_)                                                \
   F(Closure, instantiator_type_arguments_)                                     \
   F(Closure, function_type_arguments_)                                         \
   F(Closure, delayed_type_arguments_)                                          \

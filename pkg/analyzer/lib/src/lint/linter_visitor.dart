@@ -19,6 +19,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   LinterVisitor(this.registry, this.exceptionHandler);
 
   @override
+  void visitAnnotation(Annotation node) {
+    _runSubscriptions(node, registry._forAnnotation);
+    super.visitAnnotation(node);
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     _runSubscriptions(node, registry._forAsExpression);
     super.visitAsExpression(node);
@@ -680,6 +686,7 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
 /// The container to register visitors for separate AST node types.
 class NodeLintRegistry {
   final bool enableTiming;
+  final List<_Subscription<Annotation>> _forAnnotation = [];
   final List<_Subscription<AsExpression>> _forAsExpression = [];
   final List<_Subscription<AssertInitializer>> _forAssertInitializer = [];
   final List<_Subscription<AssertStatement>> _forAssertStatement = [];
@@ -807,6 +814,10 @@ class NodeLintRegistry {
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 
   NodeLintRegistry(this.enableTiming);
+
+  void addAnnotation(LintRule linter, AstVisitor visitor) {
+    _forAnnotation.add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
 
   void addAsExpression(LintRule linter, AstVisitor visitor) {
     _forAsExpression.add(new _Subscription(linter, visitor, _getTimer(linter)));

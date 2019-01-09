@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -211,7 +211,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   AnsiLogger ansi;
 
   // This is a Set in order to de-dup CLI errors.
-  Set<CLIError> batchedErrors = new Set();
+  final Set<CLIError> batchedErrors = new Set();
 
   HumanErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
@@ -262,7 +262,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
-    CharacterLocation location = errorToLine[error].getLocation(error.offset);
+    var location = errorToLine[error].getLocation(error.offset);
 
     ErrorSeverity severity = _severityProcessor(error);
 
@@ -323,7 +323,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
-    CharacterLocation location = errorToLine[error].getLocation(error.offset);
+    var location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
 
     ErrorSeverity severity = _severityProcessor(error);

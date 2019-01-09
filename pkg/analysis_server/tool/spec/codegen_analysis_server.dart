@@ -71,6 +71,59 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       });
 
       //
+      // addRequestListener(..)
+      //
+      publicMethod('addRequestListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when
+   * requests are made by an analysis server client.
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln('public void addRequestListener(RequestListener listener);');
+      });
+
+      //
+      // removeRequestListener(..)
+      //
+      publicMethod('removeRequestListener', () {
+        writeln('''/**
+ * Remove the given listener from the list of listeners that will receive notification when
+   * requests are made by an analysis server client.
+ * 
+ * @param listener the listener to be removed
+ */''');
+        writeln('public void removeRequestListener(RequestListener listener);');
+      });
+
+      //
+      // addResponseListener(..)
+      //
+      publicMethod('addResponseListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when
+ * responses are received by an analysis server client.
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln('public void addResponseListener(ResponseListener listener);');
+      });
+
+      //
+      // removeResponseListener(..)
+      //
+      publicMethod('removeResponseListener', () {
+        writeln('''/**
+ * Remove the given listener from the list of listeners that will receive notification when
+   * responses are received by an analysis server client.
+ * 
+ * @param listener the listener to be removed
+ */''');
+        writeln(
+            'public void removeResponseListener(ResponseListener listener);');
+      });
+
+      //
       // addStatusListener(..)
       //
       publicMethod('addStatusListener', () {

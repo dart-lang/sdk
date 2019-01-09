@@ -2161,15 +2161,15 @@ enum AsyncMarker {
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   DartType getStaticType(TypeEnvironment types);
 
   /// Returns the static type of the expression as an instantiation of
   /// [superclass].
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   ///
   /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].
@@ -3413,6 +3413,35 @@ class ListLiteral extends Expression {
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitListLiteral(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(expressions, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(expressions, v, this);
+  }
+}
+
+class SetLiteral extends Expression {
+  bool isConst;
+  DartType typeArgument; // Not null, defaults to DynamicType.
+  final List<Expression> expressions;
+
+  SetLiteral(this.expressions,
+      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+    assert(typeArgument != null);
+    setParents(expressions, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalSetType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitSetLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -5564,7 +5593,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeCanonicalNameReference(CanonicalName name);
+  void writeNullAllowedCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);

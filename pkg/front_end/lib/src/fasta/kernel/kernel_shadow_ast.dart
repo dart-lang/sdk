@@ -54,11 +54,7 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
 import '../type_inference/type_inference_engine.dart'
-    show
-        FieldInitializerInferenceNode,
-        IncludesTypeParametersCovariantly,
-        InferenceNode,
-        TypeInferenceEngine;
+    show IncludesTypeParametersCovariantly, InferenceNode, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
@@ -74,6 +70,8 @@ import '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment, getPositionalParameterType;
 
 import 'body_builder.dart' show combineStatements;
+
+import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
 import 'kernel_builder.dart' show KernelLibraryBuilder;
 
@@ -186,30 +184,6 @@ class BlockJudgment extends Block implements StatementJudgment {
   @override
   void acceptInference(InferenceVistor visitor) {
     return visitor.visitBlockJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a break statement in kernel form.
-class BreakJudgment extends BreakStatement implements StatementJudgment {
-  BreakJudgment(LabeledStatement target) : super(target);
-
-  LabeledStatementJudgment get targetJudgment => target;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitBreakJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a continue statement in kernel form.
-class ContinueJudgment extends BreakStatement implements StatementJudgment {
-  ContinueJudgment(LabeledStatement target) : super(target);
-
-  LabeledStatementJudgment get targetJudgment => target;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitContinueJudgment(this);
   }
 }
 
@@ -403,9 +377,6 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
     return parts;
   }
 
-  DartType _getWriteType(ShadowTypeInferrer inferrer) => unhandled(
-      '$runtimeType', 'ShadowComplexAssignment._getWriteType', -1, null);
-
   _ComplexAssignmentInferenceResult _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     assert(writeContext != null);
@@ -485,9 +456,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
             ? rhsType
             : inferrer.typeSchemaEnvironment
                 .getStandardUpperBound(readType, rhsType);
-        if (!inferrer.legacyMode) {
-          nullAwareCombiner.staticType = combinedType;
-        }
+        nullAwareCombiner.staticType = combinedType;
       } else {
         combinedType = rhsType;
       }
@@ -572,8 +541,6 @@ class DeferredCheckJudgment extends Let implements ExpressionJudgment {
 /// Concrete shadow object representing a do loop in kernel form.
 class DoJudgment extends DoStatement implements StatementJudgment {
   DoJudgment(Statement body, Expression condition) : super(body, condition);
-
-  StatementJudgment get bodyJudgment => body;
 
   Expression get conditionJudgment => condition;
 
@@ -666,9 +633,6 @@ class ShadowField extends Field implements ShadowMember {
     type = inferredType;
   }
 
-  static bool hasTypeInferredFromInitializer(ShadowField field) =>
-      field.inferenceNode is FieldInitializerInferenceNode;
-
   static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
 
   static void setInferenceNode(ShadowField field, InferenceNode node) {
@@ -688,44 +652,15 @@ class ShadowFieldInitializer extends FieldInitializer
   }
 }
 
-/// Concrete shadow object representing a for-in loop in kernel form.
-class ForInJudgment extends ForInStatement implements StatementJudgment {
-  final bool _declaresVariable;
-
-  final SyntheticExpressionJudgment _syntheticAssignment;
-
-  ForInJudgment(VariableDeclaration variable, Expression iterable,
-      Statement body, this._declaresVariable, this._syntheticAssignment,
-      {bool isAsync: false})
-      : super(variable, iterable, body, isAsync: isAsync);
-
-  VariableDeclarationJudgment get variableJudgment => variable;
-
-  Expression get iterableJudgment => iterable;
-
-  StatementJudgment get bodyJudgment => body;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitForInJudgment(this);
-  }
-}
-
 /// Concrete shadow object representing a classic for loop in kernel form.
 class ForJudgment extends ForStatement implements StatementJudgment {
-  final List<Expression> initializers;
-
-  ForJudgment(List<VariableDeclaration> variables, this.initializers,
-      Expression condition, List<Expression> updates, Statement body)
+  ForJudgment(List<VariableDeclaration> variables, Expression condition,
+      List<Expression> updates, Statement body)
       : super(variables ?? [], condition, updates, body);
-
-  List<VariableDeclarationJudgment> get variableJudgments => variables.cast();
 
   Expression get conditionJudgment => condition;
 
   List<Expression> get updateJudgments => updates.cast();
-
-  StatementJudgment get bodyJudgment => body;
 
   @override
   void acceptInference(InferenceVistor visitor) {
@@ -828,10 +763,6 @@ class IfJudgment extends IfStatement implements StatementJudgment {
 
   Expression get conditionJudgment => condition;
 
-  StatementJudgment get thenJudgment => then;
-
-  StatementJudgment get otherwiseJudgment => otherwise;
-
   @override
   void acceptInference(InferenceVistor visitor) {
     return visitor.visitIfJudgment(this);
@@ -848,11 +779,6 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   IllegalAssignmentJudgment._(Expression rhs, {this.assignmentOffset: -1})
       : super._(rhs) {
     rhs.parent = this;
-  }
-
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    return const UnknownType();
   }
 
   @override
@@ -1007,33 +933,14 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Concrete shadow object representing a labeled statement in kernel form.
-class LabeledStatementJudgment extends LabeledStatement
-    implements StatementJudgment {
-  LabeledStatementJudgment(Statement body) : super(body);
-
-  StatementJudgment get judgment => body;
-
-  @override
-  void acceptInference(InferenceVistor visitor) {
-    return visitor.visitLabeledStatementJudgment(this);
-  }
-}
-
-/// Type inference derivation for [LiteralList].
+/// Type inference derivation for [ListLiteral].
 class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  List<Expression> get judgments => expressions;
-
-  final DartType _declaredTypeArgument;
-
   ListLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
-      : _declaredTypeArgument = typeArgument,
-        super(expressions,
-            typeArgument: typeArgument ?? const DynamicType(),
-            isConst: isConst);
+      : assert(typeArgument != null),
+        super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1041,37 +948,31 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   }
 }
 
-/// Type inference derivation for [MapEntry].
-///
-/// This derivation is needed for uniformity.
-class MapEntryJudgment extends MapEntry {
-  DartType inferredKeyType;
-  DartType inferredValueType;
+/// Type inference derivation for [SetLiteral].
+class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
+  DartType inferredType;
 
-  Expression get keyJudgment => key;
+  SetLiteralJudgment(List<Expression> expressions,
+      {DartType typeArgument, bool isConst: false})
+      : assert(typeArgument != null),
+        super(expressions, typeArgument: typeArgument, isConst: isConst);
 
-  Expression get valueJudgment => value;
-
-  MapEntryJudgment(Expression key, Expression value) : super(key, value);
+  @override
+  void acceptInference(InferenceVistor visitor, DartType typeContext) {
+    return visitor.visitSetLiteralJudgment(this, typeContext);
+  }
 }
 
 /// Type inference derivation for [MapLiteral].
 class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  List<MapEntry> get judgments => entries;
-
-  final DartType _declaredKeyType;
-  final DartType _declaredValueType;
-
   MapLiteralJudgment(List<MapEntry> judgments,
       {DartType keyType, DartType valueType, bool isConst: false})
-      : _declaredKeyType = keyType,
-        _declaredValueType = valueType,
+      : assert(keyType != null),
+        assert(valueType != null),
         super(judgments,
-            keyType: keyType ?? const DynamicType(),
-            valueType: valueType ?? const DynamicType(),
-            isConst: isConst);
+            keyType: keyType, valueType: valueType, isConst: isConst);
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1246,14 +1147,6 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     return parts;
   }
 
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    assert(receiver == null);
-    var receiverType = inferrer.thisType;
-    var writeMember = inferrer.findPropertySetMember(receiverType, write);
-    return inferrer.getSetterType(writeMember, receiverType);
-  }
-
   Object _handleWriteContravariance(
       ShadowTypeInferrer inferrer, DartType receiverType) {
     return inferrer.findPropertySetMember(receiverType, write);
@@ -1307,12 +1200,6 @@ abstract class StatementJudgment extends Statement {
 /// Concrete shadow object representing an assignment to a static variable.
 class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    StaticSet write = this.write;
-    return write.target.setterType;
-  }
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1377,8 +1264,6 @@ class SwitchCaseJudgment extends SwitchCase {
   SwitchCaseJudgment.empty() : super.empty();
 
   List<Expression> get expressionJudgments => expressions.cast();
-
-  StatementJudgment get bodyJudgment => body;
 }
 
 /// Concrete shadow object representing a switch statement in kernel form.
@@ -1480,7 +1365,6 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   /// fact that [expression] has the given [type].
   void _storeLetType(
       TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    if (inferrer.legacyMode) return;
     Expression desugared = this.desugared;
     while (true) {
       if (desugared is Let) {
@@ -1517,15 +1401,11 @@ class CatchJudgment extends Catch {
   VariableDeclarationJudgment get exceptionJudgment => exception;
 
   VariableDeclarationJudgment get stackTraceJudgment => stackTrace;
-
-  StatementJudgment get bodyJudgment => body;
 }
 
 /// Concrete shadow object representing a try-catch block in kernel form.
 class TryCatchJudgment extends TryCatch implements StatementJudgment {
   TryCatchJudgment(Statement body, List<Catch> catches) : super(body, catches);
-
-  StatementJudgment get bodyJudgment => body;
 
   List<CatchJudgment> get catchJudgments => catches.cast();
 
@@ -1537,14 +1417,8 @@ class TryCatchJudgment extends TryCatch implements StatementJudgment {
 
 /// Concrete shadow object representing a try-finally block in kernel form.
 class TryFinallyJudgment extends TryFinally implements StatementJudgment {
-  final List<Catch> catches;
-
-  TryFinallyJudgment(Statement body, this.catches, Statement finalizer)
+  TryFinallyJudgment(Statement body, Statement finalizer)
       : super(body, finalizer);
-
-  List<CatchJudgment> get catchJudgments => catches?.cast();
-
-  StatementJudgment get finalizerJudgment => finalizer;
 
   @override
   void acceptInference(InferenceVistor visitor) {
@@ -1555,8 +1429,8 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class ShadowTypeInferenceEngine extends TypeInferenceEngine {
-  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool legacyMode)
-      : super(instrumentation, legacyMode);
+  ShadowTypeInferenceEngine(Instrumentation instrumentation)
+      : super(instrumentation);
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
@@ -1666,6 +1540,12 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       // so that the type hierarchy will be simpler (which may speed up "is"
       // checks).
       return statement.acceptInference(new InferenceVistor(this));
+    } else if (statement is ForInStatement) {
+      return statement.accept1(new InferenceVistor(this), null);
+    } else if (statement is LabeledStatement) {
+      return statement.accept1(new InferenceVistor(this), null);
+    } else if (statement is BreakStatement) {
+      return statement.accept1(new InferenceVistor(this), null);
     } else {
       // Encountered a statement type for which type inference is not yet
       // implemented, so just skip it for now.
@@ -1757,12 +1637,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
 class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
   VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  DartType _getWriteType(ShadowTypeInferrer inferrer) {
-    VariableSet write = this.write;
-    return write.variable.type;
-  }
 
   @override
   void acceptInference(InferenceVistor visitor, DartType typeContext) {
@@ -1904,8 +1778,6 @@ class WhileJudgment extends WhileStatement implements StatementJudgment {
 
   Expression get conditionJudgment => condition;
 
-  StatementJudgment get bodyJudgment => body;
-
   @override
   void acceptInference(InferenceVistor visitor) {
     return visitor.visitWhileJudgment(this);
@@ -1981,52 +1853,59 @@ class SyntheticWrapper {
   static Expression wrapIllegalAssignment(Expression rhs,
       {int assignmentOffset: -1}) {
     return new IllegalAssignmentJudgment._(rhs,
-        assignmentOffset: assignmentOffset);
+        assignmentOffset: assignmentOffset)
+      ..fileOffset = rhs.fileOffset;
   }
 
   static Expression wrapIndexAssignment(
       Expression receiver, Expression index, Expression rhs,
       {bool isSuper: false}) {
-    return new IndexAssignmentJudgment._(receiver, index, rhs,
-        isSuper: isSuper);
+    return new IndexAssignmentJudgment._(receiver, index, rhs, isSuper: isSuper)
+      ..fileOffset = index.fileOffset;
   }
 
   static Expression wrapInvalidConstructorInvocation(
       kernel.Expression desugared, Member constructor, Arguments arguments) {
     return new InvalidConstructorInvocationJudgment._(
-        desugared, constructor, arguments);
+        desugared, constructor, arguments)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapInvalidWrite(
       Expression desugared, Expression expression) {
-    return new InvalidWriteJudgment._(desugared, expression);
+    return new InvalidWriteJudgment._(desugared, expression)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapPropertyAssignment(Expression receiver, Expression rhs,
       {bool isSuper: false}) {
-    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper);
+    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper)
+      ..fileOffset = rhs.fileOffset;
   }
 
   static Expression wrapStaticAssignment(Expression rhs) {
-    return new StaticAssignmentJudgment._(rhs);
+    return new StaticAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
   }
 
   static Expression wrapSyntheticExpression(Expression desugared) {
-    return new SyntheticExpressionJudgment._(desugared);
+    return new SyntheticExpressionJudgment._(desugared)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapUnresolvedTargetInvocation(
       Expression desugared, Arguments arguments) {
-    return new UnresolvedTargetInvocationJudgment._(desugared, arguments);
+    return new UnresolvedTargetInvocationJudgment._(desugared, arguments)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs) {
     return new UnresolvedVariableAssignmentJudgment._(
-        desugared, isCompound, rhs);
+        desugared, isCompound, rhs)
+      ..fileOffset = desugared.fileOffset;
   }
 
   static Expression wrapVariableAssignment(Expression rhs) {
-    return new VariableAssignmentJudgment._(rhs);
+    return new VariableAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
   }
 }

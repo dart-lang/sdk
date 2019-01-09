@@ -140,7 +140,7 @@ abstract class SearchMatch {
   MatchKind get kind;
 
   /**
-   * Return the [LibraryElement] for the [libraryUri] in the [context].
+   * Return the [LibraryElement] for the [file].
    */
   LibraryElement get libraryElement;
 

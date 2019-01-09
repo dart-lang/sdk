@@ -40,6 +40,7 @@ class ProgramVisitor : public AllStatic {
   static void DedupCodeSourceMaps();
   static void DedupLists();
   static void DedupInstructions();
+  static void DedupInstructionsWithSameMetadata();
 };
 
 }  // namespace dart

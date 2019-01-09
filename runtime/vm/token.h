@@ -322,6 +322,32 @@ class Token {
     }
   }
 
+  // For a comparison operation return an operation for the equivalent flipped
+  // comparison: a (op) b === b (op') a.
+  static Token::Kind FlipComparison(Token::Kind op) {
+    switch (op) {
+      case Token::kEQ:
+        return Token::kEQ;
+      case Token::kNE:
+        return Token::kNE;
+      case Token::kLT:
+        return Token::kGT;
+      case Token::kGT:
+        return Token::kLT;
+      case Token::kLTE:
+        return Token::kGTE;
+      case Token::kGTE:
+        return Token::kLTE;
+      case Token::kEQ_STRICT:
+        return Token::kEQ_STRICT;
+      case Token::kNE_STRICT:
+        return Token::kNE_STRICT;
+      default:
+        UNREACHABLE();
+        return Token::kILLEGAL;
+    }
+  }
+
  private:
   static const char* name_[];
   static const char* tok_str_[];

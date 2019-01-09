@@ -36,15 +36,20 @@ void TestString(BufferFormatter* f,
         for (PhiIterator it(block->AsJoinEntry()); !it.Done(); it.Advance()) {
           InductionVar* induc = loop->LookupInduction(it.Current());
           if (induc != nullptr) {
-            f->Print("%*c%s\n", static_cast<int>(2 * depth), ' ',
+            // Obtain the debug string for induction and bounds.
+            f->Print("%*c%s", static_cast<int>(2 * depth), ' ',
                      induc->ToCString());
+            for (auto bound : induc->bounds()) {
+              f->Print(" %s", bound.limit_->ToCString());
+            }
+            f->Print("\n");
           }
         }
       }
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         InductionVar* induc =
             loop->LookupInduction(it.Current()->AsDefinition());
-        if (induc != nullptr) {
+        if (InductionVar::IsInduction(induc)) {
           f->Print("%*c%s\n", static_cast<int>(2 * depth), ' ',
                    induc->ToCString());
         }
@@ -91,6 +96,9 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
   flow_graph->ComputeSSA(0, nullptr);
   FlowGraphTypePropagator::Propagate(flow_graph);
   call_specializer.ApplyICData();
+  flow_graph->SelectRepresentations();
+  FlowGraphTypePropagator::Propagate(flow_graph);
+  flow_graph->Canonicalize();
 
   // Build loop hierarchy and find induction.
   const LoopHierarchy& hierarchy = flow_graph->GetLoopHierarchy();
@@ -104,7 +112,11 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-TEST_CASE(BasicInduction) {
+//
+// Induction tests.
+//
+
+TEST_CASE(BasicInductionUp) {
   const char* script_chars =
       "foo() {\n"
       "  for (int i = 0; i < 100; i++) {\n"
@@ -115,8 +127,25 @@ TEST_CASE(BasicInduction) {
       "}\n";
   const char* expected =
       "  [0\n"
-      "  LIN(0 + 1 * i)\n"  // phi
-      "  LIN(1 + 1 * i)\n"  // add
+      "  LIN(0 + 1 * i) 100\n"  // phi
+      "  LIN(1 + 1 * i)\n"      // add
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+
+TEST_CASE(BasicInductionDown) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 100; i > 0; i--) {\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(100 + -1 * i) 0\n"  // phi
+      "  LIN(99 + -1 * i)\n"     // sub
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -150,7 +179,7 @@ TEST_CASE(BasicInductionStepDown) {
   const char* expected =
       "  [0\n"
       "  LIN(100 + -7 * i)\n"  // phi
-      "  LIN(93 + -7 * i)\n"   // add
+      "  LIN(93 + -7 * i)\n"   // sub
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -170,13 +199,13 @@ TEST_CASE(BasicInductionLoopNest) {
       "}\n";
   const char* expected =
       "  [2\n"
-      "  LIN(0 + 1 * i)\n"  // i
+      "  LIN(0 + 1 * i) 100\n"  // i
       "  LIN(1 + 1 * i)\n"
       "    [1\n"
-      "    LIN(1 + 1 * i)\n"  // j
+      "    LIN(1 + 1 * i) 100\n"  // j
       "    LIN(2 + 1 * i)\n"
       "      [0\n"
-      "      LIN(2 + 1 * i)\n"  // k
+      "      LIN(2 + 1 * i) 100\n"  // k
       "      LIN(3 + 1 * i)\n"
       "      ]\n"
       "    ]\n"
@@ -198,11 +227,11 @@ TEST_CASE(ChainInduction) {
       "}\n";
   const char* expected =
       "  [0\n"
-      "  LIN(1 + 12 * i)\n"   // phi (j)
-      "  LIN(0 + 1 * i)\n"    // phi
-      "  LIN(6 + 12 * i)\n"   // j-add
-      "  LIN(13 + 12 * i)\n"  // j-add
-      "  LIN(1 + 1 * i)\n"    // add
+      "  LIN(1 + 12 * i)\n"     // phi (j)
+      "  LIN(0 + 1 * i) 100\n"  // phi
+      "  LIN(6 + 12 * i)\n"     // j-add
+      "  LIN(13 + 12 * i)\n"    // j-add
+      "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -224,12 +253,12 @@ TEST_CASE(TwoWayInduction) {
       "}\n";
   const char* expected =
       "  [0\n"
-      "  LIN(123 + 3 * i)\n"  // phi (j)
-      "  LIN(0 + 1 * i)\n"    // phi
-      "  LIN(126 + 3 * i)\n"  // j-true
-      "  LIN(126 + 3 * i)\n"  // j-false
-      "  LIN(1 + 1 * i)\n"    // add
-      "  LIN(126 + 3 * i)\n"  // phi (j)
+      "  LIN(123 + 3 * i)\n"    // phi (j)
+      "  LIN(0 + 1 * i) 100\n"  // phi
+      "  LIN(126 + 3 * i)\n"    // j-true
+      "  LIN(126 + 3 * i)\n"    // j-false
+      "  LIN(1 + 1 * i)\n"      // add
+      "  LIN(126 + 3 * i)\n"    // phi (j)
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -249,12 +278,12 @@ TEST_CASE(DerivedInduction) {
       "}\n";
   const char* expected =
       "  [0\n"
-      "  LIN(1 + 1 * i)\n"    // phi
-      "  LIN(4 + 1 * i)\n"    // a
-      "  LIN(-4 + 1 * i)\n"   // b
-      "  LIN(7 + 7 * i)\n"    // c
-      "  LIN(-1 + -1 * i)\n"  // d
-      "  LIN(2 + 1 * i)\n"    // add
+      "  LIN(1 + 1 * i) 100\n"  // phi
+      "  LIN(4 + 1 * i)\n"      // a
+      "  LIN(-4 + 1 * i)\n"     // b
+      "  LIN(7 + 7 * i)\n"      // c
+      "  LIN(-1 + -1 * i)\n"    // d
+      "  LIN(2 + 1 * i)\n"      // add
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -277,7 +306,7 @@ TEST_CASE(WrapAroundAndDerived) {
   const char* expected =
       "  [0\n"
       "  WRAP(99, LIN(0 + 1 * i))\n"    // phi (w)
-      "  LIN(0 + 1 * i)\n"              // phi
+      "  LIN(0 + 1 * i) 100\n"          // phi
       "  WRAP(102, LIN(3 + 1 * i))\n"   // a
       "  WRAP(94, LIN(-5 + 1 * i))\n"   // b
       "  WRAP(693, LIN(0 + 7 * i))\n"   // c
@@ -306,18 +335,174 @@ TEST_CASE(PeriodicAndDerived) {
       "}\n";
   const char* expected =
       "  [0\n"
-      "  PERIOD(3, -3)\n"    // phi(p1)
-      "  PERIOD(5, 95)\n"    // phi(p2)
-      "  LIN(0 + 1 * i)\n"   // phi
-      "  PERIOD(6, 0)\n"     // a
-      "  PERIOD(-2, -8)\n"   // b
-      "  PERIOD(21, -21)\n"  // c
-      "  PERIOD(-3, 3)\n"    // d
-      "  PERIOD(-3, 3)\n"    // p1
-      "  PERIOD(95, 5)\n"    // p2
-      "  LIN(1 + 1 * i)\n"   // add
+      "  PERIOD(3, -3)\n"       // phi(p1)
+      "  PERIOD(5, 95)\n"       // phi(p2)
+      "  LIN(0 + 1 * i) 100\n"  // phi
+      "  PERIOD(6, 0)\n"        // a
+      "  PERIOD(-2, -8)\n"      // b
+      "  PERIOD(21, -21)\n"     // c
+      "  PERIOD(-3, 3)\n"       // d
+      "  PERIOD(-3, 3)\n"       // p1
+      "  PERIOD(95, 5)\n"       // p2
+      "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
   EXPECT_STREQ(ComputeInduction(thread, script_chars), expected);
+}
+
+//
+// Bound specific tests.
+//
+
+TEST_CASE(NonStrictConditionUp) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 0; i <= 100; i++) {\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(0 + 1 * i) 101\n"  // phi
+      "  LIN(1 + 1 * i)\n"      // add
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+
+#ifndef TARGET_ARCH_DBC
+TEST_CASE(NonStrictConditionUpWrap) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 0x7ffffffffffffffe; i <= 0x7fffffffffffffff; i++) {\n"
+      "    if (i < 0) break;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(9223372036854775806 + 1 * i)\n"  // phi
+      "  LIN(9223372036854775806 + 1 * i)\n"  // (un)boxing
+      "  LIN(9223372036854775806 + 1 * i)\n"
+      "  LIN(9223372036854775806 + 1 * i)\n"
+      "  LIN(9223372036854775807 + 1 * i)\n"  // add
+      "  LIN(9223372036854775807 + 1 * i)\n"  // unbox
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+#endif
+
+TEST_CASE(NonStrictConditionDown) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 100; i >= 0; i--) {\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(100 + -1 * i) -1\n"  // phi
+      "  LIN(99 + -1 * i)\n"      // add
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+
+#ifndef TARGET_ARCH_DBC
+TEST_CASE(NonStrictConditionDownWrap) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 0x8000000000000001; i >= 0x8000000000000000; i--) {\n"
+      "    if (i > 0) break;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(-9223372036854775807 + -1 * i)\n"  // phi
+      "  LIN(-9223372036854775807 + -1 * i)\n"  // (un)boxing
+      "  LIN(-9223372036854775807 + -1 * i)\n"
+      "  LIN(-9223372036854775807 + -1 * i)\n"
+      "  LIN(-9223372036854775808 + -1 * i)\n"  // sub
+      "  LIN(-9223372036854775808 + -1 * i)\n"  // unbox
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+#endif
+
+TEST_CASE(NotEqualConditionUp) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 10; i != 20; i++) {\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(10 + 1 * i) 20\n"  // phi
+      "  LIN(11 + 1 * i)\n"     // add
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+
+TEST_CASE(NotEqualConditionDown) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 20; i != 10; i--) {\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(20 + -1 * i) 10\n"  // phi
+      "  LIN(19 + -1 * i)\n"     // sub
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+
+TEST_CASE(SecondExitUp) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 0; i < 100; i++) {\n"
+      "     if (i >= 50) break;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(0 + 1 * i) 100 50\n"  // phi
+      "  LIN(1 + 1 * i)\n"         // add
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
+}
+
+TEST_CASE(SecondExitDown) {
+  const char* script_chars =
+      "foo() {\n"
+      "  for (int i = 100; i > 0; i--) {\n"
+      "     if (i <= 10) break;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  foo();\n"
+      "}\n";
+  const char* expected =
+      "  [0\n"
+      "  LIN(100 + -1 * i) 0 10\n"  // phi
+      "  LIN(99 + -1 * i)\n"        // sub
+      "  ]\n";
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 }  // namespace dart

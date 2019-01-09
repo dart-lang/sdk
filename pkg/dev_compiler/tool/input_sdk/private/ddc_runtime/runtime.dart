@@ -8,8 +8,9 @@ library dart._runtime;
 import 'dart:async';
 import 'dart:collection';
 
+import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
-import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
+import 'dart:_interceptors' show JSArray, jsNull, JSFunction, NativeError;
 import 'dart:_internal' as internal show Symbol;
 import 'dart:_js_helper'
     show
@@ -17,7 +18,6 @@ import 'dart:_js_helper'
         BooleanConversionAssertionError,
         CastErrorImpl,
         DartIterator,
-        getTraceFromException,
         TypeErrorImpl,
         JsLinkedHashMap,
         ImmutableMap,
@@ -25,7 +25,6 @@ import 'dart:_js_helper'
         ReifyFunctionTypes,
         NoReifyGeneric,
         notNull;
-import 'dart:_debugger' show trackCall;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 

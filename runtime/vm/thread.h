@@ -48,6 +48,7 @@ class RawObject;
 class RawCode;
 class RawError;
 class RawGrowableObjectArray;
+class RawObjectPool;
 class RawStackTrace;
 class RawString;
 class RuntimeEntry;
@@ -121,7 +122,8 @@ class Zone;
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  V(RawObjectPool*, global_object_pool_, ObjectPool::null(), NULL)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
@@ -437,7 +439,9 @@ class Thread : public BaseThread {
 
   bool is_marking() const { return marking_stack_block_ != NULL; }
   void MarkingStackAddObject(RawObject* obj);
+  void DeferredMarkingStackAddObject(RawObject* obj);
   void MarkingStackBlockProcess();
+  void DeferredMarkingStackBlockProcess();
   static intptr_t marking_stack_block_offset() {
     return OFFSET_OF(Thread, marking_stack_block_);
   }
@@ -550,6 +554,11 @@ class Thread : public BaseThread {
   LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
+  RawObjectPool* global_object_pool() const { return global_object_pool_; }
+  void set_global_object_pool(RawObjectPool* raw_value) {
+    global_object_pool_ = raw_value;
+  }
+
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
@@ -557,6 +566,13 @@ class Thread : public BaseThread {
 
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
+
+#if defined(DEBUG)
+  // For asserts only. Has false positives when running with a simulator or
+  // SafeStack.
+  bool TopErrorHandlerIsSetJump() const;
+  bool TopErrorHandlerIsExitFrame() const;
+#endif
 
   uword vm_tag() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
@@ -593,8 +609,8 @@ class Thread : public BaseThread {
 
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
-  void clear_sticky_error();
-  RawError* get_and_clear_sticky_error();
+  void ClearStickyError();
+  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
   RawStackTrace* async_stack_trace() const;
   void set_async_stack_trace(const StackTrace& stack_trace);
@@ -811,6 +827,7 @@ class Thread : public BaseThread {
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
+  MarkingStackBlock* deferred_marking_stack_block_;
   uword vm_tag_;
   RawStackTrace* async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
@@ -919,6 +936,8 @@ class Thread : public BaseThread {
 
   void MarkingStackRelease();
   void MarkingStackAcquire();
+  void DeferredMarkingStackRelease();
+  void DeferredMarkingStackAcquire();
 
   void set_zone(Zone* zone) { zone_ = zone; }
 

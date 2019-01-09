@@ -6,8 +6,8 @@ library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
-import '../types/abstract_value_domain.dart';
 import '../util/util.dart' show Setlet;
+import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';

@@ -117,7 +117,6 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
     return should_specialize ? StubCode::LazySpecializeTypeTest().instructions()
                              : StubCode::DefaultTypeTest().instructions();
   } else {
-    ASSERT(type.IsBoundedType() || type.IsMixinAppType());
     return StubCode::UnreachableTypeTest().instructions();
   }
 }
@@ -346,9 +345,11 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
 
   const char* name = namer_.StubNameForType(type);
+  const auto pool_attachment = FLAG_use_bare_instructions
+                                   ? Code::PoolAttachment::kNotAttachPool
+                                   : Code::PoolAttachment::kAttachPool;
   const Code& code = Code::Handle(Code::FinalizeCode(
-      name, nullptr, &assembler, Code::PoolAttachment::kAttachPool,
-      false /* optimized */));
+      name, nullptr, &assembler, pool_attachment, false /* optimized */));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -400,7 +401,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok = int_type.IsSubtypeOf(type, NULL, NULL, Heap::kNew);
+    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);
@@ -636,8 +637,8 @@ void RegisterTypeArgumentsUse(const Function& function,
         //
         // We use the declaration type arguments for the instance creation,
         // which is a non-instantiated, expanded, type arguments vector.
-        const AbstractType& declaration_type =
-            AbstractType::Handle(instance_klass.DeclarationType());
+        const Type& declaration_type =
+            Type::Handle(instance_klass.DeclarationType());
         TypeArguments& declaration_type_args =
             TypeArguments::Handle(declaration_type.arguments());
         type_usage_info->UseTypeArgumentsInInstanceCreation(
@@ -650,12 +651,12 @@ void RegisterTypeArgumentsUse(const Function& function,
     // where we forward the type argument vector to object allocation.
     //
     // Theoretically this could be a false-positive, which is still ok, but
-    // practically it's guranteed that this is a forward of a type argument
+    // practically it's guaranteed that this is a forward of a type argument
     // vector passed in by the caller.
     if (function.IsFactory()) {
       const Class& enclosing_class = Class::Handle(function.Owner());
-      const AbstractType& declaration_type =
-          AbstractType::Handle(enclosing_class.DeclarationType());
+      const Type& declaration_type =
+          Type::Handle(enclosing_class.DeclarationType());
       TypeArguments& declaration_type_args =
           TypeArguments::Handle(declaration_type.arguments());
       type_usage_info->UseTypeArgumentsInInstanceCreation(

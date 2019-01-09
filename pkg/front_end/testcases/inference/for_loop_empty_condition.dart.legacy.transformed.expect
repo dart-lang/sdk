@@ -8,7 +8,7 @@ static method test() → void {
     if(x.>=(10))
       break #L1;
     if(x is core::int) {
-      dynamic y = x{core::int};
+      dynamic y = x;
     }
   }
 }

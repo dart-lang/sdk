@@ -7,22 +7,25 @@
 
 
 /* Build new/delete operators for overaligned types */
-/* #undef ENABLE_ALIGNED_NEW_DELETE */
+#define ENABLE_ALIGNED_NEW_DELETE 1
 
 /* Build runtime detection for sized delete */
 /* #undef ENABLE_DYNAMIC_SIZED_DELETE */
 
+/* report large allocation */
+/* #undef ENABLE_LARGE_ALLOC_REPORT */
+
 /* Build sized deletion operators */
 #define ENABLE_SIZED_DELETE 1
-
-/* Define to 1 if compiler supports __builtin_expect */
-#define HAVE_BUILTIN_EXPECT 1
 
 /* Define to 1 if compiler supports __builtin_stack_pointer */
 /* #undef HAVE_BUILTIN_STACK_POINTER */
 
 /* Define to 1 if you have the <conflict-signal.h> header file. */
 /* #undef HAVE_CONFLICT_SIGNAL_H */
+
+/* define if the compiler supports basic C++11 syntax */
+#define HAVE_CXX11 1
 
 /* Define to 1 if you have the <cygwin/signal.h> header file. */
 /* #undef HAVE_CYGWIN_SIGNAL_H */
@@ -88,9 +91,7 @@
 #define HAVE_GETPAGESIZE 1
 
 /* Define to 1 if you have the <glob.h> header file. */
-#if !defined(__ANDROID__)
 #define HAVE_GLOB_H 1
-#endif
 
 /* Define to 1 if you have the <grp.h> header file. */
 #define HAVE_GRP_H 1
@@ -175,15 +176,13 @@
 #define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/syscall.h> header file. */
-#if !defined(__ANDROID__)
 #define HAVE_SYS_SYSCALL_H 1
-#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
-#undef HAVE_SYS_UCONTEXT_H
+#define HAVE_SYS_UCONTEXT_H 1
 
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #define HAVE_SYS_WAIT_H 1
@@ -213,12 +212,13 @@
 #define HAVE___ATTRIBUTE__ALIGNED_FN 1
 
 /* Define to 1 if compiler supports __environ */
-#if !defined(__ANDROID__)
 #define HAVE___ENVIRON 1
-#endif
 
 /* Define to 1 if the system has the type `__int64'. */
 /* #undef HAVE___INT64 */
+
+/* Define to 1 if you have the `__sbrk' function. */
+#define HAVE___SBRK 1
 
 /* prefix where we look for installed files */
 #define INSTALL_PREFIX "/usr/local"

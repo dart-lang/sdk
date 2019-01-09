@@ -12,6 +12,7 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
+import 'analysis_helper.dart';
 
 const String source = '''
 main() {}
@@ -29,10 +30,8 @@ main() {
   });
 }
 
-class Visitor extends StaticTypeVisitor {
-  Visitor(ir.Component component)
-      : super(new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
+class Visitor extends StaticTypeVisitorBase {
+  Visitor(ir.Component component) : super(component);
 
   ir.DartType getStaticType(ir.Expression node) {
     if (typeEnvironment == null) {

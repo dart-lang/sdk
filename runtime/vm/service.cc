@@ -866,7 +866,7 @@ RawError* Service::InvokeMethod(Isolate* I,
         // For now, always return an error.
         PrintInvalidParamError(&js, "_idZone");
         js.PostReply();
-        return T->get_and_clear_sticky_error();
+        return T->StealStickyError();
       }
     }
     const char* c_method_name = method_name.ToCString();
@@ -875,7 +875,7 @@ RawError* Service::InvokeMethod(Isolate* I,
     if (method != NULL) {
       if (!ValidateParameters(method->parameters, &js)) {
         js.PostReply();
-        return T->get_and_clear_sticky_error();
+        return T->StealStickyError();
       }
       if (method->entry(T, &js)) {
         js.PostReply();
@@ -884,7 +884,7 @@ RawError* Service::InvokeMethod(Isolate* I,
         // so this case shouldn't be reached, at present.
         UNIMPLEMENTED();
       }
-      return T->get_and_clear_sticky_error();
+      return T->StealStickyError();
     }
 
     EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(c_method_name);
@@ -894,7 +894,7 @@ RawError* Service::InvokeMethod(Isolate* I,
 
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
-      return T->get_and_clear_sticky_error();
+      return T->StealStickyError();
     }
 
     const Instance& extension_handler =
@@ -904,12 +904,12 @@ RawError* Service::InvokeMethod(Isolate* I,
                                param_values, reply_port, seq);
       // Schedule was successful. Extension code will post a reply
       // asynchronously.
-      return T->get_and_clear_sticky_error();
+      return T->StealStickyError();
     }
 
     PrintUnrecognizedMethodError(&js);
     js.PostReply();
-    return T->get_and_clear_sticky_error();
+    return T->StealStickyError();
   }
 }
 
@@ -1095,6 +1095,14 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("event", event);
   }
   PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
+
+  // Post event to the native Service Stream handlers if set.
+  if (event->stream_info() != nullptr &&
+      event->stream_info()->consumer() != nullptr) {
+    auto length = js.buffer()->length();
+    event->stream_info()->consumer()(
+        reinterpret_cast<uint8_t*>(js.buffer()->buf()), length);
+  }
 }
 
 void Service::PostEvent(Isolate* isolate,
@@ -1259,6 +1267,17 @@ void Service::SetEmbedderStreamCallbacks(
     Dart_ServiceStreamCancelCallback cancel_callback) {
   stream_listen_callback_ = listen_callback;
   stream_cancel_callback_ = cancel_callback;
+}
+
+void Service::SetNativeServiceStreamCallback(Dart_NativeStreamConsumer consumer,
+                                             const char* stream_id) {
+  for (auto stream : streams_) {
+    if (stream->id() == stream_id) {
+      stream->set_consumer(consumer);
+    }
+  }
+  // Enable stream.
+  ListenStream(stream_id);
 }
 
 void Service::SetGetServiceAssetsCallback(
@@ -1796,7 +1815,7 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
     if (id != 0) {
       return Object::sentinel().raw();
     }
-    const Type& type = Type::Handle(zone, cls.CanonicalType());
+    const Type& type = Type::Handle(zone, cls.DeclarationType());
     if (!type.IsNull()) {
       return type.raw();
     }
@@ -2413,7 +2432,6 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= receiver.raw();
-
     const Object& result =
         Object::Handle(zone, instance.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
@@ -4667,7 +4685,7 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   }
   {
     JSONArray internals(&map, "Type");
-    for (intptr_t id = kAbstractTypeCid; id <= kMixinAppTypeCid; ++id) {
+    for (intptr_t id = kAbstractTypeCid; id <= kTypeParameterCid; ++id) {
       DEFINE_ADD_VALUE_F(id);
     }
   }

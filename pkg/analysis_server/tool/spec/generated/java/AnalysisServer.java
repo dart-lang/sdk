@@ -31,6 +31,22 @@ public interface AnalysisServer {
   public void addAnalysisServerListener(AnalysisServerListener listener);
 
   /**
+   * Add the given listener to the list of listeners that will receive notification when
+     * requests are made by an analysis server client.
+   *
+   * @param listener the listener to be added
+   */
+  public void addRequestListener(RequestListener listener);
+
+  /**
+   * Add the given listener to the list of listeners that will receive notification when
+   * responses are received by an analysis server client.
+   *
+   * @param listener the listener to be added
+   */
+  public void addResponseListener(ResponseListener listener);
+
+  /**
    * Add the given listener to the list of listeners that will receive notification when the server
    * is not active
    *
@@ -167,18 +183,10 @@ public interface AnalysisServer {
   /**
    * {@code analysis.reanalyze}
    *
-   * Force the re-analysis of everything contained in the specified analysis roots. This will cause
-   * all previously computed analysis results to be discarded and recomputed, and will cause all
-   * subscribed notifications to be re-sent.
-   *
-   * If no analysis roots are provided, then all current analysis roots will be re-analyzed. If an
-   * empty list of analysis roots is provided, then nothing will be re-analyzed. If the list contains
-   * one or more paths that are not currently analysis roots, then an error of type
-   * INVALID_ANALYSIS_ROOT will be generated.
-   *
-   * @param roots A list of the analysis roots that are to be re-analyzed.
+   * Force re-reading of all potentially changed files, re-resolving of all referenced URIs, and
+   * corresponding re-analysis of everything affected in the current analysis roots.
    */
-  public void analysis_reanalyze(List<String> roots);
+  public void analysis_reanalyze();
 
   /**
    * {@code analysis.setAnalysisRoots}
@@ -755,6 +763,22 @@ public interface AnalysisServer {
    * @param listener the listener to be removed
    */
   public void removeAnalysisServerListener(AnalysisServerListener listener);
+
+  /**
+   * Remove the given listener from the list of listeners that will receive notification when
+     * requests are made by an analysis server client.
+   *
+   * @param listener the listener to be removed
+   */
+  public void removeRequestListener(RequestListener listener);
+
+  /**
+   * Remove the given listener from the list of listeners that will receive notification when
+     * responses are received by an analysis server client.
+   *
+   * @param listener the listener to be removed
+   */
+  public void removeResponseListener(ResponseListener listener);
 
   /**
    * {@code search.findElementReferences}

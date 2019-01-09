@@ -27,7 +27,9 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
@@ -63,14 +65,19 @@ bool allowDartInternalImport = false;
 
 abstract class Compiler {
   final FileSystem fileSystem;
+  final Uri platformKernelPath;
+  bool suppressWarnings;
+  bool bytecode;
+  String packageConfig;
+
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, Uri platformKernelPath,
-      {bool suppressWarnings: false,
-      bool bytecode: false,
-      String packageConfig: null}) {
+  Compiler(this.fileSystem, this.platformKernelPath,
+      {this.suppressWarnings: false,
+      this.bytecode: false,
+      this.packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
       packagesUri = Uri.parse(packageConfig);
@@ -87,7 +94,7 @@ abstract class Compiler {
 
     options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags(syncAsync: true))
+      ..target = new VmTarget(new TargetFlags())
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
@@ -134,6 +141,23 @@ abstract class Compiler {
   Future<Component> compileInternal(Uri script);
 }
 
+class FileSink implements Sink<List<int>> {
+  MemoryFileSystemEntity entityForUri;
+  List<int> bytes = <int>[];
+
+  FileSink(this.entityForUri);
+
+  @override
+  void add(List<int> data) {
+    bytes.addAll(data);
+  }
+
+  @override
+  void close() {
+    this.entityForUri.writeAsBytesSync(bytes);
+  }
+}
+
 class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
@@ -157,6 +181,30 @@ class IncrementalCompilerWrapper extends Compiler {
 
   void accept() => generator.accept();
   void invalidate(Uri uri) => generator.invalidate(uri);
+
+  Future<IncrementalCompilerWrapper> clone(int isolateId) async {
+    IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
+        fileSystem, platformKernelPath,
+        suppressWarnings: suppressWarnings,
+        bytecode: bytecode,
+        packageConfig: packageConfig);
+
+    generator.resetDeltaState();
+    Component fullComponent = await generator.compile();
+
+    // Assume fileSystem is HybridFileSystem because that is the setup where
+    // clone should be used for.
+    MemoryFileSystem memoryFileSystem = (fileSystem as HybridFileSystem).memory;
+
+    String filename = 'full-component-$isolateId.dill';
+    Sink sink = FileSink(memoryFileSystem.entityForUri(Uri.file(filename)));
+    new BinaryPrinter(sink).writeComponentFile(fullComponent);
+    await sink.close();
+
+    clone.generator = new IncrementalCompiler(options, generator.entryPoint,
+        initializeFromDillUri: Uri.file(filename));
+    return clone;
+  }
 }
 
 class SingleShotCompilerWrapper extends Compiler {
@@ -201,17 +249,28 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     updateSources(compiler, sourceFiles);
     invalidateSources(compiler, sourceFiles);
   } else {
-    FileSystem fileSystem = _buildFileSystem(
-        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
+    // This is how identify scenario where child isolate hot reload requests
+    // requires setting up actual compiler first: non-empty sourceFiles list has
+    // no actual content specified for the source file.
+    if (sourceFiles != null &&
+        sourceFiles.length > 0 &&
+        sourceFiles[1] == null) {
+      // Just use first compiler that should represent main isolate as a source for cloning.
+      var source = isolateCompilers.entries.first;
+      compiler = await source.value.clone(isolateId);
+    } else {
+      FileSystem fileSystem = _buildFileSystem(
+          sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
 
-    // TODO(aam): IncrementalCompilerWrapper instance created below have to be
-    // destroyed when corresponding isolate is shut down. To achieve that kernel
-    // isolate needs to receive a message indicating that particular
-    // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
-        suppressWarnings: suppressWarnings,
-        bytecode: bytecode,
-        packageConfig: packageConfig);
+      // TODO(aam): IncrementalCompilerWrapper instance created below have to be
+      // destroyed when corresponding isolate is shut down. To achieve that kernel
+      // isolate needs to receive a message indicating that particular
+      // isolate was shut down. Message should be handled here in this script.
+      compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
+          suppressWarnings: suppressWarnings,
+          bytecode: bytecode,
+          packageConfig: packageConfig);
+    }
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -350,7 +409,16 @@ Future _processIsolateShutdownNotification(request) async {
 }
 
 Future _processLoadRequest(request) async {
-  if (verbose) print("DFE: request: $request");
+  if (verbose) {
+    for (int i = 0; i < request.length; i++) {
+      var part = request[i];
+      String partToString = part.toString();
+      if (partToString.length > 256) {
+        partToString = partToString.substring(0, 255) + "...";
+      }
+      print("DFE: request[$i]: $partToString");
+    }
+  }
 
   int tag = request[0];
 
@@ -373,7 +441,7 @@ Future _processLoadRequest(request) async {
   final String inputFileUri = request[2];
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
-  final bool incremental = request[4];
+  bool incremental = request[4];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
@@ -381,6 +449,14 @@ Future _processLoadRequest(request) async {
   final String packageConfig = request[10];
   final String multirootFilepaths = request[11];
   final String multirootScheme = request[12];
+
+  if (bytecode) {
+    // Bytecode generator is hooked into kernel service after kernel component
+    // is produced. In case of incremental compilation resulting component
+    // doesn't have core libraries which are needed for bytecode generation.
+    // TODO(alexmarkov): Support bytecode generation in incremental compiler.
+    incremental = false;
+  }
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;

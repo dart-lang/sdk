@@ -6,6 +6,7 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+abstract_members: TypeCheckError
 accessors: RuntimeError
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
@@ -23,6 +24,7 @@ dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 expressions: RuntimeError
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 fallthrough: ExpectationFileMismatch
+for_in_without_declaration: TypeCheckError
 incomplete_field_formal_parameter: RuntimeError
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
@@ -65,6 +67,8 @@ inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
+instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
+instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 invalid_type: TypeCheckError
 invocations: RuntimeError
 issue34899: TypeCheckError
@@ -98,11 +102,10 @@ rasta/issue_000001: RuntimeError
 rasta/issue_000031: RuntimeError
 rasta/issue_000032: RuntimeError
 rasta/issue_000034: RuntimeError
-rasta/issue_000035: RuntimeError
-rasta/issue_000035a: RuntimeError
 rasta/issue_000036: RuntimeError
 rasta/issue_000039: VerificationError
 rasta/issue_000041: RuntimeError
+rasta/issue_000042: RuntimeError
 rasta/issue_000043: RuntimeError
 rasta/issue_000044: RuntimeError
 rasta/issue_000046: RuntimeError
@@ -121,7 +124,7 @@ rasta/type_literals: Crash
 rasta/typedef: Crash
 rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
-rasta/unresolved_for_in: VerificationError
+rasta/unresolved_for_in: RuntimeError
 rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
@@ -137,6 +140,7 @@ regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
+reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/relocation.h"
 #include "vm/dart.h"
 #include "vm/heap/heap.h"
 #include "vm/image_snapshot.h"
@@ -22,6 +23,41 @@
 #define LOG_SECTION_BOUNDARIES false
 
 namespace dart {
+
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_DBC)
+
+static void RelocateCodeObjects(
+    bool is_vm,
+    GrowableArray<RawCode*>* code_objects,
+    GrowableArray<ImageWriterCommand>* image_writer_commands) {
+  auto thread = Thread::Current();
+  auto isolate = is_vm ? Dart::vm_isolate() : thread->isolate();
+
+  WritableCodePages writable_code_pages(thread, isolate);
+  CodeRelocator::Relocate(thread, code_objects, image_writer_commands, is_vm);
+}
+
+class RawCodeKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const RawCode* Key;
+  typedef const RawCode* Value;
+  typedef const RawCode* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+  static Value ValueOf(Pair kv) { return kv; }
+  static inline intptr_t Hashcode(Key key) {
+    return reinterpret_cast<intptr_t>(key);
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
+};
+
+typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
+
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&          \
+        // !defined(TARGET_ARCH_DBC)
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -1397,6 +1433,8 @@ class CodeSerializationCluster : public SerializationCluster {
     }
   }
 
+  GrowableArray<RawCode*>* discovered_objects() { return &objects_; }
+
  private:
   GrowableArray<RawCode*> objects_;
 };
@@ -1408,17 +1446,46 @@ class CodeDeserializationCluster : public DeserializationCluster {
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
+    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
     start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(AllocateUninitialized(old_space, Code::InstanceSize(0)));
+    const intptr_t count = d->ReadUnsigned();
+
+    // Build an array of code objects representing the order in which the
+    // [Code]'s instructions will be located in memory.
+    const bool build_code_order =
+        FLAG_precompiled_mode && FLAG_use_bare_instructions;
+    RawArray* code_order = nullptr;
+    const intptr_t code_order_length = d->code_order_length();
+    if (build_code_order) {
+      code_order = static_cast<RawArray*>(
+          AllocateUninitialized(old_space, Array::InstanceSize(count)));
+      Deserializer::InitializeHeader(code_order, kArrayCid,
+                                     Array::InstanceSize(count), is_vm_object,
+                                     /*is_canonical=*/false);
+      code_order->ptr()->type_arguments_ = TypeArguments::null();
+      code_order->ptr()->length_ = Smi::New(code_order_length);
     }
+
+    for (intptr_t i = 0; i < count; i++) {
+      auto code = AllocateUninitialized(old_space, Code::InstanceSize(0));
+      d->AssignRef(code);
+      if (code_order != nullptr && i < code_order_length) {
+        code_order->ptr()->data()[i] = code;
+      }
+    }
+
+    if (code_order != nullptr) {
+      const auto& code_order_table = Array::Handle(code_order);
+      d->isolate()->object_store()->set_code_order_table(code_order_table);
+    }
+
     stop_index_ = d->next_index();
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawCode* code = reinterpret_cast<RawCode*>(d->Ref(id));
@@ -1430,10 +1497,12 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
       code->ptr()->monomorphic_entry_point_ =
           Instructions::MonomorphicEntryPoint(instr);
-      NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
-      code->ptr()->instructions_ = instr;
       code->ptr()->unchecked_entry_point_ =
           Instructions::UncheckedEntryPoint(instr);
+      code->ptr()->monomorphic_unchecked_entry_point_ =
+          Instructions::MonomorphicUncheckedEntryPoint(instr);
+      NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
+      code->ptr()->instructions_ = instr;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
@@ -2271,6 +2340,32 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
       cache->ptr()->filled_entry_count_ = d->Read<int32_t>();
     }
   }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      // By default, every megamorphic call site will load the target
+      // [Function] from the hash table and call indirectly via loading the
+      // entrypoint from the function.
+      //
+      // In --use-bare-instruction we reduce the extra indirection via the
+      // [Function] object by storing the entry point directly into the hashmap.
+      //
+      // Currently our AOT compiler will emit megamorphic calls in certain
+      // situations (namely in slow-path code of CheckedSmi* instructions).
+      //
+      // TODO(compiler-team): Change the CheckedSmi* slow path code to use
+      // normal switchable calls instead of megamorphic calls. (This is also a
+      // memory balance beause [MegamorphicCache]s are per-selector while
+      // [ICData] are per-callsite.)
+      auto& cache = MegamorphicCache::Handle(zone);
+      for (intptr_t i = start_index_; i < stop_index_; ++i) {
+        cache ^= refs.At(i);
+        cache.SwitchToBareInstructions();
+      }
+    }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  }
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3053,70 +3148,6 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
  private:
   AbstractType& type_;
   Instructions& instr_;
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class BoundedTypeSerializationCluster : public SerializationCluster {
- public:
-  BoundedTypeSerializationCluster() : SerializationCluster("BoundedType") {}
-  ~BoundedTypeSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawBoundedType* type = BoundedType::RawCast(object);
-    objects_.Add(type);
-    PushFromTo(type);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kBoundedTypeCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawBoundedType* type = objects_[i];
-      s->AssignRef(type);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawBoundedType* type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-    }
-  }
-
- private:
-  GrowableArray<RawBoundedType*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class BoundedTypeDeserializationCluster : public DeserializationCluster {
- public:
-  BoundedTypeDeserializationCluster() {}
-  ~BoundedTypeDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, BoundedType::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawBoundedType* type = reinterpret_cast<RawBoundedType*>(d->Ref(id));
-      Deserializer::InitializeHeader(type, kBoundedTypeCid,
-                                     BoundedType::InstanceSize(), is_vm_object);
-      ReadFromTo(type);
-    }
-  }
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4331,8 +4362,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) TypeRefSerializationCluster(type_testing_stubs_);
     case kTypeParameterCid:
       return new (Z) TypeParameterSerializationCluster(type_testing_stubs_);
-    case kBoundedTypeCid:
-      return new (Z) BoundedTypeSerializationCluster();
     case kClosureCid:
       return new (Z) ClosureSerializationCluster();
     case kMintCid:
@@ -4483,7 +4512,6 @@ void Serializer::Push(RawObject* object) {
     ASSERT(heap_->GetObjectId(object) != 0);
     stack_.Add(object);
     num_written_objects_++;
-
 #if defined(SNAPSHOT_BACKTRACE)
     parent_pairs_.Add(&Object::Handle(zone_, object));
     parent_pairs_.Add(&Object::Handle(zone_, current_parent_));
@@ -4585,6 +4613,46 @@ void Serializer::Serialize() {
     Trace(stack_.RemoveLast());
   }
 
+  intptr_t code_order_length = 0;
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_DBC)
+  if (Snapshot::IncludesCode(kind_)) {
+    auto code_objects =
+        static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
+            ->discovered_objects();
+
+    GrowableArray<ImageWriterCommand> writer_commands;
+    RelocateCodeObjects(vm_, code_objects, &writer_commands);
+    image_writer_->PrepareForSerialization(&writer_commands);
+
+    // We permute the code objects in the [CodeSerializationCluster] so they
+    // will arrive in the order in which the [Code]'s instructions will be in
+    // memory at AOT runtime.
+    GrowableArray<RawCode*> code_order;
+    RawCodeSet code_set;
+    for (auto& command : writer_commands) {
+      if (command.op == ImageWriterCommand::InsertInstructionOfCode) {
+        RawCode* code = command.insert_instruction_of_code.code;
+        ASSERT(!code_set.HasKey(code));
+        code_set.Insert(code);
+        code_order.Add(code);
+        code_order_length++;
+      }
+    }
+    for (RawCode* code : *code_objects) {
+      if (!code_set.HasKey(code)) {
+        code_set.Insert(code);
+        code_order.Add(code);
+      }
+    }
+    RELEASE_ASSERT(code_order.length() == code_objects->length());
+    for (intptr_t i = 0; i < code_objects->length(); ++i) {
+      (*code_objects)[i] = code_order[i];
+    }
+  }
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&          \
+        // !defined(TARGET_ARCH_DBC)
+
   intptr_t num_clusters = 0;
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -4603,6 +4671,7 @@ void Serializer::Serialize() {
   WriteUnsigned(num_base_objects_);
   WriteUnsigned(num_objects);
   WriteUnsigned(num_clusters);
+  WriteUnsigned(code_order_length);
 
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -4821,7 +4890,6 @@ Deserializer::~Deserializer() {
 
 DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
-
   Zone* Z = zone_;
   if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
       RawObject::IsTypedDataViewClassId(cid)) {
@@ -4899,8 +4967,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) TypeRefDeserializationCluster();
     case kTypeParameterCid:
       return new (Z) TypeParameterDeserializationCluster();
-    case kBoundedTypeCid:
-      return new (Z) BoundedTypeDeserializationCluster();
     case kClosureCid:
       return new (Z) ClosureDeserializationCluster();
     case kMintCid:
@@ -5033,6 +5099,7 @@ void Deserializer::Prepare() {
   num_base_objects_ = ReadUnsigned();
   num_objects_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
+  code_order_length_ = ReadUnsigned();
 
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs_ = Array::New(num_objects_ + 1, Heap::kOld);
@@ -5577,7 +5644,38 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     }
   }
 
-  deserializer.ReadIsolateSnapshot(thread_->isolate()->object_store());
+  auto object_store = thread_->isolate()->object_store();
+  deserializer.ReadIsolateSnapshot(object_store);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_bare_instructions) {
+    // By default, every switchable call site will put (ic_data, code) into the
+    // object pool.  The [code] is initialized (at AOT compile-time) to be a
+    // [StubCode::UnlinkedCall].
+    //
+    // In --use-bare-instruction we reduce the extra indirection via the [code]
+    // object and store instead (ic_data, entrypoint) in the object pool.
+    //
+    // Since the actual [entrypoint] is only known at AOT runtime we switch all
+    // existing UnlinkedCall entries in the object pool to be it's entrypoint.
+    auto zone = thread_->zone();
+    const auto& pool = ObjectPool::Handle(
+        zone, ObjectPool::RawCast(object_store->global_object_pool()));
+    auto& entry = Object::Handle(zone);
+    auto& smi = Smi::Handle(zone);
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      if (pool.TypeAt(i) == ObjectPool::kTaggedObject) {
+        entry = pool.ObjectAt(i);
+        if (entry.raw() == StubCode::UnlinkedCall().raw()) {
+          smi = Smi::FromAlignedAddress(
+              StubCode::UnlinkedCall().MonomorphicEntryPoint());
+          pool.SetTypeAt(i, ObjectPool::kImmediate, ObjectPool::kPatchable);
+          pool.SetObjectAt(i, smi);
+        }
+      }
+    }
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   return ApiError::null();
 }

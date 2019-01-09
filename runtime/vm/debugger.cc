@@ -324,7 +324,7 @@ RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (ignore_breakpoints_ || IsPaused()) {
     // We don't let the isolate get interrupted if we are already
     // paused or ignoring breakpoints.
-    return Error::null();
+    return Thread::Current()->StealStickyError();
   }
   ServiceEvent event(isolate_, kind);
   DebuggerStackTrace* trace = CollectStackTrace();
@@ -339,10 +339,10 @@ RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error = Error::Handle(Thread::Current()->sticky_error());
-  ASSERT(error.IsNull() || error.IsUnwindError());
-  Thread::Current()->clear_sticky_error();
-  return error.raw();
+  NoSafepointScope no_safepoint;
+  RawError* error = Thread::Current()->StealStickyError();
+  ASSERT((error == Error::null()) || error->IsUnwindError());
+  return error;
 }
 
 void Debugger::SendBreakpointEvent(ServiceEvent::EventKind kind,
@@ -718,7 +718,9 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
         if (!live_frame_) {
           ASSERT(!ctx_.IsNull());
-          return ctx_.At(variable_index.value());
+          return GetRelativeContextVar(var_info.scope_id,
+                                       variable_index.value(),
+                                       /* frame_ctx_level = */ 0);
         }
         return GetContextVar(var_info.scope_id, variable_index.value());
       }
@@ -732,25 +734,19 @@ RawObject* ActivationFrame::GetAsyncCompleter() {
 }
 
 RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
-  Instance& future = Instance::Handle();
-  if (FLAG_sync_async) {
-    const Class& completer_cls = Class::Handle(completer.clazz());
-    ASSERT(!completer_cls.IsNull());
-    const Function& future_getter = Function::Handle(
-        completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
-    ASSERT(!future_getter.IsNull());
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, Instance::Cast(completer));
-    future ^= DartEntry::InvokeFunction(future_getter, args);
-  } else {
-    const Class& sync_completer_cls = Class::Handle(completer.clazz());
-    ASSERT(!sync_completer_cls.IsNull());
-    const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
-    const Field& future_field =
-        Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
-            Symbols::CompleterFuture()));
-    ASSERT(!future_field.IsNull());
-    future ^= Instance::Cast(completer).GetField(future_field);
+  DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
+
+  Object& future = Object::Handle();
+  const Class& completer_cls = Class::Handle(completer.clazz());
+  ASSERT(!completer_cls.IsNull());
+  const Function& future_getter = Function::Handle(
+      completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
+  ASSERT(!future_getter.IsNull());
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, Instance::Cast(completer));
+  future = DartEntry::InvokeFunction(future_getter, args);
+  if (future.IsError()) {
+    Exceptions::PropagateError(Error::Cast(future));
   }
   if (future.IsNull()) {
     // The completer object may not be fully initialized yet.
@@ -761,7 +757,7 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   const Field& awaiter_field = Field::Handle(
       future_cls.LookupInstanceFieldAllowPrivate(Symbols::_Awaiter()));
   ASSERT(!awaiter_field.IsNull());
-  return future.GetField(awaiter_field);
+  return Instance::Cast(future).GetField(awaiter_field);
 }
 
 RawObject* ActivationFrame::GetAsyncStreamControllerStream() {
@@ -827,14 +823,11 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         ASSERT(!type.IsNull());
         // Uninstantiated types are not added to ExceptionHandlers data.
         ASSERT(type.IsInstantiated());
-        if (type.IsMalformed()) {
-          continue;
-        }
         if (type.IsDynamicType()) {
           return true;
         }
         if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(),
-                                 Object::null_type_arguments(), NULL)) {
+                                 Object::null_type_arguments())) {
           return true;
         }
       }
@@ -1225,11 +1218,17 @@ void ActivationFrame::VariableAt(intptr_t i,
 
 RawObject* ActivationFrame::GetContextVar(intptr_t var_ctx_level,
                                           intptr_t ctx_slot) {
-  const Context& ctx = GetSavedCurrentContext();
-  ASSERT(!ctx.IsNull());
-
   // The context level at the PC/token index of this activation frame.
   intptr_t frame_ctx_level = ContextLevel();
+
+  return GetRelativeContextVar(var_ctx_level, ctx_slot, frame_ctx_level);
+}
+
+RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
+                                                  intptr_t ctx_slot,
+                                                  intptr_t frame_ctx_level) {
+  const Context& ctx = GetSavedCurrentContext();
+  ASSERT(!ctx.IsNull());
 
   intptr_t level_diff = frame_ctx_level - var_ctx_level;
   if (level_diff == 0) {
@@ -2105,20 +2104,16 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
-            if (FLAG_sync_async) {
-              // async function might have been called synchronously, in which
-              // case we need to keep going down the stack.
-              // To determine how we are called we peek few more frames further
-              // expecting to see Closure_call followed by
-              // AsyncAwaitCompleter_start.
-              // If we are able to see those functions we continue going down
-              // thestack, if we are not, we break out of the loop as we are
-              // not interested in exploring rest of the stack - there is only
-              // dart-internal code left.
-              skip_sync_async_frames_count = 2;
-            } else {
-              break;
-            }
+            // async function might have been called synchronously, in which
+            // case we need to keep going down the stack.
+            // To determine how we are called we peek few more frames further
+            // expecting to see Closure_call followed by
+            // AsyncAwaitCompleter_start.
+            // If we are able to see those functions we continue going down
+            // thestack, if we are not, we break out of the loop as we are
+            // not interested in exploring rest of the stack - there is only
+            // dart-internal code left.
+            skip_sync_async_frames_count = 2;
           } else {
             stack_trace->AddActivation(
                 CollectDartFrame(isolate, it.pc(), frame, inlined_code,
@@ -2138,7 +2133,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
             skip_sync_async_frames_count--;
           } else {
-            // Unexpected function in sync async call.
+            // Unexpected function in synchronous call of async function.
             break;
           }
         }
@@ -2153,12 +2148,9 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
-          if (FLAG_sync_async) {
-            // see comment regarding skipping sync-async frames above.
-            skip_sync_async_frames_count = 2;
-          } else {
-            break;
-          }
+          // see comment regarding skipping frames of async functions called
+          // synchronously above.
+          skip_sync_async_frames_count = 2;
         } else {
           stack_trace->AddActivation(CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0));
@@ -3645,9 +3637,7 @@ RawError* Debugger::PauseStepping() {
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error = Error::Handle(Thread::Current()->sticky_error());
-  Thread::Current()->clear_sticky_error();
-  return error.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 RawError* Debugger::PauseBreakpoint() {
@@ -3717,9 +3707,7 @@ RawError* Debugger::PauseBreakpoint() {
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error = Error::Handle(Thread::Current()->sticky_error());
-  Thread::Current()->clear_sticky_error();
-  return error.raw();
+  return Thread::Current()->StealStickyError();
 }
 
 Breakpoint* Debugger::FindHitBreakpoint(BreakpointLocation* location,

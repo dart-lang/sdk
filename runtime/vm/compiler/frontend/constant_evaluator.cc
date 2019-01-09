@@ -106,6 +106,11 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kConstListLiteral:
         EvaluateListLiteralInternal();
         break;
+      case kConstSetLiteral:
+        // Set literals are currently desugared in the frontend and will not
+        // reach the VM. See http://dartbug.com/35124 for discussion.
+        UNREACHABLE();
+        break;
       case kConstMapLiteral:
         EvaluateMapLiteralInternal();
         break;
@@ -245,11 +250,7 @@ RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   if (setjmp(*jump.Set()) == 0) {
     return EvaluateExpression(offset);
   } else {
-    Thread* thread = H.thread();
-    Error& error = Error::Handle(Z);
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return H.thread()->StealStickyError();
   }
 }
 
@@ -380,10 +381,9 @@ void ConstantEvaluator::EvaluateStaticGet() {
       }
       Thread* thread = H.thread();
       const Error& error =
-          Error::Handle(thread->zone(), thread->sticky_error());
+          Error::Handle(thread->zone(), thread->StealStickyError());
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
-        thread->clear_sticky_error();
         H.ReportError(error, script_, position, "Not a constant expression.");
         UNREACHABLE();
       }
@@ -531,8 +531,6 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
     // TODO(27590): Can we move this code into [ReceiverType]?
     type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type,
                                          ClassFinalizer::kFinalize);
-    ASSERT(!type.IsMalformedOrMalbounded());
-
     TypeArguments& canonicalized_type_arguments =
         TypeArguments::ZoneHandle(Z, type.arguments());
     canonicalized_type_arguments = canonicalized_type_arguments.Canonicalize();
@@ -608,7 +606,7 @@ void ConstantEvaluator::EvaluateAsExpression() {
   EvaluateExpression(helper_->ReaderOffset(), false);
 
   const AbstractType& type = T.BuildType();
-  if (!type.IsInstantiated() || type.IsMalformed()) {
+  if (!type.IsInstantiated()) {
     const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, position,
@@ -619,9 +617,8 @@ void ConstantEvaluator::EvaluateAsExpression() {
 
   const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
   const TypeArguments& function_type_arguments = TypeArguments::Handle();
-  Error& error = Error::Handle();
   if (!result_.IsInstanceOf(type, instantiator_type_arguments,
-                            function_type_arguments, &error)) {
+                            function_type_arguments)) {
     const AbstractType& rtype =
         AbstractType::Handle(result_.GetType(Heap::kNew));
     const String& result_str = String::Handle(rtype.UserVisibleName());
@@ -698,10 +695,6 @@ void ConstantEvaluator::EvaluateSymbolLiteral() {
 
 void ConstantEvaluator::EvaluateTypeLiteral() {
   const AbstractType& type = T.BuildType();
-  if (type.IsMalformed()) {
-    H.ReportError(script_, TokenPosition::kNoSource,
-                  "Malformed type literal in constant expression.");
-  }
   result_ = type.raw();
 }
 
@@ -1176,12 +1169,11 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kSymbolConstant: {
-        Tag initializer_tag = helper_.ReadTag();
-        if (initializer_tag == kSomething) {
-          const NameIndex index = helper_.ReadCanonicalNameReference();
-          temp_library_ = H.LookupLibraryByKernelLibrary(index);
-        } else {
+        const NameIndex index = helper_.ReadCanonicalNameReference();
+        if (index == -1) {
           temp_library_ = Library::null();
+        } else {
+          temp_library_ = H.LookupLibraryByKernelLibrary(index);
         }
         const String& symbol =
             H.DartIdentifier(temp_library_, helper_.ReadStringReference());

@@ -53,7 +53,16 @@ dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
-dart/entrypoints/*: SkipByDesign  # Only supported in the Dart 2 JIT and test optimizations - hence disabled on hotreload bots.
+dart/entrypoints/jit/*: SkipByDesign  # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
+
+[ $compiler != dartkp || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
+dart/entrypoints/aot/*: SkipByDesign  # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
+
+[ ($compiler != dartk && $compiler != dartkp) || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
+dart/entrypoints/*: SkipByDesign  # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
+
+[ $compiler == dartk ]
+dart/entrypoints/aot/*: SkipByDesign
 
 [ ($compiler == dartk || $compiler == dartkb) ]
 cc/DartAPI_New: Fail # Issue #33041
@@ -70,7 +79,6 @@ cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
-dart/appjit_determinism_test: Pass, Fail # Issue 31427 - Lingering non-determinism.
 
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
@@ -174,7 +182,6 @@ cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Crash
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Fail
 cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
-cc/UseDartApi: Fail
 dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 

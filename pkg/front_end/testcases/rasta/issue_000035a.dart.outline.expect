@@ -16,3 +16,5 @@ class C extends core::Object {
   constructor •() → self::C
     ;
 }
+static method main() → dynamic
+  ;

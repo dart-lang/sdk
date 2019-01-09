@@ -14,8 +14,10 @@ import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart';
@@ -29,7 +31,6 @@ import '../js_model/locals.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSet;
@@ -429,8 +430,9 @@ class JsClosedWorld implements JClosedWorld {
     return selector.name == Identifiers.call &&
         (receiver == null ||
             // TODO(johnniwinther): Should this have been `intersects` instead?
-            abstractValueDomain.contains(
-                receiver, abstractValueDomain.functionType));
+            abstractValueDomain
+                .contains(receiver, abstractValueDomain.functionType)
+                .isPotentiallyTrue);
   }
 
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
@@ -452,11 +454,6 @@ class JsClosedWorld implements JClosedWorld {
     return _allFunctions
         .filter(selector, receiver, abstractValueDomain)
         .any((each) => each.isGetter);
-  }
-
-  FieldEntity locateSingleField(Selector selector, AbstractValue receiver) {
-    MemberEntity result = locateSingleMember(selector, receiver);
-    return (result != null && result.isField) ? result : null;
   }
 
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver) {
@@ -497,15 +494,13 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
+  bool hasElementIn(ClassEntity cls, Name name, Entity element) {
     while (cls != null) {
-      MemberEntity member = elementEnvironment.lookupLocalClassMember(
-          cls, selector.name,
-          setter: selector.isSetter);
+      MemberEntity member = elementEnvironment
+          .lookupLocalClassMember(cls, name.text, setter: name.isSetter);
       if (member != null &&
           !member.isAbstract &&
-          (!selector.memberName.isPrivate ||
-              member.library == selector.library)) {
+          (!name.isPrivate || member.library == name.library)) {
         return member == element;
       }
       cls = elementEnvironment.getSuperClass(cls);
@@ -528,7 +523,7 @@ class JsClosedWorld implements JClosedWorld {
       return _hasConcreteMatch(
           elementEnvironment.getSuperClass(enclosingClass), selector);
     }
-    return selector.appliesUntyped(element);
+    return selector.appliesUnnamed(element);
   }
 
   bool _isNamedMixinApplication(ClassEntity cls) {

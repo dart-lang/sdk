@@ -830,7 +830,7 @@ class HashSet<E> {
   factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
+class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -1239,7 +1239,7 @@ class LinkedHashSet<E> {
   factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
 }
 
-class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
+class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for

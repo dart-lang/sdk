@@ -218,7 +218,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setTrustTypeAnnotations(String argument) {
     trustTypeAnnotations = true;
-    passThrough(argument);
   }
 
   void setCheckedMode(String argument) {
@@ -343,8 +342,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
     new OptionHandler(Flags.fastStartup, passThrough),
     new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
-    new OptionHandler(Flags.syncAsync, ignoreOption),
-    new OptionHandler(Flags.noSyncAsync, passThrough),
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
@@ -374,9 +371,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.disableInlining, passThrough),
     new OptionHandler(Flags.disableProgramSplit, passThrough),
     new OptionHandler(Flags.disableTypeInference, passThrough),
+    new OptionHandler(Flags.useTrivialAbstractValueDomain, passThrough),
     new OptionHandler(Flags.disableRtiOptimization, passThrough),
     new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', passThrough),
+    new OptionHandler(Flags.newDeferredSplit, passThrough),
+    new OptionHandler(Flags.reportInvalidInferredDeferredTypes, passThrough),
     new OptionHandler(Flags.dumpInfo, passThrough),
     new OptionHandler('--disallow-unsafe-eval', ignoreOption),
     new OptionHandler(Option.showPackageWarnings, passThrough),
@@ -413,6 +413,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
     new OptionHandler(Flags.experimentLocalNames, passThrough),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
+    new OptionHandler(Flags.experimentToBoolean, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
 
     // The following three options must come last.
@@ -736,7 +737,7 @@ Supported options:
 
   --packages=<path>
     Path to the package resolution configuration file, which supplies a mapping
-    of package names to paths.  This option cannot be used with --package-root.
+    of package names to paths.
 
   --suppress-warnings
     Do not display any warnings.

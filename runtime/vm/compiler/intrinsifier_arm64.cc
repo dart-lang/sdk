@@ -1629,7 +1629,7 @@ static void JumpIfNotString(Assembler* assembler,
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
 
@@ -1637,7 +1637,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(normal_ir_body, EQ);  // Instance is a closure.
 
   __ CompareImmediate(R1, kNumPredefinedCids);
-  __ b(&use_canonical_type, HI);
+  __ b(&use_declaration_type, HI);
 
   __ CompareImmediate(R1, kDoubleCid);
   __ b(&not_double, NE);
@@ -1655,19 +1655,19 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_integer);
-  JumpIfNotString(assembler, R1, R0, &use_canonical_type);
+  JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
   __ LoadFromOffset(R0, R0, Isolate::object_store_offset());
   __ LoadFromOffset(R0, R0, ObjectStore::string_type_offset());
   __ ret();
 
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);  // Overwrites R1.
   __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::declaration_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(normal_ir_body, EQ);
   __ ret();

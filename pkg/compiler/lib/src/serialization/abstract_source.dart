@@ -112,6 +112,16 @@ abstract class AbstractDataSource extends DataSourceMixin
     return types;
   }
 
+  List<ir.DartType> _readDartTypeNodes(
+      List<ir.TypeParameter> functionTypeVariables) {
+    int count = readInt();
+    List<ir.DartType> types = new List<ir.DartType>(count);
+    for (int index = 0; index < count; index++) {
+      types[index] = _readDartTypeNode(functionTypeVariables);
+    }
+    return types;
+  }
+
   @override
   SourceSpan readSourceSpan() {
     _checkDataKind(DataKind.sourceSpan);
@@ -186,6 +196,87 @@ abstract class AbstractDataSource extends DataSourceMixin
       case DartTypeKind.futureOr:
         DartType typeArgument = _readDartType(functionTypeVariables);
         return new FutureOrType(typeArgument);
+    }
+    throw new UnsupportedError("Unexpected DartTypeKind $kind");
+  }
+
+  @override
+  ir.DartType readDartTypeNode({bool allowNull: false}) {
+    _checkDataKind(DataKind.dartTypeNode);
+    ir.DartType type = _readDartTypeNode([]);
+    assert(type != null || allowNull);
+    return type;
+  }
+
+  ir.DartType _readDartTypeNode(List<ir.TypeParameter> functionTypeVariables) {
+    DartTypeNodeKind kind = readEnum(DartTypeNodeKind.values);
+    switch (kind) {
+      case DartTypeNodeKind.none:
+        return null;
+      case DartTypeNodeKind.voidType:
+        return const ir.VoidType();
+      case DartTypeNodeKind.invalidType:
+        return const ir.InvalidType();
+      case DartTypeNodeKind.bottomType:
+        return const ir.BottomType();
+      case DartTypeNodeKind.typeParameterType:
+        ir.TypeParameter typeParameter = readTypeParameterNode();
+        ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
+        return new ir.TypeParameterType(typeParameter, promotedBound);
+      case DartTypeNodeKind.functionTypeVariable:
+        int index = readInt();
+        assert(0 <= index && index < functionTypeVariables.length);
+        ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
+        return new ir.TypeParameterType(
+            functionTypeVariables[index], promotedBound);
+      case DartTypeNodeKind.functionType:
+        begin(functionTypeNodeTag);
+        int typeParameterCount = readInt();
+        List<ir.TypeParameter> typeParameters =
+            new List<ir.TypeParameter>.generate(
+                typeParameterCount, (int index) => new ir.TypeParameter());
+        functionTypeVariables =
+            new List<ir.TypeParameter>.from(functionTypeVariables)
+              ..addAll(typeParameters);
+        for (int index = 0; index < typeParameterCount; index++) {
+          typeParameters[index].name = readString();
+          typeParameters[index].bound =
+              _readDartTypeNode(functionTypeVariables);
+          typeParameters[index].defaultType =
+              _readDartTypeNode(functionTypeVariables);
+        }
+        ir.DartType returnType = _readDartTypeNode(functionTypeVariables);
+        int requiredParameterCount = readInt();
+        List<ir.DartType> positionalParameters =
+            _readDartTypeNodes(functionTypeVariables);
+        int namedParameterCount = readInt();
+        List<ir.NamedType> namedParameters =
+            new List<ir.NamedType>(namedParameterCount);
+        for (int index = 0; index < namedParameterCount; index++) {
+          String name = readString();
+          ir.DartType type = _readDartTypeNode(functionTypeVariables);
+          namedParameters[index] = new ir.NamedType(name, type);
+        }
+        ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
+        end(functionTypeNodeTag);
+        return new ir.FunctionType(positionalParameters, returnType,
+            namedParameters: namedParameters,
+            typeParameters: typeParameters,
+            requiredParameterCount: requiredParameterCount,
+            typedefType: typedefType);
+
+      case DartTypeNodeKind.interfaceType:
+        ir.Class cls = readClassNode();
+        List<ir.DartType> typeArguments =
+            _readDartTypeNodes(functionTypeVariables);
+        return new ir.InterfaceType(cls, typeArguments);
+      case DartTypeNodeKind.typedef:
+        ir.Typedef typedef = readTypedefNode();
+        List<ir.DartType> typeArguments =
+            _readDartTypeNodes(functionTypeVariables);
+        return new ir.TypedefType(typedef, typeArguments);
+      case DartTypeNodeKind.dynamicType:
+        return const ir.DynamicType();
     }
     throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }

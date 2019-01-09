@@ -20,8 +20,6 @@ ArgParser createArgParser() {
   argParser.addFlag('strong', negatable: false, defaultsTo: false);
   argParser.addFlag('omit-implicit-checks',
       negatable: false, defaultsTo: false);
-  argParser.addFlag('trust-type-annotations',
-      negatable: false, defaultsTo: false);
   return argParser;
 }
 
@@ -34,7 +32,6 @@ show(ArgResults argResults, DataComputer dataComputer,
   }
   bool verbose = argResults['verbose'];
   bool omitImplicitChecks = argResults['omit-implicit-checks'];
-  bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
@@ -48,9 +45,6 @@ show(ArgResults argResults, DataComputer dataComputer,
   }
 
   options = new List<String>.from(options);
-  if (trustTypeAnnotations) {
-    options.add(Flags.trustTypeAnnotations);
-  }
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }

@@ -143,6 +143,7 @@ Dart_Port ServiceIsolate::Port() {
 }
 
 Dart_Port ServiceIsolate::WaitForLoadPort() {
+  VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
   MonitorLocker ml(monitor_);
   while (initializing_ && (load_port_ == ILLEGAL_PORT)) {
     ml.Wait();

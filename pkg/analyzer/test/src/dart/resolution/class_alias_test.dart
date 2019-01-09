@@ -19,7 +19,7 @@ main() {
 class ClassAliasDriverResolutionTest extends DriverResolutionTest
     with ClassAliasResolutionMixin {}
 
-abstract class ClassAliasResolutionMixin implements ResolutionTest {
+mixin ClassAliasResolutionMixin implements ResolutionTest {
   test_defaultConstructor() async {
     addTestFile(r'''
 class A {}

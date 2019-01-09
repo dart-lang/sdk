@@ -1,25 +1,26 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Tests related to the [TypeSystem] class.
 
-import 'package:analyzer/analyzer.dart'
-    show ErrorReporter, ParameterKind, StrongModeCode;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show NonExistingSource, UriKind;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,7 +43,7 @@ main() {
  */
 abstract class BoundTestBase {
   TypeProvider typeProvider;
-  TypeSystem typeSystem;
+  Dart2TypeSystem typeSystem;
   FunctionType simpleFunctionType;
 
   DartType get bottomType => typeProvider.bottomType;
@@ -56,8 +57,6 @@ abstract class BoundTestBase {
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
-  StrongTypeSystemImpl get strongTypeSystem =>
-      typeSystem as StrongTypeSystemImpl;
 
   DartType get voidType => VoidTypeImpl.instance;
 
@@ -72,7 +71,7 @@ abstract class BoundTestBase {
 
   void _checkGreatestLowerBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    DartType glb = strongTypeSystem.getGreatestLowerBound(type1, type2);
+    DartType glb = typeSystem.getGreatestLowerBound(type1, type2);
     expect(glb, expectedResult);
     // Check that the result is a lower bound.
     expect(typeSystem.isSubtypeOf(glb, type1), true);
@@ -83,7 +82,7 @@ abstract class BoundTestBase {
     // for function types we just check if they are mutual subtypes.
     // https://github.com/dart-lang/sdk/issues/26126
     // TODO(leafp): Fix this.
-    glb = strongTypeSystem.getGreatestLowerBound(type2, type1);
+    glb = typeSystem.getGreatestLowerBound(type2, type1);
     if (glb is FunctionTypeImpl) {
       expect(typeSystem.isSubtypeOf(glb, expectedResult), true);
       expect(typeSystem.isSubtypeOf(expectedResult, glb), true);
@@ -173,7 +172,7 @@ class ConstraintMatchingTest {
     typeProvider = AnalysisContextFactory.contextWithCore(
             resourceProvider: new MemoryResourceProvider())
         .typeProvider;
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
     T = _newTypeParameter('T');
   }
 
@@ -844,7 +843,7 @@ class StrongAssignabilityTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_isAssignableTo_bottom_isBottom() {
@@ -1114,7 +1113,7 @@ class StrongAssignabilityTest {
 @reflectiveTest
 class StrongGenericFunctionInferenceTest {
   TypeProvider typeProvider;
-  StrongTypeSystemImpl typeSystem;
+  Dart2TypeSystem typeSystem;
 
   DartType get bottomType => typeProvider.bottomType;
   InterfaceType get doubleType => typeProvider.doubleType;
@@ -1131,7 +1130,7 @@ class StrongGenericFunctionInferenceTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_boundedByAnotherTypeParameter() {
@@ -1436,7 +1435,7 @@ class StrongGenericFunctionInferenceTest {
 class StrongGreatestLowerBoundTest extends BoundTestBase {
   void setUp() {
     super.setUp();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_bottom_function() {
@@ -1760,7 +1759,7 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
 class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
   void setUp() {
     super.setUp();
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_functionsFuzzyArrows() {
@@ -1889,7 +1888,7 @@ class StrongSubtypingTest {
     typeProvider = AnalysisContextFactory.contextWithCore(
             resourceProvider: new MemoryResourceProvider())
         .typeProvider;
-    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
   void test_bottom_isBottom() {

@@ -156,7 +156,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
+  P(use_bare_instructions, bool, false, "Enable bare instructions mode.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \
@@ -188,7 +188,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
-  C(use_bytecode_compiler, false, false, bool, false, "Compile from bytecode") \
+  P(use_bytecode_compiler, bool, false, "Compile from bytecode")               \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \

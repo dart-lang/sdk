@@ -9,7 +9,7 @@ main.dart.patch: |
   <<<< {"messages":[],"hasCompileTimeError":1}
     int sync*;
   ==== []
-    sync();
+    sync() => null;
   ==== []
   >>>>
   }

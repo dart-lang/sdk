@@ -10,7 +10,6 @@ import 'dart:_js_helper'
         patch,
         checkInt,
         getRuntimeType,
-        getTraceFromException,
         LinkedMap,
         JSSyntaxRegExp,
         NoInline,
@@ -207,7 +206,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => getTraceFromException(this);
+  StackTrace get stackTrace => dart.stackTraceForError(this);
 }
 
 @patch
@@ -745,7 +744,7 @@ class StackTrace {
   @patch
   @NoInline()
   static StackTrace get current {
-    return getTraceFromException(JS('', 'new Error()'));
+    return dart.stackTrace(JS('', 'Error()'));
   }
 }
 

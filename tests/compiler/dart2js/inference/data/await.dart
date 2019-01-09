@@ -16,10 +16,7 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _method1:[null]*/
-_method1(
-
-    /*strong.[null|subclass=JSInt]*/
-    o) {}
+_method1(/*[null|subclass=JSInt]*/ o) {}
 
 /*element: awaitOfFuture:[exact=_Future]*/
 awaitOfFuture() async {
@@ -33,10 +30,7 @@ awaitOfFuture() async {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _method2:[null]*/
-_method2(
-
-    /*strong.[null|subclass=JSInt]*/
-    o) {}
+_method2(/*[null|subclass=JSInt]*/ o) {}
 
 /*element: awaitOfInt:[exact=_Future]*/
 awaitOfInt() async {
@@ -50,13 +44,11 @@ awaitOfInt() async {
 
 /*element: _method3:[null]*/
 _method3(
-    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ o) {}
+    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+    o) {}
 
 /*element: _method4:[null]*/
-_method4(
-
-    /*strong.[null|subclass=JSInt]*/
-    o) {}
+_method4(/*[null|subclass=JSInt]*/ o) {}
 
 /*element: awaitForOfStream:[exact=_Future]*/
 awaitForOfStream() async {

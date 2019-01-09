@@ -4,10 +4,11 @@
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/context/mock_sdk.dart';
 import 'test_support.dart';
 
 main() {
@@ -18,14 +19,14 @@ main() {
 }
 
 @reflectiveTest
-class DartSdkManagerTest extends EngineTestCase {
+class DartSdkManagerTest extends EngineTestCase with ResourceProviderMixin {
   void test_anySdk() {
     DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     expect(manager.anySdk, isNull);
 
     AnalysisOptions options = new AnalysisOptionsImpl();
     SdkDescription description = new SdkDescription(<String>['/c/d'], options);
-    DartSdk sdk = new MockSdk();
+    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     manager.getSdk(description, () => sdk);
     expect(manager.anySdk, same(sdk));
   }
@@ -34,11 +35,11 @@ class DartSdkManagerTest extends EngineTestCase {
     DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     AnalysisOptions options = new AnalysisOptionsImpl();
     SdkDescription description1 = new SdkDescription(<String>['/c/d'], options);
-    DartSdk sdk1 = new MockSdk();
+    DartSdk sdk1 = new MockSdk(resourceProvider: resourceProvider);
     DartSdk result1 = manager.getSdk(description1, () => sdk1);
     expect(result1, same(sdk1));
     SdkDescription description2 = new SdkDescription(<String>['/e/f'], options);
-    DartSdk sdk2 = new MockSdk();
+    DartSdk sdk2 = new MockSdk(resourceProvider: resourceProvider);
     DartSdk result2 = manager.getSdk(description2, () => sdk2);
     expect(result2, same(sdk2));
 
@@ -50,7 +51,7 @@ class DartSdkManagerTest extends EngineTestCase {
     DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     AnalysisOptions options = new AnalysisOptionsImpl();
     SdkDescription description = new SdkDescription(<String>['/c/d'], options);
-    DartSdk sdk = new MockSdk();
+    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     DartSdk result = manager.getSdk(description, () => sdk);
     expect(result, same(sdk));
     manager.getSdk(description, _failIfAbsent);

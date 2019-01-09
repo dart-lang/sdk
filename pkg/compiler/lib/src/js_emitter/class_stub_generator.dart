@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter.class_stub_generator;
 
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Identifiers, Selectors;
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
@@ -125,7 +125,8 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (selectors[selector].applies(member, selector, _closedWorld)) {
+      if (selectors[selector]
+          .canHit(member, selector.memberName, _closedWorld)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = _namer.invocationName(selector);
@@ -165,6 +166,16 @@ class ClassStubGenerator {
     void addNoSuchMethodHandlers(
         String ignore, Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
+        if (selector == Selectors.runtimeType_ ||
+            selector == Selectors.equals ||
+            selector == Selectors.toString_ ||
+            selector == Selectors.hashCode_ ||
+            selector == Selectors.noSuchMethod_) {
+          // Skip Object methods since these need no noSuchMethod handling
+          // regardless of the precision of the selector constraints.
+          continue;
+        }
+
         SelectorConstraints maskSet = selectors[selector];
         if (maskSet.needsNoSuchMethodHandling(selector, _closedWorld)) {
           jsAst.Name jsName = _namer.invocationMirrorInternalName(selector);

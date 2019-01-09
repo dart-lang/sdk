@@ -559,7 +559,7 @@ class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
     ;
 }
 class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  field dynamic field = null;
+  field core::String field = null;
   constructor •(dynamic a) → self::C#2
     : super core::Object::•()
     ;
@@ -580,7 +580,7 @@ class C#1 extends core::Object {
     ;
 }
 class C extends core::Object {
-  field dynamic field = null;
+  field core::String field = null;
   constructor •(dynamic a) → self::C
     : super core::Object::•()
     ;

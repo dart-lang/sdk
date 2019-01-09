@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,7 +21,67 @@ main() {
 @reflectiveTest
 class ConstantDriverTest extends DriverResolutionTest with ConstantMixin {}
 
-abstract class ConstantMixin implements ResolutionTest {
+mixin ConstantMixin implements ResolutionTest {
+  test_annotation_constructor_named() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  final int f;
+  const A.named(this.f);
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+import 'a.dart';
+
+@A.named(42)
+class B {}
+''');
+
+    addTestFile(r'''
+import 'b.dart';
+
+B b;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var classB = findNode.typeName('B b;').name.staticElement;
+    var annotation = classB.metadata.single;
+    var value = annotation.computeConstantValue();
+    expect(value, isNotNull);
+    expect(value.getField('f').toIntValue(), 42);
+  }
+
+  test_annotation_constructor_unnamed() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  final int f;
+  const A(this.f);
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+import 'a.dart';
+
+@A(42)
+class B {}
+''');
+
+    addTestFile(r'''
+import 'b.dart';
+
+B b;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var classB = findNode.typeName('B b;').name.staticElement;
+    var annotation = classB.metadata.single;
+    var value = annotation.computeConstantValue();
+    expect(value, isNotNull);
+    expect(value.getField('f').toIntValue(), 42);
+  }
+
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
@@ -69,6 +130,25 @@ main() {}
     var node = findNode.annotation('@I');
     var value = node.elementAnnotation.constantValue;
     expect(value.getField('(super)').getField('f').toIntValue(), 42);
+  }
+
+  test_constNotInitialized() async {
+    addTestFile(r'''
+class B {
+  const B(_);
+}
+
+class C extends B {
+  static const a;
+  const C() : super(a);
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+    ]);
   }
 }
 

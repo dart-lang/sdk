@@ -19,7 +19,7 @@
 namespace dart {
 
 // Native implementations for the dart:developer library.
-DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
+DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
 #if !defined(PRODUCT)
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
@@ -34,7 +34,7 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
   return when.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
+DEFINE_NATIVE_ENTRY(Developer_inspect, 0, 1) {
   GET_NATIVE_ARGUMENT(Instance, inspectee, arguments->NativeArgAt(0));
 #ifndef PRODUCT
   if (FLAG_support_service) {
@@ -44,7 +44,7 @@ DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
   return inspectee.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Developer_log, 8) {
+DEFINE_NATIVE_ENTRY(Developer_log, 0, 8) {
 #if defined(PRODUCT)
   return Object::null();
 #else
@@ -66,7 +66,7 @@ DEFINE_NATIVE_ENTRY(Developer_log, 8) {
 #endif  // PRODUCT
 }
 
-DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
+DEFINE_NATIVE_ENTRY(Developer_postEvent, 0, 2) {
 #if defined(PRODUCT)
   return Object::null();
 #else
@@ -80,7 +80,7 @@ DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
 #endif  // PRODUCT
 }
 
-DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
+DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();
 #else
@@ -92,7 +92,7 @@ DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
 #endif  // PRODUCT
 }
 
-DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
+DEFINE_NATIVE_ENTRY(Developer_registerExtension, 0, 2) {
 #if defined(PRODUCT)
   return Object::null();
 #else
@@ -112,7 +112,7 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
 #endif  // PRODUCT
 }
 
-DEFINE_NATIVE_ENTRY(Developer_getServiceMajorVersion, 0) {
+DEFINE_NATIVE_ENTRY(Developer_getServiceMajorVersion, 0, 0) {
 #if defined(PRODUCT)
   return Smi::New(0);
 #else
@@ -120,7 +120,7 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMajorVersion, 0) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0) {
+DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0, 0) {
 #if defined(PRODUCT)
   return Smi::New(0);
 #else
@@ -134,7 +134,7 @@ static void SendNull(const SendPort& port) {
                                    Message::kNormalPriority));
 }
 
-DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 1) {
+DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
 #if defined(PRODUCT)
   SendNull(port);
@@ -149,7 +149,7 @@ DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Developer_webServerControl, 2) {
+DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
 #if defined(PRODUCT)
   SendNull(port);
@@ -165,7 +165,7 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 2) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 1) {
+DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();
 #else

@@ -54,6 +54,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  bool get legacyMode => false;
+
   bool get isSynthetic => false;
 
   @override
@@ -71,8 +73,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   @override
   R get target;
-
-  bool get disableTypeInference => true;
 
   Uri get uri;
 

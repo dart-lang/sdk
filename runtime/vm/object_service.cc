@@ -107,8 +107,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!superType.IsNull()) {
     jsobj.AddProperty("superType", superType);
   }
-  const Type& mix = Type::Handle(mixin());
-  if (!mix.IsNull()) {
+  const Array& interface_array = Array::Handle(interfaces());
+  if (is_transformed_mixin_application()) {
+    Type& mix = Type::Handle();
+    mix ^= interface_array.At(interface_array.Length() - 1);
     jsobj.AddProperty("mixin", mix);
   }
   jsobj.AddProperty("library", Object::Handle(library()));
@@ -118,7 +120,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
-    const Array& interface_array = Array::Handle(interfaces());
     Type& interface_type = Type::Handle();
     if (!interface_array.IsNull()) {
       for (intptr_t i = 0; i < interface_array.Length(); ++i) {
@@ -485,9 +486,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     Class& klass = Class::Handle();
     while (class_iter.HasNext()) {
       klass = class_iter.GetNextClass();
-      if (!klass.IsMixinApplication()) {
-        jsarr.AddValue(klass);
-      }
+      jsarr.AddValue(klass);
     }
   }
   {
@@ -1103,7 +1102,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
   const Class& type_cls = Class::Handle(type_class());
-  if (type_cls.CanonicalType() == raw()) {
+  if (type_cls.DeclarationType() == raw()) {
     intptr_t cid = type_cls.id();
     jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
   } else {
@@ -1152,25 +1151,6 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("parameterIndex", index());
   const AbstractType& upper_bound = AbstractType::Handle(bound());
   jsobj.AddProperty("bound", upper_bound);
-}
-
-void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "BoundedType");
-  jsobj.AddServiceId(*this);
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
-  if (ref) {
-    return;
-  }
-  jsobj.AddProperty("targetType", AbstractType::Handle(type()));
-  jsobj.AddProperty("bound", AbstractType::Handle(bound()));
-}
-
-void MixinAppType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  UNREACHABLE();
 }
 
 void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {

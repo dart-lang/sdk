@@ -633,7 +633,7 @@ abstract class FunctionTypeRelation {
       }
     }
 
-    if (!other.hasNamedParameters) true;
+    if (!other.hasNamedParameters) return true;
 
     int j = positionalParameters;
     for (int i = otherPositionalParameters;

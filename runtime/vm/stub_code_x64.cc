@@ -33,6 +33,7 @@ DEFINE_FLAG(bool,
             false,
             "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, precompiled_mode);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -926,7 +927,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  // Save frame pointer coming in.
+  __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetCodeReg = CallingConventions::kArg1Reg;
@@ -1025,7 +1026,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   // Call the Dart code entrypoint.
-  __ xorq(PP, PP);  // GC-safe value into PP.
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, Thread::global_object_pool_offset()));
+  } else {
+    __ xorq(PP, PP);  // GC-safe value into PP.
+  }
   __ movq(CODE_REG,
           Address(kTargetCodeReg, VMHandles::kOffsetOfRawPtrInHandle));
   __ movq(kTargetCodeReg, FieldAddress(CODE_REG, Code::entry_point_offset()));
@@ -1052,6 +1057,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
+  __ popq(RCX);
 
   __ ret();
 }
@@ -1067,7 +1073,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  // Save frame pointer coming in.
+  __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
   const Register kTargetCodeReg = CallingConventions::kArg1Reg;
@@ -1193,6 +1199,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 
   // Restore the frame pointer.
   __ LeaveFrame();
+  __ popq(RCX);
 
   __ ret();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -2735,7 +2742,11 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   // Restore the pool pointer.
   __ RestoreCodePointer();
-  __ LoadPoolPointer(PP);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, Thread::global_object_pool_offset()));
+  } else {
+    __ LoadPoolPointer(PP);
+  }
   __ jmp(CallingConventions::kArg1Reg);  // Jump to program counter.
 }
 
@@ -2941,12 +2952,19 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(R10,
-          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
-  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
-  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-  __ jmp(RCX);
+  const auto target_address = FieldAddress(RDI, RCX, TIMES_8, base + kWordSize);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(R10,
+            FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+    __ jmp(target_address);
+  } else {
+    __ movq(RAX, target_address);
+    __ movq(R10,
+            FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+    __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+    __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+    __ jmp(RCX);
+  }
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -3033,9 +3051,10 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ Bind(&found);
   const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
-  __ movq(RCX, Address(R13, entry_offset));
-  __ movq(CODE_REG, Address(R13, code_offset));
-  __ jmp(RCX);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    __ movq(CODE_REG, Address(R13, code_offset));
+  }
+  __ jmp(Address(R13, entry_offset));
 
   __ Bind(&miss);
   __ LoadIsolate(RAX);

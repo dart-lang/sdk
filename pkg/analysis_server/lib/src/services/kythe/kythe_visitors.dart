@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,8 +14,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
-import 'package:analyzer/src/generated/bazel.dart';
-import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show KytheEntry, KytheVName;
 
@@ -803,7 +803,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     // Most simple identifiers are "ref" edges.  In cases some cases, there may
     // be other ref/* edges.
 
-    if (node.getAncestor((node) => node is CommentReference) != null) {
+    if (node.thisOrAncestorOfType<CommentReference>() != null) {
       // The identifier is in a comment, add just the "ref" edge.
       _handleRefEdge(
         node.staticElement,
@@ -1106,7 +1106,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 /// This class is meant to be a mixin to concrete visitor methods to walk the
 /// [Element] or [AstNode]s produced by the Dart Analyzer to output Kythe
 /// [KytheEntry] protos.
-abstract class OutputUtils {
+mixin OutputUtils {
   /// A set of [String]s which have already had a name [KytheVName] created.
   final Set<String> nameNodes = new Set<String>();
 

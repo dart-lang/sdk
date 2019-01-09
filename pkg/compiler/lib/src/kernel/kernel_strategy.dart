@@ -19,6 +19,7 @@ import '../environment.dart' as env;
 import '../frontend_strategy.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/scope.dart' show ScopeModel;
+import '../js_backend/annotations.dart';
 import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
@@ -114,6 +115,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       KAllocatorAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
+      AnnotationsDataBuilder annotationsDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries) {
@@ -131,6 +133,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         allocatorAnalysis,
         nativeResolutionEnqueuer,
         noSuchMethodRegistry,
+        annotationsDataBuilder,
         selectorConstraintsStrategy,
         classHierarchyBuilder,
         classQueries);
@@ -140,10 +143,18 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      AnnotationsDataBuilder annotationsDataBuilder,
       ImpactTransformer impactTransformer,
       Map<Entity, WorldImpact> impactCache) {
-    return new KernelWorkItemBuilder(_compilerTask, elementMap, nativeBasicData,
-        nativeDataBuilder, impactTransformer, closureModels, impactCache);
+    return new KernelWorkItemBuilder(
+        _compilerTask,
+        elementMap,
+        nativeBasicData,
+        nativeDataBuilder,
+        annotationsDataBuilder,
+        impactTransformer,
+        closureModels,
+        impactCache);
   }
 
   ClassQueries createClassQueries() {
@@ -161,6 +172,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
+  final AnnotationsDataBuilder _annotationsDataBuilder;
   final Map<MemberEntity, ClosureScopeModel> closureModels;
   final Map<Entity, WorldImpact> impactCache;
 
@@ -169,6 +181,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       this._elementMap,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      this._annotationsDataBuilder,
       this._impactTransformer,
       this.closureModels,
       this.impactCache)
@@ -177,8 +190,15 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(_compilerTask, _elementMap, _impactTransformer,
-        _nativeMemberResolver, entity, closureModels, impactCache);
+    return new KernelWorkItem(
+        _compilerTask,
+        _elementMap,
+        _impactTransformer,
+        _nativeMemberResolver,
+        _annotationsDataBuilder,
+        entity,
+        closureModels,
+        impactCache);
   }
 }
 
@@ -187,6 +207,7 @@ class KernelWorkItem implements WorkItem {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
+  final AnnotationsDataBuilder _annotationsDataBuilder;
   final MemberEntity element;
   final Map<MemberEntity, ClosureScopeModel> closureModels;
   final Map<Entity, WorldImpact> impactCache;
@@ -196,6 +217,7 @@ class KernelWorkItem implements WorkItem {
       this._elementMap,
       this._impactTransformer,
       this._nativeMemberResolver,
+      this._annotationsDataBuilder,
       this.element,
       this.closureModels,
       this.impactCache);
@@ -204,6 +226,12 @@ class KernelWorkItem implements WorkItem {
   WorldImpact run() {
     return _compilerTask.measure(() {
       _nativeMemberResolver.resolveNativeMember(element);
+      Set<PragmaAnnotation> annotations = processMemberAnnotations(
+          _elementMap.reporter,
+          _elementMap.commonElements,
+          _elementMap.elementEnvironment,
+          _annotationsDataBuilder,
+          element);
       ScopeModel scopeModel = _compilerTask.measureSubtask('closures', () {
         ScopeModel scopeModel = _elementMap.computeScopeModel(element);
         if (scopeModel?.closureScopeModel != null) {
@@ -213,7 +241,7 @@ class KernelWorkItem implements WorkItem {
       });
       return _compilerTask.measureSubtask('worldImpact', () {
         ResolutionImpact impact = _elementMap.computeWorldImpact(
-            element, scopeModel?.variableScopeModel);
+            element, scopeModel?.variableScopeModel, annotations);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (impactCache != null) {

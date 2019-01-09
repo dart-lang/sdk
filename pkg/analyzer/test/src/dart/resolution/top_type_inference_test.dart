@@ -24,7 +24,7 @@ class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest
 class TopTypeInferenceTaskResolutionTest extends TaskResolutionTest
     with TopTypeInstanceMixin {}
 
-abstract class TopTypeInstanceMixin implements ResolutionTest {
+mixin TopTypeInstanceMixin implements ResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
     addTestFile(r'''
 class A {

@@ -22,6 +22,6 @@ abstract class _A&Object&Mixin&Mixin extends self::_A&Object&Mixin implements se
 }
 class A extends self::_A&Object&Mixin&Mixin {
   synthetic constructor •() → self::A
-    : super core::Object::•()
+    : super self::_A&Object&Mixin&Mixin::•()
     ;
 }

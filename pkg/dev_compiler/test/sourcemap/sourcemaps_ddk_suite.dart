@@ -54,8 +54,6 @@ class DevCompilerRunner implements CompilerRunner {
 
     File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/kernel/ddc_sdk.dill");
 
-    var ddc = getDdcDir().uri.resolve("bin/dartdevk.dart");
-
     List<String> args = <String>[
       "--packages=${sdkRoot.uri.resolve(".packages").toFilePath()}",
       "--modules=es6",
@@ -77,8 +75,10 @@ class DevCompilerRunner implements CompilerRunner {
     }
 
     if (!succeeded) {
+      var ddc = getDdcDir().uri.resolve("bin/dartdevc.dart");
+
       throw "Error from ddc when executing with something like "
-          "$dartExecutable ${ddc.toFilePath()} "
+          "$dartExecutable ${ddc.toFilePath()} --kernel "
           "${args.reduce((value, element) => '$value "$element"')}";
     }
 

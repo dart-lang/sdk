@@ -229,13 +229,6 @@ Completer<T> _makeAsyncAwaitCompleter<T>() {
   return new _AsyncAwaitCompleter<T>();
 }
 
-/// Creates a Completer for an `async` function.
-///
-/// Used as part of the runtime support for the async/await transformation.
-Completer<T> _makeSyncCompleter<T>() {
-  return new Completer<T>.sync();
-}
-
 /// Initiates the computation of an `async` function and starts the body
 /// synchronously.
 ///
@@ -248,19 +241,6 @@ dynamic _asyncStartSync(
     _WrappedAsyncBody bodyFunction, _AsyncAwaitCompleter completer) {
   bodyFunction(async_error_codes.SUCCESS, null);
   completer.isSync = true;
-  return completer.future;
-}
-
-/// Initiates the computation of an `async` function.
-///
-/// Used as part of the runtime support for the async/await transformation.
-///
-/// This function sets up the first call into the transformed [bodyFunction].
-/// Independently, it takes the [completer] and returns the future of the
-/// completer for convenience of the transformed code.
-dynamic _asyncStart(_WrappedAsyncBody bodyFunction, Completer completer) {
-  // TODO(sra): Specialize this implementation of `await null`.
-  _awaitOnObject(null, bodyFunction);
   return completer.future;
 }
 

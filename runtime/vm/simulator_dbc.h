@@ -49,6 +49,8 @@ class Simulator {
 
   // Low address (DBC stack grows up).
   uword stack_base() const { return stack_base_; }
+  // Limit for StackOverflowError.
+  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // High address (DBC stack grows up).
   uword stack_limit() const { return stack_limit_; }
 
@@ -89,6 +91,7 @@ class Simulator {
  private:
   uintptr_t* stack_;
   uword stack_base_;
+  uword overflow_stack_limit_;
   uword stack_limit_;
 
   RawObject** fp_;

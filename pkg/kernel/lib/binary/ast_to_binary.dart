@@ -203,7 +203,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeStringReference(constant.value);
     } else if (constant is SymbolConstant) {
       writeByte(ConstantTag.SymbolConstant);
-      writeOptionalReference(constant.libraryReference);
+      writeNullAllowedReference(constant.libraryReference);
       writeStringReference(constant.name);
     } else if (constant is MapConstant) {
       writeByte(ConstantTag.MapConstant);
@@ -226,7 +226,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       constant.typeArguments.forEach(writeDartType);
       writeUInt30(constant.fieldValues.length);
       constant.fieldValues.forEach((Reference fieldRef, Constant value) {
-        writeCanonicalNameReference(fieldRef.canonicalName);
+        writeNonNullCanonicalNameReference(fieldRef.canonicalName);
         writeConstantReference(value);
       });
     } else if (constant is PartialInstantiationConstant) {
@@ -239,12 +239,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       }
     } else if (constant is TearOffConstant) {
       writeByte(ConstantTag.TearOffConstant);
-      writeCanonicalNameReference(constant.procedure.canonicalName);
+      writeNonNullCanonicalNameReference(constant.procedure.canonicalName);
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
     } else {
-      throw 'Unsupported constant $constant';
+      throw new ArgumentError('Unsupported constant $constant');
     }
     _sink = oldSink;
     return _constantsSink.offset - initialOffset;
@@ -283,7 +283,158 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  void writeProcedureNodeList(List<Procedure> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeProcedureNode(node);
+    }
+  }
+
+  void writeFieldNodeList(List<Field> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeFieldNode(node);
+    }
+  }
+
+  void writeClassNodeList(List<Class> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeClassNode(node);
+    }
+  }
+
+  void writeConstructorNodeList(List<Constructor> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeConstructorNode(node);
+    }
+  }
+
+  void writeRedirectingFactoryConstructorNodeList(
+      List<RedirectingFactoryConstructor> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeRedirectingFactoryConstructorNode(node);
+    }
+  }
+
+  void writeSwitchCaseNodeList(List<SwitchCase> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeSwitchCaseNode(node);
+    }
+  }
+
+  void writeCatchNodeList(List<Catch> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeCatchNode(node);
+    }
+  }
+
+  void writeTypedefNodeList(List<Typedef> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeTypedefNode(node);
+    }
+  }
+
   void writeNode(Node node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeFunctionNode(FunctionNode node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeArgumentsNode(Arguments node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeLibraryNode(Library node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeProcedureNode(Procedure node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeFieldNode(Field node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeClassNode(Class node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeConstructorNode(Constructor node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeRedirectingFactoryConstructorNode(
+      RedirectingFactoryConstructor node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeSwitchCaseNode(SwitchCase node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeCatchNode(Catch node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeTypedefNode(Typedef node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -299,12 +450,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeOptionalReference(Reference ref) {
-    if (ref == null) {
+  void writeOptionalFunctionNode(FunctionNode node) {
+    if (node == null) {
       writeByte(Tag.Nothing);
     } else {
       writeByte(Tag.Something);
-      writeReference(ref);
+      writeFunctionNode(node);
     }
   }
 
@@ -407,12 +558,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       }
 
       if (!MetadataRepository.isSupported(node)) {
-        throw "Nodes of type ${node.runtimeType} can't have metadata.";
+        throw new ArgumentError(
+            "Nodes of type ${node.runtimeType} can't have metadata.");
       }
 
       if (!identical(_sink, _mainSink)) {
-        throw "Node written into metadata can't have metadata "
-            "(metadata: ${repository.tag}, node: ${node.runtimeType} $node)";
+        throw new ArgumentError(
+            "Node written into metadata can't have metadata "
+            "(metadata: ${repository.tag}, node: ${node.runtimeType} $node)");
       }
 
       _sink = _metadataSink;
@@ -499,11 +652,30 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// Write all of some of the libraries of the [component].
   void writeLibraries(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
-      writeNode(component.libraries[i]);
+      writeLibraryNode(component.libraries[i]);
     }
   }
 
   void writeComponentIndex(Component component, List<Library> libraries) {
+    // It is allowed to concatenate several kernel binaries to create a
+    // multi-component kernel file. In order to maintain alignment of
+    // metadata sections within kernel binaries after concatenation,
+    // size of each kernel binary should be aligned.
+    // Component index is located at the end of a kernel binary, so padding
+    // is added before component index.
+    const int kernelFileAlignment = 8;
+
+    // Keep this in sync with number of writeUInt32 below.
+    int numComponentIndexEntries = 7 + libraryOffsets.length + 3;
+
+    int unalignedSize = getBufferOffset() + numComponentIndexEntries * 4;
+    int padding =
+        ((unalignedSize + kernelFileAlignment - 1) & -kernelFileAlignment) -
+            unalignedSize;
+    for (int i = 0; i < padding; ++i) {
+      writeByte(0);
+    }
+
     // Fixed-size ints at the end used as an index.
     assert(_binaryOffsetForSourceTable >= 0);
     writeUInt32(_binaryOffsetForSourceTable);
@@ -592,18 +764,32 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeLibraryDependencyReference(LibraryDependency node) {
     int index = _libraryDependencyIndex[node];
     if (index == null) {
-      throw 'Reference to library dependency $node out of scope';
+      throw new ArgumentError(
+          'Reference to library dependency $node out of scope');
     }
     writeUInt30(index);
   }
 
-  void writeReference(Reference reference) {
+  void writeNullAllowedReference(Reference reference) {
     if (reference == null) {
       writeUInt30(0);
     } else {
       CanonicalName name = reference.canonicalName;
       if (name == null) {
-        throw 'Missing canonical name for $reference';
+        throw new ArgumentError('Missing canonical name for $reference');
+      }
+      checkCanonicalName(name);
+      writeUInt30(name.index + 1);
+    }
+  }
+
+  void writeNonNullReference(Reference reference) {
+    if (reference == null) {
+      throw new ArgumentError('Got null reference');
+    } else {
+      CanonicalName name = reference.canonicalName;
+      if (name == null) {
+        throw new ArgumentError('Missing canonical name for $reference');
       }
       checkCanonicalName(name);
       writeUInt30(name.index + 1);
@@ -621,7 +807,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _reindexedCanonicalNames.add(node);
   }
 
-  void writeCanonicalNameReference(CanonicalName name) {
+  void writeNullAllowedCanonicalNameReference(CanonicalName name) {
     if (name == null) {
       writeUInt30(0);
     } else {
@@ -630,8 +816,22 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeLibraryReference(Library node) {
-    writeCanonicalNameReference(node.canonicalName);
+  void writeNonNullCanonicalNameReference(CanonicalName name) {
+    if (name == null) {
+      throw new ArgumentError(
+          'Expected a canonical name to be valid but was `null`.');
+    } else {
+      checkCanonicalName(name);
+      writeUInt30(name.index + 1);
+    }
+  }
+
+  void writeLibraryReference(Library node, {bool allowNull: false}) {
+    if (node.canonicalName == null && !allowNull) {
+      throw new ArgumentError(
+          'Expected a library reference to be valid but was `null`.');
+    }
+    writeNullAllowedCanonicalNameReference(node.canonicalName);
   }
 
   writeOffset(int offset) {
@@ -641,18 +841,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(offset + 1);
   }
 
-  void writeClassReference(Class class_, {bool allowNull: false}) {
-    if (class_ == null && !allowNull) {
-      throw 'Expected a class reference to be valid but was `null`.';
+  void writeClassReference(Class class_) {
+    if (class_ == null) {
+      throw new ArgumentError(
+          'Expected a class reference to be valid but was `null`.');
     }
-    writeCanonicalNameReference(getCanonicalNameOfClass(class_));
-  }
-
-  void writeMemberReference(Member member, {bool allowNull: false}) {
-    if (member == null && !allowNull) {
-      throw 'Expected a member reference to be valid but was `null`.';
-    }
-    writeCanonicalNameReference(getCanonicalNameOfMember(member));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfClass(class_));
   }
 
   void writeName(Name node) {
@@ -674,7 +868,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
     writeByte(insideExternalLibrary ? 1 : 0);
-    writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri);
     enterScope(memberScope: true);
@@ -684,13 +878,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraryParts(node);
     leaveScope(memberScope: true);
 
-    writeNodeList(node.typedefs);
+    writeTypedefNodeList(node.typedefs);
     classOffsets = new List<int>();
-    writeNodeList(node.classes);
+    writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
-    writeNodeList(node.fields);
+    writeFieldNodeList(node.fields);
     procedureOffsets = new List<int>();
-    writeNodeList(node.procedures);
+    writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
     // Fixed-size ints at the end used as an index.
@@ -724,7 +918,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeAdditionalExports(List<Reference> additionalExports) {
     writeUInt30(additionalExports.length);
     for (Reference ref in additionalExports) {
-      writeReference(ref);
+      writeNonNullReference(ref);
     }
   }
 
@@ -735,7 +929,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
-    writeLibraryReference(node.targetLibrary);
+    writeLibraryReference(node.targetLibrary, allowNull: true);
     writeStringReference(node.name ?? '');
     writeNodeList(node.combinators);
   }
@@ -763,7 +957,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void visitTypedef(Typedef node) {
     enterScope(memberScope: true);
-    writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfTypedef(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
@@ -811,10 +1005,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     int flags = _encodeClassFlags(node.flags, node.level);
     if (node.canonicalName == null) {
-      throw 'Missing canonical name for $node';
+      throw new ArgumentError('Missing canonical name for $node');
     }
     writeByte(Tag.Class);
-    writeCanonicalNameReference(getCanonicalNameOfClass(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfClass(node));
     writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
@@ -831,12 +1025,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.supertype);
     writeOptionalNode(node.mixedInType);
     writeNodeList(node.implementedTypes);
-    writeNodeList(node.fields);
-    writeNodeList(node.constructors);
+    writeFieldNodeList(node.fields);
+    writeConstructorNodeList(node.constructors);
     procedureOffsets = <int>[];
-    writeNodeList(node.procedures);
+    writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
-    writeNodeList(node.redirectingFactoryConstructors);
+    writeRedirectingFactoryConstructorNodeList(
+        node.redirectingFactoryConstructors);
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
@@ -853,11 +1048,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitConstructor(Constructor node) {
     if (node.canonicalName == null) {
-      throw 'Missing canonical name for $node';
+      throw new ArgumentError('Missing canonical name for $node');
     }
     enterScope(memberScope: true);
     writeByte(Tag.Constructor);
-    writeCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
     writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
@@ -868,7 +1063,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
-    writeNode(node.function);
+    writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= new VariableIndexer();
     _variableIndexer.restoreScope(node.function.positionalParameters.length +
@@ -883,7 +1078,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     procedureOffsets.add(getBufferOffset());
 
     if (node.canonicalName == null) {
-      throw 'Missing canonical name for $node';
+      throw new ArgumentError('Missing canonical name for $node');
     }
 
     final bool currentlyInNonimplementationSaved =
@@ -894,7 +1089,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     enterScope(memberScope: true);
     writeByte(Tag.Procedure);
-    writeCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
     writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
@@ -903,9 +1098,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
-    writeOptionalReference(node.forwardingStubSuperTargetReference);
-    writeOptionalReference(node.forwardingStubInterfaceTargetReference);
-    writeOptionalNode(node.function);
+    writeNullAllowedReference(node.forwardingStubSuperTargetReference);
+    writeNullAllowedReference(node.forwardingStubInterfaceTargetReference);
+    writeOptionalFunctionNode(node.function);
     leaveScope(memberScope: true);
 
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
@@ -916,11 +1111,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitField(Field node) {
     if (node.canonicalName == null) {
-      throw 'Missing canonical name for $node';
+      throw new ArgumentError('Missing canonical name for $node');
     }
     enterScope(memberScope: true);
     writeByte(Tag.Field);
-    writeCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -935,14 +1130,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
     if (node.canonicalName == null) {
-      throw 'Missing canonical name for $node';
+      throw new ArgumentError('Missing canonical name for $node');
     }
     writeByte(Tag.RedirectingFactoryConstructor);
     enterScope(
         typeParameters: node.typeParameters,
         memberScope: true,
         variableScope: true);
-    writeCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -950,7 +1145,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name);
 
     writeAnnotationList(node.annotations);
-    writeReference(node.targetReference);
+    writeNonNullReference(node.targetReference);
     writeNodeList(node.typeArguments);
     writeNodeList(node.typeParameters);
     writeUInt30(node.positionalParameters.length + node.namedParameters.length);
@@ -974,7 +1169,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
-    writeReference(node.fieldReference);
+    writeNonNullReference(node.fieldReference);
     writeNode(node.value);
   }
 
@@ -983,8 +1178,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SuperInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
-    writeReference(node.targetReference);
-    writeNode(node.arguments);
+    writeNonNullReference(node.targetReference);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -992,8 +1187,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.RedirectingInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
-    writeReference(node.targetReference);
-    writeNode(node.arguments);
+    writeNonNullReference(node.targetReference);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1086,7 +1281,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
-    writeReference(node.interfaceTargetReference);
+    writeNullAllowedReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1096,7 +1291,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
-    writeReference(node.interfaceTargetReference);
+    writeNullAllowedReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1104,7 +1299,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SuperPropertyGet);
     writeOffset(node.fileOffset);
     writeName(node.name);
-    writeReference(node.interfaceTargetReference);
+    writeNullAllowedReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1113,7 +1308,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeNode(node.value);
-    writeReference(node.interfaceTargetReference);
+    writeNullAllowedReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1121,7 +1316,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.DirectPropertyGet);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
-    writeReference(node.targetReference);
+    writeNonNullReference(node.targetReference);
   }
 
   @override
@@ -1129,7 +1324,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.DirectPropertySet);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
-    writeReference(node.targetReference);
+    writeNonNullReference(node.targetReference);
     writeNode(node.value);
   }
 
@@ -1137,14 +1332,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitStaticGet(StaticGet node) {
     writeByte(Tag.StaticGet);
     writeOffset(node.fileOffset);
-    writeReference(node.targetReference);
+    writeNonNullReference(node.targetReference);
   }
 
   @override
   void visitStaticSet(StaticSet node) {
     writeByte(Tag.StaticSet);
     writeOffset(node.fileOffset);
-    writeReference(node.targetReference);
+    writeNonNullReference(node.targetReference);
     writeNode(node.value);
   }
 
@@ -1154,8 +1349,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
-    writeNode(node.arguments);
-    writeReference(node.interfaceTargetReference);
+    writeArgumentsNode(node.arguments);
+    writeNullAllowedReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1163,8 +1358,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SuperMethodInvocation);
     writeOffset(node.fileOffset);
     writeName(node.name);
-    writeNode(node.arguments);
-    writeReference(node.interfaceTargetReference);
+    writeArgumentsNode(node.arguments);
+    writeNullAllowedReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1172,16 +1367,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.DirectMethodInvocation);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
-    writeReference(node.targetReference);
-    writeNode(node.arguments);
+    writeNonNullReference(node.targetReference);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
     writeByte(node.isConst ? Tag.ConstStaticInvocation : Tag.StaticInvocation);
     writeOffset(node.fileOffset);
-    writeReference(node.targetReference);
-    writeNode(node.arguments);
+    writeNonNullReference(node.targetReference);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1190,8 +1385,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         ? Tag.ConstConstructorInvocation
         : Tag.ConstructorInvocation);
     writeOffset(node.fileOffset);
-    writeReference(node.targetReference);
-    writeNode(node.arguments);
+    writeNonNullReference(node.targetReference);
+    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1221,7 +1416,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       case '||':
         return 1;
     }
-    throw 'Not a logical operator: $operator';
+    throw new ArgumentError('Not a logical operator: $operator');
   }
 
   @override
@@ -1355,6 +1550,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitSetLiteral(SetLiteral node) {
+    writeByte(node.isConst ? Tag.ConstSetLiteral : Tag.SetLiteral);
+    writeOffset(node.fileOffset);
+    writeNode(node.typeArgument);
+    writeNodeList(node.expressions);
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
     writeByte(node.isConst ? Tag.ConstMapLiteral : Tag.MapLiteral);
     writeOffset(node.fileOffset);
@@ -1380,7 +1583,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionExpression(FunctionExpression node) {
     writeByte(Tag.FunctionExpression);
     writeOffset(node.fileOffset);
-    writeNode(node.function);
+    writeFunctionNode(node.function);
   }
 
   @override
@@ -1533,7 +1736,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SwitchStatement);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    writeNodeList(node.cases);
+    writeSwitchCaseNodeList(node.cases);
     _switchCaseIndexer.exit(node);
   }
 
@@ -1583,7 +1786,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.body);
     bool needsStackTrace = node.catches.any((Catch c) => c.stackTrace != null);
     writeByte(_encodeTryCatchFlags(needsStackTrace, node.isSynthetic));
-    writeNodeList(node.catches);
+    writeCatchNodeList(node.catches);
   }
 
   @override
@@ -1656,7 +1859,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
-    writeNode(node.function);
+    writeFunctionNode(node.function);
   }
 
   @override
@@ -1683,10 +1886,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
-      writeReference(node.className);
+      writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
-      writeReference(node.className);
+      writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
   }
@@ -1695,10 +1898,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitSupertype(Supertype node) {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
-      writeReference(node.className);
+      writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
-      writeReference(node.className);
+      writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
   }
@@ -1743,7 +1946,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypedefType(TypedefType node) {
     writeByte(Tag.TypedefType);
-    writeReference(node.typedefReference);
+    writeNullAllowedReference(node.typedefReference);
     writeNodeList(node.typeArguments);
   }
 
@@ -2118,7 +2321,8 @@ class TypeParameterIndexer {
   }
 
   int operator [](TypeParameter parameter) =>
-      index[parameter] ?? (throw 'Type parameter $parameter is not indexed');
+      index[parameter] ??
+      (throw new ArgumentError('Type parameter $parameter is not indexed'));
 }
 
 class StringIndexer {

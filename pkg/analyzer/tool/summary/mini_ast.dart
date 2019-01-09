@@ -478,8 +478,9 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
+    reportErrorIfNullableType(questionMark);
     List<TypeName> typeArguments = popTypedList();
     String name = pop();
     push(new TypeName(name, typeArguments));

@@ -11,6 +11,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
+import '../ir/util.dart';
 import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
@@ -25,6 +26,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
     return measureSubtask('find-imports', () {
       List<ImportEntity> imports = [];
       ir.Library source = _elementMap.getLibraryNode(library);
+      if (!source.dependencies.any((d) => d.isDeferred)) return const [];
       for (ir.LibraryDependency dependency in source.dependencies) {
         if (dependency.isExport) continue;
         if (!_isVisible(dependency.combinators, nodeName)) continue;
@@ -55,7 +57,11 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   Iterable<ImportEntity> memberImportsTo(
       Entity element, LibraryEntity library) {
     ir.Member node = _elementMap.getMemberNode(element);
-    return _findImportsTo(node, node.name.name, node.enclosingLibrary, library);
+    return _findImportsTo(
+        node is ir.Constructor ? node.enclosingClass : node,
+        node is ir.Constructor ? node.enclosingClass.name : node.name.name,
+        node.enclosingLibrary,
+        library);
   }
 
   @override
@@ -138,7 +144,8 @@ class ConstantCollector extends ir.RecursiveVisitor {
     ConstantValue constant =
         elementMap.getConstantValue(node, requireConstant: required);
     if (constant != null) {
-      dependencies.constants.add(constant);
+      dependencies.addConstant(
+          constant, elementMap.getImport(getDeferredImport(node)));
     }
   }
 

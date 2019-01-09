@@ -502,6 +502,9 @@ enum IndexSyntheticElementKind {
   /// The synthetic `values` getter of an enum.
   enumValues,
 
+  /// The synthetic `toString` method of an enum.
+  enumToString,
+
   /// The containing unit itself.
   unit
 }
@@ -1528,6 +1531,11 @@ abstract class UnlinkedExpr extends base.SummaryClass {
   @Id(2)
   List<EntityRef> get references;
 
+  /// String representation of the expression in a form suitable to be tokenized
+  /// and parsed.
+  @Id(7)
+  String get sourceRepresentation;
+
   /// Sequence of strings consumed by the operations `pushString` and
   /// `invokeConstructor`.
   @Id(3)
@@ -1954,6 +1962,18 @@ enum UnlinkedExprOperation {
 
   /// Push `super` expression onto the stack.
   pushSuper,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
+  /// onto the stack.  The type parameter for the [Set] is implicitly
+  /// `dynamic`.
+  makeUntypedSet,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
+  /// onto the stack.  The type parameter for the [Set] is obtained from
+  /// [UnlinkedExpr.references].
+  makeTypedSet,
 }
 
 /// Unlinked summary information about an import declaration.

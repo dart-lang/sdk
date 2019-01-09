@@ -14,7 +14,7 @@ import 'dart:io';
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('count',
       abbr: 'c', help: 'Build N copies of the tree shaker', defaultsTo: '100')
-  ..addFlag('strong', help: 'Run the tree shaker in strong mode');
+  ..addFlag('legacy-mode', help: 'Run the tree shaker in legacy mode');
 
 String usage = """
 Usage: treeshaker_membench [options] FILE.dill
@@ -36,7 +36,7 @@ main(List<String> args) {
     exit(1);
   }
   String filename = options.rest.single;
-  bool strongMode = options['strong'];
+  bool legacyMode = options['legacy-mode'];
 
   Component component = loadComponentFromBinary(filename);
   ClassHierarchy hierarchy = new ClassHierarchy(component);
@@ -46,7 +46,7 @@ main(List<String> args) {
 
   TreeShaker buildTreeShaker() {
     return new TreeShaker(coreTypes, hierarchy, component,
-        legacyMode: !strongMode);
+        legacyMode: legacyMode);
   }
 
   List<TreeShaker> keepAlive = <TreeShaker>[];

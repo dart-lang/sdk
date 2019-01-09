@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -72,7 +73,9 @@ class CompilerAnalysisDriver {
   ExtensionTypeSet get extensionTypes => _extensionTypes;
 
   factory CompilerAnalysisDriver(AnalyzerOptions options,
-      {SummaryDataStore summaryData, List<String> summaryPaths = const []}) {
+      {SummaryDataStore summaryData,
+      List<String> summaryPaths = const [],
+      Map<String, bool> experiments = const {}}) {
     AnalysisEngine.instance.processRequiredPlugins();
 
     var resourceProvider = options.resourceProvider;
@@ -80,6 +83,10 @@ class CompilerAnalysisDriver {
 
     var analysisOptions =
         contextBuilder.getAnalysisOptions(options.analysisRoot);
+
+    (analysisOptions as AnalysisOptionsImpl).enabledExperiments =
+        experiments.entries.where((e) => e.value).map((e) => e.key).toList();
+
     var dartSdk = contextBuilder.findSdk(null, analysisOptions);
 
     // Read the summaries.
@@ -248,8 +255,15 @@ class CompilerAnalysisDriver {
     var resynthesizer = resultProvider.resynthesizer;
     _extensionTypes ??= ExtensionTypeSet(context.typeProvider, resynthesizer);
 
-    return LinkedAnalysisDriver(analysisOptions, resynthesizer, sourceFactory,
-        libraryUris, declaredVariables, summaryBytes, fsState);
+    return LinkedAnalysisDriver(
+        analysisOptions,
+        resynthesizer,
+        sourceFactory,
+        libraryUris,
+        declaredVariables,
+        summaryBytes,
+        fsState,
+        _resourceProvider);
   }
 
   FileSystemState _createFileSystemState(SourceFactory sourceFactory) {
@@ -289,6 +303,8 @@ class LinkedAnalysisDriver {
 
   final FileSystemState _fsState;
 
+  final ResourceProvider _resourceProvider;
+
   LinkedAnalysisDriver(
       this.analysisOptions,
       this.resynthesizer,
@@ -296,7 +312,8 @@ class LinkedAnalysisDriver {
       this.libraryUris,
       this.declaredVariables,
       this.summaryBytes,
-      this._fsState);
+      this._fsState,
+      this._resourceProvider);
 
   AnalysisContextImpl get context => resynthesizer.context;
 
@@ -324,8 +341,9 @@ class LinkedAnalysisDriver {
         (uri) => _isLibraryUri('$uri'),
         context,
         resynthesizer,
+        InheritanceManager2(context.typeSystem),
         libraryFile,
-        _fsState.resourceProvider);
+        _resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
     // but it's async. We can't use `async` here because it would break our
     // developer tools extension (see web/web_command.dart). We should be able

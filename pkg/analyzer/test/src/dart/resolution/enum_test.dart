@@ -21,7 +21,7 @@ main() {
 class EnumDriverResolutionTest extends DriverResolutionTest
     with EnumResolutionMixin {}
 
-abstract class EnumResolutionMixin implements ResolutionTest {
+mixin EnumResolutionMixin implements ResolutionTest {
   test_error_conflictingStaticAndInstance_index() async {
     addTestFile(r'''
 enum E {

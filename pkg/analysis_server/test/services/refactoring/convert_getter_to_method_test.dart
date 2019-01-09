@@ -87,7 +87,7 @@ main(A a, B b, C c, D d) {
   }
 
   test_change_multipleFiles() async {
-    await indexUnit('/project/other.dart', r'''
+    await indexUnit('/home/test/lib/other.dart', r'''
 class A {
   int get test => 1;
 }
@@ -153,7 +153,7 @@ main() {
 
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = new ConvertGetterToMethodRefactoring(
-        searchEngine, astProvider, element);
+        searchEngine, testAnalysisResult.session, element);
   }
 
   void _createRefactoringForString(String search) {

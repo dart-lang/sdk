@@ -32,5 +32,5 @@ class X extends core::Object implements self::Supertype {
     ;
 }
 static method main() → dynamic {
-  self::X x = let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Supertype, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  self::X x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Supertype, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }

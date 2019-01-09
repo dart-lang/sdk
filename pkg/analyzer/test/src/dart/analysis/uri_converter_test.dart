@@ -3,17 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../context/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,12 +20,10 @@ main() {
 }
 
 @reflectiveTest
-class DriverBasedUriConverterTest extends Object with ResourceProviderMixin {
+class DriverBasedUriConverterTest with ResourceProviderMixin {
   DriverBasedUriConverter uriConverter;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-
     Folder barFolder = newFolder('/packages/bar/lib');
     Folder fooFolder = newFolder('/packages/foo/lib');
 

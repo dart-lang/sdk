@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -81,8 +81,7 @@ abstract class PSDependency {
   PSEntry get version;
 }
 
-abstract class PSDependencyList extends Object
-    with IterableMixin<PSDependency> {}
+abstract class PSDependencyList with IterableMixin<PSDependency> {}
 
 class PSEntry {
   final PSNode key;
@@ -110,7 +109,7 @@ abstract class PSNode {
   String get text;
 }
 
-abstract class PSNodeList extends Object with IterableMixin<PSNode> {
+abstract class PSNodeList with IterableMixin<PSNode> {
   @override
   Iterator<PSNode> get iterator;
   PSNode get token;
@@ -137,8 +136,8 @@ abstract class PubspecVisitor<T> {
   T visitPackageAuthors(PSNodeList authors) => null;
   T visitPackageDependencies(PSDependencyList dependencies) => null;
   T visitPackageDependency(PSDependency dependency) => null;
-  T visitPackageDependencyOverrides(PSDependencyList dependencies) => null;
   T visitPackageDependencyOverride(PSDependency dependency) => null;
+  T visitPackageDependencyOverrides(PSDependencyList dependencies) => null;
   T visitPackageDescription(PSEntry description) => null;
   T visitPackageDevDependencies(PSDependencyList dependencies) => null;
   T visitPackageDevDependency(PSDependency dependency) => null;

@@ -560,10 +560,12 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t try_index,
                                    intptr_t slow_path_argument_count = 0);
 
-  void EmitSwitchableInstanceCall(const ICData& ic_data,
-                                  intptr_t deopt_id,
-                                  TokenPosition token_pos,
-                                  LocationSummary* locs);
+  void EmitSwitchableInstanceCall(
+      const ICData& ic_data,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,
@@ -771,9 +773,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
-  void AddPcRelativeCallTarget(const Function& function);
+  void AddPcRelativeCallTarget(const Function& function,
+                               Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
-  void AddStaticCallTarget(const Function& function);
+  void AddStaticCallTarget(const Function& function,
+                           Code::EntryKind entry_kind);
 
   void GenerateDeferredCode();
 
@@ -925,14 +929,17 @@ class FlowGraphCompiler : public ValueObject {
   class StaticCallsStruct : public ZoneAllocated {
    public:
     Code::CallKind call_kind;
+    Code::CallEntryPoint entry_point;
     const intptr_t offset;
     const Function* function;  // Can be NULL.
     const Code* code;          // Can be NULL.
     StaticCallsStruct(Code::CallKind call_kind,
+                      Code::CallEntryPoint entry_point,
                       intptr_t offset_arg,
                       const Function* function_arg,
                       const Code* code_arg)
         : call_kind(call_kind),
+          entry_point(entry_point),
           offset(offset_arg),
           function(function_arg),
           code(code_arg) {

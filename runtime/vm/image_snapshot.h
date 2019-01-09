@@ -99,6 +99,35 @@ class ObjectOffsetTrait {
 
 typedef DirectChainedHashMap<ObjectOffsetTrait> ObjectOffsetMap;
 
+// A command which instructs the image writer to emit something into the ".text"
+// segment.
+//
+// For now this just supports emitting the instructions of a [Code] object.
+// In the future we might also want to add support for emitting trampolines.
+struct ImageWriterCommand {
+  enum Opcode {
+    InsertInstructionOfCode,
+  };
+
+  ImageWriterCommand(intptr_t expected_offset,
+                     ImageWriterCommand::Opcode opcode,
+                     RawCode* code)
+      : expected_offset(expected_offset),
+        op(opcode),
+        insert_instruction_of_code({code}) {}
+
+  // The offset (relative to the very first [ImageWriterCommand]) we expect
+  // this [ImageWriterCommand] to have.
+  intptr_t expected_offset;
+
+  Opcode op;
+  union {
+    struct {
+      RawCode* code;
+    } insert_instruction_of_code;
+  };
+};
+
 class ImageWriter : public ValueObject {
  public:
   ImageWriter(Heap* heap,
@@ -114,6 +143,10 @@ class ImageWriter : public ValueObject {
     objects_.Clear();
     instructions_.Clear();
   }
+
+  // Will start preparing the ".text" segment by interpreting the provided
+  // [ImageWriterCommand]s.
+  void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
   int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
   bool GetSharedDataOffsetFor(RawObject* raw_object, uint32_t* offset);
@@ -141,10 +174,10 @@ class ImageWriter : public ValueObject {
   void DumpInstructionsSizes();
 
   struct InstructionsData {
-    explicit InstructionsData(RawInstructions* insns,
-                              RawCode* code,
-                              intptr_t offset)
-        : raw_insns_(insns), raw_code_(code), offset_(offset) {}
+    InstructionsData(RawInstructions* insns,
+                     RawCode* code,
+                     intptr_t text_offset)
+        : raw_insns_(insns), raw_code_(code), text_offset_(text_offset) {}
 
     union {
       RawInstructions* raw_insns_;
@@ -154,7 +187,7 @@ class ImageWriter : public ValueObject {
       RawCode* raw_code_;
       const Code* code_;
     };
-    intptr_t offset_;
+    intptr_t text_offset_;
   };
 
   struct ObjectData {

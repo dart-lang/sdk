@@ -27,11 +27,13 @@ import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../ir/cached_static_type.dart';
 import '../ir/closure.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
+import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/constant_system_javascript.dart';
@@ -1061,6 +1063,47 @@ class JsKernelToElementMap
     return _typeEnvironment;
   }
 
+  StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
+    MemberDefinition memberDefinition = members.getData(member).definition;
+    Map<ir.Expression, ir.DartType> cachedStaticTypes;
+    ir.InterfaceType thisType;
+    switch (memberDefinition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        ir.Member node = memberDefinition.node;
+        thisType = node.enclosingClass?.thisType;
+        cachedStaticTypes = members.getData(member).staticTypes;
+        break;
+      case MemberKind.closureCall:
+        ir.TreeNode node = memberDefinition.node;
+        while (node != null) {
+          if (node is ir.Member) {
+            ir.Member member = node;
+            thisType = member.enclosingClass?.thisType;
+            cachedStaticTypes = members.getData(getMember(member)).staticTypes;
+            break;
+          }
+          node = node.parent;
+        }
+        break;
+      case MemberKind.closureField:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        cachedStaticTypes = const {};
+        break;
+    }
+
+    assert(cachedStaticTypes != null, "No static types cached for $member.");
+    return new CachedStaticType(
+        // We need a copy of the type environment since the `thisType` field
+        // is holds state, making the environment contextually bound.
+        new ir.TypeEnvironment(
+            typeEnvironment.coreTypes, typeEnvironment.hierarchy)
+          ..thisType = thisType,
+        cachedStaticTypes);
+  }
+
   DartType getStaticType(ir.Expression node) {
     ir.TreeNode enclosingClass = node;
     while (enclosingClass != null && enclosingClass is! ir.Class) {
@@ -1109,6 +1152,9 @@ class JsKernelToElementMap
     // folks.
     if (node is ir.PropertyGet) {
       return getGetterSelector(node.name);
+    }
+    if (node is ir.DirectPropertyGet) {
+      return getGetterSelector(node.target.name);
     }
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector(node.name);
@@ -1665,8 +1711,11 @@ class JsKernelToElementMap
       JConstructorBody constructorBody = createConstructorBody(constructor);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
-          new ConstructorBodyDataImpl(node, node.function,
-              new SpecialMemberDefinition(node, MemberKind.constructorBody)));
+          new ConstructorBodyDataImpl(
+              node,
+              node.function,
+              new SpecialMemberDefinition(node, MemberKind.constructorBody),
+              data.staticTypes));
       IndexedClass cls = constructor.enclosingClass;
       JClassEnvImpl classEnv = classes.getEnv(cls);
       // TODO(johnniwinther): Avoid this by only including live members in the

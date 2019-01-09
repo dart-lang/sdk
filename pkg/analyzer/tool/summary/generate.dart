@@ -21,6 +21,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/testing/package_root.dart' as package_root;
@@ -85,6 +86,7 @@ class _CodeGenerator {
     var startingToken = scanner.tokenize();
     var listener = new MiniAstBuilder();
     var parser = new MiniAstParser(listener);
+    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     parser.parseUnit(startingToken);
     extractIdl(listener.compilationUnit);
     checkIdl();

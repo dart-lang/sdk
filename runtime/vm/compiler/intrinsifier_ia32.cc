@@ -1637,7 +1637,7 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
 
@@ -1645,7 +1645,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
 
   __ cmpl(EDI, Immediate(kNumPredefinedCids));
-  __ j(ABOVE, &use_canonical_type);
+  __ j(ABOVE, &use_declaration_type);
 
   // If object is a instance of _Double return double type.
   __ cmpl(EDI, Immediate(kDoubleCid));
@@ -1670,7 +1670,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movl(EAX, EDI);
-  JumpIfNotString(assembler, EAX, &use_canonical_type);
+  JumpIfNotString(assembler, EAX, &use_declaration_type);
 
   __ LoadIsolate(EAX);
   __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
@@ -1678,12 +1678,12 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   // Object is neither double, nor integer, nor string.
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(EBX, EDI);
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EBX, Class::canonical_type_offset()));
+  __ movl(EAX, FieldAddress(EBX, Class::declaration_type_offset()));
   __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);  // Not yet set.
   __ ret();

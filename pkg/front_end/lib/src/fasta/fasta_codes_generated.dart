@@ -923,18 +923,6 @@ const MessageCode messageConstClass = const MessageCode("ConstClass",
         r"""Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstConstructorInSubclassOfMixinApplication =
-    messageConstConstructorInSubclassOfMixinApplication;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorInSubclassOfMixinApplication =
-    const MessageCode("ConstConstructorInSubclassOfMixinApplication",
-        analyzerCodes: <String>[
-      "CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION"
-    ],
-        message: r"""Can't extend a mixin application and be 'const'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =
     messageConstConstructorNonFinalField;
 
@@ -1766,27 +1754,24 @@ Message _withArgumentsCycleInTypeVariables(String name, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateCyclicClassHierarchy =
-    const Template<Message Function(String name, String string)>(
-        messageTemplate: r"""'#name' is a supertype of itself via '#string'.""",
+const Template<Message Function(String name)> templateCyclicClassHierarchy =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is a supertype of itself.""",
         withArguments: _withArgumentsCyclicClassHierarchy);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeCyclicClassHierarchy =
-    const Code<Message Function(String name, String string)>(
+const Code<Message Function(String name)> codeCyclicClassHierarchy =
+    const Code<Message Function(String name)>(
         "CyclicClassHierarchy", templateCyclicClassHierarchy,
         analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicClassHierarchy(String name, String string) {
+Message _withArgumentsCyclicClassHierarchy(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCyclicClassHierarchy,
-      message: """'${name}' is a supertype of itself via '${string}'.""",
-      arguments: {'name': name, 'string': string});
+      message: """'${name}' is a supertype of itself.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2052,28 +2037,6 @@ Message _withArgumentsDirectCycleInTypeVariables(String name) {
       message: """Type '${name}' can't use itself as a bound.""",
       tip:
           """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDirectCyclicClassHierarchy =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' can't use itself as a supertype.""",
-        withArguments: _withArgumentsDirectCyclicClassHierarchy);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDirectCyclicClassHierarchy =
-    const Code<Message Function(String name)>(
-        "DirectCyclicClassHierarchy", templateDirectCyclicClassHierarchy,
-        analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCyclicClassHierarchy(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDirectCyclicClassHierarchy,
-      message: """'${name}' can't use itself as a supertype.""",
       arguments: {'name': name});
 }
 
@@ -3247,76 +3210,6 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int count)>
-    templateFactoryRedirecteeHasTooFewPositionalParameters =
-    const Template<Message Function(String name, int count)>(
-        messageTemplate:
-            r"""Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide.""",
-        tipTemplate: r"""Try redirecting to a different constructor.""",
-        withArguments:
-            _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count)>
-    codeFactoryRedirecteeHasTooFewPositionalParameters =
-    const Code<Message Function(String name, int count)>(
-        "FactoryRedirecteeHasTooFewPositionalParameters",
-        templateFactoryRedirecteeHasTooFewPositionalParameters,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters(
-    String name, int count) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (count == null) throw 'No count provided';
-  return new Message(codeFactoryRedirecteeHasTooFewPositionalParameters,
-      message:
-          """Redirection target '${name}' accepts fewer arguments ('${count}') than the redirecting factory can provide.""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'name': name, 'count': count});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        DartType _type,
-        String name,
-        DartType
-            _type2)> templateFactoryRedirecteeInvalidReturnType = const Template<
-        Message Function(DartType _type, String name, DartType _type2)>(
-    messageTemplate:
-        r"""The return type '#type' of the constructor '#name' isn't a subtype of '#type2'.""",
-    tipTemplate: r"""Try redirecting to a different constructor.""",
-    withArguments: _withArgumentsFactoryRedirecteeInvalidReturnType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name, DartType _type2)>
-    codeFactoryRedirecteeInvalidReturnType =
-    const Code<Message Function(DartType _type, String name, DartType _type2)>(
-        "FactoryRedirecteeInvalidReturnType",
-        templateFactoryRedirecteeInvalidReturnType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_RETURN_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryRedirecteeInvalidReturnType(
-    DartType _type, String name, DartType _type2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeFactoryRedirecteeInvalidReturnType,
-      message:
-          """The return type '${type}' of the constructor '${name}' isn't a subtype of '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'type': _type, 'name': name, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =
     messageFactoryTopLevelDeclaration;
 
@@ -3427,7 +3320,12 @@ const MessageCode messageFastaUsageLong =
     Makes messages of the given kinds fatal, that is, immediately stop the
     compiler with a non-zero exit-code. In --verbose mode, also display an
     internal stack trace from the compiler. Multiple kinds can be separated by
-    commas, for example, --fatal=errors,warnings.""");
+    commas, for example, --fatal=errors,warnings.
+
+  --enable-experiment=<flag>
+  --disable-experiment=<flag>
+    Enable or disable an experimental flag, used to guard features currently
+    in development. Multiple experiments can be separated by commas.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFastaUsageShort = messageFastaUsageShort;
@@ -3438,6 +3336,18 @@ const MessageCode messageFastaUsageShort =
 
   -o <file> Generate the output into <file>.
   -h        Display this message (add -v for information about all options).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFieldInitializedOutsideDeclaringClass =
+    messageFieldInitializedOutsideDeclaringClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFieldInitializedOutsideDeclaringClass = const MessageCode(
+    "FieldInitializedOutsideDeclaringClass",
+    index: 88,
+    message: r"""A field can only be initialized in it's declaring class""",
+    tip:
+        r"""Try passing a value into the superclass constructor, or moving the initialization into the constructor body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializerOutsideConstructor =
@@ -4149,6 +4059,40 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 const Template<
     Message Function(
         DartType _type,
+        DartType
+            _type2)> templateIncompatibleRedirecteeFunctionType = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
+    withArguments: _withArgumentsIncompatibleRedirecteeFunctionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeIncompatibleRedirecteeFunctionType =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "IncompatibleRedirecteeFunctionType",
+        templateIncompatibleRedirecteeFunctionType,
+        analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncompatibleRedirecteeFunctionType(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeIncompatibleRedirecteeFunctionType,
+      message:
+          """The constructor function type '${type}' isn't a subtype of '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
         DartType _type2,
         String name,
         String
@@ -4581,7 +4525,6 @@ const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 const MessageCode messageInheritedMembersConflict = const MessageCode(
     "InheritedMembersConflict",
     analyzerCodes: <String>["CONFLICTS_WITH_INHERITED_MEMBER"],
-    severity: Severity.errorLegacyWarning,
     message: r"""Can't inherit members that conflict with each other.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5652,7 +5595,6 @@ const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInitializer = const MessageCode(
     "InvalidInitializer",
-    analyzerCodes: <String>["INVALID_INITIALIZER"],
     message: r"""Not a valid initializer.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 
@@ -5920,7 +5862,7 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     "MapLiteralTypeArgumentMismatch",
     analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
     severity: Severity.errorLegacyWarning,
-    message: r"""Map literal requires exactly two type arguments.""");
+    message: r"""A map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =
@@ -6085,12 +6027,12 @@ Message _withArgumentsMissingImplementationCause(String name) {
 const Template<
     Message Function(
         String name,
-        String
-            string)> templateMissingImplementationNotAbstract = const Template<
-        Message Function(String name, String string)>(
+        List<String>
+            _names)> templateMissingImplementationNotAbstract = const Template<
+        Message Function(String name, List<String> _names)>(
     messageTemplate:
         r"""The non-abstract class '#name' is missing implementations for these members:
-  #string.""",
+#names""",
     tipTemplate: r"""Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
@@ -6100,31 +6042,31 @@ const Template<
     withArguments: _withArgumentsMissingImplementationNotAbstract);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
+const Code<Message Function(String name, List<String> _names)>
     codeMissingImplementationNotAbstract =
-    const Code<Message Function(String name, String string)>(
+    const Code<Message Function(String name, List<String> _names)>(
         "MissingImplementationNotAbstract",
         templateMissingImplementationNotAbstract,
-        analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract(
-    String name, String string) {
+    String name, List<String> _names) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
   return new Message(codeMissingImplementationNotAbstract,
       message:
           """The non-abstract class '${name}' is missing implementations for these members:
-  ${string}.""",
+${names}""",
       tip: """Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
  - provide a 'noSuchMethod' implementation.
 """,
-      arguments: {'name': name, 'string': string});
+      arguments: {'name': name, 'names': _names});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6687,14 +6629,37 @@ Message _withArgumentsNotConstantExpression(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectExtends = messageObjectExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectExtends = const MessageCode("ObjectExtends",
+    message: r"""The class 'Object' can't have a superclass.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectImplements = messageObjectImplements;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectImplements = const MessageCode(
+    "ObjectImplements",
+    message: r"""The class 'Object' can't implement anything.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectMixesIn = messageObjectMixesIn;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectMixesIn = const MessageCode("ObjectMixesIn",
+    message: r"""The class 'Object' can't use mixins.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
-    analyzerCodes: <String>["MISSING_CATCH_OR_FINALLY"],
+    index: 92,
     message:
-        r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
-    tip: r"""Did you forget to add a 'finally' block?""");
+        r"""A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
+    tip:
+        r"""Try adding either a catch or finally clause, or remove the try statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7521,152 +7486,6 @@ Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
-    templateRedirectingFactoryInvalidNamedParameterType = const Template<
-            Message Function(String name, DartType _type, DartType _type2)>(
-        messageTemplate:
-            r"""The type of the named parameter '#name', '#type' is not a subtype of the redirection target's corresponding named parameter type, '#type2'.""",
-        tipTemplate:
-            r"""Try changing either the type of the parameter or the redirection target.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryInvalidNamedParameterType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryInvalidNamedParameterType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryInvalidNamedParameterType",
-        templateRedirectingFactoryInvalidNamedParameterType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeRedirectingFactoryInvalidNamedParameterType,
-      message:
-          """The type of the named parameter '${name}', '${type}' is not a subtype of the redirection target's corresponding named parameter type, '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try changing either the type of the parameter or the redirection target.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
-    templateRedirectingFactoryInvalidPositionalParameterType = const Template<
-            Message Function(String name, DartType _type, DartType _type2)>(
-        messageTemplate:
-            r"""The type of parameter '#name', '#type' is not a subtype of the redirection target's corresponding parameter type, '#type2'.""",
-        tipTemplate:
-            r"""Try changing either the type of the parameter or the redirection target.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryInvalidPositionalParameterType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryInvalidPositionalParameterType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryInvalidPositionalParameterType",
-        templateRedirectingFactoryInvalidPositionalParameterType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeRedirectingFactoryInvalidPositionalParameterType,
-      message:
-          """The type of parameter '${name}', '${type}' is not a subtype of the redirection target's corresponding parameter type, '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try changing either the type of the parameter or the redirection target.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateRedirectingFactoryMissingNamedParameter =
-    const Template<Message Function(String name, String name2)>(
-        messageTemplate:
-            r"""The constructor '#name' does not have a named parameter '#name2'.""",
-        tipTemplate:
-            r"""Try adding '#name2' as a named parameter to '#name'.""",
-        withArguments: _withArgumentsRedirectingFactoryMissingNamedParameter);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeRedirectingFactoryMissingNamedParameter =
-    const Code<Message Function(String name, String name2)>(
-        "RedirectingFactoryMissingNamedParameter",
-        templateRedirectingFactoryMissingNamedParameter,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryMissingNamedParameter(
-    String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeRedirectingFactoryMissingNamedParameter,
-      message:
-          """The constructor '${name}' does not have a named parameter '${name2}'.""",
-      tip: """Try adding '${name2}' as a named parameter to '${name}'.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name, int count, String name2, int count2)>
-    templateRedirectingFactoryProvidesTooFewRequiredParameters = const Template<
-            Message Function(String name, int count, String name2, int count2)>(
-        messageTemplate:
-            r"""Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2').""",
-        tipTemplate: r"""Try redirecting to a different constructor.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count, String name2, int count2)>
-    codeRedirectingFactoryProvidesTooFewRequiredParameters = const Code<
-            Message Function(String name, int count, String name2, int count2)>(
-        "RedirectingFactoryProvidesTooFewRequiredParameters",
-        templateRedirectingFactoryProvidesTooFewRequiredParameters,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters(
-    String name, int count, String name2, int count2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (count == null) throw 'No count provided';
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (count2 == null) throw 'No count provided';
-  return new Message(codeRedirectingFactoryProvidesTooFewRequiredParameters,
-      message:
-          """Redirecting factory '${name}' can provide less arguments ('${count}') than required by the redirection target '${name2}' ('${count2}').""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {
-        'name': name,
-        'count': count,
-        'name2': name2,
-        'count2': count2
-      });
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7820,6 +7639,35 @@ Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetLiteralTooManyTypeArguments =
+    messageSetLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
+    "SetLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
+    message: r"""A set literal requires exactly one type argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetLiteralsNotSupported = messageSetLiteralsNotSupported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetLiteralsNotSupported = const MessageCode(
+    "SetLiteralsNotSupported",
+    message: r"""Set literals are not supported yet.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetOrMapLiteralTooManyTypeArguments =
+    messageSetOrMapLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetOrMapLiteralTooManyTypeArguments = const MessageCode(
+    "SetOrMapLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
+    message:
+        r"""A set or map literal requires exactly one or two type arguments, respectively.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Setter not found: '#name'.""",
@@ -7965,7 +7813,9 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
-    analyzerCodes: <String>["STACK_OVERFLOW"], message: r"""Stack overflow.""");
+    index: 91,
+    message: r"""The file has too many nested expressions or statements.""",
+    tip: r"""Try simplifying the code.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
@@ -8051,8 +7901,9 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
-    analyzerCodes: <String>["INVALID_OPERATOR_FOR_SUPER"],
-    message: r"""'super' can't be null.""",
+    index: 90,
+    message:
+        r"""The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
     tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8475,8 +8326,9 @@ const Code<Null> codeTypeAfterVar = messageTypeAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
-    analyzerCodes: <String>["VAR_AND_TYPE"],
-    message: r"""Can't have both a type and 'var'.""",
+    index: 89,
+    message:
+        r"""Variables can't be declared using both 'var' and a type name.""",
     tip: r"""Try removing 'var.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

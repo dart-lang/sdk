@@ -1224,7 +1224,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
   ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
   if (type.IsFunctionType() || type.IsDartFunctionType() ||
-      !type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
+      !type.IsInstantiated()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(Z, type.type_class());
@@ -1262,9 +1262,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
         cls.IsNullClass()
             ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
                type_class.IsDynamicClass())
-            : cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                              Object::null_type_arguments(), NULL, NULL,
-                              Heap::kOld);
+            : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
+                                 Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {
@@ -1280,7 +1279,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
 
 // Returns true if checking against this type is a direct class id comparison.
 bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
   // Function types have different type checking rules.
@@ -1347,7 +1346,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   const intptr_t receiver_index = call->FirstArgIndex();
   Value* left_value = call->PushArgumentAt(receiver_index)->value();
 
-  if (left_value->Type()->IsMoreSpecificThan(type)) {
+  if (left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
@@ -1579,11 +1578,11 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   ASSERT(results->length() >= 2);  // At least on entry.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
-    const Class& cls = Class::Handle(class_table.At(kSmiCid));
+    const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
     const bool smi_is_subtype =
-        cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                        Object::null_type_arguments(), NULL, NULL, Heap::kOld);
+        Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
+                           Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1593,7 +1592,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     (*results)[1] = smi_is_subtype;
   }
 
-  ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsInstantiated());
   ASSERT(results->length() >= 2);
   if (type.IsSmiType()) {
     ASSERT((*results)[0] == kSmiCid);

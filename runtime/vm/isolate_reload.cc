@@ -587,6 +587,12 @@ void IsolateReloadContext::Reload(bool force_reload,
     packages_url = String::New(packages_url_);
   }
 
+  // Reset stats.
+  num_received_libs_ = 0;
+  bytes_received_libs_ = 0;
+  num_received_classes_ = 0;
+  num_received_procedures_ = 0;
+
   bool did_kernel_compilation = false;
   bool skip_reload = false;
   {
@@ -595,13 +601,20 @@ void IsolateReloadContext::Reload(bool force_reload,
         GrowableObjectArray::Handle(object_store()->libraries());
     intptr_t num_libs = libs.Length();
     modified_libs_ = new (Z) BitVector(Z, num_libs);
+    intptr_t* p_num_received_classes = nullptr;
+    intptr_t* p_num_received_procedures = nullptr;
 
     // ReadKernelFromFile checks to see if the file at
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
     // compiled, so ReadKernelFromFile returns NULL.
     kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
-    if (kernel_program.get() == NULL) {
+    if (kernel_program.get() != NULL) {
+      num_received_libs_ = kernel_program.get()->library_count();
+      bytes_received_libs_ = kernel_program.get()->kernel_data_size();
+      p_num_received_classes = &num_received_classes_;
+      p_num_received_procedures = &num_received_procedures_;
+    } else {
       Dart_KernelCompilationResult retval;
       if (kernel_buffer != NULL && kernel_buffer_size != 0) {
         retval.kernel = const_cast<uint8_t*>(kernel_buffer);
@@ -659,7 +672,8 @@ void IsolateReloadContext::Reload(bool force_reload,
     }
 
     kernel::KernelLoader::FindModifiedLibraries(
-        kernel_program.get(), I, modified_libs_, force_reload, &skip_reload);
+        kernel_program.get(), I, modified_libs_, force_reload, &skip_reload,
+        p_num_received_classes, p_num_received_procedures);
   }
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -696,6 +710,18 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable(I);
+
+  // Wait for any concurrent marking tasks to finish and turn off the
+  // concurrent marker during reload as we might be allocating new instances
+  // (constants) when loading the new kernel file and this could cause
+  // inconsistency between the saved class table and the new class table.
+  Heap* heap = thread->heap();
+  const bool old_concurrent_mark_flag =
+      heap->old_space()->enable_concurrent_mark();
+  if (old_concurrent_mark_flag) {
+    heap->WaitForMarkerTasks(thread);
+    heap->old_space()->set_enable_concurrent_mark(false);
+  }
 
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
@@ -758,6 +784,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   // Re-enable the background compiler. Do this before propagating any errors.
   BackgroundCompiler::Enable(I);
 
+  // Reenable concurrent marking if it was initially on.
+  heap->old_space()->set_enable_concurrent_mark(old_concurrent_mark_flag);
+
   if (result.IsUnwindError()) {
     if (thread->top_exit_frame_info() == 0) {
       // We can only propagate errors when there are Dart frames on the stack.
@@ -800,7 +829,7 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   if (!old_cls.is_enum_class()) {
     new_cls.CopyCanonicalConstants(old_cls);
   }
-  new_cls.CopyCanonicalType(old_cls);
+  new_cls.CopyDeclarationType(old_cls);
   AddBecomeMapping(old_cls, new_cls);
   AddClassMapping(new_cls, old_cls);
 }
@@ -850,32 +879,35 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   jsobj.AddProperty("type", "ReloadReport");
   jsobj.AddProperty("success", reload_skipped_ || !HasReasonsForCancelling());
   {
-    JSONObject details(&jsobj, "details");
-    if (reload_skipped_) {
-      // Reload was skipped.
-      const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(object_store()->libraries());
-      const intptr_t final_library_count = libs.Length();
-      details.AddProperty("savedLibraryCount", final_library_count);
-      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
-      details.AddProperty("finalLibraryCount", final_library_count);
-    } else if (HasReasonsForCancelling()) {
+    if (HasReasonsForCancelling()) {
       // Reload was rejected.
       JSONArray array(&jsobj, "notices");
       for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
         ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
         reason->AppendTo(&array);
       }
+      return;
+    }
+
+    JSONObject details(&jsobj, "details");
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(object_store()->libraries());
+    const intptr_t final_library_count = libs.Length();
+    details.AddProperty("finalLibraryCount", final_library_count);
+    details.AddProperty("receivedLibraryCount", num_received_libs_);
+    details.AddProperty("receivedLibrariesBytes", bytes_received_libs_);
+    details.AddProperty("receivedClassesCount", num_received_classes_);
+    details.AddProperty("receivedProceduresCount", num_received_procedures_);
+    if (reload_skipped_) {
+      // Reload was skipped.
+      details.AddProperty("savedLibraryCount", final_library_count);
+      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
     } else {
       // Reload was successful.
-      const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(object_store()->libraries());
-      const intptr_t final_library_count = libs.Length();
       const intptr_t loaded_library_count =
           final_library_count - num_saved_libs_;
       details.AddProperty("savedLibraryCount", num_saved_libs_);
       details.AddProperty("loadedLibraryCount", loaded_library_count);
-      details.AddProperty("finalLibraryCount", final_library_count);
       JSONArray array(&jsobj, "shapeChangeMappings");
       for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
         instance_morphers_.At(i)->AppendTo(&array);
@@ -1321,13 +1353,6 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
                           const Class& new_cls) {
   // All members of enum classes are synthetic, so nothing to report here.
   if (new_cls.is_enum_class()) {
-    return;
-  }
-
-  // Don't report synthetic classes like the superclass of
-  // `class MA extends S with M {}` or `class MA = S with M'. The relevant
-  // changes with be reported as changes in M.
-  if (new_cls.IsMixinApplication() || new_cls.is_mixin_app_alias()) {
     return;
   }
 

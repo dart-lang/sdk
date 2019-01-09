@@ -21,6 +21,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, precompiled_mode);
 
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
@@ -59,9 +60,9 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
 #if defined(USING_SIMULATOR)
-    thread->SetStackLimit(Simulator::Current()->stack_limit());
+    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
 #else
-    thread->SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
+    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
     // TODO(regis): For now, the interpreter is using its own stack limit.
 #endif
 
@@ -116,11 +117,18 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
   // and never start the VM service isolate. So we should never end up invoking
   // any dart code in the Dart 2.0 AOT compiler.
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-  }
+#else
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      Thread* thread = Thread::Current();
+      thread->set_global_object_pool(
+          thread->isolate()->object_store()->global_object_pool());
+      ASSERT(thread->global_object_pool() != Object::null());
+    }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
 
   ASSERT(!function.IsNull());
 

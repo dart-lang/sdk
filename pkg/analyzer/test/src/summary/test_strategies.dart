@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,10 +24,10 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
-import '../context/mock_sdk.dart';
 import 'resynthesize_common.dart';
 
 /// Convert the given Posix style file [path] to the corresponding absolute URI.
@@ -35,13 +36,15 @@ String absUri(String path) {
   return posix.toUri(absolutePath).toString();
 }
 
-CompilationUnit _parseText(String text) {
+CompilationUnit _parseText(String text,
+    {bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
-  Parser parser = new Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER);
+  Parser parser =
+      new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
+        ..enableSetLiterals = enableSetLiterals;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -257,7 +260,9 @@ class SerializedMockSdk {
     try {
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      PackageBundle bundle = new MockSdk().getLinkedBundle();
+      var resourceProvider = new MemoryResourceProvider();
+      PackageBundle bundle =
+          new MockSdk(resourceProvider: resourceProvider).getLinkedBundle();
       for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
         String uri = bundle.unlinkedUnitUris[i];
         uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];
@@ -327,7 +332,9 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
 
   /// Serialize the given library [text], then deserialize it and store its
   /// summary in [lib].
-  void serializeLibraryText(String text, {bool allowErrors: false});
+  void serializeLibraryText(String text,
+      {bool allowErrors: false,
+      bool enableSetLiterals: IsEnabledByDefault.set_literals});
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -339,8 +346,11 @@ class SummaryBlackBoxTestStrategyPrelink
   bool get skipFullyLinkedData => true;
 
   @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
-    super.serializeLibraryText(text, allowErrors: allowErrors);
+  void serializeLibraryText(String text,
+      {bool allowErrors: false,
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
+    super.serializeLibraryText(text,
+        allowErrors: allowErrors, enableSetLiterals: enableSetLiterals);
 
     UnlinkedUnit getPart(String absoluteUri) {
       return _linkerInputs.getUnit(absoluteUri);
@@ -531,15 +541,20 @@ abstract class _SummaryBaseTestStrategyTwoPhase
     return assembler.assemble();
   }
 
-  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(_parseText(text));
+  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text,
+          {bool enableSetLiterals: IsEnabledByDefault.set_literals}) =>
+      serializeAstUnlinked(
+          _parseText(text, enableSetLiterals: enableSetLiterals));
 
   _LinkerInputs _createLinkerInputs(String text,
-      {String path: '/test.dart', String uri}) {
+      {String path: '/test.dart',
+      String uri,
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
-    UnlinkedUnitBuilder unlinkedDefiningUnit =
-        createUnlinkedSummary(testDartUri, text);
+    UnlinkedUnitBuilder unlinkedDefiningUnit = createUnlinkedSummary(
+        testDartUri, text,
+        enableSetLiterals: enableSetLiterals);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     _LinkerInputs linkerInputs = new _LinkerInputs(
         _allowMissingFiles,
@@ -580,9 +595,12 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
   bool get containsNonConstExprs => true;
 
   @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
+  void serializeLibraryText(String text,
+      {bool allowErrors: false,
+      bool enableSetLiterals: IsEnabledByDefault.set_literals}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    _linkerInputs = _createLinkerInputs(text);
+    _linkerInputs =
+        _createLinkerInputs(text, enableSetLiterals: enableSetLiterals);
     linked = link(
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,

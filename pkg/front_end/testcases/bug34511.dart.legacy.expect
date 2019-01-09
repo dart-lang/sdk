@@ -8,13 +8,13 @@ class A<X extends core::Object = dynamic> extends core::Object {
     ;
 }
 abstract class _B&Object&A<Z extends core::Object = dynamic> = core::Object with self::A<() → self::_B&Object&A::Z> {
-  synthetic constructor •() → self::_B&Object&A<self::_B&Object&A::Z>
+  const synthetic constructor •() → self::_B&Object&A<self::_B&Object&A::Z>
     : super core::Object::•()
     ;
 }
 class B<Z extends core::Object = dynamic> extends self::_B&Object&A<self::B::Z> {
   synthetic constructor •() → self::B<self::B::Z>
-    : super core::Object::•()
+    : super self::_B&Object&A::•()
     ;
 }
 static method main() → dynamic {}

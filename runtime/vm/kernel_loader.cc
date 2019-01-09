@@ -246,10 +246,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
 
   if (process_pending_classes && !ClassFinalizer::ProcessPendingClasses()) {
     // Class finalization failed -> sticky error would be set.
-    Error& error = Error::Handle(zone);
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error;
+    return Error::Handle(thread->StealStickyError());
   }
 
   return library;
@@ -393,6 +390,9 @@ KernelLoader::KernelLoader(const Script& script,
 }
 
 const Array& KernelLoader::ReadConstantTable() {
+  if (program_->library_count() == 0) {
+    return Array::empty_array();
+  }
   // We use the very first library's toplevel class as an owner for an
   // [ActiveClassScope]
   //
@@ -630,9 +630,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     if (process_pending_classes) {
       if (!ClassFinalizer::ProcessPendingClasses()) {
         // Class finalization failed -> sticky error would be set.
-        RawError* error = H.thread()->sticky_error();
-        H.thread()->clear_sticky_error();
-        return error;
+        return H.thread()->StealStickyError();
       }
     }
 
@@ -663,9 +661,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
-  RawError* error = thread_->sticky_error();
-  thread_->clear_sticky_error();
-  return error;
+  return Thread::Current()->StealStickyError();
 }
 
 RawObject* KernelLoader::LoadExpressionEvaluationFunction(
@@ -715,7 +711,9 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          Isolate* isolate,
                                          BitVector* modified_libs,
                                          bool force_reload,
-                                         bool* is_empty_program) {
+                                         bool* is_empty_program,
+                                         intptr_t* p_num_classes,
+                                         intptr_t* p_num_procedures) {
   LongJumpScope jump;
   Zone* zone = Thread::Current()->zone();
   if (setjmp(*jump.Set()) == 0) {
@@ -735,40 +733,53 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       return;
     }
 
+    if (p_num_classes != nullptr) {
+      *p_num_classes = 0;
+    }
+    if (p_num_procedures != nullptr) {
+      *p_num_procedures = 0;
+    }
+
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
     *is_empty_program = true;
     if (program->is_single_program()) {
       KernelLoader loader(program);
-      return loader.walk_incremental_kernel(modified_libs, is_empty_program);
-    } else {
-      kernel::Reader reader(program->kernel_data(),
-                            program->kernel_data_size());
-      GrowableArray<intptr_t> subprogram_file_starts;
-      index_programs(&reader, &subprogram_file_starts);
+      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+                                     p_num_classes, p_num_procedures);
+    }
+    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+    GrowableArray<intptr_t> subprogram_file_starts;
+    index_programs(&reader, &subprogram_file_starts);
 
-      // Create "fake programs" for each sub-program.
-      intptr_t subprogram_count = subprogram_file_starts.length() - 1;
-      for (intptr_t i = 0; i < subprogram_count; ++i) {
-        intptr_t subprogram_start = subprogram_file_starts.At(i);
-        intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-        reader.set_raw_buffer(program->kernel_data() + subprogram_start);
-        reader.set_size(subprogram_end - subprogram_start);
-        reader.set_offset(0);
-        Program* subprogram = Program::ReadFrom(&reader);
-        ASSERT(subprogram->is_single_program());
-        KernelLoader loader(subprogram);
-        loader.walk_incremental_kernel(modified_libs, is_empty_program);
-        delete subprogram;
-      }
+    // Create "fake programs" for each sub-program.
+    intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+    for (intptr_t i = 0; i < subprogram_count; ++i) {
+      intptr_t subprogram_start = subprogram_file_starts.At(i);
+      intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+      reader.set_size(subprogram_end - subprogram_start);
+      reader.set_offset(0);
+      Program* subprogram = Program::ReadFrom(&reader);
+      ASSERT(subprogram->is_single_program());
+      KernelLoader loader(subprogram);
+      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+                                     p_num_classes, p_num_procedures);
+      delete subprogram;
     }
   }
 }
 
 void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
-                                           bool* is_empty_program) {
+                                           bool* is_empty_program,
+                                           intptr_t* p_num_classes,
+                                           intptr_t* p_num_procedures) {
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);
+  bool collect_library_stats =
+      p_num_classes != nullptr || p_num_procedures != nullptr;
+  intptr_t num_classes = 0;
+  intptr_t num_procedures = 0;
   Library& lib = Library::Handle(Z);
   for (intptr_t i = 0; i < length; i++) {
     intptr_t kernel_offset = library_offset(i);
@@ -780,6 +791,21 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       // This is a library that already exists so mark it as being modified.
       modified_libs->Add(lib.index());
     }
+    if (collect_library_stats) {
+      intptr_t library_end = library_offset(i + 1);
+      library_kernel_data_ =
+          helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
+
+      LibraryIndex library_index(library_kernel_data_);
+      num_classes += library_index.class_count();
+      num_procedures += library_index.procedure_count();
+    }
+  }
+  if (p_num_classes != nullptr) {
+    *p_num_classes += num_classes;
+  }
+  if (p_num_procedures != nullptr) {
+    *p_num_procedures += num_procedures;
   }
 }
 
@@ -1126,7 +1152,6 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (type_tag == kSomething) {
     AbstractType& super_type =
         T.BuildTypeWithoutFinalization();  // read super class type (part 2).
-    if (super_type.IsMalformed()) H.ReportError("Malformed super type");
     klass->set_super_type(super_type);
   }
 
@@ -1140,7 +1165,6 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   for (intptr_t i = 0; i < interface_count; i++) {
     const AbstractType& type =
         T.BuildTypeWithoutFinalization();  // read ith type.
-    if (type.IsMalformed()) H.ReportError("Malformed interface type.");
     interfaces.SetAt(i, type);
   }
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);
@@ -1670,6 +1694,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                        script_class, procedure_helper.start_position_));
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
+  function.set_is_no_such_method_forwarder(
+      procedure_helper.IsNoSuchMethodForwarder());
   if (register_function) {
     functions_.Add(&function);
   } else {

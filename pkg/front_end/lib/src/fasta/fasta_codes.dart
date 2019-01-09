@@ -194,3 +194,14 @@ String relativizeUri(Uri uri) {
 }
 
 typedef SummaryTemplate = Message Function(int, int, num, num, num);
+
+String itemizeNames(List<String> names) {
+  StringBuffer buffer = new StringBuffer();
+  for (int i = 0; i < names.length - 1; i++) {
+    buffer.write(" - ");
+    buffer.writeln(names[i]);
+  }
+  buffer.write(" - ");
+  buffer.write(names.last);
+  return "$buffer";
+}

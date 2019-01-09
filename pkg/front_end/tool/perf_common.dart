@@ -73,26 +73,10 @@ DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
 Target createTarget({bool isFlutter: false, bool legacyMode: false}) {
   var flags = new TargetFlags(legacyMode: legacyMode);
   if (isFlutter) {
-    return legacyMode
-        ? new LegacyFlutterTarget(flags)
-        : new FlutterTarget(flags);
+    return new FlutterTarget(flags);
   } else {
-    return legacyMode ? new LegacyVmTarget(flags) : new VmTarget(flags);
+    return new VmTarget(flags);
   }
-}
-
-class LegacyVmTarget extends VmTarget {
-  LegacyVmTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
-}
-
-class LegacyFlutterTarget extends FlutterTarget {
-  LegacyFlutterTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
 }
 
 class TimingsCollector {
@@ -137,10 +121,16 @@ class TimingsCollector {
   void printTimings() {
     timings.forEach((String key, List<double> durations) {
       double total = 0.0;
-      for (double duration in durations.skip(3)) {
-        total += duration;
+      int length = durations.length;
+      if (length == 1) {
+        total += durations.single;
+      } else {
+        length -= 3;
+        for (double duration in durations.skip(3)) {
+          total += duration;
+        }
       }
-      print("$key took: ${total / (durations.length - 3)}ms");
+      print("$key took: ${total / length}ms");
     });
   }
 }

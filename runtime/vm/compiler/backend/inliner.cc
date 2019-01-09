@@ -587,7 +587,7 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
 
   auto& metadata_or_error = Object::Handle(library.GetMetadata(function));
   if (metadata_or_error.IsError()) {
-    Exceptions::PropagateError(Error::Cast(metadata_or_error));
+    Report::LongJump(Error::Cast(metadata_or_error));
   }
   const Array& metadata = Array::Cast(metadata_or_error);
   if (metadata.Length() > 0) {
@@ -1263,8 +1263,7 @@ class CallSiteInliner : public ValueObject {
         PRINT_INLINING_TREE(NULL, &call_data->caller, &function, call);
         return true;
       } else {
-        error = thread()->sticky_error();
-        thread()->clear_sticky_error();
+        error = thread()->StealStickyError();
 
         if (error.IsLanguageError() &&
             (LanguageError::Cast(error).kind() == Report::kBailout)) {
@@ -2453,8 +2452,22 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
+
+  bool is_unchecked_call = false;
+  if (StaticCallInstr* static_call = call->AsStaticCall()) {
+    is_unchecked_call =
+        static_call->entry_kind() == Code::EntryKind::kUnchecked;
+  } else if (InstanceCallInstr* instance_call = call->AsInstanceCall()) {
+    is_unchecked_call =
+        instance_call->entry_kind() == Code::EntryKind::kUnchecked;
+  } else if (PolymorphicInstanceCallInstr* instance_call =
+                 call->AsPolymorphicInstanceCall()) {
+    is_unchecked_call =
+        instance_call->entry_kind() == Code::EntryKind::kUnchecked;
+  }
+
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->argument_type_checks() &&
+  if (flow_graph->isolate()->argument_type_checks() && !is_unchecked_call &&
       (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
        kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
     // Only type check for the value. A type check for the index is not
@@ -3268,7 +3281,16 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(last->IsDefinition());
-      call->ReplaceUsesWith(last->AsDefinition());
+      Definition* ret = last->AsDefinition();
+      if (!ret->HasSSATemp()) {
+        // Currently, StoreIndexed and StoreInstanceField are defined as
+        // definitions despite producing no value. For now, catch the case
+        // where the new inlined code ends with one of those and replace
+        // the old uses of the original definition with uses of null.
+        ASSERT(ret->IsStoreIndexed() || ret->IsStoreInstanceField());
+        ret = flow_graph->constant_null();
+      }
+      call->ReplaceUsesWith(ret);
     }
     // Finally insert the sequence other definition in place of this one in the
     // graph.
@@ -3316,7 +3338,16 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(last->IsDefinition());
-      call->ReplaceUsesWith(last->AsDefinition());
+      Definition* ret = last->AsDefinition();
+      if (!ret->HasSSATemp()) {
+        // Currently, StoreIndexed and StoreInstanceField are defined as
+        // definitions despite producing no value. For now, catch the case
+        // where the new inlined code ends with one of those and replace
+        // the old uses of the original definition with uses of null.
+        ASSERT(ret->IsStoreIndexed() || ret->IsStoreInstanceField());
+        ret = flow_graph->constant_null();
+      }
+      call->ReplaceUsesWith(ret);
     }
     // Finally insert the sequence other definition in place of this one in the
     // graph.
@@ -4019,7 +4050,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         const Class& cls = Class::Handle(
             Z, flow_graph->isolate()->class_table()->At(receiver_cid));
         if (!cls.IsGeneric()) {
-          type = cls.CanonicalType();
+          type = cls.DeclarationType();
         }
       }
 

@@ -18,6 +18,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../frontend_strategy.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart'
     show SourceInformation, SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
@@ -30,7 +31,6 @@ import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
@@ -540,8 +540,7 @@ class JavaScriptBackend {
     NativeBasicData nativeBasicData = compiler.frontendStrategy.nativeBasicData;
     RuntimeTypesNeedBuilder rtiNeedBuilder =
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -556,7 +555,7 @@ class JavaScriptBackend {
         nativeBasicData,
         _backendUsageBuilder);
     _allocatorResolutionAnalysis =
-        new KAllocatorAnalysis(compiler.frontendStrategy);
+        new KAllocatorAnalysis(compiler.options, compiler.frontendStrategy);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);
@@ -574,6 +573,8 @@ class JavaScriptBackend {
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
             nativeBasicData, elementEnvironment, commonElements);
+    AnnotationsDataBuilder annotationsDataBuilder =
+        new AnnotationsDataBuilder();
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -600,12 +601,14 @@ class JavaScriptBackend {
             _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
+            annotationsDataBuilder,
             const StrongModeWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
             nativeBasicData,
             _nativeDataBuilder,
+            annotationsDataBuilder,
             impactTransformer,
             compiler.impactCache));
   }
@@ -618,8 +621,7 @@ class JavaScriptBackend {
       GlobalTypeInferenceResults globalInferenceResults) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,
         commonElements,
@@ -770,8 +772,7 @@ class JavaScriptBackend {
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, closedWorld.commonElements);
+    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
     if (compiler.options.disableRtiOptimization) {
       _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
@@ -891,14 +892,8 @@ class JavaScriptBackend {
       jsAst.Expression code,
       DartType elementType,
       jsAst.Name name) {
-    bool startAsyncSynchronously = compiler.options.startAsyncSynchronously;
-
-    var startFunction = startAsyncSynchronously
-        ? commonElements.asyncHelperStartSync
-        : commonElements.asyncHelperStart;
-    var completerFactory = startAsyncSynchronously
-        ? commonElements.asyncAwaitCompleterFactory
-        : commonElements.syncCompleterFactory;
+    var startFunction = commonElements.asyncHelperStartSync;
+    var completerFactory = commonElements.asyncAwaitCompleterFactory;
 
     List<jsAst.Expression> itemTypeExpression = _fetchItemType(elementType);
 

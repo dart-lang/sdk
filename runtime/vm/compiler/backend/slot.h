@@ -142,6 +142,10 @@ class Slot : public ZoneAllocated {
   intptr_t nullable_cid() const { return cid_; }
   intptr_t is_nullable() const { return IsNullableBit::decode(flags_); }
 
+  // Returns true if properties of this slot were based on the guarded state
+  // of the corresponding Dart field.
+  bool is_guarded_field() const { return IsGuardedBit::decode(flags_); }
+
   // Static type of the slots if any.
   //
   // A value that is read from the slot is guaranteed to be assignable to its
@@ -183,7 +187,8 @@ class Slot : public ZoneAllocated {
              other.static_type_) {}
 
   using IsImmutableBit = BitField<int8_t, bool, 0, 1>;
-  using IsNullableBit = BitField<int8_t, bool, 1, 1>;
+  using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
+  using IsGuardedBit = BitField<int8_t, bool, IsNullableBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -171,8 +172,9 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(AnalysisContext context, this.sourceFactory, bool _)
-      : super(context) {
+  SummaryResynthesizer(AnalysisContext context, AnalysisSession session,
+      this.sourceFactory, bool _)
+      : super(context, session) {
     _buildTypeProvider();
   }
 
@@ -327,7 +329,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       Source librarySource = _getSource(uri);
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
-            new LibraryElementImpl(context, '', -1, 0);
+            new LibraryElementImpl(context, session, '', -1, 0);
         libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl();
@@ -337,6 +339,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         libraryElement.createLoadLibraryFunction(typeProvider);
         libraryElement.publicNamespace = new Namespace({});
         libraryElement.exportNamespace = new Namespace({});
+        _resynthesizedUnits[uri] = {uri: unitElement};
         return libraryElement;
       }
       UnlinkedUnit unlinkedSummary = getUnlinkedSummary(uri);
@@ -519,7 +522,7 @@ abstract class UnitResynthesizer {
 
 /// [UnitResynthesizerMixin] contains methods useful for implementing the
 /// [UnitResynthesizer] interface.
-abstract class UnitResynthesizerMixin implements UnitResynthesizer {
+mixin UnitResynthesizerMixin implements UnitResynthesizer {
   @override
   DartType createConstructorDefiningType(ElementImpl context,
       ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
@@ -579,6 +582,9 @@ class _DeferredInitializerElement extends FunctionElementHandle {
 
   @override
   ElementLocation get location => actualElement.location;
+
+  @override
+  AnalysisSession get session => enclosingElement.session;
 }
 
 /// Specialization of [LibraryResynthesizer] for resynthesis from linked
@@ -698,6 +704,7 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
     library = new LibraryElementImpl.forSerialized(
         summaryResynthesizer.context,
+        summaryResynthesizer.session,
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength,
@@ -1242,21 +1249,13 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
     if (constExpr == null) {
       // Invalid constant expression.
     } else if (constExpr is Identifier) {
-      var element = constExpr.staticElement;
       ArgumentList arguments = constExpr.getProperty(ExprBuilder.ARGUMENT_LIST);
-      if (element is PropertyAccessorElement && arguments == null) {
-        elementAnnotation.element = element;
-        elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
-      } else if (element is ConstructorElement && arguments != null) {
-        elementAnnotation.element = element;
-        elementAnnotation.annotationAst =
-            AstTestFactory.annotation2(constExpr, null, arguments);
-      } else {
-        elementAnnotation.annotationAst = AstTestFactory.annotation(
-            AstTestFactory.identifier3(r'#invalidConst'));
-      }
-    } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
+      elementAnnotation.annotationAst =
+          AstTestFactory.annotation2(constExpr, null, arguments);
+    } else if (constExpr is InstanceCreationExpression) {
+      var element = constExpr.staticElement;
+      elementAnnotation.element = element;
       Identifier typeName = constExpr.constructorName.type.name;
       SimpleIdentifier constructorName = constExpr.constructorName.name;
       if (typeName is SimpleIdentifier && constructorName != null) {
@@ -1273,20 +1272,10 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       var propertyName = constExpr.propertyName;
       var propertyElement = propertyName.staticElement;
       ArgumentList arguments = constExpr.getProperty(ExprBuilder.ARGUMENT_LIST);
-      if (propertyElement is PropertyAccessorElement && arguments == null) {
-        elementAnnotation.element = propertyElement;
-        elementAnnotation.annotationAst =
-            AstTestFactory.annotation2(target, propertyName, null)
-              ..element = propertyElement;
-      } else if (propertyElement is ConstructorElement && arguments != null) {
-        elementAnnotation.element = propertyElement;
-        elementAnnotation.annotationAst =
-            AstTestFactory.annotation2(target, propertyName, arguments)
-              ..element = propertyElement;
-      } else {
-        elementAnnotation.annotationAst = AstTestFactory.annotation(
-            AstTestFactory.identifier3(r'#invalidConst'));
-      }
+      elementAnnotation.element = propertyElement;
+      elementAnnotation.annotationAst =
+          AstTestFactory.annotation2(target, propertyName, arguments)
+            ..element = propertyElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');

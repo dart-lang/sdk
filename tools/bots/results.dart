@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 /// gsutil.py binary to use.
-const gsutil = "gsutil.py";
+final gsutil = Platform.isWindows ? "gsutil.py.bat" : "gsutil.py";
 
 /// Cloud storage location containing results.
 const testResultsStoragePath = "gs://dart-test-results/builders";

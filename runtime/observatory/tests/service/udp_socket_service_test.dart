@@ -61,7 +61,7 @@ var udpTests = <IsolateTest>[
     expect(server['port'], greaterThanOrEqualTo(1024));
     final now = DateTime.now().millisecondsSinceEpoch;
     expect(
-        server['lastRead'], closeTo(now, Duration(seconds: 5).inMilliseconds));
+        server['lastRead'], closeTo(now, Duration(seconds: 10).inMilliseconds));
     expect(server['totalRead'], equals(6));
     expect(server['lastWrite'], equals(0));
     expect(server['totalWritten'], equals(0));

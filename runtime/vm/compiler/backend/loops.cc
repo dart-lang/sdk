@@ -64,6 +64,7 @@ class InductionVarAnalysis : public ValueObject {
   intptr_t VisitDescendant(LoopInfo* loop, Definition* def);
   void Classify(LoopInfo* loop, Definition* def);
   void ClassifySCC(LoopInfo* loop);
+  void ClassifyControl(LoopInfo* loop);
 
   // Transfer methods. Compute how induction of the operands, if any,
   // tranfers over the operation performed by the given definition.
@@ -96,6 +97,7 @@ class InductionVarAnalysis : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& preorder_;
   GrowableArray<Definition*> stack_;
   GrowableArray<Definition*> scc_;
+  GrowableArray<BranchInstr*> branches_;
   DirectChainedHashMap<LoopInfo::InductionKV> cycle_;
   DirectChainedHashMap<VisitKV> map_;
   intptr_t current_index_;
@@ -130,6 +132,22 @@ static bool IsConstant(Definition* def, int64_t* val) {
   return false;
 }
 
+// Helper method to trace back to original true definition, now
+// also ignoring constraints and (un)boxing operations, since
+// these are not relevant to the induction behavior.
+static Definition* OriginalDefinition(Definition* def) {
+  while (true) {
+    Definition* orig;
+    if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
+      orig = def->InputAt(0)->definition();
+    } else {
+      orig = def->OriginalDefinition();
+    }
+    if (orig == def) return def;
+    def = orig;
+  }
+}
+
 void InductionVarAnalysis::VisitHierarchy(LoopInfo* loop) {
   for (; loop != nullptr; loop = loop->next_) {
     VisitLoop(loop);
@@ -145,6 +163,7 @@ void InductionVarAnalysis::VisitLoop(LoopInfo* loop) {
   current_index_ = 0;
   ASSERT(stack_.is_empty());
   ASSERT(map_.IsEmpty());
+  ASSERT(branches_.is_empty());
   for (BitVector::Iterator it(loop->blocks_); !it.Done(); it.Advance()) {
     BlockEntryInstr* block = preorder_[it.Current()];
     ASSERT(block->loop_info() != nullptr);
@@ -157,13 +176,20 @@ void InductionVarAnalysis::VisitLoop(LoopInfo* loop) {
         Visit(loop, it.Current());
       }
     }
-    // Visit instructions.
+    // Visit instructions and collect branches.
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Visit(loop, it.Current()->AsDefinition());
+      Instruction* instruction = it.Current();
+      Visit(loop, instruction->AsDefinition());
+      if (instruction->IsBranch()) {
+        branches_.Add(instruction->AsBranch());
+      }
     }
   }
   ASSERT(stack_.is_empty());
   map_.Clear();
+  // Classify loop control.
+  ClassifyControl(loop);
+  branches_.Clear();
 }
 
 bool InductionVarAnalysis::Visit(LoopInfo* loop, Definition* def) {
@@ -246,10 +272,8 @@ void InductionVarAnalysis::Classify(LoopInfo* loop, Definition* def) {
     induc = TransferBinary(loop, def);
   } else if (def->IsUnaryIntegerOp()) {
     induc = TransferUnary(loop, def);
-  } else if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
-    induc = Lookup(loop, def->InputAt(0)->definition());  // pass-through
   } else {
-    Definition* orig = def->OriginalDefinition();
+    Definition* orig = OriginalDefinition(def);
     if (orig != def) {
       induc = Lookup(loop, orig);  // pass-through
     }
@@ -291,10 +315,8 @@ void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
         update = SolveUnary(loop, def, init);
       } else if (def->IsConstraint()) {
         update = SolveConstraint(loop, def, init);
-      } else if (def->IsBox() || def->IsUnbox()) {
-        update = LookupCycle(def->InputAt(0)->definition());  // pass-through
       } else {
-        Definition* orig = def->OriginalDefinition();
+        Definition* orig = OriginalDefinition(def);
         if (orig != def) {
           update = LookupCycle(orig);  // pass-through
         }
@@ -327,6 +349,103 @@ void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
   }
 }
 
+void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
+  for (auto branch : branches_) {
+    // Proper comparison?
+    ComparisonInstr* compare = branch->comparison();
+    if (compare->InputCount() != 2) {
+      continue;
+    }
+    Token::Kind cmp = compare->kind();
+    // Proper loop exit? Express the condition in "loop while true" form.
+    TargetEntryInstr* ift = branch->true_successor();
+    TargetEntryInstr* iff = branch->false_successor();
+    if (loop->Contains(ift) && !loop->Contains(iff)) {
+      // ok as is
+    } else if (!loop->Contains(ift) && loop->Contains(iff)) {
+      cmp = Token::NegateComparison(cmp);
+    } else {
+      continue;
+    }
+    // Comparison against linear constant stride induction?
+    // Express the comparison such that induction appears left.
+    int64_t stride = 0;
+    InductionVar* x =
+        Lookup(loop, OriginalDefinition(compare->left()->definition()));
+    InductionVar* y =
+        Lookup(loop, OriginalDefinition(compare->right()->definition()));
+    if (InductionVar::IsLinear(x, &stride) && InductionVar::IsInvariant(y)) {
+      // ok as is
+    } else if (InductionVar::IsInvariant(x) &&
+               InductionVar::IsLinear(y, &stride)) {
+      InductionVar* tmp = x;
+      x = y;
+      y = tmp;
+      cmp = Token::FlipComparison(cmp);
+    } else {
+      continue;
+    }
+    // Safe, strict comparison for looping condition? Note that
+    // we reject symbolic bounds in non-strict looping conditions
+    // like i <= U as upperbound or i >= L as lowerbound since this
+    // could loop forever when U is kMaxInt64 or L is kMinInt64 under
+    // Dart's 64-bit wrap-around arithmetic. Non-unit strides could
+    // overshoot the bound with a wrap-around.
+    //
+    // TODO(ajcbik): accept more conditions when safe
+    //
+    switch (cmp) {
+      case Token::kLT:
+        // Accept i < U (i++).
+        if (stride == 1) break;
+        continue;
+      case Token::kGT:
+        // Accept i > L (i--).
+        if (stride == -1) break;
+        continue;
+      case Token::kLTE: {
+        // Accept i <= C (i++) as i < C + 1.
+        int64_t end = 0;
+        if (stride == 1 && InductionVar::IsConstant(y, &end) &&
+            end < kMaxInt64) {
+          y = new (zone_) InductionVar(end + 1);
+          break;
+        }
+        continue;
+      }
+      case Token::kGTE: {
+        // Accept i >= C (i--) as i > C - 1.
+        int64_t end = 0;
+        if (stride == -1 && InductionVar::IsConstant(y, &end) &&
+            kMinInt64 < end) {
+          y = new (zone_) InductionVar(end - 1);
+          break;
+        }
+        continue;
+      }
+      case Token::kNE: {
+        // Accept i != E as either i < E (i++) or i > E (i--)
+        // for constants bounds that make the loop always-taken.
+        int64_t start = 0;
+        int64_t end = 0;
+        if (InductionVar::IsConstant(x->initial_, &start) &&
+            InductionVar::IsConstant(y, &end)) {
+          if ((stride == +1 && start < end) || (stride == -1 && start > end)) {
+            break;
+          }
+        }
+        continue;
+      }
+      default:
+        continue;
+    }
+    // We found a safe limit on the induction variable. Note that depending
+    // on the intended use of this information, clients should still test
+    // dominance on the test and the initial value of the induction variable.
+    x->bounds_.Add(InductionVar::Bound(branch, y));
+  }
+}
+
 InductionVar* InductionVarAnalysis::TransferPhi(LoopInfo* loop,
                                                 Definition* def,
                                                 intptr_t idx) {
@@ -350,6 +469,7 @@ InductionVar* InductionVarAnalysis::TransferBinary(LoopInfo* loop,
                                                    Definition* def) {
   InductionVar* x = Lookup(loop, def->InputAt(0)->definition());
   InductionVar* y = Lookup(loop, def->InputAt(1)->definition());
+
   switch (def->AsBinaryIntegerOp()->op_kind()) {
     case Token::kADD:
       return Add(x, y);
@@ -400,7 +520,6 @@ InductionVar* InductionVarAnalysis::SolveConstraint(LoopInfo* loop,
   InductionVar* c = LookupCycle(def->InputAt(0)->definition());
   if (c == init) {
     // Record a non-artifical bound constraint on a phi.
-    // TODO(ajcbik): detect full loop logic, trip counts, etc.
     ConstraintInstr* constraint = def->AsConstraint();
     if (constraint->target() != nullptr) {
       loop->limit_ = constraint;
@@ -467,9 +586,9 @@ InductionVar* InductionVarAnalysis::SolveBinary(LoopInfo* loop,
 InductionVar* InductionVarAnalysis::SolveUnary(LoopInfo* loop,
                                                Definition* def,
                                                InductionVar* init) {
+  InductionVar* c = LookupCycle(def->InputAt(0)->definition());
   switch (def->AsUnaryIntegerOp()->op_kind()) {
-    case Token::kNEGATE: {
-      InductionVar* c = LookupCycle(def->InputAt(0)->definition());
+    case Token::kNEGATE:
       // Note that i = - i is periodic. The temporary
       // meaning is expressed in terms of the header phi.
       if (c == init) {
@@ -480,7 +599,6 @@ InductionVar* InductionVarAnalysis::SolveUnary(LoopInfo* loop,
         }
       }
       return nullptr;
-    }
     default:
       return nullptr;
   }
@@ -490,13 +608,12 @@ InductionVar* InductionVarAnalysis::Lookup(LoopInfo* loop, Definition* def) {
   InductionVar* induc = loop->LookupInduction(def);
   if (induc == nullptr) {
     // Loop-invariants are added lazily.
-    if (!loop->Contains(def->GetBlock())) {
-      int64_t val = 0;
-      if (IsConstant(def, &val)) {
-        induc = new (zone_) InductionVar(val);
-      } else {
-        induc = new (zone_) InductionVar(0, 1, def);
-      }
+    int64_t val = 0;
+    if (IsConstant(def, &val)) {
+      induc = new (zone_) InductionVar(val);
+      loop->AddInduction(def, induc);
+    } else if (!loop->Contains(def->GetBlock())) {
+      induc = new (zone_) InductionVar(0, 1, def);
       loop->AddInduction(def, induc);
     }
   }

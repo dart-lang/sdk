@@ -26,7 +26,7 @@ class LinkerUnitTest extends SummaryLinkerTestStrategyTwoPhase
 /// These test cases may be mixed into any class derived from
 /// [SummaryLinkerTestStrategy], allowing the linker to be unit-tested in a
 /// variety of ways.
-abstract class LinkerUnitTestCases implements SummaryLinkerTestStrategy {
+mixin LinkerUnitTestCases implements SummaryLinkerTestStrategy {
   Matcher get isUndefined => const TypeMatcher<UndefinedElementForLink>();
 
   LibraryElementForLink getLibrary(String uri) {
@@ -165,14 +165,9 @@ const x = [const C()];
   }
 
   void test_covariance() {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // may need to be changed.
     createLinker('''
-library meta;
-const checked = null;
 class A<T> {
-  void f(@checked T t) {}
+  void f(covariant T t) {}
 }
 class B<T> extends A<T> {
   void f(T t) {}

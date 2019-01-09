@@ -1,3 +1,104 @@
+## 2.1.1-dev.1.0
+
+### Tool Changes
+
+#### Analyzer
+
+*   Support for `declarations-casts` has been removed and the `implicit-casts`
+    option now has the combined semantics of both options. This means that
+    users that disable `implicit-casts` might now see errors that were not
+    previously being reported.
+
+*   New hints added:
+
+    *   `INVALID_LITERAL_ANNOTATION` when something other than a const
+        constructor is annotated with `@literal`.
+    *   `SUBTYPE_OF_SEALED_CLASS` when any class or mixin subclasses (extends,
+        implements, mixes in, or constrains to) a `@sealed` class, and the two
+        are declared in different packages.
+    *   `MIXIN_ON_SEALED_CLASS` when a `@sealed` class is used as a superclass
+        constraint of a mixin.
+
+#### dart2js
+
+* We fixed a bug in how deferred constructor calls were incorrectly not
+  marked as deferred. The old behavior didn't cause breakages, but was imprecise
+  and pushed more code to the main output unit.
+
+* A new deferred split algorithm implementation was added.
+
+  This implementation fixes a soundness bug and addresses performance issues of
+  the previous implementation, because of that it can have a visible impact
+  on apps. In particular,
+
+    * We fixed a performance issue which was introduced when we migrated to the
+      Common front-end. On large apps, the fix can cut down 2/3 of the time
+      spent on this task.
+
+    * We fixed a bug in how inferred types were miscategorized (#35311). The old
+      behavior was unsound and could produce broken programs. The fix may cause
+      more code to be pulled into the main output unit.
+
+      This shows up frequently when returning deferred values from closures
+      since the closure's inferred return type is the deferred type.
+      For example, if you have:
+
+      ```dart
+      () async {
+        await deferred_prefix.loadLibrary();
+        return new deferred_prefix.Foo();
+      }
+      ```
+
+      The closure's return type is `Future<Foo>`. The old implementation defers
+      `Foo`, and incorrectly makes the return type `Future<dynamic>`. This may
+      break in places where the correct type is expected.
+
+      The new implementation will not defer `Foo`, and will place it in the main
+      output unit. If your intent is to defer it, then you need to ensure the
+      return type is not inferred to be `Foo`. For example, you can do so by
+      changing the code to a named closure with a declared type, or by ensuring
+      that the return expression has the type you want, like:
+
+      ```dart
+      () async {
+        await deferred_prefix.loadLibrary();
+        return new deferred_prefix.Foo() as dynamic;
+      }
+      ```
+
+    * Because the new implementation might require you to inspect and fix
+      your app, we exposed two temporary flags:
+
+        * `--report-invalid-deferred-types`: when provided, we will run
+          both the old and new algorithm and report where the issue was
+          detected.
+
+        * `--new-deferred-split`: enables the new algorithm.
+
+#### dartdoc
+
+* dartdoc default styles now work much better on mobile.  Simple browsing
+  and searching of API docs now work in many cases.
+
+#### Linter
+
+The linter was bumped to `0.1.78` which introduces the following linter fixes to the SDK:
+
+* fixed `type_annotate_public_apis` false positives on local functions
+* fixed `avoid_shadowing_type_parameters` to report shadowed type parameters in generic typedefs
+* fixed `use_setters_to_change_properties` to not wrongly lint overriding methods
+* fixed `cascade_invocations` to not lint awaited targets
+* fixed `prefer_conditional_assignment` false positives
+* fixed `join_return_with_assignment` false positives
+* fixed `cascade_invocations` false positives
+* miscellaneous documentation improvements
+* updated `invariant_booleans` status to experimental
+
+and adds:
+
+* a new `prefer_final_in_for_each` lint rule to flag loop variables that could be declared final
+
 ## 2.1.1-dev.0.1
 
 * Cherry-pick 4914fe57ea9e034b948ef3ab5a4e7e511991f845 to dev

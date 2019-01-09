@@ -126,7 +126,8 @@ class UnexpectedCrashLogger extends EventListener {
   void done(TestCase test) {
     if (test.unexpectedOutput &&
         test.result == Expectation.crash &&
-        test.lastCommandExecuted is ProcessCommand) {
+        test.lastCommandExecuted is ProcessCommand &&
+        test.lastCommandOutput.hasCoreDump) {
       var pid = "${test.lastCommandOutput.pid}";
       var lastCommand = test.lastCommandExecuted as ProcessCommand;
 

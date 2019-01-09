@@ -36,7 +36,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
   AnnotateWithStaticTypes(
       Component component, CoreTypes coreTypes, ClassHierarchy hierarchy)
       : _metadata = addRepositoryTo(component),
-        env = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
+        env = new TypeEnvironment(coreTypes, hierarchy);
 
   @override
   visitProcedure(Procedure proc) {

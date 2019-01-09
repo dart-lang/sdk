@@ -61,7 +61,7 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
     expect(metadata, equals(mapping[node]));
     sink.writeByteList(utf8.encode(metadata.string));
     sink.writeStringReference(metadata.string);
-    sink.writeCanonicalNameReference(metadata.member?.canonicalName);
+    sink.writeNullAllowedCanonicalNameReference(metadata.member?.canonicalName);
     sink.writeDartType(metadata.type);
   }
 

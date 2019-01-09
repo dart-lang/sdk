@@ -39,7 +39,6 @@ class MegamorphicCache;
 class PageSpace;
 class RawApiError;
 class RawArray;
-class RawBoundedType;
 class RawCapability;
 class RawClass;
 class RawClosure;
@@ -66,7 +65,6 @@ class RawLinkedHashMap;
 class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
-class RawMixinAppType;
 class RawNamespace;
 class RawObject;
 class RawObjectPool;
@@ -447,7 +445,6 @@ class SnapshotReader : public BaseReader {
 
   friend class ApiError;
   friend class Array;
-  friend class BoundedType;
   friend class Class;
   friend class Closure;
   friend class ClosureData;
@@ -465,7 +462,6 @@ class SnapshotReader : public BaseReader {
   friend class LibraryPrefix;
   friend class LinkedHashMap;
   friend class MirrorReference;
-  friend class MixinAppType;
   friend class Namespace;
   friend class PatchClass;
   friend class RedirectionData;
@@ -747,7 +743,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawSubtypeTestCache;
   friend class RawType;
   friend class RawTypeRef;
-  friend class RawBoundedType;
   friend class RawTypeArguments;
   friend class RawTypeParameter;
   friend class RawUserTag;

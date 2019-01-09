@@ -33,15 +33,13 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     String file = params.file;
     int offset = params.offset;
 
-    ResolveResult result = await server.getAnalysisResult(file);
+    ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result != null) {
       var corrections = new FlutterCorrections(
-          file: file,
-          fileContent: result.content,
-          selectionOffset: offset,
-          selectionLength: 0,
-          session: result.session,
-          unit: result.unit);
+        resolveResult: result,
+        selectionOffset: offset,
+        selectionLength: 0,
+      );
       SourceChange change = await corrections.addForDesignTimeConstructor();
       if (change != null) {
         server.sendResponse(

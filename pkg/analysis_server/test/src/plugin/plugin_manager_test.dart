@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -405,7 +405,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 }
 
 @reflectiveTest
-class PluginManagerTest extends Object with ResourceProviderMixin {
+class PluginManagerTest with ResourceProviderMixin {
   String byteStorePath;
   String sdkPath;
   TestNotificationManager notificationManager;
@@ -535,7 +535,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
 }
 
 @reflectiveTest
-class PluginSessionTest extends Object with ResourceProviderMixin {
+class PluginSessionTest with ResourceProviderMixin {
   TestNotificationManager notificationManager;
   String pluginPath;
   String executionPath;

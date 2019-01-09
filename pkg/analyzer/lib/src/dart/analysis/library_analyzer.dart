@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -27,7 +27,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -44,37 +43,32 @@ class LibraryAnalyzer {
   /// [_versionConstraintFromPubspec] when the previous initialization attempt
   /// failed.
   static final VersionRange noSpecifiedRange = new VersionRange();
-
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
-  final ResourceProvider resourceProvider;
-  final InheritanceManager2 _inheritance;
+  final ResourceProvider _resourceProvider;
 
+  final InheritanceManager2 _inheritance;
   final bool Function(Uri) _isLibraryUri;
-  final AnalysisContextImpl _context;
+  final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
   final TypeProvider _typeProvider;
+
   final TypeSystem _typeSystem;
-
   LibraryElement _libraryElement;
+
   LibraryScope _libraryScope;
-
   final Map<FileState, LineInfo> _fileToLineInfo = {};
-  final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
 
+  final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
-  final Set<ConstantEvaluationTarget> _constants = new Set();
 
-  /// The cached version range for the SDK specified in `pubspec.yaml`, or
-  /// [noSpecifiedRange] if there is no `pubspec.yaml` or if it does not contain
-  /// an SDK range. Use [versionConstraintFromPubspec] to access this field.
-  VersionConstraint _versionConstraintFromPubspec;
+  final Set<ConstantEvaluationTarget> _constants = new Set();
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -83,10 +77,10 @@ class LibraryAnalyzer {
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
+      this._inheritance,
       this._library,
-      this.resourceProvider)
-      : _inheritance = new InheritanceManager2(_context.typeSystem),
-        _typeProvider = _context.typeProvider,
+      this._resourceProvider)
+      : _typeProvider = _context.typeProvider,
         _typeSystem = _context.typeSystem;
 
   /**
@@ -114,60 +108,56 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    try {
-      _libraryElement = _resynthesizer
-          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
-      _libraryScope = new LibraryScope(_libraryElement);
+    _libraryElement = _resynthesizer
+        .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    _libraryScope = new LibraryScope(_libraryElement);
 
-      _resolveDirectives(units);
+    _resolveDirectives(units);
 
+    units.forEach((file, unit) {
+      _resolveFile(file, unit);
+      _computePendingMissingRequiredParameters(file, unit);
+    });
+
+    units.values.forEach(_findConstants);
+    _computeConstants();
+
+    PerformanceStatistics.errors.makeCurrentWhile(() {
       units.forEach((file, unit) {
-        _resolveFile(file, unit);
-        _computePendingMissingRequiredParameters(file, unit);
+        _computeVerifyErrors(file, unit);
       });
+    });
 
-      units.values.forEach(_findConstants);
-      _computeConstants();
-
-      PerformanceStatistics.errors.makeCurrentWhile(() {
+    if (_analysisOptions.hint) {
+      PerformanceStatistics.hints.makeCurrentWhile(() {
         units.forEach((file, unit) {
-          _computeVerifyErrors(file, unit);
-        });
-      });
-
-      if (_analysisOptions.hint) {
-        PerformanceStatistics.hints.makeCurrentWhile(() {
-          units.forEach((file, unit) {
-            {
-              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
-              unit.accept(visitor);
-              _usedLocalElementsList.add(visitor.usedElements);
-            }
-            {
-              var visitor =
-                  new GatherUsedImportedElementsVisitor(_libraryElement);
-              unit.accept(visitor);
-              _usedImportedElementsList.add(visitor.usedElements);
-            }
-          });
-          units.forEach((file, unit) {
-            _computeHints(file, unit);
-          });
-        });
-      }
-
-      if (_analysisOptions.lint) {
-        PerformanceStatistics.lints.makeCurrentWhile(() {
-          var allUnits = _library.libraryFiles
-              .map((file) => LinterContextUnit(file.content, units[file]))
-              .toList();
-          for (int i = 0; i < allUnits.length; i++) {
-            _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+          {
+            var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedLocalElementsList.add(visitor.usedElements);
+          }
+          {
+            var visitor =
+                new GatherUsedImportedElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedImportedElementsList.add(visitor.usedElements);
           }
         });
-      }
-    } finally {
-      _context.dispose();
+        units.forEach((file, unit) {
+          _computeHints(file, unit);
+        });
+      });
+    }
+
+    if (_analysisOptions.lint) {
+      PerformanceStatistics.lints.makeCurrentWhile(() {
+        var allUnits = _library.libraryFiles
+            .map((file) => LinterContextUnit(file.content, units[file]))
+            .toList();
+        for (int i = 0; i < allUnits.length; i++) {
+          _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+        }
+      });
     }
 
     // Return full results.
@@ -178,20 +168,6 @@ class LibraryAnalyzer {
       results[file] = new UnitAnalysisResult(file, unit, errors);
     });
     return results;
-  }
-
-  VersionConstraint versionConstraintFromPubspec() {
-    if (_versionConstraintFromPubspec == null) {
-      _versionConstraintFromPubspec = noSpecifiedRange;
-      File pubspecFile = _findPubspecFile(_library);
-      if (pubspecFile != null) {
-        SdkConstraintExtractor extractor =
-            new SdkConstraintExtractor(pubspecFile);
-        _versionConstraintFromPubspec =
-            extractor.constraint() ?? noSpecifiedRange;
-      }
-    }
-    return _versionConstraintFromPubspec;
   }
 
   void _computeConstantErrors(
@@ -207,11 +183,12 @@ class LibraryAnalyzer {
    */
   void _computeConstants() {
     computeConstants(
-      _typeProvider,
-      _context.typeSystem,
-      _declaredVariables,
-      _constants.toList(),
-    );
+        _typeProvider,
+        _context.typeSystem,
+        _declaredVariables,
+        _constants.toList(),
+        ExperimentStatus.fromStrings(
+            _context.analysisOptions.enabledExperiments));
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
@@ -239,7 +216,7 @@ class LibraryAnalyzer {
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement,
-        typeSystem: _context.typeSystem));
+        typeSystem: _context.typeSystem, resourceProvider: _resourceProvider));
 
     unit.accept(new OverrideVerifier(
       _inheritance,
@@ -268,14 +245,15 @@ class LibraryAnalyzer {
           new UnusedLocalElementsVerifier(errorListener, usedElements);
       unit.accept(visitor);
     }
+
     //
-    // Find code that uses features from an SDK that is newer than the minimum
-    // version allowed in the pubspec.yaml file.
+    // Find code that uses features from an SDK version that does not satisfy
+    // the SDK constraints specified in analysis options.
     //
-    VersionRange versionRange = versionConstraintFromPubspec();
-    if (versionRange != noSpecifiedRange) {
+    var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
+    if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = new SdkConstraintVerifier(
-          errorReporter, _libraryElement, _typeProvider, versionRange);
+          errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
       unit.accept(verifier);
     }
   }
@@ -295,11 +273,8 @@ class LibraryAnalyzer {
         allUnits, currentUnit, _declaredVariables, _typeProvider, _typeSystem);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRuleWithContext) {
-        (linter as NodeLintRuleWithContext)
-            .registerNodeProcessors(nodeRegistry, context);
-      } else if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry);
+      if (linter is NodeLintRule) {
+        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry, context);
       } else {
         AstVisitor visitor = linter.getVisitor();
         if (visitor != null) {
@@ -412,18 +387,6 @@ class LibraryAnalyzer {
     _constants.addAll(dependenciesFinder.dependencies);
   }
 
-  File _findPubspecFile(FileState file) {
-    Folder folder = resourceProvider?.getFile(file.path)?.parent;
-    while (folder != null) {
-      File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (pubspecFile.exists) {
-        return pubspecFile;
-      }
-      folder = folder.parent;
-    }
-    return null;
-  }
-
   RecordingErrorListener _getErrorListener(FileState file) =>
       _errorListeners.putIfAbsent(file, () => new RecordingErrorListener());
 
@@ -457,6 +420,15 @@ class LibraryAnalyzer {
       }
     }
     return null;
+  }
+
+  bool _isExistingSource(Source source) {
+    for (var file in _library.directReferencedFiles) {
+      if (file.uri == source.uri) {
+        return file.exists;
+      }
+    }
+    return false;
   }
 
   /**
@@ -554,7 +526,7 @@ class LibraryAnalyzer {
         // Validate that the part contains a part-of directive with the same
         // name or uri as the library.
         //
-        if (_context.exists(partSource)) {
+        if (_isExistingSource(partSource)) {
           _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
               partSource, partUnit, directivesToResolve);
           if (nameOrSource == null) {
@@ -702,7 +674,7 @@ class LibraryAnalyzer {
       FileState file, UriBasedDirectiveImpl directive) {
     Source source = directive.uriSource;
     if (source != null) {
-      if (_context.exists(source)) {
+      if (_isExistingSource(source)) {
         return;
       }
     } else {

@@ -6,7 +6,7 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show Message, templateUnexpectedToken;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -17,6 +17,8 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'member_kind.dart' show MemberKind;
+
+import 'util.dart' show optional;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -249,8 +251,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Export");
   }
 
-  void beginExpressionStatement(Token token) {}
-
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.
@@ -258,7 +258,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExtraneousExpression");
   }
 
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     logEvent("ExpressionStatement");
   }
 
@@ -933,8 +933,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     logEvent("Type");
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle nullable types
+  void reportErrorIfNullableType(Token questionMark) {
+    if (questionMark != null) {
+      assert(optional('?', questionMark));
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(questionMark),
+          questionMark,
+          questionMark);
+    }
   }
 
   void handleNoName(Token token) {
@@ -949,7 +961,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type variables
   /// - Return type
   /// - Formal parameters
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     logEvent("FunctionType");
   }
 

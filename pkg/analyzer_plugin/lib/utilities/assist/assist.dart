@@ -145,5 +145,5 @@ abstract class DartAssistRequest implements AssistRequest {
   /**
    * The analysis result for the file in which the assists are being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }

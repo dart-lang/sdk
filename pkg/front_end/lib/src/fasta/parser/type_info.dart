@@ -17,11 +17,18 @@ import 'util.dart' show isOneOf, optional;
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
 abstract class TypeInfo {
+  /// Return type info representing the receiver without the trailing `?`
+  /// or the receiver if the receiver does not represent a nullable type.
+  TypeInfo get asNonNullable;
+
   /// Return `true` if the tokens comprising the type represented by the
   /// receiver could be interpreted as a valid standalone expression.
-  /// For example, `A` or `A.b` could be interpreted as a type references
-  /// or as expressions, while `A<T>` only looks like a type reference.
+  /// For example, `A` or `A.b` could be interpreted as type references
+  /// or expressions, while `A<T>` only looks like a type reference.
   bool get couldBeExpression;
+
+  /// Return true if the receiver has a trailing `?`.
+  bool get isNullable;
 
   /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
@@ -183,7 +190,7 @@ TypeInfo computeType(final Token token, bool required,
   if (isGeneralizedFunctionType(next)) {
     // `Function` ...
     return new ComplexTypeInfo(token, noTypeParamOrArg)
-        .computeNoTypeGFT(required);
+        .computeNoTypeGFT(token, required);
   }
 
   // We've seen an identifier.
@@ -194,14 +201,24 @@ TypeInfo computeType(final Token token, bool required,
     if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
       next = typeParamOrArg.skip(next).next;
-      if (!isGeneralizedFunctionType(next)) {
+      if (optional('?', next)) {
+        next = next.next;
+        if (!isGeneralizedFunctionType(next)) {
+          if ((required || looksLikeName(next)) &&
+              typeParamOrArg == simpleTypeArgument1) {
+            // identifier `<` identifier `>` `?` identifier
+            return simpleNullableTypeWith1Argument;
+          }
+          // identifier `<` identifier `>` `?` non-identifier
+          return noType;
+        }
+      } else if (!isGeneralizedFunctionType(next)) {
         if (required || looksLikeName(next)) {
           // identifier `<` identifier `>` identifier
           return typeParamOrArg.typeInfo;
-        } else {
-          // identifier `<` identifier `>` non-identifier
-          return noType;
         }
+        // identifier `<` identifier `>` non-identifier
+        return noType;
       }
     }
     // TODO(danrubel): Consider adding a const for
@@ -221,14 +238,29 @@ TypeInfo computeType(final Token token, bool required,
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next;
-      if (typeParamOrArg == noTypeParamOrArg &&
-          !isGeneralizedFunctionType(next)) {
-        if (required || looksLikeName(next)) {
-          // identifier `.` identifier identifier
-          return prefixedType;
+      if (typeParamOrArg == noTypeParamOrArg) {
+        if (optional('?', next)) {
+          next = next.next;
+          if (!isGeneralizedFunctionType(next)) {
+            if (required || looksLikeName(next)) {
+              // identifier `.` identifier `?` identifier
+              // TODO(danrubel): consider adding PrefixedNullableType
+              // Fall through to build complex type
+            } else {
+              // identifier `.` identifier `?` non-identifier
+              return noType;
+            }
+          }
         } else {
-          // identifier `.` identifier non-identifier
-          return noType;
+          if (!isGeneralizedFunctionType(next)) {
+            if (required || looksLikeName(next)) {
+              // identifier `.` identifier identifier
+              return prefixedType;
+            } else {
+              // identifier `.` identifier non-identifier
+              return noType;
+            }
+          }
         }
       }
       // identifier `.` identifier
@@ -251,7 +283,17 @@ TypeInfo computeType(final Token token, bool required,
         .computeIdentifierGFT(required);
   }
 
-  if (required || looksLikeName(next)) {
+  if (optional('?', next)) {
+    next = next.next;
+    if (isGeneralizedFunctionType(next)) {
+      // identifier `?` Function `(`
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeIdentifierQuestionGFT(required);
+    } else if (required || looksLikeName(next)) {
+      // identifier `?`
+      return simpleNullableType;
+    }
+  } else if (required || looksLikeName(next)) {
     // identifier identifier
     return simpleType;
   }

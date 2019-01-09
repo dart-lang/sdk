@@ -152,18 +152,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         appendLibraries(data, bytesLength);
 
-        try {
-          await dillLoadedData.buildOutlines();
-        } catch (e) {
-          if (!initializedFromDill) rethrow;
-
-          // Retry without initializing from dill.
-          initializedFromDill = false;
-          data.reset();
-          bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-          appendLibraries(data, bytesLength);
-          await dillLoadedData.buildOutlines();
-        }
+        await dillLoadedData.buildOutlines();
         summaryBytes = null;
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
@@ -221,8 +210,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
             " of ${userCode.loader.builders.length} libraries");
       }
-
-      reusedLibraries.addAll(platformBuilders);
 
       KernelTarget userCodeOld = userCode;
       userCode = new KernelTarget(
@@ -559,11 +546,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<LibraryBuilder> computeReusedLibraries(
       Set<Uri> invalidatedUris, UriTranslator uriTranslator,
       {Set<LibraryBuilder> notReused}) {
-    if (userCode == null && userBuilders == null) {
-      return <LibraryBuilder>[];
-    }
-
     List<LibraryBuilder> result = <LibraryBuilder>[];
+    result.addAll(platformBuilders);
+    if (userCode == null && userBuilders == null) {
+      return result;
+    }
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
@@ -691,17 +678,7 @@ class PackageChangedError {
 }
 
 class IncrementalCompilerData {
-  bool includeUserLoadedLibraries;
-  Procedure userLoadedUriMain;
-  Component component;
-
-  IncrementalCompilerData() {
-    reset();
-  }
-
-  reset() {
-    includeUserLoadedLibraries = false;
-    userLoadedUriMain = null;
-    component = null;
-  }
+  bool includeUserLoadedLibraries = false;
+  Procedure userLoadedUriMain = null;
+  Component component = null;
 }

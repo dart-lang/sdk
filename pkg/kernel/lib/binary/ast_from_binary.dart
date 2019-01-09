@@ -216,10 +216,7 @@ class BinaryBuilder {
       case ConstantTag.StringConstant:
         return new StringConstant(readStringReference());
       case ConstantTag.SymbolConstant:
-        Reference libraryReference;
-        if (readAndCheckOptionTag()) {
-          libraryReference = readLibraryReference();
-        }
+        Reference libraryReference = readLibraryReference(allowNull: true);
         return new SymbolConstant(readStringReference(), libraryReference);
       case ConstantTag.MapConstant:
         final DartType keyType = readDartType();
@@ -1113,9 +1110,9 @@ class BinaryBuilder {
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
     var forwardingStubSuperTargetReference =
-        readAndCheckOptionTag() ? readMemberReference() : null;
+        readMemberReference(allowNull: true);
     var forwardingStubInterfaceTargetReference =
-        readAndCheckOptionTag() ? readMemberReference() : null;
+        readMemberReference(allowNull: true);
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1531,6 +1528,18 @@ class BinaryBuilder {
         int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
+            typeArgument: typeArgument, isConst: true)
+          ..fileOffset = offset;
+      case Tag.SetLiteral:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetLiteral(readExpressionList(),
+            typeArgument: typeArgument, isConst: false)
+          ..fileOffset = offset;
+      case Tag.ConstSetLiteral:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: true)
           ..fileOffset = offset;
       case Tag.MapLiteral:

@@ -132,7 +132,7 @@ Bytecode {
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   PushConstant         CP#3
-  InstanceCall         3, CP#5
+  DynamicCall          3, CP#5
   ReturnTOS
 }
 ConstantPool {
@@ -347,7 +347,7 @@ Bytecode {
   PushConstant         CP#7
   IndirectStaticCall   2, CP#6
   PushConstant         CP#8
-  InstanceCall         3, CP#10
+  DynamicCall          3, CP#10
   ReturnTOS
 }
 ConstantPool {

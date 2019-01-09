@@ -240,7 +240,6 @@ BENCHMARK(CorelibIsolateStartup) {
 // Measure invocation of Dart API functions.
 //
 static void InitNativeFields(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int count = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(1, count);
 
@@ -248,8 +247,6 @@ static void InitNativeFields(Dart_NativeArguments args) {
   EXPECT_VALID(recv);
   Dart_Handle result = Dart_SetNativeInstanceField(recv, 0, 7);
   EXPECT_VALID(result);
-
-  Dart_ExitScope();
 }
 
 // The specific api functions called here are a bit arbitrary.  We are
@@ -300,7 +297,8 @@ static Dart_NativeFunction bm_uda_lookup(Dart_Handle name,
 BENCHMARK(UseDartApi) {
   const int kNumIterations = 1000000;
   const char* kScriptChars =
-      "class Class extends NativeFieldsWrapper{\n"
+      "import 'dart:nativewrappers';\n"
+      "class Class extends NativeFieldWrapperClass1 {\n"
       "  int init() native 'init';\n"
       "  int method(int param1, int param2) native 'method';\n"
       "}\n"
@@ -316,12 +314,7 @@ BENCHMARK(UseDartApi) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
       USER_TEST_URI, false);
-
-  // Create a native wrapper class with native fields.
-  Dart_Handle result =
-      Dart_CreateNativeWrapperClass(lib, NewString("NativeFieldsWrapper"), 1);
-  EXPECT_VALID(result);
-  result = Dart_FinalizeLoading(false);
+  Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
   Dart_Handle args[1];

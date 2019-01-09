@@ -48,7 +48,6 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: false)
   // TODO(alexmarkov): Cleanup uses in Flutter and remove these obsolete flags.
   ..addFlag('strong', help: 'Obsolete', defaultsTo: true)
-  ..addFlag('sync-async', help: 'Obsolete', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',

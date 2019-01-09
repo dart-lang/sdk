@@ -68,39 +68,62 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override
-  final ResultState state = ResultState.VALID;
-
-  @override
   final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl(
       AnalysisSession session, String path, Uri uri, this.units)
       : super(session, path, uri);
 
+  ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
+      : this(session, null, uri, null);
+
   @Deprecated('This factory exists temporary until AnalysisSession migration.')
   factory ParsedLibraryResultImpl.tmp(LibraryElement library) {
-    var libraryPath = library.source.fullName;
-    var analysisContext = library.context;
-    var units = <ParsedUnitResult>[];
-    for (var unitElement in library.units) {
-      var unitSource = unitElement.source;
+    var session = library.session;
+    if (session != null) {
+      return session.getParsedLibraryByElement(library);
+    } else {
+      var analysisContext = library.context;
+      var units = <ParsedUnitResult>[];
+      for (var unitElement in library.units) {
+        var unitSource = unitElement.source;
 
-      if (!analysisContext.exists(unitSource)) {
-        continue;
+        if (!analysisContext.exists(unitSource)) {
+          continue;
+        }
+
+        var content = analysisContext.getContents(unitSource).data;
+        var lineInfo = analysisContext.getLineInfo(unitSource);
+        var unit = analysisContext.parseCompilationUnit(unitSource);
+        units.add(ParsedUnitResultImpl(
+            null,
+            unitSource.fullName,
+            unitSource.uri,
+            content,
+            lineInfo,
+            unitSource != library.source,
+            unit, const []));
       }
-
-      var content = analysisContext.getContents(unitSource).data;
-      var lineInfo = analysisContext.getLineInfo(unitSource);
-      var unit = analysisContext.parseCompilationUnit(unitSource);
-      units.add(ParsedUnitResultImpl(null, unitSource.fullName, unitSource.uri,
-          content, lineInfo, unitSource != library.source, unit, const []));
+      var libraryPath = library.source.fullName;
+      return ParsedLibraryResultImpl(
+          null, libraryPath, library.source.uri, units);
     }
-    return ParsedLibraryResultImpl(
-        null, libraryPath, library.source.uri, units);
+  }
+
+  @override
+  ResultState get state {
+    if (path == null) {
+      return ResultState.NOT_A_FILE;
+    }
+    return ResultState.VALID;
   }
 
   @override
   ElementDeclarationResult getElementDeclaration(Element element) {
+    if (state != ResultState.VALID) {
+      throw StateError('The result is not valid: $state');
+    }
+
     var elementPath = element.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
@@ -190,25 +213,30 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @Deprecated('This method exists temporary until AnalysisSession migration.')
   static Future<ResolvedLibraryResult> tmp(LibraryElement library) async {
-    var libraryPath = library.source.fullName;
-    var units = <ResolvedUnitResult>[];
-    var analysisContext = library.context;
-    for (var unitElement in library.units) {
-      var unitSource = unitElement.source;
+    var session = library.session;
+    if (session != null) {
+      return session.getResolvedLibraryByElement(library);
+    } else {
+      var units = <ResolvedUnitResult>[];
+      var analysisContext = library.context;
+      for (var unitElement in library.units) {
+        var unitSource = unitElement.source;
 
-      if (!analysisContext.exists(unitSource)) {
-        continue;
+        if (!analysisContext.exists(unitSource)) {
+          continue;
+        }
+
+        var path = unitSource.fullName;
+        var content = analysisContext.getContents(unitSource).data;
+        var lineInfo = analysisContext.getLineInfo(unitSource);
+        var unit = analysisContext.resolveCompilationUnit(unitSource, library);
+        units.add(ResolvedUnitResultImpl(null, path, unitSource.uri, true,
+            content, lineInfo, unitSource != library.source, unit, const []));
       }
-
-      var path = unitSource.fullName;
-      var content = analysisContext.getContents(unitSource).data;
-      var lineInfo = analysisContext.getLineInfo(unitSource);
-      var unit = analysisContext.resolveCompilationUnit(unitSource, library);
-      units.add(ResolvedUnitResultImpl(null, path, unitSource.uri, true,
-          content, lineInfo, unitSource != library.source, unit, const []));
+      var libraryPath = library.source.fullName;
+      return ResolvedLibraryResultImpl(null, libraryPath, library.source.uri,
+          library, library.context.typeProvider, units);
     }
-    return ResolvedLibraryResultImpl(null, libraryPath, library.source.uri,
-        library, library.context.typeProvider, units);
   }
 }
 

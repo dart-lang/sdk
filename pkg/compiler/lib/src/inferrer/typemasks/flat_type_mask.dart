@@ -524,28 +524,27 @@ class FlatTypeMask implements TypeMask {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;
-    assert(element.name == selector.name);
+    assert(element.name == name.text);
     if (isEmpty) return false;
     if (isNull) {
       return closedWorld.hasElementIn(
-          commonElements.jsNullClass, selector, element);
+          commonElements.jsNullClass, name, element);
     }
 
     ClassEntity other = element.enclosingClass;
     if (other == commonElements.jsNullClass) {
       return isNullable;
     } else if (isExact) {
-      return closedWorld.hasElementIn(base, selector, element);
+      return closedWorld.hasElementIn(base, name, element);
     } else if (isSubclass) {
-      return closedWorld.hasElementIn(base, selector, element) ||
+      return closedWorld.hasElementIn(base, name, element) ||
           closedWorld.classHierarchy.isSubclassOf(other, base) ||
           closedWorld.hasAnySubclassThatMixes(base, other);
     } else {
       assert(isSubtype);
-      bool result = closedWorld.hasElementIn(base, selector, element) ||
+      bool result = closedWorld.hasElementIn(base, name, element) ||
           closedWorld.classHierarchy.isSubtypeOf(other, base) ||
           closedWorld.hasAnySubclassThatImplements(other, base) ||
           closedWorld.hasAnySubclassOfMixinUseThatImplements(other, base);
@@ -554,7 +553,7 @@ class FlatTypeMask implements TypeMask {
       // can be hit from any of the mixin applications.
       Iterable<ClassEntity> mixinUses = closedWorld.mixinUsesOf(base);
       return mixinUses.any((mixinApplication) =>
-          closedWorld.hasElementIn(mixinApplication, selector, element) ||
+          closedWorld.hasElementIn(mixinApplication, name, element) ||
           closedWorld.classHierarchy.isSubclassOf(other, mixinApplication) ||
           closedWorld.hasAnySubclassThatMixes(mixinApplication, other));
     }

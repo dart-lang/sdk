@@ -75,6 +75,10 @@ const char* Assembler::RegisterName(Register reg) {
   return Thread::Current()->zone()->PrintToString("R%d", reg);
 }
 
+const char* Assembler::FpuRegisterName(FpuRegister reg) {
+  return Thread::Current()->zone()->PrintToString("F%d", reg);
+}
+
 static int32_t EncodeJump(int32_t relative_pc) {
   return SimulatorBytecode::kJump | (relative_pc << 8);
 }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -51,6 +52,9 @@ class AnalysisSessionImpl implements AnalysisSession {
   AnalysisSessionImpl(this._driver);
 
   @override
+  AnalysisContext get analysisContext => _driver.analysisContext;
+
+  @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
 
   @override
@@ -78,7 +82,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     await null;
     _checkConsistency();
     if (_typeSystem == null) {
-      _typeSystem = new StrongTypeSystemImpl(await typeProvider);
+      _typeSystem = new Dart2TypeSystem(await typeProvider);
     }
     return _typeSystem;
   }
@@ -110,24 +114,36 @@ class AnalysisSessionImpl implements AnalysisSession {
     return libraryElement;
   }
 
+  @deprecated
   @override
-  Future<ParseResult> getParsedAst(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    return getParsedAstSync(path);
+  Future<ParseResult> getParsedAst(String path) async => getParsedUnit(path);
+
+  @deprecated
+  @override
+  ParseResult getParsedAstSync(String path) => getParsedUnit(path);
+
+  @override
+  ParsedLibraryResult getParsedLibrary(String path) {
+    _checkConsistency();
+    return _driver.getParsedLibrary(path);
   }
 
   @override
-  ParseResult getParsedAstSync(String path) {
+  ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
+    _checkConsistency();
+    _checkElementOfThisSession(element);
+    return _driver.getParsedLibraryByUri(element.source.uri);
+  }
+
+  @override
+  ParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync(path);
   }
 
+  @deprecated
   @override
-  Future<ResolveResult> getResolvedAst(String path) {
-    _checkConsistency();
-    return _driver.getResult(path);
-  }
+  Future<ResolveResult> getResolvedAst(String path) => getResolvedUnit(path);
 
   @override
   Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
@@ -141,6 +157,12 @@ class AnalysisSessionImpl implements AnalysisSession {
     _checkConsistency();
     _checkElementOfThisSession(element);
     return _driver.getResolvedLibraryByUri(element.source.uri);
+  }
+
+  @override
+  Future<ResolvedUnitResult> getResolvedUnit(String path) {
+    _checkConsistency();
+    return _driver.getResult(path);
   }
 
   @override
@@ -179,11 +201,10 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   void _checkElementOfThisSession(Element element) {
-    // TODO(scheglov) Requires 2.2 implementation
-//    if (element.session != this) {
-//      throw new ArgumentError(
-//          '(${element.runtimeType}) $element was not produced by '
-//          'this session.');
-//    }
+    if (element.session != this) {
+      throw new ArgumentError(
+          '(${element.runtimeType}) $element was not produced by '
+          'this session.');
+    }
   }
 }

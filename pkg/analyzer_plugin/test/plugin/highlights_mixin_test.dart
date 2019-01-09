@@ -5,15 +5,13 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/highlights_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/highlights/highlights.dart';
 import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
-import 'package:path/src/context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,9 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class HighlightsMixinTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class HighlightsMixinTest with ResourceProviderMixin {
   String packagePath1;
   String filePath1;
   ContextRoot contextRoot1;
@@ -35,11 +31,9 @@ class HighlightsMixinTest {
   _TestServerPlugin plugin;
 
   void setUp() {
-    Context pathContext = resourceProvider.pathContext;
-
-    packagePath1 = resourceProvider.convertPath('/package1');
-    filePath1 = pathContext.join(packagePath1, 'lib', 'test.dart');
-    resourceProvider.newFile(filePath1, '');
+    packagePath1 = convertPath('/package1');
+    filePath1 = join(packagePath1, 'lib', 'test.dart');
+    newFile(filePath1);
     contextRoot1 = new ContextRoot(packagePath1, <String>[]);
 
     channel = new MockChannel();
@@ -93,7 +87,7 @@ class _TestServerPlugin extends MockServerPlugin with HighlightsMixin {
 
   @override
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
-    AnalysisResult result = new MockAnalysisResult(path: path);
+    var result = new MockResolvedUnitResult(path: path);
     return new DartHighlightsRequestImpl(resourceProvider, result);
   }
 }

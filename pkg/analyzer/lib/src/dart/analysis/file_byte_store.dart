@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,7 +62,7 @@ class EvictingFileByteStore implements ByteStore {
   /**
    * If the cache clean up process has not been requested yet, request it.
    */
-  Future<Null> _requestCacheCleanUp() async {
+  Future<void> _requestCacheCleanUp() async {
     if (_cleanUpSendPortShouldBePrepared) {
       _cleanUpSendPortShouldBePrepared = false;
       ReceivePort response = new ReceivePort();
@@ -110,7 +110,8 @@ class EvictingFileByteStore implements ByteStore {
     List<File> files = <File>[];
     Map<File, FileStat> fileStatMap = {};
     int currentSizeBytes = 0;
-    List<FileSystemEntity> resources = new Directory(cachePath).listSync();
+    List<FileSystemEntity> resources =
+        new Directory(cachePath).listSync(recursive: true);
     for (FileSystemEntity resource in resources) {
       if (resource is File) {
         try {
@@ -148,6 +149,7 @@ class EvictingFileByteStore implements ByteStore {
  */
 class FileByteStore implements ByteStore {
   static final FileByteStoreValidator _validator = new FileByteStoreValidator();
+  static final _dotCodeUnit = '.'.codeUnitAt(0);
 
   final String _cachePath;
   final String _tempSuffix;
@@ -164,17 +166,18 @@ class FileByteStore implements ByteStore {
 
   @override
   List<int> get(String key) {
+    if (!_canShard(key)) return null;
+
     List<int> bytes = _writeInProgress[key];
     if (bytes != null) {
       return bytes;
     }
 
     try {
-      final File file = _getFileForKey(key);
-      if (!file.existsSync()) {
-        return null;
-      }
-      return _validator.getData(file.readAsBytesSync());
+      var shardPath = _getShardPath(key);
+      var path = join(shardPath, key);
+      var bytes = new File(path).readAsBytesSync();
+      return _validator.getData(bytes);
     } catch (_) {
       // ignore exceptions
       return null;
@@ -183,15 +186,22 @@ class FileByteStore implements ByteStore {
 
   @override
   void put(String key, List<int> bytes) {
+    if (!_canShard(key)) return;
+
     _writeInProgress[key] = bytes;
 
     final List<int> wrappedBytes = _validator.wrapData(bytes);
 
     // We don't wait for the write and rename to complete.
     _pool.execute(() {
-      final File tempFile = _getFileForKey('$key$_tempSuffix');
+      var tempPath = join(_cachePath, '$key$_tempSuffix');
+      var tempFile = new File(tempPath);
       return tempFile.writeAsBytes(wrappedBytes).then((_) {
-        return tempFile.rename(join(_cachePath, key));
+        var shardPath = _getShardPath(key);
+        return Directory(shardPath).create(recursive: true).then((_) {
+          var path = join(shardPath, key);
+          return tempFile.rename(path);
+        });
       }).catchError((_) {
         // ignore exceptions
       }).whenComplete(() {
@@ -202,7 +212,16 @@ class FileByteStore implements ByteStore {
     });
   }
 
-  File _getFileForKey(String key) => new File(join(_cachePath, key));
+  String _getShardPath(String key) {
+    var shardName = key.substring(0, 2);
+    return join(_cachePath, shardName);
+  }
+
+  static bool _canShard(String key) {
+    return key.length > 2 &&
+        key.codeUnitAt(0) != _dotCodeUnit &&
+        key.codeUnitAt(1) != _dotCodeUnit;
+  }
 }
 
 /**

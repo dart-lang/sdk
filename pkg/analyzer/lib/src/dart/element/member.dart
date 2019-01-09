@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -63,6 +64,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode() => baseElement.computeNode();
 
@@ -268,6 +270,7 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => baseElement.computeNode();
 
@@ -326,6 +329,7 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 
+  @deprecated
   @override
   FunctionDeclaration computeNode() => baseElement.computeNode();
 
@@ -496,14 +500,19 @@ abstract class Member implements Element {
   int get nameOffset => _baseElement.nameOffset;
 
   @override
+  AnalysisSession get session => _baseElement.session;
+
+  @override
   Source get source => _baseElement.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => _baseElement.unit;
 
   @override
   String computeDocumentationComment() => documentationComment;
 
+  @deprecated
   @override
   AstNode computeNode() => _baseElement.computeNode();
 
@@ -586,6 +595,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
+  @deprecated
   @override
   MethodDeclaration computeNode() => baseElement.computeNode();
 
@@ -729,6 +739,7 @@ class ParameterMember extends VariableMember
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
+  @deprecated
   @override
   FormalParameter computeNode() => baseElement.computeNode();
 

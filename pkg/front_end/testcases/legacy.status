@@ -29,6 +29,7 @@ inference/infer_typed_list_literal: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: RuntimeError
 instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # May be related to Issue 33479
+instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
 invocations: Fail
 micro: Fail # External method marked abstract.
@@ -61,8 +62,6 @@ rasta/issue_000001: Fail
 rasta/issue_000031: Fail
 rasta/issue_000032: Fail
 rasta/issue_000034: RuntimeError
-rasta/issue_000035: Fail
-rasta/issue_000035a: Fail
 rasta/issue_000036: Fail
 rasta/issue_000039: Fail
 rasta/issue_000041: RuntimeError
@@ -83,8 +82,10 @@ rasta/super: RuntimeError
 rasta/super_initializer: Fail
 rasta/super_operator: Fail
 rasta/try_label: Fail
+rasta/type_literals: Crash
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
+rasta/typedef: Crash
 rasta/typedef: Fail
 rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
@@ -101,7 +102,7 @@ regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
-regress/issue_32200: RuntimeError # Invalid type.
+regress/issue_32200: Pass # Invalid type mapped to dynamic type in kernel translation helper.
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
@@ -111,6 +112,7 @@ regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
+reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_for_condition: RuntimeError # Test exercises strong mode semantics
@@ -123,7 +125,6 @@ runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises st
 runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
-statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void_methods: Fail # Bad return from setters.

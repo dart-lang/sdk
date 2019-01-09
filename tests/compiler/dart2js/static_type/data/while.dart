@@ -23,7 +23,7 @@ main() {
 
 while1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     while (/*dynamic*/ c /*invoke: bool*/ != null) {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
@@ -93,10 +93,10 @@ class Class1<T> {
     GenericClass<T> c;
     while (/*GenericClass<T>*/ c /*invoke: bool*/ == null) {
       if (/*bool*/ b) {
-        GenericClass<T> next = /*GenericClass<T>*/ c.next;
+        GenericClass<T> next = /*Null*/ c.next;
         c = /*GenericClass<T>*/ next;
       } else {
-        c = /*GenericClass<T>*/ c.next;
+        c = /*Null*/ c.next;
       }
     }
     return /*GenericClass<T>*/ c;

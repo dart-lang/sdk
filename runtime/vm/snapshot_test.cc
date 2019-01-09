@@ -776,7 +776,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     // Write snapshot with object content.
     FullSnapshotWriter writer(Snapshot::kFull, NULL,
                               &isolate_snapshot_data_buffer, &malloc_allocator,
-                              NULL, NULL /* image_writer */);
+                              NULL, /*image_writer*/ nullptr);
     writer.WriteFullSnapshot();
   }
 
@@ -832,7 +832,7 @@ VM_UNIT_TEST_CASE(FullSnapshot1) {
       TransitionNativeToVM transition(thread);
       FullSnapshotWriter writer(
           Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, NULL /* image_writer */);
+          &malloc_allocator, NULL, /*image_writer*/ nullptr);
       writer.WriteFullSnapshot();
     }
 

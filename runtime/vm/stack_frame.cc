@@ -15,6 +15,7 @@
 #include "vm/parser.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
@@ -42,6 +43,18 @@ const FrameLayout default_frame_layout = {
     /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
 };
+const FrameLayout bare_instructions_frame_layout = {
+    /*.first_object_from_pc =*/kFirstObjectSlotFromFp,  // No saved PP slot.
+    /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
+        2,  // No saved CODE, PP slots
+    /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.first_local_from_fp =*/kFirstLocalSlotFromFp +
+        2,  // No saved CODE, PP slots.
+    /*.dart_fixed_frame_size =*/kDartFrameFixedSize -
+        2,                              // No saved CODE, PP slots.
+    /*.saved_caller_pp_from_fp = */ 0,  // No saved PP slot.
+    /*.code_from_fp = */ 0,             // No saved CODE
+};
 
 FrameLayout compiler_frame_layout = invalid_frame_layout;
 FrameLayout runtime_frame_layout = invalid_frame_layout;
@@ -61,20 +74,84 @@ int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
 }
 
 void FrameLayout::Init() {
+  // By default we use frames with CODE_REG/PP in the frame.
   compiler_frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
+
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    compiler_frame_layout = bare_instructions_frame_layout;
+  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    compiler_frame_layout = invalid_frame_layout;
+    runtime_frame_layout = bare_instructions_frame_layout;
+  }
+#endif
+}
+
+Isolate* StackFrame::IsolateOfBareInstructionsFrame() const {
+  auto isolate = this->isolate();
+
+  if (isolate->object_store()->code_order_table() != Object::null()) {
+    auto rct = isolate->reverse_pc_lookup_cache();
+    if (rct->Contains(pc())) return isolate;
+  }
+
+  isolate = Dart::vm_isolate();
+  if (isolate->object_store()->code_order_table() != Object::null()) {
+    auto rct = isolate->reverse_pc_lookup_cache();
+    if (rct->Contains(pc())) return isolate;
+  }
+
+  return nullptr;
+}
+
+bool StackFrame::IsBareInstructionsDartFrame() const {
+  NoSafepointScope no_safepoint;
+
+  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+    Code code;
+    auto rct = isolate->reverse_pc_lookup_cache();
+    code = rct->Lookup(pc());
+
+    const intptr_t cid = code.owner()->GetClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kFunctionCid;
+  }
+  return false;
+}
+
+bool StackFrame::IsBareInstructionsStubFrame() const {
+  NoSafepointScope no_safepoint;
+
+  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+    Code code;
+    auto rct = isolate->reverse_pc_lookup_cache();
+    code = rct->Lookup(pc());
+
+    const intptr_t cid = code.owner()->GetClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kNullCid || cid == kClassCid;
+  }
+  return false;
 }
 
 bool StackFrame::IsStubFrame() const {
   if (is_interpreted()) {
     return false;
   }
+
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    return IsBareInstructionsStubFrame();
+  }
+
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
 #if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
+
   RawCode* code = GetCodeObject();
   ASSERT(code != Object::null());
   const intptr_t cid = code->ptr()->owner_->GetClassId();
@@ -172,21 +249,27 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
-  RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
-      fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
-                                : runtime_frame_layout.code_from_fp) *
-              kWordSize)));
-  // May forward raw code. Note we don't just visit the pc marker slot first
-  // because the visitor's forwarding might not be idempotent.
-  visitor->VisitPointer(&pc_marker);
   Code code;
-  if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
-    code ^= pc_marker;
+
+  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+    code = isolate->reverse_pc_lookup_cache()->Lookup(pc());
   } else {
-    ASSERT(pc_marker == Object::null() ||
-           (is_interpreted() && (!pc_marker->IsHeapObject() ||
-                                 (pc_marker->GetClassId() == kBytecodeCid))));
+    RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+        fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                  : runtime_frame_layout.code_from_fp) *
+                kWordSize)));
+    // May forward raw code. Note we don't just visit the pc marker slot first
+    // because the visitor's forwarding might not be idempotent.
+    visitor->VisitPointer(&pc_marker);
+    if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
+      code ^= pc_marker;
+    } else {
+      ASSERT(pc_marker == Object::null() ||
+             (is_interpreted() && (!pc_marker->IsHeapObject() ||
+                                   (pc_marker->GetClassId() == kBytecodeCid))));
+    }
   }
+
   if (!code.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
@@ -328,6 +411,10 @@ RawCode* StackFrame::LookupDartCode() const {
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
+  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+    return isolate->reverse_pc_lookup_cache()->Lookup(pc());
+  }
+
   RawCode* code = GetCodeObject();
   if ((code != Code::null()) &&
       (code->ptr()->owner_->GetClassId() == kFunctionCid)) {
@@ -338,11 +425,15 @@ RawCode* StackFrame::LookupDartCode() const {
 
 RawCode* StackFrame::GetCodeObject() const {
   ASSERT(!is_interpreted());
-  RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
-      fp() + runtime_frame_layout.code_from_fp * kWordSize));
-  ASSERT((pc_marker == Object::null()) ||
-         (pc_marker->GetClassId() == kCodeCid));
-  return reinterpret_cast<RawCode*>(pc_marker);
+  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+    return isolate->reverse_pc_lookup_cache()->Lookup(pc());
+  } else {
+    RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+        fp() + runtime_frame_layout.code_from_fp * kWordSize));
+    ASSERT((pc_marker == Object::null()) ||
+           (pc_marker->GetClassId() == kCodeCid));
+    return reinterpret_cast<RawCode*>(pc_marker);
+  }
 }
 
 RawBytecode* StackFrame::LookupDartBytecode() const {

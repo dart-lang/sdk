@@ -61,7 +61,7 @@ class _SummaryNormalizer extends StatementVisitor {
     }
 
     for (Statement st in statements) {
-      if (st is Call) {
+      if (st is Call || st is TypeCheck) {
         _normalizeExpr(st, false);
       } else if (st is Use) {
         _normalizeExpr(st.arg, true);
@@ -283,6 +283,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final GenericInterfacesInfo _genericInterfacesInfo;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
+  final Map<AsExpression, TypeCheck> explicitCasts =
+      <AsExpression, TypeCheck>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
 
   Summary _summary;
@@ -329,8 +331,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _summary = new Summary();
       }
 
-      _translator = new RuntimeTypeTranslator(member.enclosingClass, _summary,
-          _receiver, null, _genericInterfacesInfo);
+      _translator = new RuntimeTypeTranslator(
+          _summary, _receiver, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
         assertx(member.initializer != null);
@@ -338,7 +340,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       } else {
         Parameter valueParam = _declareParameter("value", member.type, null);
         TypeExpr runtimeType = _translator.translate(member.type);
-        final check = new TypeCheck(valueParam, runtimeType, null);
+        final check = new TypeCheck(
+            valueParam, runtimeType, member, Type.fromStatic(member.type));
         _summary.add(check);
         _summary.result = check;
       }
@@ -373,25 +376,57 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _environment.thisType = member.enclosingClass?.thisType;
       }
 
-      _translator = new RuntimeTypeTranslator(member.enclosingClass, _summary,
-          _receiver, _fnTypeVariables, _genericInterfacesInfo);
+      _translator = new RuntimeTypeTranslator(
+          _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
-      for (VariableDeclaration param in function.positionalParameters) {
-        _declareParameter(param.name, param.type, param.initializer);
+      // Handle forwarding stubs. We need to check types against the types of
+      // the forwarding stub's target, [member.forwardingStubSuperTarget].
+      FunctionNode useTypesFrom = member.function;
+      if (member is Procedure &&
+          member.isForwardingStub &&
+          member.forwardingStubSuperTarget != null) {
+        final target = member.forwardingStubSuperTarget;
+        if (target is Field) {
+          useTypesFrom = FunctionNode(null, positionalParameters: [
+            VariableDeclaration("value", type: target.type)
+          ]);
+        } else {
+          useTypesFrom = member.forwardingStubSuperTarget.function;
+        }
       }
-      for (VariableDeclaration param in function.namedParameters) {
-        _declareParameter(param.name, param.type, param.initializer);
+
+      for (int i = 0; i < function.positionalParameters.length; ++i) {
+        final decl = function.positionalParameters[i];
+        _declareParameter(
+            decl.name,
+            _useTypeCheckForParameter(decl)
+                ? null
+                : useTypesFrom.positionalParameters[i].type,
+            function.positionalParameters[i].initializer);
+      }
+      for (int i = 0; i < function.namedParameters.length; ++i) {
+        final decl = function.namedParameters[i];
+        _declareParameter(
+            decl.name,
+            _useTypeCheckForParameter(decl)
+                ? null
+                : useTypesFrom.namedParameters[i].type,
+            function.namedParameters[i].initializer);
       }
 
       int count = firstParamIndex;
-      for (VariableDeclaration param in function.positionalParameters) {
-        Join v =
-            _declareVariable(param, useTypeCheck: param.isGenericCovariantImpl);
+      for (int i = 0; i < function.positionalParameters.length; ++i) {
+        final decl = function.positionalParameters[i];
+        Join v = _declareVariable(decl,
+            useTypeCheck: _useTypeCheckForParameter(decl),
+            checkType: useTypesFrom.positionalParameters[i].type);
         v.values.add(_summary.statements[count++]);
       }
-      for (VariableDeclaration param in function.namedParameters) {
-        Join v =
-            _declareVariable(param, useTypeCheck: param.isGenericCovariantImpl);
+      for (int i = 0; i < function.namedParameters.length; ++i) {
+        final decl = function.namedParameters[i];
+        Join v = _declareVariable(decl,
+            useTypeCheck: _useTypeCheckForParameter(decl),
+            checkType: useTypesFrom.namedParameters[i].type);
         v.values.add(_summary.statements[count++]);
       }
       assertx(count == _summary.parameterCount);
@@ -439,6 +474,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     Statistics.summariesCreated++;
 
     return _summary;
+  }
+
+  bool _useTypeCheckForParameter(VariableDeclaration decl) {
+    return decl.isCovariant || decl.isGenericCovariantImpl;
   }
 
   Args<Type> rawArguments(Selector selector) {
@@ -559,17 +598,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Join _declareVariable(VariableDeclaration decl,
-      {bool addInitType: false, bool useTypeCheck: false}) {
-    Join join = new Join(decl.name, decl.type);
+      {bool addInitType: false,
+      bool useTypeCheck: false,
+      DartType checkType: null}) {
+    final type = checkType ?? decl.type;
+    Join join = new Join(decl.name, type);
     _summary.add(join);
     _variableJoins[decl] = join;
 
     TypeExpr variable = join;
     if (useTypeCheck) {
-      TypeExpr runtimeType = _translator.translate(decl.type);
-      variable = new TypeCheck(variable, runtimeType, decl);
+      TypeExpr runtimeType = _translator.translate(type);
+      variable = new TypeCheck(
+          variable, runtimeType, decl, Type.fromStatic(decl.type));
       _summary.add(variable);
-      _summary.add(new Use(variable));
     }
 
     _variables[decl] = variable;
@@ -697,15 +739,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitAsExpression(AsExpression node) {
     TypeExpr operand = _visit(node.operand);
     Type type = new Type.fromStatic(node.type);
-
-    TypeExpr result = _makeNarrow(operand, type);
-
     TypeExpr runtimeType = _translator.translate(node.type);
-    if (runtimeType is Statement) {
-      result = new TypeCheck(operand, runtimeType, /*parameter=*/ null);
-      _summary.add(result);
-    }
-
+    TypeExpr result = new TypeCheck(operand, runtimeType, node, type);
+    explicitCasts[node] = result;
+    _summary.add(result);
     return result;
   }
 
@@ -886,16 +923,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       return _makeCall(
           node, new DynamicSelector(CallKind.Method, node.name), args);
     }
+    // TODO(dartbug.com/34497): Once front-end desugars calls via
+    // fields/getters, handling of field and getter targets here
+    // can be turned into assertions.
     if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      // Call via field.
-      final fieldValue = _makeCall(
-          node,
+      // Call via field/getter.
+      final value = _makeCall(
+          null,
           (node.receiver is ThisExpression)
               ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
               : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
           new Args<TypeExpr>([receiver]));
       _makeCall(
-          null, DynamicSelector.kCall, new Args.withReceiver(args, fieldValue));
+          null, DynamicSelector.kCall, new Args.withReceiver(args, value));
       return _staticType(node);
     } else {
       // TODO(alexmarkov): overloaded arithmetic operators
@@ -1341,21 +1381,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 }
 
 class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
-  final Class enclosingClass;
   final Summary summary;
   final Map<TypeParameter, TypeExpr> functionTypeVariables;
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
   final TypeExpr receiver;
   final GenericInterfacesInfo genericInterfacesInfo;
 
-  RuntimeTypeTranslator(this.enclosingClass, this.summary, this.receiver,
-      this.functionTypeVariables, this.genericInterfacesInfo) {}
+  RuntimeTypeTranslator(this.summary, this.receiver, this.functionTypeVariables,
+      this.genericInterfacesInfo) {}
 
   // Create a type translator which can be used only for types with no free type
   // variables.
   RuntimeTypeTranslator.forClosedTypes(this.genericInterfacesInfo)
-      : enclosingClass = null,
-        summary = null,
+      : summary = null,
         functionTypeVariables = null,
         receiver = null {}
 
@@ -1465,11 +1503,10 @@ class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
       if (result != null) return result;
     }
     if (type.parameter.parent is! Class) return const AnyType();
-    assertx(type.parameter.parent == enclosingClass);
-
+    final interfaceClass = type.parameter.parent as Class;
     assertx(receiver != null);
-    final extract = new Extract(receiver, enclosingClass,
-        enclosingClass.typeParameters.indexOf(type.parameter));
+    final extract = new Extract(receiver, interfaceClass,
+        interfaceClass.typeParameters.indexOf(type.parameter));
     summary.add(extract);
     return extract;
   }

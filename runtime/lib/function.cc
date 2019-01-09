@@ -13,7 +13,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Function_apply, 2) {
+DEFINE_NATIVE_ENTRY(Function_apply, 0, 2) {
   const int kTypeArgsLen = 0;  // TODO(regis): Add support for generic function.
   const Array& fun_arguments =
       Array::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -30,7 +30,7 @@ DEFINE_NATIVE_ENTRY(Function_apply, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
+DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Instance, other, arguments->NativeArgAt(1));
@@ -65,13 +65,13 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
   return Bool::False().raw();
 }
 
-DEFINE_NATIVE_ENTRY(Closure_computeHash, 1) {
+DEFINE_NATIVE_ENTRY(Closure_computeHash, 0, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(receiver.ComputeHash());
 }
 
-DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
+DEFINE_NATIVE_ENTRY(Closure_clone, 0, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =

@@ -21,8 +21,11 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/util.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart';
+import '../ir/static_type_provider.dart';
+import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart' show FunctionInlineCache, JavaScriptBackend;
@@ -35,8 +38,6 @@ import '../js_model/js_strategy.dart';
 import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
@@ -64,9 +65,16 @@ class StackFrame {
   final KernelToLocalsMap localsMap;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
+  final StaticTypeProvider staticTypeProvider;
 
-  StackFrame(this.parent, this.member, this.asyncMarker, this.localsMap,
-      this.typeInferenceMap, this.sourceInformationBuilder);
+  StackFrame(
+      this.parent,
+      this.member,
+      this.asyncMarker,
+      this.localsMap,
+      this.typeInferenceMap,
+      this.sourceInformationBuilder,
+      this.staticTypeProvider);
 }
 
 class KernelSsaGraphBuilder extends ir.Visitor
@@ -160,6 +168,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
   SourceInformationBuilder get _sourceInformationBuilder =>
       _currentFrame.sourceInformationBuilder;
 
+  DartType _getStaticType(ir.Expression node) {
+    // TODO(johnniwinther): Substitute the type by the this type and type
+    // arguments of the current frame.
+    return _elementMap
+        .getDartType(_currentFrame.staticTypeProvider.getStaticType(node));
+  }
+
   static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
     if (member is JGeneratorBody) return member.function;
     return member;
@@ -181,7 +196,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder
                 .forContext(member, callSourceInformation)
-            : _sourceInformationStrategy.createBuilderForContext(member));
+            : _sourceInformationStrategy.createBuilderForContext(member),
+        _elementMap.getStaticTypeProvider(member));
   }
 
   void _leaveFrame() {
@@ -482,9 +498,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           functionNode: node.function, checks: TargetChecks.none);
     }
 
-    // [fieldValues] accumulates the field initializer values, which may be
-    // overwritten by initializer-list initializers.
-    ConstructorData constructorData = new ConstructorData();
+    // [constructorData.fieldValues] accumulates the field initializer values,
+    // which may be overwritten by initializer-list initializers.
+    ConstructorData constructorData = ConstructorData();
     _buildInitializers(node, constructorData);
 
     List<HInstruction> constructorArguments = <HInstruction>[];
@@ -715,22 +731,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
           failedAt(field, "Unexpected member definition $definition.");
       }
 
+      bool ignoreAllocatorAnalysis = false;
+      if (nativeData.isNativeOrExtendsNative(cls)) {
+        // @Native classes have 'fields' which are really getters/setter.  Do
+        // not try to initialize e.g. 'tagName'.
+        if (nativeData.isNativeClass(cls)) return;
+        // Fields that survive this test are fields of custom elements.
+        ignoreAllocatorAnalysis = true;
+      }
+
       if (node.initializer == null) {
-        // Unassigned fields of native classes are not initialized to
-        // prevent overwriting pre-initialized native properties.
-        if (!nativeData.isNativeOrExtendsNative(cls)) {
-          if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
-            constructorData.fieldValues[field] =
-                graph.addConstantNull(closedWorld);
-          }
+        if (ignoreAllocatorAnalysis ||
+            !_allocatorAnalysis.isInitializedInAllocator(field)) {
+          constructorData.fieldValues[field] =
+              graph.addConstantNull(closedWorld);
         }
-      } else if (node.initializer is! ir.NullLiteral ||
-          !nativeData.isNativeClass(cls)) {
+      } else {
         // Compile the initializer in the context of the field so we know that
         // class type parameters are accessed as values.
         // TODO(sra): It would be sufficient to know the context was a field
         // initializer.
-        if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+        if (ignoreAllocatorAnalysis ||
+            !_allocatorAnalysis.isInitializedInAllocator(field)) {
           inlinedFrom(field,
               _sourceInformationBuilder.buildAssignment(node.initializer), () {
             node.initializer.accept(this);
@@ -878,10 +900,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ir.Class callerClass = caller.enclosingClass;
     ir.Supertype supertype = callerClass.supertype;
 
-    if (callerClass.mixedInType != null) {
-      _collectFieldValues(callerClass.mixedInType.classNode, constructorData);
-    }
-
     // The class of the super-constructor may not be the supertype class. In
     // this case, we must go up the class hierarchy until we reach the class
     // containing the super-constructor.
@@ -1015,8 +1033,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     }
     if (const bool.fromEnvironment('unreachable-throw')) {
-      var emptyParameters = parameters.values
-          .where((p) => abstractValueDomain.isEmpty(p.instructionType));
+      var emptyParameters = parameters.values.where((p) =>
+          abstractValueDomain.isEmpty(p.instructionType).isDefinitelyTrue);
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
         add(new HInvokeStatic(
@@ -1611,8 +1629,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       node.iterable.accept(this);
       array = pop();
-      isFixed =
-          abstractValueDomain.isFixedLengthJsIndexable(array.instructionType);
+      isFixed = abstractValueDomain
+          .isFixedLengthJsIndexable(array.instructionType)
+          .isDefinitelyTrue;
       localsHandler.updateLocal(
           indexVariable, graph.addConstantInt(0, closedWorld),
           sourceInformation: sourceInformation);
@@ -2054,9 +2073,25 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitAsExpression(ir.AsExpression node) {
+    ir.Expression operand = node.operand;
+    operand.accept(this);
+
+    DartType operandType = _getStaticType(operand);
+    DartType type = _elementMap.getDartType(node.type);
+    if (_elementMap.types.isSubtype(operandType, type)) {
+      // Skip unneeded casts.
+      if (operand is! ir.PropertyGet) {
+        // TODO(johnniwinther): Support property get. Currently CFE inserts
+        // a seemingly unnecessary cast on tearoffs that contain type variables
+        // in contravariant positions. Since these casts are not marked we
+        // cannot easily detect when we actually need the cast. See test
+        // `language_2/instantiate_tearoff_after_contravariance_check_test`.
+        return;
+      }
+    }
+
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildAs(node);
-    node.operand.accept(this);
     HInstruction expressionInstruction = pop();
 
     if (node.type is ir.InvalidType) {
@@ -2064,7 +2099,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    DartType type = _elementMap.getDartType(node.type);
     if ((!node.isTypeError && !options.omitAsCasts) ||
         options.implicitDowncastCheckPolicy.isEmitted) {
       HInstruction converted = typeBuilder.buildTypeConversion(
@@ -2743,7 +2777,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     AbstractValue type =
         _typeInferenceMap.typeOfListLiteral(node, abstractValueDomain);
-    if (!abstractValueDomain.containsAll(type)) {
+    if (abstractValueDomain.containsAll(type).isDefinitelyFalse) {
       listInstruction.instructionType = type;
     }
     stack.add(listInstruction);
@@ -2795,8 +2829,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // We lift this common call pattern into a helper function to save space
       // in the output.
-      if (typeInputs
-          .every((HInstruction input) => input.isNull(abstractValueDomain))) {
+      if (typeInputs.every((HInstruction input) =>
+          input.isNull(abstractValueDomain).isDefinitelyTrue)) {
         if (constructorArgs.isEmpty) {
           constructor = _commonElements.mapLiteralUntypedEmptyMaker;
         } else {
@@ -3385,9 +3419,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
               "Unexpected arguments. "
               "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
-      if (!lengthInput.isNumber(abstractValueDomain)) {
+      if (lengthInput.isNumber(abstractValueDomain).isPotentiallyFalse) {
         HTypeConversion conversion = new HTypeConversion(
-            null,
+            commonElements.numType,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
             abstractValueDomain.numType,
             lengthInput,
@@ -3408,14 +3442,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(sra): Array allocation should be an instruction so that canThrow
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
-      if (lengthInput.isUInt32(abstractValueDomain)) {
+      if (lengthInput.isUInt32(abstractValueDomain).isDefinitelyTrue) {
         canThrow = false;
       }
 
       var inferredType = _inferredTypeOfNewList(invocation);
-      resultType = abstractValueDomain.containsAll(inferredType)
-          ? abstractValueDomain.fixedListType
-          : inferredType;
+      resultType =
+          abstractValueDomain.containsAll(inferredType).isPotentiallyTrue
+              ? abstractValueDomain.fixedListType
+              : inferredType;
       HForeignCode foreign = new HForeignCode(
           code, resultType, <HInstruction>[lengthInput],
           nativeBehavior: behavior,
@@ -3436,9 +3471,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else if (isGrowableListConstructorCall) {
       push(buildLiteralList(<HInstruction>[]));
       var inferredType = _inferredTypeOfNewList(invocation);
-      resultType = abstractValueDomain.containsAll(inferredType)
-          ? abstractValueDomain.growableListType
-          : inferredType;
+      resultType =
+          abstractValueDomain.containsAll(inferredType).isPotentiallyTrue
+              ? abstractValueDomain.growableListType
+              : inferredType;
       stack.last.instructionType = resultType;
     } else if (isJSArrayTypedConstructor) {
       // TODO(sra): Instead of calling the identity-like factory constructor,
@@ -4086,11 +4122,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (trustedMask != null) {
       // We only allow the type argument to narrow `dynamic`, which probably
       // comes from an unspecified return type in the NativeBehavior.
-      if (abstractValueDomain.containsAll(code.instructionType)) {
+      if (abstractValueDomain
+          .containsAll(code.instructionType)
+          .isPotentiallyTrue) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
-      } else if (abstractValueDomain.contains(
-          trustedMask, code.instructionType)) {
+      } else if (abstractValueDomain
+          .contains(trustedMask, code.instructionType)
+          .isPotentiallyTrue) {
         // It is acceptable for the type parameter to be broader than the
         // specified type.
       } else {
@@ -4214,11 +4253,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     AbstractValue type = _typeInferenceMap.selectorTypeOf(selector, mask);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, mask, null, inputs, isIntercepted,
-          type, sourceInformation));
+      push(new HInvokeDynamicGetter(selector, mask, element, inputs,
+          isIntercepted, type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, mask, null, inputs, isIntercepted,
-          type, sourceInformation));
+      push(new HInvokeDynamicSetter(selector, mask, element, inputs,
+          isIntercepted, type, sourceInformation));
+    } else if (selector.isClosureCall) {
+      assert(!isIntercepted);
+      push(new HInvokeClosure(selector, inputs, type, typeArguments)
+        ..sourceInformation = sourceInformation);
     } else {
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, typeArguments, sourceInformation,
@@ -4937,7 +4980,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (selector != null) {
         if (!selector.applies(function)) return false;
         if (mask != null &&
-            !abstractValueDomain.canHit(mask, function, selector)) {
+            abstractValueDomain
+                .isTargetingMember(mask, function, selector.memberName)
+                .isDefinitelyFalse) {
           return false;
         }
       }
@@ -4947,7 +4992,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
         if (function.enclosingClass != commonElements.objectClass &&
-            providedArguments[1].canBeNull(abstractValueDomain)) {
+            providedArguments[1]
+                .isNull(abstractValueDomain)
+                .isPotentiallyTrue) {
           return false;
         }
       }
@@ -5096,7 +5143,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // NoSuchMethodError message as if we had called it.
       if (function.isInstanceMember &&
           function is! ConstructorBodyEntity &&
-          (mask == null || abstractValueDomain.canBeNull(mask))) {
+          (mask == null ||
+              abstractValueDomain.isNull(mask).isPotentiallyTrue)) {
         add(new HFieldGet(
             null, providedArguments[0], abstractValueDomain.dynamicType,
             isAssignable: false)

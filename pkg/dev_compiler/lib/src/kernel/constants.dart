@@ -44,6 +44,10 @@ class DevCompilerConstants {
       // It can also be caused by methods in the evaluator that don't understand
       // unavailable constants.
       return null;
+    } on NoSuchMethodError {
+      // TODO(jmesserly): this is probably the same issue as above, but verify
+      // that it's fixed once Kernel does constant evaluation.
+      return null;
     }
   }
 
@@ -180,7 +184,7 @@ class _ConstantEvaluator extends ConstantEvaluator {
   final Constant unavailableConstant;
 
   _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
-      {bool enableAsserts})
+      {bool enableAsserts: false})
       : unavailableConstant = InstanceConstant(null, [], {}),
         super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
             enableAsserts,

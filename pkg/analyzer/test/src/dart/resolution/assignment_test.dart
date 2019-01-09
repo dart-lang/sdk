@@ -22,7 +22,7 @@ main() {
 class AssignmentDriverResolutionTest extends DriverResolutionTest
     with AssignmentResolutionMixin {}
 
-abstract class AssignmentResolutionMixin implements ResolutionTest {
+mixin AssignmentResolutionMixin implements ResolutionTest {
   test_compound_indexExpression() async {
     addTestFile(r'''
 main() {
@@ -65,7 +65,7 @@ main() {
     assertType(assignment, 'num'); // num + int = num
 
     SimpleIdentifier left = assignment.leftHandSide;
-    assertElement(left, findElement.localVar('x'));
+    assertElement(left, findElement.localVar('v'));
     assertType(left, 'num');
 
     Expression right = assignment.rightHandSide;
@@ -247,7 +247,7 @@ main() {
     assertType(creation, 'B');
 
     var fRef = left.propertyName;
-    assertElement(fRef, findElement.setter('f', className: 'A'));
+    assertElement(fRef, findElement.setter('f', of: 'A'));
     assertType(fRef, 'int');
 
     var right = assignment.rightHandSide;

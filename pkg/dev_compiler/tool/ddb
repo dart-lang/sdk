@@ -112,7 +112,8 @@ void main(List<String> args) {
   }
   ProcessResult result;
   if (kernel) {
-    result = runDdc('dartdevk', [
+    result = runDdc('dartdevc', [
+      '--kernel',
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
       '-o',
@@ -194,7 +195,7 @@ void main(List<String> args) {
       if (!source_maps) {
         console.log('For Dart source maps: npm install source-map-support');
       }
-      console.error(e.toString(), sdk.dart.stackTrace(e).toString());
+      console.error(e);
       process.exit(1);
     }
     ''';
@@ -216,7 +217,7 @@ void main(List<String> args) {
       _isolate_helper.startRootIsolate(() => {}, []);
       main();
     } catch(e) {
-      console.error(e.toString(), dart.stackTrace(e).toString());
+      console.error(e);
     }
     ''';
     var d8File = '$libRoot/$basename.d8.js';

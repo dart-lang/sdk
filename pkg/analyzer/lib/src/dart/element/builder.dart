@@ -48,7 +48,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       : super(initialHolder, compilationUnitElement);
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     // Although it isn't valid to do so because closures are not constant
     // expressions, it's possible for one of the arguments to the constructor to
     // contain a closure. Wrapping the processing of the annotation this way
@@ -62,16 +62,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
     } finally {
       _currentHolder = previousHolder;
     }
-    return null;
   }
 
   @override
-  Object visitBlockFunctionBody(BlockFunctionBody node) {
-    return null;
-  }
+  void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     _enclosingClassHasConstConstructor = false;
     for (var constructor in node.members) {
       if (constructor is ConstructorDeclaration &&
@@ -90,12 +87,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _fillClassElement(node, element, holder);
 
     _currentHolder.addType(element);
-
-    return null;
   }
 
   @override
-  Object visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
@@ -109,19 +104,18 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     if (_unitElement is ElementImpl) {
       _setCodeRange(_unitElement, node);
     }
-    return super.visitCompilationUnit(node);
+    super.visitCompilationUnit(node);
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     FunctionBody body = node.body;
@@ -150,7 +144,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       element.generator = true;
     }
     _currentHolder.addConstructor(element);
-    node.element = element;
+    (node as ConstructorDeclarationImpl).declaredElement = element;
     if (constructorName == null) {
       Identifier returnType = node.returnType;
       if (returnType != null) {
@@ -163,11 +157,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
       element.nameEnd = constructorName.end;
     }
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
     EnumElementImpl enumElement = new EnumElementImpl.forNode(enumName);
     _setCodeRange(enumElement, node);
@@ -199,25 +192,23 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
-    return super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration(node);
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
     _unitElement.setAnnotations(node.offset, annotations);
-    return super.visitExportDirective(node);
+    super.visitExportDirective(node);
   }
 
   @override
-  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    return null;
-  }
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {}
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression expression = node.functionExpression;
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpressionImpl expression = node.functionExpression;
     if (expression != null) {
       ElementHolder holder = new ElementHolder();
       _visitChildren(holder, node);
@@ -248,13 +239,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
           element.hasImplicitReturnType = true;
         }
         _currentHolder.addFunction(element);
-        expression.element = element;
+        expression.declaredElement = element;
         functionName.staticElement = element;
       } else {
         SimpleIdentifier propertyNameNode = node.name;
         if (propertyNameNode == null) {
           // TODO(brianwilkerson) Report this internal error.
-          return null;
+          return;
         }
         String propertyName = propertyNameNode.name;
         TopLevelVariableElementImpl variable = _currentHolder
@@ -291,7 +282,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             getter.hasImplicitReturnType = true;
           }
           _currentHolder.addAccessor(getter);
-          expression.element = getter;
+          expression.declaredElement = getter;
           propertyNameNode.staticElement = getter;
         } else {
           PropertyAccessorElementImpl setter =
@@ -321,21 +312,21 @@ class ApiElementBuilder extends _BaseElementBuilder {
           variable.setter = setter;
           variable.isFinal = false;
           _currentHolder.addAccessor(setter);
-          expression.element = setter;
+          expression.declaredElement = setter;
           propertyNameNode.staticElement = setter;
         }
       }
       holder.validate();
     }
-    return null;
   }
 
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       // visitFunctionDeclaration has already created the element for the
       // declaration.  We just need to visit children.
-      return super.visitFunctionExpression(node);
+      super.visitFunctionExpression(node);
+      return;
     }
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
@@ -357,13 +348,12 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
-    node.element = element;
+    (node as FunctionExpressionImpl).declaredElement = element;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     SimpleIdentifier aliasName = node.name;
@@ -382,11 +372,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     SimpleIdentifier aliasName = node.name;
@@ -403,27 +392,26 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
     _unitElement.setAnnotations(node.offset, annotations);
-    return super.visitImportDirective(node);
+    super.visitImportDirective(node);
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
     _unitElement.setAnnotations(node.offset, annotations);
-    return super.visitLibraryDirective(node);
+    super.visitLibraryDirective(node);
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     try {
       ElementHolder holder = new ElementHolder();
       _visitChildren(holder, node);
@@ -539,7 +527,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     } catch (exception, stackTrace) {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode =
-            node.getAncestor((node) => node is ClassDeclaration);
+            node.thisOrAncestorOfType<ClassDeclaration>();
         StringBuffer buffer = new StringBuffer();
         buffer.write("The element for the method ");
         buffer.write(node.name);
@@ -557,7 +545,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     } finally {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode =
-            node.getAncestor((node) => node is ClassDeclaration);
+            node.thisOrAncestorOfType<ClassDeclaration>();
         StringBuffer buffer = new StringBuffer();
         buffer.write("The element for the method ");
         buffer.write(node.name);
@@ -570,11 +558,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
                 new AnalysisException(buffer.toString()), null));
       }
     }
-    return null;
   }
 
   @override
-  Object visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     ElementHolder holder = _buildClassMembers(node);
 
     SimpleIdentifier nameNode = node.name;
@@ -583,20 +570,18 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _fillClassElement(node, element, holder);
 
     _currentHolder.addMixin(element);
-
-    return null;
   }
 
   @override
-  Object visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
     _unitElement.setAnnotations(node.offset, annotations);
-    return super.visitPartDirective(node);
+    super.visitPartDirective(node);
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     bool isConst = node.isConst;
     bool isFinal = node.isFinal;
     Expression initializerNode = node.initializer;
@@ -658,11 +643,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
         _currentHolder.addAccessor(setter);
       }
     }
-    return null;
   }
 
   @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     super.visitVariableDeclarationList(node);
     AstNode parent = node.parent;
     List<ElementAnnotation> elementAnnotations;
@@ -676,7 +660,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
     }
     _setVariableDeclarationListAnnotations(node, elementAnnotations);
     _setVariableDeclarationListCodeRanges(node);
-    return null;
   }
 
   ElementHolder _buildClassMembers(AstNode classNode) {
@@ -827,7 +810,7 @@ class CompilationUnitBuilder {
  * Instances of the class `DirectiveElementBuilder` build elements for top
  * level library directives.
  */
-class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
+class DirectiveElementBuilder extends SimpleAstVisitor<void> {
   /**
    * The analysis context within which directive elements are being built.
    */
@@ -903,7 +886,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       this.exportSourceKindMap);
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     //
     // Resolve directives.
     //
@@ -926,11 +909,10 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     //
     libraryElement.imports = imports;
     libraryElement.exports = exports;
-    return null;
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source exportedSource = node.selectedSource;
@@ -962,11 +944,10 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       errors.add(new AnalysisError(libraryElement.source, offset, length,
           CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
     }
-    return null;
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source importedSource = node.selectedSource;
@@ -1017,21 +998,18 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       errors.add(new AnalysisError(libraryElement.source, offset, length,
           errorCode, [uriLiteral.toSource()]));
     }
-    return null;
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     (node.element as LibraryElementImpl)?.metadata =
         _getElementAnnotations(node.metadata);
-    return null;
   }
 
   @override
-  Object visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     (node.element as CompilationUnitElementImpl)?.metadata =
         _getElementAnnotations(node.metadata);
-    return null;
   }
 
   /**
@@ -1080,30 +1058,27 @@ class ElementBuilder extends ApiElementBuilder {
       : super(initialHolder, compilationUnitElement);
 
   @override
-  Object visitBlockFunctionBody(BlockFunctionBody node) {
+  void visitBlockFunctionBody(BlockFunctionBody node) {
     _buildLocal(node);
-    return null;
   }
 
   @override
-  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     buildParameterInitializer(
         node.declaredElement as ParameterElementImpl, node.defaultValue);
-    return null;
   }
 
   @override
-  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _buildLocal(node);
-    return null;
   }
 
   @override
-  Object visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     _mixinSuperInvokedNames = new Set<String>();
     try {
-      return super.visitMixinDeclaration(node);
+      super.visitMixinDeclaration(node);
     } finally {
       MixinElementImpl element = node.declaredElement;
       element.superInvokedNames = _mixinSuperInvokedNames.toList();
@@ -1112,11 +1087,10 @@ class ElementBuilder extends ApiElementBuilder {
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElementImpl element = node.declaredElement as VariableElementImpl;
     buildVariableInitializer(element, node.initializer);
-    return null;
   }
 
   void _buildLocal(FunctionBody body) {
@@ -1140,6 +1114,13 @@ class LocalElementBuilder extends _BaseElementBuilder {
   LocalElementBuilder(ElementHolder initialHolder,
       CompilationUnitElementImpl compilationUnitElement)
       : super(initialHolder, compilationUnitElement);
+
+  /**
+   * Initialize a newly created element builder as a first step to analyzing a
+   * dangling dart expression.
+   */
+  LocalElementBuilder.forDanglingExpression()
+      : super(new ElementHolder(), null);
 
   /**
    * Builds the variable elements associated with [node] and stores them in
@@ -1186,13 +1167,13 @@ class LocalElementBuilder extends _BaseElementBuilder {
   }
 
   @override
-  Object visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     buildCatchVariableElements(node);
-    return super.visitCatchClause(node);
+    super.visitCatchClause(node);
   }
 
   @override
-  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElementImpl element =
         new LocalVariableElementImpl.forNode(variableName);
@@ -1211,22 +1192,20 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
-    return null;
   }
 
   @override
-  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     buildParameterInitializer(
         node.declaredElement as ParameterElementImpl, node.defaultValue);
-    return null;
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression expression = node.functionExpression;
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpressionImpl expression = node.functionExpression;
     if (expression == null) {
-      return null;
+      return;
     }
 
     ElementHolder holder = new ElementHolder();
@@ -1255,7 +1234,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
 
     {
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
+      Block enclosingBlock = node.thisOrAncestorOfType<Block>();
       if (enclosingBlock != null) {
         element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       }
@@ -1266,18 +1245,18 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
 
     _currentHolder.addFunction(element);
-    expression.element = element;
+    expression.declaredElement = element;
     node.name.staticElement = element;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       // visitFunctionDeclaration has already created the element for the
       // declaration.  We just need to visit children.
-      return super.visitFunctionExpression(node);
+      super.visitFunctionExpression(node);
+      return;
     }
 
     ElementHolder holder = new ElementHolder();
@@ -1298,43 +1277,38 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (body.isGenerator) {
       element.generator = true;
     }
-
-    {
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
-      if (enclosingBlock != null) {
-        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-      }
+    Block enclosingBlock = node.thisOrAncestorOfType<Block>();
+    if (enclosingBlock != null) {
+      element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
     }
-
     element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
-    node.element = element;
+    (node as FunctionExpressionImpl).declaredElement = element;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(LabeledStatement node) {
     bool onSwitchStatement = node.statement is SwitchStatement;
     buildLabelElements(node.labels, onSwitchStatement, false);
-    return super.visitLabeledStatement(node);
+    super.visitLabeledStatement(node);
   }
 
   @override
-  Object visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(SwitchCase node) {
     buildLabelElements(node.labels, false, true);
-    return super.visitSwitchCase(node);
+    super.visitSwitchCase(node);
   }
 
   @override
-  Object visitSwitchDefault(SwitchDefault node) {
+  void visitSwitchDefault(SwitchDefault node) {
     buildLabelElements(node.labels, false, true);
-    return super.visitSwitchDefault(node);
+    super.visitSwitchDefault(node);
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     bool isConst = node.isConst;
     bool isFinal = node.isFinal;
     Expression initializerNode = node.initializer;
@@ -1354,17 +1328,15 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.isConst = isConst;
     element.isFinal = isFinal;
     buildVariableInitializer(element, initializerNode);
-    return null;
   }
 
   @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     super.visitVariableDeclarationList(node);
     List<ElementAnnotation> elementAnnotations =
         _createElementAnnotations(node.metadata);
     _setVariableDeclarationListAnnotations(node, elementAnnotations);
     _setVariableDeclarationListCodeRanges(node);
-    return null;
   }
 
   void _setVariableVisibleRange(
@@ -1374,7 +1346,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (parent2 is ForStatement) {
       scopeNode = parent2;
     } else {
-      scopeNode = node.getAncestor((node) => node is Block);
+      scopeNode = node.thisOrAncestorOfType<Block>();
     }
     element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }
@@ -1383,7 +1355,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
 /**
  * Base class for API and local element builders.
  */
-abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
+abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
   /**
    * The compilation unit element into which the elements being built will be
    * stored.
@@ -1444,7 +1416,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     NormalFormalParameter normalParameter = node.parameter;
     SimpleIdentifier parameterName = normalParameter.identifier;
     ParameterElementImpl parameter;
@@ -1474,11 +1446,10 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     }
     parameterName?.staticElement = parameter;
     normalParameter.accept(this);
-    return null;
   }
 
   @override
-  Object visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
       FieldFormalParameterElementImpl parameter =
@@ -1505,11 +1476,10 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       _createGenericFunctionType(element, holder);
     }
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
       ParameterElementImpl parameter =
@@ -1534,11 +1504,10 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     element.metadata = _createElementAnnotations(node.metadata);
     _createGenericFunctionType(element, holder);
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(GenericFunctionType node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     GenericFunctionTypeElementImpl element =
@@ -1550,11 +1519,10 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     element.type = type;
     (node as GenericFunctionTypeImpl).type = type;
     holder.validate();
-    return null;
   }
 
   @override
-  Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     ParameterElementImpl parameter;
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -1576,11 +1544,10 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     super.visitSimpleFormalParameter(node);
     parameter ??= node.declaredElement;
     parameter?.metadata = _createElementAnnotations(node.metadata);
-    return null;
   }
 
   @override
-  Object visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElementImpl typeParameter =
         new TypeParameterElementImpl.forNode(parameterName);
@@ -1591,7 +1558,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     typeParameter.type = typeParameterType;
     _currentHolder.addTypeParameter(typeParameter);
     parameterName.staticElement = typeParameter;
-    return super.visitTypeParameter(node);
+    super.visitTypeParameter(node);
   }
 
   /**
@@ -1720,54 +1687,50 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
 /**
  * Builds elements for all node that are not constructors or methods.
  */
-class _ClassNotExecutableElementsBuilder extends UnifyingAstVisitor<Object> {
+class _ClassNotExecutableElementsBuilder extends UnifyingAstVisitor<void> {
   final ApiElementBuilder builder;
   final List<ClassMember> nonFields;
 
   _ClassNotExecutableElementsBuilder(this.builder, this.nonFields);
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     nonFields.add(node);
-    return null;
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     nonFields.add(node);
-    return null;
   }
 
   @override
-  Object visitNode(AstNode node) => node.accept(builder);
+  void visitNode(AstNode node) => node.accept(builder);
 }
 
 /**
  * Instances of the class [_NamespaceCombinatorBuilder] can be used to visit
  * [Combinator] AST nodes and generate [NamespaceCombinator] elements.
  */
-class _NamespaceCombinatorBuilder extends SimpleAstVisitor<Object> {
+class _NamespaceCombinatorBuilder extends SimpleAstVisitor<void> {
   /**
    * Elements generated so far.
    */
   final List<NamespaceCombinator> combinators = <NamespaceCombinator>[];
 
   @override
-  Object visitHideCombinator(HideCombinator node) {
+  void visitHideCombinator(HideCombinator node) {
     HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
     hide.hiddenNames = _getIdentifiers(node.hiddenNames);
     combinators.add(hide);
-    return null;
   }
 
   @override
-  Object visitShowCombinator(ShowCombinator node) {
+  void visitShowCombinator(ShowCombinator node) {
     ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
     show.offset = node.offset;
     show.end = node.end;
     show.shownNames = _getIdentifiers(node.shownNames);
     combinators.add(show);
-    return null;
   }
 
   /**

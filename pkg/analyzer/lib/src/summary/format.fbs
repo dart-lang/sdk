@@ -107,6 +107,9 @@ enum IndexSyntheticElementKind : byte {
   /// The synthetic `values` getter of an enum.
   enumValues,
 
+  /// The synthetic `toString` method of an enum.
+  enumToString,
+
   /// The containing unit itself.
   unit
 }
@@ -639,7 +642,19 @@ enum UnlinkedExprOperation : byte {
   pushThis,
 
   /// Push `super` expression onto the stack.
-  pushSuper
+  pushSuper,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
+  /// onto the stack.  The type parameter for the [Set] is implicitly
+  /// `dynamic`.
+  makeUntypedSet,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
+  /// onto the stack.  The type parameter for the [Set] is obtained from
+  /// [UnlinkedExpr.references].
+  makeTypedSet
 }
 
 /// Enum used to indicate the kind of a parameter.
@@ -1655,6 +1670,10 @@ table UnlinkedExpr {
   /// that in the case of `pushReference` (and sometimes `invokeConstructor` the
   /// actual entity being referred to may be something other than a type.
   references:[EntityRef] (id: 2);
+
+  /// String representation of the expression in a form suitable to be tokenized
+  /// and parsed.
+  sourceRepresentation:string (id: 7);
 
   /// Sequence of strings consumed by the operations `pushString` and
   /// `invokeConstructor`.

@@ -10,6 +10,7 @@
 #include "vm/hash.h"
 #include "vm/hash_map.h"
 #include "vm/heap/heap.h"
+#include "vm/instructions.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -93,6 +94,30 @@ ImageWriter::ImageWriter(Heap* heap,
   SetupShared(&reuse_instructions_, reused_instructions);
 }
 
+void ImageWriter::PrepareForSerialization(
+    GrowableArray<ImageWriterCommand>* commands) {
+  if (commands != nullptr) {
+    const intptr_t initial_offset = next_text_offset_;
+    for (auto& inst : *commands) {
+      ASSERT((initial_offset + inst.expected_offset) == next_text_offset_);
+      switch (inst.op) {
+        case ImageWriterCommand::InsertInstructionOfCode: {
+          RawCode* code = inst.insert_instruction_of_code.code;
+          RawInstructions* instructions = Code::InstructionsOf(code);
+          const intptr_t offset = next_text_offset_;
+          instructions_.Add(InstructionsData(instructions, code, offset));
+          next_text_offset_ += instructions->Size();
+          ASSERT(heap_->GetObjectId(instructions) == 0);
+          heap_->SetObjectId(instructions, offset);
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
+    }
+  }
+}
+
 void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
   if (shared_image == NULL) {
     return;
@@ -136,11 +161,11 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
     return -pair->offset;
   }
 
-  intptr_t heap_size = instructions->Size();
   offset = next_text_offset_;
   heap_->SetObjectId(instructions, offset);
-  next_text_offset_ += heap_size;
+  next_text_offset_ += instructions->Size();
   instructions_.Add(InstructionsData(instructions, code, offset));
+
   return offset;
 }
 
@@ -324,7 +349,7 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          void* callback_data,
                                          const void* shared_objects,
                                          const void* shared_instructions)
-    : ImageWriter(thread->heap(), shared_objects, shared_instructions, NULL),
+    : ImageWriter(thread->heap(), shared_objects, shared_instructions, nullptr),
       assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(NULL) {
 #if defined(DART_PRECOMPILER)
@@ -379,12 +404,19 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   ObjectStore* object_store = Isolate::Current()->object_store();
 
   TypeTestingStubFinder tts;
-  intptr_t offset = Image::kHeaderSize;
+  intptr_t text_offset = 0;
+
   for (intptr_t i = 0; i < instructions_.length(); i++) {
-    const Instructions& insns = *instructions_[i].insns_;
-    const Code& code = *instructions_[i].code_;
+    auto& instr = instructions_[i];
+    ASSERT((instr.text_offset_ - instructions_[0].text_offset_) == text_offset);
+
+    const intptr_t instr_start = text_offset;
+
+    const Instructions& insns = *instr.insns_;
+    const Code& code = *instr.code_;
 
     if (profile_writer_ != nullptr) {
+      const intptr_t offset = Image::kHeaderSize + text_offset;
       ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
       profile_writer_->SetObjectTypeAndName({offset_space_, offset},
                                             "Instructions",
@@ -392,7 +424,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       profile_writer_->AttributeBytesTo({offset_space_, offset},
                                         insns.raw()->Size());
     }
-    offset += insns.raw()->Size();
 
     ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
 
@@ -419,8 +450,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
+      text_offset += sizeof(uword);
 
       WriteByteSequence(beginning, entry);
+      text_offset += (entry - beginning);
+
+      ASSERT((text_offset - instr_start) == insns.HeaderSize());
     }
 
     // 2. Write a label at the entry point.
@@ -468,10 +503,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     {
       // 3. Write from the entry point to the end.
       NoSafepointScope no_safepoint;
-      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
       uword entry = beginning + Instructions::HeaderSize();
-      uword payload_size = insns.Size();
-      payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+      uword payload_size = insns.raw()->Size() - insns.HeaderSize();
       uword end = entry + payload_size;
 
       ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
@@ -479,7 +513,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       ASSERT(Utils::IsAligned(end, sizeof(uword)));
 
       WriteByteSequence(entry, end);
+      text_offset += (end - entry);
     }
+
+    ASSERT((text_offset - instr_start) == insns.raw()->Size());
   }
 
   FrameUnwindEpilogue();
@@ -612,11 +649,16 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     instructions_blob_stream_.WriteWord(0);
   }
 
+  intptr_t text_offset = 0;
+
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
+    auto& instr = instructions_[i];
     const Instructions& insns = *instructions_[i].insns_;
     AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
+    ASSERT((instr.text_offset_ - instructions_[0].text_offset_) == text_offset);
 
+    const intptr_t instr_start = text_offset;
     uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
     uword entry = beginning + Instructions::HeaderSize();
     uword payload_size = insns.Size();
@@ -640,12 +682,16 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
 
     instructions_blob_stream_.WriteWord(marked_tags);
+    text_offset += sizeof(uword);
     beginning += sizeof(uword);
 
     for (uword* cursor = reinterpret_cast<uword*>(beginning);
          cursor < reinterpret_cast<uword*>(end); cursor++) {
       instructions_blob_stream_.WriteWord(*cursor);
+      text_offset += sizeof(uword);
     }
+
+    ASSERT((text_offset - instr_start) == insns.raw()->Size());
   }
 }
 

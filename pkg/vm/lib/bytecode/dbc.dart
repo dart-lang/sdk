@@ -82,7 +82,8 @@ enum Opcode {
 
   // Calls.
   kIndirectStaticCall,
-  kInstanceCall,
+  kInterfaceCall,
+  kDynamicCall,
   kNativeCall,
   kReturnTOS,
 
@@ -235,7 +236,9 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kIndirectStaticCall: const Format(
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kInstanceCall: const Format(
+  Opcode.kInterfaceCall: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kDynamicCall: const Format(
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
   Opcode.kNativeCall: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
@@ -312,7 +315,8 @@ bool isThrow(Opcode opcode) => opcode == Opcode.kThrow;
 bool isCall(Opcode opcode) {
   switch (opcode) {
     case Opcode.kIndirectStaticCall:
-    case Opcode.kInstanceCall:
+    case Opcode.kInterfaceCall:
+    case Opcode.kDynamicCall:
     case Opcode.kNativeCall:
       return true;
     default:

@@ -2110,6 +2110,10 @@ class _HttpClient implements HttpClient {
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
+    if (_closing) {
+      throw new StateError("Client is closed");
+    }
+
     // Ignore any fragments on the request URI.
     uri = uri.removeFragment();
 

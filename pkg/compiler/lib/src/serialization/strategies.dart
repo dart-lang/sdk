@@ -12,11 +12,11 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../js_model/js_world.dart';
 import '../options.dart';
 import '../source_file_provider.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../util/sink_adapter.dart';
 import 'serialization.dart';
 import 'task.dart';

@@ -13,6 +13,7 @@ import "common.dart";
 class C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validateTearoff)
+  @pragma("vm:entry-point")
   void target1(T x, String y) {
     Expect.notEquals(x, -1);
     Expect.equals(y, "foo");

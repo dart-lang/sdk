@@ -22,12 +22,11 @@ import '../js_model/locals.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'builder_kernel.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
@@ -38,6 +37,7 @@ import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
+import 'types.dart';
 
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
@@ -241,10 +241,6 @@ abstract class InferrerEngine {
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function);
-
-  /// Returns `true` if parameter and returns types should be trusted for
-  /// [member].
-  bool trustTypeAnnotations(MemberEntity member);
 
   /// Returns `true` if inference of parameter types is disabled for [member].
   bool assumeDynamic(MemberEntity member);
@@ -782,7 +778,8 @@ class InferrerEngineImpl extends InferrerEngine {
         this,
         member,
         body,
-        closedWorld.globalLocalsMap.getLocalsMap(member));
+        closedWorld.globalLocalsMap.getLocalsMap(member),
+        closedWorld.elementMap.getStaticTypeProvider(member));
     return visitor.run();
   }
 
@@ -832,7 +829,7 @@ class InferrerEngineImpl extends InferrerEngine {
         MemberEntity member = info.calledElement;
         inferredDataBuilder.addFunctionCalledInLoop(member);
       } else if (info.mask != null &&
-          !abstractValueDomain.containsAll(info.mask)) {
+          abstractValueDomain.containsAll(info.mask).isDefinitelyFalse) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
@@ -1246,12 +1243,6 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   @override
-  bool trustTypeAnnotations(MemberEntity member) {
-    return closedWorld.annotationsData.trustTypeAnnotationsMembers
-        .contains(member);
-  }
-
-  @override
   bool assumeDynamic(MemberEntity member) {
     return closedWorld.annotationsData.assumeDynamicMembers.contains(member);
   }
@@ -1278,7 +1269,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   bool checkLoopPhiNode(ir.Node node) => true;
 
   @override
-  bool checkPhiNode(ir.Node node) => true;
+  bool checkPhiNode(ir.Node node) =>
+      node == null || node is ir.TryCatch || node is ir.TryFinally;
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {

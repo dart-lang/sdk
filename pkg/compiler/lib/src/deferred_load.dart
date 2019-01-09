@@ -130,6 +130,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   final Compiler compiler;
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
+  bool get newDeferredSplit => compiler.options.newDeferredSplit;
+  bool get reportInvalidInferredDeferredTypes =>
+      compiler.options.reportInvalidInferredDeferredTypes;
 
   DeferredLoadTask(this.compiler) : super(compiler.measurer) {
     _mainOutputUnit = new OutputUnit(true, 'main', new Set<ImportEntity>());
@@ -193,7 +196,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     void addLiveInstanceMember(MemberEntity member) {
       if (!compiler.resolutionWorldBuilder.isMemberUsed(member)) return;
       if (!member.isInstanceMember) return;
-      dependencies.members.add(member);
+      dependencies.addMember(member);
       _collectDirectMemberDependencies(member, dependencies);
     }
 
@@ -202,7 +205,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
       _collectTypeDependencies(type, dependencies);
     });
-    dependencies.classes.add(cls);
+    dependencies.addClass(cls);
   }
 
   /// Finds all elements and constants that [element] depends directly on.
@@ -216,7 +219,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           elementEnvironment.getFunctionType(element), dependencies);
     }
     if (element.isStatic || element.isTopLevel || element.isConstructor) {
-      dependencies.members.add(element);
+      dependencies.addMember(element);
       _collectDirectMemberDependencies(element, dependencies);
     }
     if (element is ConstructorEntity && element.isGenerativeConstructor) {
@@ -243,19 +246,24 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   /// Recursively collects all the dependencies of [type].
   void _collectTypeDependencies(DartType type, Dependencies dependencies) {
-    // TODO(het): we would like to separate out types that are only needed for
-    // rti from types that are needed for their members.
     if (type is FunctionType) {
       _collectFunctionTypeDependencies(type, dependencies);
     } else if (type is TypedefType) {
-      type.typeArguments
-          .forEach((t) => _collectTypeDependencies(t, dependencies));
+      _collectTypeArgumentDependencies(type.typeArguments, dependencies);
       _collectTypeDependencies(type.unaliased, dependencies);
     } else if (type is InterfaceType) {
-      type.typeArguments
-          .forEach((t) => _collectTypeDependencies(t, dependencies));
-      dependencies.classes.add(type.element);
+      _collectTypeArgumentDependencies(type.typeArguments, dependencies);
+      // TODO(sigmund): when we are able to split classes from types in our
+      // runtime-type representation, this should track type.element as a type
+      // dependency instead.
+      dependencies.addClass(type.element);
     }
+  }
+
+  void _collectTypeArgumentDependencies(
+      Iterable<DartType> typeArguments, Dependencies dependencies) {
+    if (typeArguments == null) return;
+    typeArguments.forEach((t) => _collectTypeDependencies(t, dependencies));
   }
 
   void _collectFunctionTypeDependencies(
@@ -285,7 +293,7 @@ abstract class DeferredLoadTask extends CompilerTask {
         new WorldImpactVisitorImpl(visitStaticUse: (StaticUse staticUse) {
           Entity usedEntity = staticUse.element;
           if (usedEntity is MemberEntity) {
-            dependencies.members.add(usedEntity);
+            dependencies.addMember(usedEntity, staticUse.deferredImport);
           } else {
             assert(usedEntity is KLocalFunction,
                 failedAt(usedEntity, "Unexpected static use $staticUse."));
@@ -298,19 +306,23 @@ abstract class DeferredLoadTask extends CompilerTask {
           switch (staticUse.kind) {
             case StaticUseKind.CONSTRUCTOR_INVOKE:
             case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-              _collectTypeDependencies(staticUse.type, dependencies);
+              // The receiver type of generative constructors is a dependency of
+              // the constructor (handled by `addMember` above) and not a
+              // dependency at the call site.
+              // Factory methods, on the other hand, are like static methods so
+              // the target type is not relevant.
+              // TODO(johnniwinther): Use rti need data to skip unneeded type
+              // arguments.
+              _collectTypeArgumentDependencies(
+                  staticUse.type.typeArguments, dependencies);
               break;
             case StaticUseKind.INVOKE:
             case StaticUseKind.CLOSURE_CALL:
             case StaticUseKind.DIRECT_INVOKE:
               // TODO(johnniwinther): Use rti need data to skip unneeded type
               // arguments.
-              List<DartType> typeArguments = staticUse.typeArguments;
-              if (typeArguments != null) {
-                for (DartType typeArgument in typeArguments) {
-                  _collectTypeDependencies(typeArgument, dependencies);
-                }
-              }
+              _collectTypeArgumentDependencies(
+                  staticUse.typeArguments, dependencies);
               break;
             default:
           }
@@ -320,7 +332,8 @@ abstract class DeferredLoadTask extends CompilerTask {
             case TypeUseKind.TYPE_LITERAL:
               if (type.isInterfaceType) {
                 InterfaceType interface = type;
-                dependencies.classes.add(interface.element);
+                dependencies.addClass(
+                    interface.element, typeUse.deferredImport);
               }
               break;
             case TypeUseKind.INSTANTIATION:
@@ -352,12 +365,8 @@ abstract class DeferredLoadTask extends CompilerTask {
         }, visitDynamicUse: (DynamicUse dynamicUse) {
           // TODO(johnniwinther): Use rti need data to skip unneeded type
           // arguments.
-          List<DartType> typeArguments = dynamicUse.typeArguments;
-          if (typeArguments != null) {
-            for (DartType typeArgument in typeArguments) {
-              _collectTypeDependencies(typeArgument, dependencies);
-            }
-          }
+          _collectTypeArgumentDependencies(
+              dynamicUse.typeArguments, dependencies);
         }),
         DeferredLoadTask.IMPACT_USE);
   }
@@ -428,7 +437,8 @@ abstract class DeferredLoadTask extends CompilerTask {
       Dependencies dependencies = new Dependencies();
       _collectAllElementsAndConstantsResolvedFromClass(element, dependencies);
       LibraryEntity library = element.library;
-      _processDependencies(library, dependencies, oldSet, newSet, queue);
+      _processDependencies(
+          library, dependencies, oldSet, newSet, queue, element);
     } else {
       queue.addClass(element, newSet);
     }
@@ -455,7 +465,8 @@ abstract class DeferredLoadTask extends CompilerTask {
       _collectAllElementsAndConstantsResolvedFromMember(element, dependencies);
 
       LibraryEntity library = element.library;
-      _processDependencies(library, dependencies, oldSet, newSet, queue);
+      _processDependencies(
+          library, dependencies, oldSet, newSet, queue, element);
     } else {
       queue.addMember(element, newSet);
     }
@@ -487,60 +498,111 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// same nodes we have already seen.
   _shouldAddDeferredDependency(ImportSet newSet) => newSet.length <= 1;
 
+  void _fixDependencyInfo(DependencyInfo info, List<ImportEntity> imports,
+      String prefix, String name, Spannable context) {
+    var isDeferred = _isExplicitlyDeferred(imports);
+    if (isDeferred) {
+      if (!newDeferredSplit) {
+        info.isDeferred = true;
+        info.imports = imports;
+      }
+      if (reportInvalidInferredDeferredTypes) {
+        reporter.reportErrorMessage(context, MessageKind.GENERIC, {
+          'text': "$prefix '$name' is deferred but appears to be inferred as"
+              " a return type or a type parameter (dartbug.com/35311)."
+        });
+      }
+    }
+  }
+
+  // The following 3 methods are used to check whether the new deferred split
+  // algorithm and the old one match. Because of a soundness bug in the old
+  // algorithm the new algorithm can pull in a lot of code to the main output
+  // unit. This logic detects it and will make it easier for us to migrate code
+  // off it incrementally.
+  // Note: we only expect discrepancies on class-dependency-info due to how
+  // inferred types expose deferred types in type-variables and return types
+  // (Issue #35311). We added the other two methods to test our transition, but
+  // we don't expect to detect any mismatches there.
+  //
+  // TODO(sigmund): delete once the new implementation is on by default.
+  void _fixClassDependencyInfo(DependencyInfo info, ClassEntity cls,
+      LibraryEntity library, Spannable context) {
+    if (info.isDeferred) return;
+    if (newDeferredSplit && !reportInvalidInferredDeferredTypes) return;
+    var imports = classImportsTo(cls, library);
+    _fixDependencyInfo(info, imports, "Class", cls.name, context);
+  }
+
+  void _fixMemberDependencyInfo(DependencyInfo info, MemberEntity member,
+      LibraryEntity library, Spannable context) {
+    if (info.isDeferred || compiler.options.newDeferredSplit) return;
+    var imports = memberImportsTo(member, library);
+    _fixDependencyInfo(info, imports, "Member", member.name, context);
+  }
+
+  void _fixConstantDependencyInfo(DependencyInfo info, ConstantValue constant,
+      LibraryEntity library, Spannable context) {
+    if (info.isDeferred || compiler.options.newDeferredSplit) return;
+    if (constant is TypeConstantValue) {
+      var type = constant.representedType;
+      if (type is InterfaceType) {
+        var imports = classImportsTo(type.element, library);
+        _fixDependencyInfo(
+            info, imports, "Class (in constant) ", type.element.name, context);
+      } else if (type is TypedefType) {
+        var imports = typedefImportsTo(type.element, library);
+        _fixDependencyInfo(
+            info, imports, "Typedef ", type.element.name, context);
+      }
+    }
+  }
+
   void _processDependencies(LibraryEntity library, Dependencies dependencies,
-      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
-    for (ClassEntity cls in dependencies.classes) {
-      Iterable<ImportEntity> imports = classImportsTo(cls, library);
-      if (_isExplicitlyDeferred(imports)) {
+      ImportSet oldSet, ImportSet newSet, WorkQueue queue, Spannable context) {
+    dependencies.classes.forEach((ClassEntity cls, DependencyInfo info) {
+      _fixClassDependencyInfo(info, cls, library, context);
+      if (info.isDeferred) {
         if (_shouldAddDeferredDependency(newSet)) {
-          for (ImportEntity deferredImport in imports) {
+          for (ImportEntity deferredImport in info.imports) {
             queue.addClass(cls, importSets.singleton(deferredImport));
           }
         }
       } else {
         _updateClassRecursive(cls, oldSet, newSet, queue);
       }
-    }
+    });
 
-    for (MemberEntity member in dependencies.members) {
-      Iterable<ImportEntity> imports = memberImportsTo(member, library);
-      if (_isExplicitlyDeferred(imports)) {
+    dependencies.members.forEach((MemberEntity member, DependencyInfo info) {
+      _fixMemberDependencyInfo(info, member, library, context);
+      if (info.isDeferred) {
         if (_shouldAddDeferredDependency(newSet)) {
-          for (ImportEntity deferredImport in imports) {
+          for (ImportEntity deferredImport in info.imports) {
             queue.addMember(member, importSets.singleton(deferredImport));
           }
         }
       } else {
         _updateMemberRecursive(member, oldSet, newSet, queue);
       }
-    }
+    });
 
     for (Local localFunction in dependencies.localFunctions) {
       _updateLocalFunction(localFunction, oldSet, newSet);
     }
 
-    for (ConstantValue dependency in dependencies.constants) {
-      if (dependency is TypeConstantValue) {
-        var type = dependency.representedType;
-        var imports = const <ImportEntity>[];
-        if (type is InterfaceType) {
-          imports = classImportsTo(type.element, library);
-        } else if (type is TypedefType) {
-          imports = typedefImportsTo(type.element, library);
-        }
-        if (_isExplicitlyDeferred(imports)) {
-          if (_shouldAddDeferredDependency(newSet)) {
-            for (ImportEntity deferredImport in imports) {
-              queue.addConstant(
-                  dependency, importSets.singleton(deferredImport));
-            }
+    dependencies.constants
+        .forEach((ConstantValue constant, DependencyInfo info) {
+      _fixConstantDependencyInfo(info, constant, library, context);
+      if (info.isDeferred) {
+        if (_shouldAddDeferredDependency(newSet)) {
+          for (ImportEntity deferredImport in info.imports) {
+            queue.addConstant(constant, importSets.singleton(deferredImport));
           }
-          continue;
         }
+      } else {
+        _updateConstantRecursive(constant, oldSet, newSet, queue);
       }
-
-      _updateConstantRecursive(dependency, oldSet, newSet, queue);
-    }
+    });
   }
 
   /// Adds extra dependencies coming from mirror usage.
@@ -1488,8 +1550,36 @@ String deferredPartFileName(CompilerOptions options, String name,
 }
 
 class Dependencies {
-  final Set<ClassEntity> classes = new Set<ClassEntity>();
-  final Set<MemberEntity> members = new Set<MemberEntity>();
+  final Map<ClassEntity, DependencyInfo> classes = {};
+  final Map<MemberEntity, DependencyInfo> members = {};
   final Set<Local> localFunctions = new Set<Local>();
-  final Set<ConstantValue> constants = new Set<ConstantValue>();
+  final Map<ConstantValue, DependencyInfo> constants = {};
+
+  void addClass(ClassEntity cls, [ImportEntity import]) {
+    (classes[cls] ??= new DependencyInfo()).registerImport(import);
+  }
+
+  void addMember(MemberEntity m, [ImportEntity import]) {
+    (members[m] ??= new DependencyInfo()).registerImport(import);
+  }
+
+  void addConstant(ConstantValue c, [ImportEntity import]) {
+    (constants[c] ??= new DependencyInfo()).registerImport(import);
+  }
+}
+
+class DependencyInfo {
+  bool isDeferred = true;
+  List<ImportEntity> imports;
+
+  registerImport(ImportEntity import) {
+    if (!isDeferred) return;
+    // A null import represents a direct non-deferred dependency.
+    if (import != null) {
+      (imports ??= []).add(import);
+    } else {
+      imports = null;
+      isDeferred = false;
+    }
+  }
 }

@@ -1,12 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,9 +28,9 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
+    addMetaPackage();
 
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
 lib B;
 import 'package:meta/meta.dart';
 
@@ -40,7 +38,7 @@ bool foo(int bar, {bool boo, @required int baz}) => false;
 ''');
 
     addTestSource('''
-import "${convertAbsolutePathToUri('/testB.dart')}";
+import 'b.dart';
 
 void main() {f^}''');
     await computeSuggestions();
@@ -51,12 +49,12 @@ void main() {f^}''');
 
   test_ArgumentList() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertAbsolutePathToUri('/libA.dart')}';
+        import 'a.dart';
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -77,13 +75,13 @@ void main() {f^}''');
 
   test_ArgumentList_imported_function() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         expect(arg) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertAbsolutePathToUri('/libA.dart')}'
+        import 'a.dart';
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -104,14 +102,14 @@ void main() {f^}''');
 
   test_ArgumentList_InstanceCreationExpression_functionalArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertAbsolutePathToUri('/libA.dart')}';
+        import 'a.dart';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -135,7 +133,7 @@ void main() {f^}''');
 
   test_ArgumentList_InstanceCreationExpression_typedefArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         typedef Funct();
         class A { A(Funct f) { } }
@@ -143,7 +141,7 @@ void main() {f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertAbsolutePathToUri('/libA.dart')}';
+        import 'a.dart';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -167,12 +165,12 @@ void main() {f^}''');
 
   test_ArgumentList_local_function() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertAbsolutePathToUri('/libA.dart')}'
+        import 'a.dart';
         expect(arg) { }
         class B { }
         String bar() => true;
@@ -194,12 +192,12 @@ void main() {f^}''');
 
   test_ArgumentList_local_method() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '${convertAbsolutePathToUri('/libA.dart')}'
+        import 'a.dart';
         class B {
           expect(arg) { }
           void foo() {expect(^)}}
@@ -221,14 +219,14 @@ void main() {f^}''');
 
   test_ArgumentList_MethodInvocation_functionalArg() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertAbsolutePathToUri('/libA.dart')}';
+        import 'a.dart';
         class B { }
         String bar(f()) => true;
         void main() {bar(^);}''');
@@ -252,14 +250,14 @@ void main() {f^}''');
 
   test_ArgumentList_MethodInvocation_methodArg() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '${convertAbsolutePathToUri('/libA.dart')}';
+        import 'a.dart';
         class B { String bar(f()) => true; }
         void main() {new B().bar(^);}''');
 
@@ -282,11 +280,11 @@ void main() {f^}''');
   test_ArgumentList_namedParam() async {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }''');
     addTestSource('''
-        import '${convertAbsolutePathToUri('/libA.dart')}'
+        import 'a.dart';
         String bar() => true;
         void main() {expect(foo: ^)}''');
 
@@ -320,12 +318,12 @@ void main() {f^}''');
 
   test_AsExpression_type_subtype_extends_filter() async {
     // SimpleIdentifier  TypeName  AsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
           foo() { }
           class A {} class B extends A {} class C extends B {}
           class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-          import "${convertAbsolutePathToUri('/testB.dart')}";
+          import 'b.dart';
          main(){A a; if (a as ^)}''');
 
     await computeSuggestions();
@@ -342,12 +340,12 @@ void main() {f^}''');
 
   test_AsExpression_type_subtype_implements_filter() async {
     // SimpleIdentifier  TypeName  AsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
           foo() { }
           class A {} class B implements A {} class C implements B {}
           class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-          import "${convertAbsolutePathToUri('/testB.dart')}";
+          import 'b.dart';
           main(){A a; if (a as ^)}''');
 
     await computeSuggestions();
@@ -491,11 +489,11 @@ void main() {f^}''');
   }
 
   test_AwaitExpression_function() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 Future y() async {return 0;}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   int x;
   foo() async {await ^}
@@ -504,20 +502,20 @@ class B extends A {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestFunction('y', 'dynamic');
+    assertSuggestFunction('y', 'Future<dynamic>');
     assertNotSuggested('A');
     assertSuggestClass('Object');
   }
 
   test_AwaitExpression_inherited() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 lib libB;
 class A {
   Future y() async { return 0; }
 }''');
     addTestSource('''
-import "${convertAbsolutePathToUri('/testB.dart')}";
+import 'b.dart';
 class B extends A {
   foo() async {await ^}
 }
@@ -565,29 +563,29 @@ class B extends A {
 
   test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testAB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
+        import "ab.dart";
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -620,7 +618,7 @@ class B extends A {
     assertNotSuggested('x');
     assertNotSuggested('partT8');
 
-    assertSuggestClass('A', elemFile: '/testAB.dart');
+    assertSuggestClass('A', elemFile: '/home/test/lib/ab.dart');
     if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     }
@@ -668,29 +666,29 @@ class B extends A {
 
   test_Block_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testAB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
+        import "ab.dart";
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -781,29 +779,29 @@ class B extends A {
 
   test_Block_final_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testAB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g hide G;
+        import "ab.dart";
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g hide G;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -882,29 +880,29 @@ class B extends A {
 
   test_Block_final_var() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testAB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
+        import "ab.dart";
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -980,30 +978,30 @@ class B extends A {
   }
 
   test_Block_identifier_partial() async {
-    resolveSource('/testAB.dart', '''
+    resolveSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class DF { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         class D3 { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testAB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
+        import "ab.dart";
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g;
         int T5;
         var _T6;
         Z D2() {int x;}
@@ -1058,14 +1056,14 @@ class B extends A {
 
   test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
         class E extends F { var e1; e2() { } }
         class I { int i1; i2() { } }
         class M { var m1; int m2() { } }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class A extends E implements I with M {a() {^}}''');
 
     await computeSuggestions();
@@ -1112,29 +1110,29 @@ class B extends A {
   }
 
   test_Block_local_function() async {
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testAB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
+        import "ab.dart";
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -1164,29 +1162,29 @@ class B extends A {
 
   test_Block_partial_results() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
-        import "${convertAbsolutePathToUri('/testCD.dart')}" hide D;
-        import "${convertAbsolutePathToUri('/testEEF.dart')}" show EE;
-        import "${convertAbsolutePathToUri('/testG.dart')}" as g;
+        import 'b.dart';
+        import "cd.dart" hide D;
+        import "eef.dart" show EE;
+        import "g.dart" as g;
         int T5;
         var _T6;
         Z D2() {int x;}
@@ -1201,27 +1199,24 @@ class B extends A {
   }
 
   test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
-    addSource(
-        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = '/proj/completionTest.dart';
-    addTestSource('class C {foo(){F^}}');
+    addPackageFile('aaa', 'a.dart', 'class A {}');
+    addTestSource('main() { ^ }');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
     // Not imported, so not suggested
-    assertNotSuggested('Foo');
-    assertNotSuggested('Foo2');
-    assertNotSuggested('Future');
+    assertNotSuggested('A');
+    assertNotSuggested('Completer');
   }
 
   test_CascadeExpression_selector1() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         // looks like a cascade to the parser
@@ -1243,10 +1238,10 @@ class B extends A {
 
   test_CascadeExpression_selector2() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^z}''');
@@ -1266,10 +1261,10 @@ class B extends A {
 
   test_CascadeExpression_selector2_withTrailingReturn() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^ return}''');
@@ -1361,10 +1356,10 @@ class B extends A {
 
   test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('testB.dart')}" as x;
+        import "b.dart" as x;
         @deprecated class A {^}
         class _B {}
         A T;''');
@@ -1386,10 +1381,10 @@ class B extends A {
 
   test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('testB.dart')}" as x;
+        import "b.dart" as x;
         class A {final ^}
         class _B {}
         A T;''');
@@ -1407,10 +1402,10 @@ class B extends A {
 
   test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('testB.dart')}" as x;
+        import "b.dart" as x;
         class A {final ^ A(){}}
         class _B {}
         A T;''');
@@ -1428,10 +1423,10 @@ class B extends A {
 
   test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('testB.dart')}" as Soo;
+        import "b.dart" as Soo;
         class A {final S^ A();}
         class _B {}
         A Sew;''');
@@ -1449,10 +1444,10 @@ class B extends A {
 
   test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('testB.dart')}" as x;
+        import "b.dart" as x;
         class A {final ^ final foo;}
         class _B {}
         A T;''');
@@ -1470,10 +1465,10 @@ class B extends A {
 
   test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('testB.dart')}" as x;
+        import "b.dart" as x;
         class A {final ^ var foo;}
         class _B {}
         A T;''');
@@ -1491,7 +1486,7 @@ class B extends A {
 
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         library libAB;
         part 'partAB.dart';
         class A { }
@@ -1501,12 +1496,12 @@ class B extends A {
         var T1;
         PB F1() => new PB();
         class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         class C { }
         class D { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}" hide ^;
-        import "${convertAbsolutePathToUri('/testCD.dart')}";
+        import "b.dart" hide ^;
+        import "cd.dart";
         class X {}''');
 
     await computeSuggestions();
@@ -1515,7 +1510,7 @@ class B extends A {
 
   test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
         library libAB;
         part 'partAB.dart';
         class A { }
@@ -1527,12 +1522,12 @@ class B extends A {
         typedef PB2 F2(int blat);
         class Clz = Object with Object;
         class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
         class C { }
         class D { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}" show ^;
-        import "${convertAbsolutePathToUri('/testCD.dart')}";
+        import "b.dart" show ^;
+        import "cd.dart";
         class X {}''');
 
     await computeSuggestions();
@@ -1541,12 +1536,12 @@ class B extends A {
 
   test_ConditionalExpression_elseExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -1561,12 +1556,12 @@ class B extends A {
 
   test_ConditionalExpression_elseExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -1590,12 +1585,12 @@ class B extends A {
 
   test_ConditionalExpression_partial_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -1610,12 +1605,12 @@ class B extends A {
 
   test_ConditionalExpression_partial_thenExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -1639,12 +1634,12 @@ class B extends A {
 
   test_ConditionalExpression_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -1660,13 +1655,13 @@ class B extends A {
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
 
@@ -1685,13 +1680,13 @@ class B extends A {
   test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
 
@@ -1786,7 +1781,7 @@ class B extends A {
   }
 
   test_doc_class() async {
-    addSource('/libA.dart', r'''
+    addSource('/home/test/lib/a.dart', r'''
 library A;
 /// My class.
 /// Short description.
@@ -1794,8 +1789,7 @@ library A;
 /// Longer description.
 class A {}
 ''');
-    addTestSource(
-        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
+    addTestSource('import "a.dart"; main() {^}');
 
     await computeSuggestions();
 
@@ -1809,7 +1803,7 @@ class A {}
   }
 
   test_doc_function() async {
-    resolveSource('/libA.dart', r'''
+    resolveSource('/home/test/lib/a.dart', r'''
 library A;
 /// My function.
 /// Short description.
@@ -1817,8 +1811,7 @@ library A;
 /// Longer description.
 int myFunc() {}
 ''');
-    addTestSource(
-        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
+    addTestSource('import "a.dart"; main() {^}');
 
     await computeSuggestions();
 
@@ -1829,7 +1822,7 @@ int myFunc() {}
   }
 
   test_doc_function_c_style() async {
-    resolveSource('/libA.dart', r'''
+    resolveSource('/home/test/lib/a.dart', r'''
 library A;
 /**
  * My function.
@@ -1839,8 +1832,7 @@ library A;
  */
 int myFunc() {}
 ''');
-    addTestSource(
-        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
+    addTestSource('import "a.dart"; main() {^}');
 
     await computeSuggestions();
 
@@ -1851,9 +1843,8 @@ int myFunc() {}
   }
 
   test_enum() async {
-    addSource('/libA.dart', 'library A; enum E { one, two }');
-    addTestSource(
-        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
+    addSource('/home/test/lib/a.dart', 'library A; enum E { one, two }');
+    addTestSource('import "a.dart"; main() {^}');
     await computeSuggestions();
     assertSuggestEnum('E');
     assertNotSuggested('one');
@@ -1861,9 +1852,9 @@ int myFunc() {}
   }
 
   test_enum_deprecated() async {
-    addSource('/libA.dart', 'library A; @deprecated enum E { one, two }');
-    addTestSource(
-        'import "${convertAbsolutePathToUri('/libA.dart')}"; main() {^}');
+    addSource(
+        '/home/test/lib/a.dart', 'library A; @deprecated enum E { one, two }');
+    addTestSource('import "a.dart"; main() {^}');
     await computeSuggestions();
     // TODO(danrube) investigate why suggestion/element is not deprecated
     // when AST node has correct @deprecated annotation
@@ -1873,7 +1864,7 @@ int myFunc() {}
   }
 
   test_enum_filter() async {
-    addSource('/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 enum E { one, two }
 enum F { three, four }
 ''');
@@ -1899,12 +1890,12 @@ main() {
 
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         _B F1() { }
         class A {int x;}
         class _B { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         typedef int F2(int blat);
         class Clz = Object with Object;
         class C {foo(){^} void bar() {}}''');
@@ -1929,11 +1920,11 @@ main() {
 
   test_ExpressionStatement_name() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         B T1;
         class B{}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         class C {a() {C ^}}''');
 
     await computeSuggestions();
@@ -1943,9 +1934,9 @@ main() {
   test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/testA.dart', 'class A { }');
+    addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         class C {A ^}''');
 
     await computeSuggestions();
@@ -1955,9 +1946,9 @@ main() {
   test_FieldDeclaration_name_var() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/testA.dart', 'class A { }');
+    addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         class C {var ^}''');
 
     await computeSuggestions();
@@ -2137,11 +2128,11 @@ main() {
   }
 
   test_function_parameters_mixed_required_and_named() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 int m(x, {int y}) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -2158,11 +2149,11 @@ class B extends A {
   }
 
   test_function_parameters_mixed_required_and_positional() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m(x, [int y]) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -2179,11 +2170,11 @@ class B extends A {
   }
 
   test_function_parameters_named() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m({x, int y}) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -2200,11 +2191,11 @@ class B extends A {
   }
 
   test_function_parameters_none() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m() {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -2219,11 +2210,11 @@ class B extends A {
   }
 
   test_function_parameters_positional() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m([x, int y]) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -2240,11 +2231,11 @@ class B extends A {
   }
 
   test_function_parameters_required() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m(x, int y) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -2262,13 +2253,13 @@ class B extends A {
 
   test_FunctionDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -2292,13 +2283,13 @@ class B extends A {
 
   test_FunctionDeclaration_returnType_afterComment2() async {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -2322,13 +2313,13 @@ class B extends A {
 
   test_FunctionDeclaration_returnType_afterComment3() async {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -2365,6 +2356,36 @@ class B extends A {
     assertNotSuggested('args');
     assertNotSuggested('b');
     assertSuggestClass('Object');
+  }
+
+  test_functionTypeAlias_genericTypeAlias() async {
+    addSource('/home/test/lib/a.dart', r'''
+typedef F = void Function();
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
+  test_functionTypeAlias_old() async {
+    addSource('/home/test/lib/a.dart', r'''
+typedef void F();
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'void');
   }
 
   test_IfStatement() async {
@@ -2433,8 +2454,7 @@ class B extends A {
   }
 
   test_implicitCreation() async {
-    configurePreviewDart2();
-    addSource('/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {
   A.a1();
   A.a2();
@@ -2474,12 +2494,12 @@ main() {
 
   test_IndexExpression() async {
     // ExpressionStatement  Block
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -2503,12 +2523,12 @@ main() {
 
   test_IndexExpression2() async {
     // SimpleIdentifier IndexExpression ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         class B {int x;}
@@ -2522,12 +2542,12 @@ main() {
   }
 
   test_InstanceCreationExpression() async {
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
-import "${convertAbsolutePathToUri('/testA.dart')}";
+import 'a.dart';
 import "dart:math" as math;
 main() {new ^ String x = "hello";}''');
 
@@ -2571,7 +2591,7 @@ main() {new ^ String x = "hello";}''');
   }
 
   test_InstanceCreationExpression_abstractClass() async {
-    addSource('/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 abstract class A {
   A();
   A.generative();
@@ -2593,7 +2613,7 @@ main() {
   }
 
   test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
-    addSource('/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 abstract class A {}
 ''');
     addTestSource('''
@@ -2609,8 +2629,7 @@ main() {
   }
 
   test_InstanceCreationExpression_filter() async {
-    configurePreviewDart2();
-    addSource('/a.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class A {}
 class B extends A {}
 class C implements A {}
@@ -2637,14 +2656,19 @@ main() {
     assertSuggestConstructor('D', elemOffset: -1);
   }
 
+  @failingTest
   test_InstanceCreationExpression_imported() async {
+    // This is failing because the constructor for Future is added twice. I
+    // suspect that we're adding it from both dart:core and dart:async and are
+    // not noticing that it's the same element.
+
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {A(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         import "dart:async";
         int T2;
         F2() { }
@@ -2676,15 +2700,15 @@ main() {
 
   test_InstanceCreationExpression_unimported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/testAB.dart', 'class Foo { }');
-    addTestSource('class C {foo(){new F^}}');
+    addSource('/home/test/lib/ab.dart', 'class Clip { }');
+    addTestSource('class A {foo(){new C^}}');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     // Not imported, so not suggested
-    assertNotSuggested('Future');
-    assertNotSuggested('Foo');
+    assertNotSuggested('Completer');
+    assertNotSuggested('Clip');
   }
 
   test_internal_sdk_libs() async {
@@ -2700,13 +2724,13 @@ main() {
 
   test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -2735,13 +2759,13 @@ main() {
 
   test_InterpolationExpression_block() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -2809,12 +2833,12 @@ main() {
 
   test_IsExpression() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class Y {Y.c(); Y._d(); z() {}}
         main() {var x; if (x is ^) { }}''');
 
@@ -2879,12 +2903,12 @@ main() {
 
   test_IsExpression_type_subtype_extends_filter() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         foo() { }
         class A {} class B extends A {} class C extends B {}
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         main(){A a; if (a is ^)}''');
 
     await computeSuggestions();
@@ -2901,12 +2925,12 @@ main() {
 
   test_IsExpression_type_subtype_implements_filter() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         foo() { }
         class A {} class B implements A {} class C implements B {}
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         main(){A a; if (a is ^)}''');
 
     await computeSuggestions();
@@ -2922,14 +2946,14 @@ main() {
   }
 
   test_keyword() async {
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
         lib B;
         int newT1;
         int T1;
         nowIsIt() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         String newer() {}
         var m;
         main() {new^ X.c();}''');
@@ -2983,13 +3007,13 @@ main() {
 
   test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3020,13 +3044,13 @@ main() {
 
   test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3047,13 +3071,13 @@ main() {
 
   test_MapLiteralEntry2() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3068,11 +3092,11 @@ main() {
   }
 
   test_method_parameters_mixed_required_and_named() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m(x, {int y}) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3089,11 +3113,11 @@ class B extends A {
   }
 
   test_method_parameters_mixed_required_and_positional() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m(x, [int y]) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3110,11 +3134,11 @@ class B extends A {
   }
 
   test_method_parameters_named() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m({x, int y}) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3131,11 +3155,11 @@ class B extends A {
   }
 
   test_method_parameters_none() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m() {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3150,11 +3174,11 @@ class B extends A {
   }
 
   test_method_parameters_positional() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m([x, int y]) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3171,11 +3195,11 @@ class B extends A {
   }
 
   test_method_parameters_required() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 void m(x, int y) {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B {
   main() {^}
 }
@@ -3205,14 +3229,14 @@ class B {
 
   test_MethodDeclaration_body_static() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testC.dart', '''
+    addSource('/home/test/lib/c.dart', '''
         class C {
           c1() {}
           var c2;
           static c3() {}
           static var c4;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testC.dart')}";
+        import "c.dart";
         class B extends C {
           b1() {}
           var b2;
@@ -3252,9 +3276,7 @@ class B {
     assertNotSuggested('_g');
     assertSuggestClass('bool');
     if (suggestConstructorsWithoutNew) {
-      // TODO(brianwilkerson) Should not suggest constructors for classes that
-      // cannot be instantiated.
-      assertSuggestConstructor('bool');
+      assertSuggestConstructor('List');
     }
   }
 
@@ -3293,13 +3315,13 @@ class B {
 
   test_MethodDeclaration_returnType() async {
     // ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3322,13 +3344,13 @@ class B {
 
   test_MethodDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3351,13 +3373,13 @@ class B {
 
   test_MethodDeclaration_returnType_afterComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3380,13 +3402,13 @@ class B {
 
   test_MethodDeclaration_returnType_afterComment3() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         int T2;
         F2() { }
         typedef D2();
@@ -3443,7 +3465,7 @@ class B {
   }
 
   test_mixin_ordering() async {
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 class B {}
 class M1 {
   void m() {}
@@ -3453,7 +3475,7 @@ class M2 {
 }
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class C extends B with M1, M2 {
   void f() {
     ^
@@ -3462,48 +3484,6 @@ class C extends B with M1, M2 {
 ''');
     await computeSuggestions();
     assertNotSuggested('m');
-  }
-
-  /**
-   * Ensure that completions in one context don't appear in another
-   */
-  test_multiple_contexts() async {
-    // Create a 2nd context with source
-    var context2 = AnalysisEngine.instance.createAnalysisContext();
-    context2.sourceFactory =
-        new SourceFactory([new DartUriResolver(sdk), resourceResolver]);
-    String content2 = 'class ClassFromAnotherContext { }';
-    Source source2 =
-        newFile('/context2/foo.dart', content: content2).createSource();
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source2);
-    context2.applyChanges(changeSet);
-    context2.setContents(source2, content2);
-
-    // Resolve the source in the 2nd context and update the index
-    var result = context2.performAnalysisTask();
-    while (result.hasMoreWork) {
-      result = context2.performAnalysisTask();
-    }
-
-    // Check that source in 2nd context does not appear in completion in 1st
-    addSource('/context1/libA.dart', '''
-      library libA;
-      class ClassInLocalContext {int x;}''');
-    testFile = '/context1/completionTest.dart';
-    addTestSource('''
-      import "${convertAbsolutePathToUri("/context1/libA.dart")}";
-      import "${convertAbsolutePathToUri("/foo.dart")}";
-      main() {C^}
-      ''');
-
-    await computeSuggestions();
-    assertSuggestClass('ClassInLocalContext');
-    if (suggestConstructorsWithoutNew) {
-      assertSuggestConstructor('ClassInLocalContext');
-    }
-    // Assert contributor does not include results from 2nd context.
-    assertNotSuggested('ClassFromAnotherContext');
   }
 
   test_new_instance() async {
@@ -3519,11 +3499,11 @@ class C extends B with M1, M2 {
   }
 
   test_no_parameters_field() async {
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 int x;
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3534,11 +3514,11 @@ class B extends A {
   }
 
   test_no_parameters_getter() async {
-    resolveSource('/libA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 int get x => null;
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3549,11 +3529,11 @@ class B extends A {
   }
 
   test_no_parameters_setter() async {
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 set x(int value) {};
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/libA.dart')}';
+import 'a.dart';
 class B extends A {
   main() {^}
 }
@@ -3572,15 +3552,15 @@ class B extends A {
 
   test_partFile_TypeName() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library libA;
-        import "${convertAbsolutePathToUri('/testB.dart')}";
-        part "${convertAbsolutePathToUri(testFile)}";
+        import 'b.dart';
+        part "test.dart";
         class A { }
         var m;''');
     addTestSource('''
@@ -3588,7 +3568,6 @@ class B extends A {
         class B { factory B.bar(int x) => null; }
         main() {new ^}''');
 
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3608,23 +3587,22 @@ class B extends A {
 
   test_partFile_TypeName2() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib libB;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         part of libA;
         class B { }''');
     addTestSource('''
         library libA;
-        import "${convertAbsolutePathToUri('/testB.dart')}";
-        part "testA.dart";
+        import 'b.dart';
+        part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
 
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3644,7 +3622,7 @@ class B extends A {
 
   test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class I {
           static const scI = 'boo';
@@ -3658,7 +3636,7 @@ class B extends A {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class A extends B {
           static const String scA = 'foo';
           w() { }}
@@ -3691,7 +3669,7 @@ class B extends A {
 
   test_PrefixedIdentifier_class_imported() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class I {X get f => new A();get _g => new A();}
         class A implements I {
@@ -3702,7 +3680,7 @@ class B extends A {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         main() {A a; a.^}''');
 
     await computeSuggestions();
@@ -3770,13 +3748,13 @@ class B extends A {
 
   test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}" as b;
+        import "b.dart" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -3797,13 +3775,13 @@ class B extends A {
 
   test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}" as b;
+        import "b.dart" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -3824,13 +3802,13 @@ class B extends A {
 
   test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}" as b;
+        import "b.dart" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -3851,13 +3829,13 @@ class B extends A {
 
   test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         foo(X x) {x.^}''');
 
     await computeSuggestions();
@@ -3870,11 +3848,11 @@ class B extends A {
 
   test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";
+        import 'a.dart';
         class X {foo(){A^.bar}}''');
 
     await computeSuggestions();
@@ -4016,7 +3994,7 @@ class B extends A {
 
   test_PropertyAccess_noTarget() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
-    addSource('/testAB.dart', 'class Foo { }');
+    addSource('/home/test/lib/ab.dart', 'class Foo { }');
     addTestSource('class C {foo(){.^}}');
 
     await computeSuggestions();
@@ -4025,7 +4003,7 @@ class B extends A {
 
   test_PropertyAccess_noTarget2() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
-    addSource('/testAB.dart', 'class Foo { }');
+    addSource('/home/test/lib/ab.dart', 'class Foo { }');
     addTestSource('main() {.^}');
 
     await computeSuggestions();
@@ -4314,12 +4292,12 @@ class B extends A {
 
   test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
         class C1 {int x;}
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";'
+        import 'a.dart';
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -4340,12 +4318,12 @@ class B extends A {
 
   test_TypeArgumentList2() async {
     // TypeName  TypeArgumentList  TypeName
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         class C1 {int x;}
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testA.dart')}";'
+        import 'a.dart';
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -4360,16 +4338,16 @@ class B extends A {
   }
 
   test_TypeArgumentList_recursive() async {
-    resolveSource('/testA.dart', '''
+    resolveSource('/home/test/lib/a.dart', '''
 class A {}
 ''');
-    resolveSource('/testB.dart', '''
-export 'testA.dart';
-export 'testB.dart';
+    resolveSource('/home/test/lib/b.dart', '''
+export 'a.dart';
+export 'b.dart';
 class B {}
 ''');
     addTestSource('''
-import '${convertAbsolutePathToUri('/testB.dart')}';
+import 'b.dart';
 List<^> x;
 ''');
     await computeSuggestions();
@@ -4382,13 +4360,13 @@ List<^> x;
   test_VariableDeclaration_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class Y {Y.c(); Y._d(); z() {}}
         main() {var ^}''');
 
@@ -4409,13 +4387,13 @@ List<^> x;
   test_VariableDeclarationStatement_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         class Y {Y.c(); Y._d(); z() {}}
         class C {bar(){var f; {var x;} var e = ^}}''');
 
@@ -4434,14 +4412,14 @@ List<^> x;
   test_VariableDeclarationStatement_RHS_missing_semicolon() async {
     // VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    resolveSource('/testB.dart', '''
+    resolveSource('/home/test/lib/b.dart', '''
         lib B;
         foo1() { }
         void bar1() { }
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri('/testB.dart')}";
+        import 'b.dart';
         foo2() { }
         void bar2() { }
         class Y {Y.c(); Y._d(); z() {}}

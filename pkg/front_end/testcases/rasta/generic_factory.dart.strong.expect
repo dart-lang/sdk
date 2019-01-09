@@ -8,19 +8,17 @@
 //   factory A.c() = Missing;
 //           ^
 //
-// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The return type 'B<C1>' of the constructor 'B.a' isn't a subtype of 'A<T>'.
+// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
 //  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
-// Try redirecting to a different constructor.
 //   factory A.b() = B<C1>.a;
 //                   ^
 //
-// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The return type 'C<C2>' of the constructor 'C' isn't a subtype of 'B<S>'.
+// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
 //  - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
-// Try redirecting to a different constructor.
 //   factory B.b() = C<C2>;
 //                   ^
 //
@@ -38,19 +36,17 @@
 //   factory A.c() = Missing;
 //           ^
 //
-// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The return type 'B<C1>' of the constructor 'B.a' isn't a subtype of 'A<T>'.
+// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
 //  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
-// Try redirecting to a different constructor.
 //   factory A.b() = B<C1>.a;
 //                   ^
 //
-// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The return type 'C<C2>' of the constructor 'C' isn't a subtype of 'B<S>'.
+// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
 //  - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
-// Try redirecting to a different constructor.
 //   factory B.b() = C<C2>;
 //                   ^
 
@@ -105,7 +101,7 @@ static method main() → dynamic {
   new self::C::•<self::C1>();
   new self::C::•<self::C3>();
   new self::C::•<self::C2>();
-  let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
+  invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:11: Error: Method not found: 'Missing'.
   factory A.c() = Missing;
           ^^^^^^^";
 }

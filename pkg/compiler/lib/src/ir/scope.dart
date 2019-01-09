@@ -50,6 +50,7 @@ class ScopeModel {
 
 abstract class VariableScopeModel {
   VariableScope getScopeFor(ir.TreeNode node);
+  Iterable<ir.VariableDeclaration> get assignedVariables;
   bool isEffectivelyFinal(ir.VariableDeclaration node);
 }
 
@@ -72,13 +73,22 @@ class VariableScopeModelImpl implements VariableScopeModel {
   }
 
   @override
+  Iterable<ir.VariableDeclaration> get assignedVariables =>
+      _assignedVariables ?? <ir.VariableDeclaration>[];
+
+  @override
   bool isEffectivelyFinal(ir.VariableDeclaration node) {
     return _assignedVariables == null || !_assignedVariables.contains(node);
   }
 }
 
+/// Variable information for a scope.
 abstract class VariableScope {
-  Iterable<ir.VariableDeclaration> get variables;
+  /// Returns the set of [ir.VariableDeclaration]s that have been assigned to in
+  /// this scope.
+  Iterable<ir.VariableDeclaration> get assignedVariables;
+
+  /// Returns `true` if this scope has a [ir.ContinueSwitchStatement].
   bool get hasContinueSwitch;
 }
 
@@ -97,13 +107,13 @@ class VariableScopeImpl implements VariableScope {
     _assignedVariables.add(variable);
   }
 
-  Iterable<ir.VariableDeclaration> get variables sync* {
+  Iterable<ir.VariableDeclaration> get assignedVariables sync* {
     if (_assignedVariables != null) {
       yield* _assignedVariables;
     }
     if (_subScopes != null) {
       for (VariableScope subScope in _subScopes) {
-        yield* subScope.variables;
+        yield* subScope.assignedVariables;
       }
     }
   }

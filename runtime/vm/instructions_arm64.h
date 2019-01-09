@@ -13,6 +13,7 @@
 #include "vm/constants_arm64.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
 
@@ -116,21 +117,50 @@ class NativeCallPattern : public ValueObject {
 //   load guarded cid            load ICData             load MegamorphicCache
 //   load monomorphic target <-> load ICLookup stub  ->  load MMLookup stub
 //   call target.entry           call stub.entry         call stub.entry
-class SwitchableCallPattern : public ValueObject {
+class SwitchableCallPatternBase : public ValueObject {
  public:
-  SwitchableCallPattern(uword pc, const Code& code);
+  explicit SwitchableCallPatternBase(const Code& code);
 
   RawObject* data() const;
-  RawCode* target() const;
   void SetData(const Object& data) const;
-  void SetTarget(const Code& target) const;
 
- private:
+ protected:
   const ObjectPool& object_pool_;
   intptr_t data_pool_index_;
   intptr_t target_pool_index_;
 
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SwitchableCallPatternBase);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a [Code] object: Either the code of the
+// monomorphic function or a stub code.
+class SwitchableCallPattern : public SwitchableCallPatternBase {
+ public:
+  SwitchableCallPattern(uword pc, const Code& code);
+
+  RawCode* target() const;
+  void SetTarget(const Code& target) const;
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a direct entrypoint address: Either the entry point
+// of the monomorphic function or a stub entry point.
+class BareSwitchableCallPattern : public SwitchableCallPatternBase {
+ public:
+  BareSwitchableCallPattern(uword pc, const Code& code);
+
+  RawCode* target() const;
+  void SetTarget(const Code& target) const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BareSwitchableCallPattern);
 };
 
 class ReturnPattern : public ValueObject {

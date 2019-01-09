@@ -10,6 +10,8 @@
 
 namespace dart {
 
+class ObjectPoolWrapper;
+
 class TypeTestingStubNamer {
  public:
   TypeTestingStubNamer();
@@ -266,9 +268,6 @@ class TypeArgumentClassFinder {
         }
       }
       return true;
-    } else if (type.IsBoundedType()) {
-      // No support for bounded types.
-      return false;
     }
     UNREACHABLE();
     return false;

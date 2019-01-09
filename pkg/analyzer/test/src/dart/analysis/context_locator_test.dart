@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class ContextLocatorImplTest extends Object with ResourceProviderMixin {
+class ContextLocatorImplTest with ResourceProviderMixin {
   ContextLocatorImpl contextLocator;
 
   ContextRoot findRoot(List<ContextRoot> roots, Resource rootFolder) {
@@ -438,6 +438,31 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
         unorderedEquals([innerOptionsFile.parent.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
+  }
+
+  @failingTest
+  void test_locateRoots_options_withExclude() {
+    // https://github.com/dart-lang/sdk/issues/35519
+    Folder rootFolder = newFolder('/test/outer');
+    newFolder('/test/outer/test/data');
+    File dataFile = newFile('/test/outer/test/data/test.dart');
+    File optionsFile = newOptionsFile('/test/outer', content: '''
+analyzer:
+  exclude:
+    - test/data/**
+''');
+    File packagesFile = newPackagesFile('/test/outer');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.isAnalyzed(dataFile.path), isFalse);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
   }
 
   void test_locateRoots_single_dir_directOptions_directPackages() {

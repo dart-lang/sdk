@@ -66,8 +66,8 @@ class CompileType : public ZoneAllocated {
   // Return true if the value is known to be always null.
   bool IsNull();
 
-  // Return true if this type is more specific than given type.
-  bool IsMoreSpecificThan(const AbstractType& other);
+  // Return true if this type is a subtype of the given type.
+  bool IsSubtypeOf(const AbstractType& other);
 
   // Return true if value of this type is assignable to a location of the
   // given type.

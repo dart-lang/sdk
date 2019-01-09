@@ -45,8 +45,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
   final List<protocol.SourceEdit> instrumentationEdits = [];
   String instrumentedCode;
 
-  FlutterOutlineComputer(this.file, this.content, this.lineInfo, this.unit)
-      : typeProvider = unit.declaredElement.context.typeProvider;
+  FlutterOutlineComputer(
+      this.file, this.content, this.lineInfo, this.unit, this.typeProvider);
 
   protocol.FlutterOutline compute() {
     protocol.Outline dartOutline = new DartUnitOutlineComputer(

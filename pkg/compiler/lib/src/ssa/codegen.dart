@@ -17,6 +17,7 @@ import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
@@ -30,7 +31,6 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
@@ -323,7 +323,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool requiresUintConversion(HInstruction instruction) {
-    if (instruction.isUInt31(_abstractValueDomain)) return false;
+    if (instruction.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
+      return false;
+    }
     if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
@@ -366,7 +368,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(_closedWorld, _interceptorData)
+    new SsaInstructionSelection(_options, _closedWorld, _interceptorData)
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(_options).visitGraph(graph);
@@ -1546,11 +1548,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitTruncatingDivide(HTruncatingDivide node) {
-    assert(node.isUInt31(_abstractValueDomain));
+    assert(node.isUInt31(_abstractValueDomain).isDefinitelyTrue);
     // TODO(karlklose): Enable this assertion again when type propagation is
     // fixed. Issue 23555.
 //    assert(node.left.isUInt32(compiler));
-    assert(node.right.isPositiveInteger(_abstractValueDomain));
+    assert(node.right.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue);
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
@@ -1720,10 +1722,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Statement elsePart;
 
     HBasicBlock thenBlock = node.block.successors[0];
-    // If we believe we will generate S1 as empty, try to generate
+    // If we believe we will generate S1 as empty, instead of
     //
     //     if (e) S1; else S2;
-    // as
+    //
+    // try to generate
+    //
     //     if (!e) S2; else S1;
     //
     // It is better to generate `!e` rather than try and negate it later.
@@ -1746,24 +1750,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       elsePart = unwrapStatement(generateStatementsInNewBlock(elseGraph));
     }
 
+    js.Statement code = _assembleIfThenElse(test, thenPart, elsePart);
+    pushStatement(code.withSourceInformation(node.sourceInformation));
+  }
+
+  js.Statement _assembleIfThenElse(
+      js.Expression test, js.Statement thenPart, js.Statement elsePart) {
     // Peephole rewrites:
     //
-    //     if (e); else S;   -->   if(!e) S;
+    //     if (e); else S;   -->   if (!e) S;
     //
     //     if (e);   -->   e;
     //
     // TODO(sra): We might be able to do better with reshaping the CFG.
-    js.Statement code;
     if (thenPart is js.EmptyStatement) {
       if (elsePart is js.EmptyStatement) {
-        code = new js.ExpressionStatement(test);
-      } else {
-        code = new js.If.noElse(new js.Prefix('!', test), elsePart);
+        return js.ExpressionStatement(test);
       }
-    } else {
-      code = new js.If(test, thenPart, elsePart);
+      test = js.Prefix('!', test);
+      var temp = thenPart;
+      thenPart = elsePart;
+      elsePart = temp;
     }
-    pushStatement(code.withSourceInformation(node.sourceInformation));
+
+    if (_options.experimentToBoolean) {
+      if (elsePart is js.EmptyStatement &&
+          thenPart is js.ExpressionStatement &&
+          thenPart.expression is js.Call) {
+        return js.ExpressionStatement(
+            js.Binary('&&', test, thenPart.expression));
+      }
+    }
+
+    return js.If(test, thenPart, elsePart);
   }
 
   visitIf(HIf node) {
@@ -1979,8 +1998,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void registerSetter(HInvokeDynamic node) {
-    if (node.element != null) {
+  void registerSetter(HInvokeDynamic node, {bool needsCheck: false}) {
+    if (node.element is FieldEntity && !needsCheck) {
       // This is a dynamic update which we have found to have a single
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
@@ -2017,7 +2036,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(js
         .propertyCall(pop(), name, visitArguments(node.inputs))
         .withSourceInformation(node.sourceInformation));
-    registerSetter(node);
+    registerSetter(node, needsCheck: node.needsCheck);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -2336,15 +2355,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.isStringOrNull(_abstractValueDomain) &&
-          right.isStringOrNull(_abstractValueDomain)) {
+      if (left.isStringOrNull(_abstractValueDomain).isDefinitelyTrue &&
+          right.isStringOrNull(_abstractValueDomain).isDefinitelyTrue) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.isInteger(_abstractValueDomain) &&
-          right.isInteger(_abstractValueDomain);
+      return left.isInteger(_abstractValueDomain).isDefinitelyTrue &&
+          right.isInteger(_abstractValueDomain).isDefinitelyTrue;
     }
 
     bool handledBySpecialCase = false;
@@ -2480,13 +2499,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger(_abstractValueDomain)) {
+        if (node.index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger(_abstractValueDomain)) {
+      } else if (node.index
+          .isInteger(_abstractValueDomain)
+          .isPotentiallyFalse) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2607,10 +2628,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringify(HStringify node) {
     HInstruction input = node.inputs.first;
-    if (input.isString(_abstractValueDomain)) {
+    if (input.isString(_abstractValueDomain).isDefinitelyTrue) {
       use(input);
-    } else if (input.isInteger(_abstractValueDomain) ||
-        input.isBoolean(_abstractValueDomain)) {
+    } else if (input.isInteger(_abstractValueDomain).isDefinitelyTrue ||
+        input.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -3000,9 +3021,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (type.isFunctionType) {
         checkType(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if ((input.canBePrimitive(_abstractValueDomain) &&
-              !input.canBePrimitiveArray(_abstractValueDomain)) ||
-          input.canBeNull(_abstractValueDomain)) {
+      } else if ((input.isPrimitive(_abstractValueDomain).isPotentiallyTrue &&
+              input.isPrimitiveArray(_abstractValueDomain).isDefinitelyFalse) ||
+          input.isNull(_abstractValueDomain).isPotentiallyTrue) {
         checkObject(input, relation, node.sourceInformation);
         js.Expression objectTest = pop();
         checkType(input, interceptor, type, sourceInformation,
@@ -3025,44 +3046,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
+    DartType type = node.typeExpression;
     HInstruction input = node.checkedInput;
-    AbstractValue inputType = node.inputType ?? input.instructionType;
     AbstractValue checkedType = node.checkedType;
     // This path is no longer used for indexable primitive types.
-    assert(!_abstractValueDomain.isJsIndexable(checkedType));
+    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
     // Figure out if it is beneficial to use a null check.  V8 generally prefers
     // 'typeof' checks, but for integers we cannot compile this test into a
     // single typeof check so the null check is cheaper.
-    bool isIntCheck = _abstractValueDomain.isIntegerOrNull(checkedType);
-    bool turnIntoNumCheck =
-        isIntCheck && _abstractValueDomain.isIntegerOrNull(inputType);
-    bool turnIntoNullCheck = !turnIntoNumCheck &&
-        (_abstractValueDomain.includeNull(checkedType) == inputType) &&
-        isIntCheck;
-
-    if (turnIntoNullCheck) {
-      use(input);
-      return new js.Binary("==", pop(), new js.LiteralNull())
-          .withSourceInformation(input.sourceInformation);
-    } else if (isIntCheck && !turnIntoNumCheck) {
-      // input is !int
-      checkBigInt(input, '!==', input.sourceInformation);
-      return pop();
-    } else if (turnIntoNumCheck ||
-        _abstractValueDomain.isNumberOrNull(checkedType)) {
+    if (type == _commonElements.numType) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain.isBooleanOrNull(checkedType)) {
+    } else if (type == _commonElements.boolType) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (_abstractValueDomain.isStringOrNull(checkedType)) {
-      // input is !string
-      checkString(input, '!==', input.sourceInformation);
-      return pop();
     }
-    throw failedAt(input, 'Unexpected check: $checkedType.');
+    throw failedAt(input, 'Unexpected check: $type.');
   }
 
   void visitTypeConversion(HTypeConversion node) {

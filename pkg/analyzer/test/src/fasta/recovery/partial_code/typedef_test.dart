@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -33,7 +33,7 @@ class TypedefTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "typedef T();",
-              failing: ['functionNonVoid', 'getter', 'setter']),
+              failing: ['functionNonVoid', 'getter', 'mixin', 'setter']),
           new TestDescriptor(
               'keywordEquals',
               'typedef =',
@@ -56,7 +56,7 @@ class TypedefTest extends PartialCodeTest {
               expectedErrorsInValidCode: [
                 ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE
               ],
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
         ],
         PartialCodeTest.declarationSuffixes);
   }

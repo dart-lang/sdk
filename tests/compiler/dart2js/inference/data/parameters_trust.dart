@@ -10,12 +10,15 @@ main() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Test that we trust the explicit type of a parameter with
-// --trust-type-annotations or --omit-implicit-checks.
+// Test that we trust the explicit type of a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _trustParameters:[exact=JSUInt31]*/
-_trustParameters(int /*[exact=JSUInt31]*/ i) {
+_trustParameters(
+    int
+        /*strong.Union([exact=JSString], [exact=JSUInt31])*/
+        /*omit.[exact=JSUInt31]*/
+        i) {
   return i;
 }
 

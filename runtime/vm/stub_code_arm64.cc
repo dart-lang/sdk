@@ -28,6 +28,7 @@ DEFINE_FLAG(bool,
             false,
             "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, enable_interpreter);
+DECLARE_FLAG(bool, precompiled_mode);
 
 // Input parameters:
 //   LR : return address.
@@ -1015,6 +1016,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
+  __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1093,10 +1095,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ b(&push_arguments, LT);
   __ Bind(&done_push_arguments);
 
-  // We now load the pool pointer(PP) with a GC safe value as we are about to
-  // invoke dart code. We don't need a real object pool here.
-  // Smi zero does not work because ARM64 assumes PP to be untagged.
-  __ LoadObject(PP, Object::null_object());
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  } else {
+    // We now load the pool pointer(PP) with a GC safe value as we are about to
+    // invoke dart code. We don't need a real object pool here.
+    // Smi zero does not work because ARM64 assumes PP to be untagged.
+    __ LoadObject(PP, Object::null_object());
+  }
 
   // Call the Dart code entrypoint.
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
@@ -1136,6 +1143,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
+  __ Drop(1);
   __ RestoreCSP();
   __ ret();
 }
@@ -1154,6 +1162,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack.
   __ SetupDartSP();
+  __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1272,6 +1281,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
+  __ Drop(1);
   __ RestoreCSP();
   __ ret();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -2730,7 +2740,12 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   // Restore the pool pointer.
   __ RestoreCodePointer();
-  __ LoadPoolPointer();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  } else {
+    __ LoadPoolPointer();
+  }
   __ ret();  // Jump to continuation point.
 }
 
@@ -2930,10 +2945,18 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ ldr(R0, FieldAddress(TMP, base + kWordSize));
-  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  const auto target_address = FieldAddress(TMP, base + kWordSize);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(R1, target_address);
+    __ ldr(ARGS_DESC_REG,
+           FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+  } else {
+    __ ldr(R0, target_address);
+    __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+    __ ldr(ARGS_DESC_REG,
+           FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+    __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  }
   __ br(R1);
 
   // Probe failed, check if it is a miss.
@@ -2960,7 +2983,8 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 //  R4: arguments descriptor
 void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
+  __ ldr(ARGS_DESC_REG,
+         FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
   __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
@@ -2995,8 +3019,8 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
 
 void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
-  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
+  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
@@ -3018,7 +3042,9 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
   __ ldr(R1, Address(R8, entry_offset));
-  __ ldr(CODE_REG, Address(R8, code_offset));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    __ ldr(CODE_REG, Address(R8, code_offset));
+  }
   __ br(R1);
 
   __ Bind(&miss);

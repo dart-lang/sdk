@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,23 +8,23 @@ import 'dart:typed_data';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -33,7 +33,7 @@ main() {
 }
 
 @reflectiveTest
-class PluginWatcherTest extends Object with ResourceProviderMixin {
+class PluginWatcherTest with ResourceProviderMixin {
   TestPluginManager manager;
   PluginWatcher watcher;
 
@@ -119,7 +119,7 @@ class TestDriver implements AnalysisDriver {
   AnalysisSession currentSession;
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
 
-  final _resultController = new StreamController<AnalysisResult>();
+  final _resultController = new StreamController<ResolvedUnitResult>();
 
   TestDriver(this.resourceProvider, ContextRoot contextRoot) {
     path.Context pathContext = resourceProvider.pathContext;
@@ -147,15 +147,7 @@ class TestDriver implements AnalysisDriver {
     currentSession = new AnalysisSessionImpl(this);
   }
 
-  Stream<AnalysisResult> get results => _resultController.stream;
-
-  Future<void> computeResult(String uri) {
-    FileState file = fsState.getFileForUri(Uri.parse(uri));
-    AnalysisResult result = new AnalysisResult(this, null, file.path, null,
-        true, null, null, false, null, null, null, null);
-    _resultController.add(result);
-    return new Future.delayed(new Duration(milliseconds: 1));
-  }
+  Stream<ResolvedUnitResult> get results => _resultController.stream;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

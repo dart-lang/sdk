@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,6 +18,7 @@ import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -26,7 +27,6 @@ import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:watcher/watcher.dart';
 
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 int findIdentifierLength(String search) {
@@ -47,7 +47,7 @@ int findIdentifierLength(String search) {
 /**
  * An abstract base for all 'analysis' domain tests.
  */
-class AbstractAnalysisTest extends Object with ResourceProviderMixin {
+class AbstractAnalysisTest with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
   TestPluginManager pluginManager;
@@ -120,7 +120,7 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         options,
-        new DartSdkManager(resourceProvider.convertPath('/'), true),
+        new DartSdkManager(resourceProvider.convertPath('/sdk'), true),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -194,9 +194,9 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
 
   void setUp() {
     serverChannel = new MockServerChannel();
-    projectPath = resourceProvider.convertPath('/project');
-    testFolder = resourceProvider.convertPath('/project/bin');
-    testFile = resourceProvider.convertPath('/project/bin/test.dart');
+    projectPath = convertPath('/project');
+    testFolder = convertPath('/project/bin');
+    testFile = convertPath('/project/bin/test.dart');
     pluginManager = new TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;

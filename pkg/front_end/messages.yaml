@@ -57,6 +57,8 @@
 #
 # `#name`, `#name2`, `#name3`, `#name4`: names (as strings).
 #
+# `#names`: A list of names (strings).
+#
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string`, `#string2`, `#string3`: strings (that aren't names).
@@ -931,10 +933,19 @@ InvalidVoid:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
 
+# TODO(danrubel): Review where this error is generated and consider generating
+# FieldInitializedOutsideDeclaringClass instead of this in some situations.
 InvalidInitializer:
   template: "Not a valid initializer."
   tip: "To initialize a field, use the syntax 'name = value'."
-  analyzerCode: INVALID_INITIALIZER
+
+FieldInitializedOutsideDeclaringClass:
+  index: 88
+  template: "A field can only be initialized in it's declaring class"
+  tip: "Try passing a value into the superclass constructor, or moving the initialization into the constructor body."
+  analyzerCode: ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS
+  script:
+    - "class A { int a; } class C extends A { C() : super.a = 42; }"
 
 FinalFieldNotInitialized:
   template: "Final field '#name' is not initialized."
@@ -992,8 +1003,10 @@ RequiredParameterWithDefault:
       }
 
 StackOverflow:
-  template: "Stack overflow."
-  analyzerCode: STACK_OVERFLOW
+  index: 91
+  template: "The file has too many nested expressions or statements."
+  tip: "Try simplifying the code."
+  analyzerCode: ParserErrorCode.STACK_OVERFLOW
 
 InvalidCodePoint:
   template: "The escape sequence starting with '\\u' isn't a valid code point."
@@ -1173,15 +1186,17 @@ YieldNotGenerator:
   analyzerCode: YIELD_IN_NON_GENERATOR
 
 OnlyTry:
-  template: "Try block should be followed by 'on', 'catch', or 'finally' block."
-  tip: "Did you forget to add a 'finally' block?"
-  analyzerCode: MISSING_CATCH_OR_FINALLY
+  index: 92
+  template: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
+  tip: "Try adding either a catch or finally clause, or remove the try statement."
+  analyzerCode: ParserErrorCode.MISSING_CATCH_OR_FINALLY
   statement: "try {}"
 
 TypeAfterVar:
-  template: "Can't have both a type and 'var'."
+  index: 89
+  template: "Variables can't be declared using both 'var' and a type name."
   tip: "Try removing 'var.'"
-  analyzerCode: VAR_AND_TYPE
+  analyzerCode: ParserErrorCode.VAR_AND_TYPE
 
 AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."
@@ -1239,9 +1254,10 @@ CatchSyntaxExtraParameters:
     - "try {} catch (e, s, x) {}"
 
 SuperNullAware:
-  template: "'super' can't be null."
+  index: 90
+  template: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   tip: "Try replacing '?.' with '.'"
-  analyzerCode: INVALID_OPERATOR_FOR_SUPER
+  analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
 
 ConstFieldWithoutInitializer:
   template: "The const variable '#name' must be initialized."
@@ -1392,14 +1408,13 @@ AbstractRedirectedClassInstantiation:
 MissingImplementationNotAbstract:
   template: |
     The non-abstract class '#name' is missing implementations for these members:
-      #string.
+    #names
   tip: |
     Try to either
      - provide an implementation,
      - inherit an implementation from a superclass or mixin,
      - mark the class as abstract, or
      - provide a 'noSuchMethod' implementation.
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   script:
     - "class C {foo();}"
@@ -1425,10 +1440,22 @@ ListLiteralTooManyTypeArguments:
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
 
+SetLiteralTooManyTypeArguments:
+  template: "A set literal requires exactly one type argument."
+  severity: ERROR_LEGACY_WARNING
+
 MapLiteralTypeArgumentMismatch:
-  template: "Map literal requires exactly two type arguments."
+  template: "A map literal requires exactly two type arguments."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXPECTED_TWO_MAP_TYPE_ARGUMENTS
+
+SetOrMapLiteralTooManyTypeArguments:
+  template: "A set or map literal requires exactly one or two type arguments, respectively."
+  severity: ERROR_LEGACY_WARNING
+
+SetLiteralsNotSupported:
+  template: "Set literals are not supported yet."
+  script: "var s = { 24 };"
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
@@ -1558,6 +1585,11 @@ FastaUsageLong:
         compiler with a non-zero exit-code. In --verbose mode, also display an
         internal stack trace from the compiler. Multiple kinds can be separated by
         commas, for example, --fatal=errors,warnings.
+
+      --enable-experiment=<flag>
+      --disable-experiment=<flag>
+        Enable or disable an experimental flag, used to guard features currently
+        in development. Multiple experiments can be separated by commas.
 
 FastaCLIArgumentRequired:
   template: "Expected value after '#name'."
@@ -1770,7 +1802,7 @@ DuplicatedImportInType:
     main.dart: "import 'lib1.dart'; import 'lib2.dart'; A a;"
 
 CyclicClassHierarchy:
-  template: "'#name' is a supertype of itself via '#string'."
+  template: "'#name' is a supertype of itself."
   analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
   script:
     - |
@@ -1779,11 +1811,6 @@ CyclicClassHierarchy:
     - |
       class A implements B {}
       class B implements A {}
-
-DirectCyclicClassHierarchy:
-  template: "'#name' can't use itself as a supertype."
-  analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
-  script:
     - "class C = Object with C;"
     - "class C extends C {}"
     - "class C implements C {}"
@@ -1920,7 +1947,6 @@ DeclaredMemberConflictsWithInheritedMemberCause:
 
 InheritedMembersConflict:
   template: "Can't inherit members that conflict with each other."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CONFLICTS_WITH_INHERITED_MEMBER
   script:
     - >-
@@ -2643,10 +2669,6 @@ ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
   severity: CONTEXT
 
-ConstConstructorInSubclassOfMixinApplication:
-  template: "Can't extend a mixin application and be 'const'."
-  analyzerCode: CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
-
 ConstConstructorRedirectionToNonConst:
   template: "A constant constructor can't call a non-constant constructor."
   script:
@@ -3149,10 +3171,9 @@ PackagesFileFormat:
   template: "Problem in packages configuration file: #string"
   external: test/packages_format_error_test.dart
 
-FactoryRedirecteeInvalidReturnType:
-  template: "The return type '#type' of the constructor '#name' isn't a subtype of '#type2'."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_RETURN_TYPE
+IncompatibleRedirecteeFunctionType:
+  template: "The constructor function type '#type' isn't a subtype of '#type2'."
+  analyzerCode: REDIRECT_TO_INVALID_TYPE
   script:
     - >-
       class A {
@@ -3161,61 +3182,31 @@ FactoryRedirecteeInvalidReturnType:
       class B {
         B();
       }
-
-FactoryRedirecteeHasTooFewPositionalParameters:
-  template: "Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.one(int x) = A.zero;
         A.zero() {}
       }
-
-RedirectingFactoryInvalidPositionalParameterType:
-  template: "The type of parameter '#name', '#type' is not a subtype of the redirection target's corresponding parameter type, '#type2'."
-  tip: "Try changing either the type of the parameter or the redirection target."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.i(int x) = A.s;
         A.s(String x) { }
       }
-
-RedirectingFactoryMissingNamedParameter:
-  template: "The constructor '#name' does not have a named parameter '#name2'."
-  tip: "Try adding '#name2' as a named parameter to '#name'."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.f({int x}) = A.g;
         A.g({int y}) { }
       }
-
-RedirectingFactoryInvalidNamedParameterType:
-  template: "The type of the named parameter '#name', '#type' is not a subtype of the redirection target's corresponding named parameter type, '#type2'."
-  tip: "Try changing either the type of the parameter or the redirection target."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
-    - >-
-      class A {
-        factory A.f({int x}) = A.g;
-        A.g({String x}) { }
-      }
-
-RedirectingFactoryProvidesTooFewRequiredParameters:
-  template: "Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2')."
-  tip: "Try redirecting to a different constructor."
-  analyzerCode: REDIRECT_TO_INVALID_FUNCTION_TYPE
-  script:
     - >-
       class A {
         factory A.f(int x) = A.g;
         A.g(int x, int y) {}
       }
+    - >-
+      class A<T extends int> {
+         factory A() = B<T, int>;
+      }
+      class B<T extends int, S extends String> implements A<T> {}
 
 RedirectingFactoryIncompatibleTypeArgument:
   template: "The type '#type' doesn't extend '#type2'."
@@ -3346,3 +3337,18 @@ TypeOriginWithFileUri:
   template: "'#name' is from '#uri' ('#uri2')."
   frontendInternal: true
   external: test/type_labeler_test.dart
+
+ObjectExtends:
+  template: "The class 'Object' can't have a superclass."
+  frontendInternal: true
+  external: test/fasta/object_supertype_test.dart
+
+ObjectImplements:
+  template: "The class 'Object' can't implement anything."
+  frontendInternal: true
+  external: test/fasta/object_supertype_test.dart
+
+ObjectMixesIn:
+  template: "The class 'Object' can't use mixins."
+  frontendInternal: true
+  external: test/fasta/object_supertype_test.dart

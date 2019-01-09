@@ -60,8 +60,6 @@ typedef RawObject* RawCompressed;
   V(Type)                                                                      \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
-  V(BoundedType)                                                               \
-  V(MixinAppType)                                                              \
   V(Closure)                                                                   \
   V(Number)                                                                    \
   V(Integer)                                                                   \
@@ -718,6 +716,7 @@ class RawObject {
     if (order == MemoryOrder::kRelease) {
       AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
     } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
       *const_cast<type*>(addr) = value;
     }
     if (value->IsHeapObject()) {
@@ -749,6 +748,13 @@ class RawObject {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
+#if !defined(TARGET_ARCH_IA32)
+        if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
+          // Instruction pages may be non-writable. Defer marking.
+          thread->DeferredMarkingStackAddObject(value);
+          return;
+        }
+#endif
         if (value->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
@@ -756,9 +762,14 @@ class RawObject {
     }
   }
 
-  template <typename type>
+  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
   void StoreArrayPointer(type const* addr, type value) {
-    *const_cast<type*>(addr) = value;
+    if (order == MemoryOrder::kRelease) {
+      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
+    } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
+      *const_cast<type*>(addr) = value;
+    }
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
@@ -788,12 +799,19 @@ class RawObject {
           RememberCard(reinterpret_cast<RawObject* const*>(addr));
         } else {
           this->SetRememberedBit();
-          Thread::Current()->StoreBufferAddObject(this);
+          thread->StoreBufferAddObject(this);
         }
       } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
         ASSERT(value->IsOldObject());
+#if !defined(TARGET_ARCH_IA32)
+        if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
+          // Instruction pages may be non-writable. Defer marking.
+          thread->DeferredMarkingStackAddObject(value);
+          return;
+        }
+#endif
         if (value->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
@@ -891,7 +909,6 @@ class RawClass : public RawObject {
     kAllocated = 0,         // Initial state.
     kPreFinalized,          // VM classes: size precomputed, but no checks done.
     kFinalized,             // Class parsed, finalized and ready for use.
-    kRefinalizeAfterPatch,  // Class needs to be refinalized (patched).
   };
 
  private:
@@ -909,10 +926,9 @@ class RawClass : public RawObject {
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
-  RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
   RawFunction* signature_function_;  // Associated function for typedef class.
   RawArray* constants_;      // Canonicalized const instances of this class.
-  RawType* canonical_type_;  // Canonical type for this class.
+  RawType* declaration_type_;              // Declaration type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_implementors_;  // Array of Class.
@@ -1235,7 +1251,6 @@ class RawScript : public RawObject {
     kScriptTag = 0,
     kLibraryTag,
     kSourceTag,
-    kPatchTag,
     kEvaluateTag,
     kKernelTag,
   };
@@ -1413,6 +1428,7 @@ class RawCode : public RawObject {
   // 'unchecked_entry_point_' will refer to the same position as 'entry_point_'.
   //
   uword unchecked_entry_point_;  // Accessed from generated code.
+  uword monomorphic_unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;     // Accessed from generated code.
@@ -1524,6 +1540,7 @@ class RawInstructions : public RawObject {
   // Instructions size in bytes and flags.
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
+  uint32_t unchecked_entrypoint_pc_offset_;
 
 #if defined(DART_PRECOMPILER)
   // There is a gap between size_and_flags_ and the entry point
@@ -1534,8 +1551,6 @@ class RawInstructions : public RawObject {
   // whether this field is included or excluded.
   CodeStatistics* stats_;
 #endif
-
-  uword unchecked_entrypoint_pc_offset_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -2005,7 +2020,6 @@ class RawAbstractType : public RawInstance {
  protected:
   enum TypeState {
     kAllocated,                // Initial state.
-    kResolved,                 // Type class and type arguments resolved.
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
@@ -2036,15 +2050,8 @@ class RawType : public RawAbstractType {
   RawSmi* hash_;
   // This type object represents a function type if its signature field is a
   // non-null function object.
-  // If this type is malformed or malbounded, the signature field gets
-  // overwritten by the error object in order to save space. If the type is a
-  // function type, its signature is lost, but the message in the error object
-  // can describe the issue without needing the signature.
-  union {
-    RawFunction* signature_;   // If not null, this type is a function type.
-    RawLanguageError* error_;  // If not null, type is malformed or malbounded.
-  } sig_or_err_;
-  VISIT_TO(RawObject*, sig_or_err_.error_)
+  RawFunction* signature_;  // If not null, this type is a function type.
+  VISIT_TO(RawObject*, signature_)
   TokenPosition token_pos_;
   int8_t type_state_;
 
@@ -2082,29 +2089,6 @@ class RawTypeParameter : public RawAbstractType {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
-};
-
-class RawBoundedType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(BoundedType);
-
-  VISIT_FROM(RawObject*, type_);
-  RawAbstractType* type_;
-  RawAbstractType* bound_;
-  RawSmi* hash_;
-  RawTypeParameter* type_parameter_;  // For more detailed error reporting.
-  VISIT_TO(RawObject*, type_parameter_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
-class RawMixinAppType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
-
-  VISIT_FROM(RawObject*, super_type_);
-  RawAbstractType* super_type_;
-  RawArray* mixin_types_;  // Array of AbstractType.
-  VISIT_TO(RawObject*, mixin_types_);
 };
 
 class RawClosure : public RawInstance {
@@ -2274,6 +2258,7 @@ class RawArray : public RawInstance {
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
+  friend class CodeDeserializationCluster;
   friend class Deserializer;
   friend class RawCode;
   friend class RawImmutableArray;

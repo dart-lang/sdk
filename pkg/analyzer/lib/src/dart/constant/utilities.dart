@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -55,8 +56,8 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression expression = super.visitFunctionExpression(node);
-    expression.element = node.declaredElement;
+    FunctionExpressionImpl expression = super.visitFunctionExpression(node);
+    expression.declaredElement = node.declaredElement;
     return expression;
   }
 
@@ -74,6 +75,13 @@ class ConstantAstCloner extends AstCloner {
     }
     expression.staticElement = node.staticElement;
     return expression;
+  }
+
+  @override
+  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
+    IntegerLiteral integer = super.visitIntegerLiteral(node);
+    integer.staticType = node.staticType;
+    return integer;
   }
 
   @override
@@ -103,6 +111,16 @@ class ConstantAstCloner extends AstCloner {
         super.visitRedirectingConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
+  }
+
+  @override
+  SetLiteral visitSetLiteral(SetLiteral node) {
+    SetLiteral literal = super.visitSetLiteral(node);
+    literal.staticType = node.staticType;
+    if (node.constKeyword == null && node.isConst) {
+      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
+    return literal;
   }
 
   @override
@@ -173,6 +191,15 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
+  void visitSetLiteral(SetLiteral node) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitSetLiteral(node);
+    }
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _find(node.expression);
     node.statements.accept(this);
@@ -192,7 +219,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
  * constructors, constant constructor invocations, and annotations found in
  * those compilation units.
  */
-class ConstantFinder extends RecursiveAstVisitor<Object> {
+class ConstantFinder extends RecursiveAstVisitor<void> {
   /**
    * The elements and AST nodes whose constant values need to be computed.
    */
@@ -206,7 +233,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   bool treatFinalInstanceVarAsConst = false;
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
     ElementAnnotation elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
@@ -217,11 +244,10 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     } else {
       constantsToCompute.add(elementAnnotation);
     }
-    return null;
   }
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
     if (resolutionMap
         .elementDeclaredByClassDeclaration(node)
@@ -233,14 +259,14 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
       treatFinalInstanceVarAsConst = true;
     }
     try {
-      return super.visitClassDeclaration(node);
+      super.visitClassDeclaration(node);
     } finally {
       treatFinalInstanceVarAsConst = prevTreatFinalInstanceVarAsConst;
     }
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
       ConstructorElement element = node.declaredElement;
@@ -249,22 +275,20 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
         constantsToCompute.addAll(element.parameters);
       }
     }
-    return null;
   }
 
   @override
-  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null && node.declaredElement != null) {
       constantsToCompute
           .add(resolutionMap.elementDeclaredByFormalParameter(node));
     }
-    return null;
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
     VariableElement element = node.declaredElement;
@@ -278,7 +302,6 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
         constantsToCompute.add(element);
       }
     }
-    return null;
   }
 }
 
@@ -286,7 +309,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
  * An object used to add reference information for a given variable to the
  * bi-directional mapping used to order the evaluation of constants.
  */
-class ReferenceFinder extends RecursiveAstVisitor<Object> {
+class ReferenceFinder extends RecursiveAstVisitor<void> {
   /**
    * The callback which should be used to report any dependencies that were
    * found.
@@ -301,39 +324,37 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   ReferenceFinder(this._callback);
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       ConstructorElement constructor = getConstructorImpl(node.staticElement);
       if (constructor != null) {
         _callback(constructor);
       }
     }
-    return super.visitInstanceCreationExpression(node);
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
-  Object visitLabel(Label node) {
+  void visitLabel(Label node) {
     // We are visiting the "label" part of a named expression in a function
     // call (presumably a constructor call), e.g. "const C(label: ...)".  We
     // don't want to visit the SimpleIdentifier for the label because that's a
     // reference to a function parameter that needs to be filled in; it's not a
     // constant whose value we depend on.
-    return null;
   }
 
   @override
-  Object visitRedirectingConstructorInvocation(
+  void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
     ConstructorElement target = getConstructorImpl(node.staticElement);
     if (target != null) {
       _callback(target);
     }
-    return null;
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     Element staticElement = node.staticElement;
     Element element = staticElement is PropertyAccessorElement
         ? staticElement.variable
@@ -341,16 +362,14 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     if (element is VariableElement && element.isConst) {
       _callback(element);
     }
-    return null;
   }
 
   @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
     ConstructorElement constructor = getConstructorImpl(node.staticElement);
     if (constructor != null) {
       _callback(constructor);
     }
-    return null;
   }
 }

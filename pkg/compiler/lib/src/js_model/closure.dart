@@ -1020,6 +1020,11 @@ abstract class ClosureMemberData implements JMemberData {
 
   ClosureMemberData(this.definition, this.memberThisType);
 
+  Map<ir.Expression, ir.DartType> get staticTypes {
+    // The cached types are stored in the data for enclosing member.
+    throw new UnsupportedError("ClosureMemberData.staticTypes");
+  }
+
   @override
   InterfaceType getMemberThisType(JsToElementMap elementMap) {
     return memberThisType;

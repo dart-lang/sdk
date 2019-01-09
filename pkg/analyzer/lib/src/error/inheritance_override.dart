@@ -1,11 +1,11 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/type_system.dart';
 class InheritanceOverrideVerifier {
   static const _missingOverridesKey = 'missingOverrides';
 
-  final StrongTypeSystemImpl _typeSystem;
+  final TypeSystem _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager2 _inheritance;
   final ErrorReporter _reporter;
@@ -78,7 +78,7 @@ class InheritanceOverrideVerifier {
 }
 
 class _ClassVerifier {
-  final StrongTypeSystemImpl typeSystem;
+  final TypeSystem typeSystem;
   final TypeProvider typeProvider;
   final InheritanceManager2 inheritance;
   final ErrorReporter reporter;
@@ -94,8 +94,12 @@ class _ClassVerifier {
   final TypeName superclass;
   final WithClause withClause;
 
+  /// The set of unique supertypes of the current class.
+  /// It is used to decide when to add a new element to [allSuperinterfaces].
+  final Set<InterfaceType> allSupertypes = new Set<InterfaceType>();
+
   /// The list of all superinterfaces, collected so far.
-  final List<InterfaceType> allSuperinterfaces = [];
+  final List<Interface> allSuperinterfaces = [];
 
   _ClassVerifier({
     this.typeSystem,
@@ -118,12 +122,15 @@ class _ClassVerifier {
       return;
     }
 
+    if (_checkForRecursiveInterfaceInheritance(classElement)) {
+      return;
+    }
+
     InterfaceTypeImpl type = classElement.type;
 
     // Add all superinterfaces of the direct supertype.
     if (type.superclass != null) {
-      ClassElementImpl.collectAllSupertypes(
-          allSuperinterfaces, type.superclass, null);
+      _addSuperinterfaces(type.superclass);
     }
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
@@ -136,15 +143,14 @@ class _ClassVerifier {
     var mixinNodes = withClause?.mixinTypes;
     var mixinTypes = type.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
-      _checkDeclaredMembers(mixinNodes[i], mixinTypes[i]);
-      ClassElementImpl.collectAllSupertypes(
-          allSuperinterfaces, mixinTypes[i], null);
+      var mixinType = mixinTypes[i];
+      _checkDeclaredMembers(mixinNodes[i], mixinType);
+      _addSuperinterfaces(mixinType);
     }
 
     // Add all superinterfaces of the direct class interfaces.
     for (var interface in type.interfaces) {
-      ClassElementImpl.collectAllSupertypes(
-          allSuperinterfaces, interface, null);
+      _addSuperinterfaces(interface);
     }
 
     // Check the members if the class itself, against all the previously
@@ -163,33 +169,31 @@ class _ClassVerifier {
     }
 
     // Compute the interface of the class.
-    var interfaceMembers = inheritance.getInterface(type);
+    var interface = inheritance.getInterface(type);
 
     // Report conflicts between direct superinterfaces of the class.
-    for (var conflict in interfaceMembers.conflicts) {
+    for (var conflict in interface.conflicts) {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
 
-    _checkForMismatchedAccessorTypes(interfaceMembers);
+    _checkForMismatchedAccessorTypes(interface);
 
     if (!classElement.isAbstract) {
       List<FunctionType> inheritedAbstract = null;
 
-      for (var name in interfaceMembers.map.keys) {
+      for (var name in interface.map.keys) {
         if (!name.isAccessibleFor(libraryUri)) {
           continue;
         }
 
-        var interfaceType = interfaceMembers.map[name];
-        var concreteType = inheritance.getMember(type, name, concrete: true);
+        var interfaceType = interface.map[name];
+        var concreteType = interface.implemented[name];
 
         // No concrete implementation of the name.
         if (concreteType == null) {
-          if (!classElement.hasNoSuchMethod) {
-            if (!_reportConcreteClassWithAbstractMember(name.name)) {
-              inheritedAbstract ??= [];
-              inheritedAbstract.add(interfaceType);
-            }
+          if (!_reportConcreteClassWithAbstractMember(name.name)) {
+            inheritedAbstract ??= [];
+            inheritedAbstract.add(interfaceType);
           }
           continue;
         }
@@ -226,6 +230,18 @@ class _ClassVerifier {
     }
   }
 
+  void _addSuperinterfaces(InterfaceType startingType) {
+    var supertypes = <InterfaceType>[];
+    ClassElementImpl.collectAllSupertypes(supertypes, startingType, null);
+    for (int i = 0; i < supertypes.length; i++) {
+      var supertype = supertypes[i];
+      if (allSupertypes.add(supertype)) {
+        var interface = inheritance.getInterface(supertype);
+        allSuperinterfaces.add(interface);
+      }
+    }
+  }
+
   /// Check that the given [member] is a valid override of the corresponding
   /// instance members in each of [allSuperinterfaces].  The [libraryUri] is
   /// the URI of the library containing the [member].
@@ -238,8 +254,8 @@ class _ClassVerifier {
     if (member.isStatic) return;
 
     var name = new Name(libraryUri, member.name);
-    for (var superType in allSuperinterfaces) {
-      var superMemberType = inheritance.getInterface(superType).map[name];
+    for (var superInterface in allSuperinterfaces) {
+      var superMemberType = superInterface.declared[name];
       if (superMemberType != null) {
         // The case when members have different kinds is reported in verifier.
         // TODO(scheglov) Do it here?
@@ -352,7 +368,7 @@ class _ClassVerifier {
       if (getter.element.kind == ElementKind.GETTER) {
         // TODO(scheglov) We should separate getters and setters.
         var setter = interface.map[new Name(libraryUri, '${name.name}=')];
-        if (setter != null) {
+        if (setter != null && setter.parameters.length == 1) {
           var getterType = getter.returnType;
           var setterType = setter.parameters[0].type;
           if (!typeSystem.isAssignableTo(getterType, setterType)) {
@@ -388,6 +404,106 @@ class _ClassVerifier {
         }
       }
     }
+  }
+
+  /// Check that [classElement] is not a superinterface to itself.
+  /// The [path] is a list containing the potentially cyclic implements path.
+  ///
+  /// See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
+  /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
+  bool _checkForRecursiveInterfaceInheritance(ClassElement element,
+      [List<ClassElement> path]) {
+    path ??= <ClassElement>[];
+
+    // Detect error condition.
+    int size = path.length;
+    // If this is not the base case (size > 0), and the enclosing class is the
+    // given class element then report an error.
+    if (size > 0 && classElement == element) {
+      String className = classElement.displayName;
+      if (size > 1) {
+        // Construct a string showing the cyclic implements path:
+        // "A, B, C, D, A"
+        String separator = ", ";
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < size; i++) {
+          buffer.write(path[i].displayName);
+          buffer.write(separator);
+        }
+        buffer.write(element.displayName);
+        reporter.reportErrorForElement(
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            classElement,
+            [className, buffer.toString()]);
+        return true;
+      } else {
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
+        // RECURSIVE_INTERFACE_INHERITANCE_ON or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
+        reporter.reportErrorForElement(
+            _getRecursiveErrorCode(element), classElement, [className]);
+        return true;
+      }
+    }
+
+    if (path.indexOf(element) > 0) {
+      return false;
+    }
+    path.add(element);
+
+    // n-case
+    InterfaceType supertype = element.supertype;
+    if (supertype != null &&
+        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
+      return true;
+    }
+
+    for (InterfaceType type in element.mixins) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    for (InterfaceType type in element.superclassConstraints) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    for (InterfaceType type in element.interfaces) {
+      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+        return true;
+      }
+    }
+
+    path.removeAt(path.length - 1);
+    return false;
+  }
+
+  /// Return the error code that should be used when the given class [element]
+  /// references itself directly.
+  ErrorCode _getRecursiveErrorCode(ClassElement element) {
+    if (element.supertype?.element == classElement) {
+      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
+    }
+
+    for (InterfaceType type in element.superclassConstraints) {
+      if (type.element == classElement) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
+      }
+    }
+
+    for (InterfaceType type in element.mixins) {
+      if (type.element == classElement) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
+      }
+    }
+
+    return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS;
   }
 
   /// We identified that the current non-abstract class does not have the

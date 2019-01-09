@@ -24,12 +24,14 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_builder.dart'
     show
+        ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
         KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -69,7 +71,8 @@ ShadowClass initializeClass(
   return cls;
 }
 
-class SourceClassBuilder extends KernelClassBuilder {
+class SourceClassBuilder extends KernelClassBuilder
+    implements Comparable<SourceClassBuilder> {
   @override
   final Class actualCls;
 
@@ -243,11 +246,16 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   void prepareTopLevelInference() {
     scope.forEach((String name, Declaration declaration) {
-      if (declaration is KernelFieldBuilder) {
-        declaration.prepareTopLevelInference();
-      }
+      do {
+        if (declaration is KernelFieldBuilder) {
+          declaration.prepareTopLevelInference();
+        }
+        declaration = declaration.next;
+      } while (declaration != null);
     });
-    cls.setupApiMembers(library.loader.interfaceResolver);
+    if (!isPatch) {
+      cls.setupApiMembers(library.loader.interfaceResolver);
+    }
   }
 
   @override
@@ -273,5 +281,34 @@ class SourceClassBuilder extends KernelClassBuilder {
       count += declaration.finishPatch();
     });
     return count;
+  }
+
+  List<Declaration> computeDirectSupertypes(ClassBuilder objectClass) {
+    final List<Declaration> result = <Declaration>[];
+    final KernelNamedTypeBuilder supertype = this.supertype;
+    if (supertype != null) {
+      result.add(supertype.declaration);
+    } else if (objectClass != this) {
+      result.add(objectClass);
+    }
+    final List<KernelTypeBuilder> interfaces = this.interfaces;
+    if (interfaces != null) {
+      for (int i = 0; i < interfaces.length; i++) {
+        KernelNamedTypeBuilder interface = interfaces[i];
+        result.add(interface.declaration);
+      }
+    }
+    final KernelNamedTypeBuilder mixedInType = this.mixedInType;
+    if (mixedInType != null) {
+      result.add(mixedInType.declaration);
+    }
+    return result;
+  }
+
+  @override
+  int compareTo(SourceClassBuilder other) {
+    int result = "$fileUri".compareTo("${other.fileUri}");
+    if (result != 0) return result;
+    return charOffset.compareTo(other.charOffset);
   }
 }

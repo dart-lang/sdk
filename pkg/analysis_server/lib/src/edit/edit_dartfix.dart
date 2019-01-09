@@ -2,22 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -118,38 +120,59 @@ class EditDartFix {
       if (res is Folder) {
         for (Resource child in res.getChildren()) {
           if (!child.shortName.startsWith('.') &&
-              contextManager.isInAnalysisRoot(child.path)) {
+              contextManager.isInAnalysisRoot(child.path) &&
+              !contextManager.isIgnored(child.path)) {
             resources.add(child);
           }
         }
         continue;
       }
-      AnalysisResult result = await server.getAnalysisResult(res.path);
-      CompilationUnit unit = result?.unit;
-      if (unit != null) {
-        if (!hasErrors) {
-          for (AnalysisError error in result.errors) {
-            if (!(await fixError(result, error))) {
-              if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
-                hasErrors = true;
+
+      const maxAttempts = 3;
+      int attempt = 0;
+      while (attempt < maxAttempts) {
+        ResolvedUnitResult result = await server.getResolvedUnit(res.path);
+
+        // TODO(danrubel): Investigate why InconsistentAnalysisException occurs
+        // and whether this is an appropriate way to handle the situation
+        ++attempt;
+        try {
+          CompilationUnit unit = result?.unit;
+          if (unit != null) {
+            if (!hasErrors) {
+              for (AnalysisError error in result.errors) {
+                if (!(await fixError(result, error))) {
+                  if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
+                    hasErrors = true;
+                  }
+                }
               }
             }
+            Source source = result.unit.declaredElement.source;
+            for (Linter linter in linters) {
+              if (linter != null) {
+                linter.reporter.source = source;
+              }
+            }
+            var lintVisitors = lintVisitorsBySession[result.session] ??=
+                await _setupLintVisitors(result, linters);
+            if (lintVisitors.astVisitor != null) {
+              unit.accept(lintVisitors.astVisitor);
+            }
+            unit.accept(lintVisitors.linterVisitor);
+            for (LinterFix fix in fixes) {
+              await fix.applyLocalFixes(result);
+            }
           }
-        }
-        Source source = result.sourceFactory.forUri2(result.uri);
-        for (Linter linter in linters) {
-          if (linter != null) {
-            linter.reporter.source = source;
+          break;
+        } on InconsistentAnalysisException catch (_) {
+          if (attempt == maxAttempts) {
+            // TODO(danrubel): Consider improving the edit.dartfix protocol
+            // to gracefully report inconsistent results for a particular
+            // file rather than aborting the entire operation.
+            rethrow;
           }
-        }
-        var lintVisitors = lintVisitorsBySession[result.session] ??=
-            await _setupLintVisitors(result, linters);
-        if (lintVisitors.astVisitor != null) {
-          unit.accept(lintVisitors.astVisitor);
-        }
-        unit.accept(lintVisitors.linterVisitor);
-        for (LinterFix fix in fixes) {
-          await fix.applyLocalFixes(result);
+          // try again
         }
       }
     }
@@ -177,7 +200,7 @@ class EditDartFix {
         .toResponse(request.id);
   }
 
-  Future<bool> fixError(AnalysisResult result, AnalysisError error) async {
+  Future<bool> fixError(ResolvedUnitResult result, AnalysisError error) async {
     if (error.errorCode ==
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
       // TODO(danrubel): Rather than comparing the error codes individually,
@@ -190,11 +213,8 @@ class EditDartFix {
       return false;
     }
 
-    final dartContext = new DartFixContextImpl(
-        new FixContextImpl(
-            server.resourceProvider, result.driver, error, result.errors),
-        new AstProviderForDriver(result.driver),
-        result.unit);
+    final workspace = DartChangeWorkspace(server.currentSessions);
+    final dartContext = new DartFixContextImpl(workspace, result, error);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
     final location = locationFor(result, error.offset, error.length);
@@ -226,7 +246,7 @@ class EditDartFix {
     return false;
   }
 
-  Location locationFor(AnalysisResult result, int offset, int length) {
+  Location locationFor(ResolvedUnitResult result, int offset, int length) {
     final locInfo = result.unit.lineInfo.getLocation(offset);
     final location = new Location(
         result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
@@ -234,7 +254,7 @@ class EditDartFix {
   }
 
   Future<_LintVisitors> _setupLintVisitors(
-      AnalysisResult result, List<Linter> linters) async {
+      ResolvedUnitResult result, List<Linter> linters) async {
     final visitors = <AstVisitor>[];
     final registry = new NodeLintRegistry(false);
     // TODO(paulberry): use an API that provides this information more readily
@@ -246,8 +266,11 @@ class EditDartFix {
       if (identical(cu, unitElement)) {
         allUnits.add(currentUnit);
       } else {
-        var result = await session.getResolvedAst(cu.source.fullName);
-        allUnits.add(LinterContextUnit(result.content, result.unit));
+        Source source = cu.source;
+        if (source != null) {
+          var result = await session.getResolvedUnit(source.fullName);
+          allUnits.add(LinterContextUnit(result.content, result.unit));
+        }
       }
     }
     var context = LinterContextImpl(allUnits, currentUnit,
@@ -258,11 +281,8 @@ class EditDartFix {
         if (visitor != null) {
           visitors.add(visitor);
         }
-        if (linter is NodeLintRuleWithContext) {
-          (linter as NodeLintRuleWithContext)
-              .registerNodeProcessors(registry, context);
-        } else if (linter is NodeLintRule) {
-          (linter as NodeLintRule).registerNodeProcessors(registry);
+        if (linter is NodeLintRule) {
+          (linter as NodeLintRule).registerNodeProcessors(registry, context);
         }
       }
     }
@@ -276,29 +296,6 @@ class EditDartFix {
   }
 }
 
-class EditDartFixAssistContext implements DartAssistContext {
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final int selectionLength;
-
-  @override
-  final int selectionOffset;
-
-  @override
-  final Source source;
-
-  @override
-  final CompilationUnit unit;
-
-  EditDartFixAssistContext(
-      EditDartFix dartFix, this.source, this.unit, AstNode node)
-      : analysisDriver = dartFix.server.getAnalysisDriver(source.fullName),
-        selectionOffset = node.offset,
-        selectionLength = 0;
-}
-
 abstract class LinterFix implements ErrorReporter {
   final EditDartFix dartFix;
 
@@ -308,7 +305,7 @@ abstract class LinterFix implements ErrorReporter {
   LinterFix(this.dartFix);
 
   /// Apply fixes for the current compilation unit.
-  Future<void> applyLocalFixes(AnalysisResult result);
+  Future<void> applyLocalFixes(ResolvedUnitResult result);
 
   /// Apply any fixes remaining after analysis is complete.
   Future<void> applyRemainingFixes();

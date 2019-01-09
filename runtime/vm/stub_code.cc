@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/clustered_snapshot.h"
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
@@ -20,6 +21,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
+DECLARE_FLAG(bool, precompiled_mode);
 
 DECLARE_FLAG(bool, enable_interpreter);
 
@@ -162,13 +164,24 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
     ObjectPoolWrapper object_pool_wrapper;
-    Assembler assembler(&object_pool_wrapper);
+    Precompiler* precompiler = Precompiler::Instance();
+
+    ObjectPoolWrapper* wrapper =
+        FLAG_use_bare_instructions && precompiler != NULL
+            ? precompiler->global_object_pool_wrapper()
+            : &object_pool_wrapper;
+
+    const auto pool_attachment =
+        FLAG_precompiled_mode && FLAG_use_bare_instructions
+            ? Code::PoolAttachment::kNotAttachPool
+            : Code::PoolAttachment::kAttachPool;
+
+    Assembler assembler(wrapper);
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
-      stub ^= Code::FinalizeCode(name, nullptr, &assembler,
-                                 Code::PoolAttachment::kAttachPool,
+      stub ^= Code::FinalizeCode(name, nullptr, &assembler, pool_attachment,
                                  /*optimized1*/ false);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
@@ -193,8 +206,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         // Do not Garbage collect during this stage and instead allow the
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;
-        stub ^= Code::FinalizeCode(name, nullptr, &assembler,
-                                   Code::PoolAttachment::kAttachPool,
+        stub ^= Code::FinalizeCode(name, nullptr, &assembler, pool_attachment,
                                    false /* optimized */);
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
@@ -226,16 +238,23 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-RawCode* StubCode::GetBuildMethodExtractorStub() {
+RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolWrapper* pool) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  Assembler assembler(pool != nullptr ? pool : &object_pool_wrapper);
   StubCode::GenerateBuildMethodExtractorStub(&assembler);
 
   const char* name = "BuildMethodExtractor";
   const Code& stub = Code::Handle(Code::FinalizeCode(
-      name, nullptr, &assembler, Code::PoolAttachment::kAttachPool,
+      name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
       /*optimized=*/false));
+
+  if (pool == nullptr) {
+    const ObjectPool& object_pool =
+        ObjectPool::Handle(object_pool_wrapper.MakeObjectPool());
+    stub.set_object_pool(object_pool.raw());
+  }
+
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;

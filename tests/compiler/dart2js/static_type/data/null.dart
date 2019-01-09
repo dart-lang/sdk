@@ -36,7 +36,7 @@ null3(dynamic c) {
 
 null4(dynamic c) {
   if (/*dynamic*/ c /*invoke: bool*/ != null) return;
-  /*dynamic*/ c.next;
+  /*Null*/ c.next;
 }
 
 null5(dynamic c) {
@@ -47,7 +47,7 @@ null5(dynamic c) {
 
 null6(dynamic c) {
   if (/*dynamic*/ c /*invoke: bool*/ == null) {
-    /*dynamic*/ c.next;
+    /*Null*/ c.next;
   }
 }
 
@@ -59,6 +59,6 @@ null7(dynamic c) {
 
 null8(dynamic c) {
   while (/*dynamic*/ c /*invoke: bool*/ == null) {
-    /*dynamic*/ c.next;
+    /*Null*/ c.next;
   }
 }

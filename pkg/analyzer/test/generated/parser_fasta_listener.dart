@@ -201,12 +201,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    super.beginExpressionStatement(token);
-    begin('ExpressionStatement');
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     super.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -682,12 +676,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
-    end('ExpressionStatement');
-    super.endExpressionStatement(token);
-  }
-
-  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
@@ -776,9 +764,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     end('FunctionType');
-    super.endFunctionType(functionToken);
+    super.endFunctionType(functionToken, questionMark);
   }
 
   @override

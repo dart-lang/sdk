@@ -11,6 +11,11 @@ import "package:expect/expect.dart";
 const String NeverInline =
     const bool.fromEnvironment("enable_inlining") ? "" : "NeverInline";
 
+// In AOT we need to force some functions to be inlined since we only build the
+// unchecked entry-point when inlining.
+const String AlwaysInline =
+    const bool.fromEnvironment("enable_inlining") ? "AlwaysInline" : "";
+
 // All these tests can be run in test mode or in benchmark mode. In benchmark
 // mode, there is introspection is omitted and the tests runs for many more
 // iterations.
@@ -48,5 +53,7 @@ _validateTearoffFn(String name, int entryPoint) {
       entryPoint);
 }
 
+@pragma("vm:entry-point", "get")
 const validate = benchmarkMode ? null : _validateFn;
+@pragma("vm:entry-point", "get")
 const validateTearoff = benchmarkMode ? null : _validateTearoffFn;

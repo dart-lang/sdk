@@ -35,7 +35,7 @@ abstract class _C&Super&Mixin<V extends core::Object = dynamic> extends self::Su
 }
 class C<V extends core::Object = dynamic> extends self::_C&Super&Mixin<self::C::V> {
   synthetic constructor •() → self::C<self::C::V>
-    : super self::Super::•()
+    : super self::_C&Super&Mixin::•()
     ;
 }
 abstract class _D&Super&Mixin extends self::Super<dynamic> implements mix::Mixin<dynamic> {
@@ -61,7 +61,7 @@ abstract class _D&Super&Mixin extends self::Super<dynamic> implements mix::Mixin
 }
 class D extends self::_D&Super&Mixin {
   synthetic constructor •() → self::D
-    : super self::Super::•()
+    : super self::_D&Super&Mixin::•()
     ;
 }
 class C2<V extends core::Object = dynamic> extends self::Super<self::C2::V> implements mix::Mixin<self::C2::V> {

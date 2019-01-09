@@ -39,6 +39,8 @@ class TestTypeHierarchy implements TypeHierarchy {
   Class get futureOrClass =>
       throw "futureOrClass not supported in the types test.";
   Class get futureClass => throw "futureClass not supported in the types test.";
+  Class get functionClass =>
+      throw "functionClass not supported in the types test.";
 }
 
 main() {

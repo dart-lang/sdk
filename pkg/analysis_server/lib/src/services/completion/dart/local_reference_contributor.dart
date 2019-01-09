@@ -226,6 +226,20 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    if (optype.includeTypeNameSuggestions) {
+      // TODO (danrubel) determine parameters and return type
+      _addLocalSuggestion_includeTypeNameSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          declaration.functionType.returnType,
+          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+          isAbstract: true,
+          isDeprecated: isDeprecated(declaration));
+    }
+  }
+
+  @override
   void declaredLabel(Label label, bool isCaseLabel) {
     // ignored
   }

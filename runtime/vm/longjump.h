@@ -19,14 +19,17 @@ class LongJumpScope : public StackResource {
   LongJumpScope()
       : StackResource(Thread::Current()),
         top_(NULL),
-        base_(Thread::Current()->long_jump_base()) {
-    Thread::Current()->set_long_jump_base(this);
+        base_(thread()->long_jump_base()) {
+    thread()->set_long_jump_base(this);
   }
 
-  ~LongJumpScope() { Thread::Current()->set_long_jump_base(base_); }
+  ~LongJumpScope() {
+    ASSERT(thread() == Thread::Current());
+    thread()->set_long_jump_base(base_);
+  }
 
   jmp_buf* Set();
-  void Jump(int value, const Error& error);
+  DART_NORETURN void Jump(int value, const Error& error);
 
  private:
   jmp_buf environment_;

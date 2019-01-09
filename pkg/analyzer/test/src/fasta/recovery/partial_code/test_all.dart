@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,8 +8,7 @@ import 'annotation_test.dart' as annotation;
 import 'assert_statement_test.dart' as assert_statement;
 import 'break_statement_test.dart' as break_statement;
 import 'class_declaration_test.dart' as class_declaration;
-import 'constructor_test.dart' as constructor;
-import 'mixin_declaration_test.dart' as mixin_declaration;
+import 'constructor_declaration_test.dart' as constructor_declaration;
 import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
 import 'enum_declaration_test.dart' as enum_declaration;
@@ -19,11 +18,12 @@ import 'forEach_statement_test.dart' as forEach_statement;
 import 'for_statement_test.dart' as for_statement;
 import 'if_statement_test.dart' as if_statement;
 import 'import_directive_test.dart' as import_directive;
-import 'index_statement_test.dart' as index_statement;
+import 'index_expression_test.dart' as index_expression;
 import 'instance_creation_test.dart' as instance_creation;
 import 'library_directive_test.dart' as library_directive;
 import 'local_variable_test.dart' as local_variable;
 import 'method_declaration_test.dart' as method_declaration;
+import 'mixin_declaration_test.dart' as mixin_declaration;
 import 'parameter_test.dart' as parameter;
 import 'part_directive_test.dart' as part_directive;
 import 'part_of_directive_test.dart' as part_of_directive;
@@ -41,7 +41,7 @@ main() {
     assert_statement.main();
     break_statement.main();
     class_declaration.main();
-    constructor.main();
+    constructor_declaration.main();
     continue_statement.main();
     do_statement.main();
     enum_declaration.main();
@@ -51,7 +51,7 @@ main() {
     forEach_statement.main();
     if_statement.main();
     import_directive.main();
-    index_statement.main();
+    index_expression.main();
     instance_creation.main();
     library_directive.main();
     local_variable.main();

@@ -148,8 +148,8 @@ Program* Program::ReadFromFile(const char* script_uri,
       memmove(kernel_buffer, data, kernel_buffer_size);
       Dart_TypedDataReleaseData(retval);
 
-      kernel_program =
-          kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size);
+      kernel_program = kernel::Program::ReadFromBuffer(
+          kernel_buffer, kernel_buffer_size, error);
     } else if (error != nullptr) {
       *error = Dart_GetError(retval);
     }

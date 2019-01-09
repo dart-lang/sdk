@@ -30,7 +30,7 @@ class ResultCollector<E> {
    * the plugin that provided the partial results. The value is the partial
    * results contributed by the plugin for the file.
    */
-  Map<String, Map<String, E>> resultMap = <String, Map<String, E>>{};
+  final Map<String, Map<String, E>> resultMap = <String, Map<String, E>>{};
 
   /**
    * Initialize a newly created result manager.

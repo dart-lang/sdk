@@ -5,75 +5,53 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'test_utils.dart' show freeIPv4AndIPv6Port, retry;
+import 'test_utils.dart' show retry, throws;
 
-testBindShared(String host, bool v6Only) {
-  asyncStart();
-  ServerSocket.bind(host, 0, v6Only: v6Only, shared: true).then((socket) {
-    Expect.isTrue(socket.port > 0);
+Future testBindShared(String host, bool v6Only) async {
+  final socket = await ServerSocket.bind(host, 0, v6Only: v6Only, shared: true);
+  Expect.isTrue(socket.port > 0);
 
-    asyncStart();
-    return ServerSocket
-        .bind(host, socket.port, v6Only: v6Only, shared: true)
-        .then((socket2) {
-      Expect.equals(socket.address.address, socket2.address.address);
-      Expect.equals(socket.port, socket2.port);
-      socket.close().whenComplete(asyncEnd);
-      socket2.close().whenComplete(asyncEnd);
-    });
-  });
+  final socket2 =
+      await ServerSocket.bind(host, socket.port, v6Only: v6Only, shared: true);
+
+  Expect.equals(socket.address.address, socket2.address.address);
+  Expect.equals(socket.port, socket2.port);
+
+  await socket.close();
+  await socket2.close();
 }
 
-negTestBindSharedMismatch(String host, bool v6Only) {
-  asyncStart();
-  ServerSocket.bind(host, 0, v6Only: v6Only).then((ServerSocket socket) {
-    Expect.isTrue(socket.port > 0);
+Future negTestBindSharedMismatch(String host, bool v6Only) async {
+  final socket = await ServerSocket.bind(host, 0, v6Only: v6Only);
+  Expect.isTrue(socket.port > 0);
 
-    asyncStart();
-    return ServerSocket
-        .bind(host, socket.port, v6Only: v6Only)
-        .catchError((error) {
-      Expect.isTrue(error is SocketException);
-      Expect.isTrue('$error'.contains('shared flag'));
-      socket.close().whenComplete(asyncEnd);
-      asyncEnd();
-    });
-  });
+  await throws(() => ServerSocket.bind(host, socket.port, v6Only: v6Only),
+      (error) => error is SocketException && '$error'.contains('shared flag'));
+  await socket.close();
 }
 
-negTestBindV6OnlyMismatch(String host, bool v6Only) {
-  asyncStart();
-  ServerSocket
-      .bind(host, 0, v6Only: v6Only, shared: true)
-      .then((ServerSocket socket) {
-    Expect.isTrue(socket.port > 0);
+Future negTestBindV6OnlyMismatch(String host, bool v6Only) async {
+  final socket = await ServerSocket.bind(host, 0, v6Only: v6Only, shared: true);
+  Expect.isTrue(socket.port > 0);
 
-    asyncStart();
-    return ServerSocket
-        .bind(host, socket.port, v6Only: !v6Only, shared: true)
-        .catchError((error) {
-      Expect.isTrue(error is SocketException);
-      Expect.isTrue('$error'.contains('v6Only flag'));
-      socket.close().whenComplete(asyncEnd);
-      asyncEnd();
-    });
-  });
+  await throws(
+      () => ServerSocket.bind(host, socket.port, v6Only: !v6Only, shared: true),
+      (error) => error is SocketException && '$error'.contains('v6Only flag'));
+
+  await socket.close();
 }
 
 Future testBindDifferentAddresses(InternetAddress addr1, InternetAddress addr2,
     bool addr1V6Only, bool addr2V6Only) async {
-  int freePort = await freeIPv4AndIPv6Port();
-
-  var socket = await ServerSocket.bind(addr1, freePort,
-      v6Only: addr1V6Only, shared: false);
+  var socket =
+      await ServerSocket.bind(addr1, 0, v6Only: addr1V6Only, shared: false);
 
   try {
     Expect.isTrue(socket.port > 0);
 
-    var socket2 = await ServerSocket.bind(addr2, freePort,
+    var socket2 = await ServerSocket.bind(addr2, socket.port,
         v6Only: addr2V6Only, shared: false);
     try {
       Expect.equals(socket.port, socket2.port);
@@ -85,9 +63,7 @@ Future testBindDifferentAddresses(InternetAddress addr1, InternetAddress addr2,
   }
 }
 
-testListenCloseListenClose(String host) async {
-  asyncStart();
-
+Future testListenCloseListenClose(String host) async {
   ServerSocket socket = await ServerSocket.bind(host, 0, shared: true);
   ServerSocket socket2 =
       await ServerSocket.bind(host, socket.port, shared: true);
@@ -117,12 +93,9 @@ testListenCloseListenClose(String host) async {
 
   // Close the second server socket.
   await socket2.close();
-  asyncEnd();
 }
 
 main() async {
-  asyncStart();
-
   await retry(() async {
     await testBindDifferentAddresses(
         InternetAddress.anyIPv6, InternetAddress.anyIPv4, true, false);
@@ -133,16 +106,15 @@ main() async {
   });
 
   for (var host in ['127.0.0.1', '::1']) {
-    testBindShared(host, false);
-    testBindShared(host, true);
+    await testBindShared(host, false);
+    await testBindShared(host, true);
 
-    negTestBindSharedMismatch(host, false);
-    negTestBindSharedMismatch(host, true);
+    await negTestBindSharedMismatch(host, false);
+    await negTestBindSharedMismatch(host, true);
 
-    negTestBindV6OnlyMismatch(host, true);
-    negTestBindV6OnlyMismatch(host, false);
+    await negTestBindV6OnlyMismatch(host, true);
+    await negTestBindV6OnlyMismatch(host, false);
 
-    testListenCloseListenClose(host);
+    await testListenCloseListenClose(host);
   }
-  asyncEnd();
 }

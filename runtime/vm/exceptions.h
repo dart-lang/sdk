@@ -30,14 +30,14 @@ class Thread;
 
 class Exceptions : AllStatic {
  public:
-  static void Throw(Thread* thread, const Instance& exception);
-  static void ReThrow(Thread* thread,
-                      const Instance& exception,
-                      const Instance& stacktrace);
-  static void PropagateError(const Error& error);
+  DART_NORETURN static void Throw(Thread* thread, const Instance& exception);
+  DART_NORETURN static void ReThrow(Thread* thread,
+                                    const Instance& exception,
+                                    const Instance& stacktrace);
+  DART_NORETURN static void PropagateError(const Error& error);
 
   // Propagate an error to the entry frame, skipping over Dart frames.
-  static void PropagateToEntry(const Error& error);
+  DART_NORETURN static void PropagateToEntry(const Error& error);
 
   // Helpers to create and throw errors.
   static RawStackTrace* CurrentStackTrace();
@@ -46,8 +46,7 @@ class Exceptions : AllStatic {
   static void CreateAndThrowTypeError(TokenPosition location,
                                       const AbstractType& src_type,
                                       const AbstractType& dst_type,
-                                      const String& dst_name,
-                                      const String& bound_error_msg);
+                                      const String& dst_name);
 
   enum ExceptionType {
     kNone,
@@ -72,28 +71,29 @@ class Exceptions : AllStatic {
     kCompileTimeError,
   };
 
-  static void ThrowByType(ExceptionType type, const Array& arguments);
+  DART_NORETURN static void ThrowByType(ExceptionType type,
+                                        const Array& arguments);
   // Uses the preallocated out of memory exception to avoid calling
   // into Dart code or allocating any code.
-  static void ThrowOOM();
-  static void ThrowStackOverflow();
-  static void ThrowArgumentError(const Instance& arg);
-  static void ThrowRangeError(const char* argument_name,
-                              const Integer& argument_value,
-                              intptr_t expected_from,
-                              intptr_t expected_to);
-  static void ThrowRangeErrorMsg(const char* msg);
-  static void ThrowCompileTimeError(const LanguageError& error);
+  DART_NORETURN static void ThrowOOM();
+  DART_NORETURN static void ThrowStackOverflow();
+  DART_NORETURN static void ThrowArgumentError(const Instance& arg);
+  DART_NORETURN static void ThrowRangeError(const char* argument_name,
+                                            const Integer& argument_value,
+                                            intptr_t expected_from,
+                                            intptr_t expected_to);
+  DART_NORETURN static void ThrowRangeErrorMsg(const char* msg);
+  DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
 
-  static void JumpToFrame(Thread* thread,
-                          uword program_counter,
-                          uword stack_pointer,
-                          uword frame_pointer,
-                          bool clear_deopt_at_target);
+  DART_NORETURN static void JumpToFrame(Thread* thread,
+                                        uword program_counter,
+                                        uword stack_pointer,
+                                        uword frame_pointer,
+                                        bool clear_deopt_at_target);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);

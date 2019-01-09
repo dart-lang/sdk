@@ -10,7 +10,10 @@ import 'dart:async';
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    expect(isolate.name, equals('set_name_rpc_test.dart:main()'));
+    expect(
+        ((isolate.name == 'set_name_rpc_test.dart:main()') ||
+            (isolate.name == 'out.jitsnapshot:main()')),
+        isTrue);
 
     Completer completer = new Completer();
     var stream = await isolate.vm.getEventStream(VM.kIsolateStream);

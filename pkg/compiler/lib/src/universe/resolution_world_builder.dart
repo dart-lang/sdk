@@ -399,6 +399,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final KAllocatorAnalysis _allocatorAnalysis;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final NoSuchMethodRegistry _noSuchMethodRegistry;
+  final AnnotationsDataBuilder _annotationsDataBuilder;
 
   final SelectorConstraintsStrategy _selectorConstraintsStrategy;
   final ClassHierarchyBuilder _classHierarchyBuilder;
@@ -435,6 +436,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       this._allocatorAnalysis,
       this._nativeResolutionEnqueuer,
       this._noSuchMethodRegistry,
+      this._annotationsDataBuilder,
       this._selectorConstraintsStrategy,
       this._classHierarchyBuilder,
       this._classQueries);
@@ -587,7 +589,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
-        if (masks.applies(member, selector, this)) {
+        if (masks.canHit(member, selector.memberName, this)) {
           return true;
         }
       }
@@ -621,8 +623,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     void _process(Map<String, Set<MemberUsage>> memberMap,
         EnumSet<MemberUse> action(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
-        if (_selectorConstraintsStrategy.appliedUnnamed(
-            dynamicUse, usage.entity, this)) {
+        if (selector.appliesUnnamed(usage.entity) &&
+            _selectorConstraintsStrategy.appliedUnnamed(
+                dynamicUse, usage.entity, this)) {
           memberUsed(usage.entity, action(usage));
           return true;
         }
@@ -659,10 +662,12 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     Object constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
-    UniverseSelectorConstraints constraints =
-        selectors.putIfAbsent(selector, () {
-      return _selectorConstraintsStrategy.createSelectorConstraints(selector);
-    });
+    UniverseSelectorConstraints constraints = selectors[selector];
+    if (constraints == null) {
+      selectors[selector] = _selectorConstraintsStrategy
+          .createSelectorConstraints(selector, constraint);
+      return true;
+    }
     return constraints.addReceiverConstraint(constraint);
   }
 
@@ -989,6 +994,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         return _classHierarchyBuilder.isInheritedInThisClass(
             memberHoldingClass, type);
       case ClassRelation.subtype:
+        if (memberHoldingClass == _commonElements.nullClass ||
+            memberHoldingClass == _commonElements.jsNullClass) {
+          // Members of `Null` and `JSNull` are always potential targets.
+          return true;
+        }
         return _classHierarchyBuilder.isInheritedInSubtypeOf(
             memberHoldingClass, type);
     }
@@ -1019,9 +1029,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
 
-    AnnotationsData annotationsData = processAnnotations(
-        reporter, _commonElements, _elementEnvironment, _processedMembers);
-
     KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
@@ -1042,7 +1049,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: annotationsData);
+        annotationsData: _annotationsDataBuilder);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

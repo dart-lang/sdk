@@ -25,7 +25,7 @@ genericMethod1(c) {
 
 genericMethod2(c) {
   if (/*dynamic*/ c is! Class1) return;
-  /*dynamic*/ c. /*invoke: dynamic*/ method('').length;
+  /*Class1*/ c. /*invoke: dynamic*/ method('').length;
 }
 
 genericMethod3() {

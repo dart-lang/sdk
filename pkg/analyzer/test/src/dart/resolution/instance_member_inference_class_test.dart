@@ -19,7 +19,7 @@ main() {
 class InstanceMemberInferenceClassDriverResolutionTest
     extends DriverResolutionTest with InstanceMemberInferenceClassMixin {}
 
-abstract class InstanceMemberInferenceClassMixin implements ResolutionTest {
+mixin InstanceMemberInferenceClassMixin implements ResolutionTest {
   test_invalid_inheritanceCycle() async {
     addTestFile('''
 class A extends C {}

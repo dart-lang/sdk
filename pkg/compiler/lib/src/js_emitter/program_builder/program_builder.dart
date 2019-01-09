@@ -884,7 +884,7 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld);
+        canTearOff = _worldBuilder.hasInvokedGetter(element);
         assert(canTearOff ||
             !_worldBuilder.methodsNeedingSuperGetter.contains(element));
         tearOffName = _namer.getterForElement(element);
@@ -1067,15 +1067,13 @@ class ProgramBuilder {
         }
       }
 
-      // TODO(sra): Generalize for constants other than null.
-      bool nullInitializerInAllocator = false;
+      ConstantValue initializerInAllocator = null;
       if (_allocatorAnalysis.isInitializedInAllocator(field)) {
-        assert(_allocatorAnalysis.initializerValue(field).isNull);
-        nullInitializerInAllocator = true;
+        initializerInAllocator = _allocatorAnalysis.initializerValue(field);
       }
 
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
-          needsCheckedSetter, nullInitializerInAllocator));
+          needsCheckedSetter, initializerInAllocator));
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,

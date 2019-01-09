@@ -35,6 +35,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration);
 
+  void declaredGenericTypeAlias(GenericTypeAlias declaration);
+
   void declaredLabel(Label label, bool isCaseLabel);
 
   void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type);
@@ -113,6 +115,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         declaredClassTypeAlias(declaration);
       } else if (declaration is FunctionTypeAlias) {
         declaredFunctionTypeAlias(declaration);
+      } else if (declaration is GenericTypeAlias) {
+        declaredGenericTypeAlias(declaration);
       }
     });
   }

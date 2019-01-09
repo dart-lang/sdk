@@ -128,7 +128,6 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.type:
       case M.InstanceKind.typeRef:
       case M.InstanceKind.typeParameter:
-      case M.InstanceKind.boundedType:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..text = _instance.name

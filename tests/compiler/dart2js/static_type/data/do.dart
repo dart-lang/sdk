@@ -13,7 +13,7 @@ main() {
 
 do1(dynamic c) {
   if (/*dynamic*/ c is Class) {
-    /*dynamic*/ c.next;
+    /*Class*/ c.next;
     do {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {

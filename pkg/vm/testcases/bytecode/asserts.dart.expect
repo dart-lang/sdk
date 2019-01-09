@@ -33,13 +33,13 @@ Bytecode {
   CheckStack           0
   JumpIfNoAsserts      L1
   Push                 FP[-6]
-  InstanceCall         1, CP#1
+  DynamicCall          1, CP#1
   AssertBoolean        0
   JumpIfTrue           L1
   PushInt              0
   PushInt              0
   Push                 FP[-5]
-  InstanceCall         1, CP#2
+  DynamicCall          1, CP#2
   PushConstant         CP#4
   IndirectStaticCall   3, CP#3
   Drop1

@@ -39,7 +39,7 @@ abstract class C<T extends core::Object = dynamic> = self::B with self::M<(self:
 }
 class D extends self::C<core::int> {
   synthetic constructor •() → self::D
-    : super self::B::•()
+    : super self::C::•()
     ;
   method f() → (core::int) → void
     return (core::int i) → dynamic {

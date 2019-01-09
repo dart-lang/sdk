@@ -21,6 +21,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
@@ -1531,7 +1532,9 @@ void Assembler::LeaveCallRuntimeFrame() {
   const intptr_t kPushedRegistersSize =
       kPushedCpuRegistersCount * kWordSize +
       kPushedXmmRegistersCount * kFpuRegisterSize +
-      2 * kWordSize;  // PP, pc marker from EnterStubFrame
+      (compiler_frame_layout.dart_fixed_frame_size - 2) *
+          kWordSize;  // From EnterStubFrame (excluding PC / FP)
+
   leaq(RSP, Address(RBP, -kPushedRegistersSize));
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
@@ -1568,12 +1571,14 @@ void Assembler::LoadPoolPointer(Register pp) {
 void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   EnterFrame(0);
-  pushq(CODE_REG);
-  pushq(PP);
-  if (new_pp == kNoRegister) {
-    LoadPoolPointer(PP);
-  } else {
-    movq(PP, new_pp);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    pushq(CODE_REG);
+    pushq(PP);
+    if (new_pp == kNoRegister) {
+      LoadPoolPointer(PP);
+    } else {
+      movq(PP, new_pp);
+    }
   }
   set_constant_pool_allowed(true);
   if (frame_size != 0) {
@@ -1583,11 +1588,13 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
-  if (restore_pp == kRestoreCallerPP) {
-    movq(PP, Address(RBP, (compiler_frame_layout.saved_caller_pp_from_fp *
-                           kWordSize)));
-    set_constant_pool_allowed(false);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (restore_pp == kRestoreCallerPP) {
+      movq(PP, Address(RBP, (compiler_frame_layout.saved_caller_pp_from_fp *
+                             kWordSize)));
+    }
   }
+  set_constant_pool_allowed(false);
   LeaveFrame();
 }
 
@@ -1651,8 +1658,8 @@ void Assembler::LeaveStubFrame() {
 // RDI receiver, RBX guarded cid as Smi.
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
+  intptr_t start = CodeSize();
   Label immediate, have_cid, miss;
   Bind(&miss);
   jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
@@ -1661,11 +1668,18 @@ void Assembler::MonomorphicCheckedEntry() {
   movq(TMP, Immediate(kSmiCid));
   jmp(&have_cid, kNearJump);
 
+  // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
+  // store them in ICData / MegamorphicCache arrays)
+  nop(1);
+
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
+  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+
   SmiUntag(RBX);
   testq(RDI, Immediate(kSmiTagMask));
   j(ZERO, &immediate, kNearJump);
+  nop(1);
 
   LoadClassId(TMP, RDI);
 
@@ -1674,8 +1688,8 @@ void Assembler::MonomorphicCheckedEntry() {
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
-  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
+  ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 
 #ifndef PRODUCT

@@ -11,11 +11,11 @@ import '../common/tasks.dart';
 import '../compiler.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../util/sink_adapter.dart';
 import 'serialization.dart';
 

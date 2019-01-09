@@ -227,6 +227,70 @@ const Code::Comments& AssemblerBase::GetCodeComments() const {
   return comments;
 }
 
+intptr_t ObjIndexPair::Hashcode(Key key) {
+  if (key.type() != ObjectPool::kTaggedObject) {
+    return key.raw_value_;
+  }
+  if (key.obj_->IsNull()) {
+    return 2011;
+  }
+  if (key.obj_->IsString() || key.obj_->IsNumber()) {
+    return Instance::Cast(*key.obj_).CanonicalizeHash();
+  }
+  if (key.obj_->IsCode()) {
+    // Instructions don't move during compaction.
+    return Code::Cast(*key.obj_).PayloadStart();
+  }
+  if (key.obj_->IsFunction()) {
+    return Function::Cast(*key.obj_).Hash();
+  }
+  if (key.obj_->IsField()) {
+    return String::HashRawSymbol(Field::Cast(*key.obj_).name());
+  }
+  // Unlikely.
+  return key.obj_->GetClassId();
+}
+void ObjectPoolWrapper::Reset() {
+  // Null out the handles we've accumulated.
+  for (intptr_t i = 0; i < object_pool_.length(); ++i) {
+    if (object_pool_[i].type() == ObjectPool::kTaggedObject) {
+      *const_cast<Object*>(object_pool_[i].obj_) = Object::null();
+      *const_cast<Object*>(object_pool_[i].equivalence_) = Object::null();
+    }
+  }
+
+  object_pool_.Clear();
+  object_pool_index_table_.Clear();
+}
+
+void ObjectPoolWrapper::InitializeFrom(const ObjectPool& other) {
+  ASSERT(object_pool_.length() == 0);
+
+  for (intptr_t i = 0; i < other.Length(); i++) {
+    auto type = other.TypeAt(i);
+    auto patchable = other.PatchableAt(i);
+    switch (type) {
+      case ObjectPool::kTaggedObject: {
+        ObjectPoolWrapperEntry entry(&Object::ZoneHandle(other.ObjectAt(i)),
+                                     patchable);
+        AddObject(entry);
+        break;
+      }
+      case ObjectPool::kImmediate:
+      case ObjectPool::kNativeFunction:
+      case ObjectPool::kNativeFunctionWrapper: {
+        ObjectPoolWrapperEntry entry(other.RawValueAt(i), type, patchable);
+        AddObject(entry);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  ASSERT(CurrentLength() == other.Length());
+}
+
 intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
                                       ObjectPool::Patchability patchable) {
   ASSERT(obj.IsNotTemporaryScopedHandle());
@@ -243,6 +307,19 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry) {
          (entry.obj_->IsNotTemporaryScopedHandle() &&
           (entry.equivalence_ == NULL ||
            entry.equivalence_->IsNotTemporaryScopedHandle())));
+
+  if (entry.type() == ObjectPool::kTaggedObject) {
+    // If the owner of the object pool wrapper specified a specific zone we
+    // shoulld use we'll do so.
+    if (zone_ != NULL) {
+      entry.obj_ = &Object::ZoneHandle(zone_, entry.obj_->raw());
+      if (entry.equivalence_ != NULL) {
+        entry.equivalence_ =
+            &Object::ZoneHandle(zone_, entry.equivalence_->raw());
+      }
+    }
+  }
+
   object_pool_.Add(entry);
   if (entry.patchable() == ObjectPool::kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.

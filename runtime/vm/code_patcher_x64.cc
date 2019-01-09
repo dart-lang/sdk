@@ -12,7 +12,9 @@
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/raw_object.h"
+#include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
 
@@ -209,12 +211,41 @@ class PoolPointerCall : public ValueObject {
 //   load guarded cid            load ICData             load MegamorphicCache
 //   load monomorphic target <-> load ICLookup stub  ->  load MMLookup stub
 //   call target.entry           call stub.entry         call stub.entry
-class SwitchableCall : public ValueObject {
+class SwitchableCallBase : public ValueObject {
  public:
-  SwitchableCall(uword return_address, const Code& code)
+  explicit SwitchableCallBase(const Code& code)
       : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
         target_index_(-1),
-        data_index_(-1) {
+        data_index_(-1) {}
+
+  intptr_t data_index() const { return data_index_; }
+  intptr_t target_index() const { return target_index_; }
+
+  RawObject* data() const { return object_pool_.ObjectAt(data_index()); }
+
+  void SetData(const Object& data) const {
+    ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
+    object_pool_.SetObjectAt(data_index(), data);
+    // No need to flush the instruction cache, since the code is not modified.
+  }
+
+ protected:
+  ObjectPool& object_pool_;
+  intptr_t target_index_;
+  intptr_t data_index_;
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchableCallBase);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a [Code] object: Either the code of the
+// monomorphic function or a stub code.
+class SwitchableCall : public SwitchableCallBase {
+ public:
+  SwitchableCall(uword return_address, const Code& code)
+      : SwitchableCallBase(code) {
     uword pc = return_address;
 
     // callq RCX
@@ -248,7 +279,7 @@ class SwitchableCall : public ValueObject {
 
     // movq rcx, [CODE_REG + entrypoint_offset]
     static int16_t load_entry_pattern[] = {
-        0x49, 0x8b, 0x4c, 0x24, 0x0f,
+        0x49, 0x8b, 0x4c, 0x24, -1,
     };
     if (MatchesPattern(pc, load_entry_pattern,
                        ARRAY_SIZE(load_entry_pattern))) {
@@ -277,33 +308,96 @@ class SwitchableCall : public ValueObject {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index_)).IsCode());
   }
 
-  intptr_t data_index() const { return data_index_; }
-  intptr_t target_index() const { return target_index_; }
-
-  RawObject* data() const { return object_pool_.ObjectAt(data_index()); }
-  RawCode* target() const {
-    return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_index()));
-  }
-
-  void SetData(const Object& data) const {
-    ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
-    object_pool_.SetObjectAt(data_index(), data);
-    // No need to flush the instruction cache, since the code is not modified.
-  }
-
   void SetTarget(const Code& target) const {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index())).IsCode());
     object_pool_.SetObjectAt(target_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
- protected:
-  const ObjectPool& object_pool_;
-  intptr_t target_index_;
-  intptr_t data_index_;
+  RawCode* target() const {
+    return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_index()));
+  }
+};
 
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchableCall);
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a direct entrypoint address: Either the entry point
+// of the monomorphic function or a stub entry point.
+class BareSwitchableCall : public SwitchableCallBase {
+ public:
+  BareSwitchableCall(uword return_address, const Code& code)
+      : SwitchableCallBase(code) {
+    object_pool_ = ObjectPool::RawCast(
+        Isolate::Current()->object_store()->global_object_pool());
+
+    uword pc = return_address;
+
+    // callq RCX
+    static int16_t call_pattern[] = {
+        0xff, 0xd1,  //
+    };
+    if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
+      pc -= ARRAY_SIZE(call_pattern);
+    } else {
+      FATAL1("Failed to decode at %" Px, pc);
+    }
+
+    // movq RBX, [PP + offset]
+    static int16_t load_data_disp8[] = {
+        0x49, 0x8b, 0x5f, -1,  //
+    };
+    static int16_t load_data_disp32[] = {
+        0x49, 0x8b, 0x9f, -1, -1, -1, -1,
+    };
+    if (MatchesPattern(pc, load_data_disp8, ARRAY_SIZE(load_data_disp8))) {
+      pc -= ARRAY_SIZE(load_data_disp8);
+      data_index_ = IndexFromPPLoadDisp8(pc + 3);
+    } else if (MatchesPattern(pc, load_data_disp32,
+                              ARRAY_SIZE(load_data_disp32))) {
+      pc -= ARRAY_SIZE(load_data_disp32);
+      data_index_ = IndexFromPPLoadDisp32(pc + 3);
+    } else {
+      FATAL1("Failed to decode at %" Px, pc);
+    }
+    ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index_)).IsCode());
+
+    // movq RCX, [PP + offset]
+    static int16_t load_code_disp8[] = {
+        0x49, 0x8b, 0x4f, -1,  //
+    };
+    static int16_t load_code_disp32[] = {
+        0x49, 0x8b, 0x8f, -1, -1, -1, -1,
+    };
+    if (MatchesPattern(pc, load_code_disp8, ARRAY_SIZE(load_code_disp8))) {
+      pc -= ARRAY_SIZE(load_code_disp8);
+      target_index_ = IndexFromPPLoadDisp8(pc + 3);
+    } else if (MatchesPattern(pc, load_code_disp32,
+                              ARRAY_SIZE(load_code_disp32))) {
+      pc -= ARRAY_SIZE(load_code_disp32);
+      target_index_ = IndexFromPPLoadDisp32(pc + 3);
+    } else {
+      FATAL1("Failed to decode at %" Px, pc);
+    }
+    ASSERT(object_pool_.TypeAt(target_index_) == ObjectPool::kImmediate);
+  }
+
+  void SetTarget(const Code& target) const {
+    ASSERT(object_pool_.TypeAt(target_index()) == ObjectPool::kImmediate);
+    object_pool_.SetRawValueAt(target_index(), target.MonomorphicEntryPoint());
+  }
+
+  RawCode* target() const {
+    const uword pc = object_pool_.RawValueAt(target_index());
+    auto rct = Isolate::Current()->reverse_pc_lookup_cache();
+    if (rct->Contains(pc)) {
+      return rct->Lookup(pc);
+    }
+    rct = Dart::vm_isolate()->reverse_pc_lookup_cache();
+    if (rct->Contains(pc)) {
+      return rct->Lookup(pc);
+    }
+    UNREACHABLE();
+  }
 };
 
 RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
@@ -360,23 +454,39 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Object& data,
                                         const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCall call(return_address, caller_code);
-  call.SetData(data);
-  call.SetTarget(target);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCall call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  } else {
+    SwitchableCall call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  }
 }
 
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCall call(return_address, caller_code);
-  return call.target();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCall call(return_address, caller_code);
+    return call.target();
+  } else {
+    SwitchableCall call(return_address, caller_code);
+    return call.target();
+  }
 }
 
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCall call(return_address, caller_code);
-  return call.data();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCall call(return_address, caller_code);
+    return call.data();
+  } else {
+    SwitchableCall call(return_address, caller_code);
+    return call.data();
+  }
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,

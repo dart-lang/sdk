@@ -1,13 +1,13 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -134,7 +134,7 @@ class B extends A {} // 2
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -167,7 +167,7 @@ class C = A with B;
   }
 
   test_isExtendedBy_ClassTypeAlias_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -193,7 +193,7 @@ class B implements A {} // 2
   }
 
   test_isImplementedBy_ClassDeclaration_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -256,7 +256,7 @@ class A {
   }
 
   test_isInvokedBy_FunctionElement() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 foo() {}
 ''');
@@ -393,7 +393,7 @@ class B extends Object with A {} // 2
   }
 
   test_isMixedInBy_ClassDeclaration_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -465,7 +465,7 @@ main() {
   }
 
   test_isReferencedBy_ClassElement_invocation_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -504,7 +504,7 @@ main(B p) {
   }
 
   test_isReferencedBy_CompilationUnitElement_export() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
@@ -515,7 +515,7 @@ export 'lib.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_import() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
@@ -526,7 +526,7 @@ import 'lib.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_part() async {
-    provider.newFile(_p('$testProject/my_unit.dart'), 'part of my_lib;');
+    newFile('$testProject/my_unit.dart', content: 'part of my_lib;');
     await _indexTestUnit('''
 library my_lib;
 part 'my_unit.dart';
@@ -536,8 +536,8 @@ part 'my_unit.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_part_inPart() async {
-    provider.newFile(_p('$testProject/a.dart'), 'part of lib;');
-    provider.newFile(_p('$testProject/b.dart'), '''
+    newFile('$testProject/a.dart', content: 'part of lib;');
+    newFile('$testProject/b.dart', content: '''
 library lib;
 part 'a.dart';
 ''');
@@ -803,7 +803,7 @@ main() {
   }
 
   test_isReferencedBy_FunctionElement_with_LibraryElement() async {
-    provider.newFile(_p('$testProject/foo.dart'), r'''
+    newFile('$testProject/foo.dart', content: r'''
 bar() {}
 ''');
     await _indexTestUnit('''
@@ -863,8 +863,8 @@ class A {
   }
 
   test_isReferencedBy_MultiplyDefinedElement() async {
-    provider.newFile(_p('$testProject/a1.dart'), 'class A {}');
-    provider.newFile(_p('$testProject/a2.dart'), 'class A {}');
+    newFile('$testProject/a1.dart', content: 'class A {}');
+    newFile('$testProject/a2.dart', content: 'class A {}');
     await _indexTestUnit('''
 import 'a1.dart';
 import 'a2.dart';
@@ -911,7 +911,7 @@ main(bool b) {
   }
 
   test_isReferencedBy_TopLevelVariableElement() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -935,7 +935,7 @@ main() {
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 int get V => 0;
 void set V(_) {}
 ''');
@@ -947,7 +947,7 @@ import 'lib.dart' show V;
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 void set V(_) {}
 ''');
     await _indexTestUnit('''
@@ -982,7 +982,7 @@ class A {
 
   test_subtypes_classDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1032,7 +1032,7 @@ class Z implements E, D {
 
   test_subtypes_classTypeAlias() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1070,7 +1070,7 @@ class X extends dynamic {
 
   test_subtypes_mixinDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1336,10 +1336,10 @@ main() {
     return _getStringId(str);
   }
 
-  Future<Null> _indexTestUnit(String code) async {
+  Future<void> _indexTestUnit(String code) async {
     addTestFile(code);
 
-    AnalysisResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     testUnit = result.unit;
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
@@ -1348,8 +1348,6 @@ main() {
     List<int> indexBytes = indexBuilder.toBuffer();
     index = new AnalysisDriverUnitIndex.fromBuffer(indexBytes);
   }
-
-  String _p(String path) => provider.convertPath(path);
 }
 
 class _ElementIndexAssert {

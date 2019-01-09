@@ -111,6 +111,26 @@ abstract class Forest {
       List<Expression> expressions,
       Token rightBracket);
 
+  /// Return a representation of a set literal. The [constKeyword] is the
+  /// location of the `const` keyword, or `null` if there is no keyword. The
+  /// [isConst] is `true` if the literal is either explicitly or implicitly a
+  /// constant. The [typeArgument] is the representation of the single valid
+  /// type argument preceding the set literal, or `null` if there is no type
+  /// argument, there is more than one type argument, or if the type argument
+  /// cannot be resolved. The [typeArguments] is the representation of all of
+  /// the type arguments preceding the set literal, or `null` if there are no
+  /// type arguments. The [leftBrace] is the location of the `{`. The list of
+  /// [expressions] is a list of the representations of the set elements. The
+  /// [rightBrace] is the location of the `}`.
+  Expression literalSet(
+      Token constKeyword,
+      bool isConst,
+      Object typeArgument,
+      Object typeArguments,
+      Token leftBrace,
+      List<Expression> expressions,
+      Token rightBrace);
+
   /// Return a representation of a map literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
   /// [isConst] is `true` if the literal is either explicitly or implicitly a
@@ -121,18 +141,18 @@ abstract class Forest {
   /// the map literal, or `null` if there are not exactly two type arguments or
   /// if the second type argument cannot be resolved. The [typeArguments] is the
   /// representation of all of the type arguments preceding the map literal, or
-  /// `null` if there are no type arguments. The [leftBracket] is the location
+  /// `null` if there are no type arguments. The [leftBrace] is the location
   /// of the `{`. The list of [entries] is a list of the representations of the
-  /// map entries. The [rightBracket] is the location of the `}`.
+  /// map entries. The [rightBrace] is the location of the `}`.
   Expression literalMap(
       Token constKeyword,
       bool isConst,
       DartType keyType,
       DartType valueType,
       Object typeArguments,
-      Token leftBracket,
+      Token leftBrace,
       List<MapEntry> entries,
-      Token rightBracket);
+      Token rightBrace);
 
   /// Return a representation of a null literal at the given [location].
   Expression literalNull(Token location);
@@ -226,8 +246,7 @@ abstract class Forest {
   Statement forStatement(
       Token forKeyword,
       Token leftParenthesis,
-      List<VariableDeclaration> variableList,
-      List<Expression> initializers,
+      List<VariableDeclaration> variables,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,

@@ -344,6 +344,7 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
     kPartialTearOffInstantiation,
     kEmptyTypeArguments,
     kSymbol,
+    kInterfaceCall,
   };
 
   enum InvocationKind {
@@ -617,6 +618,22 @@ void BytecodeMetadataHelper::ReadConstantPool(const Function& function,
         obj = Instance::New(*symbol_class, Heap::kOld);
         Instance::Cast(obj).SetField(*symbol_name_field, name);
         obj = H.Canonicalize(Instance::Cast(obj));
+      } break;
+      case ConstantPoolTag::kInterfaceCall: {
+        helper_->ReadByte();  // TODO(regis): Remove, unneeded.
+        name ^= ReadObject();
+        ASSERT(name.IsSymbol());
+        intptr_t arg_desc_index = helper_->ReadUInt();
+        ASSERT(arg_desc_index < i);
+        array ^= pool.ObjectAt(arg_desc_index);
+        // InterfaceCall constant occupies 2 entries.
+        // The first entry is used for selector name.
+        pool.SetTypeAt(i, ObjectPool::kTaggedObject, ObjectPool::kNotPatchable);
+        pool.SetObjectAt(i, name);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for arguments descriptor.
+        obj = array.raw();
       } break;
       default:
         UNREACHABLE();
@@ -997,8 +1014,7 @@ RawObject* BytecodeMetadataHelper::ReadObjectContents(uint32_t header) {
         ASSERT(cls.IsNull());
         return AbstractType::void_type().raw();
       }
-      // TODO(alexmarkov): inline/move here to avoid handle allocations.
-      return H.GetCanonicalType(cls).raw();
+      return cls.DeclarationType();
     }
     case kTypeParameter: {
       Object& parent = Object::Handle(Z, ReadObject());
@@ -1238,12 +1254,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
 
     return Error::null();
   } else {
-    StackZone stack_zone(thread);
-    Error& error = Error::Handle();
-    // We got an error during bytecode reading.
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return thread->StealStickyError();
   }
 }
 

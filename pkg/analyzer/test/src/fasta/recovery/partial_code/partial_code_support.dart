@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
@@ -46,6 +46,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   static final List<TestSuffix> declarationSuffixes = <TestSuffix>[
     new TestSuffix('class', 'class A {}'),
+    new TestSuffix('enum', 'enum E { v }'),
+    new TestSuffix('mixin', 'mixin M {}'),
     new TestSuffix('typedef', 'typedef A = B Function(C, D);'),
     new TestSuffix('functionVoid', 'void f() {}'),
     new TestSuffix('functionNonVoid', 'int f() {}'),

@@ -186,6 +186,10 @@ abstract class DataSink {
   /// [DataSource.readDartTypes].
   void writeDartTypes(Iterable<DartType> values, {bool allowNull: false});
 
+  /// Writes the kernel type node [value] to this data sink. If [allowNull] is
+  /// `true`, [value] is allowed to be `null`.
+  void writeDartTypeNode(ir.DartType value, {bool allowNull: false});
+
   /// Writes the source span [value] to this data sink.
   void writeSourceSpan(SourceSpan value);
 
@@ -487,6 +491,10 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeDartTypes].
   List<DartType> readDartTypes({bool emptyAsNull: false});
+
+  /// Reads a kernel type node from this data source. If [allowNull], the
+  /// returned type is allowed to be `null`.
+  ir.DartType readDartTypeNode({bool allowNull: false});
 
   /// Reads a source span from this data source.
   SourceSpan readSourceSpan();

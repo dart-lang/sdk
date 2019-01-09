@@ -12,11 +12,11 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
+import 'types.dart';
 
 /**
  * A work queue for the inferrer. It filters out nodes that are tagged as
@@ -114,7 +114,8 @@ class TypeGraphInferrer implements TypesInferrer {
 
       bool throwsAlways =
           // Always throws if the return type was inferred to be non-null empty.
-          returnType != null && abstractValueDomain.isEmpty(returnType);
+          returnType != null &&
+              abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
       bool isCalledOnce =
           typeInformation.isCalledOnce(); //isMemberCalledOnce(member);

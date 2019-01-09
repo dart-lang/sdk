@@ -550,14 +550,13 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-    // Issue http://dartbug.com/35180 for adding support for Token::kBIT_NOT
-    // here.
 #ifndef TARGET_ARCH_DBC
-    if (op_kind == Token::kNEGATE) {
-      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-      replacement =
-          new (Z) UnaryInt64OpInstr(Token::kNEGATE, left_value, DeoptId::kNone,
-                                    Instruction::kNotSpeculative);
+    if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+      if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
+        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+        replacement = new (Z) UnaryInt64OpInstr(
+            op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
+      }
     }
 #endif
   }
@@ -608,7 +607,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
       case Token::kNE: {
         // TODO(dartbug.com/32166): Support EQ, NE for nullable doubles.
         // (requires null-aware comparison instruction).
-        if (right_type->IsDouble()) {
+        if (left_type->IsDouble() && right_type->IsDouble()) {
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(

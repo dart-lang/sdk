@@ -25,7 +25,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
   RuntimeCompletionResult result;
 
   void addContextFile(String content) {
-    contextFile = convertPath('/test/lib/context.dart');
+    contextFile = convertPath('/home/test/lib/context.dart');
     addSource(contextFile, content);
 
     contextOffset = content.indexOf('// context line');
@@ -131,13 +131,13 @@ class B extends A {
   }
 
   test_inPart() async {
-    addSource('/test/lib/a.dart', r'''
+    addSource('/home/test/lib/a.dart', r'''
 part 'b.dart';
 part 'context.dart';
 
 int a;
 ''');
-    addSource('/test/lib/b.dart', r'''
+    addSource('/home/test/lib/b.dart', r'''
 part of 'a.dart';
 
 double b;

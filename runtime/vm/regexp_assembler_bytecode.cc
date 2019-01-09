@@ -430,10 +430,9 @@ static intptr_t Prepare(const RegExp& regexp,
 
     const bool multiline = regexp.is_multi_line();
     RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-    if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-      // Parsing failures are handled in the RegExp factory constructor.
-      UNREACHABLE();
-    }
+
+    // Parsing failures are handled in the RegExp factory constructor.
+    RegExpParser::ParseRegExp(pattern, multiline, compile_data);
 
     regexp.set_num_bracket_expressions(compile_data->capture_count);
     if (compile_data->simple) {

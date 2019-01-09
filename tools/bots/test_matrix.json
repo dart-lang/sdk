@@ -98,6 +98,7 @@
       "third_party/observatory_pub_packages/packages/",
       "tools/sdks/dart-sdk/",
       "pkg/async_helper/",
+      "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/expect/",
       "pkg/front_end/",
@@ -176,16 +177,15 @@
         "timeout": 240,
         "use-sdk": true
       }},
-    "unittest-asserts-(linux|mac|win)": {
+    "unittest-asserts-(release|debug)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
-        "mode": "release",
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
       }},
-      "unittest-asserts-no-sdk-(linux|mac|win)": {
+    "unittest-asserts-no-sdk-(linux|mac|win)": {
         "options": {
           "compiler": "dartk",
           "enable-asserts": true,
@@ -293,6 +293,10 @@
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
+    "dartkp-bare-linux-release-x64": {
+      "options": {
+        "vm-options": ["--no-enable-malloc-hooks", "--use-bare-instructions"]
+    }},
     "dartk-(linux|mac)-(debug|release)-(ia32|x64)": { },
     "dartk-checked-linux-release-x64": {
       "options": {
@@ -348,12 +352,6 @@
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
-      }},
-    "analyzer-fasta_parser-linux": {
-      "options": {
-        "compiler": "dart2analyzer",
-        "analyzer-use-fasta-parser": true,
-        "use-sdk": true
       }}
   },
   "builder_configurations": [
@@ -380,7 +378,7 @@
         {
           "name": "unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
           ]
         },
@@ -426,7 +424,6 @@
           "name": "vm mixed mode tests",
           "arguments": [
             "-ndartkb-mixed-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -439,7 +436,6 @@
           "name": "vm bytecode compiler tests",
           "arguments": [
             "-ndartkb-compile-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -452,7 +448,6 @@
           "name": "vm interpreter tests",
           "arguments": [
             "-ndartkb-interpret-linux-${mode}-x64",
-            "--compiler=dartkb",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -517,6 +512,32 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-bare-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders using bare instructions."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-bare-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1374,7 +1395,11 @@
       "builders": [
         "analyzer-linux-release",
         "analyzer-mac-release",
-        "analyzer-win-release"
+        "analyzer-win-release",
+        "analyzer-linux-release-analyzer",
+        "analyzer-linux-release-analyzer-new",
+        "analyzer-mac-release-analyzer",
+        "analyzer-win-release-analyzer"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -1388,7 +1413,7 @@
         {
           "name": "analyzer unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analyzer"
           ],
           "shards": 2,
@@ -1397,7 +1422,7 @@
         {
           "name": "analysis_server unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analysis_server"
           ],
           "shards": 2,
@@ -1418,14 +1443,14 @@
         {
           "name": "analyzer_cli unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analyzer_cli"
           ]
         },
         {
           "name": "analyzer_plugin unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg/analyzer_plugin"
           ]
         },
@@ -1439,7 +1464,10 @@
       ]
     },
     {
-      "builders": ["analyzer-analysis-server-linux"],
+      "builders": [
+        "analyzer-analysis-server-linux",
+        "analyzer-analysis-server-linux-analyzer"
+      ],
       "meta": {
         "description": "Analyze analyzer related packages."
       },
@@ -1536,11 +1564,6 @@
           "arguments": ["--fatal-warnings", "pkg/meta"]
         },
         {
-          "name": "analyze pkg/microlytics",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "pkg/microlytics"]
-        },
-        {
           "name": "analyze pkg/smith",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/smith"]
@@ -1605,79 +1628,11 @@
       ]
     },
     {
-      "builders": ["analyzer-use-fasta-parser-linux"],
-      "meta": {
-        "description": "Run the analyzer using the Fasta parser."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "analyze pkg/analyzer --use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer --no-use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--no-use-fasta-parser",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli --use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "run language2 tests",
-          "arguments": [
-            "-nanalyzer-fasta_parser-linux",
-            "language_2"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli --no-use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--no-use-fasta-parser",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server --use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server --no-use-fasta-parser",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--no-use-fasta-parser",
-            "pkg/analysis_server"
-          ]
-        }
-      ]
-    },
-    {
       "builders": ["pkg-linux-release",
                    "pkg-win-release",
                    "pkg-mac-release"],
       "meta": {
-        "description": "This configuration is used by the pkg builders."
+        "description": "This configuration is used by the release pkg builders."
       },
       "steps": [
         {
@@ -1688,20 +1643,57 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg"
           ]
         },
         {
           "name": "third_party pkg_tested unit tests",
           "arguments": [
-            "-nunittest-asserts-${system}",
+            "-nunittest-asserts-${mode}-${system}",
             "pkg_tested"
           ]
         },
         {
           "name": "pub integration tests",
-          "script": "tools/bots/pub_integration_test.py"
+          "script": "tools/bots/pub_integration_test.py",
+          "arguments": [
+            "--mode=release"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": ["pkg-linux-debug"],
+      "meta": {
+        "description": "This configuration is used by the debug pkg builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}",
+            "pkg"
+          ]
+        },
+        {
+          "name": "third_party pkg_tested unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}",
+            "pkg_tested"
+          ]
+        },
+        {
+          "name": "pub integration tests",
+          "script": "tools/bots/pub_integration_test.py",
+          "arguments": [
+            "--mode=debug"
+          ]
         }
       ]
     },
@@ -1804,7 +1796,7 @@
             "--time",
             "2700"
           ],
-          "shards": 10,
+          "shards": 100,
           "fileset": "fuzzer"
         }
       ]

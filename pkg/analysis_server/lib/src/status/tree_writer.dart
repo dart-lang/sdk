@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
  * Utility methods that can be mixed in to classes that produce an HTML
  * representation of a tree structure.
  */
-abstract class TreeWriter {
+mixin TreeWriter {
   /**
    * The buffer on which the HTML is to be written.
    */

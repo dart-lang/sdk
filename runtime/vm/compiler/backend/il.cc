@@ -187,7 +187,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     bool test_succeded = false;
     if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeded = cls_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kNew);
+      test_succeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -311,7 +311,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
 }
 
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
 
   if (!type.IsInstantiated() || !type.IsType() || type.IsFunctionType() ||
       type.IsDartFunctionType()) {
@@ -354,7 +354,7 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
 
 bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
 
   if (!type.IsType() || type.IsFunctionType() || type.IsDartFunctionType()) {
     return false;
@@ -839,13 +839,11 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
     const TypeArguments& function_type_args = TypeArguments::Handle(
         Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
 
-    Error& error_bound = Error::Handle(Z);
-
     AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
     AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
-    if (AbstractType::InstantiateAndTestSubtype(
-            &sub_type, &super_type, &error_bound, instantiator_type_args,
-            function_type_args)) {
+    if (AbstractType::InstantiateAndTestSubtype(&sub_type, &super_type,
+                                                instantiator_type_args,
+                                                function_type_args)) {
       return NULL;
     }
   }
@@ -2087,7 +2085,12 @@ static bool IsRepresentable(const Integer& value, Representation rep) {
     case kUnboxedInt64:
       return value.IsSmi() || value.IsMint();
 
-    case kUnboxedUint32:  // Only truncating Uint32 arithmetic is supported.
+    case kUnboxedUint32:
+      if (value.IsSmi() || value.IsMint()) {
+        return Utils::IsUint(32, value.AsInt64Value());
+      }
+      return false;
+
     default:
       UNREACHABLE();
   }
@@ -2755,13 +2758,12 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
-    Error& bound_error = Error::Handle(Z);
-
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z, dst_type().InstantiateFrom(
-               *instantiator_type_args, *function_type_args, kAllFree,
-               &bound_error, nullptr, nullptr, Heap::kOld));
-    if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
+        Z,
+        dst_type().InstantiateFrom(*instantiator_type_args, *function_type_args,
+                                   kAllFree, nullptr, Heap::kOld));
+    if (new_dst_type.IsNull()) {
+      // Failed instantiation in dead code.
       return this;
     }
     if (new_dst_type.IsTypeRef()) {
@@ -2909,7 +2911,8 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->value()->definition()->representation();
     if (from_representation == representation()) {
       return box_defn->value()->definition();
-    } else {
+    } else if (from_representation != kTagged) {
+      // Only operate on explicit unboxed operands.
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
           from_representation, representation(),
           box_defn->value()->CopyWithType(),
@@ -3055,14 +3058,22 @@ static bool MayBeBoxableNumber(intptr_t cid) {
   return (cid == kDynamicCid) || (cid == kMintCid) || (cid == kDoubleCid);
 }
 
-static bool MaybeNumber(CompileType* type) {
-  ASSERT(Type::Handle(Type::Number())
-             .IsMoreSpecificThan(Type::Handle(Type::Number()), NULL, NULL,
-                                 Heap::kOld));
-  return type->ToAbstractType()->IsDynamicType() ||
-         type->ToAbstractType()->IsObjectType() ||
-         type->ToAbstractType()->IsTypeParameter() ||
-         type->IsMoreSpecificThan(Type::Handle(Type::Number()));
+static bool MayBeNumber(CompileType* type) {
+  if (type->IsNone()) {
+    return false;
+  }
+  auto& compile_type = AbstractType::Handle(type->ToAbstractType()->raw());
+  if (compile_type.IsType() &&
+      Class::Handle(compile_type.type_class()).IsFutureOrClass()) {
+    const auto& type_args = TypeArguments::Handle(compile_type.arguments());
+    if (type_args.IsNull()) {
+      return true;
+    }
+    compile_type = type_args.TypeAt(0);
+  }
+  // Note that type 'Number' is a subtype of itself.
+  return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
+         compile_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
@@ -3077,8 +3088,8 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     if (!MayBeBoxableNumber(compare->left()->Type()->ToCid()) ||
         !MayBeBoxableNumber(compare->right()->Type()->ToCid())) {
       compare->set_needs_number_check(false);
-    } else if (!MaybeNumber(compare->left()->Type()) ||
-               !MaybeNumber(compare->right()->Type())) {
+    } else if (!MayBeNumber(compare->left()->Type()) ||
+               !MayBeNumber(compare->right()->Type())) {
       compare->set_needs_number_check(false);
     }
   }
@@ -3648,26 +3659,39 @@ LocationSummary* FunctionEntryInstr::MakeLocationSummary(
 }
 
 void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if defined(TARGET_ARCH_X64)
+  // Ensure the start of the monomorphic checked entry is 2-byte aligned (see
+  // also Assembler::MonomorphicCheckedEntry()).
+  if (__ CodeSize() % 2 == 1) {
+    __ nop();
+  }
+#endif
   __ Bind(compiler->GetJumpLabel(this));
 
   // In the AOT compiler we want to reduce code size, so generate no
   // fall-through code in [FlowGraphCompiler::CompileGraph()].
   // (As opposed to here where we don't check for the return value of
   // [Intrinsify]).
-  if (!FLAG_precompiled_mode) {
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-    // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-    // entrypoints, so we generate several times the same intrinsification &
-    // frame setup.  That's why we cannot rely on the constant pool being
-    // `false` when we come in here.
-    __ set_constant_pool_allowed(false);
-    // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
-    // (meaning the function was fully intrinsified).
-    compiler->TryIntrinsify();
-    compiler->EmitPrologue();
-    ASSERT(__ constant_pool_allowed());
-#endif
+  if (FLAG_precompiled_mode) {
+    const Function& function = compiler->parsed_function().function();
+    if (function.IsDynamicFunction()) {
+      compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+      __ MonomorphicCheckedEntry();
+      compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
+    }
   }
+  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
+  // entrypoints, so we generate several times the same intrinsification &
+  // frame setup.  That's why we cannot rely on the constant pool being
+  // `false` when we come in here.
+  __ set_constant_pool_allowed(false);
+  // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
+  // (meaning the function was fully intrinsified).
+  compiler->TryIntrinsify();
+  compiler->EmitPrologue();
+  ASSERT(__ constant_pool_allowed());
+#endif
 
   if (!compiler->is_optimizing()) {
 #if !defined(TARGET_ARCH_DBC)
@@ -4547,7 +4571,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
-  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
+  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
   Label is_smi;
 
   if ((value()->Type()->ToNullableCid() == box_cid) &&

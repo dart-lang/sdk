@@ -14,7 +14,7 @@ class C extends self::B {
     ;
 }
 static method test(self::B x) → void {
-  dynamic y = x is self::C ? x{self::C} : new self::C::•();
+  dynamic y = x is self::C ? x : new self::C::•();
   core::print(y.z);
 }
 static method main() → dynamic {}

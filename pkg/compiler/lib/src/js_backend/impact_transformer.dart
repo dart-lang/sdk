@@ -317,9 +317,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
-    if (type.isMalformed) {
-      registerImpact(_impacts.malformedTypeCheck);
-    }
     if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
       registerImpact(_impacts.genericTypeCheck);
       if (type.isTypeVariable) {

@@ -5,6 +5,8 @@
 
 [ $compiler == dart2js ]
 arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+async_star/async_star_await_for_test: RuntimeError
+async_star/async_star_cancel_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bit_operations_test: RuntimeError, OK # non JS number semantics
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -18,8 +20,6 @@ call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
-const_constructor_mixin3_test: CompileTimeError # Issue 33644.
-const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351

@@ -278,12 +278,12 @@ void Thread::set_sticky_error(const Error& value) {
   sticky_error_ = value.raw();
 }
 
-void Thread::clear_sticky_error() {
+void Thread::ClearStickyError() {
   sticky_error_ = Error::null();
 }
 
-RawError* Thread::get_and_clear_sticky_error() {
-  NoSafepointScope nss;
+RawError* Thread::StealStickyError() {
+  NoSafepointScope no_safepoint;
   RawError* return_value = sticky_error_;
   sticky_error_ = Error::null();
   return return_value;
@@ -334,6 +334,7 @@ bool Thread::EnterIsolate(Isolate* isolate) {
     if (isolate->marking_stack() != NULL) {
       // Concurrent mark in progress. Enable barrier for this thread.
       thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     return true;
   }
@@ -352,6 +353,7 @@ void Thread::ExitIsolate() {
   thread->ClearReusableHandles();
   if (thread->is_marking()) {
     thread->MarkingStackRelease();
+    thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
@@ -379,6 +381,7 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
     if (isolate->marking_stack() != NULL) {
       // Concurrent mark in progress. Enable barrier for this thread.
       thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     // This thread should not be the main mutator.
     thread->task_kind_ = kind;
@@ -398,6 +401,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->ClearReusableHandles();
   if (thread->is_marking()) {
     thread->MarkingStackRelease();
+    thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
@@ -552,11 +556,10 @@ RawError* Thread::HandleInterrupts() {
             "\tisolate:    %s\n",
             isolate()->name());
       }
-      Thread* thread = Thread::Current();
-      const Error& error = Error::Handle(thread->sticky_error());
-      ASSERT(!error.IsNull() && error.IsUnwindError());
-      thread->clear_sticky_error();
-      return error.raw();
+      NoSafepointScope no_safepoint;
+      RawError* error = Thread::Current()->StealStickyError();
+      ASSERT(error->IsUnwindError());
+      return error;
     }
   }
   return Error::null();
@@ -602,10 +605,22 @@ void Thread::MarkingStackBlockProcess() {
   MarkingStackAcquire();
 }
 
+void Thread::DeferredMarkingStackBlockProcess() {
+  DeferredMarkingStackRelease();
+  DeferredMarkingStackAcquire();
+}
+
 void Thread::MarkingStackAddObject(RawObject* obj) {
   marking_stack_block_->Push(obj);
   if (marking_stack_block_->IsFull()) {
     MarkingStackBlockProcess();
+  }
+}
+
+void Thread::DeferredMarkingStackAddObject(RawObject* obj) {
+  deferred_marking_stack_block_->Push(obj);
+  if (deferred_marking_stack_block_->IsFull()) {
+    DeferredMarkingStackBlockProcess();
   }
 }
 
@@ -620,6 +635,17 @@ void Thread::MarkingStackAcquire() {
   marking_stack_block_ = isolate()->marking_stack()->PopEmptyBlock();
   write_barrier_mask_ =
       RawObject::kGenerationalBarrierMask | RawObject::kIncrementalBarrierMask;
+}
+
+void Thread::DeferredMarkingStackRelease() {
+  MarkingStackBlock* block = deferred_marking_stack_block_;
+  deferred_marking_stack_block_ = NULL;
+  isolate()->deferred_marking_stack()->PushBlock(block);
+}
+
+void Thread::DeferredMarkingStackAcquire() {
+  deferred_marking_stack_block_ =
+      isolate()->deferred_marking_stack()->PopEmptyBlock();
 }
 
 bool Thread::IsMutatorThread() const {
@@ -690,15 +716,15 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Only the mutator thread can run Dart code.
   if (IsMutatorThread()) {
     // The MarkTask, which calls this method, can run on a different thread.  We
-    // therefore assume the mutator is at a safepoint and we can iterate it's
+    // therefore assume the mutator is at a safepoint and we can iterate its
     // stack.
     // TODO(vm-team): It would be beneficial to be able to ask the mutator
     // thread whether it is in fact blocked at the moment (at a "safepoint") so
-    // we can safely iterate it's stack.
+    // we can safely iterate its stack.
     //
     // Unfortunately we cannot use `this->IsAtSafepoint()` here because that
     // will return `false` even though the mutator thread is waiting for mark
-    // tasks (which iterate it's stack) to finish.
+    // tasks (which iterate its stack) to finish.
     const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
         StackFrameIterator::kAllowCrossThreadIteration;
 
@@ -803,6 +829,40 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
   UNREACHABLE();
   return -1;
 }
+
+#if defined(DEBUG)
+bool Thread::TopErrorHandlerIsSetJump() const {
+  if (long_jump_base_ == nullptr) return false;
+  if (top_exit_frame_info_ == 0) return true;
+#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+  // False positives: simulator stack and native stack are unordered.
+  return true;
+#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // False positives: interpreter stack and native stack are unordered.
+  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
+    return true;
+#endif
+  return reinterpret_cast<uword>(long_jump_base_) < top_exit_frame_info_;
+#endif
+}
+
+bool Thread::TopErrorHandlerIsExitFrame() const {
+  if (top_exit_frame_info_ == 0) return false;
+  if (long_jump_base_ == nullptr) return true;
+#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+  // False positives: simulator stack and native stack are unordered.
+  return true;
+#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // False positives: interpreter stack and native stack are unordered.
+  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
+    return true;
+#endif
+  return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base_);
+#endif
+}
+#endif  // defined(DEBUG)
 
 bool Thread::IsValidHandle(Dart_Handle object) const {
   return IsValidLocalHandle(object) || IsValidZoneHandle(object) ||

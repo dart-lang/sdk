@@ -128,11 +128,12 @@ CompilerAnalysisDriver _compile(
     ArgResults argResults, AnalyzerOptions analyzerOptions,
     {CompilerAnalysisDriver compilerDriver}) {
   var compilerOpts = CompilerOptions.fromArguments(argResults);
+
   var summaryPaths = compilerOpts.summaryModules.keys.toList();
   if (compilerDriver == null ||
       !compilerDriver.isCompatibleWith(analyzerOptions, summaryPaths)) {
-    compilerDriver =
-        CompilerAnalysisDriver(analyzerOptions, summaryPaths: summaryPaths);
+    compilerDriver = CompilerAnalysisDriver(analyzerOptions,
+        summaryPaths: summaryPaths, experiments: compilerOpts.experiments);
   }
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = compilerOpts.moduleFormats;

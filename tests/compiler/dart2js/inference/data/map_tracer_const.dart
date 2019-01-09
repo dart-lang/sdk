@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.element: closure:[exact=JSUInt31]*/
-int closure(int /*Union([exact=JSDouble], [exact=JSUInt31])*/ x) {
+/*element: closure:[exact=JSUInt31]*/
+int closure(
+    int
+        /*strong.Union([exact=JSDouble], [exact=JSUInt31])*/
+        /*omit.[exact=JSUInt31]*/
+        x) {
   return x;
 }
 

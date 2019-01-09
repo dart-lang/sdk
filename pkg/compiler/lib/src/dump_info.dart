@@ -18,11 +18,11 @@ import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/entities.dart';
+import 'inferrer/abstract_value_domain.dart';
+import 'inferrer/types.dart'
+    show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'types/abstract_value_domain.dart';
-import 'types/types.dart'
-    show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -116,7 +116,9 @@ class ElementInfoCollector {
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
-        closedWorld.abstractValueDomain.isEmpty(inferredType)) {
+        closedWorld.abstractValueDomain
+            .isEmpty(inferredType)
+            .isDefinitelyTrue) {
       return null;
     }
 

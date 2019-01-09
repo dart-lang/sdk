@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test(core::List<core::num> nums) → void {
   for (dynamic x in nums) {
     if(x is core::int) {
-      dynamic y = x{core::int};
+      dynamic y = x;
     }
   }
 }

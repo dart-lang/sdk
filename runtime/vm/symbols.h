@@ -80,7 +80,6 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
-  V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
@@ -168,8 +167,6 @@ class ObjectPointerVisitor;
   V(_Type, "_Type")                                                            \
   V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeParameter, "_TypeParameter")                                          \
-  V(_BoundedType, "_BoundedType")                                              \
-  V(_MixinAppType, "_MixinAppType")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(Patch, "patch")                                                            \
   V(Pragma, "pragma")                                                          \

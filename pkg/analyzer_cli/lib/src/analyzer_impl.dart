@@ -1,12 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer_cli.src.analyzer_impl;
 
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -121,7 +120,7 @@ class AnalyzerImpl {
   }
 
   /// Fills [errorInfos] using [files].
-  Future<Null> prepareErrors() async {
+  Future<void> prepareErrors() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     PerformanceTag previous = _prepareErrorsTag.makeCurrent();

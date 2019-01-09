@@ -82,13 +82,13 @@ void setup() {
 void match(String s, String pattern1) {
   var pattern2 = pattern1.replaceAll(' ', '');
   Expect.isTrue(s.contains(pattern1) || s.contains(pattern2),
-      "expected $pattern1 or $pattern2");
+      "expected $pattern1 or $pattern2 in '$s'");
 }
 
 void nomatch(String s, String pattern1) {
   var pattern2 = pattern1.replaceAll(' ', '');
   Expect.isFalse(s.contains(pattern1) || s.contains(pattern2),
-      "should not have $pattern1 or $pattern2");
+      "should not have $pattern1 or $pattern2 in '$s'");
 }
 
 test1() {

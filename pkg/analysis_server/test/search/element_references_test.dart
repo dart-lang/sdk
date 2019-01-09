@@ -693,6 +693,18 @@ main(F f) {
     assertHasResult(SearchResultKind.REFERENCE, 'F f');
   }
 
+  Future<void> test_typeReference_genericTypeAlias_function() async {
+    addTestFile('''
+typedef F = Function();
+main(F f) {
+}
+''');
+    await findElementReferences('F =', false);
+    expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'F f');
+  }
+
   Future<void> test_typeReference_typeVariable() async {
     addTestFile('''
 class A<T> {

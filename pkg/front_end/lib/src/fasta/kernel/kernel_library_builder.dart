@@ -28,8 +28,10 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         ProcedureKind,
+        SetLiteral,
         StaticInvocation,
         StringLiteral,
+        Supertype,
         TreeNode,
         Typedef,
         TypeParameter,
@@ -116,6 +118,7 @@ import 'kernel_builder.dart'
         DynamicTypeBuilder,
         EnumConstantInfo,
         FormalParameterBuilder,
+        ImplicitType,
         InvalidTypeBuilder,
         KernelClassBuilder,
         KernelConstructorBuilder,
@@ -190,6 +193,8 @@ class KernelLibraryBuilder
   /// Otherwise, this represents an error (an ambiguous export). In this case,
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
+
+  List<KernelFormalParameterBuilder> untypedInitializingFormals;
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
@@ -597,9 +602,13 @@ class KernelLibraryBuilder
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    KernelFieldBuilder field = new KernelFieldBuilder(metadata, type, name,
-        modifiers, this, charOffset, initializerTokenForInference);
+    KernelFieldBuilder field = new KernelFieldBuilder(
+        metadata, type, name, modifiers, this, charOffset);
     addBuilder(name, field, charOffset);
+    if (initializerTokenForInference != null) {
+      assert(type == null);
+      field.target.type = new ImplicitType(field, initializerTokenForInference);
+    }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
   }
@@ -632,6 +641,11 @@ class KernelLibraryBuilder
         charOpenParenOffset,
         charEndOffset,
         nativeMethodName);
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        formals[i].parent = procedure;
+      }
+    }
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
@@ -825,6 +839,10 @@ class KernelLibraryBuilder
     }
     KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
         metadata, modifiers, type, name, this, charOffset);
+    if (legacyMode && hasThis && type == null) {
+      (untypedInitializingFormals ??= <KernelFormalParameterBuilder>[])
+          .add(formal);
+    }
     return formal;
   }
 
@@ -1543,6 +1561,13 @@ class KernelLibraryBuilder
         inferred: inferred, allowSuperBounded: true);
   }
 
+  void checkBoundsInSetLiteral(SetLiteral node, TypeEnvironment typeEnvironment,
+      {bool inferred = false}) {
+    if (loader.target.legacyMode) return;
+    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+        inferred: inferred, allowSuperBounded: true);
+  }
+
   void checkBoundsInMapLiteral(MapLiteral node, TypeEnvironment typeEnvironment,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
@@ -1635,22 +1660,28 @@ class KernelLibraryBuilder
     if (loader.target.legacyMode) return;
     if (arguments.types.isEmpty) return;
     Class klass;
-    List<DartType> klassArguments;
+    List<DartType> receiverTypeArguments;
     if (receiverType is InterfaceType) {
       klass = receiverType.classNode;
-      klassArguments = receiverType.typeArguments;
+      receiverTypeArguments = receiverType.typeArguments;
     } else {
       return;
-    }
-    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
-    for (int i = 0; i < klassArguments.length; ++i) {
-      substitutionMap[klass.typeParameters[i]] = klassArguments[i];
     }
     // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
     Member method = typeEnvironment.hierarchy.getDispatchTarget(klass, name) ??
         interfaceTarget;
     if (method == null || method is! Procedure) {
       return;
+    }
+    if (klass != method.enclosingClass) {
+      Supertype parent = typeEnvironment.hierarchy
+          .getClassAsInstanceOf(klass, method.enclosingClass);
+      klass = method.enclosingClass;
+      receiverTypeArguments = parent.typeArguments;
+    }
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    for (int i = 0; i < receiverTypeArguments.length; ++i) {
+      substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
     // The error is to be reported elsewhere.
@@ -1691,6 +1722,17 @@ class KernelLibraryBuilder
       }
     }
     inferredTypes.clear();
+  }
+
+  @override
+  int finalizeInitializingFormals() {
+    if (!legacyMode || untypedInitializingFormals == null) return 0;
+    for (int i = 0; i < untypedInitializingFormals.length; i++) {
+      untypedInitializingFormals[i].finalizeInitializingFormal();
+    }
+    int count = untypedInitializingFormals.length;
+    untypedInitializingFormals = null;
+    return count;
   }
 }
 

@@ -12,6 +12,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -125,8 +127,11 @@ class FileState {
   List<NameFilter> _exportFilters;
 
   Set<FileState> _directReferencedFiles;
-  Set<FileState> _transitiveFiles;
+  Set<FileState> _directReferencedLibraries;
+
+  LibraryCycle _libraryCycle;
   String _transitiveSignature;
+  String _transitiveSignatureLinked;
 
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
@@ -147,6 +152,7 @@ class FileState {
         source = null,
         _exists = true {
     _apiSignature = new Uint8List(16);
+    _libraryCycle = new LibraryCycle.external();
   }
 
   /**
@@ -187,6 +193,11 @@ class FileState {
   Set<FileState> get directReferencedFiles => _directReferencedFiles;
 
   /**
+   * Return the set of all directly referenced libraries - imported or exported.
+   */
+  Set<FileState> get directReferencedLibraries => _directReferencedLibraries;
+
+  /**
    * Return `true` if the file exists.
    */
   bool get exists => _exists;
@@ -212,6 +223,8 @@ class FileState {
    * The list of files this file imports.
    */
   List<FileState> get importedFiles => _importedFiles;
+
+  LibraryCycle get internal_libraryCycle => _libraryCycle;
 
   /**
    * Return `true` if the file is a stub created for a library in the provided
@@ -252,6 +265,23 @@ class FileState {
     } else {
       return libraries.first;
     }
+  }
+
+  /// Return the [LibraryCycle] this file belongs to, even if it consists of
+  /// just this file.  If the library cycle is not known yet, compute it.
+  LibraryCycle get libraryCycle {
+    if (isPart) {
+      var library = this.library;
+      if (library != null) {
+        return library.libraryCycle;
+      }
+    }
+
+    if (_libraryCycle == null) {
+      computeLibraryCycle(_fsState._linkedSalt, this);
+    }
+
+    return _libraryCycle;
   }
 
   /**
@@ -331,39 +361,26 @@ class FileState {
   }
 
   /**
-   * Return the set of transitive files - the file itself and all of the
-   * directly or indirectly referenced files.
+   * Return the signature of the file, based on API signatures of the
+   * transitive closure of imported / exported files.
    */
-  Set<FileState> get transitiveFiles {
-    if (_transitiveFiles == null) {
-      _transitiveFiles = new Set<FileState>();
-
-      void appendReferenced(FileState file) {
-        if (_transitiveFiles.add(file)) {
-          file._directReferencedFiles?.forEach(appendReferenced);
-        }
+  String get transitiveSignature {
+    if (isPart) {
+      var library = this.library;
+      if (library != null) {
+        return library.transitiveSignature;
       }
-
-      appendReferenced(this);
     }
-    return _transitiveFiles;
+
+    this.libraryCycle; // sets _transitiveSignature
+    return _transitiveSignature;
   }
 
   /**
-   * Return the signature of the file, based on the [transitiveFiles].
+   * The value `transitiveSignature.linked` is used often, so we cache it.
    */
-  String get transitiveSignature {
-    if (_transitiveSignature == null) {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_fsState._linkedSalt);
-      signature.addInt(transitiveFiles.length);
-      transitiveFiles
-          .map((file) => file.apiSignature)
-          .forEach(signature.addBytes);
-      signature.addString(uri.toString());
-      _transitiveSignature = signature.toHex();
-    }
-    return _transitiveSignature;
+  String get transitiveSignatureLinked {
+    return _transitiveSignatureLinked ??= '$transitiveSignature.linked';
   }
 
   /**
@@ -379,6 +396,17 @@ class FileState {
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
+  }
+
+  void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
+    if (cycle == null) {
+      _libraryCycle = null;
+      _transitiveSignature = null;
+      _transitiveSignatureLinked = null;
+    } else {
+      _libraryCycle = cycle;
+      _transitiveSignature = signature;
+    }
   }
 
   /**
@@ -461,14 +489,11 @@ class FileState {
     _apiSignature = newApiSignature;
 
     // The API signature changed.
-    //   Flush transitive signatures of affected files.
+    //   Flush affected library cycles.
     //   Flush exported top-level declarations of all files.
     if (apiSignatureChanged) {
+      _libraryCycle?.invalidate();
       for (FileState file in _fsState._uriToFile.values) {
-        if (file._transitiveFiles != null &&
-            file._transitiveFiles.contains(this)) {
-          file._transitiveSignature = null;
-        }
         file._exportedTopLevelDeclarations = null;
       }
     }
@@ -508,26 +533,13 @@ class FileState {
     _libraryFiles = [this]..addAll(_partedFiles);
 
     // Compute referenced files.
-    Set<FileState> oldDirectReferencedFiles = _directReferencedFiles;
     _directReferencedFiles = new Set<FileState>()
       ..addAll(_importedFiles)
       ..addAll(_exportedFiles)
       ..addAll(_partedFiles);
-
-    // If the set of directly referenced files of this file is changed,
-    // then the transitive sets of files that include this file are also
-    // changed. Reset these transitive sets.
-    if (oldDirectReferencedFiles != null) {
-      if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
-          !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
-        for (FileState file in _fsState._uriToFile.values) {
-          if (file._transitiveFiles != null &&
-              file._transitiveFiles.contains(this)) {
-            file._transitiveFiles = null;
-          }
-        }
-      }
-    }
+    _directReferencedLibraries = Set<FileState>()
+      ..addAll(_importedFiles)
+      ..addAll(_exportedFiles);
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit.subtypedNames) {
@@ -659,8 +671,11 @@ class FileState {
     }
 
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
+    ExperimentStatus experimentStatus =
+        new ExperimentStatus.fromStrings(analysisOptions.enabledExperiments);
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.enableGtGtGt = experimentStatus.constant_update_2018;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -669,6 +684,8 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
+    parser.enableSetLiterals = experimentStatus.set_literals;
+    parser.enableNonNullable = experimentStatus.non_nullable;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 
@@ -714,7 +731,7 @@ class FileStateTestView {
  */
 class FileSystemState {
   final PerformanceLog _logger;
-  final ResourceProvider resourceProvider;
+  final ResourceProvider _resourceProvider;
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
@@ -795,7 +812,7 @@ class FileSystemState {
     this._logger,
     this._byteStore,
     this._contentOverlay,
-    this.resourceProvider,
+    this._resourceProvider,
     this._sourceFactory,
     this._analysisOptions,
     this._unlinkedSalt,
@@ -803,7 +820,7 @@ class FileSystemState {
     this.externalSummaries,
   }) {
     _fileContentCache = _FileContentCache.getInstance(
-      resourceProvider,
+      _resourceProvider,
       _contentOverlay,
     );
     _testView = new FileSystemStateTestView(this);
@@ -833,7 +850,7 @@ class FileSystemState {
   FileState getFileForPath(String path) {
     FileState file = _pathToCanonicalFile[path];
     if (file == null) {
-      File resource = resourceProvider.getFile(path);
+      File resource = _resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       // Try to get the existing instance.
@@ -884,7 +901,7 @@ class FileSystemState {
       }
 
       String path = uriSource.fullName;
-      File resource = resourceProvider.getFile(path);
+      File resource = _resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
@@ -927,7 +944,7 @@ class FileSystemState {
   bool hasUri(String path) {
     bool flag = _hasUriForPath[path];
     if (flag == null) {
-      File resource = resourceProvider.getFile(path);
+      File resource = _resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri uri = _sourceFactory.restoreUri(fileSource);
       Source uriSource = _sourceFactory.forUri2(uri);
@@ -950,13 +967,18 @@ class FileSystemState {
    */
   void removeFile(String path) {
     markFileForReading(path);
-    _uriToFile.clear();
-    knownFilePaths.clear();
-    knownFiles.clear();
-    _pathToFiles.clear();
-    _pathToCanonicalFile.clear();
-    _partToLibraries.clear();
-    _subtypedNameToFiles.clear();
+    _clearFiles();
+  }
+
+  /**
+   * Reset URI resolution, and forget all files. So, the next time any file is
+   * requested, it will be read, and its whole (potentially different) graph
+   * will be built.
+   */
+  void resetUriResolution() {
+    _sourceFactory.clearCache();
+    _fileContentCache.clear();
+    _clearFiles();
   }
 
   void _addFileWithPath(String path, FileState file) {
@@ -970,6 +992,17 @@ class FileSystemState {
     }
     files.add(file);
   }
+
+  /// Clear all [FileState] data - all maps from path or URI, etc.
+  void _clearFiles() {
+    _uriToFile.clear();
+    knownFilePaths.clear();
+    knownFiles.clear();
+    _pathToFiles.clear();
+    _pathToCanonicalFile.clear();
+    _partToLibraries.clear();
+    _subtypedNameToFiles.clear();
+  }
 }
 
 @visibleForTesting
@@ -978,15 +1011,9 @@ class FileSystemStateTestView {
 
   FileSystemStateTestView(this.state);
 
-  Set<FileState> get filesWithoutTransitiveFiles {
+  Set<FileState> get filesWithoutLibraryCycle {
     return state._uriToFile.values
-        .where((f) => f._transitiveFiles == null)
-        .toSet();
-  }
-
-  Set<FileState> get filesWithoutTransitiveSignature {
-    return state._uriToFile.values
-        .where((f) => f._transitiveSignature == null)
+        .where((f) => f._libraryCycle == null)
         .toSet();
   }
 
@@ -1032,11 +1059,22 @@ class _FileContentCache {
    */
   static final _instances = new Expando<Expando<_FileContentCache>>();
 
+  /**
+   * Weak map of cache instances.
+   *
+   * Key is a [ResourceProvider].
+   */
+  static final _instances2 = new Expando<_FileContentCache>();
+
   final ResourceProvider _resourceProvider;
   final FileContentOverlay _contentOverlay;
   final Map<String, _FileContent> _pathToFile = {};
 
   _FileContentCache(this._resourceProvider, this._contentOverlay);
+
+  void clear() {
+    _pathToFile.clear();
+  }
 
   /**
    * Return the content of the file with the given [path].
@@ -1050,7 +1088,9 @@ class _FileContentCache {
       String content;
       bool exists;
       try {
-        content = _contentOverlay[path];
+        if (_contentOverlay != null) {
+          content = _contentOverlay[path];
+        }
         content ??= _resourceProvider.getFile(path).readAsStringSync();
         exists = true;
       } catch (_) {
@@ -1078,11 +1118,17 @@ class _FileContentCache {
 
   static _FileContentCache getInstance(
       ResourceProvider resourceProvider, FileContentOverlay contentOverlay) {
-    var providerToInstance = _instances[contentOverlay];
-    if (providerToInstance == null) {
-      providerToInstance = new Expando<_FileContentCache>();
-      _instances[contentOverlay] = providerToInstance;
+    Expando<_FileContentCache> providerToInstance;
+    if (contentOverlay != null) {
+      providerToInstance = _instances[contentOverlay];
+      if (providerToInstance == null) {
+        providerToInstance = new Expando<_FileContentCache>();
+        _instances[contentOverlay] = providerToInstance;
+      }
+    } else {
+      providerToInstance = _instances2;
     }
+
     var instance = providerToInstance[resourceProvider];
     if (instance == null) {
       instance = new _FileContentCache(resourceProvider, contentOverlay);

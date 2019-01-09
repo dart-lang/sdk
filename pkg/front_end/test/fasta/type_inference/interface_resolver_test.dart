@@ -47,12 +47,12 @@ class InterfaceResolverTest {
 
   TypeSchemaEnvironment get typeEnvironment {
     return cachedTypeEnvironment ??=
-        new TypeSchemaEnvironment(coreTypes, classHierarchy, false);
+        new TypeSchemaEnvironment(coreTypes, classHierarchy);
   }
 
   InterfaceResolver get interfaceResolver {
     return cachedInterfaceResolver ??=
-        new InterfaceResolver(null, typeEnvironment, null, false);
+        new InterfaceResolver(null, typeEnvironment, null);
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;
