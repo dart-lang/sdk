@@ -125,6 +125,13 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
 
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  }
+
   __ LeaveStubFrame();
 
   // The following return can jump to a lazy-deopt stub, which assumes R0
@@ -166,13 +173,7 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
 
   __ EnterStubFrame();
-
-  __ ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
-  __ ldr(R5, Address(THR, Thread::OffsetFromThread(target)));
-  __ LoadImmediate(R4, /*argument_count=*/0);
-  __ ldr(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
-  __ blr(TMP);
-
+  __ CallRuntime(*target, /*argument_count=*/0);
   if (!allow_return) {
     __ Breakpoint();
     return;

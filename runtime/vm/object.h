@@ -4120,7 +4120,8 @@ class ObjectPool : public Object {
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == kTaggedObject) ||
-           (TypeAt(index) == kNativeEntryData));
+           (TypeAt(index) == kNativeEntryData) ||
+           (TypeAt(index) == kImmediate && obj.IsSmi()));
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
