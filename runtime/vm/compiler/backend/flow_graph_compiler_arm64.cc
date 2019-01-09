@@ -1140,7 +1140,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R4, arguments_descriptor);
   } else {
-    __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
+    if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+      __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
+    }
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
