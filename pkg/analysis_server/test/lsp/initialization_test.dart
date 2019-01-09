@@ -48,6 +48,21 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         response.error.code, equals(ServerErrorCodes.ServerAlreadyInitialized));
   }
 
+  test_initialize_rootPath() async {
+    await initialize(rootPath: projectFolderPath);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  test_initialize_rootUri() async {
+    await initialize(rootUri: projectFolderUri);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  test_initialize_workspaceFolders() async {
+    await initialize(workspaceFolders: [projectFolderUri]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   test_uninitialized_dropsNotifications() async {
     final notification =
         makeNotification(new Method.fromJson('randomNotification'), null);

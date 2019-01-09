@@ -31,7 +31,10 @@ class InitializeMessageHandler
       openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
       // ignore: deprecated_member_use
     } else if (params.rootPath != null) {
-      openWorkspacePaths.add(params.rootUri);
+      // This is deprecated according to LSP spec, but we still want to support
+      // it in case older clients send us it.
+      // ignore: deprecated_member_use
+      openWorkspacePaths.add(params.rootPath);
     }
 
     server.handleClientConnection(params.capabilities);

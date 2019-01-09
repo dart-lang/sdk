@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
@@ -41,7 +42,7 @@ abstract class AbstractLspAnalysisServerTest
 
   int _id = 0;
   String projectFolderPath, mainFilePath;
-  Uri mainFileUri;
+  Uri projectFolderUri, mainFileUri;
 
   void applyChanges(
     Map<String, String> fileContents,
@@ -362,16 +363,22 @@ abstract class AbstractLspAnalysisServerTest
   /// match the spec exactly and are not verified.
   Future<ResponseMessage> initialize({
     String rootPath,
+    Uri rootUri,
+    List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
     WorkspaceClientCapabilities workspaceCapabilities,
   }) async {
-    final rootUri = Uri.file(rootPath ?? projectFolderPath).toString();
+    // Assume if none of the project options were set, that we want to default to
+    // opening the test project folder.
+    if (rootPath == null && rootUri == null && workspaceFolders == null) {
+      rootUri = Uri.file(projectFolderPath);
+    }
     final request = makeRequest(
         Method.initialize,
         new InitializeParams(
             null,
-            null,
-            rootUri,
+            rootPath,
+            rootUri?.toString(),
             null,
             new ClientCapabilities(
               workspaceCapabilities,
@@ -379,13 +386,14 @@ abstract class AbstractLspAnalysisServerTest
               null,
             ),
             null,
-            null));
+            workspaceFolders?.map(toWorkspaceFolder)?.toList()));
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
     if (response.error == null) {
       final notification = makeNotification(Method.initialized, null);
       channel.sendNotificationToServer(notification);
+      await pumpEventQueue();
     }
 
     return response;
@@ -464,6 +472,7 @@ abstract class AbstractLspAnalysisServerTest
         InstrumentationService.NULL_SERVICE);
 
     projectFolderPath = convertPath('/project');
+    projectFolderUri = Uri.file(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
@@ -476,6 +485,10 @@ abstract class AbstractLspAnalysisServerTest
   Future tearDown() async {
     channel.close();
     await server.shutdown();
+  }
+
+  WorkspaceFolder toWorkspaceFolder(Uri uri) {
+    return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
   }
 
   Future<List<Diagnostic>> waitForDiagnostics(Uri uri) async {

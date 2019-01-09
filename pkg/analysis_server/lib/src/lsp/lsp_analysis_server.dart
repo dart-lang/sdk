@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -383,16 +384,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
-  void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths,
-      Map<String, String> packageRoots) {
-    contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
-  }
-
   void handleClientConnection(ClientCapabilities capabilities) {
     _clientCapabilities = capabilities;
 
     performanceAfterStartup = new ServerPerformance();
     performance = performanceAfterStartup;
+  }
+
+  void setAnalysisRoots(List<String> includedPaths) {
+    final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
+    contextManager.setRoots(uniquePaths.toList(), [], {});
   }
 
   /**
