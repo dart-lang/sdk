@@ -49,6 +49,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -657,9 +658,12 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.
   String _getByteStorePath() {
-    if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
+    ResourceProvider provider = resourceProvider;
+    if (provider is OverlayResourceProvider) {
+      provider = (provider as OverlayResourceProvider).baseProvider;
+    }
+    if (provider is PhysicalResourceProvider) {
+      Folder stateLocation = provider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return stateLocation.path;
       }
