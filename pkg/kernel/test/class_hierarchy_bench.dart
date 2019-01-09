@@ -68,15 +68,6 @@ main(List<String> args) {
     return hierarchies[currentHierarchy];
   }
 
-  {
-    var classHierarchy = getClassHierarchy();
-    if (classHierarchy is ClosedWorldClassHierarchy) {
-      for (Class class_ in classes) {
-        classHierarchy.hasProperSubtypes(class_);
-      }
-    }
-  }
-
   Random rnd = new Random(12345);
   const int numQueryTrials = 100000;
 
