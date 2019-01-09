@@ -88,6 +88,13 @@ class ExpressionTagger extends ExpressionVisitor<String>
   }
 
   String visitLet(Let _) => "let";
+
+  String visitPropertyGet(PropertyGet _) => "get-prop";
+  String visitPropertySet(PropertySet _) => "set-prop";
+  String visitSuperPropertyGet(SuperPropertyGet _) => "get-super";
+  String visitSuperPropertySet(SuperPropertySet _) => "set-super";
+  String visitMethodInvocation(MethodInvocation _) => "invoke-method";
+  String visitSuperMethodInvocation(SuperMethodInvocation _) => "invoke-super";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -372,8 +379,119 @@ Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
   return new Let(tuple.first, tuple.second);
 }
 
+TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
+    unwrapPropertyGet,
+    wrapPropertyGet,
+    new Tuple2Serializer(expressionSerializer, nameSerializer));
+
+Tuple2<Expression, Name> unwrapPropertyGet(PropertyGet expression) {
+  return new Tuple2(expression.receiver, expression.name);
+}
+
+PropertyGet wrapPropertyGet(Tuple2<Expression, Name> tuple) {
+  return new PropertyGet(tuple.first, tuple.second);
+}
+
+TextSerializer<PropertySet> propertySetSerializer = new Wrapped(
+    unwrapPropertySet,
+    wrapPropertySet,
+    new Tuple3Serializer(
+        expressionSerializer, nameSerializer, expressionSerializer));
+
+Tuple3<Expression, Name, Expression> unwrapPropertySet(PropertySet expression) {
+  return new Tuple3(expression.receiver, expression.name, expression.value);
+}
+
+PropertySet wrapPropertySet(Tuple3<Expression, Name, Expression> tuple) {
+  return new PropertySet(tuple.first, tuple.second, tuple.third);
+}
+
+TextSerializer<SuperPropertyGet> superPropertyGetSerializer =
+    new Wrapped(unwrapSuperPropertyGet, wrapSuperPropertyGet, nameSerializer);
+
+Name unwrapSuperPropertyGet(SuperPropertyGet expression) {
+  return expression.name;
+}
+
+SuperPropertyGet wrapSuperPropertyGet(Name name) {
+  return new SuperPropertyGet(name);
+}
+
+TextSerializer<SuperPropertySet> superPropertySetSerializer = new Wrapped(
+    unwrapSuperPropertySet,
+    wrapSuperPropertySet,
+    new Tuple2Serializer(nameSerializer, expressionSerializer));
+
+Tuple2<Name, Expression> unwrapSuperPropertySet(SuperPropertySet expression) {
+  return new Tuple2(expression.name, expression.value);
+}
+
+SuperPropertySet wrapSuperPropertySet(Tuple2<Name, Expression> tuple) {
+  return new SuperPropertySet(tuple.first, tuple.second, null);
+}
+
+TextSerializer<MethodInvocation> methodInvocationSerializer = new Wrapped(
+    unwrapMethodInvocation,
+    wrapMethodInvocation,
+    new Tuple3Serializer(
+        expressionSerializer, nameSerializer, argumentsSerializer));
+
+Tuple3<Expression, Name, Arguments> unwrapMethodInvocation(
+    MethodInvocation expression) {
+  return new Tuple3(expression.receiver, expression.name, expression.arguments);
+}
+
+MethodInvocation wrapMethodInvocation(
+    Tuple3<Expression, Name, Arguments> tuple) {
+  return new MethodInvocation(tuple.first, tuple.second, tuple.third);
+}
+
+TextSerializer<SuperMethodInvocation> superMethodInvocationSerializer =
+    new Wrapped(unwrapSuperMethodInvocation, wrapSuperMethodInvocation,
+        new Tuple2Serializer(nameSerializer, argumentsSerializer));
+
+Tuple2<Name, Arguments> unwrapSuperMethodInvocation(
+    SuperMethodInvocation expression) {
+  return new Tuple2(expression.name, expression.arguments);
+}
+
+SuperMethodInvocation wrapSuperMethodInvocation(Tuple2<Name, Arguments> tuple) {
+  return new SuperMethodInvocation(tuple.first, tuple.second);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
+
+TextSerializer<NamedExpression> namedExpressionSerializer = new Wrapped(
+    unwrapNamedExpression,
+    wrapNamedExpression,
+    new Tuple2Serializer(const DartString(), expressionSerializer));
+
+Tuple2<String, Expression> unwrapNamedExpression(NamedExpression expression) {
+  return new Tuple2(expression.name, expression.value);
+}
+
+NamedExpression wrapNamedExpression(Tuple2<String, Expression> tuple) {
+  return new NamedExpression(tuple.first, tuple.second);
+}
+
+TextSerializer<Arguments> argumentsSerializer = new Wrapped(
+    unwrapArguments,
+    wrapArguments,
+    Tuple3Serializer(
+        new ListSerializer(dartTypeSerializer),
+        new ListSerializer(expressionSerializer),
+        new ListSerializer(namedExpressionSerializer)));
+
+Tuple3<List<DartType>, List<Expression>, List<NamedExpression>> unwrapArguments(
+    Arguments arguments) {
+  return new Tuple3(arguments.types, arguments.positional, arguments.named);
+}
+
+Arguments wrapArguments(
+    Tuple3<List<DartType>, List<Expression>, List<NamedExpression>> tuple) {
+  return new Arguments(tuple.second, types: tuple.first, named: tuple.third);
+}
 
 class VariableDeclarationTagger implements Tagger<VariableDeclaration> {
   const VariableDeclarationTagger();
@@ -539,6 +657,12 @@ void initializeSerializers() {
     "map",
     "const-map",
     "let",
+    "get-prop",
+    "set-prop",
+    "get-super",
+    "set-super",
+    "invoke-method",
+    "invoke-super",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -567,6 +691,12 @@ void initializeSerializers() {
     mapLiteralSerializer,
     constMapLiteralSerializer,
     letSerializer,
+    propertyGetSerializer,
+    propertySetSerializer,
+    superPropertyGetSerializer,
+    superPropertySetSerializer,
+    methodInvocationSerializer,
+    superMethodInvocationSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",

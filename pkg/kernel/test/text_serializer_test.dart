@@ -32,6 +32,11 @@ String writeExpression(Expression expression) {
 void test() {
   List<String> failures = [];
   List<String> tests = [
+    "(get-prop (int 0) (public \"hashCode\"))",
+    "(get-super (public \"hashCode\"))",
+    "(invoke-method (int 0) (public \"foo\") () ((int 1) (int 2)) ())",
+    "(invoke-method (int 0) (public \"foo\") ((dynamic) (void)) "
+        "((int 1) (int 2)) (\"others\" (list (dynamic) ((int 3) (int 4)))))",
     "(let (var \"x\" (dynamic) (int 0) ()) (null))",
     "(let (var \"x\" (dynamic) _ ()) (null))",
     "(let (const \"x\" (dynamic) (int 0) ()) (null))",

@@ -770,7 +770,7 @@ rasta/issue_000032: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000034: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000035a: TextSerializationFailure # Was: Pass
 rasta/issue_000035: TextSerializationFailure # Was: Pass
-rasta/issue_000036: TextSerializationFailure # Was: RuntimeError
+rasta/issue_000036: RuntimeError
 rasta/issue_000039: VerificationError
 rasta/issue_000041: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
