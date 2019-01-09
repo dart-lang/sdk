@@ -32,6 +32,8 @@
 % - Specify that a getter/setter and a method with the same basename is
 %   an error, also in the case where a class obtains both from its
 %   superinterfaces.
+% - Specify the Dart 2.0 rule that you cannot implement, extend or mix-in
+%   Function.
 %
 % 2.1
 % - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
@@ -8799,7 +8801,7 @@ of a static method on the denoted class.
 Let $T$ be the static type of $e$.
 It is a compile-time error if $T$ does not have a method or getter named \id{}
 unless $T$ is \DYNAMIC{},
-or $T$ is \FUNCTION{} and \id{} is \code{call}.
+or $T$ is \FUNCTION{} and \id{} is \CALL{}.
 The static type of $i$ is:
 
 \begin{itemize}
@@ -13722,12 +13724,45 @@ no subtype relationship exists.
 }
 
 \LMHash{}%
-A function object is always an instance of some class that implements the class \FUNCTION{}.
+A function object is always an instance of some class that implements the class \FUNCTION{} (\ref{functionType}).
 \commentary{%
 Consequently, all function types are subtypes of \FUNCTION{}
 (\ref{subtypes}).
 }
 
+
+\subsection{Type \FUNCTION{}}
+\LMLabel{functionType}
+
+\LMHash{}%
+The built-in class \FUNCTION{} is a supertype of all function types
+(\ref{functionTypes}).
+It is impossible to extend, implement, or mix in the class \FUNCTION{}.
+
+\LMHash{}%
+If a class declaration or mixin application has \FUNCTION{} as super-class,
+it instead uses \OBJECT{} as super-class.
+
+\LMHash{}%
+If a class or mixin declaration implements \FUNCTION{}, it has no effect.
+It is as if the \FUNCTION was removed from the \code{implements} clause (and if it's the only implemented interface, the entire clause is removed).
+The resulting class or mixin interface does not have \FUNCTION{} as a super-interface.
+
+\LMHash{}%
+If a mixin application mixes \FUNCTION{} onto a super-class, it follows the
+normal rules for mixin-application, but since the result of that mixin
+application is equivalent to a class with \code{implements Function}, and
+that clause has no effect, the resulting class also does not
+implement \FUNCTION{}. \commentary{The \FUNCTION{} class declares no
+concrete instance members, so the mixin application creates a sub-class
+of the superclass with no new members and no new interfaces.}
+
+\rationale{Since using \FUNCTION{} in these ways has no effect, it would be
+reasonable to disallow it completely, like we do extending, implementing or
+mixing in types like \code{int} or \code{String}.
+For backwards compatibility with Dart 1 programs, the syntax is allowed to remain,
+even if it has no effect. Tools may choose to warning users that their code
+has no effect.}
 
 \subsection{Type \DYNAMIC{}}
 \LMLabel{typeDynamic}
@@ -13826,7 +13861,7 @@ whenever doing so is sound.
   function expression invocation where an entity of static type \code{Type} is
   invoked. Note that it could actually succeed: An overriding implementation
   of \code{runtimeType} could return an instance whose dynamic type is a subtype
-  of \code{Type} that has a \code{call} method.
+  of \code{Type} that has a \CALL{} method.
   We decided to make it an error because it is likely to be a mistake,
   especially in cases like \code{$d$.hashCode()}
   where a developer might have forgotten that \code{hashCode} is a getter.
