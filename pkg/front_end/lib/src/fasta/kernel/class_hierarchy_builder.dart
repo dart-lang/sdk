@@ -386,16 +386,14 @@ class ClassHierarchyBuilder {
   }
 
   ClassHierarchyNode getNode(KernelTypeBuilder type) {
-    if (type is KernelNamedTypeBuilder) {
-      Declaration declaration = type.declaration;
-      if (declaration is KernelClassBuilder) {
-        ClassHierarchyNode node = nodes[declaration];
-        if (node == null && declaration is KernelClassBuilder) {
-          add(declaration);
-          node = nodes[declaration];
-        }
-        return node;
+    Declaration declaration = getDeclaration(type);
+    if (declaration is KernelClassBuilder) {
+      ClassHierarchyNode node = nodes[declaration];
+      if (node == null) {
+        add(declaration);
+        node = nodes[declaration];
       }
+      return node;
     }
     return null;
   }
