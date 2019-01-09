@@ -427,7 +427,7 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
 
   const Object& rhs = right_value->BoundConstant();
   int64_t modulus =
-      abs(rhs.IsSmi() ? Smi::Cast(rhs).Value() : Mint::Cast(rhs).value());
+      std::abs(rhs.IsSmi() ? Smi::Cast(rhs).Value() : Mint::Cast(rhs).value());
   if (!Utils::IsPowerOfTwo(modulus) || !Smi::IsValid(modulus - 1)) {
     return nullptr;
   }
