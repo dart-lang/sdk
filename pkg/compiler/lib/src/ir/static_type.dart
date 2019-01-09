@@ -148,7 +148,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     if (type is ir.InterfaceType) {
       ir.InterfaceType upcastType =
-          typeEnvironment.hierarchy.getTypeAsInstanceOf(type, superclass);
+          typeEnvironment.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
     } else if (type is ir.BottomType) {
       return superclass.bottomType;
@@ -604,8 +604,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (declaringClass.typeParameters.isEmpty) {
         resultType = node.interfaceTarget.getterType;
       } else {
-        ir.DartType receiver = typeEnvironment.hierarchy
-            .getTypeAsInstanceOf(typeEnvironment.thisType, declaringClass);
+        ir.DartType receiver = typeEnvironment.getTypeAsInstanceOf(
+            typeEnvironment.thisType, declaringClass);
         resultType = ir.Substitution.fromInterfaceType(receiver)
             .substituteType(node.interfaceTarget.getterType);
       }
@@ -637,8 +637,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       returnType = const ir.DynamicType();
     } else {
       ir.Class superclass = node.interfaceTarget.enclosingClass;
-      ir.InterfaceType receiverType = typeEnvironment.hierarchy
-          .getTypeAsInstanceOf(typeEnvironment.thisType, superclass);
+      ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
+          typeEnvironment.thisType, superclass);
       returnType = ir.Substitution.fromInterfaceType(receiverType)
           .substituteType(node.interfaceTarget.function.returnType);
       returnType = ir.Substitution.fromPairs(

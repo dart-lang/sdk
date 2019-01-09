@@ -2190,7 +2190,7 @@ abstract class Expression extends TreeNode {
       type = (type as TypeParameterType).parameter.bound;
     }
     if (type is InterfaceType) {
-      var upcastType = types.hierarchy.getTypeAsInstanceOf(type, superclass);
+      var upcastType = types.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
     } else if (type is BottomType) {
       return superclass.bottomType;
@@ -2558,8 +2558,7 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
+    var receiver = types.getTypeAsInstanceOf(types.thisType, declaringClass);
     return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
@@ -2881,8 +2880,7 @@ class SuperMethodInvocation extends InvocationExpression {
   DartType getStaticType(TypeEnvironment types) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
+    var receiverType = types.getTypeAsInstanceOf(types.thisType, superclass);
     var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
