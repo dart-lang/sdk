@@ -16,6 +16,10 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
+AVAILABLE_ARCHS = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
+    'simarmv5te', 'armv5te', 'simarm64', 'arm64',
+    'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
+
 
 usage = """\
 usage: %%prog [options] [targets]
@@ -28,8 +32,7 @@ def BuildOptions():
   result = optparse.OptionParser(usage=usage)
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-              'simarm64,arm64,simdbc,armsimdbc]',
+      metavar='[all,' + ','.join(AVAILABLE_ARCHS) + ']',
       default=utils.GuessArchitecture())
   result.add_option("-b", "--bytecode",
       help='Build with the kernel bytecode interpreter. DEPRECATED.',
@@ -82,10 +85,7 @@ def ProcessOptions(options, args):
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
-             'simarmv5te', 'armv5te', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
-    if not arch in archs:
+    if not arch in AVAILABLE_ARCHS:
       print "Unknown arch %s" % arch
       return False
   options.os = [ProcessOsOption(os_name) for os_name in options.os]
