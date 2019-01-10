@@ -80,7 +80,7 @@ class TextSerializationVerifier implements Visitor<void> {
     stream.moveNext();
     T result;
     try {
-      result = serializer.readFrom(stream);
+      result = serializer.readFrom(stream, null);
     } catch (exception) {
       failures.add(
           new TextDeserializationFailure(exception.toString(), uri, offset));
@@ -96,7 +96,7 @@ class TextSerializationVerifier implements Visitor<void> {
       T node, TextSerializer<T> serializer, Uri uri, int offset) {
     StringBuffer buffer = new StringBuffer();
     try {
-      serializer.writeTo(buffer, node);
+      serializer.writeTo(buffer, node, null);
     } catch (exception) {
       failures
           .add(new TextSerializationFailure(exception.toString(), uri, offset));

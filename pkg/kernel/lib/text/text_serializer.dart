@@ -95,6 +95,8 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitSuperPropertySet(SuperPropertySet _) => "set-super";
   String visitMethodInvocation(MethodInvocation _) => "invoke-method";
   String visitSuperMethodInvocation(SuperMethodInvocation _) => "invoke-super";
+
+  String visitVariableGet(VariableGet _) => "get-var";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -368,16 +370,36 @@ MapLiteral wrapConstMapLiteral(
       keyType: tuple.first, valueType: tuple.second, isConst: true);
 }
 
-TextSerializer<Let> letSerializer = new Wrapped(unwrapLet, wrapLet,
-    new Tuple2Serializer(variableDeclarationSerializer, expressionSerializer));
+class LetSerializer extends TextSerializer<Let> {
+  const LetSerializer();
 
-Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
-  return new Tuple2(expression.variable, expression.body);
+  Let readFrom(
+      Iterator<Object> stream, DeserializationEnvironment environment) {
+    VariableDeclaration variable =
+        variableDeclarationSerializer.readFrom(stream, environment);
+    Expression body = expressionSerializer.readFrom(
+        stream,
+        new DeserializationEnvironment(environment)
+          ..add(variable.name, variable));
+    return new Let(variable, body);
+  }
+
+  void writeTo(
+      StringBuffer buffer, Let object, SerializationEnvironment environment) {
+    SerializationEnvironment bodyScope =
+        new SerializationEnvironment(environment);
+    VariableDeclaration variable = object.variable;
+    String oldVariableName = variable.name;
+    String newVariableName = bodyScope.add(variable, oldVariableName);
+    variableDeclarationSerializer.writeTo(
+        buffer, variable..name = newVariableName, environment);
+    variable.name = oldVariableName;
+    buffer.write(' ');
+    expressionSerializer.writeTo(buffer, object.body, bodyScope);
+  }
 }
 
-Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
-  return new Let(tuple.first, tuple.second);
-}
+TextSerializer<Let> letSerializer = const LetSerializer();
 
 TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
     unwrapPropertyGet,
@@ -457,6 +479,21 @@ Tuple2<Name, Arguments> unwrapSuperMethodInvocation(
 
 SuperMethodInvocation wrapSuperMethodInvocation(Tuple2<Name, Arguments> tuple) {
   return new SuperMethodInvocation(tuple.first, tuple.second);
+}
+
+TextSerializer<VariableGet> variableGetSerializer = new Wrapped(
+    unwrapVariableGet,
+    wrapVariableGet,
+    new Tuple2Serializer(const ScopedReference<VariableDeclaration>(),
+        new Optional(dartTypeSerializer)));
+
+Tuple2<VariableDeclaration, DartType> unwrapVariableGet(VariableGet node) {
+  return new Tuple2<VariableDeclaration, DartType>(
+      node.variable, node.promotedType);
+}
+
+VariableGet wrapVariableGet(Tuple2<VariableDeclaration, DartType> tuple) {
+  return new VariableGet(tuple.first, tuple.second);
 }
 
 Case<Expression> expressionSerializer =
@@ -663,6 +700,7 @@ void initializeSerializers() {
     "set-super",
     "invoke-method",
     "invoke-super",
+    "get-var",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -697,6 +735,7 @@ void initializeSerializers() {
     superPropertySetSerializer,
     methodInvocationSerializer,
     superMethodInvocationSerializer,
+    variableGetSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
