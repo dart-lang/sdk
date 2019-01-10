@@ -148,6 +148,8 @@ td.pre {
 }
 ''';
 
+/// TODO(devoncarew): We're not currently tracking the time spent in specific
+/// lints by default (analysisOptions / driverOptions enableTiming)
 final bool _showLints = false;
 
 String get _sdkVersion {
@@ -160,6 +162,74 @@ String get _sdkVersion {
 
 String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
+}
+
+abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
+  AbstractCompletionPage(DiagnosticsSite site)
+      : super(site, 'completion', 'Code Completion',
+            description: 'Latency statistics for code completion.');
+
+  pathPackage.Context get pathContext;
+  List<CompletionPerformance> get performanceItems;
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+
+    List<CompletionPerformance> completions = performanceItems;
+
+    if (completions.isEmpty) {
+      blankslate('No completions recorded.');
+      return;
+    }
+
+    int fastCount =
+        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
+
+    // draw a chart
+    buf.writeln(
+        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
+    StringBuffer rowData = new StringBuffer();
+    for (int i = completions.length - 1; i >= 0; i--) {
+      // [' ', 101.5]
+      if (rowData.isNotEmpty) {
+        rowData.write(',');
+      }
+      rowData.write("[' ', ${completions[i].elapsedInMilliseconds}]");
+    }
+    buf.writeln('''
+      <script type="text/javascript">
+      google.charts.load('current', {'packages':['bar']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Completions', 'Time'],
+          $rowData
+        ]);
+        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
+        var chart = new google.charts.Bar(document.getElementById('chart-div'));
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+      }
+      </script>
+''');
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
+    for (CompletionPerformance completion in completions) {
+      String shortName = pathContext.basename(completion.path);
+      buf.writeln('<tr>'
+          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
+          '<td class="right">${completion.suggestionCount}</td>'
+          '<td>${escape(shortName)}</td>'
+          '<td><code>${escape(completion.snippet)}</code></td>'
+          '</tr>');
+    }
+    buf.writeln('</table>');
+  }
 }
 
 class AstPage extends DiagnosticPageWithNav {
@@ -297,74 +367,6 @@ class CommunicationsPage extends DiagnosticPageWithNav {
           classes: ["right", null]);
     }
     buf.write('</table>');
-  }
-}
-
-abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
-  AbstractCompletionPage(DiagnosticsSite site)
-      : super(site, 'completion', 'Code Completion',
-            description: 'Latency statistics for code completion.');
-
-  pathPackage.Context get pathContext;
-  List<CompletionPerformance> get performanceItems;
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
-    List<CompletionPerformance> completions = performanceItems;
-
-    if (completions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    int fastCount =
-        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
-    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
-
-    // draw a chart
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = new StringBuffer();
-    for (int i = completions.length - 1; i >= 0; i--) {
-      // [' ', 101.5]
-      if (rowData.isNotEmpty) {
-        rowData.write(',');
-      }
-      rowData.write("[' ', ${completions[i].elapsedInMilliseconds}]");
-    }
-    buf.writeln('''
-      <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
-          $rowData
-        ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
-        var chart = new google.charts.Bar(document.getElementById('chart-div'));
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-      </script>
-''');
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
-    for (CompletionPerformance completion in completions) {
-      String shortName = pathContext.basename(completion.path);
-      buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCount}</td>'
-          '<td>${escape(shortName)}</td>'
-          '<td><code>${escape(completion.snippet)}</code></td>'
-          '</tr>');
-    }
-    buf.writeln('</table>');
   }
 }
 
@@ -1094,9 +1096,6 @@ class NotFoundPage extends DiagnosticPage {
 }
 
 class PluginsPage extends DiagnosticPageWithNav {
-  // TODO(devoncarew): We're not currently tracking the time spent in specific
-  // lints by default (analysisOptions / driverOptions enableTiming)
-
   @override
   AnalysisServer server;
 
