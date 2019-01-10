@@ -2296,8 +2296,8 @@ var v_postfix_mm = (new A().f--);
   test_infer_assignToProperty_custom() async {
     await checkFileElement(r'''
 class A {
-  int operator +(other) => 1;
-  double operator -(other) => 2.0;
+  A operator +(other) => this;
+  A operator -(other) => this;
 }
 class B {
   A a;

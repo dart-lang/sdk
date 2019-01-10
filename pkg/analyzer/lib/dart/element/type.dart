@@ -75,6 +75,12 @@ abstract class DartType {
   bool get isDartCoreFunction;
 
   /**
+   * Return `true` if this type represents the type 'int' defined in the
+   * dart:core library.
+   */
+  bool get isDartCoreInt;
+
+  /**
    * Return `true` if this type represents the type 'Null' defined in the
    * dart:core library.
    */

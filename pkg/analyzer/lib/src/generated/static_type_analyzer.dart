@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
@@ -840,13 +840,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand, read: true);
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
-      DartType intType = _typeProvider.intType;
-      if (identical(staticType, intType)) {
-        staticType = intType;
-      }
+
+    // No need to check for `intVar++`, the result is `int`.
+    if (!staticType.isDartCoreInt) {
+      var operatorElement = node.staticElement;
+      var operatorReturnType = _computeStaticReturnType(operatorElement);
+      _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
     }
+
     _recordStaticType(node, staticType);
   }
 
@@ -904,9 +905,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       if (operator == TokenType.MINUS_MINUS ||
           operator == TokenType.PLUS_PLUS) {
-        DartType intType = _typeProvider.intType;
-        if (identical(_getStaticType(node.operand, read: true), intType)) {
-          staticType = intType;
+        Expression operand = node.operand;
+        var operandReadType = _getStaticType(operand, read: true);
+        if (operandReadType.isDartCoreInt) {
+          staticType = _typeProvider.intType;
+        } else {
+          _checkForInvalidAssignmentIncDec(node, operand, staticType);
         }
       }
       _recordStaticType(node, staticType);
@@ -1197,6 +1201,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             _dynamicType;
 
     _recordStaticType(node, staticType);
+  }
+
+  /// Check that the result [type] of a prefix or postfix `++` or `--`
+  /// expression is assignable to the write type of the [operand].
+  void _checkForInvalidAssignmentIncDec(
+      AstNode node, Expression operand, DartType type) {
+    var operandWriteType = _getStaticType(operand);
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+      _resolver.errorReporter.reportTypeErrorForNode(
+        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        node,
+        [type, operandWriteType],
+      );
+    }
   }
 
   /**

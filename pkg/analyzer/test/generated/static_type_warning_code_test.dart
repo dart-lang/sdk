@@ -556,6 +556,70 @@ f() {
 }''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
+  test_invalidAssignment_postfixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  a++;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_postfixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  c.a++;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_prefixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  ++a;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_prefixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  ++c.a;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
   test_invalidAssignment_regressionInIssue18468Fix() async {
     // https://code.google.com/p/dart/issues/detail?id=18628
     await assertErrorsInCode(r'''

@@ -57,7 +57,7 @@ class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
   @override
   bool get enableNewAnalysisDriver => true;
 
-  solo_test_emptySetLiteral_parameter_typed() async {
+  test_emptySetLiteral_parameter_typed() async {
     String code = r'''
 main() {
   useSet({});
