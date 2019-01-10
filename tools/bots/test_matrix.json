@@ -176,7 +176,7 @@
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
-      }},
+    }},
     "unittest-asserts-(release|debug)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -184,15 +184,15 @@
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
-      }},
+    }},
     "unittest-asserts-no-sdk-(linux|mac|win)": {
-        "options": {
-          "compiler": "dartk",
-          "enable-asserts": true,
-          "mode": "release",
-          "runtime": "vm",
-          "timeout": 240
-        }},
+      "options": {
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240
+    }},
     "unittest-analyzer_use_fasta-linux": {
       "options": {
         "compiler": "none",
@@ -201,76 +201,80 @@
         "use-sdk": true,
         "vm-options": ["-DuseFastaParser=true"],
         "builder-tag": "analyzer_use_fasta"
-      }},
+    }},
     "dartk-asan-linux-release-(ia32|x64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
-      }},
+    }},
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
         "use-sdk": true
-      }},
+    }},
     "dart2js-(linux|win)-firefox": {
       "options": {
         "use-sdk": true
-      }},
+    }},
     "dart2js-win-(ie11|edge)": {
       "options": {
         "use-sdk": true
-      }},
+    }},
     "dart2js-mac-safari": {
       "options": {
         "use-sdk": true
-      }},
+    }},
     "dart2js-faststartup-(linux|mac|win)-chrome": {
       "options": {
         "fast-startup": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-faststartup-(linux|win)-firefox": {
       "options": {
         "fast-startup": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-faststartup-win-(ie11|edge)": {
       "options": {
         "fast-startup": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-faststartup-mac-safari": {
       "options": {
         "fast-startup": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-minified-csp-linux-chrome": {
       "options": {
         "minified": true,
         "csp": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-minified-faststartup-csp-linux-chrome": {
       "options": {
         "minified": true,
         "csp": true,
         "fast-startup": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-minified-linux-d8": {
       "options": {
         "minified": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-minified-faststartup-linux-d8": {
       "options": {
         "minified": true,
         "fast-startup": true,
         "use-sdk": true
-      }},
+    }},
     "dart2js-hostasserts-linux-ia32-d8": {
       "options": {
         "host-checked": true
-      }},
+    }},
+    "dartkp-android-release-arm": {
+      "options": {
+        "use-blobs": true
+    }},
     "dartkp-linux-release-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
@@ -310,49 +314,49 @@
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": ["--optimization-counter-threshold=5"]
-      }},
+    }},
     "dartk-reload-linux-(debug|release)-x64": {
       "options": {
         "hot-reload": true
-      }},
+    }},
     "dartk-reload-mac-(debug|release)-simdbc64": {
       "options": {
         "hot-reload": true
-      }},
+    }},
     "dartk-reload-rollback-linux-(debug|release)-x64": {
       "options": {
         "hot-reload-rollback": true
-      }},
+    }},
     "app_jitk-linux-(debug|product|release)-x64": { },
     "dartkb-interpret-linux-(debug|release)-x64": {
       "options": {
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
-      }},
+    }},
     "dartkb-mixed-linux-(debug|release)-x64": {
       "options": {
         "vm-options": ["--enable_interpreter"]
-      }},
+    }},
     "dartkb-compile-linux-(debug|release)-x64": {
       "options": {
         "vm-options": ["--use_bytecode_compiler"]
-      }},
+    }},
     "(dartdevc|dartdevk)-checked-(linux|mac|win)-release-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true
-      }},
+    }},
     "fasta-(linux|mac|win)": { },
     "analyzer-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "use-sdk": true
-      }},
+    }},
     "analyzer-asserts-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
-      }}
+    }}
   },
   "builder_configurations": [
     {
@@ -482,6 +486,33 @@
           "arguments": [
             "-ndartk-linux-debug-x64",
             "vm"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-android-release-arm"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm precomp builders on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime",
+            "--os=android"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-android-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 15
         }
       ]
     },
