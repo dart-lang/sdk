@@ -398,7 +398,6 @@ class JavaScriptBackend {
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
     _checkedModeHelpers = new CheckedModeHelpers();
     emitter = new CodeEmitterTask(compiler, generateSourceMap);
-
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     functionCompiler = new SsaFunctionCompiler(
