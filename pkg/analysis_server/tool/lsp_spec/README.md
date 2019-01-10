@@ -38,6 +38,7 @@ Below is a list of LSP methods and their implementation status.
 | client/registerCapability | | | | | unused, but should be used for DocumentSelector at least
 | client/unregisterCapability | | | | |
 | workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
+| workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
 | workspace/symbol | | | | |
 | workspace/executeCommand | ✅ | ✅ | ✅ | ✅ |
 | workspace/applyEdit | ✅ | ✅ | ✅ | ✅ |
@@ -55,7 +56,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/typeDefinition | | | | |
 | textDocument/implementation | | | | |
 | textDocument/references | ✅ | ✅ | ✅ | ✅ |
-| textDocument/documentHighlight | | | | |
+| textDocument/documentHighlight | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |

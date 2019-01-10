@@ -72,7 +72,7 @@ class InitializeMessageHandler
         null,
         null,
         true, // referencesProvider
-        null,
+        true, // documentHighlightProvider
         true, // documentSymbolProvider
         null,
         // "The `CodeActionOptions` return type is only valid if the client

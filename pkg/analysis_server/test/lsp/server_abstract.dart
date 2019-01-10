@@ -280,6 +280,18 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
+  Future<List<DocumentHighlight>> getDocumentHighlights(
+      Uri uri, Position pos) async {
+    final request = makeRequest(
+      Method.textDocument_documentHighlight,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<DocumentHighlight>>(request);
+  }
+
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
       getDocumentSymbols(String fileUri) async {
     final request = makeRequest(
@@ -433,10 +445,10 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   Position positionFromMarker(String contents) =>
-      positionFromOffset(contents.indexOf('^'), contents);
+      positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
 
   Position positionFromOffset(int offset, String contents) {
-    final lineInfo = LineInfo.fromContent(contents);
+    final lineInfo = LineInfo.fromContent(withoutMarkers(contents));
     return toPosition(lineInfo.getLocation(offset));
   }
 
@@ -444,19 +456,51 @@ abstract class AbstractLspAnalysisServerTest
   /// excluding the markers themselves (as well as position markers `^` from
   /// the offsets).
   Range rangeFromMarkers(String contents) {
-    contents = contents.replaceAll(positionMarker, '');
-    final start = contents.indexOf(rangeMarkerStart);
-    if (start == -1) {
-      throw 'Contents did not contain $rangeMarkerStart';
+    final ranges = rangesFromMarkers(contents);
+    if (ranges.length == 1) {
+      return ranges.first;
+    } else if (ranges.isEmpty) {
+      throw 'Contents did not include a marked range';
+    } else {
+      throw 'Contents contained multiple ranges but only one was expected';
     }
-    final end = contents.indexOf(rangeMarkerEnd);
-    if (end == -1) {
-      throw 'Contents did not contain $rangeMarkerEnd';
+  }
+
+  /// Returns all ranges surrounded by `[[markers]]` in the provided string,
+  /// excluding the markers themselves (as well as position markers `^` from
+  /// the offsets).
+  List<Range> rangesFromMarkers(String content) {
+    Iterable<Range> rangesFromMarkersImpl(String content) sync* {
+      content = content.replaceAll(positionMarker, '');
+      final contentsWithoutMarkers = withoutMarkers(content);
+      var searchStartIndex = 0;
+      var offsetForEarlierMarkers = 0;
+      while (true) {
+        final startMarker = content.indexOf(rangeMarkerStart, searchStartIndex);
+        if (startMarker == -1) {
+          return; // Exit if we didn't find any more.
+        }
+        final endMarker = content.indexOf(rangeMarkerEnd, startMarker);
+        if (endMarker == -1) {
+          throw 'Found unclosed range starting at offset $startMarker';
+        }
+        yield new Range(
+          positionFromOffset(
+              startMarker + offsetForEarlierMarkers, contentsWithoutMarkers),
+          positionFromOffset(
+              endMarker + offsetForEarlierMarkers - rangeMarkerStart.length,
+              contentsWithoutMarkers),
+        );
+        // Start the next search after this one, but remember to offset the future
+        // results by the lengths of these markers since they shouldn't affect the
+        // offsets.
+        searchStartIndex = endMarker;
+        offsetForEarlierMarkers -=
+            rangeMarkerStart.length + rangeMarkerEnd.length;
+      }
     }
-    return new Range(
-      positionFromOffset(start, contents),
-      positionFromOffset(end - rangeMarkerStart.length, contents),
-    );
+
+    return rangesFromMarkersImpl(content).toList();
   }
 
   Future replaceFile(int newVersion, Uri uri, String content) async {
@@ -523,6 +567,10 @@ abstract class AbstractLspAnalysisServerTest
   /// positions/ranges in strings to avoid hard-coding positions in tests.
   String withoutMarkers(String contents) =>
       contents.replaceAll(allMarkersPattern, '');
+
+  /// Removes range markers from strings to give accurate position offsets.
+  String withoutRangeMarkers(String contents) =>
+      contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 }
 
 mixin ClientCapabilitiesHelperMixin {

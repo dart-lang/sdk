@@ -1,0 +1,95 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'server_abstract.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DocumentHighlightsTest);
+  });
+}
+
+@reflectiveTest
+class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
+  test_functions() => _testMarkedContent('''
+    [[main]]() {
+      [[mai^n]]();
+    }
+    ''');
+
+  test_localVariable() => _testMarkedContent('''
+    main() {
+      var [[f^oo]] = 1;
+      print([[foo]]);
+      [[foo]] = 2;
+    }
+    ''');
+
+  test_noResult() => _testMarkedContent('''
+    main() {
+      // This one is in a ^ comment!
+    }
+    ''');
+
+  test_onlySelf() => _testMarkedContent('''
+    main() {
+      [[prin^t]]();
+    }
+    ''');
+
+  test_shadow_inner() => _testMarkedContent('''
+    main() {
+      var foo = 1;
+      func() {
+        var [[fo^o]] = 2;
+        print([[foo]]);
+      }
+    }
+    ''');
+
+  test_shadow_outer() => _testMarkedContent('''
+    main() {
+      var [[foo]] = 1;
+      func() {
+        var foo = 2;
+        print(foo);
+      }
+      print([[fo^o]]);
+    }
+    ''');
+
+  test_topLevelVariable() => _testMarkedContent('''
+    String [[foo]] = 'bar';
+    main() {
+      print([[foo]]);
+      [[fo^o]] = 2;
+    }
+    ''');
+
+  /// Tests highlights in a Dart file using the provided content.
+  /// The content should be marked with a ^ where the highlights request should
+  /// be invoked and with `[[double brackets]]` around each range expected to
+  /// be highlighted (eg. all references to the symbol under ^).
+  /// If the content does not include any `[[double brackets]]` then the response
+  /// is expected to be `null`.
+  _testMarkedContent(String content) async {
+    final expectedRanges = rangesFromMarkers(content);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final pos = positionFromMarker(content);
+    final highlights = await getDocumentHighlights(mainFileUri, pos);
+
+    if (expectedRanges.isEmpty) {
+      expect(highlights, isNull);
+    } else {
+      final highlightRanges = highlights.map((h) => h.range).toList();
+      expect(highlightRanges, equals(expectedRanges));
+    }
+  }
+}

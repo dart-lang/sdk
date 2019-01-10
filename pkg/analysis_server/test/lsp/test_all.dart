@@ -13,6 +13,7 @@ import 'completion_test.dart' as completion_test;
 import 'definition_test.dart' as definition_test;
 import 'diagnostic_test.dart' as diagnostic_test;
 import 'document_symbols_test.dart' as document_symbols_test;
+import 'document_highlights_test.dart' as document_highlights_test;
 import 'file_modification_test.dart' as file_modification_test;
 import 'format_test.dart' as format_test;
 import 'hover_test.dart' as hover_test;
@@ -28,6 +29,7 @@ main() {
     definition_test.main();
     diagnostic_test.main();
     document_symbols_test.main();
+    document_highlights_test.main();
     file_modification_test.main();
     priority_files_test.main();
     format_test.main();

@@ -400,6 +400,14 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
+List<lsp.DocumentHighlight> toHighlights(
+    server.LineInfo lineInfo, server.Occurrences occurrences) {
+  return occurrences.offsets
+      .map((offset) => new lsp.DocumentHighlight(
+          toRange(lineInfo, offset, occurrences.length), null))
+      .toList();
+}
+
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
   lsp.Position pos, {
