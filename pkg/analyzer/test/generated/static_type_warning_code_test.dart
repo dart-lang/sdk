@@ -193,6 +193,13 @@ void main() {
     ]);
   }
 
+  test_defaultSetLiteralNotEnabled() async {
+    await assertErrorsInCode(r'''
+void main() {
+  Set _ = {};
+}''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
   test_expectedOneListTypeArgument() async {
     await assertErrorsInCode(r'''
 main() {

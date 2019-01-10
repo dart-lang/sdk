@@ -434,6 +434,9 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   bool get strongModeHints => false;
 
   @override
+  List<String> get enabledExperiments => [];
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

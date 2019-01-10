@@ -93,7 +93,6 @@ regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 regress_33479_test/01: Crash # Issue #33479
-set_literals/*: Skip
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 super_bound_closure_test/none: CompileTimeError

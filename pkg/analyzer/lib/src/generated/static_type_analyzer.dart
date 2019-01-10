@@ -10,12 +10,14 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
@@ -52,6 +54,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _dynamicType;
 
   /**
+   * The status of the active experiments of the current context.
+   */
+  ExperimentStatus _enabledExperiments;
+
+  /**
    * The type representing the class containing the nodes being analyzed,
    * or `null` if the nodes are not within a class.
    */
@@ -72,6 +79,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _promoteManager = _resolver.promoteManager;
+    _enabledExperiments = ExperimentStatus.fromStrings(
+        _resolver.definingLibrary.context.analysisOptions.enabledExperiments);
   }
 
   /**
@@ -176,6 +185,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (contextType != null &&
         node.typeArguments == null &&
         node.entries.isEmpty &&
+        _enabledExperiments.set_literals &&
         _typeSystem.isAssignableTo(_typeProvider.setNullType, contextType) &&
         !_typeSystem.isAssignableTo(
             _typeProvider.mapNullNullType, contextType)) {

@@ -251,6 +251,7 @@ class CompilerAnalysisDriver {
           ..addBundle(null, bundle));
     context.resultProvider = resultProvider;
     context.contentCache = _ContentCacheWrapper(fsState);
+    context.analysisOptions = analysisOptions;
 
     var resynthesizer = resultProvider.resynthesizer;
     _extensionTypes ??= ExtensionTypeSet(context.typeProvider, resynthesizer);

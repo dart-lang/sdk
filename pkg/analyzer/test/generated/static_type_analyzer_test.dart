@@ -32,6 +32,7 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
     defineReflectiveTests(StaticTypeAnalyzer3Test);
@@ -46,6 +47,27 @@ main() {
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
+}
+
+@reflectiveTest
+class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
+  @override
+  List<String> get enabledExperiments => [EnableString.set_literals];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  solo_test_emptySetLiteral_parameter_typed() async {
+    String code = r'''
+main() {
+  useSet({});
+}
+void useSet(Set<int> s) {
+}
+''';
+    await resolveTestUnit(code);
+    expectExpressionType('{}', 'Set<int>');
+  }
 }
 
 /**
@@ -209,18 +231,6 @@ void useMap(Map<int, int> m) {
 ''';
     await resolveTestUnit(code);
     expectExpressionType('{}', 'Map<int, int>');
-  }
-
-  test_emptySetLiteral_parameter_typed() async {
-    String code = r'''
-main() {
-  useSet({});
-}
-void useSet(Set<int> s) {
-}
-''';
-    await resolveTestUnit(code);
-    expectExpressionType('{}', 'Set<int>');
   }
 }
 
