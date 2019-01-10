@@ -89,6 +89,42 @@ main() {
           .replaceAll(new RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
+
+    test('ResponseMessage does not include an error with a result', () {
+      final id = new Either2<num, String>.t1(1);
+      final result = 'my result';
+      final resp = new ResponseMessage(id, result, null, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('result'));
+      expect(jsonMap, isNot(contains('error')));
+    });
+
+    test('ResponseMessage can include a null result', () {
+      final id = new Either2<num, String>.t1(1);
+      final resp = new ResponseMessage(id, null, null, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('result'));
+      expect(jsonMap, isNot(contains('error')));
+    });
+
+    test('ResponseMessage does not include a result for an error', () {
+      final id = new Either2<num, String>.t1(1);
+      final error =
+          new ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final resp = new ResponseMessage(id, null, error, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('error'));
+      expect(jsonMap, isNot(contains('result')));
+    });
+
+    test('ResponseMessage throws if both result and error are non-null', () {
+      final id = new Either2<num, String>.t1(1);
+      final result = 'my result';
+      final error =
+          new ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final resp = new ResponseMessage(id, result, error, jsonRpcVersion);
+      expect(resp.toJson, throwsA(new TypeMatcher<String>()));
+    });
   });
 
   group('fromJson', () {

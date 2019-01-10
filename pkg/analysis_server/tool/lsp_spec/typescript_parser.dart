@@ -353,7 +353,8 @@ class Parser {
           : remainingTypes.single;
     } else if (isAnyType(type)) {
       // There are values in the spec marked as `any` that allow nulls (for
-      // example, the result field on ResponseMessage can be null).
+      // example, the result field on ResponseMessage can be null for a
+      // successful response that has no return value, eg. shutdown).
       canBeNull = true;
     }
     return Field(leadingComment, name, type, canBeNull, canBeUndefined);

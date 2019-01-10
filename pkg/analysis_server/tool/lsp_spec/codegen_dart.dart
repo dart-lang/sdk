@@ -471,16 +471,8 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
 
 void _writeJsonMapAssignment(
     IndentableStringBuffer buffer, Field field, String mapName) {
-  // If we are allowed to be undefined but not allowed to be null, we must not
-  // emit the value if it's null. This isn't perfect because it means handlers
-  // we can't have a value that is sometimes omitted and sometimes null - for
-  // example ResponseMessage.result should be `null` for shutdown, yet omitted
-  // for errors. Since it's not  a *requirement* to omit `result` for an error
-  // we'll just let ot go as null. If this turns out to be a problem we will
-  // have to map it to a value that is able to represent both.
-  // TODO(dantup): Review this logic when there is a response to
-  // https://github.com/Microsoft/language-server-protocol/issues/657
-  final shouldBeOmittedIfNoValue = field.allowsUndefined && !field.allowsNull;
+  // If we are allowed to be undefined, we'll only add the value if set.
+  final shouldBeOmittedIfNoValue = field.allowsUndefined;
   if (shouldBeOmittedIfNoValue) {
     buffer
       ..writeIndentedln('if (${field.name} != null) {')
@@ -519,11 +511,47 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('Map<String, dynamic> toJson() {')
     ..indent()
     ..writeIndentedln('Map<String, dynamic> __result = {};');
-  for (var field in _getAllFields(interface)) {
-    _writeJsonMapAssignment(buffer, field, '__result');
+  // ResponseMessage must confirm to JSON-RPC which says only one of
+  // result/error can be included. Since this isn't encoded in the types we
+  // need to special-case it's toJson generation.
+  if (interface.name == "ResponseMessage") {
+    _writeToJsonFieldsForResponseMessage(buffer, interface);
+  } else {
+    for (var field in _getAllFields(interface)) {
+      _writeJsonMapAssignment(buffer, field, '__result');
+    }
   }
   buffer
     ..writeIndentedln('return __result;')
+    ..outdent()
+    ..writeIndentedln('}');
+}
+
+void _writeToJsonFieldsForResponseMessage(
+    IndentableStringBuffer buffer, Interface interface) {
+  const mapName = '__result';
+
+  final allFields = _getAllFields(interface);
+  final standardFields =
+      allFields.where((f) => f.name != 'error' && f.name != 'result');
+
+  for (var field in standardFields) {
+    _writeJsonMapAssignment(buffer, field, mapName);
+  }
+
+  // Write special code for result/error so that only one is populated.
+  buffer
+    ..writeIndentedln('if (error != null && result != null) {')
+    ..indent()
+    ..writeIndentedln('''throw 'result and error cannot both be set';''')
+    ..outdent()
+    ..writeIndentedln('} else if (error != null) {')
+    ..indent()
+    ..writeIndentedln('''$mapName['error'] = error;''')
+    ..outdent()
+    ..writeIndentedln('} else {')
+    ..indent()
+    ..writeIndentedln('''$mapName['result'] = result;''')
     ..outdent()
     ..writeIndentedln('}');
 }

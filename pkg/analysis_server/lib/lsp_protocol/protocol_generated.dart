@@ -199,7 +199,9 @@ class ClientCapabilities implements ToJsonable {
     if (textDocument != null) {
       __result['textDocument'] = textDocument;
     }
-    __result['experimental'] = experimental;
+    if (experimental != null) {
+      __result['experimental'] = experimental;
+    }
     return __result;
   }
 
@@ -697,7 +699,9 @@ class CodeLens implements ToJsonable {
     if (command != null) {
       __result['command'] = command;
     }
-    __result['data'] = data;
+    if (data != null) {
+      __result['data'] = data;
+    }
     return __result;
   }
 
@@ -1526,7 +1530,9 @@ class CompletionItem implements ToJsonable {
     if (command != null) {
       __result['command'] = command;
     }
-    __result['data'] = data;
+    if (data != null) {
+      __result['data'] = data;
+    }
     return __result;
   }
 
@@ -3226,7 +3232,9 @@ class DocumentLink implements ToJsonable {
     if (target != null) {
       __result['target'] = target;
     }
-    __result['data'] = data;
+    if (data != null) {
+      __result['data'] = data;
+    }
     return __result;
   }
 
@@ -4702,15 +4710,21 @@ class InitializeParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['processId'] = processId;
-    __result['rootPath'] = rootPath;
+    if (rootPath != null) {
+      __result['rootPath'] = rootPath;
+    }
     __result['rootUri'] = rootUri;
-    __result['initializationOptions'] = initializationOptions;
+    if (initializationOptions != null) {
+      __result['initializationOptions'] = initializationOptions;
+    }
     __result['capabilities'] =
         capabilities ?? (throw 'capabilities is required but was not set');
     if (trace != null) {
       __result['trace'] = trace;
     }
-    __result['workspaceFolders'] = workspaceFolders;
+    if (workspaceFolders != null) {
+      __result['workspaceFolders'] = workspaceFolders;
+    }
     return __result;
   }
 
@@ -6045,7 +6059,9 @@ class Registration implements ToJsonable {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
-    __result['registerOptions'] = registerOptions;
+    if (registerOptions != null) {
+      __result['registerOptions'] = registerOptions;
+    }
     return __result;
   }
 
@@ -6668,12 +6684,15 @@ class ResponseMessage implements Message, ToJsonable {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id;
-    __result['result'] = result;
-    if (error != null) {
-      __result['error'] = error;
-    }
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
+    if (error != null && result != null) {
+      throw 'result and error cannot both be set';
+    } else if (error != null) {
+      __result['error'] = error;
+    } else {
+      __result['result'] = result;
+    }
     return __result;
   }
 
@@ -6998,8 +7017,12 @@ class ServerCapabilities implements ToJsonable {
     if (definitionProvider != null) {
       __result['definitionProvider'] = definitionProvider;
     }
-    __result['typeDefinitionProvider'] = typeDefinitionProvider;
-    __result['implementationProvider'] = implementationProvider;
+    if (typeDefinitionProvider != null) {
+      __result['typeDefinitionProvider'] = typeDefinitionProvider;
+    }
+    if (implementationProvider != null) {
+      __result['implementationProvider'] = implementationProvider;
+    }
     if (referencesProvider != null) {
       __result['referencesProvider'] = referencesProvider;
     }
@@ -7035,15 +7058,21 @@ class ServerCapabilities implements ToJsonable {
     if (documentLinkProvider != null) {
       __result['documentLinkProvider'] = documentLinkProvider;
     }
-    __result['colorProvider'] = colorProvider;
-    __result['foldingRangeProvider'] = foldingRangeProvider;
+    if (colorProvider != null) {
+      __result['colorProvider'] = colorProvider;
+    }
+    if (foldingRangeProvider != null) {
+      __result['foldingRangeProvider'] = foldingRangeProvider;
+    }
     if (executeCommandProvider != null) {
       __result['executeCommandProvider'] = executeCommandProvider;
     }
     if (workspace != null) {
       __result['workspace'] = workspace;
     }
-    __result['experimental'] = experimental;
+    if (experimental != null) {
+      __result['experimental'] = experimental;
+    }
     return __result;
   }
 
